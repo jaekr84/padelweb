@@ -1,0 +1,562 @@
+/* ── Page layout ── */
+.page {
+    min-height: 100vh;
+    background: var(--background);
+    color: var(--foreground);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Top bar ── */
+.topBar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--surface-border);
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.topBarLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.backLink {
+    background: transparent;
+    border: 1px solid var(--surface-border);
+    color: var(--foreground);
+    padding: 0.45rem 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.backLink:hover {
+    background: var(--surface-border);
+}
+
+.tournamentName {
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.tournamentMeta {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+/* ── Category tabs ── */
+.catTabsRow {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+
+.catTabsRow::-webkit-scrollbar {
+    display: none;
+}
+
+.catTab {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    color: var(--text-muted);
+    padding: 0.35rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.catTab:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.catTab.active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+/* ── Workspace ── */
+.workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ── Left: player list ── */
+.sidePanel {
+    border-right: 1px solid var(--surface-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidePanelHeader {
+    padding: 0.875rem 1.125rem 0.625rem;
+    border-bottom: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.sidePanelTitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.sidePanelCount {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.playerList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.625rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    scrollbar-width: thin;
+}
+
+.playerCard {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.playerCard:hover {
+    border-color: var(--primary);
+    background: rgba(217, 249, 93, 0.04);
+    transform: translateY(-1px);
+}
+
+.playerCard.dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+}
+
+.playerCard.assigned {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+.dragHandle {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.playerCardName {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    flex: 1;
+}
+
+.playerCardSub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* ── Right: match assignment area ── */
+.bracketArea {
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+}
+
+.bracketHint {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Match grid: responsive 2-col */
+.matchGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.875rem;
+}
+
+/* ── Match card ── */
+.matchCard {
+    border: 1px solid var(--surface-border);
+    border-radius: 0.875rem;
+    overflow: hidden;
+    background: var(--surface);
+    transition: border-color 0.2s;
+}
+
+.matchCard:hover {
+    border-color: rgba(217, 249, 93, 0.3);
+}
+
+.matchCardHeader {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--surface-border);
+    background: var(--background);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.byePill {
+    background: rgba(255, 200, 50, 0.12);
+    color: #ffc850;
+    border: 1px solid rgba(255, 200, 50, 0.25);
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+}
+
+/* ── Drop slot ── */
+.dropSlot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border-bottom: 1px solid var(--surface-border);
+    height: 44px;
+    box-sizing: border-box;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+
+.dropSlot:last-child {
+    border-bottom: none;
+}
+
+.dropSlot.empty {
+    background: repeating-linear-gradient(-45deg,
+            transparent, transparent 4px,
+            rgba(255, 255, 255, 0.012) 4px, rgba(255, 255, 255, 0.012) 8px);
+}
+
+.dropSlot.over {
+    background: rgba(217, 249, 93, 0.1);
+    outline: 1px solid var(--primary);
+}
+
+.byeSlotRow {
+    opacity: 0.4;
+    cursor: not-allowed;
+    font-style: italic;
+}
+
+.dropSlotLabel {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.slotSeed {
+    width: 18px;
+    height: 18px;
+    background: var(--background);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.slotName {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clearSlotBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.2rem;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.clearSlotBtn:hover {
+    color: #ff6b6b;
+}
+
+/* ── Bottom bar ── */
+.bottomBar {
+    border-top: 1px solid var(--surface-border);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.625rem;
+    background: var(--surface);
+    flex-shrink: 0;
+}
+
+.progressText {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    margin-right: auto;
+}
+
+.btnSecondary {
+    background: transparent;
+    border: 1px solid var(--surface-border);
+    color: var(--foreground);
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btnSecondary:hover {
+    background: var(--surface-border);
+}
+
+.btnPrimary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    padding: 0.6rem 1.75rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btnPrimary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 5px 15px -3px rgba(217, 249, 93, 0.3);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Confirmation overlay ── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.dialog {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 1.25rem;
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.875rem;
+    animation: slideUp 0.2s ease;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(16px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.dialogIcon {
+    font-size: 3rem;
+}
+
+.dialogTitle {
+    font-size: 1.375rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.dialogBody {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.dialogActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* ── Match list view ── */
+.matchListPage {
+    min-height: 100vh;
+    background: var(--background);
+    color: var(--foreground);
+    display: flex;
+    flex-direction: column;
+}
+
+.matchListContent {
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.matchGroupTitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.625rem;
+}
+
+.matchGroupTitle:first-child {
+    margin-top: 0;
+}
+
+.matchRow {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.875rem;
+    padding: 0.875rem 1.125rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.matchRow:hover {
+    border-color: var(--primary);
+    background: rgba(217, 249, 93, 0.04);
+    transform: translateX(2px);
+}
+
+.matchRowIcon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.matchRowVs {
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.matchRowMeta {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    margin-top: 0.1rem;
+}
+
+.matchStatusBadge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.statusPending {
+    background: var(--surface-border);
+    color: var(--text-muted);
+}
+
+.statusLive {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+}
+
+.statusFinished {
+    background: rgba(217, 249, 93, 0.1);
+    color: var(--primary);
+}
+
+.matchArrow {
+    color: var(--primary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}

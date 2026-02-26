@@ -1,0 +1,509 @@
+/* ── Invite Modal ── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+.modal {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 520px;
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1
+    }
+}
+
+.modalHeader {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modalTitle {
+    font-size: 1.0625rem;
+    font-weight: 800;
+}
+
+.modalSub {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    margin-top: 0.2rem;
+}
+
+.closeBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: background 0.15s;
+}
+
+.closeBtn:hover {
+    background: var(--surface-border);
+}
+
+.modalBody {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* ── Search box ── */
+.searchBox {
+    background: var(--background);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.75rem;
+    padding: 0 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: border-color 0.2s;
+}
+
+.searchBox:focus-within {
+    border-color: var(--primary);
+}
+
+.searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+    padding: 0.75rem 0;
+    font-size: 0.9375rem;
+    outline: none;
+}
+
+.searchInput::placeholder {
+    color: var(--text-muted);
+}
+
+/* ── Results ── */
+.resultsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.resultItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+}
+
+.resultItem:hover {
+    background: rgba(217, 249, 93, 0.04);
+    border-color: rgba(217, 249, 93, 0.2);
+}
+
+.resultItem.selected {
+    background: rgba(217, 249, 93, 0.08);
+    border-color: rgba(217, 249, 93, 0.35);
+}
+
+.resultAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.resultName {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.resultSub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.resultCheck {
+    margin-left: auto;
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.alreadyMember {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: auto;
+    font-style: italic;
+}
+
+/* ── Divider ── */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--surface-border);
+}
+
+/* ── Email input ── */
+.emailArea {
+    background: var(--background);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-height: 52px;
+    transition: border-color 0.2s;
+    cursor: text;
+}
+
+.emailArea:focus-within {
+    border-color: var(--primary);
+}
+
+.emailChip {
+    background: rgba(217, 249, 93, 0.12);
+    border: 1px solid rgba(217, 249, 93, 0.3);
+    color: var(--foreground);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.emailChipRemove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.emailChipRemove:hover {
+    color: #ff6b6b;
+}
+
+.emailInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 160px;
+    padding: 0.2rem 0;
+}
+
+.emailInput::placeholder {
+    color: var(--text-muted);
+}
+
+/* ── Message ── */
+.messageInput {
+    background: var(--background);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.75rem;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    padding: 0.75rem 0.875rem;
+    width: 100%;
+    resize: vertical;
+    min-height: 72px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.messageInput:focus {
+    border-color: var(--primary);
+}
+
+.messageInput::placeholder {
+    color: var(--text-muted);
+}
+
+/* ── Footer ── */
+.modalFooter {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.footerHint {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.btnSend {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    padding: 0.7rem 1.75rem;
+    border-radius: 0.625rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btnSend:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 4px 12px -2px rgba(217, 249, 93, 0.3);
+}
+
+.btnSend:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btnCancel {
+    background: transparent;
+    border: 1px solid var(--surface-border);
+    color: var(--foreground);
+    padding: 0.7rem 1.25rem;
+    border-radius: 0.625rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.btnCancel:hover {
+    background: var(--surface-border);
+}
+
+/* ── Success state ── */
+.successState {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.successIcon {
+    font-size: 3rem;
+    animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+    from {
+        transform: scale(0)
+    }
+
+    70% {
+        transform: scale(1.15)
+    }
+
+    to {
+        transform: scale(1)
+    }
+}
+
+.successTitle {
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+.successSub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    max-width: 340px;
+}
+
+/* ── Pending invitations panel ── */
+.pendingPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pendingItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.pendingItem:last-child {
+    border-bottom: none;
+}
+
+.pendingEmail {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.pendingDate {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.pendingStatus {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2rem;
+    text-transform: uppercase;
+}
+
+.statusPendiente {
+    background: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.statusAceptada {
+    background: rgba(217, 249, 93, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(217, 249, 93, 0.3);
+}
+
+.statusExpirada {
+    background: var(--background);
+    color: var(--text-muted);
+    border: 1px solid var(--surface-border);
+}
+
+.resendBtn {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.resendBtn:hover {
+    text-decoration: underline;
+}
+
+/* ── Members list ── */
+.memberItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.memberItem:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.memberItem:first-child {
+    padding-top: 0;
+}
+
+.memberAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--background);
+    border: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.memberName {
+    font-size: 0.9rem;
+    font-weight: 700;
+    flex: 1;
+}
+
+.memberSub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.memberRole {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.roleMember {
+    background: var(--background);
+    color: var(--text-muted);
+    border: 1px solid var(--surface-border);
+}
+
+.roleAdmin {
+    background: rgba(217, 249, 93, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(217, 249, 93, 0.3);
+}

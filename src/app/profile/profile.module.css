@@ -1,0 +1,269 @@
+/* === COVER & HEADER === */
+.cover {
+    height: 180px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, rgba(217, 249, 93, 0.15) 100%);
+    position: relative;
+}
+
+.profileHeader {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+    position: relative;
+}
+
+.avatarWrapper {
+    position: relative;
+    display: inline-block;
+    margin-top: -48px;
+}
+
+.avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 4px solid var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.roleBadge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: var(--primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--background);
+}
+
+.headerActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -2.5rem;
+    margin-bottom: 1rem;
+}
+
+.followButton,
+.editButton {
+    padding: 0.6rem 1.5rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.followButton {
+    background: var(--foreground);
+    color: var(--background);
+    border: none;
+}
+
+.followButton:hover {
+    background: var(--text-muted);
+}
+
+.editButton {
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--surface-border);
+}
+
+.editButton:hover {
+    background: var(--surface);
+}
+
+.profileName {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 0.75rem;
+}
+
+.profileUsername {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 0.125rem;
+}
+
+.verifiedBadge {
+    background: rgba(217, 249, 93, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(217, 249, 93, 0.4);
+    border-radius: 0.5rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.profileBio {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    color: var(--foreground);
+    line-height: 1.5;
+}
+
+.profileMeta {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.followStats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.followStatItem {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.followStatItem span {
+    color: var(--foreground);
+    font-weight: 700;
+    margin-right: 0.25rem;
+}
+
+/* === PLAYER STATS BAR === */
+.statsBar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--surface-border);
+    padding: 1.25rem 1.5rem;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* === TABS === */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--surface-border);
+    padding: 0 1.5rem;
+}
+
+.tab {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.tab:hover {
+    color: var(--foreground);
+    background: var(--surface);
+}
+
+.tab.active {
+    color: var(--foreground);
+    border-bottom-color: var(--primary);
+}
+
+/* === TROPHIES SECTION === */
+.trophiesSection {
+    padding: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.trophiesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.trophyCard {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: all 0.2s;
+}
+
+.trophyCard:hover {
+    border-color: rgba(217, 249, 93, 0.4);
+    transform: translateY(-2px);
+}
+
+.trophyIcon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.trophyName {
+    font-weight: 700;
+    font-size: 0.9375rem;
+}
+
+.trophyCategory {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+}
+
+.trophyDate {
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .statsBar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
