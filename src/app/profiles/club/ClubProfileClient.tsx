@@ -6,6 +6,8 @@ import invStyles from "./invite.module.css";
 import { InviteModal } from "./InviteModal";
 import { UserProfile, useUser } from "@clerk/nextjs";
 import { updateClubProfile } from "./actions";
+import { startEliminatorias, finishTournament } from "@/app/tournaments/dashboard/actions";
+import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 
@@ -14,6 +16,8 @@ export default function ClubProfileClient({ user, club, members, userTournaments
     const [showInvite, setShowInvite] = useState(false);
     const [activeTab, setActiveTab] = useState<"info" | "torneos" | "account">("info");
     const [isEditing, setIsEditing] = useState(false);
+    const [lifecycleLoading, setLifecycleLoading] = useState<string | null>(null);
+    const router = useRouter();
 
     // Use Clerk's reactive hook so profile changes show up immediately
     const { user: clerkUser } = useUser();
@@ -159,13 +163,62 @@ export default function ClubProfileClient({ user, club, members, userTournaments
                                                                 ✏️ Editar
                                                             </Link>
                                                             <Link
-                                                                href={`/tournaments/fixture?id=${t.id}`}
+                                                                href={`/tournaments/${t.id}/fixture`}
                                                                 style={{ flex: 1, textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", border: "1px solid var(--primary)", color: "var(--primary)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", background: "rgba(217,249,93,0.08)" }}
                                                             >
                                                                 ⚙️ Gestionar
                                                             </Link>
                                                         </div>
+
+                                                        {/* ── Lifecycle controls ── */}
+                                                        <div style={{ borderTop: "1px solid var(--surface-border)", paddingTop: "0.75rem", marginTop: "0.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+
+                                                            {/* Move to Eliminatorias */}
+                                                            {t.status === "en_curso" && (
+                                                                <button
+                                                                    disabled={lifecycleLoading === t.id}
+                                                                    onClick={async () => {
+                                                                        setLifecycleLoading(t.id);
+                                                                        await startEliminatorias(t.id);
+                                                                        setLifecycleLoading(null);
+                                                                        router.refresh();
+                                                                    }}
+                                                                    style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem", background: "rgba(124,58,237,0.12)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.35)", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}
+                                                                >
+                                                                    {lifecycleLoading === t.id ? "..." : "⚡ Iniciar Eliminatorias"}
+                                                                </button>
+                                                            )}
+
+                                                            {/* Finish */}
+                                                            {(t.status === "en_curso" || t.status === "en_eliminatorias") && (
+                                                                <button
+                                                                    disabled={lifecycleLoading === t.id}
+                                                                    onClick={async () => {
+                                                                        if (!confirm("¿Finalizar el torneo? Esta acción no se puede deshacer.")) return;
+                                                                        setLifecycleLoading(t.id);
+                                                                        await finishTournament(t.id);
+                                                                        setLifecycleLoading(null);
+                                                                        router.refresh();
+                                                                    }}
+                                                                    style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem", background: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.35)", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}
+                                                                >
+                                                                    {lifecycleLoading === t.id ? "..." : "🏁 Finalizar Torneo"}
+                                                                </button>
+                                                            )}
+
+                                                            {/* Live link */}
+                                                            {(t.status === "en_curso" || t.status === "en_eliminatorias") && (
+                                                                <Link
+                                                                    href={`/tournaments/${t.id}/live`}
+                                                                    target="_blank"
+                                                                    style={{ width: "100%", textAlign: "center", padding: "0.4rem", borderRadius: "0.5rem", background: "transparent", border: "1px solid var(--surface-border)", color: "var(--text-muted)", fontSize: "0.775rem", textDecoration: "none" }}
+                                                                >
+                                                                    🔗 Ver página en vivo ↗
+                                                                </Link>
+                                                            )}
+                                                        </div>
                                                     </div>
+
                                                 ))}
                                             </div>
                                         ) : (

@@ -3,12 +3,16 @@
 import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 type PlayerLike = { id: string; name: string };
 type BracketSlot = PlayerLike | "BYE" | null;
 
 export type SaveFixtureInput = {
     tournamentId: string;
+    /** Which phase triggered this save — determines the new tournament status */
+    phase: "grupos" | "eliminatorias" | "finalizado";
+    youtubeUrl?: string;
     groups: {
         id: string;
         name: string;
@@ -42,7 +46,7 @@ function slotName(t: BracketSlot): string | null {
     return (t as PlayerLike).name;
 }
 
-export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; error?: string }> {
+export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
         // 1. Upsert groups and collect DB id mapping (bracket_id → db_uuid)
         const groupIdMap = new Map<string, string>(); // local group id → db uuid
@@ -121,13 +125,26 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             });
         }
 
-        // 4. Mark tournament as finalizado
+        // 4. Update tournament status based on phase
+        const statusMap: Record<SaveFixtureInput["phase"], string> = {
+            grupos: "en_curso",
+            eliminatorias: "en_eliminatorias",
+            finalizado: "finalizado",
+        };
+        const newStatus = statusMap[input.phase];
+
         await db
             .update(tournaments)
-            .set({ status: "finalizado" })
+            .set({
+                status: newStatus,
+                ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
+            })
             .where(eq(tournaments.id, input.tournamentId));
 
-        return { ok: true };
+        revalidatePath("/tournaments");
+        revalidatePath(`/tournaments/${input.tournamentId}/live`);
+
+        return { ok: true, newStatus };
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
         return { ok: false, error: String(err) };

@@ -31,8 +31,9 @@ export const tournaments = pgTable("tournaments", {
     categories: text("categories").array(),       // e.g. ["3ra", "4ta", "5ta"]
     pointsConfig: json("points_config"),           // { winner: 1000, finalist: 600, ... }
     modalidad: json("modalidad"),                  // { mode, participacion, genero, tipoTorneo }
-    status: varchar("status", { length: 50 }).notNull().default("draft"), // draft | published
+    status: varchar("status", { length: 50 }).notNull().default("draft"), // draft | published | en_curso | en_eliminatorias | finalizado
     imageUrl: varchar("image_url", { length: 512 }),
+    youtubeUrl: varchar("youtube_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

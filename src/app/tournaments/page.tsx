@@ -18,11 +18,37 @@ function getSurfaceLabel(surface: string | null) {
     return surface ? (map[surface] || surface) : "";
 }
 
+type TournamentStatus = "draft" | "published" | "en_curso" | "en_eliminatorias" | "finalizado" | string;
+
+function getStatusLabel(status: TournamentStatus) {
+    switch (status) {
+        case "published": return "Inscripción Abierta";
+        case "en_curso": return "🔴 En Juego – Fase de Grupos";
+        case "en_eliminatorias": return "🔴 En Juego – Eliminatorias";
+        case "finalizado": return "🏆 Finalizado";
+        default: return status;
+    }
+}
+
+function getStatusClass(status: TournamentStatus, cssStyles: Record<string, string>) {
+    switch (status) {
+        case "published": return cssStyles.statusOpen;
+        case "en_curso":
+        case "en_eliminatorias": return cssStyles.statusLive;
+        case "finalizado": return cssStyles.statusFinalizado;
+        default: return "";
+    }
+}
+
 export default async function TournamentsPage() {
     const allTournaments = await db
         .select()
         .from(tournaments)
         .orderBy(desc(tournaments.createdAt));
+
+    const published = allTournaments.filter(t => t.status === "published");
+    const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
+    const others = allTournaments.filter(t => t.status !== "published" && t.status !== "en_curso" && t.status !== "en_eliminatorias");
 
     return (
         <FeedLayout>
@@ -53,8 +79,12 @@ export default async function TournamentsPage() {
                     <div className={styles.grid}>
                         {allTournaments.map((t) => {
                             const cats = t.categories ?? [];
+                            const isLive = t.status === "en_curso" || t.status === "en_eliminatorias";
+                            const isFinished = t.status === "finalizado";
+                            const isOpen = t.status === "published";
+
                             return (
-                                <div key={t.id} className={styles.card}>
+                                <div key={t.id} className={`${styles.card} ${isLive ? styles.cardLive : ""}`}>
                                     <div className={styles.cardImage} style={{ position: "relative", overflow: "hidden" }}>
                                         {t.imageUrl ? (
                                             <img
@@ -64,6 +94,13 @@ export default async function TournamentsPage() {
                                             />
                                         ) : (
                                             <span style={{ fontSize: "3rem" }}>🎾</span>
+                                        )}
+                                        {/* Live badge overlay */}
+                                        {isLive && (
+                                            <div className={styles.liveImageBadge}>
+                                                <span className={styles.liveDot} />
+                                                EN VIVO
+                                            </div>
                                         )}
                                     </div>
 
@@ -91,19 +128,35 @@ export default async function TournamentsPage() {
                                         </div>
 
                                         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                            <span className={`${styles.statusBadge} ${t.status === "published" ? styles.statusOpen : t.status === "finalizado" ? styles.statusFinalizado : ""}`} style={{ alignSelf: "flex-start" }}>
-                                                {t.status === "published" ? "Inscripción Abierta" : t.status === "finalizado" ? "🏆 Finalizado" : t.status}
+                                            <span
+                                                className={`${styles.statusBadge} ${getStatusClass(t.status, styles)}`}
+                                                style={{ alignSelf: "flex-start" }}
+                                            >
+                                                {getStatusLabel(t.status)}
                                             </span>
-                                            <Link href={`/tournaments/register?id=${t.id}`}>
-                                                <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
-                                                    Inscribirse
-                                                </button>
-                                            </Link>
-                                            <Link href={`/tournaments/${t.id}/fixture`}>
-                                                <button className={`${styles.cardAction}`} style={{ width: "100%", fontSize: "0.8rem" }}>
-                                                    🗂️ Armar Fixture
-                                                </button>
-                                            </Link>
+
+                                            {/* Primary CTA — changes based on status */}
+                                            {isLive && (
+                                                <Link href={`/tournaments/${t.id}/live`} style={{ display: "block" }}>
+                                                    <button className={`${styles.cardAction} ${styles.livePrimaryBtn}`} style={{ width: "100%" }}>
+                                                        🔴 Ver en Vivo
+                                                    </button>
+                                                </Link>
+                                            )}
+                                            {isOpen && (
+                                                <Link href={`/tournaments/register?id=${t.id}`}>
+                                                    <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
+                                                        Inscribirse
+                                                    </button>
+                                                </Link>
+                                            )}
+                                            {isFinished && (
+                                                <Link href={`/tournaments/${t.id}/live`} style={{ display: "block" }}>
+                                                    <button className={`${styles.cardAction}`} style={{ width: "100%" }}>
+                                                        🏆 Ver Resultados
+                                                    </button>
+                                                </Link>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

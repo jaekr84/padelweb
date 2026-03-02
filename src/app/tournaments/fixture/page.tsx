@@ -256,6 +256,7 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
     const [randomizing, setRandomizing] = useState(false);
     const [bracket, setBracket] = useState<BracketMatch[]>([]);
     const [qualPerGroup, setQualPerGroup] = useState(2);
+    const [ytUrl, setYtUrl] = useState("");
 
     // ── Check-in state ──────────────────────────────────────────────────────────
     const [paid, setPaid] = useState<Set<string>>(new Set());
@@ -360,9 +361,36 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         setMatches(newMatches);
     }, [groups]);
 
-    const handleConfirmGroups = () => {
+    const handleConfirmGroups = async () => {
         generateMatches();
         setStep("done");
+        // Auto-start: save groups to DB → sets tournament to en_curso
+        setSaving(true);
+        setSaveError(null);
+        const currentMatches: Match[] = [];
+        groups.forEach(g => {
+            for (let i = 0; i < g.players.length; i++) {
+                for (let j = i + 1; j < g.players.length; j++) {
+                    currentMatches.push({
+                        id: `m_${g.id}_${i}_${j}`,
+                        groupId: g.id,
+                        team1: g.players[i],
+                        team2: g.players[j],
+                        played: false,
+                        confirmed: false,
+                    });
+                }
+            }
+        });
+        await saveTournamentFixture({
+            tournamentId,
+            phase: "grupos",
+            youtubeUrl: ytUrl || undefined,
+            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+            matches: currentMatches,
+            bracket: [],
+        });
+        setSaving(false);
     };
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
@@ -471,7 +499,7 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
     };
 
 
-    const generateBracket = () => {
+    const generateBracket = async () => {
         // Collect qualifiers: top `qualPerGroup` from each group (by H2H standings)
         const qualifiers: Player[] = [];
         groups.forEach(g => {
@@ -529,6 +557,27 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         advanceBracketWinners(newBracket, totalRounds);
         setBracket(newBracket);
         setStep("elim");
+        // Auto-advance: save bracket seed → sets tournament to en_eliminatorias
+        setSaving(true);
+        setSaveError(null);
+        await saveTournamentFixture({
+            tournamentId,
+            phase: "eliminatorias",
+            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+            matches,
+            bracket: newBracket.map(bm => ({
+                id: bm.id,
+                round: bm.round,
+                slot: bm.slot,
+                team1: bm.team1,
+                team2: bm.team2,
+                score1: bm.score1,
+                score2: bm.score2,
+                confirmed: bm.confirmed,
+                winnerId: bm.winnerId,
+            })),
+        });
+        setSaving(false);
     };
 
     const advanceBracketWinners = (bm: BracketMatch[], totalRounds: number) => {
@@ -618,6 +667,7 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         setSaveError(null);
         const result = await saveTournamentFixture({
             tournamentId: tournamentId,
+            phase: "finalizado",
             groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
             matches,
             bracket,
@@ -863,12 +913,21 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
                             <button className={styles.btnSecondary} onClick={() => { setGroups([]); setStep("config"); }}>
                                 ← Reconfigurar
                             </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
+                                <input
+                                    type="url"
+                                    placeholder="📺 Link YouTube (opcional)"
+                                    value={ytUrl}
+                                    onChange={e => setYtUrl(e.target.value)}
+                                    style={{ flex: 1, padding: "0.45rem 0.75rem", borderRadius: "0.5rem", border: "1px solid var(--surface-border)", background: "var(--surface)", color: "var(--foreground)", fontSize: "0.85rem" }}
+                                />
+                            </div>
                             <button
                                 className={styles.btnPrimary}
-                                disabled={!allFull}
+                                disabled={!allFull || saving}
                                 onClick={handleConfirmGroups}
                             >
-                                {allFull ? "Confirmar Grupos ✓" : `Faltan ${groups.reduce((acc, g) => acc + (playersPerGroup - g.players.length), 0)} jugadores`}
+                                {saving ? "⏳ Iniciando..." : allFull ? "Confirmar Grupos ✓" : `Faltan ${groups.reduce((acc, g) => acc + (playersPerGroup - g.players.length), 0)} jugadores`}
                             </button>
                         </div>
                     </div>
