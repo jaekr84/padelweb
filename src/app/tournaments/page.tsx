@@ -1,129 +1,111 @@
-"use client";
-
+import { db } from "@/db";
+import { tournaments } from "@/db/schema";
+import { desc } from "drizzle-orm";
 import FeedLayout from "@/app/feed/layout";
 import styles from "./tournaments.module.css";
 import Link from "next/link";
 
-// Datos simulados (Luego vendrán de Supabase)
-const DUMMY_TOURNAMENTS = [
-    {
-        id: 1,
-        name: "Copa Primavera",
-        club: "Club Padelazo - Sede Norte",
-        date: "12 AL 14 DE OCTUBRE",
-        categories: ["5ta", "6ta", "7ma Libre"],
-        status: "open", // open, live, finished
-        prize: "$500.000 + Paletas",
-        organizer: true, // Simulación de si el usuario logueado es el dueño
-    },
-    {
-        id: 2,
-        name: "Master Final 2026",
-        club: "Premium Padel Center",
-        date: "Ahorita (En Juego)",
-        categories: ["1ra", "2da Caballeros"],
-        status: "live",
-        prize: "Viaje a España",
-        organizer: false,
-    },
-    {
-        id: 3,
-        name: "Americano Express Damas",
-        club: "Padel Point",
-        date: "SÁBADO 22 DE NOV",
-        categories: ["Suma 13 Damas"],
-        status: "open",
-        prize: "Indumentaria Varlion",
-        organizer: false,
-    },
-];
+function formatDate(dateStr: string | null) {
+    if (!dateStr) return "Fecha por confirmar";
+    return dateStr;
+}
 
-export default function TournamentsPage() {
+function getSurfaceLabel(surface: string | null) {
+    const map: Record<string, string> = {
+        cesped: "Césped Verde", cesped_azul: "Césped Azul",
+        cemento: "Hormigón", indoor: "Indoor",
+    };
+    return surface ? (map[surface] || surface) : "";
+}
+
+export default async function TournamentsPage() {
+    const allTournaments = await db
+        .select()
+        .from(tournaments)
+        .orderBy(desc(tournaments.createdAt));
+
     return (
         <FeedLayout>
             <div className={styles.container}>
-
                 <div className={styles.header}>
                     <h1 className={styles.title}>Torneos</h1>
-                    <Link href="/tournaments/create">
-                        <button className={styles.createButton}>
-                            <span>🏆</span> Crear Torneo
-                        </button>
-                    </Link>
                 </div>
 
                 <div className={styles.filters}>
                     <button className={`${styles.filterButton} ${styles.active}`}>Todos</button>
                     <button className={styles.filterButton}>Inscripciones Abiertas</button>
-                    <button className={styles.filterButton}>🔴 En Vivo (Live Score)</button>
-                    <button className={styles.filterButton}>Mis Torneos / Gestión</button>
+                    <button className={styles.filterButton}>🔴 En Vivo</button>
+                    <button className={styles.filterButton}>Mis Torneos</button>
                 </div>
 
-                <div className={styles.grid}>
-                    {DUMMY_TOURNAMENTS.map((t) => (
-                        <div key={t.id} className={styles.card}>
-                            <div className={styles.cardImage}>
-                                <span style={{ fontSize: "3rem" }}>🎾</span>
-                                {t.status === 'open' && <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Inscripción Abierta</span>}
-                                {t.status === 'live' && <span className={`${styles.statusBadge} ${styles.statusLive}`}>🔴 En Vivo</span>}
-                            </div>
-
-                            <div className={styles.cardContent}>
-                                <h3 className={styles.cardTitle}>{t.name}</h3>
-                                <p className={styles.cardClub}>🏟️ {t.club}</p>
-
-                                <div className={styles.cardDetails}>
-                                    <div className={styles.detailRow}>
-                                        <span className={styles.icon}>📅</span>
-                                        <span>{t.date}</span>
+                {allTournaments.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "4rem 2rem", color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏆</div>
+                        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.5rem" }}>No hay torneos publicados aún</h3>
+                        <p style={{ fontSize: "0.9rem" }}>Sé el primero en crear un torneo para tu club.</p>
+                        <Link href="/tournaments/create">
+                            <button className={styles.createButton} style={{ marginTop: "1.5rem" }}>
+                                + Crear el primer torneo
+                            </button>
+                        </Link>
+                    </div>
+                ) : (
+                    <div className={styles.grid}>
+                        {allTournaments.map((t) => {
+                            const cats = t.categories ?? [];
+                            return (
+                                <div key={t.id} className={styles.card}>
+                                    <div className={styles.cardImage} style={{ position: "relative", overflow: "hidden" }}>
+                                        {t.imageUrl ? (
+                                            <img
+                                                src={t.imageUrl}
+                                                alt={t.name}
+                                                style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontSize: "3rem" }}>🎾</span>
+                                        )}
                                     </div>
-                                    <div className={styles.detailRow}>
-                                        <span className={styles.icon}>👥</span>
-                                        <span>Categorías: {t.categories.join(", ")}</span>
-                                    </div>
-                                    <div className={styles.detailRow}>
-                                        <span className={styles.icon}>🎁</span>
-                                        <span>{t.prize}</span>
+
+                                    <div className={styles.cardContent}>
+                                        <h3 className={styles.cardTitle}>{t.name}</h3>
+                                        {t.surface && <p className={styles.cardClub}>🏟️ {getSurfaceLabel(t.surface)}</p>}
+
+                                        <div className={styles.cardDetails}>
+                                            <div className={styles.detailRow}>
+                                                <span className={styles.icon}>📅</span>
+                                                <span>{formatDate(t.startDate)} {t.endDate && t.endDate !== t.startDate ? `→ ${formatDate(t.endDate)}` : ""}</span>
+                                            </div>
+                                            {cats.length > 0 && (
+                                                <div className={styles.detailRow}>
+                                                    <span className={styles.icon}>👥</span>
+                                                    <span>{cats[0] === "libre" ? "Libre (sin categoría)" : `Cats: ${cats.join(", ")}`}</span>
+                                                </div>
+                                            )}
+                                            {t.description && (
+                                                <div className={styles.detailRow}>
+                                                    <span className={styles.icon}>📝</span>
+                                                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "220px" }}>{t.description}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                                            <span className={`${styles.statusBadge} ${t.status === "published" ? styles.statusOpen : ""}`} style={{ alignSelf: "flex-start" }}>
+                                                {t.status === "published" ? "Inscripción Abierta" : t.status}
+                                            </span>
+                                            <Link href={`/tournaments/register?id=${t.id}`}>
+                                                <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
+                                                    Inscribirse
+                                                </button>
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Renderizado condicional basado en el rol y estado */}
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                    {/* Botón principal según rol */}
-                                    {t.organizer ? (
-                                        <Link href="/tournaments/dashboard">
-                                            <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
-                                                ⚙️ Gestionar Torneo
-                                            </button>
-                                        </Link>
-                                    ) : t.status !== 'live' ? (
-                                        <Link href={`/tournaments/register?id=${t.id}`}>
-                                            <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
-                                                Anotarse
-                                            </button>
-                                        </Link>
-                                    ) : null}
-
-                                    {/* Botón "Ver en Vivo" para cualquier torneo en vivo */}
-                                    {t.status === 'live' && (
-                                        <Link href="/tournaments/live">
-                                            <button className={styles.cardAction} style={{
-                                                width: "100%",
-                                                background: "rgba(255,68,68,0.1)",
-                                                borderColor: "rgba(255,68,68,0.4)",
-                                                color: "#ff6b6b",
-                                                fontWeight: 700,
-                                            }}>
-                                                🔴 Ver Torneo en Vivo
-                                            </button>
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </FeedLayout>
     );

@@ -5,7 +5,7 @@ interface PostCardProps {
         name: string;
         username: string;
         avatar?: string;
-        role: "jugador" | "club" | "profesor" | "organizador";
+        role: "jugador" | "club" | "profesor" | "centro_de_padel";
     };
     content: string;
     timeAgo: string;
@@ -20,7 +20,7 @@ export default function PostCard({ author, content, timeAgo, likes, comments }: 
             case "jugador": return "🎾";
             case "club": return "🏟️";
             case "profesor": return "🎓";
-            case "organizador": return "🏆";
+            case "centro_de_padel": return "🏟️";
             default: return "👤";
         }
     };

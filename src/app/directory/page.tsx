@@ -142,7 +142,7 @@ export default function DirectoryPage() {
                                     ))}
                                 </div>
                                 <div className={styles.cardActions}>
-                                    <Link href="/profiles/organizador"><button className={styles.btnPrimary}>Ver Perfil</button></Link>
+                                    <Link href="/profiles/centro"><button className={styles.btnPrimary}>Ver Perfil</button></Link>
                                     <button className={styles.btnSecondary}>Reservar</button>
                                 </div>
                             </div>

@@ -25,7 +25,7 @@ const DUMMY_POSTS = [
     },
     {
         id: 4,
-        author: { name: "Padel Norte Center", username: "padelnorte", role: "organizador" as const },
+        author: { name: "Padel Norte Center", username: "padelnorte", role: "centro_de_padel" as const },
         content: "🏗️ ¡Apertura de nuestra nueva cancha indoor! Equipada con iluminación LED, piso de última generación y transmisión live disponible. Reservas ya habilitadas en la app.",
         timeAgo: "3h", likes: 67, comments: 14,
     },

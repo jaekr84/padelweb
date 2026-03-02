@@ -4,9 +4,11 @@ import { useState } from "react";
 import FeedLayout from "@/app/feed/layout";
 import styles from "@/app/profiles/profile.module.css";
 import { InviteModal } from "@/app/profiles/club/InviteModal";
+import { UserProfile } from "@clerk/nextjs";
 
 export default function CentroPadelProfilePage() {
     const [showInvite, setShowInvite] = useState(false);
+    const [activeTab, setActiveTab] = useState<"info" | "account">("info");
 
     return (
         <FeedLayout>
@@ -45,75 +47,100 @@ export default function CentroPadelProfilePage() {
                 <div className={styles.contentGrid}>
                     {/* ── Left ── */}
                     <div>
-                        {/* Canchas y precios */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>🎾 Canchas y Precios</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { name: "Cancha 1 y 2", type: "Cancha Azul", cover: "Descubierta", price: "$8.000/hora", status: "Disponible" },
-                                    { name: "Cancha 3 y 4", type: "Cancha Azul", cover: "Semitechada", price: "$9.500/hora", status: "Disponible" },
-                                    { name: "Cancha 5", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Ocupada" },
-                                    { name: "Cancha 6", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Disponible" },
-                                ].map((court) => (
-                                    <div key={court.name} className={styles.listRow}>
-                                        <div className={styles.listIcon}>🟩</div>
-                                        <div style={{ flex: 1 }}>
-                                            <div className={styles.listMain}>{court.name} — {court.type}</div>
-                                            <div className={styles.listSub}>{court.cover} · {court.price}</div>
-                                        </div>
-                                        <span className={styles.listBadge} style={{
-                                            color: court.status === "Disponible" ? "var(--primary)" : "#ff6b6b",
-                                            borderColor: court.status === "Disponible" ? "rgba(217,249,93,0.4)" : "rgba(255,68,68,0.3)",
-                                            background: court.status === "Disponible" ? "rgba(217,249,93,0.08)" : "rgba(255,68,68,0.08)",
-                                        }}>
-                                            {court.status}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className={styles.tabs} style={{ padding: "0" }}>
+                            <button
+                                className={`${styles.tab} ${activeTab === "info" ? styles.active : ""}`}
+                                onClick={() => setActiveTab("info")}
+                            >
+                                Información
+                            </button>
+                            <button
+                                className={`${styles.tab} ${activeTab === "account" ? styles.active : ""}`}
+                                onClick={() => setActiveTab("account")}
+                            >
+                                ⚙️ Cuenta
+                            </button>
                         </div>
 
-                        {/* Horarios */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>🕐 Horarios por Día</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { dia: "Lunes a Viernes", horario: "07:00 – 01:00", precio: "Precio normal" },
-                                    { dia: "Sábados", horario: "07:00 – 02:00", precio: "+20% fin de semana" },
-                                    { dia: "Domingos", horario: "08:00 – 24:00", precio: "+20% fin de semana" },
-                                    { dia: "Feriados", horario: "09:00 – 22:00", precio: "+30% feriado" },
-                                ].map((h) => (
-                                    <div key={h.dia} className={styles.listRow}>
-                                        <div className={styles.listIcon}>📅</div>
-                                        <div style={{ flex: 1 }}>
-                                            <div className={styles.listMain}>{h.dia}</div>
-                                            <div className={styles.listSub}>{h.horario}</div>
-                                        </div>
-                                        <span className={styles.listBadge}>{h.precio}</span>
+                        {activeTab === "info" && (
+                            <>
+                                {/* Canchas y precios */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>🎾 Canchas y Precios</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { name: "Cancha 1 y 2", type: "Cancha Azul", cover: "Descubierta", price: "$8.000/hora", status: "Disponible" },
+                                            { name: "Cancha 3 y 4", type: "Cancha Azul", cover: "Semitechada", price: "$9.500/hora", status: "Disponible" },
+                                            { name: "Cancha 5", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Ocupada" },
+                                            { name: "Cancha 6", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Disponible" },
+                                        ].map((court) => (
+                                            <div key={court.name} className={styles.listRow}>
+                                                <div className={styles.listIcon}>🟩</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className={styles.listMain}>{court.name} — {court.type}</div>
+                                                    <div className={styles.listSub}>{court.cover} · {court.price}</div>
+                                                </div>
+                                                <span className={styles.listBadge} style={{
+                                                    color: court.status === "Disponible" ? "var(--primary)" : "#ff6b6b",
+                                                    borderColor: court.status === "Disponible" ? "rgba(217,249,93,0.4)" : "rgba(255,68,68,0.3)",
+                                                    background: court.status === "Disponible" ? "rgba(217,249,93,0.08)" : "rgba(255,68,68,0.08)",
+                                                }}>
+                                                    {court.status}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                </div>
 
-                        {/* Reseñas */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>⭐ Reseñas Recientes</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { author: "Andrés M.", stars: 5, text: "Canchas impecables, iluminación de primera y fácil reserva online. Lo mejor del barrio." },
-                                    { author: "Luciana P.", stars: 5, text: "El centro más moderno de CABA. Las canchas indoor están buenísimas en invierno." },
-                                    { author: "Gabriel S.", stars: 4, text: "Muy buena calidad. El único contra es que los horarios pico son difíciles de conseguir." },
-                                ].map((r) => (
-                                    <div key={r.author} className={styles.review}>
-                                        <div className={styles.reviewHeader}>
-                                            <span className={styles.reviewAuthor}>{r.author}</span>
-                                            <span className={styles.reviewStars}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
-                                        </div>
-                                        <p className={styles.reviewText}>{r.text}</p>
+                                {/* Horarios */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>🕐 Horarios por Día</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { dia: "Lunes a Viernes", horario: "07:00 – 01:00", precio: "Precio normal" },
+                                            { dia: "Sábados", horario: "07:00 – 02:00", precio: "+20% fin de semana" },
+                                            { dia: "Domingos", horario: "08:00 – 24:00", precio: "+20% fin de semana" },
+                                            { dia: "Feriados", horario: "09:00 – 22:00", precio: "+30% feriado" },
+                                        ].map((h) => (
+                                            <div key={h.dia} className={styles.listRow}>
+                                                <div className={styles.listIcon}>📅</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className={styles.listMain}>{h.dia}</div>
+                                                    <div className={styles.listSub}>{h.horario}</div>
+                                                </div>
+                                                <span className={styles.listBadge}>{h.precio}</span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* Reseñas */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>⭐ Reseñas Recientes</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { author: "Andrés M.", stars: 5, text: "Canchas impecables, iluminación de primera y fácil reserva online. Lo mejor del barrio." },
+                                            { author: "Luciana P.", stars: 5, text: "El centro más moderno de CABA. Las canchas indoor están buenísimas en invierno." },
+                                            { author: "Gabriel S.", stars: 4, text: "Muy buena calidad. El único contra es que los horarios pico son difíciles de conseguir." },
+                                        ].map((r) => (
+                                            <div key={r.author} className={styles.review}>
+                                                <div className={styles.reviewHeader}>
+                                                    <span className={styles.reviewAuthor}>{r.author}</span>
+                                                    <span className={styles.reviewStars}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
+                                                </div>
+                                                <p className={styles.reviewText}>{r.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === "account" && (
+                            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                                <UserProfile routing="hash" />
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* ── Right sidebar ── */}
@@ -176,7 +203,7 @@ export default function CentroPadelProfilePage() {
             </div>
 
             {showInvite && (
-                <InviteModal clubName="Padel Norte Center" onClose={() => setShowInvite(false)} />
+                <InviteModal clubId="org_123" clubName="Padel Norte Center" onClose={() => setShowInvite(false)} />
             )}
         </FeedLayout>
     );

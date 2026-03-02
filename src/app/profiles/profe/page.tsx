@@ -1,8 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import FeedLayout from "@/app/feed/layout";
 import styles from "@/app/profiles/profile.module.css";
-import { Metadata } from "next";
-
-export const metadata: Metadata = { title: "Perfil Profesor | Padel Social" };
+import { UserProfile } from "@clerk/nextjs";
 
 const DAYS = ["L", "M", "X", "J", "V", "S", "D"];
 // 1 = free, 0 = busy
@@ -14,6 +15,8 @@ const AVAIL = [
 const SLOT_LABELS = ["Mañana", "Tarde", "Noche"];
 
 export default function ProfesorProfilePage() {
+    const [activeTab, setActiveTab] = useState<"info" | "account">("info");
+
     return (
         <FeedLayout>
             <div className={styles.page}>
@@ -51,70 +54,95 @@ export default function ProfesorProfilePage() {
                 <div className={styles.contentGrid}>
                     {/* ── Left ── */}
                     <div>
-                        {/* Clases y Modalidades */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>📚 Clases y Modalidades</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { tipo: "Clase Particular (1-a-1)", dur: "60 min", precio: "$12.000", icon: "👤" },
-                                    { tipo: "Clase en Pareja", dur: "60 min", precio: "$8.000 c/u", icon: "👥" },
-                                    { tipo: "Clase Grupal (3–4 pers.)", dur: "90 min", precio: "$6.000 c/u", icon: "👨‍👩‍👧" },
-                                    { tipo: "Análisis de Video", dur: "45 min", precio: "$9.000", icon: "📹" },
-                                    { tipo: "Preparación para Torneo", dur: "90 min", precio: "$14.000", icon: "🏆" },
-                                ].map((c) => (
-                                    <div key={c.tipo} className={styles.listRow}>
-                                        <div className={styles.listIcon}>{c.icon}</div>
-                                        <div style={{ flex: 1 }}>
-                                            <div className={styles.listMain}>{c.tipo}</div>
-                                            <div className={styles.listSub}>{c.dur}</div>
-                                        </div>
-                                        <span className={styles.listBadge} style={{ color: "var(--primary)", borderColor: "rgba(217,249,93,0.4)", background: "rgba(217,249,93,0.08)", fontSize: "0.8125rem", padding: "0.3rem 0.625rem" }}>
-                                            {c.precio}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className={styles.tabs} style={{ padding: "0" }}>
+                            <button
+                                className={`${styles.tab} ${activeTab === "info" ? styles.active : ""}`}
+                                onClick={() => setActiveTab("info")}
+                            >
+                                Información
+                            </button>
+                            <button
+                                className={`${styles.tab} ${activeTab === "account" ? styles.active : ""}`}
+                                onClick={() => setActiveTab("account")}
+                            >
+                                ⚙️ Cuenta
+                            </button>
                         </div>
 
-                        {/* Donde da clases */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>🏟️ Sedes Habituales</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { club: "Club Padelazo", zone: "Palermo, CABA", days: "Lun, Mié, Vie" },
-                                    { club: "Premium Padel Center", zone: "Belgrano, CABA", days: "Mar, Jue" },
-                                    { club: "Urban Padel Club", zone: "Puerto Madero, CABA", days: "Sáb, Dom" },
-                                ].map((s) => (
-                                    <div key={s.club} className={styles.listRow}>
-                                        <div className={styles.listIcon}>📍</div>
-                                        <div>
-                                            <div className={styles.listMain}>{s.club}</div>
-                                            <div className={styles.listSub}>{s.zone} · {s.days}</div>
-                                        </div>
+                        {activeTab === "info" && (
+                            <>
+                                {/* Clases y Modalidades */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>📚 Clases y Modalidades</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { tipo: "Clase Particular (1-a-1)", dur: "60 min", precio: "$12.000", icon: "👤" },
+                                            { tipo: "Clase en Pareja", dur: "60 min", precio: "$8.000 c/u", icon: "👥" },
+                                            { tipo: "Clase Grupal (3–4 pers.)", dur: "90 min", precio: "$6.000 c/u", icon: "👨‍👩‍👧" },
+                                            { tipo: "Análisis de Video", dur: "45 min", precio: "$9.000", icon: "📹" },
+                                            { tipo: "Preparación para Torneo", dur: "90 min", precio: "$14.000", icon: "🏆" },
+                                        ].map((c) => (
+                                            <div key={c.tipo} className={styles.listRow}>
+                                                <div className={styles.listIcon}>{c.icon}</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className={styles.listMain}>{c.tipo}</div>
+                                                    <div className={styles.listSub}>{c.dur}</div>
+                                                </div>
+                                                <span className={styles.listBadge} style={{ color: "var(--primary)", borderColor: "rgba(217,249,93,0.4)", background: "rgba(217,249,93,0.08)", fontSize: "0.8125rem", padding: "0.3rem 0.625rem" }}>
+                                                    {c.precio}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                </div>
 
-                        {/* Reseñas */}
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>⭐ Reseñas de Alumnos</div>
-                            <div className={styles.sectionBody}>
-                                {[
-                                    { author: "Ana L.", stars: 5, text: "Juan Carlos transformó completamente mi juego. En 3 meses mejoré el revés y empecé a competir. Altamente recomendado." },
-                                    { author: "Ricardo M.", stars: 5, text: "Muy buen profe, explica todo bien y tiene mucha paciencia. El análisis de video es genial." },
-                                    { author: "Verónica S.", stars: 5, text: "Excelente para principiantes y avanzados. Los grupos son dinámicos y divertidos." },
-                                ].map((r) => (
-                                    <div key={r.author} className={styles.review}>
-                                        <div className={styles.reviewHeader}>
-                                            <span className={styles.reviewAuthor}>{r.author}</span>
-                                            <span className={styles.reviewStars}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
-                                        </div>
-                                        <p className={styles.reviewText}>{r.text}</p>
+                                {/* Donde da clases */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>🏟️ Sedes Habituales</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { club: "Club Padelazo", zone: "Palermo, CABA", days: "Lun, Mié, Vie" },
+                                            { club: "Premium Padel Center", zone: "Belgrano, CABA", days: "Mar, Jue" },
+                                            { club: "Urban Padel Club", zone: "Puerto Madero, CABA", days: "Sáb, Dom" },
+                                        ].map((s) => (
+                                            <div key={s.club} className={styles.listRow}>
+                                                <div className={styles.listIcon}>📍</div>
+                                                <div>
+                                                    <div className={styles.listMain}>{s.club}</div>
+                                                    <div className={styles.listSub}>{s.zone} · {s.days}</div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* Reseñas */}
+                                <div className={styles.section}>
+                                    <div className={styles.sectionHeader}>⭐ Reseñas de Alumnos</div>
+                                    <div className={styles.sectionBody}>
+                                        {[
+                                            { author: "Ana L.", stars: 5, text: "Juan Carlos transformó completamente mi juego. En 3 meses mejoré el revés y empecé a competir. Altamente recomendado." },
+                                            { author: "Ricardo M.", stars: 5, text: "Muy buen profe, explica todo bien y tiene mucha paciencia. El análisis de video es genial." },
+                                            { author: "Verónica S.", stars: 5, text: "Excelente para principiantes y avanzados. Los grupos son dinámicos y divertidos." },
+                                        ].map((r) => (
+                                            <div key={r.author} className={styles.review}>
+                                                <div className={styles.reviewHeader}>
+                                                    <span className={styles.reviewAuthor}>{r.author}</span>
+                                                    <span className={styles.reviewStars}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
+                                                </div>
+                                                <p className={styles.reviewText}>{r.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === "account" && (
+                            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                                <UserProfile routing="hash" />
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* ── Right ── */}

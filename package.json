@@ -9,10 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/auth-ui-react": "^0.4.7",
-    "@supabase/auth-ui-shared": "^0.1.8",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.98.0",
+    "@clerk/nextjs": "^6.39.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "drizzle-orm": "^0.45.1",
+    "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
@@ -22,8 +22,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

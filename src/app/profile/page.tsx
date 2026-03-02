@@ -4,6 +4,7 @@ import { useState } from "react";
 import FeedLayout from "@/app/feed/layout";
 import PostCard from "@/components/social/PostCard";
 import styles from "./profile.module.css";
+import { UserProfile } from "@clerk/nextjs";
 
 // Simulamos que vemos nuestro propio perfil (puede ser dinámico con params)
 const IS_OWN_PROFILE = true;
@@ -50,7 +51,7 @@ const PROFILE_POSTS = [
     },
 ];
 
-type TabType = "posts" | "trophies" | "stats";
+type TabType = "posts" | "trophies" | "stats" | "account";
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<TabType>("posts");
@@ -60,7 +61,7 @@ export default function ProfilePage() {
             jugador: { icon: "🎾", label: "Jugador" },
             club: { icon: "🏟️", label: "Club" },
             profesor: { icon: "🎓", label: "Profesor" },
-            organizador: { icon: "🏆", label: "Organizador" },
+            centro_de_padel: { icon: "🏟️", label: "Centro de Pádel" },
         };
         return map[role] || { icon: "👤", label: "Usuario" };
     };
@@ -152,6 +153,14 @@ export default function ProfilePage() {
                 >
                     Estadísticas
                 </button>
+                {IS_OWN_PROFILE && (
+                    <button
+                        className={`${styles.tab} ${activeTab === "account" ? styles.active : ""}`}
+                        onClick={() => setActiveTab("account")}
+                    >
+                        ⚙️ Cuenta
+                    </button>
+                )}
             </div>
 
             {/* Contenido de la pestaña activa */}
@@ -189,6 +198,12 @@ export default function ProfilePage() {
                             {Math.round((PROFILE.stats.wins / PROFILE.stats.matches) * 100)}%
                         </strong>
                     </p>
+                </div>
+            )}
+
+            {activeTab === "account" && (
+                <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                    <UserProfile routing="hash" />
                 </div>
             )}
         </FeedLayout>
