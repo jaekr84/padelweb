@@ -91,12 +91,17 @@ export default async function TournamentsPage() {
                                         </div>
 
                                         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                            <span className={`${styles.statusBadge} ${t.status === "published" ? styles.statusOpen : ""}`} style={{ alignSelf: "flex-start" }}>
-                                                {t.status === "published" ? "Inscripción Abierta" : t.status}
+                                            <span className={`${styles.statusBadge} ${t.status === "published" ? styles.statusOpen : t.status === "finalizado" ? styles.statusFinalizado : ""}`} style={{ alignSelf: "flex-start" }}>
+                                                {t.status === "published" ? "Inscripción Abierta" : t.status === "finalizado" ? "🏆 Finalizado" : t.status}
                                             </span>
                                             <Link href={`/tournaments/register?id=${t.id}`}>
                                                 <button className={`${styles.cardAction} ${styles.primary}`} style={{ width: "100%" }}>
                                                     Inscribirse
+                                                </button>
+                                            </Link>
+                                            <Link href={`/tournaments/${t.id}/fixture`}>
+                                                <button className={`${styles.cardAction}`} style={{ width: "100%", fontSize: "0.8rem" }}>
+                                                    🗂️ Armar Fixture
                                                 </button>
                                             </Link>
                                         </div>

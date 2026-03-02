@@ -111,6 +111,12 @@
     border: 1px solid rgba(217, 249, 93, 0.5);
 }
 
+.statusFinalizado {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
 .statusLive {
     background: rgba(255, 68, 68, 0.2);
     color: #ff4444;

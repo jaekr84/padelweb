@@ -6,6 +6,11 @@ import styles from "./fixture.module.css";
 import Link from "next/link";
 import { saveTournamentFixture } from "./actions";
 
+export interface FixtureClientProps {
+    tournamentId: string;
+    tournamentName: string;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Player = { id: string; name: string; category?: string };
 type Group = { id: string; name: string; players: Player[] };
@@ -242,7 +247,7 @@ function GroupCard({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 type Step = "checkin" | "config" | "assign" | "done" | "elim";
 
-export default function FixturePage() {
+export default function FixtureClientInner({ tournamentId, tournamentName }: FixtureClientProps) {
     const [step, setStep] = useState<Step>("checkin");
     const [numGroups, setNumGroups] = useState(2);
     const [playersPerGroup, setPlayersPerGroup] = useState(4);
@@ -605,15 +610,14 @@ export default function FixturePage() {
     const [saved, setSaved] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
 
-    // NOTE: For now we use a mock tournament ID.
-    // In production this comes from the URL param (e.g. /tournaments/[id]/fixture).
-    const TOURNAMENT_ID = "00000000-0000-0000-0000-000000000001";
+    // NOTE: tournamentId comes from props (passed by the server page component)
+    // const TOURNAMENT_ID = tournamentId; // alias for clarity
 
     const handleFinalize = async () => {
         setSaving(true);
         setSaveError(null);
         const result = await saveTournamentFixture({
-            tournamentId: TOURNAMENT_ID,
+            tournamentId: tournamentId,
             groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
             matches,
             bracket,
@@ -636,7 +640,7 @@ export default function FixturePage() {
                     <div className={styles.titleRow}>
                         <div>
                             <h1 className={styles.title}>Armar Fixture</h1>
-                            <p className={styles.subtitle}>📋 Copa Primavera · Configurá los grupos</p>
+                            <p className={styles.subtitle}>📋 {tournamentName} · Configurá los grupos</p>
                         </div>
                         {step === "assign" && (
                             <button
