@@ -102,18 +102,24 @@ export default function PlayerProfileClient({ user, dbUser, registrations, match
                     <div className={styles.headerActionsTop}>
                         {isOwnProfile && (
                             <>
-                                {!profeProfile ? (
-                                    <button className={styles.roleSwitchButton} onClick={handleSwitchRole}>
-                                        🎓 Ser Profe
-                                    </button>
-                                ) : (
-                                    <Link href="/profiles/profe" className={styles.roleSwitchButton}>
-                                        🎓 Vista Pública Profe
-                                    </Link>
+                                {/* Ser Profe: solo para jugadores y profes */}
+                                {(dbUser?.role === "jugador" || dbUser?.role === "profe") && (
+                                    !profeProfile ? (
+                                        <button className={styles.roleSwitchButton} onClick={handleSwitchRole}>
+                                            🎓 Ser Profe
+                                        </button>
+                                    ) : (
+                                        <Link href="/profiles/profe" className={styles.roleSwitchButton}>
+                                            🎓 Vista Pública Profe
+                                        </Link>
+                                    )
                                 )}
-                                <button className={styles.editButton} onClick={() => setIsEditing(true)}>
-                                    ✏️ Editar
-                                </button>
+                                {/* Editar perfil: solo para jugadores y profes */}
+                                {(dbUser?.role === "jugador" || dbUser?.role === "profe") && (
+                                    <button className={styles.editButton} onClick={() => setIsEditing(true)}>
+                                        ✏️ Editar
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>

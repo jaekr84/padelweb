@@ -9,14 +9,17 @@ export default async function ProfilePage() {
     const user = await currentUser();
     if (!user) redirect("/sign-in");
 
-    // Fetch user from our DB or create if missing
+    // Read role from Clerk publicMetadata (set during onboarding)
+    const clerkRole = (user.publicMetadata?.role as string) || "jugador";
+
+    // Fetch user from our DB or create if missing — always sync the role from Clerk
     const [dbUser] = await db
         .insert(users)
         .values({
             id: user.id,
             email: user.emailAddresses[0]?.emailAddress,
             name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0],
-            role: "jugador",
+            role: clerkRole,
             points: 0,
             category: "5ta",
         })
@@ -24,6 +27,8 @@ export default async function ProfilePage() {
             target: users.id,
             set: {
                 email: user.emailAddresses[0]?.emailAddress,
+                // Keep role in sync with Clerk metadata
+                role: clerkRole,
             }
         })
         .returning();
