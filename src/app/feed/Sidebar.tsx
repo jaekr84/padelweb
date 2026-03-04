@@ -78,43 +78,47 @@ export default function Sidebar() {
 
     return (
         <aside className={styles.sidebar}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <Link href="/tournaments" className={styles.logo} style={{ marginBottom: 0 }}>
-                    <span style={{ fontSize: "1.5rem" }}>🎾</span>
-                    <span>Padel Social</span>
-                </Link>
-                <ThemeToggle />
-            </div>
+            <div className={styles.sidebarHeader}>
+                <div className={styles.logoRow}>
+                    <Link href="/tournaments" className={styles.logo}>
+                        <span className={styles.logoIcon}>🎾</span>
+                        <span className={styles.logoText}>Padel Social</span>
+                    </Link>
+                    <div className={styles.headerActions}>
+                        <ThemeToggle />
+                        <div className={styles.userWrapper}>
+                            <UserButton
+                                showName={true}
+                                appearance={{
+                                    elements: {
+                                        userButtonBox: { padding: "0.5rem", borderRadius: "0.5rem" },
+                                        userButtonOuterIdentifier: { color: "var(--foreground)" },
+                                    },
+                                }}
+                            >
+                                <UserButton.MenuItems>
+                                    <UserButton.Link
+                                        label="Mi Perfil Público"
+                                        labelIcon={<span style={{ fontSize: "1.2rem", marginLeft: "-0.2rem" }}>🎾</span>}
+                                        href={profileUrl}
+                                    />
+                                </UserButton.MenuItems>
+                            </UserButton>
+                        </div>
+                    </div>
+                </div>
 
-            <div className={styles.searchBox}>
-                <span>🔍</span>
-                <input type="text" placeholder="Buscar jugadores, clubes..." />
-            </div>
-
-            <div style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>
-                <UserButton
-                    showName
-                    appearance={{
-                        elements: {
-                            userButtonBox: { padding: "0.5rem", borderRadius: "0.5rem", width: "100%" },
-                            userButtonOuterIdentifier: { color: "var(--foreground)" },
-                        },
-                    }}
-                >
-                    <UserButton.MenuItems>
-                        <UserButton.Link
-                            label="Mi Perfil Público"
-                            labelIcon={<span style={{ fontSize: "1.2rem", marginLeft: "-0.2rem" }}>🎾</span>}
-                            href={profileUrl}
-                        />
-                    </UserButton.MenuItems>
-                </UserButton>
+                <div className={styles.searchBox}>
+                    <span>🔍</span>
+                    <input type="text" placeholder="Buscar jugadores, clubes..." />
+                </div>
             </div>
 
             <nav className={styles.nav}>
                 {navItems.map((item) => (
                     <Link key={item.label} href={item.href} className={styles.navItem}>
-                        {item.icon} <span>{item.label}</span>
+                        <span className={styles.navIcon}>{item.icon}</span>
+                        <span className={styles.navLabel}>{item.label}</span>
                     </Link>
                 ))}
                 <button className={styles.postButton}>+ Postear</button>

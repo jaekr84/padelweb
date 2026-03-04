@@ -6,108 +6,169 @@ import styles from "./landing.module.css";
 export default function LandingPage() {
     return (
         <div className={styles.root}>
-            {/* ── Navbar ── */}
-            <nav className={styles.nav}>
-                <div className={styles.navBrand}>
-                    <span className={styles.navLogo}>🎾</span>
-                    <span className={styles.navName}>PadelApp</span>
-                </div>
-                <div className={styles.navActions}>
-                    <Link href="/sign-in" className={styles.navSignIn}>Iniciar sesión</Link>
-                    <Link href="/sign-up" className={styles.navSignUp}>Registrarse</Link>
-                </div>
-            </nav>
 
-            {/* ── Hero ── */}
+            {/* ══ NAV (Floating Pill) ══ */}
+            <div className={styles.navWrapper}>
+                <nav className={styles.nav}>
+                    <div className={styles.navBrand}>
+                        <img
+                            src="/img/stickers 1.jpg"
+                            alt="Logo ACAP"
+                            className={styles.navLogoImg}
+                        />
+                        <div className={styles.navName}>
+                            <span className={styles.navNameTop}>Asociación Coreana Argentina de</span>
+                            <span className={styles.navNameBottom}>PÁDEL</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.navLinks}>
+                        <a href="#torneos" className={styles.navLink}>Torneos</a>
+                        <a href="#ranking" className={styles.navLink}>Ranking</a>
+                        <a href="#profes" className={styles.navLink}>Instructores</a>
+                        <a href="#centros" className={styles.navLink}>Centros</a>
+                    </div>
+
+                    <div className={styles.navActions}>
+                        <Link href="/sign-in" className={styles.navSignIn}>Iniciar Sesión</Link>
+                        <Link href="/sign-up" className={styles.navSignUp}>Registrarse</Link>
+                    </div>
+                </nav>
+            </div>
+
+            {/* ══ HERO ══ */}
             <section className={styles.hero}>
-                <div className={styles.heroGlow} />
                 <div className={styles.heroContent}>
-                    <div className={styles.heroBadge}>🏆 La plataforma de pádel en Argentina</div>
+                    <div className={styles.heroBadge}>
+                        🇰🇷 🇦🇷 &nbsp; Comunidad Oficial · Buenos Aires
+                    </div>
+                    <div className={styles.heroTitleSmall}>Asociación Coreana Argentina de</div>
                     <h1 className={styles.heroTitle}>
-                        Tu comunidad<br />
-                        <span className={styles.heroAccent}>de pádel</span>
+                        PÁDEL
                     </h1>
                     <p className={styles.heroSubtitle}>
-                        Encontrá torneos, reservá clases con instructores certificados
-                        y conectá con tu centro de pádel favorito.
+                        La plataforma oficial de la Asociación donde podés inscribirte a torneos,
+                        seguir el ranking en tiempo real, encontrar instructores certificados
+                        y explorar los mejores centros de pádel.
                     </p>
                     <div className={styles.heroCTAs}>
                         <Link href="/sign-up" className={styles.ctaPrimary}>
-                            Comenzar gratis →
-                        </Link>
-                        <Link href="/sign-in" className={styles.ctaSecondary}>
-                            Ya tengo cuenta
+                            Registrarse Gratis →
                         </Link>
                     </div>
                 </div>
 
-                {/* Floating court visual */}
                 <div className={styles.heroVisual}>
-                    <div className={styles.courtCard}>
-                        <div className={styles.courtTop}>
-                            <span className={styles.courtEmoji}>🎾</span>
-                            <div>
-                                <div className={styles.courtTitle}>Torneo Apertura 2025</div>
-                                <div className={styles.courtSub}>Palermo · 3ra–5ta · Inscripción abierta</div>
-                            </div>
-                            <span className={styles.liveBadge}>🔴 LIVE</span>
-                        </div>
-                        <div className={styles.courtStats}>
-                            <div className={styles.cStat}><div className={styles.cNum}>48</div><div className={styles.cLbl}>Inscriptos</div></div>
-                            <div className={styles.cStat}><div className={styles.cNum}>12</div><div className={styles.cLbl}>Grupos</div></div>
-                            <div className={styles.cStat}><div className={styles.cNum}>3</div><div className={styles.cLbl}>Canchas</div></div>
-                        </div>
+                    <div className={styles.logoWrapper}>
+                        <img
+                            src="/img/stickers 1.jpg"
+                            alt="Asociación Coreana Argentina de Pádel"
+                            className={styles.bigLogoImg}
+                        />
                     </div>
-                    <div className={styles.proCard}>
-                        <span className={styles.proAvatar}>🎓</span>
-                        <div>
-                            <div className={styles.proName}>Carlos Rodríguez</div>
-                            <div className={styles.proLevel}>Profesor Nacional · ⭐ 4.9</div>
+
+                    {/* Stats Grid exactly next to logo like UI mockup */}
+                    <div className={styles.statsGrid}>
+                        <div className={styles.statBox}>
+                            <div className={styles.statNum}>+50</div>
+                            <div className={styles.statLbl}>Torneos</div>
                         </div>
-                        <Link href="/sign-up" className={styles.proBook}>Reservar</Link>
+                        <div className={styles.statBox}>
+                            <div className={styles.statNum}>+300</div>
+                            <div className={styles.statLbl}>Jugadores</div>
+                        </div>
+                        <div className={styles.statBox}>
+                            <div className={styles.statNum}>+15</div>
+                            <div className={styles.statLbl}>Centros</div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── Features ── */}
-            <section className={styles.features}>
+            {/* ══ DIVIDER ══ */}
+            <div className={styles.dividerStrip} />
+
+            {/* ══ FEATURES ══ */}
+            <section className={styles.features} id="torneos">
+                <div className={styles.sectionHeader}>
+                    <p className={styles.sectionLabel}>Features</p>
+                    <h2 className={styles.sectionTitle}>¿Qué podés hacer?</h2>
+                </div>
+
                 <div className={styles.featuresGrid}>
-                    <div className={styles.featureCard}>
+                    <div className={styles.featureCard} id="ranking">
                         <div className={styles.featureIcon}>🏆</div>
-                        <h3>Torneos en vivo</h3>
-                        <p>Seguí los partidos, resultados y grupos en tiempo real. Inscribite en segundos.</p>
+                        <div className={styles.featureText}>
+                            <h3>Torneos Oficiales</h3>
+                        </div>
                     </div>
+
                     <div className={styles.featureCard}>
+                        <div className={styles.featureIcon}>⭐</div>
+                        <div className={styles.featureText}>
+                            <h3>Ranking Federado</h3>
+                        </div>
+                    </div>
+
+                    <div className={styles.featureCard} id="profes">
                         <div className={styles.featureIcon}>🎓</div>
-                        <h3>Instructores certificados</h3>
-                        <p>Elegí tu profe ideal, chequeá su horario y reservá por WhatsApp sin salir de la app.</p>
+                        <div className={styles.featureText}>
+                            <h3>Instructores Certificados</h3>
+                        </div>
                     </div>
-                    <div className={styles.featureCard}>
+
+                    <div className={styles.featureCard} id="centros">
                         <div className={styles.featureIcon}>🏟️</div>
-                        <h3>Centros de pádel</h3>
-                        <p>Encontrá canchas cerca tuyo, consultá horarios y reservá donde quieras.</p>
+                        <div className={styles.featureText}>
+                            <h3>Centros de Pádel</h3>
+                        </div>
                     </div>
+
                     <div className={styles.featureCard}>
                         <div className={styles.featureIcon}>📊</div>
-                        <h3>Tu ranking personal</h3>
-                        <p>Acumulá puntos en cada torneo y escalá el ranking de tu categoría.</p>
+                        <div className={styles.featureText}>
+                            <h3>Estadísticas Personales</h3>
+                        </div>
+                    </div>
+
+                    <div className={styles.featureCard}>
+                        <div className={styles.featureIcon}>🗂️</div>
+                        <div className={styles.featureText}>
+                            <h3>Directorio Comunitario</h3>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── CTA final ── */}
+            {/* ══ CTA ══ */}
             <section className={styles.ctaSection}>
-                <h2 className={styles.ctaTitle}>¿Listo para jugar?</h2>
-                <p className={styles.ctaDesc}>Creá tu cuenta gratis y empezá a ser parte de la comunidad.</p>
-                <Link href="/sign-up" className={styles.ctaPrimary} style={{ fontSize: '1.1rem', padding: '1rem 2.5rem' }}>
-                    Crear cuenta gratis →
-                </Link>
+                <div className={styles.ctaInner}>
+                    <h2 className={styles.ctaTitle}>
+                        Formá parte de la <span className={styles.accentSky}>Asociación Coreana Argentina</span> de Pádel
+                    </h2>
+                    <div className={styles.ctaButtons}>
+                        <Link href="/sign-up" className={styles.ctaButtonPrimary}>
+                            CTA →
+                        </Link>
+                    </div>
+                </div>
             </section>
 
-            {/* ── Footer ── */}
+            {/* ══ FOOTER ══ */}
             <footer className={styles.footer}>
-                <span>🎾 PadelApp · Argentina 2025</span>
+                <div className={styles.footerInner}>
+                    <div className={styles.footerBrand}>
+                        <img src="/img/stickers 1.jpg" alt="ACAP" className={styles.footerLogo} />
+                        <span className={styles.footerName}>
+                            ASOCIACIÓN COREANA ARGENTINA DE PÁDEL
+                        </span>
+                    </div>
+                    <p className={styles.footerCopy}>
+                        © {new Date().getFullYear()} - All rights reserved.
+                    </p>
+                </div>
             </footer>
+
         </div>
     );
 }

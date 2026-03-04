@@ -1,125 +1,140 @@
+/* -------------------------------------------------------------
+ * FEED LAYOUT (Mobile First)
+ * Mobile view creates a Top Header and a Bottom Nav Bar.
+ * Desktop view scales back up to the classic Left Sidebar.
+ * ------------------------------------------------------------- */
+
 .layout {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
     background-color: var(--background);
     color: var(--foreground);
     width: 100%;
+    /* Mobile needs space so content isn't hidden under fixed bars */
+    padding-top: 64px;
+    padding-bottom: 74px;
+    /* bottom nav spacing + env safe area */
 }
 
-/* ── Left Sidebar ── */
+/* ── Mobile Sidebar Parts (Header & Nav) ── */
 .sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    padding: 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    border-right: 1px solid var(--surface-border);
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    scrollbar-width: none;
+    /* Container loses its flex role on mobile, parts become fixed */
+    display: block;
 }
 
-.sidebar::-webkit-scrollbar {
-    display: none;
+.sidebarHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: var(--background);
+    border-bottom: 1px solid var(--surface-border);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    gap: 1rem;
+}
+
+.logoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--primary);
+}
+
+.logoIcon {
+    font-size: 1.5rem;
+}
+
+.logoText {
+    /* Hide on very small mobile screens for space, show on tablet/desktop */
+    display: none;
     font-size: 1.25rem;
     font-weight: 800;
-    color: var(--primary);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0 0.5rem;
 }
 
-/* ── Search (now in sidebar) ── */
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Hide the user name explicitly on mobile to save space */
+.userWrapper :global(.cl-userButtonOuterIdentifier) {
+    display: none;
+}
+
+/* Search Box hidden on Mobile to avoid nav clutter */
 .searchBox {
-    background-color: var(--surface);
-    border: 1px solid var(--surface-border);
-    border-radius: 0.75rem;
-    padding: 0.625rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    transition: border-color 0.2s;
-    color: var(--text-muted);
+    display: none;
 }
 
-.searchBox input {
-    background: transparent;
-    border: none;
-    color: var(--foreground);
-    outline: none;
-    width: 100%;
-    font-size: 0.875rem;
-}
-
-.searchBox input::placeholder {
-    color: var(--text-muted);
-}
-
-.searchBox:focus-within {
-    border-color: var(--primary);
-}
-
-/* ── Nav ── */
+/* ── BOTTOM NAV (Mobile) ── */
 .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: var(--surface);
+    border-top: 1px solid var(--surface-border);
+    z-index: 100;
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .navItem {
+    flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.875rem;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    font-weight: 500;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
     text-decoration: none;
-    color: var(--foreground);
-    border-radius: 0.75rem;
-    transition: all 0.2s;
-    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
 }
 
 .navItem:hover {
-    background-color: var(--surface);
     color: var(--primary-label);
 }
 
 .navItem.active {
-    font-weight: 700;
     color: var(--primary-label);
-    background-color: var(--surface);
+    font-weight: 700;
+}
+
+.navIcon {
+    font-size: 1.25rem;
+}
+
+.navLabel {
+    font-size: 0.65rem;
 }
 
 .postButton {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    border: none;
-    border-radius: 0.75rem;
-    padding: 0.875rem;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: all 0.2s;
-    text-align: center;
+    display: none;
+    /* Hide standard post button on mobile (Could use a FAB in the future) */
 }
 
-.postButton:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px -3px rgba(217, 249, 93, 0.3);
-}
 
-/* ── Main content (full width) ── */
+/* ── Main content (Mobile) ── */
 .main {
     flex: 1;
     min-width: 0;
@@ -128,8 +143,10 @@
 
 .mainHeader {
     position: sticky;
-    top: 0;
-    background-color: var(--background-header);
+    top: 64px;
+    /* Sticks right below mobile header */
+    background-color: rgba(var(--background-rgb, 10, 10, 20), 0.85);
+    /* fallback */
     backdrop-filter: blur(12px);
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--surface-border);
@@ -141,7 +158,6 @@
     font-weight: 700;
 }
 
-/* ── Widget (kept for optional reuse) ── */
 .widget {
     background-color: var(--surface);
     border-radius: 1rem;
@@ -156,41 +172,173 @@
     margin-bottom: 0.875rem;
 }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-    .sidebar {
-        width: 72px;
-        padding: 1rem 0.5rem;
-        align-items: center;
+
+/* ==========================================================
+   DESKTOP / TABLET SCALING (> 768px)
+   Reverts back to the classic Left-Sidebar 
+   ========================================================== */
+
+@media (min-width: 768px) {
+    .layout {
+        flex-direction: row;
+        padding-top: 0;
+        padding-bottom: 0;
     }
 
-    .sidebar .logo span:last-child,
-    .navItem span,
-    .searchBox input,
-    .searchBox span:first-child+*,
-    .postButton {
+    .mainHeader {
+        top: 0;
+        /* Sticky to very top */
+    }
+
+    /* Undo mobile fixed header/nav and restore sidebar column */
+    .sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--surface-border);
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        scrollbar-width: none;
+        background-color: var(--background);
+        padding: 1.25rem 1rem;
+        gap: 2rem;
+    }
+
+    .sidebar::-webkit-scrollbar {
         display: none;
     }
 
-    .navItem {
-        justify-content: center;
-        padding: 0.75rem;
-        font-size: 1.25rem;
+    .sidebarHeader {
+        position: static;
+        height: auto;
+        background-color: transparent;
+        border-bottom: none;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        gap: 1.5rem;
     }
 
-    .logo {
-        justify-content: center;
-        font-size: 1.5rem;
+    .logoRow {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .logoText {
+        display: inline;
+        /* Show on desktop */
+    }
+
+    /* Show the user name explicitly on desktop */
+    .userWrapper :global(.cl-userButtonOuterIdentifier) {
+        display: flex;
+        color: var(--foreground);
+    }
+
+    .userWrapper {
+        /* Style the box so the name looks good inline, similar to old inline styles */
+        width: 100%;
+    }
+
+    /* Restore search box layout */
+    .searchBox {
+        background-color: var(--surface);
+        border: 1px solid var(--surface-border);
+        border-radius: 0.75rem;
+        padding: 0.625rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        transition: border-color 0.2s;
+        color: var(--text-muted);
+    }
+
+    .searchBox input {
+        background: transparent;
+        border: none;
+        color: var(--foreground);
+        outline: none;
+        width: 100%;
+        font-size: 0.875rem;
+    }
+
+    .searchBox input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .searchBox:focus-within {
+        border-color: var(--primary);
+    }
+
+    /* Restore sidebar nav layout */
+    .nav {
+        position: static;
+        height: auto;
+        background-color: transparent;
+        border-top: none;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        gap: 0.25rem;
+    }
+
+    .navItem {
+        flex: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.875rem;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--foreground);
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .navItem:hover {
+        background-color: var(--surface);
+        color: var(--primary-label);
+    }
+
+    .navItem.active {
+        font-weight: 700;
+        color: var(--primary-label);
+        background-color: var(--surface);
+    }
+
+    .navIcon {
+        font-size: 1.25rem;
+        /* Default size for emojis */
+    }
+
+    .navLabel {
+        font-size: 1rem;
     }
 
     .postButton {
-        display: flex;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        font-size: 1.25rem;
+        display: block;
+        background-color: var(--primary);
+        color: var(--primary-foreground);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.875rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .postButton:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px -3px rgba(217, 249, 93, 0.3);
     }
 }

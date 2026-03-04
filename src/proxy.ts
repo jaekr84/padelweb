@@ -41,9 +41,10 @@ export default clerkMiddleware(async (auth, req) => {
             return NextResponse.redirect(onboardingUrl);
         }
 
-        // If user has a role and tries to access onboarding, redirect them to home
-        if (hasRole && isOnboardingRoute(req)) {
-            const homeUrl = new URL('/feed', req.url);
+        // If user has a role and tries to access onboarding, landing page, or auth pages, redirect them to app
+        const isAuthOrLandingRoute = req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/sign-in') || req.nextUrl.pathname.startsWith('/sign-up');
+        if (hasRole && (isOnboardingRoute(req) || isAuthOrLandingRoute)) {
+            const homeUrl = new URL('/tournaments', req.url);
             const response = NextResponse.redirect(homeUrl);
             if (!hasRoleCookie) {
                 response.cookies.set('has_role', 'true', { maxAge: 60 * 60 * 24 * 365, path: '/' });
