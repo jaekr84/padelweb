@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { switchRole } from "@/app/dev/actions";
 
 const ROLES = [
@@ -16,16 +15,19 @@ type Role = typeof ROLES[number]["id"];
 export default function DevRoleSwitcher({ currentRole }: { currentRole: string }) {
     const [open, setOpen] = useState(false);
     const [activeRole, setActiveRole] = useState(currentRole);
-    const [isPending, startTransition] = useTransition();
-    const router = useRouter();
 
-    const handleSwitch = (role: Role) => {
-        startTransition(async () => {
+    const handleSwitch = async (role: Role) => {
+        setOpen(false);
+        try {
             await switchRole(role);
-            setActiveRole(role);
-            setOpen(false);
-            router.refresh();
-        });
+        } catch (e) {
+            console.error("switchRole failed:", e);
+        }
+        // Write cookie immediately client-side so Sidebar picks it up right away
+        document.cookie = `__padel_role=${role}; path=/; max-age=86400; samesite=lax`;
+        setActiveRole(role);
+        // Hard reload so layout.tsx re-runs server-side and re-writes the cookie too
+        window.location.reload();
     };
 
     return (
@@ -56,7 +58,7 @@ export default function DevRoleSwitcher({ currentRole }: { currentRole: string }
                             <button
                                 key={r.id}
                                 onClick={() => handleSwitch(r.id)}
-                                disabled={isPending || isActive}
+                                disabled={isActive}
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -70,8 +72,8 @@ export default function DevRoleSwitcher({ currentRole }: { currentRole: string }
                                     color: isActive ? "#d9f95d" : "#e4e4e7",
                                     fontWeight: isActive ? 700 : 500,
                                     fontSize: "0.875rem",
-                                    cursor: isActive || isPending ? "default" : "pointer",
-                                    opacity: isPending && !isActive ? 0.5 : 1,
+                                    cursor: isActive ? "default" : "pointer",
+                                    opacity: 1,
                                     transition: "all 0.15s",
                                     textAlign: "left",
                                 }}

@@ -4,6 +4,12 @@ export const users = pgTable("users", {
     id: varchar("id", { length: 256 }).primaryKey(), // Clerk user ID
     email: varchar("email", { length: 256 }).notNull().unique(),
     role: varchar("role", { length: 50 }).notNull().default("jugador"),
+    name: varchar("name", { length: 256 }),
+    bio: text("bio"),
+    location: varchar("location", { length: 256 }),
+    side: varchar("side", { length: 50 }), // drive | reves | ambos
+    category: varchar("category", { length: 50 }).default("5ta"),
+    points: integer("points").default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -14,11 +20,16 @@ export const clubs = pgTable("clubs", {
     type: varchar("type", { length: 50 }).notNull().default("club"), // club | centro
     bio: text("bio"),
     location: varchar("location", { length: 256 }),
+    address: varchar("address", { length: 512 }),
     phone: varchar("phone", { length: 50 }),
+    whatsapp: varchar("whatsapp", { length: 50 }),
+    instagram: varchar("instagram", { length: 100 }),
     website: varchar("website", { length: 256 }),
     amenities: text("amenities").array(),
     courts: integer("courts").default(0),
     surfaces: text("surfaces").array(),
+    schedule: json("schedule"),
+    photos: text("photos").array(),
     verified: boolean("verified").default(false),
     logoUrl: varchar("logo_url", { length: 512 }),
     rating: varchar("rating", { length: 10 }).default("0.0"),
@@ -36,6 +47,12 @@ export const instructorProfiles = pgTable("instructor_profiles", {
     experience: varchar("experience", { length: 100 }),
     rating: varchar("rating", { length: 10 }).default("0.0"),
     verified: boolean("verified").default(false),
+    phone: varchar("phone", { length: 50 }),
+    whatsapp: varchar("whatsapp", { length: 50 }),
+    instagram: varchar("instagram", { length: 100 }),
+    workingZones: text("working_zones").array(),
+    availability: json("availability"),
+    pricing: json("pricing"),
     avatarUrl: varchar("avatar_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });

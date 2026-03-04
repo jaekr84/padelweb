@@ -12,7 +12,8 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
-        { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
+        { href: "/profile", icon: "👤", label: "Mi Perfil" },
+        // { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
         // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
@@ -20,7 +21,8 @@ const NAV: Record<string, NavItem[]> = {
     profe: [
         { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
-        { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
+        { href: "/profile", icon: "👤", label: "Mi Perfil" },
+        // { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
         // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
@@ -28,8 +30,9 @@ const NAV: Record<string, NavItem[]> = {
     centro_de_padel: [
         { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
-        { href: "/tournaments/dashboard", icon: "⚙️", label: "Mis Torneos" },
-        { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
+        { href: "/profile", icon: "🏟️", label: "Mi Centro" },
+        // { href: "/tournaments/dashboard", icon: "⚙️", label: "Mis Torneos" },
+        // { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
         // { href: "/notifications", icon: "🔔", label: "Notificaciones" },

@@ -41,14 +41,16 @@ function getStatusClass(status: TournamentStatus, cssStyles: Record<string, stri
 }
 
 export default async function TournamentsPage() {
-    const allTournaments = await db
-        .select()
-        .from(tournaments)
-        .orderBy(desc(tournaments.createdAt));
+    let allTournaments: any[] = [];
+    try {
+        allTournaments = await db
+            .select()
+            .from(tournaments)
+            .orderBy(desc(tournaments.createdAt));
+    } catch (e) {
+        console.error("Error fetching tournaments:", e);
+    }
 
-    const published = allTournaments.filter(t => t.status === "published");
-    const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
-    const others = allTournaments.filter(t => t.status !== "published" && t.status !== "en_curso" && t.status !== "en_eliminatorias");
 
     return (
         <FeedLayout>

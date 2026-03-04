@@ -23,4 +23,6 @@ export async function switchRole(role: Role) {
 
     // Revalidate all pages so server components pick up the new role
     revalidatePath("/", "layout");
+
+    return { role };
 }

@@ -20,10 +20,14 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let currentRole = "jugador";
 
-  const clerkUser = await currentUser();
-  if (clerkUser) {
-    const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, clerkUser.id)).limit(1);
-    if (dbUser) currentRole = dbUser.role;
+  try {
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, clerkUser.id)).limit(1);
+      if (dbUser) currentRole = dbUser.role;
+    }
+  } catch {
+    // DB cold start or connection issue — use default role
   }
 
   // Set role as a JS-readable cookie via an inline script (cookies().set() not allowed in Server Components)

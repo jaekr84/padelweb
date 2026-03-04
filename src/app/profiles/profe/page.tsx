@@ -20,8 +20,25 @@ export default async function ProfesorProfilePage({
         const found = await db.select().from(instructorProfiles).where(eq(instructorProfiles.userId, profeId));
         profe = found[0] || null;
     } else if (user) {
-        const found = await db.select().from(instructorProfiles).where(eq(instructorProfiles.userId, user.id));
-        profe = found[0] || null;
+        // Upsert for current user
+        const result = await db
+            .insert(instructorProfiles)
+            .values({
+                userId: user.id,
+                name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0],
+                bio: "Instructor de padel",
+                level: "Profesor",
+                experience: "En formación",
+                rating: "0.0",
+                verified: false,
+                avatarUrl: user.imageUrl,
+            })
+            .onConflictDoUpdate({
+                target: instructorProfiles.userId,
+                set: { avatarUrl: user.imageUrl } // Keep it simple
+            })
+            .returning();
+        profe = result[0];
     }
 
     const isOwner = user?.id === profe?.userId;

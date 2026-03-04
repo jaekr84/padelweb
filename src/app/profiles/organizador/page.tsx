@@ -18,47 +18,61 @@ export default function CentroPadelProfilePage() {
                 <div className={styles.hero}>
                     <div className={styles.heroBanner} style={{ background: "linear-gradient(135deg,#0a1628,#1a3a5c,#0d4a2e)" }} />
                     <div className={styles.heroBody}>
-                        <div className={styles.heroAvatar}>🎯</div>
+                        <div className={styles.heroAvatar}>🏟️</div>
                         <div className={styles.heroInfo}>
-                            <h1 className={styles.heroName}>Padel Norte Center</h1>
+                            <div className={styles.heroMain}>
+                                <h1 className={styles.heroName}>Padel Norte Center</h1>
+                                <span className={styles.verifiedBadge}>✓</span>
+                            </div>
                             <p className={styles.heroBio}>Centro de pádel en CABA con 6 canchas de alta calidad. Reservas online, iluminación LED y estacionamiento propio.</p>
                             <div className={styles.heroMeta}>
-                                <span className={styles.heroMetaItem}>📍 Palermo, CABA</span>
-                                <span className={styles.heroMetaItem}>🕐 Lun–Dom 7:00–01:00</span>
-                                <span className={styles.heroMetaItem}>⭐ 4.9 (218 reseñas)</span>
+                                <div className={styles.heroMetaItem}>📍 Palermo, CABA</div>
+                                <div className={styles.heroMetaItem}>🕐 Lun–Dom 7:00–01:00</div>
+                                <div className={styles.heroMetaItem}>⭐ <span className={styles.accent}>4.9</span> (218 reseñas)</div>
                             </div>
                         </div>
                         <div className={styles.heroActions}>
-                            <span className={styles.verifiedBadge}>✓ Verificado</span>
-                            <button className={styles.btnPrimary}>Reservar Cancha</button>
-                            <button className={styles.btnSecondary} onClick={() => setShowInvite(true)}>✉️ Invitar</button>
+                            <button className={styles.btnAction}>Reservar Cancha</button>
+                            <button className={styles.tag} onClick={() => setShowInvite(true)}>✉️ Invitar</button>
                         </div>
                     </div>
                 </div>
 
                 {/* ── Stats ── */}
                 <div className={styles.statsRow}>
-                    <div className={styles.stat}><div className={styles.statValue}>6</div><div className={styles.statLabel}>Canchas</div></div>
-                    <div className={styles.stat}><div className={styles.statValue}>7.00</div><div className={styles.statLabel}>Apertura</div></div>
-                    <div className={styles.stat}><div className={styles.statValue}>01:00</div><div className={styles.statLabel}>Cierre</div></div>
-                    <div className={styles.stat}><div className={styles.statValue}>4.9</div><div className={styles.statLabel}>Rating</div></div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statValue}>6</div>
+                        <div className={styles.statLabel}>Canchas</div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statValue}>7.00</div>
+                        <div className={styles.statLabel}>Apertura</div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statValue}>01:00</div>
+                        <div className={styles.statLabel}>Cierre</div>
+                    </div>
+                    <div className={styles.statCard}>
+                        <div className={styles.statValue}>4.9</div>
+                        <div className={styles.statLabel}>Rating</div>
+                    </div>
                 </div>
 
                 <div className={styles.contentGrid}>
-                    {/* ── Left ── */}
-                    <div>
-                        <div className={styles.tabs} style={{ padding: "0" }}>
+                    {/* ── Main Column (Left) ── */}
+                    <div className={styles.mainCol}>
+                        <div className={styles.tabWrapper}>
                             <button
-                                className={`${styles.tab} ${activeTab === "info" ? styles.active : ""}`}
+                                className={`${styles.tabItem} ${activeTab === "info" ? styles.active : ""}`}
                                 onClick={() => setActiveTab("info")}
                             >
                                 Información
                             </button>
                             <button
-                                className={`${styles.tab} ${activeTab === "account" ? styles.active : ""}`}
+                                className={`${styles.tabItem} ${activeTab === "account" ? styles.active : ""}`}
                                 onClick={() => setActiveTab("account")}
                             >
-                                ⚙️ Cuenta
+                                Mi Cuenta
                             </button>
                         </div>
 
@@ -74,13 +88,13 @@ export default function CentroPadelProfilePage() {
                                             { name: "Cancha 5", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Ocupada" },
                                             { name: "Cancha 6", type: "Cemento", cover: "Indoor LED", price: "$12.000/hora", status: "Disponible" },
                                         ].map((court) => (
-                                            <div key={court.name} className={styles.listRow}>
-                                                <div className={styles.listIcon}>🟩</div>
+                                            <div key={court.name} className={styles.tournamentCard} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '1rem' }}>
+                                                <div style={{ fontSize: '1.5rem', marginRight: '1rem' }}>🟩</div>
                                                 <div style={{ flex: 1 }}>
-                                                    <div className={styles.listMain}>{court.name} — {court.type}</div>
-                                                    <div className={styles.listSub}>{court.cover} · {court.price}</div>
+                                                    <div style={{ fontWeight: '600', color: 'var(--foreground)' }}>{court.name} — {court.type}</div>
+                                                    <div style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)' }}>{court.cover} · {court.price}</div>
                                                 </div>
-                                                <span className={styles.listBadge} style={{
+                                                <span className={styles.statusBadge} style={{
                                                     color: court.status === "Disponible" ? "var(--primary)" : "#ff6b6b",
                                                     borderColor: court.status === "Disponible" ? "rgba(217,249,93,0.4)" : "rgba(255,68,68,0.3)",
                                                     background: court.status === "Disponible" ? "rgba(217,249,93,0.08)" : "rgba(255,68,68,0.08)",
@@ -96,21 +110,31 @@ export default function CentroPadelProfilePage() {
                                 <div className={styles.section}>
                                     <div className={styles.sectionHeader}>🕐 Horarios por Día</div>
                                     <div className={styles.sectionBody}>
-                                        {[
-                                            { dia: "Lunes a Viernes", horario: "07:00 – 01:00", precio: "Precio normal" },
-                                            { dia: "Sábados", horario: "07:00 – 02:00", precio: "+20% fin de semana" },
-                                            { dia: "Domingos", horario: "08:00 – 24:00", precio: "+20% fin de semana" },
-                                            { dia: "Feriados", horario: "09:00 – 22:00", precio: "+30% feriado" },
-                                        ].map((h) => (
-                                            <div key={h.dia} className={styles.listRow}>
-                                                <div className={styles.listIcon}>📅</div>
-                                                <div style={{ flex: 1 }}>
-                                                    <div className={styles.listMain}>{h.dia}</div>
-                                                    <div className={styles.listSub}>{h.horario}</div>
-                                                </div>
-                                                <span className={styles.listBadge}>{h.precio}</span>
-                                            </div>
-                                        ))}
+                                        <div className={styles.tableWrapper}>
+                                            <table className={styles.historyTable}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Día</th>
+                                                        <th>Horario</th>
+                                                        <th>Condición</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {[
+                                                        { dia: "Lunes a Viernes", horario: "07:00 – 01:00", precio: "Precio normal" },
+                                                        { dia: "Sábados", horario: "07:00 – 02:00", precio: "+20% fin de semana" },
+                                                        { dia: "Domingos", horario: "08:00 – 24:00", precio: "+20% fin de semana" },
+                                                        { dia: "Feriados", horario: "09:00 – 22:00", precio: "+30% feriado" },
+                                                    ].map((h) => (
+                                                        <tr key={h.dia}>
+                                                            <td style={{ fontWeight: '600' }}>{h.dia}</td>
+                                                            <td>{h.horario}</td>
+                                                            <td><span className={styles.tag}>{h.precio}</span></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -123,12 +147,12 @@ export default function CentroPadelProfilePage() {
                                             { author: "Luciana P.", stars: 5, text: "El centro más moderno de CABA. Las canchas indoor están buenísimas en invierno." },
                                             { author: "Gabriel S.", stars: 4, text: "Muy buena calidad. El único contra es que los horarios pico son difíciles de conseguir." },
                                         ].map((r) => (
-                                            <div key={r.author} className={styles.review}>
-                                                <div className={styles.reviewHeader}>
-                                                    <span className={styles.reviewAuthor}>{r.author}</span>
-                                                    <span className={styles.reviewStars}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
+                                            <div key={r.author} style={{ background: 'var(--surface)', border: '1px solid var(--surface-border)', padding: '1.25rem', borderRadius: '1.25rem', marginBottom: '1rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                    <span style={{ fontWeight: '600' }}>{r.author}</span>
+                                                    <span style={{ color: 'var(--primary)' }}>{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</span>
                                                 </div>
-                                                <p className={styles.reviewText}>{r.text}</p>
+                                                <p style={{ color: 'var(--foreground-muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>{r.text}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -137,17 +161,16 @@ export default function CentroPadelProfilePage() {
                         )}
 
                         {activeTab === "account" && (
-                            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                            <div className={styles.accountSection}>
                                 <UserProfile routing="hash" />
                             </div>
                         )}
                     </div>
 
-                    {/* ── Right sidebar ── */}
-                    <div>
-                        {/* Información de contacto */}
+                    {/* ── Sidebar (Right) ── */}
+                    <div className={styles.stickyRight}>
                         <div className={styles.section}>
-                            <div className={styles.sectionHeader}>ℹ️ Contacto y Acceso</div>
+                            <div className={styles.sectionHeader}>📞 Contacto</div>
                             <div className={styles.sectionBody}>
                                 {[
                                     { icon: "📧", label: "Email", value: "reservas@padelnorte.com.ar" },
@@ -155,44 +178,41 @@ export default function CentroPadelProfilePage() {
                                     { icon: "📱", label: "WhatsApp", value: "+54 9 11 4567-8901" },
                                     { icon: "🌐", label: "Reservas Online", value: "padelnorte.com.ar/reservas" },
                                     { icon: "📍", label: "Dirección", value: "Av. Libertador 4500, CABA" },
-                                    { icon: "🅿️", label: "Estacionamiento", value: "Subsuelo · 30 lugares" },
                                 ].map((item) => (
-                                    <div key={item.label} className={styles.listRow}>
-                                        <span className={styles.listIcon}>{item.icon}</span>
+                                    <div key={item.label} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                        <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
                                         <div>
-                                            <div className={styles.listSub}>{item.label}</div>
-                                            <div className={styles.listMain}>{item.value}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', textTransform: 'uppercase' }}>{item.label}</div>
+                                            <div style={{ fontWeight: '500' }}>{item.value}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Servicios */}
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>🛎️ Amenities</div>
                             <div className={styles.sectionBody}>
                                 <div className={styles.tags}>
-                                    {["Vestuarios", "Duchas", "Bar/Cafetería", "Pro Shop", "WiFi", "Estacionamiento", "Iluminación LED", "Alquiler de Palas", "Pelotas incluidas", "App de Reservas"].map(s => (
+                                    {["Vestuarios", "Duchas", "Bar/Cafetería", "WiFi", "Estacionamiento", "LED", "Alquiler Palas"].map(s => (
                                         <span key={s} className={styles.tag}>{s}</span>
                                     ))}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Superficie */}
                         <div className={styles.section}>
                             <div className={styles.sectionHeader}>🎾 Superficies</div>
                             <div className={styles.sectionBody}>
                                 {[
-                                    { tipo: "Cancha Azul", cant: "4 canchas", desc: "Césped artificial · Nivel torneo" },
-                                    { tipo: "Cemento", cant: "2 canchas", desc: "Indoor con climatización" },
+                                    { tipo: "Cancha Azul", cant: "4 canchas", desc: "Césped artificial" },
+                                    { tipo: "Cemento", cant: "2 canchas", desc: "Indoor climatizado" },
                                 ].map(s => (
-                                    <div key={s.tipo} className={styles.listRow}>
-                                        <span className={styles.listIcon}>🟦</span>
+                                    <div key={s.tipo} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>🟦</span>
                                         <div>
-                                            <div className={styles.listMain}>{s.tipo} — {s.cant}</div>
-                                            <div className={styles.listSub}>{s.desc}</div>
+                                            <div style={{ fontWeight: '600' }}>{s.tipo} — {s.cant}</div>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)' }}>{s.desc}</div>
                                         </div>
                                     </div>
                                 ))}
