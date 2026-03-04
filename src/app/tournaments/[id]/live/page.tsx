@@ -37,19 +37,76 @@ type BracketRow = { id: string; round: number; slot: number; team1Name: string |
 
 // ─── Standings computation (server side) ──────────────────────────────────────
 function computeStandings(players: Player[], matches: MatchRow[]) {
-    const map = new Map<string, { name: string; pts: number; mp: number }>();
-    players.forEach(p => map.set(p.name, { name: p.name, pts: 0, mp: 0 }));
+    const standingsMap = new Map<string, { playerId: string; name: string; points: number; matchesPlayed: number; h2hNote?: string }>();
 
-    matches.filter(m => m.confirmed).forEach(m => {
-        const a = map.get(m.team1Name);
-        const b = map.get(m.team2Name);
-        if (!a || !b || m.score1 === null || m.score2 === null) return;
-        const diff = m.score1 - m.score2;
-        a.pts += diff; a.mp += 1;
-        b.pts -= diff; b.mp += 1;
+    players.forEach(p => {
+        standingsMap.set(p.id, { playerId: p.id, name: p.name, points: 0, matchesPlayed: 0 });
     });
 
-    return Array.from(map.values()).sort((a, b) => b.pts - a.pts);
+    const confirmedMatches = matches.filter(m => m.confirmed);
+    confirmedMatches.forEach(m => {
+        if (m.score1 !== null && m.score2 !== null) {
+            const diff = m.score1 - m.score2;
+            // Find player IDs by names for this mock-up data structure
+            const p1 = players.find(p => p.name === m.team1Name);
+            const p2 = players.find(p => p.name === m.team2Name);
+
+            if (p1) {
+                const s1 = standingsMap.get(p1.id)!;
+                s1.matchesPlayed++;
+                s1.points += diff;
+            }
+            if (p2) {
+                const s2 = standingsMap.get(p2.id)!;
+                s2.matchesPlayed++;
+                s2.points -= diff;
+            }
+        }
+    });
+
+    const list = Array.from(standingsMap.values());
+
+    // Head-to-head tiebreaker helper
+    const h2hPoints = (aId: string, bIds: string[]): number => {
+        let pts = 0;
+        confirmedMatches.forEach(m => {
+            if (m.score1 === null || m.score2 === null) return;
+            const p1 = players.find(p => p.name === m.team1Name);
+            const p2 = players.find(p => p.name === m.team2Name);
+            if (!p1 || !p2) return;
+
+            const opponentIds = bIds.filter(id => id !== aId);
+            if (p1.id === aId && opponentIds.includes(p2.id)) pts += (m.score1 - m.score2);
+            if (p2.id === aId && opponentIds.includes(p1.id)) pts -= (m.score1 - m.score2);
+        });
+        return pts;
+    };
+
+    // Sort with tiebreaker
+    list.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        const tiedIds = list.filter(s => s.points === a.points).map(s => s.playerId);
+        const aH2H = h2hPoints(a.playerId, tiedIds);
+        const bH2H = h2hPoints(b.playerId, tiedIds);
+        if (bH2H !== aH2H) return bH2H - aH2H;
+        return 0;
+    });
+
+    // Annotate tied entries
+    const seenPoints = new Set<number>();
+    list.forEach((entry, i) => {
+        const others = list.filter((_, j) => j !== i && _.points === entry.points);
+        if (others.length > 0 && !seenPoints.has(entry.points)) {
+            seenPoints.add(entry.points);
+            const tiedIds = list.filter(s => s.points === entry.points).map(s => s.playerId);
+            list.filter(s => s.points === entry.points).forEach(s => {
+                const count = tiedIds.filter(id => id !== s.playerId).length;
+                if (count > 0) s.h2hNote = `H2H vs ${count} eq.`;
+            });
+        }
+    });
+
+    return list;
 }
 
 function roundLabel(r: number, totalRounds: number) {
@@ -61,20 +118,21 @@ function roundLabel(r: number, totalRounds: number) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default async function TournamentLivePage({ params }: { params: { id: string } }) {
-    const [tournamentRow] = await db.select().from(tournaments).where(eq(tournaments.id, params.id)).limit(1);
+export default async function TournamentLivePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const [tournamentRow] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
     if (!tournamentRow) notFound();
 
     const isLive = tournamentRow.status === "en_curso" || tournamentRow.status === "en_eliminatorias";
     const showGroups = tournamentRow.status === "en_curso" || tournamentRow.status === "en_eliminatorias" || tournamentRow.status === "finalizado";
     const showBracket = tournamentRow.status === "en_eliminatorias" || tournamentRow.status === "finalizado";
 
-    const groups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, params.id));
+    const groups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
     const groupIds = groups.map(g => g.id);
 
     // Fetch all group matches at once
     const allGroupMatches: MatchRow[] = groupIds.length > 0
-        ? (await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, params.id))).map(m => ({
+        ? (await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id))).map(m => ({
             id: m.id,
             team1Name: m.team1Name,
             team2Name: m.team2Name,
@@ -85,7 +143,7 @@ export default async function TournamentLivePage({ params }: { params: { id: str
         : [];
 
     const allBracket: BracketRow[] = showBracket
-        ? (await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, params.id))).map(m => ({
+        ? (await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id))).map(m => ({
             id: m.id,
             round: m.round,
             slot: m.slot,
@@ -197,45 +255,59 @@ export default async function TournamentLivePage({ params }: { params: { id: str
 
                                     return (
                                         <div key={g.id} className={styles.groupCard}>
-                                            <div className={styles.groupHeader}>{g.name}</div>
+                                            <div className={styles.groupHeader}>
+                                                <span className={styles.groupName}>{g.name}</span>
+                                            </div>
 
                                             {/* Standings */}
                                             <div className={styles.standingsTable}>
-                                                <div className={`${styles.standingsRow} ${styles.standingsHead}`}>
-                                                    <span className={styles.standingsPos}>Pos</span>
-                                                    <span className={styles.standingsName}>Equipo</span>
-                                                    <span className={styles.standingsNum} title="Partidos jugados">PJ</span>
-                                                    <span className={styles.standingsNum} title="Diferencia de sets">Pts</span>
+                                                <div className={styles.standingsHeader}>
+                                                    <span>Pos</span>
+                                                    <span style={{ flex: 1 }}>Equipo</span>
+                                                    <span title="Partidos Jugados">PJ</span>
+                                                    <span title="Diferencia">Pts</span>
                                                 </div>
                                                 {standings.map((s, i) => (
-                                                    <div key={s.name} className={`${styles.standingsRow} ${i < 2 ? styles.standingsQual : ""}`}>
-                                                        <span className={`${styles.standingsPos} ${i < 2 ? styles.standingsPosQual : ""}`}>{i + 1}</span>
-                                                        <span className={styles.standingsName}>{s.name}</span>
-                                                        <span className={styles.standingsNum}>{s.mp}</span>
-                                                        <span className={`${styles.standingsNum} ${styles.standingsPts}`}>
-                                                            {s.pts > 0 ? `+${s.pts}` : s.pts}
+                                                    <div key={s.playerId} className={styles.standingsRow}>
+                                                        <span className={styles.standingsPos}>{i + 1}</span>
+                                                        <span className={styles.standingsName}>
+                                                            {s.name}
+                                                            {s.h2hNote && (
+                                                                <span className={styles.h2hBadge} title={s.h2hNote}>H2H</span>
+                                                            )}
                                                         </span>
+                                                        <span className={styles.standingsVal}>{s.matchesPlayed}</span>
+                                                        <span className={styles.standingsPts}>{s.points > 0 ? `+${s.points}` : s.points}</span>
                                                     </div>
                                                 ))}
                                             </div>
 
-                                            {/* Matches — read only, show scores when available */}
+                                            {/* Matches List */}
                                             <div className={styles.matchesList}>
-                                                <div className={styles.matchesListTitle}>Partidos</div>
-                                                {gMatches.length === 0 && <div className={styles.emptyState}>Sin partidos</div>}
+                                                <div className={styles.matchesTitle}>Partidos</div>
                                                 {gMatches.map(m => {
                                                     const hasScore = m.score1 !== null && m.score2 !== null;
                                                     return (
-                                                        <div key={m.id} className={`${styles.matchRow} ${m.confirmed ? styles.matchConfirmed : hasScore ? styles.matchProvisional : ""}`}>
-                                                            <span className={styles.matchTeam}>{m.team1Name}</span>
-                                                            <span className={styles.matchScore}>
-                                                                {hasScore
-                                                                    ? `${m.score1} – ${m.score2}`
-                                                                    : "vs"}
-                                                            </span>
-                                                            <span className={`${styles.matchTeam} ${styles.matchTeamRight}`}>{m.team2Name}</span>
-                                                            {m.confirmed && <span className={styles.matchBadgeOk}>✓</span>}
-                                                            {!m.confirmed && hasScore && <span className={styles.matchBadgePending}>●</span>}
+                                                        <div key={m.id} className={`${styles.matchRow} ${m.confirmed ? styles.matchConfirmed : ""}`}>
+                                                            <div className={styles.matchTeam}>
+                                                                <span>{m.team1Name}</span>
+                                                            </div>
+
+                                                            <div className={styles.matchScoreDisplay}>
+                                                                {hasScore ? (
+                                                                    <div className={styles.matchScoreConfirmed}>
+                                                                        <span className={styles.confirmedScoreVal}>{m.score1}</span>
+                                                                        <span style={{ color: "var(--text-muted)" }}>-</span>
+                                                                        <span className={styles.confirmedScoreVal}>{m.score2}</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className={styles.vsLabel}>vs</span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className={styles.matchTeam}>
+                                                                <span>{m.team2Name}</span>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -247,7 +319,7 @@ export default async function TournamentLivePage({ params }: { params: { id: str
                                                     style={{ width: `${gMatches.length === 0 ? 0 : Math.round((gMatches.filter(m => m.confirmed).length / gMatches.length) * 100)}%` }}
                                                 />
                                                 <span className={styles.groupProgressLabel}>
-                                                    {gMatches.filter(m => m.confirmed).length}/{gMatches.length} partidos confirmados
+                                                    {gMatches.filter(m => m.confirmed).length}/{gMatches.length} confirmados
                                                 </span>
                                             </div>
                                         </div>

@@ -2,6 +2,7 @@
 
 import { useState, DragEvent } from "react";
 import Link from "next/link";
+import FeedLayout from "@/app/feed/layout";
 import styles from "./setup.module.css";
 
 // ─── Datos simulados ───────────────────────────────────────────────────────────
@@ -207,178 +208,180 @@ export default function SetupFixturePage() {
     }
 
     return (
-        <div className={styles.page}>
-            {/* ── Top bar ── */}
-            <div className={styles.topBar}>
-                <div className={styles.topBarLeft}>
-                    <Link href="/tournaments/dashboard" className={styles.backLink}>← Panel</Link>
-                    <div>
-                        <div className={styles.tournamentName}>Copa Primavera – Armado de Fixture</div>
-                        <div className={styles.tournamentMeta}>Arrastrá los equipos inscriptos a los slots del cuadro</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Category tabs ── */}
-            <div className={styles.catTabsRow}>
-                {CATEGORIES.map((cat) => {
-                    const filled = (slotsByCat[cat] ?? []).filter(Boolean).length;
-                    const total = REGISTERED[cat]?.length ?? 0;
-                    const done = filled >= total;
-                    return (
-                        <button
-                            key={cat}
-                            className={`${styles.catTab} ${activeCategory === cat ? styles.active : ""}`}
-                            onClick={() => setActiveCategory(cat)}
-                        >
-                            {done ? "✓ " : ""}{cat} ({filled}/{total})
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* ── Workspace ── */}
-            <div className={styles.workspace}>
-                {/* Left: player list */}
-                <div className={styles.sidePanel}>
-                    <div className={styles.sidePanelHeader}>
-                        <div className={styles.sidePanelTitle}>Inscriptos – {activeCategory}</div>
-                        <div className={styles.sidePanelCount}>{registered.length} equipos registrados</div>
-                    </div>
-                    <div className={styles.playerList}>
-                        {registered.map((player) => {
-                            const isAssigned = assignedIds.has(player.id);
-                            const isDragging = dragId === player.id;
-                            return (
-                                <div
-                                    key={player.id}
-                                    className={[
-                                        styles.playerCard,
-                                        isAssigned ? styles.assigned : "",
-                                        isDragging ? styles.dragging : "",
-                                    ].join(" ")}
-                                    draggable={!isAssigned}
-                                    onDragStart={(e) => !isAssigned && onDragStart(e, player.id)}
-                                >
-                                    <span className={styles.dragHandle}>{isAssigned ? "✓" : "⠿"}</span>
-                                    <div>
-                                        <div className={styles.playerCardName}>{player.name}</div>
-                                        <div className={styles.playerCardSub}>{player.level}</div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+        <FeedLayout>
+            <div className={styles.page}>
+                {/* ── Top bar ── */}
+                <div className={styles.topBar}>
+                    <div className={styles.topBarLeft}>
+                        <Link href="/tournaments/dashboard" className={styles.backLink}>← Panel</Link>
+                        <div>
+                            <div className={styles.tournamentName}>Copa Primavera – Armado de Fixture</div>
+                            <div className={styles.tournamentMeta}>Arrastrá los equipos inscriptos a los slots del cuadro</div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Right: match slot assignment (first round only) */}
-                <div className={styles.bracketArea}>
-                    <div className={styles.bracketHint}>
-                        💡 Arrastrá los equipos a los slots. Los slots sin par quedan como BYE automático.
-                        <strong style={{ marginLeft: "auto", color: filledCount >= playerCount ? "var(--primary)" : "var(--text-muted)" }}>
-                            {filledCount}/{playerCount} asignados
-                        </strong>
+                {/* ── Category tabs ── */}
+                <div className={styles.catTabsRow}>
+                    {CATEGORIES.map((cat) => {
+                        const filled = (slotsByCat[cat] ?? []).filter(Boolean).length;
+                        const total = REGISTERED[cat]?.length ?? 0;
+                        const done = filled >= total;
+                        return (
+                            <button
+                                key={cat}
+                                className={`${styles.catTab} ${activeCategory === cat ? styles.active : ""}`}
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                {done ? "✓ " : ""}{cat} ({filled}/{total})
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ── Workspace ── */}
+                <div className={styles.workspace}>
+                    {/* Left: player list */}
+                    <div className={styles.sidePanel}>
+                        <div className={styles.sidePanelHeader}>
+                            <div className={styles.sidePanelTitle}>Inscriptos – {activeCategory}</div>
+                            <div className={styles.sidePanelCount}>{registered.length} equipos registrados</div>
+                        </div>
+                        <div className={styles.playerList}>
+                            {registered.map((player) => {
+                                const isAssigned = assignedIds.has(player.id);
+                                const isDragging = dragId === player.id;
+                                return (
+                                    <div
+                                        key={player.id}
+                                        className={[
+                                            styles.playerCard,
+                                            isAssigned ? styles.assigned : "",
+                                            isDragging ? styles.dragging : "",
+                                        ].join(" ")}
+                                        draggable={!isAssigned}
+                                        onDragStart={(e) => !isAssigned && onDragStart(e, player.id)}
+                                    >
+                                        <span className={styles.dragHandle}>{isAssigned ? "✓" : "⠿"}</span>
+                                        <div>
+                                            <div className={styles.playerCardName}>{player.name}</div>
+                                            <div className={styles.playerCardSub}>{player.level}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <div className={styles.matchGrid}>
-                        {Array.from({ length: firstRoundMatches }).map((_, matchIdx) => {
-                            const slot1 = matchIdx * 2;
-                            const slot2 = matchIdx * 2 + 1;
-                            const hasBye = slot2 >= playerCount;
-                            return (
-                                <div key={matchIdx} className={styles.matchCard}>
-                                    <div className={styles.matchCardHeader}>
-                                        Partido {matchIdx + 1}
-                                        {hasBye && <span className={styles.byePill}>BYE</span>}
-                                    </div>
-                                    {[slot1, slot2].map((slotIdx) => {
-                                        const isBye = slotIdx >= playerCount;
-                                        const playerId = slots[slotIdx];
-                                        const slotKey = `${activeCategory}-${slotIdx}`;
-                                        if (isBye) {
+                    {/* Right: match slot assignment (first round only) */}
+                    <div className={styles.bracketArea}>
+                        <div className={styles.bracketHint}>
+                            💡 Arrastrá los equipos a los slots. Los slots sin par quedan como BYE automático.
+                            <strong style={{ marginLeft: "auto", color: filledCount >= playerCount ? "var(--primary)" : "var(--text-muted)" }}>
+                                {filledCount}/{playerCount} asignados
+                            </strong>
+                        </div>
+
+                        <div className={styles.matchGrid}>
+                            {Array.from({ length: firstRoundMatches }).map((_, matchIdx) => {
+                                const slot1 = matchIdx * 2;
+                                const slot2 = matchIdx * 2 + 1;
+                                const hasBye = slot2 >= playerCount;
+                                return (
+                                    <div key={matchIdx} className={styles.matchCard}>
+                                        <div className={styles.matchCardHeader}>
+                                            Partido {matchIdx + 1}
+                                            {hasBye && <span className={styles.byePill}>BYE</span>}
+                                        </div>
+                                        {[slot1, slot2].map((slotIdx) => {
+                                            const isBye = slotIdx >= playerCount;
+                                            const playerId = slots[slotIdx];
+                                            const slotKey = `${activeCategory}-${slotIdx}`;
+                                            if (isBye) {
+                                                return (
+                                                    <div key={slotIdx} className={`${styles.dropSlot} ${styles.byeSlotRow}`}>
+                                                        <div className={styles.slotSeed}>—</div>
+                                                        <span className={styles.dropSlotLabel}>BYE automático</span>
+                                                    </div>
+                                                );
+                                            }
                                             return (
-                                                <div key={slotIdx} className={`${styles.dropSlot} ${styles.byeSlotRow}`}>
-                                                    <div className={styles.slotSeed}>—</div>
-                                                    <span className={styles.dropSlotLabel}>BYE automático</span>
+                                                <div
+                                                    key={slotIdx}
+                                                    className={[
+                                                        styles.dropSlot,
+                                                        !playerId ? styles.empty : "",
+                                                        overSlot === slotKey ? styles.over : "",
+                                                    ].join(" ")}
+                                                    onDragOver={(e) => onDragOverSlot(e, slotKey)}
+                                                    onDragLeave={() => setOverSlot(null)}
+                                                    onDrop={(e) => onDropSlot(e, slotIdx)}
+                                                >
+                                                    <div className={styles.slotSeed}>{slotIdx + 1}</div>
+                                                    {playerId ? (
+                                                        <>
+                                                            <span className={styles.slotName}>{playerName(playerId)}</span>
+                                                            <button className={styles.clearSlotBtn} onClick={() => clearSlot(slotIdx)}>✕</button>
+                                                        </>
+                                                    ) : (
+                                                        <span className={styles.dropSlotLabel}>Soltar equipo aquí…</span>
+                                                    )}
                                                 </div>
                                             );
-                                        }
-                                        return (
-                                            <div
-                                                key={slotIdx}
-                                                className={[
-                                                    styles.dropSlot,
-                                                    !playerId ? styles.empty : "",
-                                                    overSlot === slotKey ? styles.over : "",
-                                                ].join(" ")}
-                                                onDragOver={(e) => onDragOverSlot(e, slotKey)}
-                                                onDragLeave={() => setOverSlot(null)}
-                                                onDrop={(e) => onDropSlot(e, slotIdx)}
-                                            >
-                                                <div className={styles.slotSeed}>{slotIdx + 1}</div>
-                                                {playerId ? (
-                                                    <>
-                                                        <span className={styles.slotName}>{playerName(playerId)}</span>
-                                                        <button className={styles.clearSlotBtn} onClick={() => clearSlot(slotIdx)}>✕</button>
-                                                    </>
-                                                ) : (
-                                                    <span className={styles.dropSlotLabel}>Soltar equipo aquí…</span>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        })}
+                                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* ── Bottom bar ── */}
-            <div className={styles.bottomBar}>
-                <span className={styles.progressText}>
-                    {allFilled
-                        ? "✅ Todos los equipos asignados. Podés continuar."
-                        : "Arrastrá los equipos a los slots antes de continuar."}
-                </span>
-                <button className={styles.btnSecondary} onClick={() => {
-                    setSlotsByCat(Object.fromEntries(CATEGORIES.map((c) => [c, Array(bracketSize(c)).fill(null)])));
-                }}>
-                    🔄 Reiniciar
-                </button>
-                <button
-                    className={styles.btnSecondary}
-                    style={{ borderColor: "rgba(217,249,93,0.4)", color: "var(--primary)" }}
-                    onClick={() => {
-                        setSlotsByCat(Object.fromEntries(
-                            CATEGORIES.map((c) => {
-                                const ids = shuffleArray(REGISTERED[c].map((p) => p.id));
-                                const size = bracketSize(c);
-                                const filledSlots: (string | null)[] = Array(size).fill(null);
-                                ids.forEach((id, i) => { filledSlots[i] = id; });
-                                return [c, filledSlots];
-                            })
-                        ));
-                    }}
-                >
-                    🎲 Sorteo Automático
-                </button>
-                <button
-                    className={styles.btnPrimary}
-                    disabled={!allFilled}
-                    onClick={() => setShowConfirm(true)}
-                >
-                    Siguiente →
-                </button>
-            </div>
+                {/* ── Bottom bar ── */}
+                <div className={styles.bottomBar}>
+                    <span className={styles.progressText}>
+                        {allFilled
+                            ? "✅ Todos los equipos asignados. Podés continuar."
+                            : "Arrastrá los equipos a los slots antes de continuar."}
+                    </span>
+                    <button className={styles.btnSecondary} onClick={() => {
+                        setSlotsByCat(Object.fromEntries(CATEGORIES.map((c) => [c, Array(bracketSize(c)).fill(null)])));
+                    }}>
+                        🔄 Reiniciar
+                    </button>
+                    <button
+                        className={styles.btnSecondary}
+                        style={{ borderColor: "rgba(217,249,93,0.4)", color: "var(--primary)" }}
+                        onClick={() => {
+                            setSlotsByCat(Object.fromEntries(
+                                CATEGORIES.map((c) => {
+                                    const ids = shuffleArray(REGISTERED[c].map((p) => p.id));
+                                    const size = bracketSize(c);
+                                    const filledSlots: (string | null)[] = Array(size).fill(null);
+                                    ids.forEach((id, i) => { filledSlots[i] = id; });
+                                    return [c, filledSlots];
+                                })
+                            ));
+                        }}
+                    >
+                        🎲 Sorteo Automático
+                    </button>
+                    <button
+                        className={styles.btnPrimary}
+                        disabled={!allFilled}
+                        onClick={() => setShowConfirm(true)}
+                    >
+                        Siguiente →
+                    </button>
+                </div>
 
-            {/* ── Confirmation dialog ── */}
-            {showConfirm && (
-                <ConfirmDialog
-                    onConfirm={() => { setShowConfirm(false); setSaved(true); }}
-                    onCancel={() => setShowConfirm(false)}
-                />
-            )}
-        </div>
+                {/* ── Confirmation dialog ── */}
+                {showConfirm && (
+                    <ConfirmDialog
+                        onConfirm={() => { setShowConfirm(false); setSaved(true); }}
+                        onCancel={() => setShowConfirm(false)}
+                    />
+                )}
+            </div>
+        </FeedLayout>
     );
 }

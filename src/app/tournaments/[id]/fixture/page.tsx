@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { tournaments } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
-import FixtureClient from "./FixtureClient";
+import { tournaments, registrations, users } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
+import FixtureSetup from "../../fixture/FixtureSetup";
+import FeedLayout from "@/app/feed/layout";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -19,10 +20,48 @@ export default async function TournamentFixturePage({ params }: Props) {
 
     if (!tournament) notFound();
 
+    // Fetch registered players
+    const dbRegistrations = await db
+        .select({
+            id: registrations.id,
+            userId: registrations.userId,
+            partnerName: registrations.partnerName,
+            category: registrations.category,
+        })
+        .from(registrations)
+        .where(eq(registrations.tournamentId, id));
+
+    // Also fetch the names of the registrants to build the "Team Name"
+    const registrantIds = dbRegistrations.map(r => r.userId);
+    const dbUsers = await db
+        .select({ id: users.id, email: users.email })
+        .from(users)
+        .where(inArray(users.id, registrantIds));
+
+    const initialPlayers = dbRegistrations.map(reg => {
+        const user = dbUsers.find(u => u.id === reg.userId);
+        const namePart1 = user?.email.split("@")[0] || "Jugador";
+        const namePart2 = reg.partnerName || "Invitado";
+        return {
+            id: reg.id, // Using registration ID as player ID for the fixture
+            name: `${namePart1} / ${namePart2}`,
+            category: reg.category || undefined,
+        };
+    });
+
+    // If already started, redirect to manage
+    if (tournament.status !== "published" && tournament.status !== "draft") {
+        redirect(`/tournaments/${id}/manage`);
+    }
+
     return (
-        <FixtureClient
-            tournamentId={tournament.id}
-            tournamentName={tournament.name}
-        />
+        <FeedLayout>
+            <FixtureSetup
+                tournamentId={tournament.id}
+                tournamentName={tournament.name}
+                initialStatus={tournament.status}
+                initialPlayers={initialPlayers}
+            />
+        </FeedLayout>
     );
 }

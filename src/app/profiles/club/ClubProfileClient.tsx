@@ -7,6 +7,7 @@ import { InviteModal } from "./InviteModal";
 import { UserProfile, useUser } from "@clerk/nextjs";
 import { updateClubProfile } from "./actions";
 import { startEliminatorias, finishTournament } from "@/app/tournaments/dashboard/actions";
+import { deleteTournament } from "@/app/tournaments/fixture/actions";
 import { useRouter } from "next/navigation";
 
 import Link from "next/link";
@@ -151,23 +152,60 @@ export default function ClubProfileClient({ user, club, members, userTournaments
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <span style={{ fontSize: "0.75rem", padding: "0.25rem 0.75rem", borderRadius: "1rem", background: t.status === "published" ? "rgba(217,249,93,0.15)" : "var(--surface-border)", color: t.status === "published" ? "var(--primary)" : "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap" }}>
-                                                                {t.status === "published" ? "Publicado" : "Borrador"}
+                                                            <span style={{
+                                                                fontSize: "0.75rem",
+                                                                padding: "0.25rem 0.75rem",
+                                                                borderRadius: "1rem",
+                                                                background: t.status === "finalizado" ? "rgba(21, 128, 61, 0.2)" :
+                                                                    t.status === "published" ? "rgba(217,249,93,0.15)" :
+                                                                        (t.status === "en_curso" || t.status === "en_eliminatorias") ? "rgba(59, 130, 246, 0.15)" :
+                                                                            "var(--surface-border)",
+                                                                color: t.status === "finalizado" ? "#15803d" :
+                                                                    t.status === "published" ? "var(--primary)" :
+                                                                        (t.status === "en_curso" || t.status === "en_eliminatorias") ? "#3b82f6" :
+                                                                            "var(--text-muted)",
+                                                                fontWeight: 700,
+                                                                whiteSpace: "nowrap"
+                                                            }}>
+                                                                {t.status === "finalizado" ? "🏁 Finalizado" :
+                                                                    t.status === "en_eliminatorias" ? "⚡ Eliminatorias" :
+                                                                        t.status === "en_curso" ? "🎾 En Curso" :
+                                                                            t.status === "published" ? "Publicado" :
+                                                                                "Borrador"}
                                                             </span>
                                                         </div>
                                                         <div style={{ display: "flex", gap: "0.5rem" }}>
-                                                            <Link
-                                                                href={`/tournaments/create?edit=${t.id}`}
-                                                                style={{ flex: 1, textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", border: "1px solid var(--surface-border)", color: "var(--foreground)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", background: "var(--surface)" }}
-                                                            >
-                                                                ✏️ Editar
-                                                            </Link>
+                                                            {t.status !== "finalizado" && (
+                                                                <Link
+                                                                    href={`/tournaments/create?edit=${t.id}`}
+                                                                    style={{ flex: 1, textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", border: "1px solid var(--surface-border)", color: "var(--foreground)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", background: "var(--surface)" }}
+                                                                >
+                                                                    ✏️ Editar
+                                                                </Link>
+                                                            )}
                                                             <Link
                                                                 href={`/tournaments/${t.id}/fixture`}
                                                                 style={{ flex: 1, textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", border: "1px solid var(--primary)", color: "var(--primary)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", background: "rgba(217,249,93,0.08)" }}
                                                             >
-                                                                ⚙️ Gestionar
+                                                                {t.status === "finalizado" ? "📊 Ver Resultados" : "⚙️ Gestionar"}
                                                             </Link>
+                                                            <button
+                                                                disabled={lifecycleLoading === t.id}
+                                                                onClick={async () => {
+                                                                    if (!window.confirm("¿Estás seguro de que quieres eliminar este torneo? Esta acción no se puede deshacer.")) return;
+                                                                    setLifecycleLoading(t.id);
+                                                                    const res = await deleteTournament(t.id);
+                                                                    if (res.ok) {
+                                                                        router.refresh();
+                                                                    } else {
+                                                                        alert("Error: " + res.error);
+                                                                    }
+                                                                    setLifecycleLoading(null);
+                                                                }}
+                                                                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #ef4444", color: "#ef4444", fontSize: "0.8125rem", fontWeight: 600, background: "transparent", cursor: "pointer", opacity: lifecycleLoading === t.id ? 0.5 : 1 }}
+                                                            >
+                                                                {lifecycleLoading === t.id ? "..." : "🗑️"}
+                                                            </button>
                                                         </div>
 
                                                         {/* ── Lifecycle controls ── */}
@@ -207,7 +245,7 @@ export default function ClubProfileClient({ user, club, members, userTournaments
                                                             )}
 
                                                             {/* Live link */}
-                                                            {(t.status === "en_curso" || t.status === "en_eliminatorias") && (
+                                                            {(t.status === "en_curso" || t.status === "en_eliminatorias" || t.status === "finalizado") && (
                                                                 <Link
                                                                     href={`/tournaments/${t.id}/live`}
                                                                     target="_blank"

@@ -106,12 +106,19 @@
 }
 
 .statusOpen {
-    background: rgba(217, 249, 93, 0.2);
-    color: var(--primary);
-    border: 1px solid rgba(217, 249, 93, 0.5);
+    background: var(--muted);
+    color: var(--primary-label);
+    border: 1px solid var(--surface-border);
 }
 
 .statusFinalizado {
+    background: rgba(251, 191, 36, 0.1);
+    color: #b45309;
+    /* High contrast amber for light mode */
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+[class~="dark"] .statusFinalizado {
     background: rgba(251, 191, 36, 0.15);
     color: #fbbf24;
     border: 1px solid rgba(251, 191, 36, 0.4);
@@ -189,7 +196,7 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--muted);
     color: var(--foreground);
     border: 1px solid var(--surface-border);
 }
@@ -263,16 +270,22 @@
 }
 
 .livePrimaryBtn {
-    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%);
-    color: #fca5a5;
+    background: #ef4444;
+    /* Readable red for light mode */
+    color: white;
     border: 1px solid rgba(255, 68, 68, 0.5);
     font-weight: 700;
     letter-spacing: 0.02em;
     animation: liveGlow 2.5s ease-in-out infinite;
 }
 
+[class~="dark"] .livePrimaryBtn {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%);
+    color: #fca5a5;
+}
+
 .livePrimaryBtn:hover {
-    background: linear-gradient(135deg, #991b1b, #dc2626);
+    background: #dc2626;
     color: #fff;
     border-color: rgba(255, 100, 100, 0.8);
     transform: translateY(-1px);

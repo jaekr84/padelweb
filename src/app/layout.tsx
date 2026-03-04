@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import DevRoleSwitcher from "@/components/DevRoleSwitcher";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -28,15 +29,22 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Set role as a JS-readable cookie via an inline script (cookies().set() not allowed in Server Components)
   return (
     <ClerkProvider>
-      <html lang="es">
+      <html lang="es" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
-            }}
-          />
-          {children}
-          {process.env.NODE_ENV === "development" && <DevRoleSwitcher currentRole={currentRole} />}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
+              }}
+            />
+            {children}
+            {process.env.NODE_ENV === "development" && <DevRoleSwitcher currentRole={currentRole} />}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

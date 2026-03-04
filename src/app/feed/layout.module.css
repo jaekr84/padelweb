@@ -90,12 +90,12 @@
 
 .navItem:hover {
     background-color: var(--surface);
-    color: var(--primary);
+    color: var(--primary-label);
 }
 
 .navItem.active {
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary-label);
     background-color: var(--surface);
 }
 
@@ -129,7 +129,7 @@
 .mainHeader {
     position: sticky;
     top: 0;
-    background-color: rgba(9, 9, 11, 0.85);
+    background-color: var(--background-header);
     backdrop-filter: blur(12px);
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--surface-border);

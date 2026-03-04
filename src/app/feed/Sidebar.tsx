@@ -4,41 +4,42 @@ import styles from "./layout.module.css";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavItem = { href: string; icon: string; label: string };
 
 const NAV: Record<string, NavItem[]> = {
     jugador: [
-        { href: "/feed", icon: "🏠", label: "Inicio" },
+        { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
         { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
-        { href: "/notifications", icon: "🔔", label: "Notificaciones" },
+        // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
     ],
     profe: [
-        { href: "/feed", icon: "🏠", label: "Inicio" },
+        { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
         { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
-        { href: "/notifications", icon: "🔔", label: "Notificaciones" },
+        // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
     ],
     centro_de_padel: [
-        { href: "/feed", icon: "🏠", label: "Inicio" },
+        { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
         { href: "/tournaments/dashboard", icon: "⚙️", label: "Mis Torneos" },
         { href: "/tournaments/live", icon: "🔴", label: "Live Score" },
         { href: "/ranking", icon: "⭐", label: "Ranking" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
-        { href: "/notifications", icon: "🔔", label: "Notificaciones" },
+        // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
     ],
     club: [
-        { href: "/feed", icon: "🏠", label: "Inicio" },
+        { href: "/tournaments", icon: "🏠", label: "Inicio" },
         { href: "/tournaments", icon: "🏆", label: "Torneos" },
         { href: "/profiles/club", icon: "🏟️", label: "Mi Club" },
         { href: "/directory", icon: "🗂️", label: "Directorio" },
-        { href: "/notifications", icon: "🔔", label: "Notificaciones" },
+        // { href: "/notifications", icon: "🔔", label: "Notificaciones" },
     ],
 };
 
@@ -74,10 +75,13 @@ export default function Sidebar() {
 
     return (
         <aside className={styles.sidebar}>
-            <Link href="/feed" className={styles.logo}>
-                <span style={{ fontSize: "1.5rem" }}>🎾</span>
-                <span>Padel Social</span>
-            </Link>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <Link href="/tournaments" className={styles.logo} style={{ marginBottom: 0 }}>
+                    <span style={{ fontSize: "1.5rem" }}>🎾</span>
+                    <span>Padel Social</span>
+                </Link>
+                <ThemeToggle />
+            </div>
 
             <div className={styles.searchBox}>
                 <span>🔍</span>
@@ -106,7 +110,7 @@ export default function Sidebar() {
 
             <nav className={styles.nav}>
                 {navItems.map((item) => (
-                    <Link key={item.href} href={item.href} className={styles.navItem}>
+                    <Link key={item.label} href={item.href} className={styles.navItem}>
                         {item.icon} <span>{item.label}</span>
                     </Link>
                 ))}

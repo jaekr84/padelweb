@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
+import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -48,84 +48,72 @@ function slotName(t: BracketSlot): string | null {
 
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
-        // 1. Upsert groups and collect DB id mapping (bracket_id → db_uuid)
-        const groupIdMap = new Map<string, string>(); // local group id → db uuid
+        // Since neon-http doesn't support transactions in the same way, 
+        // we execute these calls sequentially. 
+
+        // 1. Delete ALL old data for this tournament to ensure a clean state
+        await db.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
+        await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
+        await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
+
+        // 2. Insert new groups and collect ID mapping
+        const groupIdMap = new Map<string, string>();
 
         for (const g of input.groups) {
-            // Check if already exists (by tournamentId + name) to allow re-saves
-            const existing = await db
-                .select()
-                .from(tournamentGroups)
-                .where(eq(tournamentGroups.tournamentId, input.tournamentId))
-                .execute();
-
-            const existingGroup = existing.find(r => r.name === g.name);
-
-            if (existingGroup) {
-                groupIdMap.set(g.id, existingGroup.id);
-                // Update players
-                await db
-                    .update(tournamentGroups)
-                    .set({ players: g.players })
-                    .where(eq(tournamentGroups.id, existingGroup.id));
-            } else {
-                const [inserted] = await db
-                    .insert(tournamentGroups)
-                    .values({
-                        tournamentId: input.tournamentId,
-                        name: g.name,
-                        players: g.players,
-                    })
-                    .returning({ id: tournamentGroups.id });
-                groupIdMap.set(g.id, inserted.id);
-            }
+            const [inserted] = await db
+                .insert(tournamentGroups)
+                .values({
+                    tournamentId: input.tournamentId,
+                    name: g.name,
+                    players: g.players,
+                })
+                .returning({ id: tournamentGroups.id });
+            groupIdMap.set(g.id, inserted.id);
         }
 
-        // 2. Delete old group matches and re-insert (simplest idempotent approach)
-        await db
-            .delete(groupMatches)
-            .where(eq(groupMatches.tournamentId, input.tournamentId));
-
-        for (const m of input.matches) {
-            const dbGroupId = groupIdMap.get(m.groupId);
-            if (!dbGroupId) continue;
-            await db.insert(groupMatches).values({
-                tournamentId: input.tournamentId,
-                groupId: dbGroupId,
-                team1Name: m.team1.name,
-                team2Name: m.team2.name,
-                score1: m.score1 ?? null,
-                score2: m.score2 ?? null,
-                confirmed: m.confirmed,
+        // 3. Insert group matches
+        if (input.matches.length > 0) {
+            const matchValues = input.matches.map(m => {
+                const dbGroupId = groupIdMap.get(m.groupId);
+                if (!dbGroupId) throw new Error(`Internal Error: Group ID ${m.groupId} not found in map`);
+                return {
+                    tournamentId: input.tournamentId,
+                    groupId: dbGroupId,
+                    team1Name: m.team1.name,
+                    team2Name: m.team2.name,
+                    score1: m.score1 ?? null,
+                    score2: m.score2 ?? null,
+                    confirmed: m.confirmed,
+                };
             });
+            await db.insert(groupMatches).values(matchValues);
         }
 
-        // 3. Delete old bracket matches and re-insert
-        await db
-            .delete(bracketMatches)
-            .where(eq(bracketMatches.tournamentId, input.tournamentId));
-
-        for (const bm of input.bracket) {
+        // 4. Insert bracket matches
+        if (input.bracket.length > 0) {
             const allPlayers = input.groups.flatMap(g => g.players);
-            const winnerName = bm.winnerId
-                ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
-                : null;
+            const bracketValues = input.bracket.map(bm => {
+                const winnerName = bm.winnerId
+                    ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
+                    : null;
 
-            await db.insert(bracketMatches).values({
-                tournamentId: input.tournamentId,
-                round: bm.round,
-                slot: bm.slot,
-                team1Name: slotName(bm.team1),
-                team2Name: slotName(bm.team2),
-                score1: bm.score1 ?? null,
-                score2: bm.score2 ?? null,
-                confirmed: bm.confirmed,
-                winnerId: bm.winnerId ?? null,
-                winnerName,
+                return {
+                    tournamentId: input.tournamentId,
+                    round: bm.round,
+                    slot: bm.slot,
+                    team1Name: slotName(bm.team1),
+                    team2Name: slotName(bm.team2),
+                    score1: bm.score1 ?? null,
+                    score2: bm.score2 ?? null,
+                    confirmed: bm.confirmed,
+                    winnerId: bm.winnerId ?? null,
+                    winnerName,
+                };
             });
+            await db.insert(bracketMatches).values(bracketValues);
         }
 
-        // 4. Update tournament status based on phase
+        // 5. Update tournament metadata and status
         const statusMap: Record<SaveFixtureInput["phase"], string> = {
             grupos: "en_curso",
             eliminatorias: "en_eliminatorias",
@@ -143,10 +131,30 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
 
         revalidatePath("/tournaments");
         revalidatePath(`/tournaments/${input.tournamentId}/live`);
+        revalidatePath(`/tournaments/${input.tournamentId}/manage`);
 
         return { ok: true, newStatus };
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+export async function deleteTournament(id: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+        // Sequentially delete related records to clear constraints
+        await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, id));
+        await db.delete(groupMatches).where(eq(groupMatches.tournamentId, id));
+        await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
+        await db.delete(registrations).where(eq(registrations.tournamentId, id));
+        await db.delete(tournaments).where(eq(tournaments.id, id));
+
+        revalidatePath("/tournaments");
+        revalidatePath("/profiles/club");
+
+        return { ok: true };
+    } catch (err) {
+        console.error("[deleteTournament]", err);
         return { ok: false, error: String(err) };
     }
 }

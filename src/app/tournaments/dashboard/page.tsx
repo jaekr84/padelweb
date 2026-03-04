@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import styles from "./dashboard.module.css";
+import FeedLayout from "@/app/feed/layout";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 const POINT_SEQ = ["0", "15", "30", "40", "AD", "GAME"];
@@ -150,178 +151,180 @@ export default function TournamentDashboard() {
     };
 
     return (
-        <div className={styles.page}>
-            {/* ── Top Bar ── */}
-            <div className={styles.topBar}>
-                <div className={styles.topBarLeft}>
-                    <Link href="/tournaments/setup" className={styles.backBtn}>← Lista de Partidos</Link>
-                    <div>
-                        <div className={styles.tournamentName}>Copa Primavera</div>
-                        <div className={styles.tournamentMeta}>
-                            {match.stage} · {match.category} · Cancha {match.court} · {match.team1} vs {match.team2}
+        <FeedLayout>
+            <div className={styles.page}>
+                {/* ── Top Bar ── */}
+                <div className={styles.topBar}>
+                    <div className={styles.topBarLeft}>
+                        <Link href="/tournaments/setup" className={styles.backBtn}>← Lista de Partidos</Link>
+                        <div>
+                            <div className={styles.tournamentName}>Copa Primavera</div>
+                            <div className={styles.tournamentMeta}>
+                                {match.stage} · {match.category} · Cancha {match.court} · {match.team1} vs {match.team2}
+                            </div>
                         </div>
                     </div>
+                    <div className={styles.liveBadge}>🔴 Panel en Vivo</div>
                 </div>
-                <div className={styles.liveBadge}>🔴 Panel en Vivo</div>
-            </div>
 
-            <div className={styles.content}>
+                <div className={styles.content}>
 
-                {/* ── Score Board ── */}
-                <div className={styles.board}>
-                    <div className={styles.boardHeader}>
-                        <span className={styles.stageBadge}>{match.stage} · {match.category}</span>
-                        <span className={styles.courtLabel}>Cancha {match.court}</span>
-                    </div>
+                    {/* ── Score Board ── */}
+                    <div className={styles.board}>
+                        <div className={styles.boardHeader}>
+                            <span className={styles.stageBadge}>{match.stage} · {match.category}</span>
+                            <span className={styles.courtLabel}>Cancha {match.court}</span>
+                        </div>
 
-                    <div className={styles.scoreboard}>
-                        {([t1, t2] as [TeamState, TeamState]).map((team, idx) => {
-                            const other = idx === 0 ? t2 : t1;
-                            const teamNum = (idx + 1) as 1 | 2;
-                            return (
-                                <div
-                                    key={idx}
-                                    className={`${styles.teamSection} ${team.isServing ? styles.serving : ""}`}
-                                    onClick={() => awardPoint(teamNum)}
-                                    title={`Toca para dar un punto a ${team.players}`}
-                                >
-                                    <div className={styles.teamInfo}>
-                                        <div className={styles.teamLabel}>Equipo {teamNum}</div>
-                                        <div className={styles.teamNames}>{team.players}</div>
-                                        {team.isServing && <div className={styles.servingBadge}>● Saque</div>}
-                                    </div>
+                        <div className={styles.scoreboard}>
+                            {([t1, t2] as [TeamState, TeamState]).map((team, idx) => {
+                                const other = idx === 0 ? t2 : t1;
+                                const teamNum = (idx + 1) as 1 | 2;
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`${styles.teamSection} ${team.isServing ? styles.serving : ""}`}
+                                        onClick={() => awardPoint(teamNum)}
+                                        title={`Toca para dar un punto a ${team.players}`}
+                                    >
+                                        <div className={styles.teamInfo}>
+                                            <div className={styles.teamLabel}>Equipo {teamNum}</div>
+                                            <div className={styles.teamNames}>{team.players}</div>
+                                            {team.isServing && <div className={styles.servingBadge}>● Saque</div>}
+                                        </div>
 
-                                    {/* Set scores */}
-                                    <div className={styles.setScores}>
-                                        {team.sets.map((s, i) => (
-                                            <div key={i} className={`${styles.setBox} ${s > (other.sets[i] ?? 0) ? styles.won : ""}`}>
-                                                {s}
+                                        {/* Set scores */}
+                                        <div className={styles.setScores}>
+                                            {team.sets.map((s, i) => (
+                                                <div key={i} className={`${styles.setBox} ${s > (other.sets[i] ?? 0) ? styles.won : ""}`}>
+                                                    {s}
+                                                </div>
+                                            ))}
+                                            {/* Current points */}
+                                            <div className={`${styles.pointBox} ${!team.isServing && team.pointIdx === 0 ? styles.inactive : ""}`}>
+                                                {POINT_SEQ[team.pointIdx]}
                                             </div>
-                                        ))}
-                                        {/* Current points */}
-                                        <div className={`${styles.pointBox} ${!team.isServing && team.pointIdx === 0 ? styles.inactive : ""}`}>
-                                            {POINT_SEQ[team.pointIdx]}
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* ── Controls ── */}
-                <div className={styles.controls}>
-                    <div className={styles.controlsRow}>
-                        {/* Equipo 1 */}
-                        <div className={styles.pointCard}>
-                            <div className={styles.pointCardTitle}>Equipo 1 – {t1.name.split("/")[0].trim()}</div>
-                            <button className={`${styles.bigPointBtn} ${styles.t1}`} onClick={() => awardPoint(1)}>
-                                +1 Punto
-                            </button>
-                        </div>
-                        {/* Equipo 2 */}
-                        <div className={styles.pointCard}>
-                            <div className={styles.pointCardTitle}>Equipo 2 – {t2.name.split("/")[0].trim()}</div>
-                            <button className={`${styles.bigPointBtn} ${styles.t2}`} onClick={() => awardPoint(2)}>
-                                +1 Punto
-                            </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className={styles.secondaryControls}>
-                        <button className={`${styles.secBtn}`} onClick={undoLastPoint}>⟵ Deshacer Punto</button>
-                        <button className={`${styles.secBtn} ${styles.success}`} onClick={() => endSet(1)}>Set → Equipo 1</button>
-                        <button className={`${styles.secBtn} ${styles.success}`} onClick={() => endSet(2)}>Set → Equipo 2</button>
-                        <button className={`${styles.secBtn} ${styles.danger}`} onClick={() => finishMatch(1)}>🏁 Ganó Equipo 1</button>
-                        <button className={`${styles.secBtn} ${styles.danger}`} onClick={() => finishMatch(2)}>🏁 Ganó Equipo 2</button>
-                    </div>
-                </div>
+                    {/* ── Controls ── */}
+                    <div className={styles.controls}>
+                        <div className={styles.controlsRow}>
+                            {/* Equipo 1 */}
+                            <div className={styles.pointCard}>
+                                <div className={styles.pointCardTitle}>Equipo 1 – {t1.name.split("/")[0].trim()}</div>
+                                <button className={`${styles.bigPointBtn} ${styles.t1}`} onClick={() => awardPoint(1)}>
+                                    +1 Punto
+                                </button>
+                            </div>
+                            {/* Equipo 2 */}
+                            <div className={styles.pointCard}>
+                                <div className={styles.pointCardTitle}>Equipo 2 – {t2.name.split("/")[0].trim()}</div>
+                                <button className={`${styles.bigPointBtn} ${styles.t2}`} onClick={() => awardPoint(2)}>
+                                    +1 Punto
+                                </button>
+                            </div>
+                        </div>
 
-                {/* ── YouTube Live Stream ── */}
-                <div className={styles.streamSection}>
-                    <div className={styles.streamHeader}>
-                        <span style={{ fontWeight: 700 }}>📡 Transmisión en Vivo (YouTube)</span>
+                        <div className={styles.secondaryControls}>
+                            <button className={`${styles.secBtn}`} onClick={undoLastPoint}>⟵ Deshacer Punto</button>
+                            <button className={`${styles.secBtn} ${styles.success}`} onClick={() => endSet(1)}>Set → Equipo 1</button>
+                            <button className={`${styles.secBtn} ${styles.success}`} onClick={() => endSet(2)}>Set → Equipo 2</button>
+                            <button className={`${styles.secBtn} ${styles.danger}`} onClick={() => finishMatch(1)}>🏁 Ganó Equipo 1</button>
+                            <button className={`${styles.secBtn} ${styles.danger}`} onClick={() => finishMatch(2)}>🏁 Ganó Equipo 2</button>
+                        </div>
+                    </div>
+
+                    {/* ── YouTube Live Stream ── */}
+                    <div className={styles.streamSection}>
+                        <div className={styles.streamHeader}>
+                            <span style={{ fontWeight: 700 }}>📡 Transmisión en Vivo (YouTube)</span>
+                            {ytId && (
+                                <button
+                                    className={styles.secBtn}
+                                    style={{ flex: "unset", padding: "0.4rem 0.875rem", fontSize: "0.8125rem" }}
+                                    onClick={() => setShowYtPreview((v) => !v)}
+                                >
+                                    {showYtPreview ? "Ocultar" : "Mostrar"} Player
+                                </button>
+                            )}
+                        </div>
+
+                        <div className={styles.streamInputRow}>
+                            <input
+                                className={styles.input}
+                                type="url"
+                                placeholder="Pegar link de YouTube Live (ej: https://youtu.be/xXXXXX)"
+                                value={ytUrl}
+                                onChange={(e) => setYtUrl(e.target.value)}
+                            />
+                            <button className={`${styles.secBtn} ${styles.success}`} onClick={handleYtSave}>
+                                Vincular Stream
+                            </button>
+                        </div>
+
+                        {ytId && showYtPreview && (
+                            <div className={styles.iframeWrapper}>
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    style={{ width: "100%", height: "100%", border: "none", borderRadius: "0.75rem" }}
+                                    title="YouTube Live Stream"
+                                />
+                            </div>
+                        )}
+
                         {ytId && (
-                            <button
-                                className={styles.secBtn}
-                                style={{ flex: "unset", padding: "0.4rem 0.875rem", fontSize: "0.8125rem" }}
-                                onClick={() => setShowYtPreview((v) => !v)}
-                            >
-                                {showYtPreview ? "Ocultar" : "Mostrar"} Player
-                            </button>
+                            <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                                ✅ Stream vinculado · Los espectadores verán este video en la página pública del torneo.
+                            </div>
                         )}
                     </div>
 
-                    <div className={styles.streamInputRow}>
-                        <input
-                            className={styles.input}
-                            type="url"
-                            placeholder="Pegar link de YouTube Live (ej: https://youtu.be/xXXXXX)"
-                            value={ytUrl}
-                            onChange={(e) => setYtUrl(e.target.value)}
-                        />
-                        <button className={`${styles.secBtn} ${styles.success}`} onClick={handleYtSave}>
-                            Vincular Stream
-                        </button>
-                    </div>
-
-                    {ytId && showYtPreview && (
-                        <div className={styles.iframeWrapper}>
-                            <iframe
-                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                style={{ width: "100%", height: "100%", border: "none", borderRadius: "0.75rem" }}
-                                title="YouTube Live Stream"
-                            />
-                        </div>
-                    )}
-
-                    {ytId && (
-                        <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-                            ✅ Stream vinculado · Los espectadores verán este video en la página pública del torneo.
+                    {/* ── History Log ── */}
+                    {log.length > 0 && (
+                        <div className={styles.log}>
+                            <div className={styles.logTitle}>Historial de puntos del partido</div>
+                            <div className={styles.logList}>
+                                {log.map((entry, i) => (
+                                    <div key={i} className={styles.logEntry}>
+                                        <span className={styles.logTime}>{entry.time}</span>
+                                        <span className={styles.logDot} style={{ background: entry.color }} />
+                                        <span>{entry.description}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* ── History Log ── */}
-                {log.length > 0 && (
-                    <div className={styles.log}>
-                        <div className={styles.logTitle}>Historial de puntos del partido</div>
-                        <div className={styles.logList}>
-                            {log.map((entry, i) => (
-                                <div key={i} className={styles.logEntry}>
-                                    <span className={styles.logTime}>{entry.time}</span>
-                                    <span className={styles.logDot} style={{ background: entry.color }} />
-                                    <span>{entry.description}</span>
-                                </div>
-                            ))}
+                {/* ── Winner Modal ── */}
+                {winner && (
+                    <div className={styles.overlay}>
+                        <div className={styles.winnerCard}>
+                            <div className={styles.winnerTrophy}>🏆</div>
+                            <div className={styles.winnerLabel}>¡Partido Finalizado!</div>
+                            <div className={styles.winnerName}>{winner}</div>
+                            <div className={styles.winnerSub}>
+                                Los puntos de ranking se asignarán automáticamente al confirmar.
+                            </div>
+                            <div className={styles.winnerActions}>
+                                <button className={`${styles.winnerBtn} ${styles.primary}`} onClick={closeWinner}>
+                                    ✅ Confirmar y Asignar Puntos
+                                </button>
+                                <button className={`${styles.winnerBtn} ${styles.secondary}`} onClick={closeWinner}>
+                                    Volver al Panel
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
-
-            {/* ── Winner Modal ── */}
-            {winner && (
-                <div className={styles.overlay}>
-                    <div className={styles.winnerCard}>
-                        <div className={styles.winnerTrophy}>🏆</div>
-                        <div className={styles.winnerLabel}>¡Partido Finalizado!</div>
-                        <div className={styles.winnerName}>{winner}</div>
-                        <div className={styles.winnerSub}>
-                            Los puntos de ranking se asignarán automáticamente al confirmar.
-                        </div>
-                        <div className={styles.winnerActions}>
-                            <button className={`${styles.winnerBtn} ${styles.primary}`} onClick={closeWinner}>
-                                ✅ Confirmar y Asignar Puntos
-                            </button>
-                            <button className={`${styles.winnerBtn} ${styles.secondary}`} onClick={closeWinner}>
-                                Volver al Panel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        </FeedLayout>
     );
 }

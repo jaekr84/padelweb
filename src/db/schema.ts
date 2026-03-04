@@ -11,11 +11,32 @@ export const clubs = pgTable("clubs", {
     id: varchar("id", { length: 256 }).primaryKey(),
     ownerId: varchar("owner_id", { length: 256 }).references(() => users.id).notNull().unique(),
     name: varchar("name", { length: 256 }).notNull(),
+    type: varchar("type", { length: 50 }).notNull().default("club"), // club | centro
     bio: text("bio"),
     location: varchar("location", { length: 256 }),
     phone: varchar("phone", { length: 50 }),
     website: varchar("website", { length: 256 }),
     amenities: text("amenities").array(),
+    courts: integer("courts").default(0),
+    surfaces: text("surfaces").array(),
+    verified: boolean("verified").default(false),
+    logoUrl: varchar("logo_url", { length: 512 }),
+    rating: varchar("rating", { length: 10 }).default("0.0"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const instructorProfiles = pgTable("instructor_profiles", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: varchar("user_id", { length: 256 }).references(() => users.id).notNull().unique(),
+    name: varchar("name", { length: 256 }).notNull(),
+    bio: text("bio"),
+    location: varchar("location", { length: 256 }),
+    level: varchar("level", { length: 100 }),
+    specialities: text("specialities").array(),
+    experience: varchar("experience", { length: 100 }),
+    rating: varchar("rating", { length: 10 }).default("0.0"),
+    verified: boolean("verified").default(false),
+    avatarUrl: varchar("avatar_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

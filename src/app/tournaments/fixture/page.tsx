@@ -408,11 +408,33 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         }));
     };
 
-    const handleConfirmScore = (matchId: string) => {
-        setMatches(prev => prev.map(m => {
+    const handleConfirmScore = async (matchId: string) => {
+        const updatedMatches = matches.map(m => {
             if (m.id !== matchId) return m;
             return { ...m, confirmed: true };
-        }));
+        });
+        setMatches(updatedMatches);
+
+        // Persist immediately to DB
+        setSaving(true);
+        await saveTournamentFixture({
+            tournamentId,
+            phase: step === "elim" ? "eliminatorias" : "grupos",
+            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+            matches: updatedMatches,
+            bracket: bracket.map(bm => ({
+                id: bm.id,
+                round: bm.round,
+                slot: bm.slot,
+                team1: bm.team1,
+                team2: bm.team2,
+                score1: bm.score1,
+                score2: bm.score2,
+                confirmed: bm.confirmed,
+                winnerId: bm.winnerId,
+            })),
+        });
+        setSaving(false);
     };
 
     const handleEditScore = (matchId: string) => {
@@ -614,7 +636,8 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         }));
     };
 
-    const handleBracketConfirm = (matchId: string) => {
+    const handleBracketConfirm = async (matchId: string) => {
+        let finalBracket: BracketMatch[] = [];
         setBracket(prev => {
             const updated = prev.map(m => {
                 if (m.id !== matchId) return m;
@@ -628,8 +651,30 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
                 ? Math.max(...updated.map(m => m.round)) + 1
                 : 0;
             advanceBracketWinners(updated, totalRounds);
-            return [...updated];
+            finalBracket = [...updated];
+            return finalBracket;
         });
+
+        // Persist immediately to DB
+        setSaving(true);
+        await saveTournamentFixture({
+            tournamentId,
+            phase: "eliminatorias",
+            groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+            matches,
+            bracket: finalBracket.map(bm => ({
+                id: bm.id,
+                round: bm.round,
+                slot: bm.slot,
+                team1: bm.team1,
+                team2: bm.team2,
+                score1: bm.score1,
+                score2: bm.score2,
+                confirmed: bm.confirmed,
+                winnerId: bm.winnerId,
+            })),
+        });
+        setSaving(false);
     };
 
     const handleBracketEdit = (matchId: string) => {
