@@ -591,7 +591,7 @@ export default function TournamentManager({
                                                                         inputMode="numeric"
                                                                         value={m.score1 ?? ""}
                                                                         onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-sm"
+                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
                                                                         placeholder="0"
                                                                     />
                                                                     <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
@@ -600,7 +600,7 @@ export default function TournamentManager({
                                                                         inputMode="numeric"
                                                                         value={m.score2 ?? ""}
                                                                         onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-sm"
+                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
                                                                         placeholder="0"
                                                                     />
                                                                     {m.played && (
@@ -903,7 +903,7 @@ export default function TournamentManager({
                                                                 <div className="p-2.5 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
                                                                     <input
                                                                         type="number"
-                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-sm font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                         placeholder="0"
                                                                         value={m.score1 ?? ""}
                                                                         onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
@@ -911,7 +911,7 @@ export default function TournamentManager({
                                                                     <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
                                                                     <input
                                                                         type="number"
-                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-sm font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                         placeholder="0"
                                                                         value={m.score2 ?? ""}
                                                                         onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
