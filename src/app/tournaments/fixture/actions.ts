@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 type PlayerLike = { id: string; name: string };
@@ -48,6 +48,13 @@ function slotName(t: BracketSlot): string | null {
 
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
+        const [prevT] = await db
+            .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig })
+            .from(tournaments)
+            .where(eq(tournaments.id, input.tournamentId));
+
+        if (!prevT) throw new Error("Tournament not found");
+
         // Since neon-http doesn't support transactions in the same way, 
         // we execute these calls sequentially. 
 
@@ -120,6 +127,72 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             finalizado: "finalizado",
         };
         const newStatus = statusMap[input.phase];
+
+        // 6. Assign points if tournament is being finalized for the first time
+        if (input.phase === "finalizado" && prevT.status !== "finalizado" && prevT.pointsConfig) {
+            const points = prevT.pointsConfig as any;
+
+            // Get all registrations to map player IDs (which are registration IDs) to user IDs
+            const regs = await db.select().from(registrations).where(eq(registrations.tournamentId, input.tournamentId));
+
+            // Track points to add to each user
+            const userPointsAddition = new Map<string, number>();
+
+            const addPoints = (playerId: string | null | undefined, pts: number) => {
+                if (!playerId || playerId === "BYE") return;
+                const r = regs.find(reg => reg.id === playerId);
+                if (r) {
+                    if (r.userId) {
+                        userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pts);
+                    }
+                    if (r.partnerUserId) {
+                        userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pts);
+                    }
+                }
+            };
+
+            // Evaluate bracket matches to determine highest round lost
+            input.bracket.forEach(bm => {
+                if (!bm.confirmed) return;
+
+                const t1Id = (bm.team1 as any)?.id;
+                const t2Id = (bm.team2 as any)?.id;
+
+                if (bm.round === 0) { // Final
+                    if (bm.winnerId === t1Id) {
+                        addPoints(t1Id, points.winner || 0);
+                        addPoints(t2Id, points.finalist || 0);
+                    } else if (bm.winnerId === t2Id) {
+                        addPoints(t2Id, points.winner || 0);
+                        addPoints(t1Id, points.finalist || 0);
+                    }
+                } else if (bm.round === 1) { // Semifinals
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.semi || 0);
+                } else if (bm.round === 2) { // Quarterfinals
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.quarter || 0);
+                } else if (bm.round === 3) { // Round of 16 / Octavos
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.octavos || 0);
+                }
+            });
+
+            // Update user points
+            const updates = Array.from(userPointsAddition.entries()).map(([uid, pts]) => {
+                if (pts > 0) {
+                    return db
+                        .update(users)
+                        .set({ points: sql`${users.points} + ${pts}` })
+                        .where(eq(users.id, uid));
+                }
+                return null;
+            }).filter(Boolean);
+
+            if (updates.length > 0) {
+                await Promise.all(updates);
+            }
+        }
 
         await db
             .update(tournaments)

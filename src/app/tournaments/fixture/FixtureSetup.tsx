@@ -69,34 +69,6 @@ export default function FixtureSetup({
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
 
-    // ─── DEV: nombres de prueba ───
-    const TEST_NAMES = [
-        "Pablo Ruiz", "Diego Torres", "Martín López", "Sebastián García",
-        "Andrés Pérez", "Lucas Sánchez", "Nicolás Fernández", "Matías González",
-        "Rodrigo Díaz", "Tomás Álvarez", "Facundo Romero", "Ignacio Moreno",
-        "Gustavo Jiménez", "Federico Herrera", "Ramiro Medina", "Santiago Molina",
-    ];
-
-    function addTestPlayers(count = 8) {
-        const existing = new Set(players.map(p => p.name));
-        const newPlayers: Player[] = TEST_NAMES
-            .filter(n => !existing.has(n))
-            .slice(0, count)
-            .map((name, i) => ({ id: `test_${Date.now()}_${i}`, name }));
-        const merged = [...players, ...newPlayers];
-        setPlayers(merged);
-        // Auto-marcar todos como presentes y pagos
-        setPaid(new Set(merged.map(p => p.id)));
-        setPresent(new Set(merged.map(p => p.id)));
-    }
-
-    function removeTestPlayers() {
-        const real = players.filter(p => !p.id.startsWith("test_"));
-        setPlayers(real);
-        setPaid(new Set(real.map(p => p.id).filter(id => paid.has(id))));
-        setPresent(new Set(real.map(p => p.id).filter(id => present.has(id))));
-    }
-
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
         [players, present]);
@@ -301,26 +273,6 @@ export default function FixtureSetup({
                                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Inscriptos</span>
                                     <span className="text-2xl font-black italic text-blue-500 leading-none">{players.length}</span>
                                 </div>
-                            </div>
-
-                            {/* ── DEV: Botón de jugadores de prueba ── */}
-                            <div className="flex items-center gap-2 px-1">
-                                <button
-                                    onClick={() => addTestPlayers(8)}
-                                    className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                >
-                                    <FlaskConical className="h-3.5 w-3.5" />
-                                    + 8 jugadores de prueba
-                                </button>
-                                {players.some(p => p.id.startsWith("test_")) && (
-                                    <button
-                                        onClick={removeTestPlayers}
-                                        className="flex items-center gap-1.5 px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Limpiar
-                                    </button>
-                                )}
                             </div>
 
                             <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">

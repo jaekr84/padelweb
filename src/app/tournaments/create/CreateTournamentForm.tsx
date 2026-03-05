@@ -187,6 +187,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
     };
 
     const handleSubmit = async () => {
+        if (isLoading) return; // Prevent double submission
         setIsLoading(true);
         try {
             let imageUrl = imagePreview;
@@ -228,12 +229,11 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                 await createTournament(tournamentData);
                 toast.success("Torneo creado con éxito");
             }
-            router.push("/tournaments");
+            router.push("/profile");
             router.refresh();
         } catch (err: any) {
             toast.error(err.message || "Error al guardar");
-        } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Re-enable only on error
         }
     };
 
