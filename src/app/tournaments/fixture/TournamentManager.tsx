@@ -691,46 +691,74 @@ export default function TournamentManager({
                                     const allPlayers = groups.flatMap(g => g.players);
                                     const champ = allPlayers.find(p => p.id === finalMatch.winnerId);
                                     if (champ) return (
-                                        <motion.div
-                                            initial={{ scale: 0.9, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            className="relative bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 text-black overflow-hidden shadow-2xl shadow-yellow-500/20"
-                                        >
-                                            {/* Shimmer */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse" />
-                                            <div className="relative flex items-center gap-5">
-                                                <div className="w-16 h-16 rounded-2xl bg-black/15 flex items-center justify-center shrink-0">
-                                                    <Trophy className="w-9 h-9 drop-shadow-lg" />
+                                        <div className="space-y-3">
+                                            {/* Champion banner */}
+                                            <motion.div
+                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                className="relative bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 text-black overflow-hidden shadow-2xl shadow-yellow-500/20"
+                                            >
+                                                {/* Shimmer */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse" />
+                                                <div className="relative flex items-center gap-5">
+                                                    <div className="w-16 h-16 rounded-2xl bg-black/15 flex items-center justify-center shrink-0">
+                                                        <Trophy className="w-9 h-9 drop-shadow-lg" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.25em] opacity-70">Campeón del Torneo</p>
+                                                        <h2 className="text-2xl font-black italic uppercase tracking-tight leading-tight truncate">{champ.name}</h2>
+                                                        <p className="text-[11px] font-bold opacity-60 mt-0.5">¡Felicidades!</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.25em] opacity-70">Campeón del Torneo</p>
-                                                    <h2 className="text-2xl font-black italic uppercase tracking-tight leading-tight truncate">{champ.name}</h2>
-                                                    <p className="text-[11px] font-bold opacity-60 mt-0.5">¡Felicidades!</p>
-                                                </div>
-                                            </div>
+                                            </motion.div>
+
+                                            {/* Finalizar Torneo button — visible solo si aún no finalizó */}
                                             {initialStatus !== "finalizado" && (
-                                                <button
-                                                    onClick={async () => {
-                                                        setSaving(true);
-                                                        await saveTournamentFixture({
-                                                            tournamentId,
-                                                            phase: "finalizado",
-                                                            championName: champ.name,
-                                                            groups,
-                                                            matches,
-                                                            bracket,
-                                                        });
-                                                        setSaving(false);
-                                                        alert("¡Torneo finalizado con éxito!");
-                                                        router.refresh();
-                                                    }}
-                                                    disabled={saving}
-                                                    className="mt-5 w-full py-3.5 bg-black/20 hover:bg-black/30 border border-black/20 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 8 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.2 }}
                                                 >
-                                                    {saving ? "Guardando..." : "✅ Finalizar Torneo"}
-                                                </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            setSaving(true);
+                                                            await saveTournamentFixture({
+                                                                tournamentId,
+                                                                phase: "finalizado",
+                                                                championName: champ.name,
+                                                                groups,
+                                                                matches,
+                                                                bracket,
+                                                            });
+                                                            setSaving(false);
+                                                            alert("¡Torneo finalizado con éxito!");
+                                                            router.refresh();
+                                                        }}
+                                                        disabled={saving}
+                                                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 border border-emerald-500 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    >
+                                                        {saving ? (
+                                                            <>
+                                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                Guardando...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Trophy className="w-4 h-4" />
+                                                                Finalizar Torneo
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </motion.div>
                                             )}
-                                        </motion.div>
+
+                                            {/* Torneo ya finalizado — estado de lectura */}
+                                            {initialStatus === "finalizado" && (
+                                                <div className="w-full py-3 bg-slate-800 border border-slate-700 rounded-2xl text-slate-400 text-[10px] font-black uppercase tracking-widest text-center">
+                                                    Torneo Finalizado
+                                                </div>
+                                            )}
+                                        </div>
                                     );
                                 }
                                 return null;

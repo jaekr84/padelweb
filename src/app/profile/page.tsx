@@ -105,11 +105,9 @@ export default async function ProfilePage() {
 
     return (
         <PlayerProfileClient
-            user={JSON.parse(JSON.stringify(user))}
             dbUser={dbUser}
             registrations={userRegistrations}
-            matches={allMatches}
-            bracketMatches={allBracketMatches}
+            matchHistory={[...allMatches, ...allBracketMatches]}
             isOwnProfile={true}
             profeProfile={profeProfile || null}
             clubProfile={clubProfile || null}
