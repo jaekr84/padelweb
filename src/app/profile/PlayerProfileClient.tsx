@@ -191,7 +191,7 @@ export default function PlayerProfileClient({
                                             <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{user.fullName}</h1>
                                             <div className="flex self-center md:self-auto px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-full">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                                                    {dbUser.role === 'profe' ? 'Profesor' : dbUser.role === 'admin' ? 'Administrador' : 'Jugador'}
+                                                    {dbUser.role === 'profe' ? 'PROFE' : dbUser.role === 'admin' ? 'Administrador' : 'Jugador'}
                                                 </span>
                                             </div>
                                         </div>
@@ -217,7 +217,7 @@ export default function PlayerProfileClient({
                                     { id: "tournaments", label: "Torneos", icon: Trophy },
                                     { id: "stats", label: "Estadísticas", icon: Activity },
                                     { id: "trophies", label: "Trofeos", icon: Award },
-                                    ...(profeProfile ? [{ id: "profe", label: "Academia", icon: GraduationCap }] : []),
+                                    ...((profeProfile || dbUser.role === 'profe') ? [{ id: "profe", label: "PROFE", icon: GraduationCap }] : []),
                                     { id: "account", label: "Cuenta", icon: Settings },
                                 ].map((tab) => (
                                     <button
@@ -380,9 +380,9 @@ export default function PlayerProfileClient({
                                     </div>
                                 )}
 
-                                {activeTab === "profe" && profeProfile && (
+                                {activeTab === "profe" && (
                                     <ProfeProfileClient
-                                        profe={profeProfile}
+                                        profe={profeProfile || { name: dbUser.name, userId: dbUser.id, role: 'profe' }}
                                         isOwner={isOwnProfile}
                                         embedded={true}
                                     />

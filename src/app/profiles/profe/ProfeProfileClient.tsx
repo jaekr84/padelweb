@@ -40,7 +40,7 @@ interface ProfeProfileClientProps {
 }
 
 export default function ProfeProfileClient({ profe, isOwner, embedded = false }: ProfeProfileClientProps) {
-    const [activeTab, setActiveTab] = useState<"info" | "pricing" | "availability">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "pricing" | "academy" | "availability">("info");
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [localAvail, setLocalAvail] = useState<number[][]>(profe?.availability || [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]);
@@ -60,7 +60,7 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
         name: profe?.name || "",
         bio: profe?.bio || "",
         location: profe?.location || "",
-        level: profe?.level || "Profesor Nacional",
+        level: profe?.level || "PROFE Nacional",
         experience: profe?.experience || "5 años",
         phone: profe?.phone || "",
         whatsapp: profe?.whatsapp || "",
@@ -192,6 +192,14 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
                         </div>
                     </button>
                     <button
+                        className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "academy" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        onClick={() => setActiveTab("academy")}
+                    >
+                        <div className="flex items-center justify-center gap-2">
+                            <GraduationCap className="h-3.5 w-3.5" /> PROFE
+                        </div>
+                    </button>
+                    <button
                         className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "availability" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                         onClick={() => setActiveTab("availability")}
                     >
@@ -265,6 +273,66 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+
+                    {activeTab === "academy" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                        <Trophy className="h-6 w-6 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase italic tracking-tight">Programas de Entrenamiento</h3>
+                                        <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Metodología de Alto Rendimiento</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-4 mt-2">
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Clínicas de Técnica</span>
+                                            <span className="text-[10px] font-bold text-white/20 italic">Todos los Niveles</span>
+                                        </div>
+                                        <p className="text-xs text-white/60 leading-relaxed">Sesiones intensivas enfocadas en golpes específicos: bandeja, víbora y defensa de pared.</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Pre-Competitivo</span>
+                                            <span className="text-[10px] font-bold text-white/20 italic">Avanzado</span>
+                                        </div>
+                                        <p className="text-xs text-white/60 leading-relaxed">Preparación física y táctica para torneos oficiales A.C.A.P. y categorías federadas.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                                        <Target className="h-6 w-6 text-red-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase italic tracking-tight">Objetivos por Nivel</h3>
+                                        <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Planificación Personalizada</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 mt-2">
+                                    <div className="flex items-start gap-4 p-4 hover:bg-white/5 rounded-2xl transition-all">
+                                        <div className="text-indigo-400 font-black text-xl italic">01.</div>
+                                        <div>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-1">Iniciación</h4>
+                                            <p className="text-xs text-white/50 leading-relaxed">Dominio de empuñaduras, desplazamientos básicos y reglas del juego.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4 p-4 hover:bg-white/5 rounded-2xl transition-all">
+                                        <div className="text-indigo-400 font-black text-xl italic">02.</div>
+                                        <div>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-1">Intermedio</h4>
+                                            <p className="text-xs text-white/50 leading-relaxed">Uso de paredes, voleas con profundidad y manejo de los tiempos del punto.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 

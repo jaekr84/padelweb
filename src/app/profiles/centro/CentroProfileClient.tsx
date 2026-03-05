@@ -17,7 +17,13 @@ import {
     Plus,
     LayoutDashboard,
     CheckCircle2,
-    CalendarDays
+    CalendarDays,
+    MessageCircle,
+    Trophy,
+    Target,
+    Zap,
+    GraduationCap,
+    Clock as ClockIcon
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,7 +49,7 @@ interface CentroProfileClientProps {
 
 export default function CentroProfileClient({ centro, isOwner, embedded = false }: CentroProfileClientProps) {
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState<"info" | "photos" | "schedule">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "photos" | "academy" | "schedule">("info");
     const [saving, setSaving] = useState(false);
     const [photos, setPhotos] = useState<string[]>(centro?.photos || []);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -208,6 +214,12 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                         Fotos
                     </button>
                     <button
+                        className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "academy" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        onClick={() => setActiveTab("academy")}
+                    >
+                        PROFE
+                    </button>
+                    <button
                         className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "schedule" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                         onClick={() => setActiveTab("schedule")}
                     >
@@ -245,6 +257,8 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                             <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Phone className="h-4 w-4" /></div>
                                             <span className="text-sm font-bold tracking-tight">{centro?.phone || "-"}</span>
                                         </div>
+
+
                                         <div className="flex items-center gap-3 text-white/80">
                                             <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Globe className="h-4 w-4" /></div>
                                             <span className="text-sm font-bold tracking-tight truncate">{centro?.website || "-"}</span>
@@ -262,6 +276,17 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                         <span className="text-[10px] font-black uppercase text-white/30">{centro?.location}</span>
                                     </div>
                                 </div>
+                                {(centro?.phone || centro?.whatsapp) && (
+                                    <a
+                                        href={`https://wa.me/${(centro?.whatsapp || centro?.phone).replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-900/40 active:scale-95"
+                                    >
+                                        <MessageCircle className="h-4 w-4 fill-current" /> Contactar por WhatsApp
+                                    </a>
+                                )}
+
                             </div>
                         </div>
                     )}
@@ -286,6 +311,66 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                         </div>
                     )}
 
+                    {activeTab === "academy" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                        <Trophy className="h-6 w-6 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase italic tracking-tight">Programas de la Escuela</h3>
+                                        <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Escuela de Menores y Adultos</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-4 mt-2">
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Escualita de Menores</span>
+                                            <span className="text-[10px] font-bold text-white/20 italic">6-14 años</span>
+                                        </div>
+                                        <p className="text-xs text-white/60 leading-relaxed">Formación integral desde lo básico hasta la técnica competitiva.</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Entrenamiento Adultos</span>
+                                            <span className="text-[10px] font-bold text-white/20 italic">Todos los Niveles</span>
+                                        </div>
+                                        <p className="text-xs text-white/60 leading-relaxed">Clases grupales y particulares adaptadas a tu ritmo de juego.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                                        <Target className="h-6 w-6 text-red-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase italic tracking-tight">Nuestra Metodología</h3>
+                                        <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">A.C.A.P. Performance</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 mt-2">
+                                    <div className="flex items-start gap-4 p-4 hover:bg-white/5 rounded-2xl transition-all">
+                                        <div className="text-indigo-400 font-black text-xl italic">01.</div>
+                                        <div>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-1">Técnica Moderna</h4>
+                                            <p className="text-xs text-white/50 leading-relaxed">Enfoque en desplazamientos eficientes y golpes de control.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4 p-4 hover:bg-white/5 rounded-2xl transition-all">
+                                        <div className="text-indigo-400 font-black text-xl italic">02.</div>
+                                        <div>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-1">Táctica en Cancha</h4>
+                                            <p className="text-xs text-white/50 leading-relaxed">Situaciones de juego real para mejorar la toma de decisiones.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === "schedule" && (
                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 shadow-xl">
                             <div className="flex flex-col gap-3">
@@ -304,7 +389,7 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                                         <span className="text-sm font-black italic tracking-tighter tabular-nums text-white/80">{s?.close || "22:00"}</span>
                                                     </div>
                                                 )}
-                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><Clock className="h-3.5 w-3.5 text-white/20" /></div>
+                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><ClockIcon className="h-3.5 w-3.5 text-white/20" /></div>
                                             </div>
                                         </div>
                                     );

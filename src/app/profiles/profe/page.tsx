@@ -27,7 +27,7 @@ export default async function ProfesorProfilePage({
                 userId: user.id,
                 name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0],
                 bio: "Instructor de padel",
-                level: "Profesor",
+                level: "PROFE",
                 experience: "En formación",
                 rating: "0.0",
                 verified: false,
