@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const centro = result[0];
     if (!centro) return { title: "Centro no encontrado" };
     return {
-        title: `${centro.name} | PadelApp`,
+        title: `${centro.name} | ACAP`,
         description: centro.bio || `Centro de pádel profesional en ${centro.location || "Argentina"}.`,
     };
 }

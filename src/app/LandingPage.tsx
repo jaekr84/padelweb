@@ -15,12 +15,12 @@ export default function LandingPage() {
                     <div className="flex items-center gap-2">
                         <img
                             src="/img/stickers 1.jpg"
-                            alt="Logo ACAP"
+                            alt="Logo A.C.A.P."
                             className="h-9 w-9 md:h-12 md:w-12 object-contain rounded-full bg-transparent"
                         />
                         <div className="flex flex-col leading-[1.2]">
                             <span className="text-[0.5rem] md:text-[0.65rem] font-bold tracking-[0.05em] uppercase text-[#003580]">Asociación Coreana Argentina de</span>
-                            <span className="text-[0.9rem] md:text-[1.1rem] font-black tracking-[0.02em] text-[#0F172A]">PÁDEL</span>
+                            <span className="text-[2rem] md:text-[1.1rem] font-black tracking-[0.02em] text-[#0F172A]">PÁDEL</span>
                         </div>
                     </div>
 

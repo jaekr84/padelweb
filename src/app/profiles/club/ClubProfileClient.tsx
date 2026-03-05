@@ -64,7 +64,7 @@ export default function ClubProfileClient({
         "Completá la biografía de tu club para que más jugadores te encuentren.";
     const isOwner = isOwnerProp ?? user?.id === club?.ownerId;
 
-    const activeTournaments =
+    const activeTournamentsCount =
         userTournaments?.filter((t: any) => t.status === "en_curso").length || 0;
     const totalTournaments = userTournaments?.length || 0;
     const totalMembers = members?.length || 0;
@@ -113,418 +113,278 @@ export default function ClubProfileClient({
     };
 
     return (
-        <div className="flex flex-col gap-4 pb-6 bg-[#090A0F] min-h-full p-4">
+        <div className="flex flex-col gap-6 animate-in fade-in duration-700 min-h-screen bg-[#090A0F] text-white pb-20 pt-4 px-4">
+            <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
 
-            {/* ── HERO ── */}
-            <div className="relative rounded-3xl overflow-hidden bg-[#0D0F1A] border border-slate-700/50 shadow-2xl">
-                {/* Banner */}
-                <div className="h-36 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-[#0a0e1a] to-slate-950" />
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(37,99,235,0.3),transparent_65%)]" />
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(16,185,129,0.12),transparent_65%)]" />
-                    {/* Grid pattern */}
-                    <div
-                        className="absolute inset-0 opacity-[0.06]"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-                            backgroundSize: "24px 24px",
-                        }}
-                    />
-                    <div className="absolute -top-8 -left-8 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl" />
-                </div>
-
-                {/* Action buttons */}
-                {isOwner && (
-                    <div className="absolute top-3 right-3 flex gap-2 z-10">
-                        <button
-                            onClick={() => setShowInvite(true)}
-                            className="flex items-center gap-1.5 bg-slate-800/90 backdrop-blur-md border border-slate-600 text-slate-200 px-3.5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-slate-700 active:scale-95"
-                        >
-                            <Mail className="h-3 w-3" />
-                            Invitar
-                        </button>
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="flex items-center gap-1.5 bg-blue-600/90 backdrop-blur-md border border-blue-500 text-white px-3.5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-blue-500 active:scale-95"
-                        >
-                            <Edit2 className="h-3 w-3" />
-                            Editar
-                        </button>
-                    </div>
-                )}
-
-                {/* Avatar + info */}
-                <div className="px-5 pb-5 -mt-12 flex items-end gap-4">
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
-                        <div className="w-20 h-20 rounded-2xl border-[3px] border-[#0D0F1A] overflow-hidden bg-slate-800 shadow-xl ring-1 ring-slate-600/50">
-                            {clerkUser?.imageUrl || user?.imageUrl ? (
-                                <img
-                                    src={clerkUser?.imageUrl || user?.imageUrl}
-                                    alt="Club avatar"
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <Layout className="h-8 w-8 text-slate-600" />
-                                </div>
-                            )}
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-[#0D0F1A] flex items-center justify-center">
-                            <Star className="h-2.5 w-2.5 text-white fill-white" />
-                        </div>
+                {/* ── Hero Section ── */}
+                <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl relative">
+                    <div className="h-32 md:h-48 bg-gradient-to-br from-blue-900/40 via-indigo-900/30 to-slate-900/50 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.1),transparent)]" />
                     </div>
 
-                    {/* Name + meta */}
-                    <div className="flex-1 min-w-0 pt-10">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className="text-xl font-black uppercase tracking-tight text-white leading-none truncate">
-                                {clubName}
-                            </h1>
-                            <span className="shrink-0 px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 rounded-full text-[9px] font-black uppercase tracking-widest text-blue-300">
-                                Club
-                            </span>
-                        </div>
-                        <p className="text-slate-400 text-xs mt-1.5 leading-relaxed line-clamp-2">
-                            {clubBio}
-                        </p>
-                        <div className="flex items-center gap-3 mt-2 flex-wrap">
-                            {club?.location && (
-                                <div className="flex items-center gap-1 text-slate-500 text-[10px] font-semibold">
-                                    <MapPin className="h-3 w-3" />
-                                    {club.location}
-                                </div>
-                            )}
-                            {club?.website && (
-                                <div className="flex items-center gap-1 text-slate-500 text-[10px] font-semibold">
-                                    <Globe className="h-3 w-3" />
-                                    {club.website.replace(/^https?:\/\//, "")}
-                                </div>
-                            )}
-                        </div>
+                    <div className="absolute top-4 right-4 z-10 flex gap-2">
+                        {isOwner && (
+                            <>
+                                <button
+                                    onClick={() => setShowInvite(true)}
+                                    className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
+                                >
+                                    <Mail className="h-3.5 w-3.5" /> Invitar
+                                </button>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex items-center gap-1.5 bg-indigo-600/90 backdrop-blur-md border border-indigo-500 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-indigo-500 active:scale-95 shadow-lg"
+                                >
+                                    <Edit2 className="h-3.5 w-3.5" /> Editar Club
+                                </button>
+                            </>
+                        )}
                     </div>
-                </div>
-            </div>
 
-            {/* ── STATS STRIP ── */}
-            <div className="grid grid-cols-3 gap-3">
-                {[
-                    { value: totalMembers, label: "Jugadores", icon: Users, accent: "text-blue-400" },
-                    { value: activeTournaments, label: "En Curso", icon: Zap, accent: "text-emerald-400" },
-                    { value: totalTournaments, label: "Torneos", icon: Trophy, accent: "text-blue-300" },
-                ].map(({ value, label, icon: Icon, accent }) => (
-                    <div
-                        key={label}
-                        className="bg-[#0D0F1A] border border-slate-700/60 rounded-2xl p-4 flex flex-col items-center gap-1.5 hover:border-slate-600 transition-colors"
-                    >
-                        <Icon className={`h-4 w-4 ${accent} opacity-80`} />
-                        <div className={`text-2xl font-black tracking-tight ${accent}`}>{value}</div>
-                        <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500 text-center">
-                            {label}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* ── TABS ── */}
-            <div className="flex gap-1.5 bg-[#0D0F1A] p-1.5 rounded-2xl border border-slate-700/50 overflow-x-auto no-scrollbar">
-                {tabs.map(({ id, label, icon: Icon }) => (
-                    <button
-                        key={id}
-                        onClick={() => setActiveTab(id)}
-                        className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${activeTab === id
-                                ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
-                                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                            }`}
-                    >
-                        <Icon className="h-3 w-3" />
-                        {label}
-                    </button>
-                ))}
-            </div>
-
-            {/* ── CONTENT ── */}
-            <div className="animate-in slide-in-from-bottom-2 duration-300">
-
-                {/* ACCOUNT TAB */}
-                {activeTab === "account" && (
-                    <div className="bg-white p-2 rounded-3xl shadow-2xl overflow-hidden">
-                        <UserProfile routing="hash" />
-                    </div>
-                )}
-
-                {/* INFO TAB */}
-                {activeTab === "info" && (
-                    <div className="flex flex-col gap-4">
-                        {/* Amenidades */}
-                        <div className="bg-[#0D0F1A] border border-slate-700/60 rounded-2xl p-5">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Zap className="h-3.5 w-3.5 text-blue-400" />
-                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                    Servicios y Amenidades
-                                </h3>
-                            </div>
-                            {club?.amenities && club.amenities.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {club.amenities.map((a: string, i: number) => (
-                                        <span
-                                            key={i}
-                                            className="px-3 py-1.5 bg-blue-900/50 border border-blue-700/60 rounded-full text-[10px] font-bold uppercase tracking-wider text-blue-300"
-                                        >
-                                            {a}
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-slate-500 text-xs italic">
-                                    No hay servicios especificados aún.
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Contacto */}
-                        <div className="bg-[#0D0F1A] border border-slate-700/60 rounded-2xl p-5">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Phone className="h-3.5 w-3.5 text-emerald-400" />
-                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                    Contacto Directo
-                                </h3>
-                            </div>
-                            <div className="flex flex-col gap-3">
-                                {club?.phone ? (
-                                    <a href={`tel:${club.phone}`} className="flex items-center gap-3 group">
-                                        <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:border-emerald-600 transition-colors">
-                                            <Phone className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
-                                        </div>
-                                        <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">
-                                            {club.phone}
-                                        </span>
-                                    </a>
-                                ) : null}
-                                {club?.website ? (
-                                    <a
-                                        href={club.website}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 group"
-                                    >
-                                        <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:border-blue-600 transition-colors">
-                                            <Globe className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-400 transition-colors" />
-                                        </div>
-                                        <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors truncate">
-                                            {club.website.replace(/^https?:\/\//, "")}
-                                        </span>
-                                    </a>
-                                ) : null}
-                                {!club?.phone && !club?.website && (
-                                    <p className="text-slate-500 text-xs italic">
-                                        No hay datos de contacto disponibles.
-                                    </p>
+                    <div className="px-6 pb-8 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-[#090A0F] overflow-hidden bg-slate-800 shadow-2xl relative flex items-center justify-center">
+                                {clerkUser?.imageUrl || user?.imageUrl ? (
+                                    <img
+                                        src={clerkUser?.imageUrl || user?.imageUrl}
+                                        alt="Club avatar"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <Layout className="h-10 w-10 text-white/20" />
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {/* TORNEOS TAB */}
-                {activeTab === "torneos" && (
-                    <div className="flex flex-col gap-4">
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-sm font-black uppercase tracking-widest text-white">
-                                    Mis Torneos
-                                </h2>
-                                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
-                                    {totalTournaments} evento{totalTournaments !== 1 ? "s" : ""} organizado{totalTournaments !== 1 ? "s" : ""}
-                                </p>
+                        <div className="flex-1 text-center md:text-left pt-2 pb-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
+                                <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{clubName}</h1>
+                                <div className="flex self-center md:self-auto px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-full">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Club Oficial</span>
+                                </div>
                             </div>
-                            {isOwner && (
-                                <Link
-                                    href="/tournaments/create"
-                                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/30"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    Crear
-                                </Link>
-                            )}
+
+                            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                                {club?.location && (
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="h-3.5 w-3.5" /> {club.location}
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2">
+                                    <Star className="h-3.5 w-3.5 text-yellow-500/50" /> Premium Club
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-3.5 w-3.5 text-indigo-500/50" /> {totalMembers} Miembros
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Tournament list */}
-                        {userTournaments && userTournaments.length > 0 ? (
-                            <div className="flex flex-col gap-3">
-                                {userTournaments.map((t: any) => {
-                                    const status = statusConfig[t.status] ?? statusConfig.abierto;
-                                    return (
-                                        <div
-                                            key={t.id}
-                                            className="bg-[#0D0F1A] border border-slate-700/60 rounded-2xl p-4 hover:border-slate-600 transition-all"
-                                        >
-                                            <div className="flex items-start justify-between gap-3 mb-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-black uppercase tracking-tight text-sm text-white truncate">
-                                                        {t.name}
-                                                    </h3>
-                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                        <Clock className="h-2.5 w-2.5 text-slate-600" />
-                                                        <span className="text-[9px] font-mono text-slate-600">
-                                                            {t.id.slice(0, 8)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <span
-                                                    className={`shrink-0 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${status.bg} ${status.textColor} ${status.border}`}
-                                                >
-                                                    {status.label}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex gap-2">
-                                                <Link
-                                                    href={`/tournaments/${t.id}/manage`}
-                                                    className="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-600/50 hover:text-blue-400 transition-all py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-300"
-                                                >
-                                                    Gestionar
-                                                    <ChevronRight className="h-3 w-3" />
-                                                </Link>
-                                                {isOwner && (
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (confirm("¿Seguro que quieres eliminar este torneo?")) {
-                                                                await deleteTournament(t.id);
-                                                                router.refresh();
-                                                            }
-                                                        }}
-                                                        className="w-10 flex items-center justify-center bg-red-950/50 hover:bg-red-900/50 text-red-400 border border-red-800/50 hover:border-red-700 rounded-xl transition-all"
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                {/* ── Content Navigation ── */}
+                <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/10 overflow-x-auto no-scrollbar shadow-inner">
+                    {tabs.map(({ id, label, icon: Icon }) => (
+                        <button
+                            key={id}
+                            className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === id ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                            onClick={() => setActiveTab(id)}
+                        >
+                            <div className="flex items-center justify-center gap-2">
+                                <Icon className="h-3.5 w-3.5" />
+                                {label}
                             </div>
-                        ) : (
-                            <div className="bg-[#0D0F1A] border border-slate-700/60 rounded-2xl p-10 text-center flex flex-col items-center gap-3">
-                                <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
-                                    <Trophy className="h-6 w-6 text-slate-600" />
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── Content ── */}
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    {activeTab === "info" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2 flex flex-col gap-6">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">Descripción</h3>
+                                    <p className="text-white/70 text-sm leading-relaxed font-medium">
+                                        {clubBio}
+                                    </p>
                                 </div>
-                                <div>
-                                    <p className="text-slate-300 text-sm font-semibold">Sin torneos aún</p>
-                                    <p className="text-slate-500 text-xs mt-0.5">Creá tu primer torneo</p>
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">Servicios y Amenidades</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {club?.amenities?.map((a: string, i: number) => (
+                                            <span key={i} className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                                                {a}
+                                            </span>
+                                        )) || <span className="text-white/30 text-[10px]">No hay servicios listados</span>}
+                                    </div>
                                 </div>
+                            </div>
+                            <div className="flex flex-col gap-6">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Contacto</h3>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-3 text-white/80">
+                                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Phone className="h-4 w-4" /></div>
+                                            <span className="text-sm font-bold tracking-tight">{club?.phone || "-"}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-white/80">
+                                            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Globe className="h-4 w-4" /></div>
+                                            <span className="text-sm font-bold tracking-tight truncate">{club?.website || "-"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Estadísticas</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10">
+                                            <span className="text-2xl font-black italic tracking-tighter text-indigo-500">{activeTournamentsCount}</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Activos</span>
+                                        </div>
+                                        <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10">
+                                            <span className="text-2xl font-black italic tracking-tighter text-emerald-500">{totalTournaments}</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Torneos</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "torneos" && (
+                        <div className="flex flex-col gap-6">
+                            <div className="flex justify-between items-center px-4">
+                                <h2 className="text-lg font-black uppercase tracking-widest italic">Torneos Organizados</h2>
                                 {isOwner && (
                                     <Link
                                         href="/tournaments/create"
-                                        className="mt-1 flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white"
+                                        className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-900/30"
                                     >
-                                        <Plus className="h-3.5 w-3.5" />
-                                        Crear Torneo
+                                        <Plus className="h-3.5 w-3.5" /> Crear
                                     </Link>
                                 )}
                             </div>
-                        )}
+
+                            {userTournaments && userTournaments.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {userTournaments.map((t: any) => {
+                                        const status = statusConfig[t.status] ?? statusConfig.abierto;
+                                        return (
+                                            <div key={t.id} className="group bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:border-indigo-500/50 transition-all flex flex-col gap-4 shadow-xl">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex flex-col gap-1">
+                                                        <h3 className="font-black uppercase italic tracking-tight text-lg group-hover:text-indigo-400 transition-colors">{t.name}</h3>
+                                                        <div className="flex items-center gap-1.5 opacity-30">
+                                                            <Clock className="h-2.5 w-2.5" />
+                                                            <span className="text-[9px] font-mono">{t.id.slice(0, 8)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${status.bg} ${status.textColor} ${status.border}`}>
+                                                        {status.label}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <Link href={`/tournaments/${t.id}/manage`} className="flex-1 flex items-center justify-center gap-2 bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+                                                        Gestionar <ChevronRight className="h-3 w-3" />
+                                                    </Link>
+                                                    {isOwner && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (confirm("¿Seguro que quieres eliminar este torneo?")) {
+                                                                    await deleteTournament(t.id);
+                                                                    router.refresh();
+                                                                }
+                                                            }}
+                                                            className="w-12 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="bg-white/5 border border-white/10 rounded-[2rem] p-16 text-center flex flex-col items-center gap-6 shadow-xl">
+                                    < Trophy className="h-12 w-12 text-white/10" />
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-white/40 text-sm font-medium">Aún no has organizado torneos.</p>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/50">Organize your first event</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "account" && isOwner && (
+                        <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 md:scale-100 origin-top">
+                            <UserProfile routing="hash" />
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Edit Modal ── */}
+                {isEditing && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[1000] flex items-center justify-center p-4">
+                        <div className="bg-[#0D0F16] border border-white/10 rounded-[2.5rem] w-full max-w-[600px] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 shadow-2xl">
+                            <div className="px-8 pt-8 pb-4 flex justify-between items-center sticky top-0 bg-[#0D0F16]/80 backdrop-blur-lg z-10 border-b border-white/5">
+                                <h2 className="text-2xl font-black uppercase italic tracking-tight">Editar Club</h2>
+                                <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">✕</button>
+                            </div>
+                            <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Nombre Comercial</label>
+                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500 shadow-inner" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Ubicación</label>
+                                        <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500 shadow-inner" />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2">Biografía</label>
+                                    <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={4} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500 resize-none shadow-inner" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Teléfono</label>
+                                        <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Sitio Web</label>
+                                        <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500" />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2">Servicios (coma)</label>
+                                    <input type="text" value={formData.amenities} onChange={e => setFormData({ ...formData, amenities: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500" placeholder="Parking, Bar, WiFi..." />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-6">
+                                    <button type="button" onClick={() => setIsEditing(false)} className="bg-white/5 text-white/60 border border-white/10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</button>
+                                    <button type="submit" disabled={saving} className="bg-indigo-600 hover:bg-indigo-500 text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40 disabled:opacity-50">
+                                        {saving ? "Guardando..." : "Guardar Cambios"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+
+                )}
+
+                {/* ── Invite Modal ── */}
+                {showInvite && (
+                    <InviteModal
+                        clubName={clubName}
+                        clubId={club?.id}
+                        onClose={() => setShowInvite(false)}
+                    />
                 )}
             </div>
-
-            {/* ── EDIT MODAL ── */}
-            {isEditing && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-lg z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4">
-                    <div className="bg-[#0D0F1A] border border-slate-700 rounded-t-[2rem] sm:rounded-[2rem] w-full sm:max-w-md max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 shadow-2xl">
-                        {/* Modal header */}
-                        <div className="sticky top-0 px-6 pt-5 pb-4 bg-[#0D0F1A] border-b border-slate-700/60 flex items-center justify-between z-10">
-                            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-600 rounded-full sm:hidden" />
-                            <h2 className="text-base font-black uppercase tracking-widest text-white">Editar Club</h2>
-                            <button
-                                onClick={() => setIsEditing(false)}
-                                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-all"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSave} className="p-6 flex flex-col gap-4">
-                            {[
-                                { key: "name", label: "Nombre Comercial", type: "text" },
-                                { key: "location", label: "Ubicación", type: "text" },
-                                { key: "phone", label: "Teléfono", type: "tel" },
-                                { key: "website", label: "Sitio Web", type: "url" },
-                            ].map(({ key, label, type }) => (
-                                <div key={key} className="flex flex-col gap-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
-                                        {label}
-                                    </label>
-                                    <input
-                                        type={type}
-                                        value={(formData as any)[key]}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, [key]: e.target.value })
-                                        }
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3.5 px-4 text-white text-sm font-medium transition-all outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-600"
-                                    />
-                                </div>
-                            ))}
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
-                                    Descripción del Club
-                                </label>
-                                <textarea
-                                    value={formData.bio}
-                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                    rows={3}
-                                    placeholder="Contá de qué trata tu club..."
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3.5 px-4 text-white text-sm font-medium transition-all outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none placeholder:text-slate-600"
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
-                                    Servicios (separados por coma)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.amenities}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, amenities: e.target.value })
-                                    }
-                                    placeholder="Bar, Vestuarios, Parking..."
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3.5 px-4 text-white text-sm font-medium transition-all outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-600"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 mt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(false)}
-                                    className="flex-1 bg-slate-800 text-slate-300 border border-slate-700 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-all"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {saving ? "Guardando..." : "Guardar"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* ── INVITE MODAL ── */}
-            {showInvite && (
-                <InviteModal
-                    clubName={clubName}
-                    clubId={club?.id}
-                    onClose={() => setShowInvite(false)}
-                />
-            )}
         </div>
     );
 }

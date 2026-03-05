@@ -3,8 +3,8 @@ import styles from "./page.module.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Iniciar Sesión | Padel Social",
-    description: "Ingresa a tu cuenta de Padel Social",
+    title: "Iniciar Sesión | ACAP",
+    description: "Ingresa a tu cuenta de ACAP",
 };
 
 export default function LoginPage() {

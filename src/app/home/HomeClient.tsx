@@ -136,7 +136,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                 {/* ── Header ── */}
                 <div className="mb-6 px-1">
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">
-                        Padel Social
+                        A.C.A.P.
                     </p>
                     <h1 className="text-3xl font-black uppercase italic tracking-tight text-white mb-2">
                         Feed

@@ -101,7 +101,7 @@ export default async function TournamentsPage({
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">
-                                Padel Social
+                                ACAP
                             </p>
                             <h1 className="text-3xl font-black uppercase italic tracking-tight text-white">
                                 Torneos
@@ -225,7 +225,7 @@ function TournamentCard({ tournament }: { tournament: any }) {
                                     {tournament.name}
                                 </h3>
                                 <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-0.5">
-                                    CLUB ORGANIZADOR: {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club Padel Social"}
+                                    CLUB ORGANIZADOR: {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
                                 </div>
                             </div>
 

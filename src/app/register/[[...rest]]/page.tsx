@@ -3,8 +3,8 @@ import styles from "../../login/[[...rest]]/page.module.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Registrarse | Padel Social",
-    description: "Crea tu cuenta en Padel Social",
+    title: "Registrarse | ACAP",
+    description: "Crea tu cuenta en ACAP",
 };
 
 export default function RegisterPage() {
