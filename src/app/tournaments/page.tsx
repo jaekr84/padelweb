@@ -9,6 +9,8 @@ import {
     Zap, CheckCircle, Clock, LayoutGrid
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function formatDate(dateStr: string | null) {
     if (!dateStr) return "Por confirmar";
@@ -33,8 +35,26 @@ export default async function TournamentsPage({
 
     let allTournaments: any[] = [];
     try {
-        allTournaments = await db.select().from(tournaments).orderBy(desc(tournaments.createdAt));
-    } catch (e) { console.error(e); }
+        allTournaments = await db.query.tournaments.findMany({
+            with: {
+                club: true,
+                createdBy: {
+                    with: {
+                        clubs: true
+                    }
+                }
+            },
+            orderBy: [desc(tournaments.createdAt)]
+        });
+    } catch (e) {
+        // Fallback or basic query if relationship fails
+        console.error(e);
+        try {
+            const raw = await db.select().from(tournaments).orderBy(desc(tournaments.createdAt));
+            // Map to mock the relations shape temporarily if needed
+            allTournaments = raw.map(t => ({ ...t, club: null, createdBy: null }));
+        } catch (err) { }
+    }
 
     let filteredTournaments = allTournaments;
     if (currentFilter === "abiertas") {
@@ -200,9 +220,14 @@ function TournamentCard({ tournament }: { tournament: any }) {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-tight line-clamp-2 group-hover:text-blue-300 transition-colors">
-                                {tournament.name}
-                            </h3>
+                            <div className="flex flex-col">
+                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-tight line-clamp-2 group-hover:text-blue-300 transition-colors">
+                                    {tournament.name}
+                                </h3>
+                                <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-0.5">
+                                    CLUB ORGANIZADOR: {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club Padel Social"}
+                                </div>
+                            </div>
 
                             {/* Status pill */}
                             <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shrink-0 ${statusConfig.pill}`}>
@@ -216,7 +241,7 @@ function TournamentCard({ tournament }: { tournament: any }) {
                         </div>
 
                         {/* Meta */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
                             <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold">
                                 <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
                                 {formatDate(tournament.startDate)}

@@ -7,6 +7,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 import "./globals.css";
 
@@ -49,6 +50,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               }}
             />
             {children}
+            <RoleSwitcher currentRole={currentRole} />
             <Toaster position="bottom-right" theme="dark" closeButton richColors />
           </ThemeProvider>
         </body>

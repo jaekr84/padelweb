@@ -5,6 +5,8 @@ import { eq, desc } from "drizzle-orm";
 import FeedLayout from "@/app/feed/layout";
 import HomeClient from "./HomeClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
     let currentUser = null;
     let initialPosts: any[] = [];

@@ -133,3 +133,29 @@ export const posts = pgTable("posts", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+import { relations } from "drizzle-orm";
+
+export const tournamentsRelations = relations(tournaments, ({ one }) => ({
+    club: one(clubs, {
+        fields: [tournaments.clubId],
+        references: [clubs.id],
+    }),
+    createdBy: one(users, {
+        fields: [tournaments.createdByUserId],
+        references: [users.id],
+    }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+    tournaments: many(tournaments),
+    clubs: many(clubs),
+}));
+
+export const clubsRelations = relations(clubs, ({ one, many }) => ({
+    owner: one(users, {
+        fields: [clubs.ownerId],
+        references: [users.id],
+    }),
+    tournaments: many(tournaments),
+}));
+

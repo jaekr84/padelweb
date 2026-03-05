@@ -84,9 +84,7 @@ export default function PlayerProfileClient({
         router.push("/profiles/profe");
     };
 
-    if (!isLoaded || !user) return null;
-
-    const myName = dbUser?.name || user.fullName || "";
+    const myName = dbUser?.name || user?.fullName || "";
 
     // Stats aggregation
     const stats = useMemo(() => {
@@ -104,6 +102,10 @@ export default function PlayerProfileClient({
             side: dbUser?.side || "drive"
         };
     }, [matchHistory, myName, dbUser]);
+
+    if (!isLoaded || !user) return null;
+
+
 
     const activeTournaments = registrations.filter(r =>
         r.tournament.status === "en_curso" || r.tournament.status === "en_eliminatorias"
