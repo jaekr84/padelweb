@@ -130,35 +130,8 @@ export default function LandingPage({
                 </div>
             </section>
 
-            {/* ── TABS INSPIRED FEATURES ── */}
-            <section className="py-24 px-6 relative z-10" id="torneos">
-                <div className="max-w-[1200px] mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-6xl font-black uppercase italic italic mb-4">Potencia tu Juego</h2>
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Todo lo que necesitas en una sola plataforma</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { title: 'Torneos', icon: Trophy, color: 'text-indigo-400', desc: 'Inscripción online y cuadros en tiempo real.' },
-                            { title: 'Ranking', icon: Star, color: 'text-yellow-400', desc: 'Sigue tu evolución y compite por el top 1.' },
-                            { title: 'Directorio', icon: MapPin, color: 'text-emerald-400', desc: 'Encuentra los mejores centros y clubes.' },
-                            { title: 'Instructores', icon: Activity, color: 'text-red-400', desc: 'Contacta con profes certificados por ACAP.' },
-                            { title: 'Comunidad', icon: Users, color: 'text-blue-400', desc: 'Conecta con otros jugadores de tu nivel.' },
-                            { title: 'Estadísticas', icon: LayoutGrid, color: 'text-purple-400', desc: 'Análisis detallado de tus partidos.' },
-                        ].map((feature, i) => (
-                            <div key={i} className="group bg-slate-900/50 hover:bg-indigo-600/5 border border-slate-800 hover:border-indigo-500/30 p-8 rounded-[2rem] transition-all duration-300">
-                                <feature.icon className={`w-10 h-10 ${feature.color} mb-6 transition-transform group-hover:scale-110`} />
-                                <h3 className="text-xl font-black uppercase italic mb-3">{feature.title}</h3>
-                                <p className="text-slate-500 text-sm font-medium leading-relaxed">{feature.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             {/* ── CTA / FINALE ── */}
-            <section className="py-20 px-6 relative z-10 text-center">
+            {/* <section className="py-20 px-6 relative z-10 text-center">
                 <div className="max-w-4xl mx-auto bg-gradient-to-b from-slate-900 to-transparent border border-white/5 rounded-[3rem] p-12 md:p-20 shadow-2xl overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
 
@@ -171,7 +144,7 @@ export default function LandingPage({
                     </Link>
                 </div>
             </section>
-
+ */}
             {/* ── FOOTER (Unified) ── */}
             <footer className="py-12 px-6 border-t border-white/5 relative z-10">
                 <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
@@ -189,26 +162,6 @@ export default function LandingPage({
                     </div>
                 </div>
             </footer>
-
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @keyframes float {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-20px); }
-                }
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
-                .animate-float { animation: float 6s ease-in-out infinite; }
-                .animate-float-delayed { animation: float 6s ease-in-out infinite 2s; }
-                .animate-bounce-slow { animation: bounce-slow 4s ease-in-out infinite; }
-                .animate-fade-in { animation: fadeIn 1s ease-out; }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            ` }} />
         </div>
     );
 }
