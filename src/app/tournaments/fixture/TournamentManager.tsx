@@ -381,7 +381,7 @@ export default function TournamentManager({
         : null;
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 min-h-screen pb-32">
+        <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 min-h-screen pb-32 bg-[#090A0F]">
 
             {/* ── DEV TESTING PANEL ── */}
             <div className="mb-6">
@@ -446,32 +446,32 @@ export default function TournamentManager({
                 )}
             </div>
             {/* Header section with back button and status */}
-            <header className="mb-12 space-y-8 text-center sticky top-0 bg-[#090A0F]/80 backdrop-blur-xl z-[60] py-4">
+            <header className="mb-12 space-y-8 text-center sticky top-0 bg-[#090A0F] border-b border-slate-800 z-[60] py-4">
                 <div className="flex items-center justify-between max-w-4xl mx-auto mb-6">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-white/40 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
+                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Volver
                     </button>
-                    <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <div className="px-4 py-1.5 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                         {initialStatus === "finalizado" ? "Torneo Finalizado" : "Torneo en Vivo"}
                     </div>
                 </div>
 
-                <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40 tracking-tighter italic uppercase">
+                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter italic uppercase">
                     {tournamentName}
                 </h1>
 
                 {/* Tab Navigation */}
-                <div className="flex p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl max-w-lg mx-auto shadow-2xl overflow-hidden mt-8">
+                <div className="flex p-1.5 bg-slate-800 border border-slate-700 rounded-2xl max-w-lg mx-auto shadow-2xl overflow-hidden mt-8">
                     <button
                         onClick={() => setStep("done")}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
                             ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                            : "text-white/40 hover:text-white hover:bg-white/5"
+                            : "text-slate-400 hover:text-white hover:bg-slate-700"
                             }`}
                     >
                         <Users2 className="w-4 h-4" />
@@ -482,7 +482,7 @@ export default function TournamentManager({
                             onClick={() => setStep("elim")}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "elim"
                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                : "text-white/40 hover:text-white hover:bg-white/5"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700"
                                 }`}
                         >
                             <Trophy className="w-4 h-4" />
@@ -503,11 +503,11 @@ export default function TournamentManager({
                     >
                         {/* Progress Bar */}
                         <div className="max-w-2xl mx-auto space-y-4">
-                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 <span>Progreso Fase de Grupos</span>
                                 <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
                             </div>
-                            <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
                                 <motion.div
                                     className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
                                     initial={{ width: 0 }}
@@ -524,31 +524,29 @@ export default function TournamentManager({
                                 const groupMatches = matches.filter(m => m.groupId === g.id);
                                 return (
                                     <div key={g.id} className="space-y-6">
-                                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[40px] overflow-hidden shadow-xl">
-                                            <div className="bg-white/5 px-8 py-6 border-b border-white/10 flex items-center justify-between">
-                                                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                                                    Posiciones
-                                                </div>
+                                        {/* Standings table */}
+                                        <div className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-xl">
+                                            <div className="bg-slate-800 px-6 py-5 border-b border-slate-700 flex items-center justify-between">
+                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Posiciones</span>
                                             </div>
-
-                                            <div className="p-6">
+                                            <div className="p-4">
                                                 <table className="w-full text-left">
                                                     <thead>
-                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-white/20 border-b border-white/5">
-                                                            <th className="pb-4 pr-4">Pos</th>
-                                                            <th className="pb-4">Equipo</th>
-                                                            <th className="pb-4 px-4 text-center">PJ</th>
-                                                            <th className="pb-4 px-4 text-center">Pts</th>
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-slate-700">
+                                                            <th className="pb-3 pr-3">#</th>
+                                                            <th className="pb-3">Jugador</th>
+                                                            <th className="pb-3 px-3 text-center">PJ</th>
+                                                            <th className="pb-3 px-3 text-center">Pts</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-white/5">
+                                                    <tbody className="divide-y divide-slate-800">
                                                         {standings.map((s, idx) => (
-                                                            <tr key={s.playerId} className="group hover:bg-white/5 transition-colors">
-                                                                <td className="py-4 pr-4 text-xs font-black italic text-white/20">#{idx + 1}</td>
-                                                                <td className="py-4 font-bold text-sm tracking-tight">{s.player.name}</td>
-                                                                <td className="py-4 px-4 text-center text-xs font-bold text-white/40">{s.matchesPlayed}</td>
-                                                                <td className="py-4 px-4 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                            <tr key={s.playerId} className="hover:bg-slate-800/50 transition-colors">
+                                                                <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
+                                                                <td className="py-3 font-bold text-sm text-white tracking-tight">{s.player.name}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
+                                                                <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -556,63 +554,67 @@ export default function TournamentManager({
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-4">Partidos de {g.name}</p>
-                                            <div className="space-y-3">
+                                        {/* Matches list */}
+                                        <div className="space-y-3">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Partidos · {g.name}</p>
+                                            <div className="space-y-2">
                                                 {groupMatches.map(m => (
                                                     <div
                                                         key={m.id}
-                                                        className={`rounded-3xl p-4 transition-all duration-500 border ${m.confirmed
-                                                            ? "bg-emerald-500/5 border-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.02)]"
-                                                            : "bg-white/5 border-white/5"
+                                                        className={`rounded-2xl p-3 transition-all duration-300 border ${m.confirmed
+                                                            ? "bg-emerald-950 border-emerald-800"
+                                                            : "bg-slate-900 border-slate-700"
                                                             }`}
                                                     >
-                                                        <div className="grid grid-cols-[1fr,auto,1fr] gap-4 items-center">
-                                                            <div className={`text-right font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score1! > m.score2! ? "text-emerald-400" : "text-white/60"}`}>
+                                                        <div className="grid grid-cols-[1fr,auto,1fr] gap-3 items-center">
+                                                            {/* Team 1 */}
+                                                            <div className={`text-right font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score1! > m.score2! ? "text-emerald-400" : "text-slate-200"}`}>
                                                                 {m.team1.name}
                                                             </div>
 
+                                                            {/* Score area */}
                                                             {!m.confirmed ? (
-                                                                <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 group-hover:border-blue-500/30 transition-colors">
+                                                                <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-xl border border-slate-600">
                                                                     <input
                                                                         type="number"
                                                                         value={m.score1 ?? ""}
                                                                         onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                        className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-white/10 text-xs md:text-sm"
+                                                                        className="w-9 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-sm"
                                                                         placeholder="0"
                                                                     />
-                                                                    <div className="w-1 h-px bg-white/10" />
+                                                                    <div className="w-1 h-3 bg-slate-600 rounded-full" />
                                                                     <input
                                                                         type="number"
                                                                         value={m.score2 ?? ""}
                                                                         onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                        className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-white/10 text-xs md:text-sm"
+                                                                        className="w-9 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-sm"
                                                                         placeholder="0"
                                                                     />
                                                                     {m.played && (
                                                                         <button
                                                                             onClick={() => handleConfirmScore(m.id)}
-                                                                            className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-90"
+                                                                            className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all active:scale-90"
                                                                         >
                                                                             <Check className="w-4 h-4" />
                                                                         </button>
                                                                     )}
                                                                 </div>
                                                             ) : (
-                                                                <div className="flex items-center gap-4 bg-white/5 px-6 py-2 rounded-2xl border border-white/5 group relative">
-                                                                    <span className={`text-xl font-black ${m.score1! > m.score2! ? "text-emerald-400" : "text-white/40"}`}>{m.score1}</span>
-                                                                    <div className="w-px h-6 bg-white/10" />
-                                                                    <span className={`text-xl font-black ${m.score2! > m.score1! ? "text-emerald-400" : "text-white/40"}`}>{m.score2}</span>
+                                                                <div className="flex items-center gap-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 relative group">
+                                                                    <span className={`text-lg font-black ${m.score1! > m.score2! ? "text-emerald-400" : "text-slate-400"}`}>{m.score1}</span>
+                                                                    <div className="w-px h-5 bg-slate-600" />
+                                                                    <span className={`text-lg font-black ${m.score2! > m.score1! ? "text-emerald-400" : "text-slate-400"}`}>{m.score2}</span>
                                                                     <button
-                                                                        className="absolute -right-2 -top-2 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-white z-10"
+                                                                        className="absolute -right-2 -top-2 w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-white z-10"
                                                                         onClick={() => handleEditScore(m.id)}
                                                                     >
-                                                                        <Settings className="w-4 h-4" />
+                                                                        <Settings className="w-3 h-3" />
                                                                     </button>
                                                                 </div>
                                                             )}
 
-                                                            <div className={`text-left font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score2! > m.score1! ? "text-emerald-400" : "text-white/60"}`}>
+                                                            {/* Team 2 */}
+                                                            <div className={`text-left font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score2! > m.score1! ? "text-emerald-400" : "text-slate-200"}`}>
                                                                 {m.team2.name}
                                                             </div>
                                                         </div>
@@ -626,18 +628,18 @@ export default function TournamentManager({
                         </div>
 
                         {/* ActionBar / Tournament finalization action */}
-                        <div className="p-8 bg-blue-600/10 border border-blue-600/20 rounded-[40px] text-center max-w-2xl mx-auto space-y-8 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4 px-4 text-center md:text-left">
-                                <div className="space-y-4">
-                                    <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter">Fase de Grupos</h2>
-                                    <div className="flex items-center gap-4 justify-center md:justify-start">
-                                        <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-4">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Clasifican:</p>
-                                            <div className="flex items-center gap-3">
-                                                <button className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs hover:bg-white/20" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
-                                                <span className="text-sm font-black italic">{qualPerGroup}</span>
-                                                <button className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs hover:bg-white/20" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                        <div className="p-6 bg-blue-950 border border-blue-800 rounded-3xl max-w-2xl mx-auto relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                                <div className="space-y-3">
+                                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Fase de Grupos</h2>
+                                    <div className="flex items-center gap-3 justify-center md:justify-start">
+                                        <div className="px-4 py-2.5 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-3">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clasifican:</p>
+                                            <div className="flex items-center gap-2">
+                                                <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
+                                                <span className="text-sm font-black text-white w-4 text-center">{qualPerGroup}</span>
+                                                <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -646,9 +648,9 @@ export default function TournamentManager({
                                 <button
                                     onClick={generateBracket}
                                     disabled={!isGroupStageFinished}
-                                    className={`px-10 py-5 font-black uppercase tracking-widest italic rounded-3xl shadow-xl transition-all hover:scale-105 active:scale-95 ${isGroupStageFinished
-                                        ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
-                                        : "bg-white/5 text-white/20 cursor-not-allowed grayscale"
+                                    className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
+                                            ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                            : "bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600"
                                         }`}
                                 >
                                     {isGroupStageFinished ? "Generar Playoffs →" : "Finalizá los grupos"}

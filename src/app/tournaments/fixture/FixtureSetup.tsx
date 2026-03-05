@@ -545,7 +545,7 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-40 md:pb-12">
                                 {groups.map(g => (
                                     <div key={g.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col">
                                         <div className="px-5 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
@@ -585,7 +585,7 @@ export default function FixtureSetup({
                             </div>
 
                             {/* Sticky Footer */}
-                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/90 to-transparent z-50">
+                            <div className="fixed bottom-20 md:bottom-0 left-0 right-0 px-6 pb-4 pt-8 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/95 to-transparent z-50">
                                 <div className="max-w-4xl mx-auto flex gap-4">
                                     <button
                                         onClick={() => setStep("config")}
