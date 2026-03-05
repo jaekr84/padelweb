@@ -124,3 +124,12 @@ export const bracketMatches = pgTable("bracket_matches", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ── Feed / Posts ──────────────────────────────────────────────────────────────
+export const posts = pgTable("posts", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: varchar("user_id", { length: 256 }).references(() => users.id).notNull(),
+    content: text("content"),
+    imageUrl: varchar("image_url", { length: 512 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+

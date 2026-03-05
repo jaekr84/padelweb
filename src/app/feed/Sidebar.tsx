@@ -11,28 +11,28 @@ type NavItem = { href: string; icon: any; label: string };
 
 const NAV: Record<string, NavItem[]> = {
     jugador: [
-        { href: "/tournaments", icon: Home, label: "Inicio" },
+        { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Directorio" },
     ],
     profe: [
-        { href: "/tournaments", icon: Home, label: "Inicio" },
+        { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Directorio" },
     ],
     centro_de_padel: [
-        { href: "/tournaments", icon: Home, label: "Inicio" },
+        { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Centro" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Directorio" },
     ],
     club: [
-        { href: "/tournaments", icon: Home, label: "Inicio" },
+        { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/directory", icon: FolderOpen, label: "Directorio" },
