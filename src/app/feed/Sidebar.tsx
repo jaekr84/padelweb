@@ -65,6 +65,24 @@ export default function Sidebar() {
         return () => clearInterval(id);
     }, []);
 
+    // ── Hide bottom nav when iOS virtual keyboard is open ──────────────────
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+    useEffect(() => {
+        const vv = window.visualViewport;
+        if (!vv) return;
+
+        const onResize = () => {
+            // When keyboard opens, visual viewport height shrinks significantly
+            const ratio = vv.height / window.innerHeight;
+            setKeyboardOpen(ratio < 0.75);
+        };
+
+        vv.addEventListener("resize", onResize);
+        return () => vv.removeEventListener("resize", onResize);
+    }, []);
+
+
     const navItems = NAV[role] ?? NAV["jugador"];
     const profileUrl = getProfileUrl(role);
 
@@ -156,7 +174,7 @@ export default function Sidebar() {
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}
-            <nav className="md:hidden fixed bottom-0 w-full z-[100] bg-white/90 dark:bg-[#090A0F]/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/5 pb-safe">
+            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-white/90 dark:bg-[#090A0F]/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/5 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
                 <div className="flex items-center justify-around px-2 py-2">
                     {navItems.slice(0, 5).map((item) => {
                         const Icon = item.icon;
