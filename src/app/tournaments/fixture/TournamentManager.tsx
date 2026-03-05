@@ -4,7 +4,7 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check
+    BarChart3, Check, FlaskConical, AlertTriangle, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -58,7 +58,7 @@ export default function TournamentManager({
 }: TournamentManagerProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
-    const [groups] = useState<Group[]>(initialGroups);
+    const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(initialMatches);
     const [bracket, setBracket] = useState<BracketMatch[]>(initialBracket);
     const [step, setStep] = useState<"done" | "elim">(
@@ -66,6 +66,87 @@ export default function TournamentManager({
     );
     const [qualPerGroup, setQualPerGroup] = useState(2);
     const [saving, setSaving] = useState(false);
+    const [showDevPanel, setShowDevPanel] = useState(false);
+    const [seedingGroups, setSeedingGroups] = useState(false);
+
+    // ─── DEV: Seed fake players into groups and regenerate all matches ───
+    const FAKE_NAMES = [
+        "Pablo Ruiz", "Diego Torres", "Martín López", "Sebastián García",
+        "Andrés Pérez", "Lucas Sánchez", "Nicolás Fernández", "Matías González",
+        "Rodrigo Díaz", "Tomás Álvarez", "Facundo Romero", "Ignacio Moreno",
+        "Gustavo Jiménez", "Federico Herrera", "Ramiro Medina", "Santiago Molina",
+    ];
+
+    function generateRoundRobinMatches(group: Group): Match[] {
+        const players = group.players;
+        const newMatches: Match[] = [];
+        for (let i = 0; i < players.length; i++) {
+            for (let j = i + 1; j < players.length; j++) {
+                newMatches.push({
+                    id: `m_${group.id}_${i}_${j}_${Date.now()}`,
+                    groupId: group.id,
+                    team1: players[i],
+                    team2: players[j],
+                    played: false,
+                    confirmed: false,
+                });
+            }
+        }
+        return newMatches;
+    }
+
+    async function seedFakePlayers(playersPerGroup = 4) {
+        setSeedingGroups(true);
+        let nameIndex = 0;
+        const seededGroups: Group[] = groups.map((g) => {
+            const newPlayers: Player[] = [];
+            for (let i = 0; i < playersPerGroup; i++) {
+                newPlayers.push({
+                    id: `fake_${g.id}_${i}_${Date.now()}`,
+                    name: FAKE_NAMES[nameIndex++ % FAKE_NAMES.length],
+                });
+            }
+            return { ...g, players: [...g.players, ...newPlayers] };
+        });
+
+        const newMatches = seededGroups.flatMap(generateRoundRobinMatches);
+        setGroups(seededGroups);
+        setMatches(newMatches);
+
+        // Persist to DB
+        try {
+            await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: seededGroups,
+                matches: newMatches,
+                bracket: [],
+            });
+        } catch (e) {
+            console.error("[DEV seed]", e);
+        }
+        setSeedingGroups(false);
+        setShowDevPanel(false);
+    }
+
+    async function clearPlayers() {
+        setSeedingGroups(true);
+        const emptyGroups: Group[] = groups.map((g) => ({ ...g, players: [] }));
+        setGroups(emptyGroups);
+        setMatches([]);
+        try {
+            await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: emptyGroups,
+                matches: [],
+                bracket: [],
+            });
+        } catch (e) {
+            console.error("[DEV clear]", e);
+        }
+        setSeedingGroups(false);
+    }
 
     // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
     const isGroupStageFinished = useMemo(() => {
@@ -301,6 +382,69 @@ export default function TournamentManager({
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 min-h-screen pb-32">
+
+            {/* ── DEV TESTING PANEL ── */}
+            <div className="mb-6">
+                <button
+                    onClick={() => setShowDevPanel(v => !v)}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                    <FlaskConical className="h-3.5 w-3.5" />
+                    Panel de Pruebas
+                    {showDevPanel ? <X className="h-3 w-3 ml-1" /> : null}
+                </button>
+
+                {showDevPanel && (
+                    <div className="mt-3 bg-amber-950/30 border border-amber-500/25 rounded-2xl p-5 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-amber-300 text-xs font-bold">Modo Desarrollo</p>
+                                <p className="text-amber-400/60 text-[10px] mt-0.5">
+                                    Estos botones agregan datos ficticios para probar el flujo. Eliminá este panel cuando termines.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button
+                                onClick={() => seedFakePlayers(4)}
+                                disabled={seedingGroups}
+                                className="flex items-center justify-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+                            >
+                                <Users2 className="h-3.5 w-3.5" />
+                                {seedingGroups ? "Cargando..." : "+ 4 jugadores / grupo"}
+                            </button>
+                            <button
+                                onClick={() => seedFakePlayers(6)}
+                                disabled={seedingGroups}
+                                className="flex items-center justify-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+                            >
+                                <Users2 className="h-3.5 w-3.5" />
+                                {seedingGroups ? "Cargando..." : "+ 6 jugadores / grupo"}
+                            </button>
+                            <button
+                                onClick={clearPlayers}
+                                disabled={seedingGroups}
+                                className="flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                                {seedingGroups ? "Limpiando..." : "Limpiar todo"}
+                            </button>
+                        </div>
+
+                        {groups.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {groups.map(g => (
+                                    <span key={g.id} className="px-2.5 py-1 bg-amber-900/30 border border-amber-700/30 rounded-full text-[9px] text-amber-400 font-bold">
+                                        {g.name}: {g.players.length} jugadores
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
             {/* Header section with back button and status */}
             <header className="mb-12 space-y-8 text-center sticky top-0 bg-[#090A0F]/80 backdrop-blur-xl z-[60] py-4">
                 <div className="flex items-center justify-between max-w-4xl mx-auto mb-6">

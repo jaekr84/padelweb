@@ -5,7 +5,7 @@ import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay
+    Users2, MonitorPlay, FlaskConical, AlertTriangle
 } from "lucide-react";
 import { saveTournamentFixture } from "./actions";
 import { useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ export default function FixtureSetup({
     initialPlayers
 }: FixtureSetupProps) {
     const router = useRouter();
-    const [players] = useState<Player[]>(initialPlayers);
+    const [players, setPlayers] = useState<Player[]>(initialPlayers);
     const [step, setStep] = useState<"checkin" | "config" | "assign">("checkin");
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [present, setPresent] = useState<Set<string>>(new Set());
@@ -68,6 +68,34 @@ export default function FixtureSetup({
     const [randomizing, setRandomizing] = useState(false);
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
+
+    // ─── DEV: nombres de prueba ───
+    const TEST_NAMES = [
+        "Pablo Ruiz", "Diego Torres", "Martín López", "Sebastián García",
+        "Andrés Pérez", "Lucas Sánchez", "Nicolás Fernández", "Matías González",
+        "Rodrigo Díaz", "Tomás Álvarez", "Facundo Romero", "Ignacio Moreno",
+        "Gustavo Jiménez", "Federico Herrera", "Ramiro Medina", "Santiago Molina",
+    ];
+
+    function addTestPlayers(count = 8) {
+        const existing = new Set(players.map(p => p.name));
+        const newPlayers: Player[] = TEST_NAMES
+            .filter(n => !existing.has(n))
+            .slice(0, count)
+            .map((name, i) => ({ id: `test_${Date.now()}_${i}`, name }));
+        const merged = [...players, ...newPlayers];
+        setPlayers(merged);
+        // Auto-marcar todos como presentes y pagos
+        setPaid(new Set(merged.map(p => p.id)));
+        setPresent(new Set(merged.map(p => p.id)));
+    }
+
+    function removeTestPlayers() {
+        const real = players.filter(p => !p.id.startsWith("test_"));
+        setPlayers(real);
+        setPaid(new Set(real.map(p => p.id).filter(id => paid.has(id))));
+        setPresent(new Set(real.map(p => p.id).filter(id => present.has(id))));
+    }
 
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
@@ -275,6 +303,26 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
+                            {/* ── DEV: Botón de jugadores de prueba ── */}
+                            <div className="flex items-center gap-2 px-1">
+                                <button
+                                    onClick={() => addTestPlayers(8)}
+                                    className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    <FlaskConical className="h-3.5 w-3.5" />
+                                    + 8 jugadores de prueba
+                                </button>
+                                {players.some(p => p.id.startsWith("test_")) && (
+                                    <button
+                                        onClick={removeTestPlayers}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        Limpiar
+                                    </button>
+                                )}
+                            </div>
+
                             <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">
                                 <div className="px-6 py-4 bg-white/5 flex items-center justify-between">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Jugadores</span>
@@ -456,8 +504,8 @@ export default function FixtureSetup({
                                     onClick={handleRandomize}
                                     disabled={randomizing || unassigned.length === 0}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all ${randomizing
-                                            ? "bg-amber-500 text-white animate-pulse"
-                                            : "bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white"
+                                        ? "bg-amber-500 text-white animate-pulse"
+                                        : "bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white"
                                         }`}
                                 >
                                     <Dice5 className={`w-4 h-4 ${randomizing ? 'animate-spin' : ''}`} />
@@ -549,8 +597,8 @@ export default function FixtureSetup({
                                         disabled={!allFull || saving}
                                         onClick={handleConfirmGroups}
                                         className={`flex-1 h-16 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-2xl flex items-center justify-center gap-3 backdrop-blur-xl ${!allFull
-                                                ? "bg-white/5 text-white/10 border border-white/5"
-                                                : "bg-emerald-600 text-white shadow-emerald-900/40"
+                                            ? "bg-white/5 text-white/10 border border-white/5"
+                                            : "bg-emerald-600 text-white shadow-emerald-900/40"
                                             }`}
                                     >
                                         {saving ? "Guardando..." : allFull ? "Iniciar Torneo" : "Completá los grupos"}
