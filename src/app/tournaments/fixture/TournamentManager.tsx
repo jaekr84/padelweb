@@ -4,7 +4,7 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check, FlaskConical, AlertTriangle, X
+    BarChart3, Check, FlaskConical, AlertTriangle, X, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -18,6 +18,7 @@ export interface TournamentManagerProps {
     initialMatches: Match[];
     initialBracket: BracketMatch[];
     initialStatus: string;
+    readOnly?: boolean;
 }
 
 type Player = { id: string; name: string };
@@ -54,7 +55,8 @@ export default function TournamentManager({
     initialGroups,
     initialMatches,
     initialBracket,
-    initialStatus
+    initialStatus,
+    readOnly = false
 }: TournamentManagerProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
@@ -68,6 +70,7 @@ export default function TournamentManager({
     const [saving, setSaving] = useState(false);
     const [showDevPanel, setShowDevPanel] = useState(false);
     const [seedingGroups, setSeedingGroups] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // ─── DEV: Seed fake players into groups and regenerate all matches ───
     const FAKE_NAMES = [
@@ -147,6 +150,9 @@ export default function TournamentManager({
         }
         setSeedingGroups(false);
     }
+
+    // ─── Renderizado Condicional ───
+    const showDevLink = !readOnly && process.env.NODE_ENV === 'development';
 
     // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
     const isGroupStageFinished = useMemo(() => {
@@ -375,6 +381,12 @@ export default function TournamentManager({
         return `Ronda ${totalRounds - r}`;
     };
 
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        router.refresh();
+        setTimeout(() => setIsRefreshing(false), 500);
+    };
+
     const championMatch = bracket.find(m => m.round === 0 && m.confirmed);
     const championPlayer = championMatch?.winnerId
         ? [championMatch.team1, championMatch.team2].find(t => t !== null && t !== "BYE" && (t as Player).id === championMatch.winnerId) as Player
@@ -395,9 +407,21 @@ export default function TournamentManager({
                             <ArrowLeft className="w-4 h-4" />
                             Volver
                         </button>
-                        <div className="px-3 py-1 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                            {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
+                        <div className="flex items-center gap-2">
+                            {readOnly && (
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
+                                >
+                                    <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-400" : ""}`} />
+                                    Actualizar
+                                </button>
+                            )}
+                            <div className="px-3 py-1 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
+                            </div>
                         </div>
                     </div>
 
@@ -586,24 +610,38 @@ export default function TournamentManager({
                                                             {/* Score row or divider */}
                                                             {!m.confirmed ? (
                                                                 <div className="px-3 py-2 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
-                                                                    <input
-                                                                        type="number"
-                                                                        inputMode="numeric"
-                                                                        value={m.score1 ?? ""}
-                                                                        onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
-                                                                        placeholder="0"
-                                                                    />
-                                                                    <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        inputMode="numeric"
-                                                                        value={m.score2 ?? ""}
-                                                                        onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                        className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
-                                                                        placeholder="0"
-                                                                    />
-                                                                    {m.played && (
+                                                                    {!readOnly ? (
+                                                                        <>
+                                                                            <input
+                                                                                type="number"
+                                                                                inputMode="numeric"
+                                                                                value={m.score1 ?? ""}
+                                                                                onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                                className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                inputMode="numeric"
+                                                                                value={m.score2 ?? ""}
+                                                                                onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                                className="flex-1 min-w-0 h-9 bg-slate-700 text-white rounded-lg text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500 text-base"
+                                                                                placeholder="0"
+                                                                            />
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="flex-1 min-w-0 flex items-center justify-center h-9 bg-slate-700 text-white rounded-lg font-black text-base">
+                                                                                {m.score1 !== undefined ? m.score1 : "-"}
+                                                                            </div>
+                                                                            <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
+                                                                            <div className="flex-1 min-w-0 flex items-center justify-center h-9 bg-slate-700 text-white rounded-lg font-black text-base">
+                                                                                {m.score2 !== undefined ? m.score2 : "-"}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                    {m.played && !readOnly && (
                                                                         <button
                                                                             onClick={() => handleConfirmScore(m.id)}
                                                                             className="w-9 h-9 shrink-0 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all active:scale-90"
@@ -626,7 +664,7 @@ export default function TournamentManager({
                                                                 )}
                                                             </div>
 
-                                                            {m.confirmed && (
+                                                            {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleEditScore(m.id)}
                                                                     className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-slate-800 border-t border-slate-800 transition-all flex items-center justify-center gap-1"
@@ -644,35 +682,37 @@ export default function TournamentManager({
                             </div>
 
                             {/* ActionBar / Tournament finalization action */}
-                            <div className="p-6 bg-blue-950 border border-blue-800 rounded-3xl max-w-2xl mx-auto relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-                                    <div className="space-y-3">
-                                        <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Fase de Grupos</h2>
-                                        <div className="flex items-center gap-3 justify-center md:justify-start">
-                                            <div className="px-4 py-2.5 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-3">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clasifican:</p>
-                                                <div className="flex items-center gap-2">
-                                                    <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
-                                                    <span className="text-sm font-black text-white w-4 text-center">{qualPerGroup}</span>
-                                                    <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                            {!readOnly && (
+                                <div className="p-6 bg-blue-950 border border-blue-800 rounded-3xl max-w-2xl mx-auto relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                                        <div className="space-y-3">
+                                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Fase de Grupos</h2>
+                                            <div className="flex items-center gap-3 justify-center md:justify-start">
+                                                <div className="px-4 py-2.5 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-3">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clasifican:</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
+                                                        <span className="text-sm font-black text-white w-4 text-center">{qualPerGroup}</span>
+                                                        <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <button
-                                        onClick={generateBracket}
-                                        disabled={!isGroupStageFinished}
-                                        className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
-                                            ? "bg-blue-600 hover:bg-blue-500 text-white"
-                                            : "bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600"
-                                            }`}
-                                    >
-                                        {isGroupStageFinished ? "Generar Playoffs →" : "Finalizá los grupos"}
-                                    </button>
+                                        <button
+                                            onClick={generateBracket}
+                                            disabled={!isGroupStageFinished}
+                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
+                                                ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                                : "bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600"
+                                                }`}
+                                        >
+                                            {isGroupStageFinished ? "Generar Playoffs →" : "Finalizá los grupos"}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </motion.div>
                     )}
 
@@ -713,7 +753,7 @@ export default function TournamentManager({
                                             </motion.div>
 
                                             {/* Finalizar Torneo button — visible solo si aún no finalizó */}
-                                            {initialStatus !== "finalizado" && (
+                                            {initialStatus !== "finalizado" && !readOnly && (
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 8 }}
                                                     animate={{ opacity: 1, y: 0 }}
@@ -810,30 +850,44 @@ export default function TournamentManager({
                                                             {/* Score input or divider */}
                                                             {canPlay ? (
                                                                 <div className="px-3 py-2 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
-                                                                    <input
-                                                                        type="number"
-                                                                        inputMode="numeric"
-                                                                        className="flex-1 min-w-0 h-10 bg-slate-700 border border-slate-600 text-white rounded-xl text-center text-base font-black placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                                                        placeholder="0"
-                                                                        value={m.score1 ?? ""}
-                                                                        onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                    />
-                                                                    <div className="w-4 text-center text-slate-500 font-black text-sm shrink-0">vs</div>
-                                                                    <input
-                                                                        type="number"
-                                                                        inputMode="numeric"
-                                                                        className="flex-1 min-w-0 h-10 bg-slate-700 border border-slate-600 text-white rounded-xl text-center text-base font-black placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                                                        placeholder="0"
-                                                                        value={m.score2 ?? ""}
-                                                                        onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                    />
-                                                                    {m.score1 !== undefined && m.score2 !== undefined && (
-                                                                        <button
-                                                                            onClick={() => handleBracketConfirm(m.id)}
-                                                                            className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all active:scale-95 shrink-0"
-                                                                        >
-                                                                            <Check className="w-4 h-4" />
-                                                                        </button>
+                                                                    {!readOnly ? (
+                                                                        <>
+                                                                            <input
+                                                                                type="number"
+                                                                                inputMode="numeric"
+                                                                                className="flex-1 min-w-0 h-10 bg-slate-700 border border-slate-600 text-white rounded-xl text-center text-base font-black placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                                                placeholder="0"
+                                                                                value={m.score1 ?? ""}
+                                                                                onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                            />
+                                                                            <div className="w-4 text-center text-slate-500 font-black text-sm shrink-0">vs</div>
+                                                                            <input
+                                                                                type="number"
+                                                                                inputMode="numeric"
+                                                                                className="flex-1 min-w-0 h-10 bg-slate-700 border border-slate-600 text-white rounded-xl text-center text-base font-black placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                                                placeholder="0"
+                                                                                value={m.score2 ?? ""}
+                                                                                onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                            />
+                                                                            {m.score1 !== undefined && m.score2 !== undefined && (
+                                                                                <button
+                                                                                    onClick={() => handleBracketConfirm(m.id)}
+                                                                                    className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all active:scale-95 shrink-0"
+                                                                                >
+                                                                                    <Check className="w-4 h-4" />
+                                                                                </button>
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="flex-1 min-w-0 h-10 border border-transparent rounded-xl flex items-center justify-center text-base font-black text-white">
+                                                                                {m.score1 !== undefined ? m.score1 : "-"}
+                                                                            </div>
+                                                                            <div className="w-4 text-center text-slate-500 font-black text-sm shrink-0">vs</div>
+                                                                            <div className="flex-1 min-w-0 h-10 border border-transparent rounded-xl flex items-center justify-center text-base font-black text-white">
+                                                                                {m.score2 !== undefined ? m.score2 : "-"}
+                                                                            </div>
+                                                                        </>
                                                                     )}
                                                                 </div>
                                                             ) : (
@@ -851,7 +905,7 @@ export default function TournamentManager({
                                                             </div>
 
                                                             {/* Edit button on confirmed */}
-                                                            {m.confirmed && (
+                                                            {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleBracketEdit(m.id)}
                                                                     className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-300 hover:bg-slate-800 border-t border-slate-700 transition-all flex items-center justify-center gap-1.5"
@@ -901,28 +955,42 @@ export default function TournamentManager({
                                                             {/* Score or divider */}
                                                             {!m.confirmed && m.team1 && m.team2 && !isBye ? (
                                                                 <div className="p-2.5 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
-                                                                    <input
-                                                                        type="number"
-                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                                                                        placeholder="0"
-                                                                        value={m.score1 ?? ""}
-                                                                        onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                    />
-                                                                    <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                                                                        placeholder="0"
-                                                                        value={m.score2 ?? ""}
-                                                                        onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                    />
-                                                                    {m.score1 !== undefined && m.score2 !== undefined && (
-                                                                        <button
-                                                                            onClick={() => handleBracketConfirm(m.id)}
-                                                                            className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all shrink-0"
-                                                                        >
-                                                                            <Check className="w-3.5 h-3.5" />
-                                                                        </button>
+                                                                    {!readOnly ? (
+                                                                        <>
+                                                                            <input
+                                                                                type="number"
+                                                                                className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                                placeholder="0"
+                                                                                value={m.score1 ?? ""}
+                                                                                onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                            />
+                                                                            <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                className="flex-1 h-8 bg-slate-700 border border-slate-600 text-white rounded-lg text-center text-base font-black placeholder:text-slate-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                                placeholder="0"
+                                                                                value={m.score2 ?? ""}
+                                                                                onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                            />
+                                                                            {m.score1 !== undefined && m.score2 !== undefined && (
+                                                                                <button
+                                                                                    onClick={() => handleBracketConfirm(m.id)}
+                                                                                    className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all shrink-0"
+                                                                                >
+                                                                                    <Check className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="flex-1 h-8 bg-transparent text-white rounded-lg flex items-center justify-center text-base font-black border border-transparent">
+                                                                                {m.score1 !== undefined ? m.score1 : "-"}
+                                                                            </div>
+                                                                            <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
+                                                                            <div className="flex-1 h-8 bg-transparent text-white rounded-lg flex items-center justify-center text-base font-black border border-transparent">
+                                                                                {m.score2 !== undefined ? m.score2 : "-"}
+                                                                            </div>
+                                                                        </>
                                                                     )}
                                                                 </div>
                                                             ) : (
@@ -937,7 +1005,7 @@ export default function TournamentManager({
                                                                 {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-emerald-400" : "text-slate-500"}`}>{m.score2}</span>}
                                                             </div>
 
-                                                            {m.confirmed && (
+                                                            {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleBracketEdit(m.id)}
                                                                     className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-slate-800 border-t border-slate-800 transition-all"

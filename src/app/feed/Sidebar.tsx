@@ -35,6 +35,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
+        { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Directorio" },
     ],
 };

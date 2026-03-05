@@ -122,8 +122,8 @@ export default async function TournamentsPage({
                             return (
                                 <Link key={f.key} href={`/tournaments?filter=${f.key}`} scroll={false} className="shrink-0">
                                     <button className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                        : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                                         }`}>
                                         {f.label}
                                         {f.count !== null && (
@@ -181,7 +181,7 @@ function TournamentCard({ tournament }: { tournament: any }) {
 
     const href = isOpen
         ? `/tournaments/register?id=${tournament.id}`
-        : `/tournaments/${tournament.id}/manage`;
+        : `/tournaments/${tournament.id}`;
 
     return (
         <Link href={href} className="group block">
@@ -237,8 +237,8 @@ function TournamentCard({ tournament }: { tournament: any }) {
 
                 {/* CTA footer */}
                 <div className={`px-4 py-3 border-t flex items-center justify-between ${isLive ? "border-red-900 bg-red-950/50" :
-                        isOpen ? "border-emerald-900 bg-emerald-950/50" :
-                            "border-slate-800 bg-slate-800/30"
+                    isOpen ? "border-emerald-900 bg-emerald-950/50" :
+                        "border-slate-800 bg-slate-800/30"
                     }`}>
                     <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-400" : isOpen ? "text-emerald-400" : "text-slate-500"
                         }`}>
