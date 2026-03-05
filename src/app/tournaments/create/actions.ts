@@ -14,15 +14,18 @@ type PointsConfig = {
 
 type TournamentInput = {
     name: string;
-    club: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-    surface: string;
+    startDate?: string | null;
+    endDate?: string | null;
+    description?: string | null;
+    surface?: string | null;
     categories: string[];
     pointsConfig: PointsConfig;
     imageUrl?: string | null;
-    modalidad?: { mode: string; participacion: string; genero: string; tipoTorneo: string } | null;
+    modalidad?: {
+        mode: string;
+        participacion: string;
+        genero: string;
+    } | null;
 };
 
 export async function createTournament(data: TournamentInput) {

@@ -1,18 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import styles from "@/app/profiles/profile.module.css";
 import { UserProfile } from "@clerk/nextjs";
 import { updateProfeProfile } from "./actions";
 import { switchRole } from "@/app/profile/actions";
 import Link from "next/link";
+import {
+    Edit2,
+    GraduationCap,
+    MapPin,
+    Star,
+    CheckCircle2,
+    BookOpen,
+    Users,
+    Clock,
+    Plus,
+    X,
+    Calendar,
+    MessageCircle,
+    Instagram,
+    Smartphone,
+    Trophy,
+    Award,
+    Target,
+    ChevronRight,
+    Play
+} from "lucide-react";
+import { toast } from "sonner";
 
 const DAYS = ["L", "M", "X", "J", "V", "S", "D"];
-const AVAIL = [
-    [0, 0, 0, 0, 1, 1, 1], // Mañana
-    [1, 0, 1, 0, 0, 1, 1], // Tarde
-    [1, 1, 0, 1, 0, 1, 0], // Noche
-];
 const SLOT_LABELS = ["Mañana", "Tarde", "Noche"];
 
 interface ProfeProfileClientProps {
@@ -22,10 +38,10 @@ interface ProfeProfileClientProps {
 }
 
 export default function ProfeProfileClient({ profe, isOwner, embedded = false }: ProfeProfileClientProps) {
-    const [activeTab, setActiveTab] = useState<"info" | "account">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "pricing" | "availability">("info");
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [localAvail, setLocalAvail] = useState<number[][]>(profe?.availability || AVAIL);
+    const [localAvail, setLocalAvail] = useState<number[][]>(profe?.availability || [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]);
     const [isEditingSchedule, setIsEditingSchedule] = useState(false);
 
     const [isEditingPricing, setIsEditingPricing] = useState(false);
@@ -51,7 +67,7 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
         specialities: profe?.specialities?.join(", ") || "",
     });
 
-    if (!profe) return <div className={styles.emptyState}>Instructor no encontrado</div>;
+    if (!profe) return <div className="text-center py-20 text-white/20 font-black uppercase tracking-[0.5em]">Instructor No Encontrado</div>;
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,23 +79,12 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
                 specialities: formData.specialities.split(",").map((s: string) => s.trim()).filter(Boolean),
             });
             setIsEditing(false);
+            toast.success("Perfil de profesor actualizado");
             window.location.reload();
         } catch (error) {
-            alert("Error al actualizar el perfil");
+            toast.error("Error al actualizar");
         }
         setSaving(false);
-    };
-
-    const handleSwitchRole = async () => {
-        if (!confirm("¿Deseas volver a tu Perfil de Jugador?")) return;
-        setSaving(true);
-        try {
-            await switchRole("jugador");
-            window.location.href = "/profile";
-        } catch (error) {
-            alert("Error al cambiar de rol");
-            setSaving(false);
-        }
     };
 
     const handleToggleSlot = (ri: number, di: number) => {
@@ -108,409 +113,244 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
                 pricing: localPricing,
             });
             setIsEditingSchedule(false);
+            toast.success("Disponibilidad guardada");
         } catch (error) {
-            alert("Error al guardar horario");
+            toast.error("Error al guardar");
         }
         setSaving(false);
-    };
-
-    const formatPrecio = (raw: string): string => {
-        const digits = raw.replace(/\D/g, "");
-        if (!digits) return "";
-        const formatted = Number(digits).toLocaleString("es-AR");
-        return `$${formatted}`;
     };
 
     const handlePricingChange = (index: number, field: string, value: string) => {
         const newPricing = [...localPricing];
-        const finalValue = field === "precio" ? formatPrecio(value) : value;
-        newPricing[index] = { ...newPricing[index], [field]: finalValue };
+        newPricing[index] = { ...newPricing[index], [field]: value };
         setLocalPricing(newPricing);
     };
 
-    const handleAddPricing = () => {
-        setLocalPricing([...localPricing, { tipo: "Nueva Clase", dur: "60 min", precio: "$0", icon: "🎾", desc: "Descripción" }]);
-    };
+    return (
+        <div className={`flex flex-col gap-6 animate-in fade-in duration-700 ${embedded ? "" : "min-h-screen bg-[#090A0F] text-white pb-20 pt-4 px-4"}`}>
+            <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
 
-    const handleRemovePricing = (index: number) => {
-        setLocalPricing(localPricing.filter((_, i) => i !== index));
-    };
+                {/* ── Hero ── */}
+                <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl relative">
+                    <div className="h-32 md:h-48 bg-gradient-to-br from-emerald-900/40 via-blue-900/30 to-slate-900/50 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(16,185,129,0.1),transparent)]" />
+                    </div>
 
-    const handleSavePricing = async () => {
-        setSaving(true);
-        try {
-            await updateProfeProfile({
-                name: profe.name,
-                bio: profe.bio || "",
-                location: profe.location || "",
-                level: profe.level || "",
-                experience: profe.experience || "",
-                phone: profe.phone || "",
-                whatsapp: profe.whatsapp || "",
-                instagram: profe.instagram || "",
-                workingZones: profe.workingZones || [],
-                specialities: profe.specialities || [],
-                availability: localAvail,
-                pricing: localPricing,
-            });
-            setIsEditingPricing(false);
-        } catch (error) {
-            alert("Error al guardar precios");
-        }
-        setSaving(false);
-    };
+                    <div className="absolute top-4 right-4 z-10">
+                        {isOwner && (
+                            <button
+                                className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                <Edit2 className="h-3.5 w-3.5" /> Editar Academy
+                            </button>
+                        )}
+                    </div>
 
-    // ── Shared content sections (used in both embedded and full-page modes) ──
-
-    const pricingSection = (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📚 Clases y Planes</span>
-                {isOwner && (
-                    <button
-                        className={styles.editButton}
-                        style={{ margin: 0, padding: '4px 12px', fontSize: '0.9rem' }}
-                        onClick={() => setIsEditingPricing(!isEditingPricing)}
-                    >
-                        {isEditingPricing ? "Cancelar" : "✏️ Editar Planes"}
-                    </button>
-                )}
-            </div>
-            <div className={styles.sectionBody}>
-                {isEditingPricing ? (
-                    <div>
-                        <div className={styles.pricingEditTable}>
-                            <div className={styles.pricingEditHead}>
-                                <div style={{ width: '52px', textAlign: 'center' }}>Ícono</div>
-                                <div style={{ flex: 2 }}>Tipo de Clase</div>
-                                <div style={{ flex: 2 }}>Detalles / Duración</div>
-                                <div style={{ flex: 1 }}>Precio</div>
-                                <div style={{ width: '40px' }}></div>
+                    <div className="px-6 pb-8 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-[#090A0F] overflow-hidden bg-slate-800 shadow-2xl relative flex items-center justify-center">
+                                <GraduationCap className="h-10 w-10 text-white/20" />
                             </div>
-                            {localPricing.map((c, i) => (
-                                <div key={i} className={styles.pricingEditRow}>
-                                    <input value={c.icon} onChange={e => handlePricingChange(i, 'icon', e.target.value)} className={styles.pricingInput} style={{ width: '52px', textAlign: 'center', fontSize: '1.1rem' }} placeholder="🎾" />
-                                    <input value={c.tipo} onChange={e => handlePricingChange(i, 'tipo', e.target.value)} className={styles.pricingInput} style={{ flex: 2 }} placeholder="Ej: Clase Particular" />
-                                    <input value={c.dur} onChange={e => handlePricingChange(i, 'dur', e.target.value)} className={styles.pricingInput} style={{ flex: 2 }} placeholder="Ej: 60 min" />
-                                    <input value={c.precio} onChange={e => handlePricingChange(i, 'precio', e.target.value)} className={styles.pricingInput} style={{ flex: 1 }} placeholder="$0" />
-                                    <button onClick={() => handleRemovePricing(i)} className={styles.pricingDeleteBtn} title="Eliminar fila">✕</button>
+                        </div>
+
+                        <div className="flex-1 text-center md:text-left pt-2 pb-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
+                                <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{profe?.name}</h1>
+                                <div className="flex self-center md:self-auto px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Head Coach</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                                <div className="flex items-center gap-2">
+                                    <Award className="h-3.5 w-3.5" /> {profe.experience} de exp.
+                                </div>
+                                <div className="flex items-center gap-2 text-emerald-400/60">
+                                    <Star className="h-3.5 w-3.5 fill-current" /> Certified Pro
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Navigation ── */}
+                <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/10 overflow-x-auto no-scrollbar shadow-inner">
+                    <button
+                        className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "info" ? "bg-emerald-600 text-white shadow-xl shadow-emerald-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        onClick={() => setActiveTab("info")}
+                    >
+                        Método
+                    </button>
+                    <button
+                        className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "pricing" ? "bg-emerald-600 text-white shadow-xl shadow-emerald-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        onClick={() => setActiveTab("pricing")}
+                    >
+                        Tarifas
+                    </button>
+                    <button
+                        className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "availability" ? "bg-emerald-600 text-white shadow-xl shadow-emerald-900/40" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        onClick={() => setActiveTab("availability")}
+                    >
+                        Agenda
+                    </button>
+                </div>
+
+                {/* ── Tabs Content ── */}
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    {activeTab === "info" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2 flex flex-col gap-6">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4 italic">Filosofía de Entrenamiento</h3>
+                                    <p className="text-white/70 text-sm leading-relaxed font-medium">
+                                        {profe?.bio || "Enfocado en llevar tu juego al siguiente nivel mediante táctica avanzada y acondicionamiento físico."}
+                                    </p>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4 italic">Especialidades</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {profe?.specialities?.map((s: string, i: number) => (
+                                            <span key={i} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-400 border-dashed">
+                                                {s}
+                                            </span>
+                                        )) || <span className="text-white/20 text-xs">Sin especialidades</span>}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-6">
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic">Zonas de Trabajo</h3>
+                                    <div className="flex flex-col gap-3">
+                                        {profe?.workingZones?.map((z: string, i: number) => (
+                                            <div key={i} className="flex items-center gap-3 text-white/60">
+                                                <MapPin className="h-3.5 w-3.5 text-emerald-500/50" />
+                                                <span className="text-xs font-bold">{z}</span>
+                                            </div>
+                                        )) || <span className="text-white/20 text-xs">No especificadas</span>}
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic">Nivel Oficial</h3>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-lg shadow-emerald-900/20">
+                                            <GraduationCap className="h-5 w-5 text-emerald-400" />
+                                        </div>
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-white/80">{profe.level}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "pricing" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {localPricing.map((p, i) => (
+                                <div key={i} className="bg-white/5 border border-white/10 p-8 rounded-[2rem] shadow-xl flex flex-col gap-6 hover:border-emerald-500/30 transition-all group">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-4xl grayscale group-hover:grayscale-0 transition-all duration-500">{p.icon}</span>
+                                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-white/30">{p.precio}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <h3 className="text-sm font-black uppercase italic tracking-tight text-white group-hover:text-emerald-400 transition-colors">{p.tipo}</h3>
+                                        <p className="text-[10px] font-medium text-white/40 leading-relaxed">{p.desc}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/20">
+                                        <Clock className="h-3 w-3" /> {p.dur}
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', alignItems: 'center' }}>
-                            <button onClick={handleAddPricing} className={styles.pricingAddBtn}>+ Agregar fila</button>
-                            <div style={{ flex: 1 }} />
-                            <button onClick={() => setIsEditingPricing(false)} className={styles.pricingCancelBtn}>Cancelar</button>
-                            <button onClick={handleSavePricing} disabled={saving} className={styles.btnAction} style={{ margin: 0 }}>{saving ? "Guardando..." : "✅ Guardar Planes"}</button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className={styles.pricingGrid}>
-                        {localPricing.map((c: any, i: number) => (
-                            <div key={i} className={styles.pricingCard}>
-                                <div className={styles.pricingIcon}>{c.icon}</div>
-                                <div className={styles.pricingInfo}>
-                                    <div className={styles.pricingTitle}>{c.tipo}</div>
-                                    <div className={styles.pricingDur}>{c.dur}</div>
-                                </div>
-                                <div className={styles.pricingPrice}>
-                                    <span className={styles.price}>{c.precio}</span>
-                                    <span className={styles.priceLabel}>por sesión</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+                    )}
 
-    const scheduleSection = (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📅 Mi Horario</span>
-                {isOwner && (
-                    <button
-                        className={styles.editButton}
-                        style={{ margin: 0, padding: '4px 12px', fontSize: '0.9rem' }}
-                        onClick={() => {
-                            if (isEditingSchedule) setLocalAvail(profe?.availability || AVAIL);
-                            setIsEditingSchedule(!isEditingSchedule);
-                        }}
-                    >
-                        {isEditingSchedule ? "Cancelar" : "✏️ Editar Horarios"}
-                    </button>
-                )}
-            </div>
-            <div className={styles.sectionBody}>
-                {isEditingSchedule && (
-                    <p className={styles.textMuted} style={{ marginBottom: "1rem", fontSize: "0.9rem" }}>
-                        Haz clic en los círculos para cambiar tu disponibilidad.
-                    </p>
-                )}
-                <div className={styles.availContainer}>
-                    <div className={styles.availGrid} style={{ marginBottom: "1rem" }}>
-                        <div />
-                        {DAYS.map((d) => (<div key={d} className={styles.availDayName}>{d}</div>))}
-                    </div>
-                    {localAvail.map((row, ri) => (
-                        <div key={ri} className={styles.availRow}>
-                            <div className={styles.availLabel}>{SLOT_LABELS[ri]}</div>
-                            <div className={styles.availGrid} style={{ flex: 1 }}>
-                                {row.map((v, di) => (
-                                    <div
-                                        key={di}
-                                        onClick={() => (isOwner && isEditingSchedule) && handleToggleSlot(ri, di)}
-                                        className={`${styles.slotCell} ${v ? styles.activeSlot : styles.busySlot} ${isEditingSchedule ? styles.editableSlot : ""}`}
-                                        style={{ cursor: (isOwner && isEditingSchedule) ? "pointer" : "default" }}
-                                        title={(isOwner && isEditingSchedule) ? "Haz clic para cambiar disponibilidad" : ""}
+                    {activeTab === "availability" && (
+                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 shadow-xl">
+                            <div className="flex justify-between items-center mb-8 px-2">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic">Disponibilidad Semanal</h3>
+                                {isOwner && (
+                                    <button
+                                        onClick={() => isEditingSchedule ? handleSaveSchedule() : setIsEditingSchedule(true)}
+                                        className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20"
                                     >
-                                        {v ? "●" : ""}
-                                    </div>
+                                        {isEditingSchedule ? "Guardar Agenda" : "Editar Slots"}
+                                    </button>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-8 gap-2">
+                                <div className="transparent" />
+                                {DAYS.map(d => <div key={d} className="text-center text-[10px] font-black text-white/30 pb-2">{d}</div>)}
+
+                                {SLOT_LABELS.map((label, rIdx) => (
+                                    <>
+                                        <div key={label} className="text-[9px] font-black uppercase text-white/20 flex items-center justify-end pr-2">{label}</div>
+                                        {localAvail[rIdx].map((val, dIdx) => (
+                                            <button
+                                                key={`${rIdx}-${dIdx}`}
+                                                disabled={!isEditingSchedule}
+                                                onClick={() => handleToggleSlot(rIdx, dIdx)}
+                                                className={`aspect-square rounded-xl border transition-all ${val ? "bg-emerald-500 border-emerald-400 shadow-lg shadow-emerald-900/40" : "bg-white/5 border-white/5"
+                                                    } ${isEditingSchedule ? "cursor-pointer hover:scale-105 active:scale-95" : "cursor-default"}`}
+                                            />
+                                        ))}
+                                    </>
                                 ))}
                             </div>
                         </div>
-                    ))}
+                    )}
                 </div>
-                {isEditingSchedule && (
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1rem" }}>
-                        <button onClick={handleSaveSchedule} disabled={saving} className={styles.btnAction}>
-                            {saving ? "Guardando..." : "✅ Guardar Horario"}
-                        </button>
-                    </div>
-                )}
-                {profe.whatsapp ? (
-                    <Link
-                        href={`https://wa.me/${profe.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${profe.name}! Vi tu perfil en PadelApp y quisiera reservar una clase 🎾 ¿Tenés disponibilidad?`)}`}
-                        target="_blank"
-                        className={styles.btnAction}
-                        style={{ marginTop: "1.5rem", display: "block", textAlign: "center", textDecoration: "none" }}
-                    >
-                        📲 Reservar Clase por WhatsApp
-                    </Link>
-                ) : (
-                    <button className={styles.btnAction} style={{ marginTop: "1.5rem" }} disabled>
-                        🎾 Reservar Clase
-                    </button>
-                )}
-            </div>
-        </div>
-    );
 
-    const editModal = isEditing && (
-        <div className={styles.modalOverlay}>
-            <div className={styles.editModal}>
-                <div className={styles.modalHeader}>
-                    <h2>Editar Perfil Instructor</h2>
-                    <button onClick={() => setIsEditing(false)} className={styles.closeBtn}>✕</button>
-                </div>
-                <form onSubmit={handleSave} className={styles.editForm}>
-                    <div className={styles.formGroup}>
-                        <label>Nombre Profesional</label>
-                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Resumen / Biografía</label>
-                        <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={3} />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Ubicación</label>
-                        <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
-                    </div>
-                    <div className={styles.formGrid}>
-                        <div className={styles.formGroup}>
-                            <label>Título / Nivel</label>
-                            <input type="text" value={formData.level} onChange={e => setFormData({ ...formData, level: e.target.value })} />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Años Exp.</label>
-                            <input type="text" value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
-                        </div>
-                    </div>
-                    <div className={styles.formGrid}>
-                        <div className={styles.formGroup}>
-                            <label>WhatsApp (Cod. Area + Num)</label>
-                            <input type="text" value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Instagram User</label>
-                            <input type="text" value={formData.instagram} onChange={e => setFormData({ ...formData, instagram: e.target.value })} placeholder="@usuario" />
-                        </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label>Zonas de Trabajo</label>
-                        <input type="text" value={formData.workingZones} onChange={e => setFormData({ ...formData, workingZones: e.target.value })} placeholder="Ej: Palermo, San Isidro, Tortuguitas" />
-                    </div>
-                    <div className={styles.modalActions}>
-                        <button type="button" onClick={() => setIsEditing(false)} className={styles.cancelBtn}>Cancelar</button>
-                        <button type="submit" disabled={saving} className={styles.saveBtn}>
-                            {saving ? "Procesando..." : "Guardar Cambios"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-
-    // ── EMBEDDED MODE: skip the page wrapper and hero ──
-    if (embedded) {
-        return (
-            <>
-                {isOwner && (
-                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                        <button className={styles.editButton} onClick={() => setIsEditing(true)}>
-                            ✏️ Editar Perfil Instructor
-                        </button>
-                    </div>
-                )}
-                <div className={styles.contentGrid}>
-                    <div className={styles.mainCol}>
-                        <div className={styles.tabWrapper}>
-                            <button
-                                className={`${styles.tabItem} ${activeTab === "info" ? styles.active : ""}`}
-                                onClick={() => setActiveTab("info")}
-                            >
-                                Información
-                            </button>
-                        </div>
-                        {activeTab === "info" && (
-                            <div className={styles.tabContent}>
-                                {pricingSection}
-                                {profe.workingZones && profe.workingZones.length > 0 && (
-                                    <div className={styles.section}>
-                                        <div className={styles.sectionHeader}>📍 Cobertura y Zonas</div>
-                                        <div className={styles.sectionBody}>
-                                            <div className={styles.tags}>
-                                                {profe.workingZones.map((zone: string) => (
-                                                    <span key={zone} className={styles.tag}>🏡 {zone}</span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                {/* ── Edit Modal ── */}
+                {isEditing && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[1000] flex items-center justify-center p-4">
+                        <div className="bg-[#0D0F16] border border-white/10 rounded-[2.5rem] w-full max-w-[600px] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 shadow-2xl">
+                            <div className="px-8 pt-8 pb-4 flex justify-between items-center sticky top-0 bg-[#0D0F16]/80 backdrop-blur-lg z-10 border-b border-white/5">
+                                <h2 className="text-2xl font-black uppercase italic tracking-tight">Personal Coach Data</h2>
+                                <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">✕</button>
                             </div>
-                        )}
-                    </div>
-                    <div className={styles.stickyRight}>
-                        {scheduleSection}
-                    </div>
-                </div>
-                {editModal}
-            </>
-        );
-    }
-
-    // ── FULL PAGE MODE ──
-    return (
-        <div className={styles.page}>
-            {/* ── Hero ── */}
-            <div className={styles.hero}>
-                <div className={styles.heroBanner} />
-                <div className={styles.heroBody}>
-                    <div className={styles.headerActionsTop}>
-                        {isOwner && (
-                            <>
-                                <button className={styles.roleSwitchButton} onClick={handleSwitchRole} disabled={saving}>
-                                    {saving ? "Cambiando..." : "🎾 Ser Jugador"}
-                                </button>
-                                <button className={styles.editButton} onClick={() => setIsEditing(true)}>
-                                    ✏️ Editar
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    <div className={styles.heroAvatar}>
-                        {profe.avatarUrl ? <img src={profe.avatarUrl} alt={profe.name} /> : <span>🎓</span>}
-                    </div>
-
-                    <div className={styles.heroInfo}>
-                        <div className={styles.heroMain}>
-                            <h1 className={styles.heroName}>{profe.name}</h1>
-                            {profe.verified && <span className={styles.verifiedBadge} title="Perfil Verificado">✓</span>}
-                        </div>
-                        <p className={styles.heroBio}>{profe.bio || "Enseñando padel de alto nivel. ¡Consulta por tus clases! 🎾"}</p>
-
-                        <div className={styles.heroMeta}>
-                            <div className={styles.heroMetaItem}>📍 {profe.location || "Ubicación"}</div>
-                            <div className={styles.heroMetaItem}>🎓 <span className={styles.accent}>{profe.level}</span></div>
-                            <div className={styles.heroMetaItem}>⭐ <span className={styles.accent}>{profe.rating || "0.0"}</span></div>
-                        </div>
-                    </div>
-
-                    <div className={styles.heroActions}>
-                        {profe.whatsapp && (
-                            <Link
-                                href={`https://wa.me/${profe.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${profe.name}! Vi tu perfil en PadelApp y me gustaría consultar sobre tus clases 🎾`)}`}
-                                target="_blank"
-                                className={`${styles.btnSocial} ${styles.btnWhatsApp}`}
-                            >
-                                📲 WhatsApp
-                            </Link>
-                        )}
-                        {profe.instagram && (
-                            <Link href={`https://instagram.com/${profe.instagram.replace('@', '')}`} target="_blank" className={`${styles.btnSocial} ${styles.btnInstagram}`}>
-                                📸 Instagram
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className={styles.contentGrid}>
-                {/* ── Left Column ── */}
-                <div className={styles.mainCol}>
-                    <div className={styles.tabWrapper}>
-                        <button
-                            className={`${styles.tabItem} ${activeTab === "info" ? styles.active : ""}`}
-                            onClick={() => setActiveTab("info")}
-                        >
-                            Información
-                        </button>
-                        {isOwner && (
-                            <button
-                                className={`${styles.tabItem} ${activeTab === "account" ? styles.active : ""}`}
-                                onClick={() => setActiveTab("account")}
-                            >
-                                Mi Cuenta
-                            </button>
-                        )}
-                    </div>
-
-                    {activeTab === "info" && (
-                        <div className={styles.tabContent}>
-                            {pricingSection}
-                            {profe.workingZones && profe.workingZones.length > 0 && (
-                                <div className={styles.section}>
-                                    <div className={styles.sectionHeader}>📍 Cobertura y Zonas</div>
-                                    <div className={styles.sectionBody}>
-                                        <div className={styles.tags}>
-                                            {profe.workingZones.map((zone: string) => (
-                                                <span key={zone} className={styles.tag}>
-                                                    🏡 {zone}
-                                                </span>
-                                            ))}
-                                        </div>
+                            <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Nombre Coach</label>
+                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500 shadow-inner" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Título / Nivel</label>
+                                        <input type="text" value={formData.level} onChange={e => setFormData({ ...formData, level: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500" />
                                     </div>
                                 </div>
-                            )}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2">Filosofía (Biografía)</label>
+                                    <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={4} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500 resize-none shadow-inner" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Experiencia</label>
+                                        <input type="text" value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2">Ubicación</label>
+                                        <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500" />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2">Zonas de Trabajo (coma)</label>
+                                    <input type="text" value={formData.workingZones} onChange={e => setFormData({ ...formData, workingZones: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500" />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2">Especialidades (coma)</label>
+                                    <input type="text" value={formData.specialities} onChange={e => setFormData({ ...formData, specialities: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-emerald-500" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <button type="button" onClick={() => setIsEditing(false)} className="bg-white/5 text-white/60 border border-white/10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</button>
+                                    <button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/40 disabled:opacity-50">
+                                        {saving ? "Publishing..." : "Update Academy"}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    )}
-
-                    {activeTab === "account" && isOwner && (
-                        <div className={styles.accountSection}>
-                            <UserProfile routing="hash" />
-                        </div>
-                    )}
-                </div>
-
-                {/* ── Right Column (Sticky) ── */}
-                <div className={styles.stickyRight}>
-                    {scheduleSection}
-                </div>
+                    </div>
+                )}
             </div>
-
-            {editModal}
         </div>
     );
 }

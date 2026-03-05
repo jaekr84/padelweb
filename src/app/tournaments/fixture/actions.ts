@@ -130,7 +130,6 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             .where(eq(tournaments.id, input.tournamentId));
 
         revalidatePath("/tournaments");
-        revalidatePath(`/tournaments/${input.tournamentId}/live`);
         revalidatePath(`/tournaments/${input.tournamentId}/manage`);
 
         return { ok: true, newStatus };

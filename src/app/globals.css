@@ -1,53 +1,21 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --background-header: rgba(255, 255, 255, 0.85);
-  --primary: #15803d;
-  /* High-contrast Forest Green for Light Mode */
-  --primary-hover: #166534;
-  --primary-foreground: #ffffff;
-  --primary-label: #14532d;
-  --surface: #f4f4f5;
-  --surface-border: #e4e4e7;
-  --text-muted: #52525b;
-  --muted: #f1f1f2;
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
 }
 
-[class~="dark"] {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --background-header: rgba(9, 9, 11, 0.85);
-  --primary: #d9f95d;
-  --primary-hover: #bde038;
-  --primary-foreground: #09090b;
-  --primary-label: #d9f95d;
-  --surface: #18181b;
-  --surface-border: #27272a;
-  --text-muted: #a1a1aa;
-  --muted: #27272a;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  background-color: var(--background);
-  color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #09090b;
+  }
+  .dark {
+    --background: #09090b;
+    --foreground: #fafafa;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
 }

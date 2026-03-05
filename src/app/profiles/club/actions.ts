@@ -63,6 +63,6 @@ export async function updateClubProfile(formData: FormData) {
         });
     }
 
-    revalidatePath("/profiles/club");
+    revalidatePath("/profiles/club", "layout");
     return { success: true };
 }

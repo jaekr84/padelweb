@@ -1,9 +1,15 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import styles from "./fixture.module.css";
+import {
+    Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
+    Dice5, Check, Trash2, Settings, Plus, Minus,
+    CreditCard, UserCheck, AlertCircle, ChevronRight,
+    Users2, MonitorPlay
+} from "lucide-react";
 import { saveTournamentFixture } from "./actions";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface FixtureSetupProps {
     tournamentId: string;
@@ -196,146 +202,366 @@ export default function FixtureSetup({
     }, [numGroups, playersPerGroup, PRESENT_PLAYERS]);
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1 className={styles.title}>{tournamentName}</h1>
-                <div className={styles.stepper}>
-                    <div className={`${styles.step} ${step === "checkin" ? styles.stepActive : ""}`}>1. Presentismo</div>
-                    <div className={`${styles.step} ${step === "config" ? styles.stepActive : ""}`}>2. Configuración</div>
-                    <div className={`${styles.step} ${step === "assign" ? styles.stepActive : ""}`}>3. Armado de Grupos</div>
-                </div>
-            </div>
-
-            {step === "checkin" && (
-                <div className={styles.checkinCard}>
-                    <div className={styles.checkinHeader}>
-                        <span className={styles.checkinName}>Jugador / Pareja</span>
-                        <div className={styles.checkinColLabel} onClick={() => handleCheckAll('paid')} title="Marcar todos como pagados">
-                            <span>Pago</span>
-                            <span className={styles.checkAllIcon}>⇅</span>
-                        </div>
-                        <div className={styles.checkinColLabel} onClick={() => handleCheckAll('present')} title="Marcar todos como presentes">
-                            <span>Presente</span>
-                            <span className={styles.checkAllIcon}>⇅</span>
-                        </div>
-                    </div>
-                    <div className={styles.checkinList}>
-                        {players.map(p => (
-                            <div key={p.id} className={`${styles.checkinRow} ${present.has(p.id) ? styles.checkinRowPresent : ""}`}>
-                                <span className={styles.checkinName}>{p.name}</span>
-                                <div className={styles.checkinCheck}>
-                                    <input type="checkbox" className={styles.checkbox} checked={paid.has(p.id)} onChange={() => togglePaid(p.id)} />
-                                </div>
-                                <div className={styles.checkinCheck}>
-                                    <input type="checkbox" className={styles.checkbox} checked={present.has(p.id)} onChange={() => togglePresent(p.id)} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className={styles.actionBar}>
-                        <button className={styles.btnPrimary} disabled={present.size === 0} onClick={() => setStep("config")}>
-                            {present.size === 0 ? "Marcá al menos 1 presente" : `Continuar con ${present.size} jugadores →`}
+        <div className="min-h-screen bg-[#090A0F] text-white">
+            {/* Sticky Header */}
+            <header className="sticky top-0 z-50 bg-[#090A0F]/80 backdrop-blur-xl border-b border-white/5 px-4 py-4">
+                <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => router.back()}
+                            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
                         </button>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic">Fixture</span>
+                                <div className="w-1 h-1 rounded-full bg-white/20" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 italic">Setup</span>
+                            </div>
+                            <h1 className="text-lg font-black uppercase italic tracking-tight leading-none truncate max-w-[180px]">
+                                {tournamentName}
+                            </h1>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
+                        {[
+                            { id: "checkin", icon: UserCheck },
+                            { id: "config", icon: Settings },
+                            { id: "assign", icon: Users2 }
+                        ].map((s, idx) => {
+                            const Icon = s.icon;
+                            const isActive = step === s.id;
+                            const isPast = (step === "config" && idx === 0) || (step === "assign" && idx < 2);
+
+                            return (
+                                <div
+                                    key={s.id}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isActive
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-110"
+                                        : isPast
+                                            ? "text-emerald-500"
+                                            : "text-white/20"
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
-            )}
+            </header>
 
-            {step === "config" && (
-                <div className={styles.configCard}>
-                    <h2 className={styles.configTitle}>Configuración de Grupos</h2>
-                    <div className={styles.configGrid}>
-                        <div className={styles.configField}>
-                            <label className={styles.configLabel}>Cantidad de grupos</label>
-                            <div className={styles.counterRow}>
-                                <button className={styles.counterBtn} onClick={() => setNumGroups(Math.max(1, numGroups - 1))}>−</button>
-                                <span className={styles.counterVal}>{numGroups}</span>
-                                <button className={styles.counterBtn} onClick={() => setNumGroups(Math.min(16, numGroups + 1))}>＋</button>
-                            </div>
-                        </div>
-                        <div className={styles.configField}>
-                            <label className={styles.configLabel}>Jugadores por grupo</label>
-                            <div className={styles.counterRow}>
-                                <button className={styles.counterBtn} onClick={() => setPlayersPerGroup(Math.max(2, playersPerGroup - 1))}>−</button>
-                                <span className={styles.counterVal}>{playersPerGroup}</span>
-                                <button className={styles.counterBtn} onClick={() => setPlayersPerGroup(Math.min(16, playersPerGroup + 1))}>＋</button>
-                            </div>
-                        </div>
-                    </div>
+            <main className="max-w-4xl mx-auto px-4 py-8 pb-32">
 
-                    <div className={styles.configSummary}>
-                        <div className={`${styles.summaryPill} ${styles.pillInfo}`}>
-                            <span>Participantes: <strong>{PRESENT_PLAYERS.length}</strong></span>
-                        </div>
-                        <div className={`${styles.summaryPill} ${PRESENT_PLAYERS.length === numGroups * playersPerGroup ? styles.pillOk : styles.pillWarn}`}>
-                            <span>Cupos: <strong>{numGroups * playersPerGroup}</strong></span>
-                        </div>
-                        {PRESENT_PLAYERS.length > numGroups * playersPerGroup && (
-                            <div className={`${styles.summaryPill} ${styles.pillWarn}`}>
-                                <span>Sobran: <strong>{PRESENT_PLAYERS.length - numGroups * playersPerGroup}</strong></span>
+                <AnimatePresence mode="wait">
+                    {step === "checkin" && (
+                        <motion.div
+                            key="checkin"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="space-y-6"
+                        >
+                            <div className="flex items-center justify-between px-2">
+                                <div>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Presentismo</h2>
+                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Inscriptos</span>
+                                    <span className="text-2xl font-black italic text-blue-500 leading-none">{players.length}</span>
+                                </div>
                             </div>
-                        )}
-                        {PRESENT_PLAYERS.length < numGroups * playersPerGroup && (
-                            <div className={`${styles.summaryPill} ${styles.pillWarn}`}>
-                                <span>Faltan: <strong>{numGroups * playersPerGroup - PRESENT_PLAYERS.length}</strong></span>
+
+                            <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">
+                                <div className="px-6 py-4 bg-white/5 flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Jugadores</span>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">Todo Pago</button>
+                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">Todo Ok</button>
+                                    </div>
+                                </div>
+
+                                <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                                    {players.map(p => {
+                                        const isPaid = paid.has(p.id);
+                                        const isPresent = present.has(p.id);
+
+                                        return (
+                                            <div
+                                                key={p.id}
+                                                className={`group flex items-center justify-between px-6 py-4 transition-all ${isPresent ? "bg-blue-600/5" : "opacity-40"
+                                                    }`}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-white" : "text-white/40"}`}>
+                                                        {p.name}
+                                                    </span>
+                                                    <div className="flex gap-2 mt-1">
+                                                        {isPaid && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">Pago</span>}
+                                                        {isPresent && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">Ok</span>}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => togglePaid(p.id)}
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
+                                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                                                            : "bg-white/5 border border-white/10 text-white/20 hover:border-white/20"
+                                                            }`}
+                                                    >
+                                                        <CreditCard className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => togglePresent(p.id)}
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
+                                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                                            : "bg-white/5 border border-white/10 text-white/20 hover:border-white/20"
+                                                            }`}
+                                                    >
+                                                        <UserCheck className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        )}
-                    </div>
 
-                    <button className={styles.btnPrimary} onClick={handleStart}>Crear Grupos →</button>
-                </div>
-            )}
-
-            {step === "assign" && (
-                <div>
-                    <div className={styles.poolSection}>
-                        <div className={styles.poolHeader}>
-                            <span className={styles.poolTitle}>Sin asignar ({unassigned.length})</span>
-                            <button className={styles.randomBtn} onClick={handleRandomize} disabled={randomizing || unassigned.length === 0}>
-                                {randomizing ? "🎲 Sorteando..." : "🎲 Sorteo Aleatorio"}
+                            <button
+                                onClick={() => setStep("config")}
+                                disabled={present.size === 0}
+                                className={`w-full py-5 rounded-3xl font-black uppercase italic tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${present.size > 0
+                                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
+                                    : "bg-white/5 text-white/20 cursor-not-allowed"
+                                    }`}
+                            >
+                                <span>Continuar ({present.size})</span>
+                                <ArrowRight className="w-5 h-5" />
                             </button>
-                        </div>
-                        <div className={styles.playerPool}>
-                            {unassigned.map(p => (
-                                <div key={p.id} className={styles.playerChip} onClick={() => {
-                                    const firstEmptyGroup = groups.find(g => g.players.length < playersPerGroup);
-                                    if (firstEmptyGroup) handleAddPlayer(p.id, firstEmptyGroup.id);
-                                }}>
-                                    {p.name}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                        </motion.div>
+                    )}
 
-                    <div className={styles.groupsGrid}>
-                        {groups.map(g => (
-                            <div key={g.id} className={styles.groupCard}>
-                                <div className={styles.groupHeader}>
-                                    <span className={styles.groupName}>{g.name}</span>
-                                    <span className={styles.groupCount}>{g.players.length}/{playersPerGroup}</span>
+                    {step === "config" && (
+                        <motion.div
+                            key="config"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="space-y-8"
+                        >
+                            <div className="px-2">
+                                <h2 className="text-2xl font-black uppercase italic tracking-tight">Estructura</h2>
+                                <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+                                    <div className="flex items-center gap-2 text-blue-500">
+                                        <Users2 className="w-5 h-5" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
+                                    </div>
+                                    <div className="flex items-center justify-between bg-black/20 rounded-2xl p-2">
+                                        <button
+                                            onClick={() => setNumGroups(Math.max(1, numGroups - 1))}
+                                            className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+                                        >
+                                            <Minus className="w-5 h-5" />
+                                        </button>
+                                        <span className="text-3xl font-black italic">{numGroups}</span>
+                                        <button
+                                            onClick={() => setNumGroups(Math.min(16, numGroups + 1))}
+                                            className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className={styles.groupSlotList}>
-                                    {g.players.map(p => (
-                                        <div key={p.id} className={styles.groupSlot}>
-                                            <span className={styles.slotName}>{p.name}</span>
-                                            <button className={styles.slotRemove} onClick={() => handleRemovePlayer(p.id)}>×</button>
-                                        </div>
-                                    ))}
-                                    {Array.from({ length: playersPerGroup - g.players.length }).map((_, i) => (
-                                        <div key={i} className={styles.groupSlotEmpty}>Vacío</div>
-                                    ))}
+
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+                                    <div className="flex items-center gap-2 text-emerald-500">
+                                        <Users className="w-5 h-5" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Jugadores / Parejas</span>
+                                    </div>
+                                    <div className="flex items-center justify-between bg-black/20 rounded-2xl p-2">
+                                        <button
+                                            onClick={() => setPlayersPerGroup(Math.max(2, playersPerGroup - 1))}
+                                            className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+                                        >
+                                            <Minus className="w-5 h-5" />
+                                        </button>
+                                        <span className="text-3xl font-black italic">{playersPerGroup}</span>
+                                        <button
+                                            onClick={() => setPlayersPerGroup(Math.min(16, playersPerGroup + 1))}
+                                            className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/20"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
 
-                    <div className={styles.actionBar}>
-                        <button className={styles.btnSecondary} onClick={() => setStep("config")}>← Reconfigurar</button>
-                        <button className={styles.btnPrimary} disabled={!allFull || saving} onClick={handleConfirmGroups}>
-                            {saving ? "⏳ Iniciando..." : allFull ? "Confirmar Grupos ✓" : "Faltan jugadores"}
-                        </button>
-                    </div>
-                </div>
-            )}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: "Check-in", value: PRESENT_PLAYERS.length, color: "text-blue-500" },
+                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-white/40" },
+                                    {
+                                        label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Sobran" : "Faltan",
+                                        value: Math.abs(PRESENT_PLAYERS.length - numGroups * playersPerGroup),
+                                        color: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "text-emerald-500" : "text-amber-500"
+                                    },
+                                    { label: "Min. Partido", value: "2", color: "text-white/20" }
+                                ].map((stat, i) => (
+                                    <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-1">{stat.label}</span>
+                                        <span className={`text-xl font-black italic ${stat.color}`}>{stat.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setStep("checkin")}
+                                    className="flex-1 py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl font-black uppercase italic tracking-widest transition-all"
+                                >
+                                    Atrás
+                                </button>
+                                <button
+                                    onClick={handleStart}
+                                    className="flex-[2] py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black uppercase italic tracking-widest transition-all shadow-xl shadow-blue-900/40"
+                                >
+                                    Configurar Grupos
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {step === "assign" && (
+                        <motion.div
+                            key="assign"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="space-y-8"
+                        >
+                            <div className="px-2 flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Asignación</h2>
+                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Armá los grupos para el sorteo</p>
+                                </div>
+                                <button
+                                    onClick={handleRandomize}
+                                    disabled={randomizing || unassigned.length === 0}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all ${randomizing
+                                            ? "bg-amber-500 text-white animate-pulse"
+                                            : "bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white"
+                                        }`}
+                                >
+                                    <Dice5 className={`w-4 h-4 ${randomizing ? 'animate-spin' : ''}`} />
+                                    {randomizing ? "Shuffling..." : "Sorteo"}
+                                </button>
+                            </div>
+
+                            {/* Player Pool */}
+                            <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Sin Asignar ({unassigned.length})</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <AnimatePresence>
+                                        {unassigned.map(p => (
+                                            <motion.button
+                                                key={p.id}
+                                                layoutId={p.id}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                onClick={() => {
+                                                    const firstEmptyGroup = groups.find(g => g.players.length < playersPerGroup);
+                                                    if (firstEmptyGroup) handleAddPlayer(p.id, firstEmptyGroup.id);
+                                                }}
+                                                className="px-4 py-2 bg-white/5 hover:bg-blue-500/20 border border-white/10 rounded-xl text-xs font-black uppercase italic tracking-wider transition-all"
+                                            >
+                                                {p.name}
+                                            </motion.button>
+                                        ))}
+                                    </AnimatePresence>
+                                    {unassigned.length === 0 && (
+                                        <div className="w-full py-4 text-center border border-dashed border-white/10 rounded-2xl">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/20 italic">Todo listo</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-12">
+                                {groups.map(g => (
+                                    <div key={g.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                                        <div className="px-5 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+                                            <span className="text-xs font-black uppercase italic tracking-[0.2em] text-blue-500">{g.name}</span>
+                                            <span className="text-[10px] font-black text-white/20">{g.players.length} / {playersPerGroup}</span>
+                                        </div>
+                                        <div className="p-3 space-y-2 flex-1 min-h-[140px]">
+                                            <AnimatePresence mode="popLayout">
+                                                {g.players.map(p => (
+                                                    <motion.div
+                                                        key={p.id}
+                                                        layoutId={p.id}
+                                                        className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3 group"
+                                                    >
+                                                        <span className="text-xs font-bold uppercase italic">{p.name}</span>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
+                                                            className="text-white/20 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const name = prompt("Nombre del invitado:");
+                                                if (name) handleAddGuest(name, g.id);
+                                            }}
+                                            className="p-3 bg-black/20 text-[8px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-colors border-t border-white/5"
+                                        >
+                                            + Invitado
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Sticky Footer */}
+                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/90 to-transparent z-50">
+                                <div className="max-w-4xl mx-auto flex gap-4">
+                                    <button
+                                        onClick={() => setStep("config")}
+                                        className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"
+                                    >
+                                        <ArrowLeft className="w-6 h-6" />
+                                    </button>
+                                    <button
+                                        disabled={!allFull || saving}
+                                        onClick={handleConfirmGroups}
+                                        className={`flex-1 h-16 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-2xl flex items-center justify-center gap-3 backdrop-blur-xl ${!allFull
+                                                ? "bg-white/5 text-white/10 border border-white/5"
+                                                : "bg-emerald-600 text-white shadow-emerald-900/40"
+                                            }`}
+                                    >
+                                        {saving ? "Guardando..." : allFull ? "Iniciar Torneo" : "Completá los grupos"}
+                                        {!saving && allFull && <Trophy className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
         </div>
     );
 }

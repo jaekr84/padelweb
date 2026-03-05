@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import styles from "./fixture.module.css";
+import {
+    Trophy, Users2, Swords, Calendar, Clock,
+    CheckCircle2, AlertCircle, ChevronRight,
+    ArrowLeft, LayoutDashboard, Settings,
+    BarChart3, Check
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
 import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
 export interface TournamentManagerProps {
     tournamentId: string;
@@ -51,6 +57,7 @@ export default function TournamentManager({
     initialStatus
 }: TournamentManagerProps) {
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
     const [groups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(initialMatches);
     const [bracket, setBracket] = useState<BracketMatch[]>(initialBracket);
@@ -293,217 +300,359 @@ export default function TournamentManager({
         : null;
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1 className={styles.title}>{tournamentName}</h1>
-                <div className={styles.statusBadgeGlobal} data-status={initialStatus}>
-                    {initialStatus === "finalizado" ? "🏆 Finalizado" :
-                        initialStatus === "en_eliminatorias" ? "⚡ Eliminatorias" :
-                            "🎾 En Grupos"}
-                </div>
-            </div>
-
-            <div className={styles.phaseTabs}>
-                <button
-                    className={`${styles.phaseTab} ${step === "done" ? styles.phaseTabActive : ""}`}
-                    onClick={() => setStep("done")}
-                >
-                    📊 Fase de Grupos
-                </button>
-                {(isGroupStageFinished || bracket.length > 0 || initialStatus === "finalizado") && (
+        <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 min-h-screen pb-32">
+            {/* Header section with back button and status */}
+            <header className="mb-12 space-y-8 text-center sticky top-0 bg-[#090A0F]/80 backdrop-blur-xl z-[60] py-4">
+                <div className="flex items-center justify-between max-w-4xl mx-auto mb-6">
                     <button
-                        className={`${styles.phaseTab} ${step === "elim" ? styles.phaseTabActive : ""}`}
-                        onClick={() => setStep("elim")}
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-white/40 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
                     >
-                        ⚡ Eliminatorias
+                        <ArrowLeft className="w-4 h-4" />
+                        Volver
                     </button>
-                )}
-            </div>
-
-            {step === "done" && (
-                <div>
-                    <div className={styles.progressContainer}>
-                        <div className={styles.progressHeader}>
-                            <span>Progreso Fase de Grupos</span>
-                            <span>{confirmedGroupMatches} / {totalGroupMatches} partidos</span>
-                        </div>
-                        <div className={styles.progressBar}>
-                            <div className={styles.progressFill} style={{ width: `${progressPercent}%` }} />
-                        </div>
-                    </div>
-
-                    <div className={styles.groupsGrid}>
-                        {groups.map((g) => {
-                            const standings = computeStandings(g.id);
-                            const groupMatches = matches.filter(m => m.groupId === g.id);
-                            return (
-                                <div key={g.id} className={styles.groupCard}>
-                                    <div className={styles.groupHeader}><span className={styles.groupName}>{g.name}</span></div>
-                                    <div className={styles.standingsTable}>
-                                        <div className={styles.standingsHeader}><span>Pos</span><span style={{ flex: 1 }}>Equipo</span><span>PJ</span><span>Pts</span></div>
-                                        {standings.map((s, i) => (
-                                            <div key={s.playerId} className={styles.standingsRow}>
-                                                <span className={styles.standingsPos}>{i + 1}</span>
-                                                <span className={styles.standingsName}>{s.player.name}</span>
-                                                <span className={styles.standingsVal}>{s.matchesPlayed}</span>
-                                                <span className={styles.standingsPts}>{s.points > 0 ? `+${s.points}` : s.points}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className={styles.matchesList}>
-                                        {groupMatches.map(m => (
-                                            <div key={m.id} className={`${styles.matchRow} ${m.confirmed ? styles.matchConfirmed : ""}`}>
-                                                <div className={styles.matchTeam}>{m.team1.name}</div>
-                                                {!m.confirmed ? (
-                                                    <div className={styles.matchScoreInputs}>
-                                                        <input type="number" className={styles.scoreInput} value={m.score1 ?? ""} onChange={(e) => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} />
-                                                        <span>-</span>
-                                                        <input type="number" className={styles.scoreInput} value={m.score2 ?? ""} onChange={(e) => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} />
-                                                        {m.played && <button className={styles.matchConfirmBtn} onClick={() => handleConfirmScore(m.id)}>✓</button>}
-                                                    </div>
-                                                ) : (
-                                                    <div className={styles.matchScoreConfirmed}>
-                                                        <span>{m.score1} - {m.score2}</span>
-                                                        <button className={styles.matchEditBtn} onClick={() => handleEditScore(m.id)}>✎</button>
-                                                    </div>
-                                                )}
-                                                <div className={styles.matchTeam}>{m.team2.name}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className={styles.actionBar}>
-                        <div className={styles.qualPicker}>
-                            <span>Clasifican por grupo:</span>
-                            <button className={styles.counterBtn} onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
-                            <span className={styles.counterVal}>{qualPerGroup}</span>
-                            <button className={styles.counterBtn} onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
-                        </div>
-                        <button
-                            className={styles.btnPrimary}
-                            onClick={generateBracket}
-                            disabled={!isGroupStageFinished}
-                            title={!isGroupStageFinished ? "Completá todos los partidos para habilitar eliminatorias" : ""}
-                        >
-                            {isGroupStageFinished ? "Generar Bracket Eliminatorio →" : "Finalizá los grupos para continuar"}
-                        </button>
+                    <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                        {initialStatus === "finalizado" ? "Torneo Finalizado" : "Torneo en Vivo"}
                     </div>
                 </div>
-            )}
 
-            {step === "elim" && (
-                <div className={styles.bracketWrapper}>
-                    <div className={styles.bracketContainer}>
-                        {roundsArr.map((r, rIdx) => (
-                            <div key={r} className={styles.bracketRound}>
-                                <div className={styles.bracketRoundLabel}>{roundLabel(r)}</div>
-                                <div className={styles.bracketMatches}>
-                                    {bracket.filter(m => m.round === r).map(m => {
-                                        const isWinner1 = m.confirmed && m.winnerId === (m.team1 as any)?.id;
-                                        const isWinner2 = m.confirmed && m.winnerId === (m.team2 as any)?.id;
-                                        const isBye = m.team2 === "BYE";
+                <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40 tracking-tighter italic uppercase">
+                    {tournamentName}
+                </h1>
 
-                                        return (
-                                            <div key={m.id} className={`${styles.bracketMatch} ${m.confirmed ? styles.bracketMatchDone : ""}`}>
-                                                {/* Team 1 */}
-                                                <div className={`${styles.bracketSide} ${isWinner1 ? styles.bracketWinner : ""}`}>
-                                                    <span className={styles.bracketTeamName}>
-                                                        {m.team1 ? slotName(m.team1) : (m.round > 1 ? "Ganador TBD" : "Vacío")}
-                                                    </span>
-                                                    {m.confirmed && <span className={styles.bracketScoreVal}>{m.score1}</span>}
-                                                </div>
+                {/* Tab Navigation */}
+                <div className="flex p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl max-w-lg mx-auto shadow-2xl overflow-hidden mt-8">
+                    <button
+                        onClick={() => setStep("done")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                            : "text-white/40 hover:text-white hover:bg-white/5"
+                            }`}
+                    >
+                        <Users2 className="w-4 h-4" />
+                        Fase de Grupos
+                    </button>
+                    {(isGroupStageFinished || bracket.length > 0 || initialStatus === "finalizado") && (
+                        <button
+                            onClick={() => setStep("elim")}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "elim"
+                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                : "text-white/40 hover:text-white hover:bg-white/5"
+                                }`}
+                        >
+                            <Trophy className="w-4 h-4" />
+                            Eliminatorias
+                        </button>
+                    )}
+                </div>
+            </header>
 
-                                                {/* Divider / Inputs */}
-                                                {!m.confirmed && m.team1 && m.team2 && !isBye ? (
-                                                    <div className={styles.bracketMatchAction}>
-                                                        <div className={styles.bracketInputsInline}>
-                                                            <input
-                                                                type="number"
-                                                                className={styles.miniScoreInput}
-                                                                placeholder="S1"
-                                                                value={m.score1 ?? ""}
-                                                                onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                            />
-                                                            <span className={styles.vsText}>VS</span>
-                                                            <input
-                                                                type="number"
-                                                                className={styles.miniScoreInput}
-                                                                placeholder="S2"
-                                                                value={m.score2 ?? ""}
-                                                                onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                            />
-                                                        </div>
-                                                        {m.score1 !== undefined && m.score2 !== undefined && (
-                                                            <button className={styles.bracketConfirmBtn} onClick={() => handleBracketConfirm(m.id)}>✓</button>
-                                                        )}
-                                                    </div>
-                                                ) : <div className={styles.bracketDivider} />}
+            <AnimatePresence mode="wait">
+                {step === "done" && (
+                    <motion.div
+                        key="groups-stage"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-12"
+                    >
+                        {/* Progress Bar */}
+                        <div className="max-w-2xl mx-auto space-y-4">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
+                                <span>Progreso Fase de Grupos</span>
+                                <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <motion.div
+                                    className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progressPercent}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                />
+                            </div>
+                        </div>
 
-                                                {/* Team 2 */}
-                                                <div className={`${styles.bracketSide} ${isWinner2 ? styles.bracketWinner : ""}`}>
-                                                    <span className={styles.bracketTeamName}>
-                                                        {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : (m.round > 1 ? "Ganador TBD" : "Vacío")}
-                                                    </span>
-                                                    {m.confirmed && <span className={styles.bracketScoreVal}>{m.score2}</span>}
+                        {/* Groups Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            {groups.map((g) => {
+                                const standings = computeStandings(g.id);
+                                const groupMatches = matches.filter(m => m.groupId === g.id);
+                                return (
+                                    <div key={g.id} className="space-y-6">
+                                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[40px] overflow-hidden shadow-xl">
+                                            <div className="bg-white/5 px-8 py-6 border-b border-white/10 flex items-center justify-between">
+                                                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                                                    Posiciones
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
 
-                        {/* Champion Section */}
-                        {(() => {
-                            const finalMatch = bracket.find(m => m.round === 0);
-                            if (finalMatch?.confirmed && finalMatch.winnerId) {
-                                const allPlayers = groups.flatMap(g => g.players);
-                                const champ = allPlayers.find(p => p.id === finalMatch.winnerId);
-                                if (champ) {
-                                    return (
-                                        <div className={styles.championRound}>
-                                            <div className={styles.bracketRoundLabel}>🏆 Campeón</div>
-                                            <div className={styles.championCard}>
-                                                <div className={styles.crown}>👑</div>
-                                                <h3 className={styles.championNameText}>{champ.name}</h3>
-                                                <p className={styles.championSub}>¡Felicidades Campeón!</p>
-
-                                                {initialStatus !== "finalizado" && (
-                                                    <button
-                                                        className={styles.finalizeBtn}
-                                                        onClick={async () => {
-                                                            setSaving(true);
-                                                            await saveTournamentFixture({
-                                                                tournamentId,
-                                                                phase: "finalizado",
-                                                                championName: champ.name,
-                                                                groups,
-                                                                matches,
-                                                                bracket,
-                                                            });
-                                                            setSaving(false);
-                                                            // Optionally redirect or show success toast
-                                                            alert("¡Torneo finalizado con éxito!");
-                                                            router.refresh();
-                                                        }}
-                                                        disabled={saving}
-                                                    >
-                                                        {saving ? "Guardando..." : "Finalizar Torneo ✅"}
-                                                    </button>
-                                                )}
+                                            <div className="p-6">
+                                                <table className="w-full text-left">
+                                                    <thead>
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-white/20 border-b border-white/5">
+                                                            <th className="pb-4 pr-4">Pos</th>
+                                                            <th className="pb-4">Equipo</th>
+                                                            <th className="pb-4 px-4 text-center">PJ</th>
+                                                            <th className="pb-4 px-4 text-center">Pts</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-white/5">
+                                                        {standings.map((s, idx) => (
+                                                            <tr key={s.playerId} className="group hover:bg-white/5 transition-colors">
+                                                                <td className="py-4 pr-4 text-xs font-black italic text-white/20">#{idx + 1}</td>
+                                                                <td className="py-4 font-bold text-sm tracking-tight">{s.player.name}</td>
+                                                                <td className="py-4 px-4 text-center text-xs font-bold text-white/40">{s.matchesPlayed}</td>
+                                                                <td className="py-4 px-4 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
-                                    );
-                                }
-                            }
-                            return null;
-                        })()}
-                    </div>
-                </div>
-            )}
+
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-4">Partidos de {g.name}</p>
+                                            <div className="space-y-3">
+                                                {groupMatches.map(m => (
+                                                    <div
+                                                        key={m.id}
+                                                        className={`rounded-3xl p-4 transition-all duration-500 border ${m.confirmed
+                                                            ? "bg-emerald-500/5 border-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.02)]"
+                                                            : "bg-white/5 border-white/5"
+                                                            }`}
+                                                    >
+                                                        <div className="grid grid-cols-[1fr,auto,1fr] gap-4 items-center">
+                                                            <div className={`text-right font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score1! > m.score2! ? "text-emerald-400" : "text-white/60"}`}>
+                                                                {m.team1.name}
+                                                            </div>
+
+                                                            {!m.confirmed ? (
+                                                                <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 group-hover:border-blue-500/30 transition-colors">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={m.score1 ?? ""}
+                                                                        onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                        className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-white/10 text-xs md:text-sm"
+                                                                        placeholder="0"
+                                                                    />
+                                                                    <div className="w-1 h-px bg-white/10" />
+                                                                    <input
+                                                                        type="number"
+                                                                        value={m.score2 ?? ""}
+                                                                        onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                        className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl text-center font-black focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-white/10 text-xs md:text-sm"
+                                                                        placeholder="0"
+                                                                    />
+                                                                    {m.played && (
+                                                                        <button
+                                                                            onClick={() => handleConfirmScore(m.id)}
+                                                                            className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-90"
+                                                                        >
+                                                                            <Check className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-4 bg-white/5 px-6 py-2 rounded-2xl border border-white/5 group relative">
+                                                                    <span className={`text-xl font-black ${m.score1! > m.score2! ? "text-emerald-400" : "text-white/40"}`}>{m.score1}</span>
+                                                                    <div className="w-px h-6 bg-white/10" />
+                                                                    <span className={`text-xl font-black ${m.score2! > m.score1! ? "text-emerald-400" : "text-white/40"}`}>{m.score2}</span>
+                                                                    <button
+                                                                        className="absolute -right-2 -top-2 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 hover:text-white z-10"
+                                                                        onClick={() => handleEditScore(m.id)}
+                                                                    >
+                                                                        <Settings className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+
+                                                            <div className={`text-left font-bold text-xs truncate uppercase tracking-tight ${m.confirmed && m.score2! > m.score1! ? "text-emerald-400" : "text-white/60"}`}>
+                                                                {m.team2.name}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* ActionBar / Tournament finalization action */}
+                        <div className="p-8 bg-blue-600/10 border border-blue-600/20 rounded-[40px] text-center max-w-2xl mx-auto space-y-8 relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4 px-4 text-center md:text-left">
+                                <div className="space-y-4">
+                                    <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter">Fase de Grupos</h2>
+                                    <div className="flex items-center gap-4 justify-center md:justify-start">
+                                        <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Clasifican:</p>
+                                            <div className="flex items-center gap-3">
+                                                <button className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs hover:bg-white/20" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
+                                                <span className="text-sm font-black italic">{qualPerGroup}</span>
+                                                <button className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-xs hover:bg-white/20" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={generateBracket}
+                                    disabled={!isGroupStageFinished}
+                                    className={`px-10 py-5 font-black uppercase tracking-widest italic rounded-3xl shadow-xl transition-all hover:scale-105 active:scale-95 ${isGroupStageFinished
+                                        ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
+                                        : "bg-white/5 text-white/20 cursor-not-allowed grayscale"
+                                        }`}
+                                >
+                                    {isGroupStageFinished ? "Generar Playoffs →" : "Finalizá los grupos"}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {step === "elim" && (
+                    <motion.div
+                        key="bracket-stage"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="space-y-12"
+                    >
+                        <div className="overflow-x-auto pb-12 cursor-grab active:cursor-grabbing scrollbar-hide">
+                            <div className="inline-flex gap-16 min-w-full px-8">
+                                {roundsArr.map((r, rIdx) => (
+                                    <div key={r} className="flex-shrink-0 w-72 space-y-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-[10px] font-black italic shadow-lg shadow-blue-600/20 text-white">
+                                                R{roundsArr.length - rIdx}
+                                            </div>
+                                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/40">{roundLabel(r)}</h3>
+                                        </div>
+
+                                        <div className="space-y-8 relative">
+                                            {bracket.filter(m => m.round === r).map((m, mIdx) => {
+                                                const isWinner1 = m.confirmed && m.winnerId === (m.team1 as any)?.id;
+                                                const isWinner2 = m.confirmed && m.winnerId === (m.team2 as any)?.id;
+                                                const isBye = m.team2 === "BYE";
+
+                                                return (
+                                                    <div key={m.id} className="relative group/match">
+                                                        <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${m.confirmed ? "border-emerald-500/20" : "hover:border-blue-500/20"}`}>
+                                                            {/* Team 1 */}
+                                                            <div className={`px-4 py-3 flex items-center justify-between group/team ${isWinner1 ? "bg-emerald-500/10" : ""}`}>
+                                                                <span className={`text-[11px] font-bold truncate uppercase tracking-tight ${isWinner1 ? "text-emerald-400" : "text-white/60"}`}>
+                                                                    {m.team1 ? slotName(m.team1) : (m.round > 1 ? "Ganador TBD" : "TBD")}
+                                                                </span>
+                                                                {m.confirmed && <span className="text-xs font-black italic text-emerald-400 ml-2">{m.score1}</span>}
+                                                            </div>
+
+                                                            {/* Match Action or Divider */}
+                                                            {!m.confirmed && m.team1 && m.team2 && !isBye ? (
+                                                                <div className="p-3 bg-white/5 border-y border-white/5 flex items-center gap-2">
+                                                                    <div className="flex-1 grid grid-cols-2 gap-2">
+                                                                        <input
+                                                                            type="number"
+                                                                            className="w-full h-8 bg-black/40 rounded-lg text-center text-xs font-black placeholder:text-white/10 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                            placeholder="S1"
+                                                                            value={m.score1 ?? ""}
+                                                                            onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                        />
+                                                                        <input
+                                                                            type="number"
+                                                                            className="w-full h-8 bg-black/40 rounded-lg text-center text-xs font-black placeholder:text-white/10 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                            placeholder="S2"
+                                                                            value={m.score2 ?? ""}
+                                                                            onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    {m.score1 !== undefined && m.score2 !== undefined && (
+                                                                        <button
+                                                                            onClick={() => handleBracketConfirm(m.id)}
+                                                                            className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
+                                                                        >
+                                                                            <Check className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="h-px bg-white/5 mx-4" />
+                                                            )}
+
+                                                            {/* Team 2 */}
+                                                            <div className={`px-4 py-3 flex items-center justify-between group/team ${isWinner2 ? "bg-emerald-500/10" : ""}`}>
+                                                                <span className={`text-[11px] font-bold truncate uppercase tracking-tight ${isWinner2 ? "text-emerald-400" : "text-white/60"}`}>
+                                                                    {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : (m.round > 1 ? "Ganador TBD" : "TBD")}
+                                                                </span>
+                                                                {m.confirmed && !isBye && <span className="text-xs font-black italic text-emerald-400 ml-2">{m.score2}</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Champion Section */}
+                                {(() => {
+                                    const finalMatch = bracket.find(m => m.round === 0);
+                                    if (finalMatch?.confirmed && finalMatch.winnerId) {
+                                        const allPlayers = groups.flatMap(g => g.players);
+                                        const champ = allPlayers.find(p => p.id === finalMatch.winnerId);
+                                        if (champ) {
+                                            return (
+                                                <div className="flex-shrink-0 w-72 flex flex-col items-center justify-center pb-12">
+                                                    <motion.div
+                                                        initial={{ scale: 0.8, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        className="bg-gradient-to-b from-amber-400 to-yellow-600 rounded-[40px] p-8 text-center text-black shadow-2xl shadow-yellow-500/30 relative group"
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[40px]" />
+                                                        <Trophy className="w-20 h-20 mx-auto mb-6 drop-shadow-2xl" />
+                                                        <div className="space-y-2">
+                                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">CAMPEÓN</p>
+                                                            <h3 className="text-3xl font-black italic uppercase tracking-tighter leading-none">{champ.name}</h3>
+                                                            <p className="text-xs font-bold pt-4 opacity-70">¡Felicidades!</p>
+                                                        </div>
+
+                                                        {initialStatus !== "finalizado" && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    setSaving(true);
+                                                                    await saveTournamentFixture({
+                                                                        tournamentId,
+                                                                        phase: "finalizado",
+                                                                        championName: champ.name,
+                                                                        groups,
+                                                                        matches,
+                                                                        bracket,
+                                                                    });
+                                                                    setSaving(false);
+                                                                    alert("¡Torneo finalizado con éxito!");
+                                                                    router.refresh();
+                                                                }}
+                                                                disabled={saving}
+                                                                className="mt-8 w-full py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black/80 transition-all shadow-xl"
+                                                            >
+                                                                {saving ? "Guardando..." : "Finalizar Torneo ✅"}
+                                                            </button>
+                                                        )}
+                                                    </motion.div>
+                                                </div>
+                                            );
+                                        }
+                                    }
+                                    return null;
+                                })()}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

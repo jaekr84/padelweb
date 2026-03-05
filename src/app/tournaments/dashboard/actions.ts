@@ -27,7 +27,7 @@ export async function startTournament(tournamentId: string, youtubeUrl?: string)
         })
         .where(eq(tournaments.id, tournamentId));
     revalidatePath("/tournaments");
-    revalidatePath(`/tournaments/${tournamentId}/live`);
+    revalidatePath(`/tournaments/${tournamentId}/manage`);
 }
 
 export async function startEliminatorias(tournamentId: string) {
@@ -36,7 +36,7 @@ export async function startEliminatorias(tournamentId: string) {
         .set({ status: "en_eliminatorias" })
         .where(eq(tournaments.id, tournamentId));
     revalidatePath("/tournaments");
-    revalidatePath(`/tournaments/${tournamentId}/live`);
+    revalidatePath(`/tournaments/${tournamentId}/manage`);
 }
 
 export async function finishTournament(tournamentId: string) {
@@ -45,7 +45,7 @@ export async function finishTournament(tournamentId: string) {
         .set({ status: "finalizado" })
         .where(eq(tournaments.id, tournamentId));
     revalidatePath("/tournaments");
-    revalidatePath(`/tournaments/${tournamentId}/live`);
+    revalidatePath(`/tournaments/${tournamentId}/manage`);
 }
 
 export async function updateYoutubeUrl(tournamentId: string, youtubeUrl: string) {
@@ -53,5 +53,5 @@ export async function updateYoutubeUrl(tournamentId: string, youtubeUrl: string)
         .update(tournaments)
         .set({ youtubeUrl })
         .where(eq(tournaments.id, tournamentId));
-    revalidatePath(`/tournaments/${tournamentId}/live`);
+    revalidatePath(`/tournaments/${tournamentId}/manage`);
 }

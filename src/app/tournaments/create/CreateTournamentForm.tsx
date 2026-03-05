@@ -1,19 +1,48 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState } from "react";
 import FeedLayout from "@/app/feed/layout";
-import styles from "./create.module.css";
 import { createTournament, updateTournament } from "./actions";
+import {
+    Camera,
+    Image as ImageIcon,
+    MapPin,
+    Calendar,
+    Info,
+    Check,
+    Trophy,
+    Trash2,
+    ArrowRight,
+    ArrowLeft,
+    Users,
+    CheckCircle2,
+    ChevronLeft,
+    Sparkles,
+    Settings,
+    ChevronRight,
+    Target,
+    Activity,
+    Layers,
+    Layout
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const ALL_CATEGORIES = ["1ra", "2da", "3ra", "4ta", "5ta", "6ta", "7ma", "8va", "9na"];
 
 const POINTS_PRESETS = [
     { label: "Estándar (1000/600/360/180)", winner: 1000, finalist: 600, semi: 360, quarter: 180 },
     { label: "Amateur (500/300/160/80)", winner: 500, finalist: 300, semi: 160, quarter: 80 },
-    { label: "Custom", winner: 0, finalist: 0, semi: 0, quarter: 0 },
+    { label: "Personalizado", winner: 0, finalist: 0, semi: 0, quarter: 0 },
 ];
 
-const STEPS = ["Información", "Modalidad", "Puntuación", "Revisar"];
+const STEPS = [
+    { id: 0, label: "Info", icon: Info },
+    { id: 1, label: "Modo", icon: Layers },
+    { id: 2, label: "Puntos", icon: Target },
+    { id: 3, label: "Finalizar", icon: CheckCircle2 }
+];
 
 type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
 
@@ -36,41 +65,81 @@ function detectPreset(pc: PointsConfig | null): number {
     return 2;
 }
 
+const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let width = img.width;
+                let height = img.height;
+                const MAX_SIZE = 1200;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return reject(new Error("Could not get canvas context"));
+
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error("Error al comprimir la imagen"));
+                    },
+                    "image/jpeg",
+                    0.82
+                );
+            };
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
 export default function CreateTournamentForm({ initialData }: { initialData?: InitialData | null }) {
     const isEditing = !!initialData;
+    const router = useRouter();
     const cats = initialData?.categories ?? [];
     const isCatMode = cats.length === 0 || cats[0] !== "libre";
     const pc = initialData?.pointsConfig ?? null;
     const detectedPreset = detectPreset(pc);
 
     const [step, setStep] = useState(0);
-    const [submitted, setSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl ?? null);
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
     const [imageUploading, setImageUploading] = useState(false);
+    const [compressedFile, setCompressedFile] = useState<File | null>(null);
 
-    // Step 1 – Información general
     const [info, setInfo] = useState({
         name: initialData?.name ?? "",
-        club: "",
         startDate: initialData?.startDate ?? "",
         endDate: initialData?.endDate ?? "",
         description: initialData?.description ?? "",
         surface: initialData?.surface ?? "cemento",
     });
 
-    // Step 2 – Modalidad
     const [modalidad, setModalidad] = useState({
         mode: isCatMode ? ("categorias" as const) : ("libre" as const),
         selectedCats: isCatMode ? cats : ([] as string[]),
         participacion: "pareja" as "pareja" | "individual",
         genero: "mixto" as "hombre" | "mujer" | "mixto",
-        tipoTorneo: "",
     });
 
-    // Step 3 – Puntuación
     const [preset, setPreset] = useState(detectedPreset);
     const [customPoints, setCustomPoints] = useState({
         winner: String(pc?.winner ?? 1000),
@@ -79,442 +148,412 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
         quarter: String(pc?.quarter ?? 180),
     });
 
-    // ---- Image upload ----
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setImageUploading(true);
-        setImagePreview(URL.createObjectURL(file));
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            setImageUrl(data.url);
+            const blob = await compressImage(file);
+            const cFile = new File([blob], "tournament.jpg", { type: "image/jpeg" });
+            setCompressedFile(cFile);
+            setImagePreview(URL.createObjectURL(cFile));
+            toast.success("Imagen optimizada");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Error al subir la imagen");
-            setImagePreview(null);
+            toast.error("Error al procesar la imagen");
         } finally {
             setImageUploading(false);
         }
     };
 
-    // ---- Helpers ----
-    const toggleCat = (cat: string) => {
-        setModalidad((prev) => ({
-            ...prev,
-            selectedCats: prev.selectedCats.includes(cat)
-                ? prev.selectedCats.filter((c) => c !== cat)
-                : [...prev.selectedCats, cat],
-        }));
+    const nextStep = () => {
+        if (step === 0 && !info.name) {
+            toast.error("Danos un nombre para el torneo");
+            return;
+        }
+        setStep(s => s + 1);
     };
+    const prevStep = () => setStep(s => s - 1);
 
-    const currentPoints = POINTS_PRESETS[preset];
-    const resolvedPoints = preset < 2 ? currentPoints : {
-        label: "Custom",
-        winner: parseInt(customPoints.winner) || 0,
-        finalist: parseInt(customPoints.finalist) || 0,
-        semi: parseInt(customPoints.semi) || 0,
-        quarter: parseInt(customPoints.quarter) || 0,
+    const uploadImage = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Error al subir la imagen");
+        }
+        const data = await res.json();
+        return data.url;
     };
 
     const handleSubmit = async () => {
         setIsLoading(true);
-        setError(null);
         try {
-            const payload = {
+            let imageUrl = imagePreview;
+
+            // 1. Upload image if there's a new one
+            if (compressedFile) {
+                imageUrl = await uploadImage(compressedFile);
+            }
+
+            // 2. Prepare the object
+            const finalCategories = modalidad.mode === "libre" ? ["libre"] : modalidad.selectedCats;
+            const points = preset === 2 ? {
+                winner: Number(customPoints.winner),
+                finalist: Number(customPoints.finalist),
+                semi: Number(customPoints.semi),
+                quarter: Number(customPoints.quarter),
+            } : POINTS_PRESETS[preset];
+
+            const tournamentData = {
                 name: info.name,
-                club: info.club,
-                startDate: info.startDate,
-                endDate: info.endDate,
                 description: info.description,
                 surface: info.surface,
-                categories: modalidad.mode === "categorias" ? modalidad.selectedCats : ["libre"],
-                pointsConfig: {
-                    winner: resolvedPoints.winner,
-                    finalist: resolvedPoints.finalist,
-                    semi: resolvedPoints.semi,
-                    quarter: resolvedPoints.quarter,
-                },
-                imageUrl,
+                startDate: info.startDate,
+                endDate: info.endDate,
+                categories: finalCategories,
+                pointsConfig: points,
+                imageUrl: imageUrl,
                 modalidad: {
                     mode: modalidad.mode,
                     participacion: modalidad.participacion,
                     genero: modalidad.genero,
-                    tipoTorneo: modalidad.tipoTorneo,
-                },
+                }
             };
 
-            if (isEditing && initialData?.id) {
-                await updateTournament(initialData.id, payload);
+            if (isEditing && initialData) {
+                await updateTournament(initialData.id, tournamentData);
+                toast.success("Torneo actualizado");
             } else {
-                await createTournament(payload);
+                await createTournament(tournamentData);
+                toast.success("Torneo creado con éxito");
             }
-            setSubmitted(true);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Hubo un error al guardar el torneo");
+            router.push("/tournaments");
+            router.refresh();
+        } catch (err: any) {
+            toast.error(err.message || "Error al guardar");
         } finally {
             setIsLoading(false);
         }
     };
 
-    // ---- Success screen ----
-    if (submitted) {
-        return (
-            <FeedLayout>
-                <div className={styles.container}>
-                    <div className={styles.successCard}>
-                        <div className={styles.successIcon}>{isEditing ? "✅" : "🎉"}</div>
-                        <h2 style={{ fontSize: "1.75rem", fontWeight: 800 }}>
-                            {isEditing ? "¡Torneo Actualizado!" : "¡Torneo Creado!"}
-                        </h2>
-                        <p style={{ color: "var(--text-muted)", maxWidth: 400 }}>
-                            <strong style={{ color: "var(--primary)" }}>{info.name}</strong>{" "}
-                            {isEditing ? "fue actualizado exitosamente." : "fue creado exitosamente. Ahora podés abrir las inscripciones y compartirlo con la comunidad."}
-                        </p>
-                        <a href="/profiles/club" style={{ display: "inline-block", marginTop: "1.5rem", background: "var(--primary)", color: "var(--primary-foreground)", padding: "0.875rem 2rem", borderRadius: "0.75rem", fontWeight: 700, textDecoration: "none" }}>
-                            Volver al Perfil
-                        </a>
-                    </div>
-                </div>
-            </FeedLayout>
-        );
-    }
-
-    // ---- Chip button helper ----
-    const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
-        <button
-            type="button"
-            onClick={onClick}
-            style={{
-                padding: "0.5rem 1.25rem",
-                borderRadius: "2rem",
-                border: `1.5px solid ${active ? "var(--primary)" : "var(--surface-border)"}`,
-                background: active ? "rgba(217,249,93,0.1)" : "var(--surface)",
-                color: active ? "var(--primary)" : "var(--foreground)",
-                fontWeight: active ? 700 : 500,
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                transition: "all 0.15s",
-            }}
-        >
-            {children}
-        </button>
-    );
+    const stepVariants = {
+        hidden: { opacity: 0, x: 20 },
+        visible: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -20 }
+    };
 
     return (
         <FeedLayout>
-            <div className={styles.container}>
-                <div className={styles.header}>
-                    <h1 className={styles.title}>{isEditing ? "Editar Torneo" : "Crear Torneo"}</h1>
-                    <p className={styles.subtitle}>
-                        {isEditing ? "Modificá los datos del torneo y guardá los cambios." : "Completá los datos para publicar tu torneo en la plataforma"}
-                    </p>
-                </div>
+            <div className="min-h-screen bg-[#090A0F] text-white pb-20 pt-4 px-4 font-sans selection:bg-blue-500/30">
+                <div className="max-w-2xl mx-auto flex flex-col gap-8 animate-in fade-in duration-700">
 
-                {/* Steps indicator */}
-                <div className={styles.stepsBar}>
-                    {STEPS.map((s, i) => (
-                        <Fragment key={s}>
-                            <div className={styles.step}>
-                                <div className={`${styles.stepCircle} ${i === step ? styles.active : ""} ${i < step ? styles.done : ""}`}>
-                                    {i < step ? "✓" : i + 1}
-                                </div>
-                                <span className={`${styles.stepLabel} ${i === step ? styles.active : ""}`}>{s}</span>
-                            </div>
-                            {i < STEPS.length - 1 && (
-                                <div className={`${styles.stepLine} ${i < step ? styles.done : ""}`} />
-                            )}
-                        </Fragment>
-                    ))}
-                </div>
-
-                {/* ─── STEP 0: Información ─── */}
-                {step === 0 && (
-                    <div className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Información General</h2>
-
-                        {/* Image upload */}
-                        <div className={styles.field}>
-                            <label>Imagen del Torneo</label>
-                            <div
-                                style={{
-                                    border: "2px dashed var(--surface-border)",
-                                    borderRadius: "0.75rem",
-                                    padding: "1.5rem",
-                                    textAlign: "center",
-                                    cursor: "pointer",
-                                    position: "relative",
-                                    overflow: "hidden",
-                                    minHeight: "160px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    background: "var(--surface)",
-                                }}
-                                onClick={() => document.getElementById("tournament-image-input")?.click()}
-                            >
-                                {imagePreview ? (
-                                    <img
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        style={{ maxHeight: "200px", maxWidth: "100%", borderRadius: "0.5rem", objectFit: "cover" }}
-                                    />
-                                ) : (
-                                    <div style={{ color: "var(--text-muted)" }}>
-                                        <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📸</div>
-                                        <div style={{ fontWeight: 600 }}>{imageUploading ? "Subiendo..." : "Hacer clic para subir imagen"}</div>
-                                        <div style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>JPG, PNG, WebP · Máx. 5MB</div>
-                                    </div>
-                                )}
-                                {imagePreview && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setImagePreview(null); setImageUrl(null); }}
-                                        style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: "rgba(0,0,0,0.6)", color: "white", border: "none", borderRadius: "50%", width: "28px", height: "28px", cursor: "pointer", fontSize: "1rem" }}
-                                    >
-                                        ×
-                                    </button>
-                                )}
-                            </div>
-                            <input
-                                id="tournament-image-input"
-                                type="file"
-                                accept="image/*"
-                                style={{ display: "none" }}
-                                onChange={handleImageUpload}
-                            />
-                        </div>
-
-                        <div className={styles.row}>
-                            <div className={styles.field}>
-                                <label>Nombre del Torneo *</label>
-                                <input className={styles.input} placeholder="ej. Copa Primavera" value={info.name} onChange={(e) => setInfo({ ...info, name: e.target.value })} />
-                            </div>
-                            <div className={styles.field}>
-                                <label>Club / Sede</label>
-                                <input className={styles.input} placeholder="ej. Club Padelazo" value={info.club} onChange={(e) => setInfo({ ...info, club: e.target.value })} />
-                            </div>
-                        </div>
-                        <div className={styles.row}>
-                            <div className={styles.field}>
-                                <label>Fecha de Inicio</label>
-                                <input className={styles.input} type="date" value={info.startDate} onChange={(e) => setInfo({ ...info, startDate: e.target.value })} />
-                            </div>
-                            <div className={styles.field}>
-                                <label>Fecha de Fin</label>
-                                <input className={styles.input} type="date" value={info.endDate} onChange={(e) => setInfo({ ...info, endDate: e.target.value })} />
-                            </div>
-                        </div>
-                        <div className={styles.field}>
-                            <label>Superficie</label>
-                            <select className={styles.select} value={info.surface} onChange={(e) => setInfo({ ...info, surface: e.target.value })}>
-                                <option value="cesped">Césped Sintético (Verde)</option>
-                                <option value="cesped_azul">Césped Sintético (Azul)</option>
-                                <option value="cemento">Hormigón / Cemento</option>
-                                <option value="indoor">Indoor</option>
-                            </select>
-                        </div>
-                        <div className={styles.field}>
-                            <label>Descripción / Premios</label>
-                            <textarea className={styles.textarea} placeholder="Describí el torneo, los premios, condiciones, etc." value={info.description} onChange={(e) => setInfo({ ...info, description: e.target.value })} />
-                        </div>
-                    </div>
-                )}
-
-                {/* ─── STEP 1: Modalidad ─── */}
-                {step === 1 && (
-                    <div className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Modalidad del Torneo</h2>
-
-                        <div className={styles.field}>
-                            <label>¿Cómo se organiza el torneo?</label>
-                            <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
-                                <Chip active={modalidad.mode === "categorias"} onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}>
-                                    🏅 Por Categoría
-                                </Chip>
-                                <Chip active={modalidad.mode === "libre"} onClick={() => setModalidad({ ...modalidad, mode: "libre" })}>
-                                    🎯 Libre (sin categoría)
-                                </Chip>
-                            </div>
-                            <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "0.5rem" }}>
-                                {modalidad.mode === "categorias"
-                                    ? "Los jugadores se inscriben en la categoría que corresponde a su nivel."
-                                    : "Torneo abierto sin restricción por categoría. Puede tener cupo máximo o ser libre."}
-                            </p>
-                        </div>
-
-                        {modalidad.mode === "categorias" && (
-                            <div className={styles.field}>
-                                <label>Seleccioná las categorías incluidas</label>
-                                <div className={styles.categoriesGrid} style={{ marginTop: "0.5rem" }}>
-                                    {ALL_CATEGORIES.map((cat) => (
-                                        <button
-                                            key={cat}
-                                            type="button"
-                                            className={`${styles.categoryChip} ${modalidad.selectedCats.includes(cat) ? styles.selected : ""}`}
-                                            onClick={() => toggleCat(cat)}
-                                        >
-                                            {cat} Cat.
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className={styles.field}>
-                            <label>Tipo de participación</label>
-                            <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
-                                <Chip active={modalidad.participacion === "pareja"} onClick={() => setModalidad({ ...modalidad, participacion: "pareja" })}>
-                                    👥 En Pareja
-                                </Chip>
-                                <Chip active={modalidad.participacion === "individual"} onClick={() => setModalidad({ ...modalidad, participacion: "individual" })}>
-                                    🧍 Individual
-                                </Chip>
-                            </div>
-                        </div>
-
-                        <div className={styles.field}>
-                            <label>Género</label>
-                            <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
-                                <Chip active={modalidad.genero === "mixto"} onClick={() => setModalidad({ ...modalidad, genero: "mixto" })}>⚤ Mixto</Chip>
-                                <Chip active={modalidad.genero === "hombre"} onClick={() => setModalidad({ ...modalidad, genero: "hombre" })}>♂ Solo Hombres</Chip>
-                                <Chip active={modalidad.genero === "mujer"} onClick={() => setModalidad({ ...modalidad, genero: "mujer" })}>♀ Solo Mujeres</Chip>
-                            </div>
-                        </div>
-
-                        <div className={styles.field}>
-                            <label>Tipo de Torneo</label>
-                            <input
-                                className={styles.input}
-                                placeholder="ej. Americano, King of the Court, Eliminatorio, Copa..."
-                                value={modalidad.tipoTorneo}
-                                onChange={(e) => setModalidad({ ...modalidad, tipoTorneo: e.target.value })}
-                            />
-                            <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "0.3rem" }}>
-                                Escribí el formato del torneo tal como lo llamás en tu club.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* ─── STEP 2: Puntuación ─── */}
-                {step === 2 && (
-                    <div className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Sistema de Puntos de Ranking</h2>
-                        <div className={styles.field}>
-                            <label>Preset de Puntos</label>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                                {POINTS_PRESETS.map((p, i) => (
-                                    <label key={p.label} style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer", padding: "1rem", borderRadius: "0.75rem", border: `1px solid ${preset === i ? "var(--primary)" : "var(--surface-border)"}`, background: preset === i ? "rgba(217,249,93,0.05)" : "var(--surface)" }}>
-                                        <input type="radio" name="preset" checked={preset === i} onChange={() => setPreset(i)} style={{ accentColor: "var(--primary)" }} />
-                                        <div>
-                                            <div style={{ fontWeight: 600 }}>{p.label}</div>
-                                            {i < 2 && <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>Campeón: {p.winner}pts · Finalista: {p.finalist}pts · Semi: {p.semi}pts</div>}
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {preset === 2 && (
-                            <div className={styles.row}>
-                                {["winner", "finalist", "semi", "quarter"].map((field) => (
-                                    <div className={styles.field} key={field}>
-                                        <label>Pts. {field === "winner" ? "Campeón" : field === "finalist" ? "Finalista" : field === "semi" ? "Semifinalista" : "Cuartos"}</label>
-                                        <input className={styles.input} type="number" value={customPoints[field as keyof typeof customPoints]} onChange={(e) => setCustomPoints({ ...customPoints, [field]: e.target.value })} />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* ─── STEP 3: Revisar ─── */}
-                {step === 3 && (
-                    <div className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Revisar y {isEditing ? "Guardar" : "Publicar"}</h2>
-                        <div className={styles.reviewCard}>
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Nombre</span>
-                                <span className={styles.reviewValue}>{info.name || "—"}</span>
-                            </div>
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Fechas</span>
-                                <span className={styles.reviewValue}>{info.startDate || "—"} → {info.endDate || "—"}</span>
-                            </div>
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Superficie</span>
-                                <span className={styles.reviewValue} style={{ textTransform: "capitalize" }}>{info.surface}</span>
-                            </div>
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Modalidad</span>
-                                <span className={styles.reviewValue}>
-                                    {modalidad.mode === "libre" ? "Libre" : `Por Categoría: ${modalidad.selectedCats.join(", ") || "—"}`}
-                                </span>
-                            </div>
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Participación</span>
-                                <span className={styles.reviewValue}>
-                                    {modalidad.participacion === "pareja" ? "En Pareja" : "Individual"} · {modalidad.genero === "mixto" ? "Mixto" : modalidad.genero === "hombre" ? "Solo Hombres" : "Solo Mujeres"}
-                                </span>
-                            </div>
-                            {modalidad.tipoTorneo && (
-                                <div className={styles.reviewRow}>
-                                    <span className={styles.reviewLabel}>Tipo</span>
-                                    <span className={styles.reviewValue}>{modalidad.tipoTorneo}</span>
-                                </div>
-                            )}
-                            <div className={styles.reviewRow}>
-                                <span className={styles.reviewLabel}>Puntos Campeón</span>
-                                <span className={styles.reviewValue} style={{ color: "var(--primary)" }}>{resolvedPoints.winner} pts</span>
-                            </div>
-                            {info.description && (
-                                <div className={styles.reviewRow}>
-                                    <span className={styles.reviewLabel}>Descripción</span>
-                                    <span className={styles.reviewValue}>{info.description}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Actions */}
-                <div className={styles.actions}>
-                    {step > 0 ? (
-                        <button className={styles.backBtn} onClick={() => setStep((s) => s - 1)}>← Atrás</button>
-                    ) : (
-                        <span />
-                    )}
-                    <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-                        {isEditing && (
-                            <a
-                                href="/profiles/club"
-                                style={{ padding: "0.75rem 1.25rem", borderRadius: "0.5rem", border: "1px solid var(--surface-border)", color: "var(--text-muted)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", background: "var(--surface)" }}
-                            >
-                                ✕ Cancelar
-                            </a>
-                        )}
-                        {step < STEPS.length - 1 ? (
-                            <button className={styles.nextBtn} onClick={() => setStep((s) => s + 1)}>
-                                Siguiente →
+                    {/* Header */}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90">
+                                <ChevronLeft className="h-5 w-5" />
                             </button>
-                        ) : (
-                            <>
-                                {error && (
-                                    <p style={{ color: "var(--error, #ef4444)", fontSize: "0.875rem", textAlign: "center", flex: "1 1 100%" }}>
-                                        ⚠️ {error}
-                                    </p>
-                                )}
-                                <button className={styles.nextBtn} onClick={handleSubmit} disabled={isLoading}>
-                                    {isLoading ? "Guardando..." : isEditing ? "💾 Guardar Cambios" : "🏆 Publicar Torneo"}
+                            <div>
+                                <h1 className="text-2xl font-black uppercase italic tracking-tight">{isEditing ? "Editar Torneo" : "Nuevo Torneo"}</h1>
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Configuración Profesional</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step Indicator */}
+                    <div className="bg-white/5 border border-white/10 p-4 rounded-[2rem] shadow-xl flex justify-between relative overflow-hidden">
+                        <div className="absolute inset-0 bg-blue-500/5 blur-[50px] pointer-events-none" />
+                        {STEPS.map((s, idx) => {
+                            const Icon = s.icon;
+                            const isActive = step === idx;
+                            const isDone = step > idx;
+                            return (
+                                <div key={s.id} className="flex flex-col items-center gap-2 relative z-10 flex-1">
+                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${isActive ? "bg-blue-600 text-white shadow-xl shadow-blue-900/40 scale-110" :
+                                        isDone ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
+                                            "bg-white/5 text-white/20 border border-white/5 opacity-40"
+                                        }`}>
+                                        {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                                    </div>
+                                    <span className={`text-[8px] font-black uppercase tracking-widest ${isActive ? "text-blue-400" : "text-white/20"}`}>{s.label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Form Body */}
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[400px]">
+                        <AnimatePresence mode="wait">
+                            {step === 0 && (
+                                <motion.div
+                                    key="step0" variants={stepVariants} initial="hidden" animate="visible" exit="exit"
+                                    className="flex flex-col gap-8"
+                                >
+                                    <div className="flex flex-col gap-6">
+                                        <div className="bg-white/5 border border-white/10 p-2 rounded-3xl relative aspect-video overflow-hidden group">
+                                            {imagePreview ? (
+                                                <>
+                                                    <img src={imagePreview} className="w-full h-full object-cover rounded-2xl opacity-60 transition-transform duration-700 group-hover:scale-105" alt="Preview" />
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setImagePreview(null)}
+                                                            className="w-12 h-12 rounded-full bg-red-500/20 backdrop-blur-md border border-red-500/30 text-red-400 flex items-center justify-center shadow-2xl active:scale-90 transition-all"
+                                                        >
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-white/5 transition-all">
+                                                    <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                                        {imageUploading ? <Activity className="h-8 w-8 text-blue-500 animate-spin" /> : <Camera className="h-8 w-8 text-blue-500" />}
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Banner del Torneo</p>
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20 italic">Click para subir (Max 5MB)</span>
+                                                    </div>
+                                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                                                </label>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Nombre del Torneo</label>
+                                            <input
+                                                type="text"
+                                                value={info.name}
+                                                onChange={e => setInfo({ ...info, name: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-lg font-black uppercase italic tracking-tight outline-none focus:border-blue-500 transition-all shadow-inner"
+                                                placeholder="CIRCUITO PADEL PRO..."
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Inicio</label>
+                                                <input
+                                                    type="date"
+                                                    value={info.startDate}
+                                                    onChange={e => setInfo({ ...info, startDate: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Fin</label>
+                                                <input
+                                                    type="date"
+                                                    value={info.endDate}
+                                                    onChange={e => setInfo({ ...info, endDate: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Detalles del Torneo</label>
+                                            <textarea
+                                                value={info.description}
+                                                onChange={e => setInfo({ ...info, description: e.target.value })}
+                                                rows={4}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-medium leading-relaxed outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
+                                                placeholder="Contá de qué trata el evento, premios, formato..."
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 1 && (
+                                <motion.div
+                                    key="step1" variants={stepVariants} initial="hidden" animate="visible" exit="exit"
+                                    className="flex flex-col gap-8"
+                                >
+                                    <div className="flex flex-col gap-8">
+                                        <div className="flex flex-col gap-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Configuración de Categoría</h3>
+                                            <div className="bg-white/5 p-1.5 rounded-3xl border border-white/10 flex">
+                                                <button
+                                                    onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
+                                                    className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${modalidad.mode === "categorias" ? "bg-blue-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
+                                                >
+                                                    Por Categorías
+                                                </button>
+                                                <button
+                                                    onClick={() => setModalidad({ ...modalidad, mode: "libre" })}
+                                                    className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${modalidad.mode === "libre" ? "bg-blue-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
+                                                >
+                                                    Categoría Libre
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {modalidad.mode === "categorias" && (
+                                            <div className="flex flex-col gap-4">
+                                                <p className="text-[10px] font-black uppercase text-white/20 italic ml-2">Selecciona categorías habilitadas</p>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    {ALL_CATEGORIES.map(cat => {
+                                                        const isSelected = modalidad.selectedCats.includes(cat);
+                                                        return (
+                                                            <button
+                                                                key={cat}
+                                                                onClick={() => {
+                                                                    const next = isSelected
+                                                                        ? modalidad.selectedCats.filter(c => c !== cat)
+                                                                        : [...modalidad.selectedCats, cat].sort();
+                                                                    setModalidad({ ...modalidad, selectedCats: next });
+                                                                }}
+                                                                className={`py-4 rounded-2xl border transition-all text-[11px] font-black uppercase italic ${isSelected ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-900/40" : "bg-white/5 border-white/5 text-white/30 hover:border-white/20"}`}
+                                                            >
+                                                                {cat}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="flex flex-col gap-4">
+                                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Género</h3>
+                                                <select
+                                                    value={modalidad.genero}
+                                                    onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
+                                                >
+                                                    <option value="mixto">Mixto</option>
+                                                    <option value="hombre">Solo Hombres</option>
+                                                    <option value="mujer">Solo Mujeres</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex flex-col gap-4">
+                                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Superficie</h3>
+                                                <select
+                                                    value={info.surface}
+                                                    onChange={e => setInfo({ ...info, surface: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
+                                                >
+                                                    <option value="cemento">Cemento</option>
+                                                    <option value="sintetico">Césped Sintético</option>
+                                                    <option value="alfombra">Alfombra Pro</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 2 && (
+                                <motion.div
+                                    key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit"
+                                    className="flex flex-col gap-8"
+                                >
+                                    <div className="flex flex-col gap-8">
+                                        <div className="flex flex-col gap-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Sistema de Puntos (Ranking)</h3>
+                                            <div className="flex flex-col gap-3">
+                                                {POINTS_PRESETS.map((p, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => setPreset(i)}
+                                                        className={`w-full p-6 rounded-[2rem] border transition-all text-left flex justify-between items-center group ${preset === i ? "bg-blue-600 border-blue-500 shadow-xl shadow-blue-900/40" : "bg-white/5 border-white/5 hover:border-white/10"}`}
+                                                    >
+                                                        <span className={`text-[11px] font-black uppercase tracking-widest ${preset === i ? "text-white" : "text-white/40 group-hover:text-white"}`}>{p.label}</span>
+                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${preset === i ? "border-white bg-white text-blue-600" : "border-white/10"}`}>
+                                                            {preset === i && <Check className="h-4 w-4" />}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {preset === 2 && (
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in slide-in-from-top-4">
+                                                {["winner", "finalist", "semi", "quarter"].map(k => (
+                                                    <div key={k} className="flex flex-col gap-2">
+                                                        <label className="text-[8px] font-black uppercase text-white/30 ml-2">{k === 'winner' ? 'Campeón' : k === 'finalist' ? 'Final' : k === 'semi' ? 'Semis' : 'Cuartos'}</label>
+                                                        <input
+                                                            type="number"
+                                                            value={customPoints[k as keyof typeof customPoints]}
+                                                            onChange={e => setCustomPoints({ ...customPoints, [k]: e.target.value })}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-center text-sm font-black italic tracking-tight outline-none"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 3 && (
+                                <motion.div
+                                    key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit"
+                                    className="flex flex-col gap-8"
+                                >
+                                    <div className="flex flex-col gap-8">
+                                        <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10 flex flex-col gap-6 text-center shadow-xl">
+                                            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center self-center shadow-lg shadow-emerald-900/20 mb-2">
+                                                <Sparkles className="h-8 w-8 text-emerald-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase italic tracking-tight mb-2">¡Todo listo para brillar!</h3>
+                                                <p className="text-[10px] font-medium text-white/40 leading-relaxed uppercase tracking-widest">
+                                                    Revisá los datos antes de publicar. <br /> El torneo aparecerá en el feed de todos los jugadores.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] flex flex-col gap-2">
+                                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Nombre</span>
+                                                <span className="text-sm font-black italic tracking-tight truncate">{info.name}</span>
+                                            </div>
+                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] flex flex-col gap-2">
+                                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Categoría</span>
+                                                <span className="text-sm font-black italic tracking-tight truncate">
+                                                    {modalidad.mode === "libre" ? "Libre" : modalidad.selectedCats.join(", ")}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Navigation Buttons */}
+                        <div className="flex gap-4 mt-12 bg-white/5 -m-8 p-8 border-t border-white/5">
+                            {step > 0 && (
+                                <button
+                                    onClick={prevStep}
+                                    className="px-6 py-5 rounded-3xl bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex-1"
+                                >
+                                    Atrás
                                 </button>
-                            </>
-                        )}
+                            )}
+                            {step < 3 ? (
+                                <button
+                                    onClick={nextStep}
+                                    className="px-8 py-5 rounded-3xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-900/40 hover:bg-blue-500 transition-all flex-[2] flex items-center justify-center gap-2 active:scale-95"
+                                >
+                                    Siguiente <ArrowRight className="h-4 w-4" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isLoading}
+                                    className="px-8 py-5 rounded-3xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-900/40 hover:bg-blue-500 transition-all flex-[2] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                >
+                                    {isLoading ? <Activity className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                                    {isEditing ? "Guardar Cambios" : "Publicar Torneo"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
         </FeedLayout>
     );
 }
+

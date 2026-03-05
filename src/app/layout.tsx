@@ -5,8 +5,9 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import DevRoleSwitcher from "@/components/DevRoleSwitcher";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "sonner";
+
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -30,11 +31,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     // DB cold start or connection issue — use default role
   }
 
-  // Set role as a JS-readable cookie via an inline script (cookies().set() not allowed in Server Components)
   return (
     <ClerkProvider>
       <html lang="es" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <head>
+        </head>
+        <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -47,7 +49,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               }}
             />
             {children}
-            {process.env.NODE_ENV === "development" && <DevRoleSwitcher currentRole={currentRole} />}
+            <Toaster position="bottom-right" theme="dark" closeButton richColors />
           </ThemeProvider>
         </body>
       </html>

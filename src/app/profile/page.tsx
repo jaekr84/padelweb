@@ -12,14 +12,25 @@ export default async function ProfilePage() {
     // Read role from Clerk publicMetadata (set during onboarding)
     const clerkRole = (user.publicMetadata?.role as string) || "jugador";
 
-    // Fetch user from our DB or create if missing — always sync the role from Clerk
+    // Fetch user from our DB or create if missing
+    // We only update the role if the current role is 'jugador' (default) or null
+    // to avoid overwriting development overrides.
+    const [existingUser] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, user.id));
+
+    const roleToSet = (existingUser?.role && existingUser.role !== "jugador")
+        ? existingUser.role
+        : clerkRole;
+
     const [dbUser] = await db
         .insert(users)
         .values({
             id: user.id,
             email: user.emailAddresses[0]?.emailAddress,
             name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0],
-            role: clerkRole,
+            role: roleToSet,
             points: 0,
             category: "5ta",
         })
@@ -27,8 +38,7 @@ export default async function ProfilePage() {
             target: users.id,
             set: {
                 email: user.emailAddresses[0]?.emailAddress,
-                // Keep role in sync with Clerk metadata
-                role: clerkRole,
+                role: roleToSet, // respects the logic above
             }
         })
         .returning();
@@ -86,6 +96,13 @@ export default async function ProfilePage() {
     // Fetch club profile if exists
     const [clubProfile] = await db.select().from(clubs).where(eq(clubs.ownerId, user.id));
 
+    // Fetch tournaments created by the user (for Club/Profe)
+    const createdTournaments = await db
+        .select()
+        .from(tournaments)
+        .where(eq(tournaments.createdByUserId, user.id))
+        .orderBy(desc(tournaments.createdAt));
+
     return (
         <PlayerProfileClient
             user={JSON.parse(JSON.stringify(user))}
@@ -96,6 +113,7 @@ export default async function ProfilePage() {
             isOwnProfile={true}
             profeProfile={profeProfile || null}
             clubProfile={clubProfile || null}
+            createdTournaments={JSON.parse(JSON.stringify(createdTournaments))}
         />
     );
 }
