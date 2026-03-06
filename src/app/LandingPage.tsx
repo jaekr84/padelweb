@@ -6,10 +6,14 @@ import { Trophy, Star, Users, MapPin, Activity, LayoutGrid, ArrowRight, Zap } fr
 
 export default function LandingPage({
     tournamentCount = 50,
-    playerCount = 300
+    playerCount = 300,
+    instructorCount = 20,
+    clubCount = 15
 }: {
     tournamentCount?: number;
     playerCount?: number;
+    instructorCount?: number;
+    clubCount?: number;
 }) {
     const { isSignedIn, isLoaded } = useAuth();
 
@@ -33,24 +37,11 @@ export default function LandingPage({
                         <img
                             src="/img/stickers 1.jpg"
                             alt="Logo A.C.A.P."
-                            className="h-10 w-10 md:h-12 md:w-12 rounded-full border border-white/10 shadow-lg object-cover"
+                            className="h-10 w-10 md:h-12 md:w-12 shrink-0 aspect-square rounded-full border border-white/10 shadow-lg object-cover"
                         />
                         <div className="flex flex-col leading-none">
-                            <span className="text-[0.45rem] md:text-[0.6rem] font-black tracking-[0.2em] uppercase text-indigo-400 opacity-80">Asociación Coreana Argentina</span>
                             <span className="text-[1.4rem] md:text-[1.8rem] font-black tracking-tighter italic uppercase text-white">A.C.A.P.</span>
                         </div>
-                    </div>
-
-                    <div className="hidden lg:flex items-center gap-10">
-                        {['Torneos', 'Ranking', 'Instructores', 'Centros'].map((item) => (
-                            <a
-                                key={item}
-                                href={`#${item.toLowerCase()}`}
-                                className="text-sm font-bold tracking-widest uppercase text-slate-400 hover:text-white transition-colors tracking-widest no-underline"
-                            >
-                                {item}
-                            </a>
-                        ))}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -60,8 +51,8 @@ export default function LandingPage({
                             </Link>
                         ) : (
                             <>
-                                <Link href="/sign-in" className="hidden md:block text-slate-300 hover:text-white text-xs font-black uppercase tracking-widest no-underline px-4">Entrar</Link>
-                                <Link href="/sign-up" className="bg-white text-black px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl">Unirse</Link>
+                                <Link href="/sign-in" className="text-slate-300 hover:text-white text-[10px] md:text-xs font-black uppercase tracking-widest no-underline px-3 md:px-4 transition-all">Entrar</Link>
+                                <Link href="/sign-up" className="bg-white text-black px-4 md:px-6 py-2 md:py-2.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl">Unirse</Link>
                             </>
                         )}
                     </div>
@@ -69,76 +60,52 @@ export default function LandingPage({
             </div>
 
             {/* ── HERO SECTION ── */}
-            <section className="relative pt-32 md:pt-48 pb-20 px-6 max-w-[1400px] mx-auto z-10">
-                <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-                    <div className="flex-1 text-center lg:text-left">
-                        {/* <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 py-2 px-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 animate-fade-in">
-                            <Zap className="w-3 h-3 fill-current" /> Comunidad Oficial · Buenos Aires
-                        </div> */}
-
-                        {/* <h1 className="text-[clamp(3rem,10vw,5rem)] md:text-[clamp(5rem,10vw,8.5rem)] font-black leading-[0.8] tracking-[-0.04em] uppercase italic mb-8">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-red-500">A.C.A.P.</span>
-                            <span className="text-white block text-lg md:text-2xl tracking-normal normal-case not-italic font-bold opacity-70 mb-1 mt-1 leading-tight">Asociación Coreana Argentina de Padel</span>
-
-                        </h1>
-
-                        <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-2xl lg:m-0 mx-auto mb-10">
-                            La plataforma definitiva de la <span className="text-white font-bold">A.C.A.P.</span> Gestiona torneos, escala en el ranking oficial y conecta con la comunidad más grande de Buenos Aires.
-                        </p> */}
-
-                        {/* <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                            {!isLoaded ? null : isSignedIn ? (
-                                <Link href="/tournaments" className="w-full sm:w-auto bg-indigo-600 text-white px-10 py-5 rounded-[1.5rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30 hover:bg-indigo-500 transition-all hover:scale-105">
-                                    Ir al Dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link href="/sign-up" className="w-full sm:w-auto bg-white text-black px-10 py-5 rounded-[1.5rem] text-sm font-black uppercase tracking-[0.2em] shadow-white/10 hover:bg-slate-200 transition-all hover:scale-105 flex items-center justify-center gap-3">
-                                        Empieza Ahora <ArrowRight className="w-5 h-5" />
-                                    </Link>
-                                    <Link href="/directory" className="w-full sm:w-auto bg-slate-900/50 backdrop-blur border border-slate-800 text-white px-10 py-5 rounded-[1.5rem] text-sm font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all">
-                                        Ver Directorio
-                                    </Link>
-                                </>
-                            )}
-                        </div> */}
+            <section className="relative pt-32 md:pt-48 pb-20 px-6 max-w-[1400px] mx-auto z-10 flex flex-col items-center justify-center text-center">
+                {/* ── Logo Central ── */}
+                <div className="relative group mb-16">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-red-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                    <div className="relative flex items-center justify-center bg-white rounded-full p-2 border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(79,70,229,0.2)] shrink-0 aspect-square mx-auto">
+                        <img
+                            src="/img/stickers 1.jpg"
+                            alt="A.C.A.P."
+                            className="w-[280px] h-[280px] md:w-[580px] md:h-[580px] object-cover rounded-full aspect-square"
+                        />
                     </div>
+                </div>
 
-                    <div className="flex-1 relative">
-                        {/* Featured UI Preview / Logo Glow */}
-                        <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-red-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                            <div className="relative flex items-center justify-center bg-white rounded-full p-2 border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(79,70,229,0.2)]">
-                                <img
-                                    src="/img/stickers 1.jpg"
-                                    alt="A.C.A.P."
-                                    className="w-[280px] h-[280px] md:w-[450px] md:h-[450px] object-cover rounded-full"
-                                />
+                {/* ── Stats Row ── */}
+                <div className="grid grid-cols-4 md:grid-cols-4 items-center justify-center md:gap-6 w-full max-w-5xl animate-fade-in-up">
+                    {[
+                        { label: 'Torneos', value: tournamentCount, color: 'text-indigo-400' },
+                        { label: 'Jugadores', value: playerCount, color: 'text-red-400' },
+                        { label: 'Profes', value: instructorCount, color: 'text-emerald-400' },
+                        { label: 'Centros', value: clubCount, color: 'text-blue-400' }
+                    ].map((stat, idx) => (
+                        <div
+                            key={stat.label}
+                            className="bg-slate-900/40 backdrop-blur-xl border border-white/5 md:px-8 md:py-6 rounded-[2rem] transition-all duration-300 hover:border-white/10 hover:bg-slate-900/60 shadow-xl flex flex-col items-center justify-center"
+                            style={{ animationDelay: `${idx * 0.1}s` }}
+                        >
+                            <div className={`text-2xl md:text-4xl font-black mb-1 ${stat.color}`}>
+                                +{stat.value}
                             </div>
-
-                            {/* Floating Stats */}
-                            <div className="absolute -top-6 -right-6 bg-slate-900/80 backdrop-blur border border-slate-700 p-6 rounded-3xl shadow-2xl animate-bounce-slow text-center min-w-[120px]">
-                                <div className="text-2xl font-black text-indigo-400">+{tournamentCount}</div>
-                                <div className="text-[10px] font-black uppercase text-slate-500">Torneos</div>
-                            </div>
-                            <div className="absolute bottom-10 -left-10 bg-slate-900/80 backdrop-blur border border-slate-700 p-6 rounded-3xl shadow-2xl animate-float-delayed text-center min-w-[120px]">
-                                <div className="text-2xl font-black text-red-400">+{playerCount}</div>
-                                <div className="text-[10px] font-black uppercase text-slate-500">Jugadores</div>
+                            <div className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap">
+                                {stat.label}
                             </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
             </section>
 
             {/* ── TABS INSPIRED FEATURES ── */}
-            <section className="py-24 px-6 relative z-10" id="torneos">
+            <section className=" relative z-10" id="torneos">
                 <div className="max-w-[1200px] mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-6xl font-black uppercase italic italic mb-4">Potencia tu Juego</h2>
+                    <div className="text-center mb-2">
+                        <h2 className="text-4xl md:text-6xl font-black uppercase italic italic">Potencia tu Juego</h2>
                         <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Todo lo que necesitas en una sola plataforma</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 px-4">
                         {[
                             { title: 'Torneos', icon: Trophy, color: 'text-indigo-400', desc: 'Inscripción online y cuadros en tiempo real.' },
                             { title: 'Ranking', icon: Star, color: 'text-yellow-400', desc: 'Sigue tu evolución y compite por el top 1.' },
@@ -147,10 +114,10 @@ export default function LandingPage({
                             { title: 'Comunidad', icon: Users, color: 'text-blue-400', desc: 'Conecta con otros jugadores de tu nivel.' },
                             { title: 'Estadísticas', icon: LayoutGrid, color: 'text-purple-400', desc: 'Análisis detallado de tus partidos.' },
                         ].map((feature, i) => (
-                            <div key={i} className="group bg-slate-900/50 hover:bg-indigo-600/5 border border-slate-800 hover:border-indigo-500/30 p-8 rounded-[2rem] transition-all duration-300">
-                                <feature.icon className={`w-10 h-10 ${feature.color} mb-6 transition-transform group-hover:scale-110`} />
-                                <h3 className="text-xl font-black uppercase italic mb-3">{feature.title}</h3>
-                                <p className="text-slate-500 text-sm font-medium leading-relaxed">{feature.desc}</p>
+                            <div key={i} className="group bg-slate-900/50 hover:bg-indigo-600/5 border border-slate-800 hover:border-indigo-500/30 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-300 flex flex-col items-center text-center">
+                                <feature.icon className={`w-8 h-8 md:w-10 md:h-10 ${feature.color} mb-4 md:mb-6 transition-transform group-hover:scale-110`} />
+                                <h3 className="text-sm md:text-xl font-black uppercase italic mb-2 md:mb-3">{feature.title}</h3>
+                                <p className="text-slate-500 text-[10px] md:text-sm font-medium leading-relaxed">{feature.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -176,7 +143,7 @@ export default function LandingPage({
             <footer className="py-12 px-6 border-t border-white/5 relative z-10">
                 <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-3">
-                        <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 rounded-full grayscale opacity-50" />
+                        <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 shrink-0 aspect-square rounded-full grayscale opacity-50" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">
                             © {new Date().getFullYear()} Asociación Coreana Argentina de Pádel
                         </span>

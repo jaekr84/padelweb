@@ -2,11 +2,13 @@ import FeedLayout from "@/app/feed/layout";
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
 import { users, registrations } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 export default async function RankingPage() {
-    // 1. Fetch all users
-    const allUsers = await db.select().from(users);
+    // 1. Fetch all users that are players or instructors (exclude clubs/centers)
+    const allUsers = await db.select()
+        .from(users)
+        .where(inArray(users.role, ["jugador", "profe"]));
 
     // 2. Fetch all tournament registrations to count tournaments played per player
     const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));
