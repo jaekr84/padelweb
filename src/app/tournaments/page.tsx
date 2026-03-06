@@ -57,10 +57,14 @@ export default async function TournamentsPage({
     }
 
     let filteredTournaments = allTournaments;
-    if (currentFilter === "abiertas") {
+    if (currentFilter === "todos") {
+        filteredTournaments = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
+    } else if (currentFilter === "abiertas") {
         filteredTournaments = allTournaments.filter(t => t.status === "published");
     } else if (currentFilter === "envivo") {
         filteredTournaments = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
+    } else if (currentFilter === "terminados") {
+        filteredTournaments = allTournaments.filter(t => t.status === "finalizado");
     } else if (currentFilter === "mios" && userId) {
         let userRegs: any[] = [];
         try {
@@ -76,12 +80,15 @@ export default async function TournamentsPage({
     // Stats summary
     const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias").length;
     const open = allTournaments.filter(t => t.status === "published").length;
+    const finished = allTournaments.filter(t => t.status === "finalizado").length;
+    const totalActive = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft").length;
     const total = allTournaments.length;
 
     const filters = [
-        { key: "todos", label: "Todos", count: total },
-        { key: "abiertas", label: "Abiertos", count: open },
+        { key: "todos", label: "Activos", count: totalActive },
+        { key: "abiertas", label: "Inscripción", count: open },
         { key: "envivo", label: "En Vivo", count: live },
+        { key: "terminados", label: "Finalizados", count: finished },
         { key: "mios", label: "Mis Torneos", count: null },
     ];
 

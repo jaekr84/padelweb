@@ -31,7 +31,7 @@ export default clerkMiddleware(async (auth, req) => {
                     hasRole = true;
                 }
             } catch (error) {
-                console.error("Error fetching user from Clerk in middleware:", error);
+                console.error("Error fetching user from Clerk in proxy:", error);
             }
         }
 

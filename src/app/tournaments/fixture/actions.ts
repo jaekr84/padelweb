@@ -230,3 +230,53 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
         return { ok: false, error: String(err) };
     }
 }
+
+export async function getAvailablePlayers(tournamentId: string) {
+    try {
+        // Get all users with role 'jugador'
+        const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
+
+        // Get already registered users for this tournament
+        const existingRegs = await db.select({ userId: registrations.userId }).from(registrations).where(eq(registrations.tournamentId, tournamentId));
+        const registeredIds = new Set(existingRegs.map(r => r.userId));
+
+        // Filter out already registered
+        return allUsers.filter(u => !registeredIds.has(u.id)).map(u => ({
+            id: u.id,
+            name: u.name || u.email.split("@")[0],
+            email: u.email,
+            category: u.category
+        }));
+    } catch (err) {
+        console.error("[getAvailablePlayers]", err);
+        return [];
+    }
+}
+
+export async function quickInscribePlayer(tournamentId: string, userId: string, category?: string) {
+    try {
+        const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        if (!user) throw new Error("User not found");
+
+        const [newReg] = await db.insert(registrations).values({
+            tournamentId,
+            userId,
+            category: category || user.category || "5ta",
+            status: "confirmed"
+        }).returning();
+
+        revalidatePath(`/tournaments/${tournamentId}/fixture`);
+
+        return {
+            ok: true,
+            player: {
+                id: newReg.id,
+                name: `${user.name || user.email.split("@")[0]} / Invitado`,
+                category: newReg.category || undefined
+            }
+        };
+    } catch (err) {
+        console.error("[quickInscribePlayer]", err);
+        return { ok: false, error: String(err) };
+    }
+}

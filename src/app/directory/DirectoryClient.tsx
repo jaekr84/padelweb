@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     Search, MapPin, Star, CheckCircle2,
     Building2, Map, Users, XCircle, GraduationCap,
-    ChevronRight, Layers
+    ChevronRight, Layers, MessageCircle
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -22,6 +22,8 @@ interface Club {
     amenities: string[] | null;
     courts: number | null;
     surfaces: string[] | null;
+    phone: string | null;
+    whatsapp: string | null;
 }
 
 interface Instructor {
@@ -34,6 +36,8 @@ interface Instructor {
     verified: boolean | null;
     avatarUrl: string | null;
     experience: string | null;
+    phone: string | null;
+    whatsapp: string | null;
 }
 
 interface DirectoryClientProps {
@@ -166,8 +170,8 @@ export default function DirectoryClient({
                                 key={t.key}
                                 onClick={() => { setTab(t.key); setSearch(""); }}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${isActive
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                                     }`}
                             >
                                 {t.icon}
@@ -225,6 +229,20 @@ export default function DirectoryClient({
                                             </div>
                                         </div>
 
+                                        {/* WhatsApp Button */}
+                                        {(club.whatsapp || club.phone) && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const phone = club.whatsapp || club.phone;
+                                                    window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
+                                                }}
+                                                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0"
+                                            >
+                                                <MessageCircle className="w-5 h-5 font-bold" />
+                                            </button>
+                                        )}
                                         <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
@@ -266,6 +284,20 @@ export default function DirectoryClient({
                                             </div>
                                         </div>
 
+                                        {/* WhatsApp Button */}
+                                        {(centro.whatsapp || centro.phone) && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const phone = centro.whatsapp || centro.phone;
+                                                    window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
+                                                }}
+                                                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0"
+                                            >
+                                                <MessageCircle className="w-5 h-5 font-bold" />
+                                            </button>
+                                        )}
                                         <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
@@ -314,6 +346,20 @@ export default function DirectoryClient({
                                             </div>
                                         </div>
 
+                                        {/* WhatsApp Button */}
+                                        {(profe.whatsapp || profe.phone) && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const phone = profe.whatsapp || profe.phone;
+                                                    window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
+                                                }}
+                                                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0"
+                                            >
+                                                <MessageCircle className="w-5 h-5 font-bold" />
+                                            </button>
+                                        )}
                                         <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>

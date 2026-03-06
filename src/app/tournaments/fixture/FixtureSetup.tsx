@@ -7,9 +7,10 @@ import {
     CreditCard, UserCheck, AlertCircle, ChevronRight,
     Users2, MonitorPlay, FlaskConical, AlertTriangle
 } from "lucide-react";
-import { saveTournamentFixture } from "./actions";
+import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer } from "./actions";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export interface FixtureSetupProps {
     tournamentId: string;
@@ -68,6 +69,9 @@ export default function FixtureSetup({
     const [randomizing, setRandomizing] = useState(false);
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
+    const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
+    const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
+    const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
 
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
@@ -102,6 +106,25 @@ export default function FixtureSetup({
         } else {
             const areAllPresent = allIds.every(id => present.has(id));
             setPresent(areAllPresent ? new Set() : new Set(allIds));
+        }
+    };
+
+    const loadAvailablePlayers = async () => {
+        setIsLoadingAvailable(true);
+        const list = await getAvailablePlayers(tournamentId);
+        setAvailablePlayers(list);
+        setIsLoadingAvailable(false);
+    };
+
+    const handleQuickInscribe = async (userId: string) => {
+        const res = await quickInscribePlayer(tournamentId, userId);
+        if (res.ok && res.player) {
+            setPlayers(prev => [...prev, res.player as Player]);
+            setPresent(prev => new Set([...prev, res.player!.id]));
+            setAvailablePlayers(prev => prev.filter(p => p.id !== userId));
+            toast.success("Jugador inscripto");
+        } else {
+            toast.error("Error: " + res.error);
         }
     };
 
@@ -269,9 +292,21 @@ export default function FixtureSetup({
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Presentismo</h2>
                                     <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Inscriptos</span>
-                                    <span className="text-2xl font-black italic text-blue-500 leading-none">{players.length}</span>
+                                <div className="text-right flex flex-col items-end gap-2">
+                                    <div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Inscriptos</span>
+                                        <span className="text-2xl font-black italic text-blue-500 leading-none">{players.length}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setIsPlayerModalOpen(true);
+                                            loadAvailablePlayers();
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        <Plus className="w-3 h-3" />
+                                        Inscribir Existente
+                                    </button>
                                 </div>
                             </div>
 
@@ -559,6 +594,69 @@ export default function FixtureSetup({
                                 </div>
                             </div>
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Player Selection Modal */}
+                <AnimatePresence>
+                    {isPlayerModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsPlayerModalOpen(false)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-md bg-[#12141C] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl shadow-black"
+                            >
+                                <div className="px-6 py-6 border-b border-white/5 bg-white/5">
+                                    <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Jugador</h3>
+                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Elegí un jugador existente de la plataforma</p>
+                                </div>
+
+                                <div className="p-4 max-h-[60vh] overflow-y-auto no-scrollbar space-y-2">
+                                    {isLoadingAvailable ? (
+                                        <div className="py-12 text-center text-white/20 animate-pulse font-black uppercase italic text-xs tracking-widest">
+                                            Buscando jugadores...
+                                        </div>
+                                    ) : availablePlayers.length === 0 ? (
+                                        <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
+                                            No hay más jugadores disponibles
+                                        </div>
+                                    ) : (
+                                        availablePlayers.map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handleQuickInscribe(p.id)}
+                                                className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all group"
+                                            >
+                                                <div className="text-left">
+                                                    <div className="font-black uppercase italic tracking-tight group-hover:text-blue-400 transition-colors">{p.name}</div>
+                                                    <div className="text-[10px] text-white/40 font-bold">{p.email}</div>
+                                                </div>
+                                                <div className="px-2 py-1 bg-white/5 rounded text-[8px] font-black uppercase tracking-widest text-white/40 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all">
+                                                    {p.category || "???"}
+                                                </div>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="p-4 bg-white/5 border-t border-white/5">
+                                    <button
+                                        onClick={() => setIsPlayerModalOpen(false)}
+                                        className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-black uppercase italic text-xs tracking-widest transition-all"
+                                    >
+                                        Cerrar
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
             </main>
