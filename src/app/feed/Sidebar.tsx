@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Home, Trophy, User, Star, FolderOpen, Search, Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -96,7 +95,6 @@ export default function Sidebar() {
                     <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
-                    <ThemeToggle />
                     <UserButton
                         showName={false}
                         appearance={{
@@ -145,7 +143,6 @@ export default function Sidebar() {
                                 />
                             </UserButton.MenuItems>
                         </UserButton>
-                        <ThemeToggle />
                     </div>
 
                     <div className="flex items-center gap-3 bg-white dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 text-sm focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm">
