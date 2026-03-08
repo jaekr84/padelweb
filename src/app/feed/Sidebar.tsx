@@ -90,7 +90,7 @@ export default function Sidebar() {
         <>
             {/* MOBILE TOP HEADER */}
             <header className="md:hidden fixed top-0 w-full z-50 bg-white/80 dark:bg-[#090A0F]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5 flex items-center justify-between px-5 h-16">
-                <Link href="/tournaments" className="flex items-center gap-2 group">
+                <Link href="/home" className="flex items-center gap-2 group">
                     <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10" />
                     <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">A.C.A.P.</span>
                 </Link>
@@ -119,7 +119,7 @@ export default function Sidebar() {
             <aside className="hidden md:flex w-64 border-r border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-[#090A0F]/50 flex-col h-screen sticky top-0 z-50">
                 <div className="p-6 flex flex-col gap-6 border-b border-slate-200/80 dark:border-white/5">
                     <div className="flex items-center justify-between">
-                        <Link href="/tournaments" className="flex items-center gap-3 group">
+                        <Link href="/home" className="flex items-center gap-3 group">
                             <img src="/img/stickers 1.jpg" alt="ACAP" className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10" />
                             <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-500 transition-colors">ACAP</span>
                         </Link>

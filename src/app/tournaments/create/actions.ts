@@ -35,6 +35,11 @@ export async function createTournament(data: TournamentInput) {
     const existingUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (existingUser.length === 0) throw new Error("Usuario no encontrado en la base de datos");
 
+    const userRole = existingUser[0].role;
+    if (userRole !== 'club' && userRole !== 'centro_de_padel' && userRole !== 'superadmin') {
+        throw new Error("Solo los clubes y administradores pueden crear torneos");
+    }
+
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 
     const [tournament] = await db

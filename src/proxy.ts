@@ -3,9 +3,7 @@ import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
     '/login(.*)',
-    '/register(.*)',
     '/sign-in(.*)',
-    '/sign-up(.*)',
     '/onboarding(.*)',            // Role selection for new users
     '/',                         // Landing page
     '/profiles/centro/(.*)',     // Perfiles públicos de centros
@@ -17,7 +15,16 @@ const isOnboardingRoute = createRouteMatcher(['/onboarding']);
 export default clerkMiddleware(async (auth, req) => {
     const { userId, sessionClaims } = await auth();
 
-    if (userId && !isPublicRoute(req)) {
+    // Allow access to /sign-up ONLY if it's an invitation link (has __clerk_ticket)
+    const isSignUpRoute = req.nextUrl.pathname.startsWith('/sign-up');
+    const isInvitation = req.nextUrl.searchParams.has('__clerk_ticket');
+
+    if (isSignUpRoute && isInvitation) {
+        // Skip protection for invitation links so unauthenticated users can accept them
+        return NextResponse.next();
+    }
+
+    if (userId && !isPublicRoute(req) && !isSignUpRoute) {
         const metadata = sessionClaims?.metadata as { role?: string } | undefined;
         const hasRoleCookie = req.cookies.get('has_role')?.value === 'true';
         let hasRole = !!metadata?.role || hasRoleCookie;
@@ -27,11 +34,22 @@ export default clerkMiddleware(async (auth, req) => {
             try {
                 const client = await clerkClient();
                 const user = await client.users.getUser(userId);
-                if (user.publicMetadata?.role) {
+
+                // HYBRID SUPERADMIN STRATEGY
+                const superadminEmail = process.env.SUPERADMIN_EMAIL;
+                const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+
+                if (!user.publicMetadata?.role && superadminEmail && userEmail === superadminEmail) {
+                    await client.users.updateUserMetadata(userId, {
+                        publicMetadata: { role: 'superadmin' }
+                    });
+                    hasRole = true;
+                    console.log(`Assigned superadmin role to ${userEmail}`);
+                } else if (user.publicMetadata?.role) {
                     hasRole = true;
                 }
             } catch (error) {
-                console.error("Error fetching user from Clerk in proxy:", error);
+                console.error("Error fetching/updating user in proxy:", error);
             }
         }
 
@@ -41,10 +59,23 @@ export default clerkMiddleware(async (auth, req) => {
             return NextResponse.redirect(onboardingUrl);
         }
 
-        // If user has a role and tries to access onboarding or auth pages, redirect them to the landing page
+        // If user has a role and tries to access onboarding, auth pages, or the landing page
         const isAuthRoute = req.nextUrl.pathname.startsWith('/sign-in') || req.nextUrl.pathname.startsWith('/sign-up');
-        if (hasRole && (isOnboardingRoute(req) || isAuthRoute)) {
-            const homeUrl = new URL('/', req.url);
+        const isLandingRoute = req.nextUrl.pathname === '/';
+
+        if (hasRole && (isOnboardingRoute(req) || isAuthRoute || isLandingRoute)) {
+            // Determine redirect URL based on role
+            let targetPath = '/tournaments'; // Default fallback
+
+            const role = metadata?.role as string | undefined;
+
+            if (role === 'superadmin') {
+                targetPath = '/admin';
+            } else if (role === 'club') {
+                targetPath = '/club/dashboard'; // Or /tournaments depending on the complete structure
+            }
+
+            const homeUrl = new URL(targetPath, req.url);
             const response = NextResponse.redirect(homeUrl);
             if (!hasRoleCookie) {
                 response.cookies.set('has_role', 'true', { maxAge: 60 * 60 * 24 * 365, path: '/' });

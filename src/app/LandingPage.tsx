@@ -46,7 +46,7 @@ export default function LandingPage({
 
                     <div className="flex items-center gap-3">
                         {!isLoaded ? null : isSignedIn ? (
-                            <Link href="/tournaments" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/25 flex items-center gap-2 group">
+                            <Link href="/home" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/25 flex items-center gap-2 group">
                                 Entrar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         ) : (
@@ -134,7 +134,7 @@ export default function LandingPage({
                     </h2>
 
                     {!isLoaded ? null : isSignedIn ? (
-                        <Link href="/tournaments" className="inline-flex items-center gap-3 bg-indigo-600 text-white px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95 group">
+                        <Link href="/home" className="inline-flex items-center gap-3 bg-indigo-600 text-white px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95 group">
                             Entrar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     ) : (
