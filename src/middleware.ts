@@ -36,10 +36,10 @@ export default clerkMiddleware(async (auth, req) => {
                 const user = await client.users.getUser(userId);
 
                 // HYBRID SUPERADMIN STRATEGY
-                const superadminEmail = process.env.SUPERADMIN_EMAIL;
-                const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+                const superadminEmails = process.env.SUPERADMIN_EMAIL?.split(',').map(e => e.trim().toLowerCase()) || [];
+                const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress?.toLowerCase();
 
-                if (!user.publicMetadata?.role && superadminEmail && userEmail === superadminEmail) {
+                if (!user.publicMetadata?.role && userEmail && superadminEmails.includes(userEmail)) {
                     await client.users.updateUserMetadata(userId, {
                         publicMetadata: { role: 'superadmin' }
                     });

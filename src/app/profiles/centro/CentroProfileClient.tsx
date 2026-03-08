@@ -189,9 +189,6 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                     </div>
                                 )}
                                 <div className="flex items-center gap-2">
-                                    <Star className="h-3.5 w-3.5 text-yellow-500/50" /> 4.9 (Verificado)
-                                </div>
-                                <div className="flex items-center gap-2">
                                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/50" /> {centro?.courts || 0} Canchas
                                 </div>
                             </div>

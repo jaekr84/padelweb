@@ -1,6 +1,6 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
+import { WebhookEvent, clerkClient } from '@clerk/nextjs/server'
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -58,7 +58,21 @@ export async function POST(req: Request) {
         const email = email_addresses?.[0]?.email_address || ''
 
         // Check if role exists in public_metadata, if not set 'jugador'
-        const role = (public_metadata?.role as string) || 'jugador'
+        let role = (public_metadata?.role as string) || 'jugador'
+
+        // Override role if it's a superadmin email
+        const superadminEmails = process.env.SUPERADMIN_EMAIL?.split(',').map(e => e.trim().toLowerCase()) || []
+        if (email && superadminEmails.includes(email.toLowerCase())) {
+            role = 'superadmin'
+            // Update Clerk metadata asynchronously if not already set
+            if ((public_metadata?.role as string) !== 'superadmin') {
+                const client = await clerkClient()
+                await client.users.updateUserMetadata(id as string, {
+                    publicMetadata: { role: 'superadmin' }
+                })
+            }
+        }
+
         const name = first_name ? `${first_name} ${last_name || ''}`.trim() : email.split('@')[0]
 
         try {

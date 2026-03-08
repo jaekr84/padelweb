@@ -53,7 +53,13 @@ const ROLES = [
 function OnboardingForm() {
     const searchParams = useSearchParams();
     const inviteClubId = searchParams.get("invite");
-    const [role, setRole] = useState(inviteClubId ? "jugador" : "jugador");
+    const requestedRole = searchParams.get("role");
+
+    const [role, setRole] = useState(() => {
+        if (inviteClubId) return "jugador";
+        if (requestedRole && ROLES.some(r => r.id === requestedRole)) return requestedRole;
+        return "jugador";
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { session } = useSession();
@@ -154,13 +160,13 @@ function OnboardingForm() {
                                         type="button"
                                         onClick={() => setRole(r.id)}
                                         className={`group relative flex flex-col items-start p-6 rounded-3xl text-left transition-all duration-300 ${isSelected
-                                                ? r.active
-                                                : `bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1`
+                                            ? r.active
+                                            : `bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1`
                                             }`}
                                     >
                                         <div className={`p-3 rounded-2xl mb-4 transition-colors ${isSelected
-                                                ? "bg-white/20 text-white"
-                                                : `bg-white/5 ${r.iconColor} group-hover:scale-110 transition-transform`
+                                            ? "bg-white/20 text-white"
+                                            : `bg-white/5 ${r.iconColor} group-hover:scale-110 transition-transform`
                                             }`}>
                                             <Icon className="w-6 h-6" />
                                         </div>

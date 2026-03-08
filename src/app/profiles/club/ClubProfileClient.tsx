@@ -45,7 +45,7 @@ export default function ClubProfileClient({
     isOwner?: boolean;
 }) {
     const [showInvite, setShowInvite] = useState(false);
-    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "account">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "invitar" | "account">("info");
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [hideFinished, setHideFinished] = useState(true);
@@ -91,7 +91,10 @@ export default function ClubProfileClient({
     const tabs = [
         { id: "info" as const, label: "Información", icon: Shield },
         { id: "torneos" as const, label: "Torneos", icon: Trophy },
-        ...(isOwner ? [{ id: "account" as const, label: "Cuenta", icon: Settings }] : []),
+        ...(isOwner ? [
+            { id: "invitar" as const, label: "Invitar", icon: MessageCircle },
+            { id: "account" as const, label: "Cuenta", icon: Settings }
+        ] : []),
     ];
 
     const statusConfig: Record<string, { label: string; textColor: string; bg: string; border: string }> = {
@@ -128,12 +131,6 @@ export default function ClubProfileClient({
                     <div className="absolute top-4 right-4 z-10 flex gap-2">
                         {isOwner && (
                             <>
-                                <button
-                                    onClick={() => setShowInvite(true)}
-                                    className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
-                                >
-                                    <Mail className="h-3.5 w-3.5" /> Invitar
-                                </button>
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="flex items-center gap-1.5 bg-indigo-600/90 backdrop-blur-md border border-indigo-500 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-indigo-500 active:scale-95 shadow-lg"
@@ -176,9 +173,6 @@ export default function ClubProfileClient({
                                         <MapPin className="h-3.5 w-3.5" /> {club.location}
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2">
-                                    <Star className="h-3.5 w-3.5 text-yellow-500/50" /> Premium Club
-                                </div>
                                 <div className="flex items-center gap-2">
                                     <Users className="h-3.5 w-3.5 text-indigo-500/50" /> {totalMembers} Miembros
                                 </div>
@@ -351,6 +345,58 @@ export default function ClubProfileClient({
                     {activeTab === "account" && isOwner && (
                         <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 md:scale-100 origin-top">
                             <UserProfile routing="hash" />
+                        </div>
+                    )}
+
+                    {activeTab === "invitar" && isOwner && (
+                        <div className="max-w-2xl mx-auto">
+                            <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 md:p-12 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
+                                        <MessageCircle className="h-6 w-6" />
+                                    </div>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Invitar Jugadores</h2>
+                                </div>
+
+                                <p className="text-white/50 text-xs font-medium mb-8 leading-relaxed uppercase tracking-widest">
+                                    Compartí este link con tus jugadores. Cuando se registren usando este enlace, quedarán asociados a <span className="text-indigo-400 font-black">{clubName}</span> automáticamente.
+                                </p>
+
+                                <div className="flex flex-col gap-6">
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-emerald-500/5 blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <h3 className="text-[10px] font-black uppercase text-white/30 mb-4 flex items-center gap-2">
+                                            Link para WhatsApp
+                                        </h3>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-white/40 font-mono truncate select-all">
+                                                {typeof window !== 'undefined' ? `${window.location.origin}/sign-up?invite=${club?.id}` : '...'}
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    const link = `${window.location.origin}/sign-up?invite=${club?.id}`;
+                                                    navigator.clipboard.writeText(link);
+                                                    toast.success("Link de invitación copiado");
+                                                }}
+                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest uppercase"
+                                            >
+                                                Copiar
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            const inviteLink = `${window.location.origin}/sign-up?invite=${club?.id}`;
+                                            const message = `¡Hola! Sumate a mi club "${clubName}" en PadelWeb: ${inviteLink}`;
+                                            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+                                        }}
+                                        className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95"
+                                    >
+                                        <MessageCircle className="h-4 w-4 fill-current" /> Compartir en WhatsApp
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
