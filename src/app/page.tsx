@@ -8,11 +8,6 @@ import { sql, eq, inArray } from "drizzle-orm";
 export default async function Home() {
   const { userId } = await auth();
 
-  // Si hay sesión activa, ir directo a la app
-  if (userId) {
-    redirect("/tournaments");
-  }
-
   // Fetch real stats
   let tournamentCount = 50;
   let playerCount = 300;

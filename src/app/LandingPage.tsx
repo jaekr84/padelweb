@@ -133,9 +133,15 @@ export default function LandingPage({
                         ¿Listo para entrar a la <span className="text-indigo-500">cancha</span>?
                     </h2>
 
-                    <Link href="/sign-up" className="inline-flex items-center gap-3 bg-white text-black px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-200 transition-all hover:scale-105 active:scale-95">
-                        Registrarse Ahora <ArrowRight className="w-5 h-5" />
-                    </Link>
+                    {!isLoaded ? null : isSignedIn ? (
+                        <Link href="/tournaments" className="inline-flex items-center gap-3 bg-indigo-600 text-white px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95 group">
+                            Entrar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                    ) : (
+                        <Link href="/sign-up" className="inline-flex items-center gap-3 bg-white text-black px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-200 transition-all hover:scale-105 active:scale-95">
+                            Registrarse Ahora <ArrowRight className="w-5 h-5" />
+                        </Link>
+                    )}
                 </div>
             </section>
 

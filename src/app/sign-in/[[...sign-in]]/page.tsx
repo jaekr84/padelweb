@@ -9,7 +9,7 @@ export default function SignInPage() {
             justifyContent: "center",
             background: "#0a0a14",
         }}>
-            <SignIn fallbackRedirectUrl="/tournaments" />
+            <SignIn fallbackRedirectUrl="/" />
         </div>
     );
 }
