@@ -43,7 +43,7 @@ export async function createTournament(data: TournamentInput) {
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 
-    const [tournament] = await db
+    const [tournament] = (await db
         .insert(tournaments)
         .values({
             createdByUserId: userId,
@@ -58,7 +58,7 @@ export async function createTournament(data: TournamentInput) {
             modalidad: data.modalidad || null,
             status: "published",
         })
-        .returning();
+        .returning()) as any[];
 
     revalidatePath("/tournaments");
     revalidatePath("/profile");

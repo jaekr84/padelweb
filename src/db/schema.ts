@@ -10,13 +10,13 @@ export const users = pgTable("users", {
     side: varchar("side", { length: 50 }), // drive | reves | ambos
     category: varchar("category", { length: 50 }).default("5ta"),
     points: integer("points").default(0),
-    clubId: varchar("club_id", { length: 256 }).references(() => clubs.id),
+    clubId: varchar("club_id", { length: 256 }).references((): any => clubs.id),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const clubs = pgTable("clubs", {
     id: varchar("id", { length: 256 }).primaryKey(),
-    ownerId: varchar("owner_id", { length: 256 }).references(() => users.id).notNull().unique(),
+    ownerId: varchar("owner_id", { length: 256 }).references((): any => users.id).notNull().unique(),
     name: varchar("name", { length: 256 }).notNull(),
     type: varchar("type", { length: 50 }).notNull().default("club"), // club | centro
     bio: text("bio"),
@@ -39,7 +39,7 @@ export const clubs = pgTable("clubs", {
 
 export const instructorProfiles = pgTable("instructor_profiles", {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: varchar("user_id", { length: 256 }).references(() => users.id).notNull().unique(),
+    userId: varchar("user_id", { length: 256 }).references((): any => users.id).notNull().unique(),
     name: varchar("name", { length: 256 }).notNull(),
     bio: text("bio"),
     location: varchar("location", { length: 256 }),
@@ -60,8 +60,8 @@ export const instructorProfiles = pgTable("instructor_profiles", {
 
 export const tournaments = pgTable("tournaments", {
     id: uuid("id").defaultRandom().primaryKey(),
-    createdByUserId: varchar("created_by_user_id", { length: 256 }).references(() => users.id).notNull(),
-    clubId: varchar("club_id", { length: 256 }).references(() => clubs.id),
+    createdByUserId: varchar("created_by_user_id", { length: 256 }).references((): any => users.id).notNull(),
+    clubId: varchar("club_id", { length: 256 }).references((): any => clubs.id),
     name: varchar("name", { length: 256 }).notNull(),
     description: text("description"),
     surface: varchar("surface", { length: 100 }),
@@ -78,11 +78,11 @@ export const tournaments = pgTable("tournaments", {
 
 export const registrations = pgTable("registrations", {
     id: uuid("id").defaultRandom().primaryKey(),
-    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
-    userId: varchar("user_id", { length: 256 }).references(() => users.id).notNull(),
+    tournamentId: uuid("tournament_id").references((): any => tournaments.id).notNull(),
+    userId: varchar("user_id", { length: 256 }).references((): any => users.id).notNull(),
     category: varchar("category", { length: 100 }),          // null if libre
     partnerName: varchar("partner_name", { length: 256 }),   // name of partner (platform user or guest)
-    partnerUserId: varchar("partner_user_id", { length: 256 }).references(() => users.id), // null if guest
+    partnerUserId: varchar("partner_user_id", { length: 256 }).references((): any => users.id), // null if guest
     isGuestPartner: boolean("is_guest_partner").default(false),
     status: varchar("status", { length: 50 }).notNull().default("confirmed"), // confirmed | cancelled
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -92,7 +92,7 @@ export const registrations = pgTable("registrations", {
 
 export const tournamentGroups = pgTable("tournament_groups", {
     id: uuid("id").defaultRandom().primaryKey(),
-    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+    tournamentId: uuid("tournament_id").references((): any => tournaments.id).notNull(),
     name: varchar("name", { length: 50 }).notNull(),              // "Grupo A"
     players: json("players").notNull(),                           // Player[] JSON
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -100,8 +100,8 @@ export const tournamentGroups = pgTable("tournament_groups", {
 
 export const groupMatches = pgTable("group_matches", {
     id: uuid("id").defaultRandom().primaryKey(),
-    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
-    groupId: uuid("group_id").references(() => tournamentGroups.id).notNull(),
+    tournamentId: uuid("tournament_id").references((): any => tournaments.id).notNull(),
+    groupId: uuid("group_id").references((): any => tournamentGroups.id).notNull(),
     team1Name: varchar("team1_name", { length: 256 }).notNull(),
     team2Name: varchar("team2_name", { length: 256 }).notNull(),
     score1: smallint("score1"),
@@ -112,7 +112,7 @@ export const groupMatches = pgTable("group_matches", {
 
 export const bracketMatches = pgTable("bracket_matches", {
     id: uuid("id").defaultRandom().primaryKey(),
-    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+    tournamentId: uuid("tournament_id").references((): any => tournaments.id).notNull(),
     round: smallint("round").notNull(),
     slot: smallint("slot").notNull(),
     team1Name: varchar("team1_name", { length: 256 }),
@@ -128,7 +128,7 @@ export const bracketMatches = pgTable("bracket_matches", {
 // ── Feed / Posts ──────────────────────────────────────────────────────────────
 export const posts = pgTable("posts", {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: varchar("user_id", { length: 256 }).references(() => users.id).notNull(),
+    userId: varchar("user_id", { length: 256 }).references((): any => users.id).notNull(),
     content: text("content"),
     imageUrl: varchar("image_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),

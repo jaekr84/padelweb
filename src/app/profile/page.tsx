@@ -26,7 +26,7 @@ export default async function ProfilePage() {
 
     const invitedByClubId = (user.publicMetadata?.invitedByClubId as string) || null;
 
-    const [dbUser] = await db
+    const [dbUser] = (await db
         .insert(users)
         .values({
             id: user.id,
@@ -45,7 +45,7 @@ export default async function ProfilePage() {
                 clubId: invitedByClubId,
             }
         })
-        .returning();
+        .returning()) as any[];
 
     // Fetch registrations with tournament details
     const userRegistrations = await db

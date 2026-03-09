@@ -45,7 +45,7 @@ export async function registerForTournament(input: RegisterInput) {
     if (existing) throw new Error("Ya estás inscripto en este torneo");
 
     // Insert
-    const [created] = await db.insert(registrations).values({
+    const [created] = (await db.insert(registrations).values({
         tournamentId: input.tournamentId,
         userId,
         category: input.category || null,
@@ -53,7 +53,7 @@ export async function registerForTournament(input: RegisterInput) {
         partnerUserId: input.partnerUserId || null,
         isGuestPartner: input.isGuestPartner,
         status: "confirmed",
-    }).returning();
+    }).returning()) as any[];
 
     return created;
 }

@@ -71,6 +71,7 @@ export default function TournamentManager({
     const [showDevPanel, setShowDevPanel] = useState(false);
     const [seedingGroups, setSeedingGroups] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     // ─── DEV: Seed fake players into groups and regenerate all matches ───
     const FAKE_NAMES = [
@@ -396,8 +397,8 @@ export default function TournamentManager({
         <div className="min-h-screen bg-background overflow-x-hidden">
 
             {/* ── Sticky Header — full viewport width ── */}
-            <header className="sticky top-0 bg-background border-b border-border z-[60]">
-                <div className="max-w-4xl mx-auto px-4 py-3">
+            <header className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border z-[60]">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4">
                     {/* Top row: back + status */}
                     <div className="flex items-center justify-between gap-3 mb-3">
                         <button
@@ -459,7 +460,7 @@ export default function TournamentManager({
             </header>
 
             {/* ── Page content ── */}
-            <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-32">
 
                 {/* ── DEV TESTING PANEL ── */}
                 <div className="mb-6">
@@ -533,7 +534,7 @@ export default function TournamentManager({
                             className="space-y-12"
                         >
                             {/* Progress Bar */}
-                            <div className="max-w-2xl mx-auto space-y-4">
+                            <div className="space-y-4">
                                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                                     <span>Progreso Fase de Grupos</span>
                                     <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
@@ -549,68 +550,69 @@ export default function TournamentManager({
                             </div>
 
                             {/* Groups Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                                 {groups.map((g) => {
                                     const standings = computeStandings(g.id);
                                     const groupMatches = matches.filter(m => m.groupId === g.id);
                                     return (
-                                        <div key={g.id} className="space-y-6">
-                                            {/* Standings table */}
-                                            <div className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-xl">
-                                                <div className="bg-muted px-6 py-5 border-b border-slate-700 flex items-center justify-between">
-                                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Posiciones</span>
-                                                </div>
-                                                <div className="p-4">
-                                                    <table className="w-full text-left">
-                                                        <thead>
-                                                            <tr className="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-slate-700">
-                                                                <th className="pb-3 pr-3">#</th>
-                                                                <th className="pb-3">Jugador</th>
-                                                                <th className="pb-3 px-3 text-center">PJ</th>
-                                                                <th className="pb-3 px-3 text-center">Pts</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-800">
-                                                            {standings.map((s, idx) => {
-                                                                return (
-                                                                    <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
-                                                                        <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
-                                                                        <td className="py-3 font-bold text-sm tracking-tight text-white">{s.player.name}</td>
-                                                                        <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
-                                                                        <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                        <div key={g.id} className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-xl flex flex-col h-fit">
+                                            {/* Header + Standings table */}
+                                            <div className="bg-muted px-6 py-5 border-b border-slate-700 flex items-center justify-between">
+                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Posiciones</span>
                                             </div>
 
-                                            {/* Matches list */}
-                                            <div className="space-y-3">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Partidos · {g.name}</p>
-                                                <div className="space-y-2">
+                                            <div className="p-4 border-b border-slate-800 bg-slate-900/50">
+                                                <table className="w-full text-left">
+                                                    <thead>
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-slate-700">
+                                                            <th className="pb-3 pr-3">#</th>
+                                                            <th className="pb-3">Jugador</th>
+                                                            <th className="pb-3 px-3 text-center">PJ</th>
+                                                            <th className="pb-3 px-3 text-center">Pts</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-800">
+                                                        {standings.map((s, idx) => (
+                                                            <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
+                                                                <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
+                                                                <td className="py-3 font-bold text-sm tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
+                                                                <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Matches list within the same card */}
+                                            <div className="flex-1 flex flex-col min-h-0">
+                                                <div className="px-6 py-3 bg-muted/30 border-b border-slate-800">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Partidos · {g.name}</p>
+                                                </div>
+                                                <div className="max-h-[400px] overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                                                     {groupMatches.map(m => (
                                                         <div
                                                             key={m.id}
-                                                            className={`rounded-2xl overflow-hidden transition-all duration-300 border ${m.confirmed
-                                                                ? "bg-emerald-950 border-emerald-800"
-                                                                : "bg-slate-900 border-slate-700"
+                                                            className={`rounded-xl overflow-hidden transition-all duration-300 border ${m.confirmed
+                                                                ? "bg-slate-900 border-slate-700 shadow-inner"
+                                                                : "bg-slate-800/40 border-slate-700/50"
                                                                 }`}
                                                         >
                                                             {/* Team 1 */}
-                                                            <div className={`px-3 py-2.5 flex items-center justify-between border-l-4 border-blue-500 ${m.confirmed && m.score1! > m.score2! ? "bg-blue-500/10" : ""}`}>
-                                                                <span className={`text-xs font-bold uppercase tracking-tight truncate ${m.confirmed && m.score1! > m.score2! ? "text-blue-300 font-black" : "text-blue-400"}`}>
-                                                                    {m.team1.name}
-                                                                </span>
+                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-blue-500 ${m.confirmed && m.score1! > m.score2! ? "bg-blue-500/10" : ""}`}>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score1! > m.score2! ? "text-blue-300 font-black" : "text-blue-400"}`}>
+                                                                        {m.team1.name}
+                                                                    </span>
+                                                                </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-base font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>
                                                                 )}
                                                             </div>
 
-                                                            {/* Score row or divider */}
-                                                            <div className="px-3 py-2 bg-muted border-y border-slate-700 flex items-center gap-2">
+                                                            {/* Score row */}
+                                                            <div className="px-3 py-1.5 bg-muted/50 border-y border-slate-700/30 flex items-center gap-2">
                                                                 {!m.confirmed && !readOnly ? (
                                                                     <>
                                                                         <input
@@ -618,58 +620,59 @@ export default function TournamentManager({
                                                                             inputMode="numeric"
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                            className="flex-1 min-w-0 h-9 bg-blue-500/20 text-blue-200 rounded-lg text-center font-black border border-blue-500/40 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-blue-400/50 text-base"
+                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/20 text-blue-200 rounded-lg text-center font-black border border-blue-500/40 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-blue-400/50 text-sm"
                                                                             placeholder="0"
                                                                         />
-                                                                        <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
+                                                                        <span className="text-slate-600 font-bold text-[10px] shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
                                                                             value={m.score2 ?? ""}
                                                                             onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                            className="flex-1 min-w-0 h-9 bg-rose-500/20 text-rose-200 rounded-lg text-center font-black border border-rose-500/40 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all placeholder:text-rose-400/50 text-base"
+                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/20 text-rose-200 rounded-lg text-center font-black border border-rose-500/40 focus:ring-1 focus:ring-rose-500 outline-none transition-all placeholder:text-rose-400/50 text-sm"
                                                                             placeholder="0"
                                                                         />
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleConfirmScore(m.id)}
-                                                                                className={`w-9 h-9 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
                                                                             >
-                                                                                <Check className="w-4 h-4" />
+                                                                                <Check className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         )}
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-9 bg-slate-800/50 text-blue-400 rounded-lg font-black text-base border border-blue-500/20">
+                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-slate-800/30 text-blue-400 rounded-lg font-black text-sm border border-blue-500/10">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-slate-500 font-bold text-xs shrink-0">vs</span>
-                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-9 bg-slate-800/50 text-rose-400 rounded-lg font-black text-base border border-rose-500/20">
+                                                                        <span className="text-slate-600 font-bold text-[10px] shrink-0">vs</span>
+                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-slate-800/30 text-rose-400 rounded-lg font-black text-sm border border-rose-500/10">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {m.confirmed && !readOnly && (
                                                                             <button
                                                                                 onClick={() => handleEditScore(m.id)}
-                                                                                className="w-9 h-9 shrink-0 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-90"
+                                                                                className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-90"
                                                                             >
-                                                                                <Settings className="w-4 h-4" />
+                                                                                <Settings className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         )}
                                                                     </>
                                                                 )}
                                                             </div>
 
-                                                            {/* Team 2 + edit */}
-                                                            <div className={`px-3 py-2.5 flex items-center justify-between border-l-4 border-rose-500 ${m.confirmed && m.score2! > m.score1! ? "bg-rose-500/10" : ""}`}>
-                                                                <span className={`text-xs font-bold uppercase tracking-tight truncate ${m.confirmed && m.score2! > m.score1! ? "text-rose-300 font-black" : "text-rose-400"}`}>
-                                                                    {m.team2.name}
-                                                                </span>
+                                                            {/* Team 2 */}
+                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-rose-500 ${m.confirmed && m.score2! > m.score1! ? "bg-rose-500/10" : ""}`}>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score2! > m.score1! ? "text-rose-300 font-black" : "text-rose-400"}`}>
+                                                                        {m.team2.name}
+                                                                    </span>
+                                                                </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-base font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>
                                                                 )}
                                                             </div>
-
                                                         </div>
                                                     ))}
                                                 </div>
@@ -681,7 +684,7 @@ export default function TournamentManager({
 
                             {/* ActionBar / Tournament finalization action */}
                             {!readOnly && (
-                                <div className="p-6 bg-blue-950 border border-blue-800 rounded-3xl max-w-2xl mx-auto relative overflow-hidden">
+                                <div className="p-8 bg-blue-950 border border-blue-800 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-blue-500/10">
                                     <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
                                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
                                         <div className="space-y-3">
@@ -769,8 +772,8 @@ export default function TournamentManager({
                                                                 bracket,
                                                             });
                                                             setSaving(false);
-                                                            alert("¡Torneo finalizado con éxito!");
-                                                            router.refresh();
+                                                            setShowSuccessModal(true);
+                                                            setTimeout(() => router.refresh(), 2000);
                                                         }}
                                                         disabled={saving}
                                                         className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 border border-emerald-500 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -918,17 +921,17 @@ export default function TournamentManager({
 
                             {/* DESKTOP: horizontal scroll bracket */}
                             <div className="hidden md:block overflow-x-auto pb-12 cursor-grab active:cursor-grabbing">
-                                <div className="inline-flex gap-12 min-w-full px-4">
+                                <div className="inline-flex gap-16 min-w-full px-4 py-8">
                                     {roundsArr.map((r, rIdx) => (
-                                        <div key={r} className="flex-shrink-0 w-72 space-y-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-blue-600/20">
+                                        <div key={r} className="flex-shrink-0 w-80 flex flex-col">
+                                            <div className="flex items-center gap-3 mb-8 px-2">
+                                                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-[11px] font-black text-white shadow-lg shadow-blue-600/20">
                                                     R{roundsArr.length - rIdx}
                                                 </div>
-                                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">{roundLabel(r)}</h3>
+                                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">{roundLabel(r)}</h3>
                                             </div>
 
-                                            <div className="space-y-6">
+                                            <div className="flex-1 flex flex-col justify-around min-h-[600px] gap-8">
                                                 {bracket.filter(m => m.round === r).map((m) => {
                                                     const isWinner1 = m.confirmed && m.winnerId === (m.team1 as any)?.id;
                                                     const isWinner2 = m.confirmed && m.winnerId === (m.team2 as any)?.id;
@@ -939,27 +942,29 @@ export default function TournamentManager({
                                                             }`}>
                                                             {/* Team 1 */}
                                                             <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-blue-500 ${isWinner1 ? "bg-blue-500/10" : "bg-slate-800/20"}`}>
-                                                                <span className={`text-xs font-black truncate uppercase tracking-tight ${isWinner1 ? "text-blue-300 font-black" : "text-blue-400"}`}>
-                                                                    {m.team1 ? slotName(m.team1) : "En espera..."}
-                                                                </span>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner1 ? "text-blue-300 font-black" : "text-blue-400"}`}>
+                                                                        {m.team1 ? slotName(m.team1) : "En espera..."}
+                                                                    </span>
+                                                                </div>
                                                                 {m.confirmed && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner1 ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>}
                                                             </div>
 
                                                             {/* Score or divider */}
-                                                            <div className="p-2.5 bg-muted border-y border-slate-700 flex items-center gap-2">
+                                                            <div className="p-2 bg-muted/50 border-y border-slate-700/50 flex items-center gap-2 px-3">
                                                                 {!m.confirmed && m.team1 && m.team2 && !isBye && !readOnly ? (
-                                                                    <>
+                                                                    <div className="flex items-center gap-2 w-full min-w-0">
                                                                         <input
                                                                             type="number"
-                                                                            className="flex-1 h-8 bg-blue-500/20 border border-blue-500/40 text-blue-100 rounded-lg text-center text-base font-black placeholder:text-blue-400/50 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/20 border border-blue-500/40 text-blue-100 rounded-lg text-center text-sm font-black placeholder:text-blue-400/50 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                             placeholder="0"
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                         />
-                                                                        <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
+                                                                        <span className="text-slate-500 text-[10px] font-bold shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
-                                                                            className="flex-1 h-8 bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-lg text-center text-base font-black placeholder:text-rose-400/50 focus:ring-1 focus:ring-rose-500 outline-none"
+                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-lg text-center text-sm font-black placeholder:text-rose-400/50 focus:ring-1 focus:ring-rose-500 outline-none"
                                                                             placeholder="0"
                                                                             value={m.score2 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
@@ -972,14 +977,14 @@ export default function TournamentManager({
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         )}
-                                                                    </>
+                                                                    </div>
                                                                 ) : m.confirmed && !isBye ? (
-                                                                    <>
-                                                                        <div className="flex-1 h-8 bg-slate-800/50 text-blue-400 rounded-lg flex items-center justify-center text-base font-black border border-blue-500/20">
+                                                                    <div className="flex items-center gap-2 w-full min-w-0">
+                                                                        <div className="flex-1 min-w-0 h-8 bg-slate-800/50 text-blue-400 rounded-lg flex items-center justify-center text-sm font-black border border-blue-500/20">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-slate-500 text-xs font-bold shrink-0">vs</span>
-                                                                        <div className="flex-1 h-8 bg-slate-800/50 text-rose-400 rounded-lg flex items-center justify-center text-base font-black border border-rose-500/20">
+                                                                        <span className="text-slate-500 text-[10px] font-bold shrink-0">vs</span>
+                                                                        <div className="flex-1 min-w-0 h-8 bg-slate-800/50 text-rose-400 rounded-lg flex items-center justify-center text-sm font-black border border-rose-500/20">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {!readOnly && (
@@ -990,17 +995,19 @@ export default function TournamentManager({
                                                                                 <Settings className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         )}
-                                                                    </>
+                                                                    </div>
                                                                 ) : (
-                                                                    <div className="w-full h-px bg-slate-700 my-1" />
+                                                                    <div className="w-full h-px bg-slate-700 flex-1 my-1" />
                                                                 )}
                                                             </div>
 
                                                             {/* Team 2 */}
                                                             <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : "bg-slate-800/20"}`}>
-                                                                <span className={`text-xs font-black truncate uppercase tracking-tight ${isWinner2 ? "text-rose-300 font-black" : "text-rose-400"}`}>
-                                                                    {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : "En espera..."}
-                                                                </span>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner2 ? "text-rose-300 font-black" : "text-rose-400"}`}>
+                                                                        {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : "En espera..."}
+                                                                    </span>
+                                                                </div>
                                                                 {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>}
                                                             </div>
 
@@ -1016,6 +1023,58 @@ export default function TournamentManager({
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Success Modal */}
+            <AnimatePresence>
+                {showSuccessModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowSuccessModal(false)}
+                            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-8 text-center shadow-2xl overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-rose-500" />
+
+                            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", damping: 12, delay: 0.2 }}
+                                >
+                                    <Trophy className="w-10 h-10 text-emerald-500" />
+                                </motion.div>
+                                <motion.div
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="absolute inset-0 rounded-full bg-emerald-500/5"
+                                />
+                            </div>
+
+                            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">
+                                ¡Torneo Finalizado!
+                            </h3>
+                            <p className="text-slate-400 text-sm font-bold mb-8">
+                                Los resultados han sido guardados y el campeón ha sido coronado con éxito.
+                            </p>
+
+                            <button
+                                onClick={() => setShowSuccessModal(false)}
+                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                            >
+                                Entendido
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -67,14 +67,14 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         const groupIdMap = new Map<string, string>();
 
         for (const g of input.groups) {
-            const [inserted] = await db
+            const [inserted] = (await db
                 .insert(tournamentGroups)
                 .values({
                     tournamentId: input.tournamentId,
                     name: g.name,
                     players: g.players,
                 })
-                .returning({ id: tournamentGroups.id });
+                .returning({ id: tournamentGroups.id })) as any[];
             groupIdMap.set(g.id, inserted.id);
         }
 
@@ -258,12 +258,12 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
         const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (!user) throw new Error("User not found");
 
-        const [newReg] = await db.insert(registrations).values({
+        const [newReg] = (await db.insert(registrations).values({
             tournamentId,
             userId,
             category: category || user.category || "5ta",
             status: "confirmed"
-        }).returning();
+        }).returning()) as any[];
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
 
