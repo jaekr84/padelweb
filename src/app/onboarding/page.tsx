@@ -97,7 +97,7 @@ function OnboardingForm() {
     };
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white flex items-center justify-center p-4 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-blue-500/30 relative overflow-hidden">
             {/* Ambient Base Layer */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -110,7 +110,7 @@ function OnboardingForm() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="w-full max-w-2xl relative z-10"
             >
-                <div className="bg-[#0f111a]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+                <div className="bg-[#0f111a]/80 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
 
                     <div className="text-center mb-10">
                         <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-6">
@@ -161,12 +161,12 @@ function OnboardingForm() {
                                         onClick={() => setRole(r.id)}
                                         className={`group relative flex flex-col items-start p-6 rounded-3xl text-left transition-all duration-300 ${isSelected
                                             ? r.active
-                                            : `bg-white/5 border border-white/10 hover:bg-white/10 hover:-translate-y-1`
+                                            : `bg-card border border-border hover:bg-white/10 hover:-translate-y-1`
                                             }`}
                                     >
                                         <div className={`p-3 rounded-2xl mb-4 transition-colors ${isSelected
                                             ? "bg-white/20 text-white"
-                                            : `bg-white/5 ${r.iconColor} group-hover:scale-110 transition-transform`
+                                            : `bg-card ${r.iconColor} group-hover:scale-110 transition-transform`
                                             }`}>
                                             <Icon className="w-6 h-6" />
                                         </div>
@@ -190,7 +190,7 @@ function OnboardingForm() {
                             })}
                         </div>
 
-                        <div className="pt-4 mt-4 border-t border-white/5 flex justify-end">
+                        <div className="pt-4 mt-4 border-t border-border/50 flex justify-end">
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -220,7 +220,7 @@ function OnboardingForm() {
 export default function OnboardingPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#090A0F] flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             </div>
         }>

@@ -393,10 +393,10 @@ export default function TournamentManager({
         : null;
 
     return (
-        <div className="min-h-screen bg-[#090A0F] overflow-x-hidden">
+        <div className="min-h-screen bg-background overflow-x-hidden">
 
             {/* ── Sticky Header — full viewport width ── */}
-            <header className="sticky top-0 bg-[#090A0F] border-b border-slate-800 z-[60]">
+            <header className="sticky top-0 bg-background border-b border-border z-[60]">
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     {/* Top row: back + status */}
                     <div className="flex items-center justify-between gap-3 mb-3">
@@ -412,7 +412,7 @@ export default function TournamentManager({
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
-                                    className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
+                                    className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
                                 >
                                     <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-400" : ""}`} />
                                     Actualizar
@@ -431,7 +431,7 @@ export default function TournamentManager({
                     </h1>
 
                     {/* Tab Navigation */}
-                    <div className="flex p-1 bg-slate-800 border border-slate-700 rounded-xl max-w-xs mx-auto">
+                    <div className="flex p-1 bg-muted border border-slate-700 rounded-xl max-w-xs mx-auto">
                         <button
                             onClick={() => setStep("done")}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
@@ -538,7 +538,7 @@ export default function TournamentManager({
                                     <span>Progreso Fase de Grupos</span>
                                     <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
                                 </div>
-                                <div className="h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div className="h-2 bg-muted rounded-full overflow-hidden border border-slate-700">
                                     <motion.div
                                         className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
                                         initial={{ width: 0 }}
@@ -557,7 +557,7 @@ export default function TournamentManager({
                                         <div key={g.id} className="space-y-6">
                                             {/* Standings table */}
                                             <div className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-xl">
-                                                <div className="bg-slate-800 px-6 py-5 border-b border-slate-700 flex items-center justify-between">
+                                                <div className="bg-muted px-6 py-5 border-b border-slate-700 flex items-center justify-between">
                                                     <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Posiciones</span>
                                                 </div>
@@ -572,14 +572,16 @@ export default function TournamentManager({
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-800">
-                                                            {standings.map((s, idx) => (
-                                                                <tr key={s.playerId} className="hover:bg-slate-800/50 transition-colors">
-                                                                    <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
-                                                                    <td className="py-3 font-bold text-sm text-white tracking-tight">{s.player.name}</td>
-                                                                    <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
-                                                                    <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
-                                                                </tr>
-                                                            ))}
+                                                            {standings.map((s, idx) => {
+                                                                return (
+                                                                    <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
+                                                                        <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
+                                                                        <td className="py-3 font-bold text-sm tracking-tight text-white">{s.player.name}</td>
+                                                                        <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
+                                                                        <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                    </tr>
+                                                                );
+                                                            })}
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -609,7 +611,7 @@ export default function TournamentManager({
 
                                                             {/* Score row or divider */}
                                                             {!m.confirmed ? (
-                                                                <div className="px-3 py-2 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
+                                                                <div className="px-3 py-2 bg-muted border-y border-slate-700 flex items-center gap-2">
                                                                     {!readOnly ? (
                                                                         <>
                                                                             <input
@@ -644,7 +646,7 @@ export default function TournamentManager({
                                                                     {m.played && !readOnly && (
                                                                         <button
                                                                             onClick={() => handleConfirmScore(m.id)}
-                                                                            className="w-9 h-9 shrink-0 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all active:scale-90"
+                                                                            className="w-9 h-9 shrink-0 rounded-lg bg-blue-600 text-foreground flex items-center justify-center hover:bg-blue-500 transition-all active:scale-90"
                                                                         >
                                                                             <Check className="w-4 h-4" />
                                                                         </button>
@@ -667,7 +669,7 @@ export default function TournamentManager({
                                                             {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleEditScore(m.id)}
-                                                                    className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-slate-800 border-t border-slate-800 transition-all flex items-center justify-center gap-1"
+                                                                    className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-muted border-t border-border transition-all flex items-center justify-center gap-1"
                                                                 >
                                                                     <Settings className="w-2.5 h-2.5" /> Editar
                                                                 </button>
@@ -689,7 +691,7 @@ export default function TournamentManager({
                                         <div className="space-y-3">
                                             <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Fase de Grupos</h2>
                                             <div className="flex items-center gap-3 justify-center md:justify-start">
-                                                <div className="px-4 py-2.5 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-3">
+                                                <div className="px-4 py-2.5 bg-muted rounded-xl border border-slate-700 flex items-center gap-3">
                                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clasifican:</p>
                                                     <div className="flex items-center gap-2">
                                                         <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
@@ -794,7 +796,7 @@ export default function TournamentManager({
 
                                             {/* Torneo ya finalizado — estado de lectura */}
                                             {initialStatus === "finalizado" && (
-                                                <div className="w-full py-3 bg-slate-800 border border-slate-700 rounded-2xl text-slate-400 text-[10px] font-black uppercase tracking-widest text-center">
+                                                <div className="w-full py-3 bg-muted border border-slate-700 rounded-2xl text-slate-400 text-[10px] font-black uppercase tracking-widest text-center">
                                                     Torneo Finalizado
                                                 </div>
                                             )}
@@ -849,7 +851,7 @@ export default function TournamentManager({
 
                                                             {/* Score input or divider */}
                                                             {canPlay ? (
-                                                                <div className="px-3 py-2 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
+                                                                <div className="px-3 py-2 bg-muted border-y border-slate-700 flex items-center gap-2">
                                                                     {!readOnly ? (
                                                                         <>
                                                                             <input
@@ -908,7 +910,7 @@ export default function TournamentManager({
                                                             {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleBracketEdit(m.id)}
-                                                                    className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-300 hover:bg-slate-800 border-t border-slate-700 transition-all flex items-center justify-center gap-1.5"
+                                                                    className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-300 hover:bg-muted border-t border-slate-700 transition-all flex items-center justify-center gap-1.5"
                                                                 >
                                                                     <Settings className="w-3 h-3" />
                                                                     Editar resultado
@@ -954,7 +956,7 @@ export default function TournamentManager({
 
                                                             {/* Score or divider */}
                                                             {!m.confirmed && m.team1 && m.team2 && !isBye ? (
-                                                                <div className="p-2.5 bg-slate-800 border-y border-slate-700 flex items-center gap-2">
+                                                                <div className="p-2.5 bg-muted border-y border-slate-700 flex items-center gap-2">
                                                                     {!readOnly ? (
                                                                         <>
                                                                             <input
@@ -1008,7 +1010,7 @@ export default function TournamentManager({
                                                             {m.confirmed && !readOnly && (
                                                                 <button
                                                                     onClick={() => handleBracketEdit(m.id)}
-                                                                    className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-slate-800 border-t border-slate-800 transition-all"
+                                                                    className="w-full py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:bg-muted border-t border-border transition-all"
                                                                 >
                                                                     Editar
                                                                 </button>

@@ -41,8 +41,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
-            forcedTheme="dark"
-            enableSystem={false}
+            enableSystem={true}
             disableTransitionOnChange
           >
             <script

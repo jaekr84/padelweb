@@ -37,7 +37,7 @@ export default function RankingClient({ users, tournamentCounts }: RankingClient
     }, [users]);
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white pb-24 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
             {/* Ambient glow */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
                 <div className="absolute top-[-20%] left-[-10%] w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -47,13 +47,13 @@ export default function RankingClient({ users, tournamentCounts }: RankingClient
 
                 {/* ── Header ── */}
                 <div className="mb-8">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">
                         Clasificación Oficial
                     </p>
-                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-white flex items-center gap-3">
+                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground flex items-center gap-3">
                         Ranking General
                     </h1>
-                    <p className="text-slate-500 text-sm font-medium mt-1">
+                    <p className="text-muted-foreground text-sm font-medium mt-1">
                         Las mejores posiciones en la red
                     </p>
                 </div>
@@ -73,66 +73,62 @@ export default function RankingClient({ users, tournamentCounts }: RankingClient
                             return (
                                 <div
                                     key={player.id}
-                                    className={`group block bg-slate-900 border rounded-3xl overflow-hidden transition-all duration-300 hover:border-slate-700 ${isFirst ? "border-amber-500/50 hover:border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]" :
-                                        isSecond ? "border-slate-400/50 hover:border-slate-400" :
-                                            isThird ? "border-amber-700/50 hover:border-amber-700" :
-                                                "border-slate-800"
-                                        }`}
+                                    className="group block bg-card border border-border rounded-3xl overflow-hidden transition-all duration-300 hover:border-indigo-500/30 shadow-sm"
                                 >
-                                    <div className={`p-4 flex items-center gap-4 ${isFirst ? "bg-amber-950/10" : isSecond ? "bg-slate-800/20" : isThird ? "bg-amber-950/5" : ""}`}>
+                                    <div className="p-4 flex items-center gap-4">
 
                                         {/* Posición */}
                                         <div className="w-8 flex items-center justify-center shrink-0">
                                             {isFirst ? (
-                                                <Crown className="w-7 h-7 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                                                <Crown className="w-6 h-6 text-yellow-500 dark:text-yellow-400/90 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
                                             ) : isSecond ? (
-                                                <Medal className="w-6 h-6 text-slate-300 drop-shadow-[0_0_8px_rgba(203,213,225,0.4)]" />
+                                                <Medal className="w-6 h-6 text-slate-400 dark:text-slate-300/90 drop-shadow-[0_0_10px_rgba(148,163,184,0.2)]" />
                                             ) : isThird ? (
-                                                <Medal className="w-6 h-6 text-amber-700 drop-shadow-[0_0_8px_rgba(180,83,9,0.4)]" />
+                                                <Medal className="w-6 h-6 text-orange-600 dark:text-orange-400/80 drop-shadow-[0_0_10px_rgba(194,120,57,0.2)]" />
                                             ) : (
-                                                <span className="text-xl font-black text-slate-600 italic">{index + 1}</span>
+                                                <span className="text-xl font-black text-muted-foreground italic opacity-40">{index + 1}</span>
                                             )}
                                         </div>
 
                                         {/* Avatar */}
-                                        <div className="w-12 h-12 shrink-0 bg-slate-800 border border-slate-700 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner text-slate-300 uppercase">
+                                        <div className="w-12 h-12 shrink-0 bg-muted border border-border rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner text-muted-foreground uppercase">
                                             {getAvatarPlaceholder(player.name)}
                                         </div>
 
                                         {/* Jugador Info */}
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <h3 className={`text-base font-black uppercase italic tracking-tight truncate ${isFirst ? "text-amber-400" : isSecond ? "text-slate-200" : isThird ? "text-amber-600" : "text-white"}`}>
+                                                <h3 className="text-base font-black uppercase italic tracking-tight truncate text-foreground group-hover:text-indigo-500 transition-colors">
                                                     {player.name || "Jugador"}
                                                 </h3>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 truncate">
+                                            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground truncate opacity-80">
                                                 <span className="truncate">@{getUserHandle(player.email)}</span>
                                             </div>
                                         </div>
 
                                         {/* Stats */}
-                                        <div className="flex flex-col items-end justify-center shrink-0 pl-3 border-l border-slate-800">
-                                            <div className={`text-lg font-black tracking-tighter ${isTop3 ? "text-white" : "text-slate-300"}`}>
+                                        <div className="flex flex-col items-end justify-center shrink-0 pl-3 border-l border-border">
+                                            <div className={`text-lg font-black tracking-tighter ${isTop3 ? "text-foreground" : "text-muted-foreground"}`}>
                                                 {points.toLocaleString()}
                                             </div>
-                                            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                            <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
                                                 Pts
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Footer meta info */}
-                                    <div className="px-4 py-2 border-t border-slate-800/50 bg-slate-900/50 flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                                    <div className="px-4 py-2 border-t border-border/50 bg-muted/30 flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold">
                                             {player.category && (
-                                                <span className="flex items-center gap-1 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-slate-300">
-                                                    <Shield className="w-3 h-3 text-blue-400" />
+                                                <span className="flex items-center gap-1 bg-muted border border-border px-2 py-0.5 rounded-full text-muted-foreground">
+                                                    <Shield className="w-3 h-3 text-indigo-500 dark:text-blue-400" />
                                                     {player.category}
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-500 tracking-wide">
+                                        <span className="text-[10px] font-bold text-muted-foreground tracking-wide opacity-80">
                                             {tournamentsPlayed} Torneo{tournamentsPlayed !== 1 ? 's' : ''} jugado{tournamentsPlayed !== 1 ? 's' : ''}
                                         </span>
                                     </div>
@@ -141,11 +137,11 @@ export default function RankingClient({ users, tournamentCounts }: RankingClient
                         })
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mb-4">
-                                <Trophy className="w-6 h-6 text-slate-600" />
+                            <div className="w-14 h-14 bg-card border border-border rounded-3xl flex items-center justify-center mb-4">
+                                <Trophy className="w-6 h-6 text-muted-foreground opacity-30" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-300 mb-1">Sin jugadores</h3>
-                            <p className="text-slate-500 text-xs font-bold max-w-xs">Aún no hay puntos registrados en esta plataforma.</p>
+                            <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-1">Sin jugadores</h3>
+                            <p className="text-muted-foreground opacity-60 text-xs font-bold max-w-xs">Aún no hay puntos registrados en esta plataforma.</p>
                         </div>
                     )}
                 </div>

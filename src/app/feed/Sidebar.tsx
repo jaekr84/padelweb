@@ -5,6 +5,7 @@ import { UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { Home, Trophy, User, Star, FolderOpen, Search, Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -89,12 +90,13 @@ export default function Sidebar() {
     return (
         <>
             {/* MOBILE TOP HEADER */}
-            <header className="md:hidden fixed top-0 w-full z-50 bg-white/80 dark:bg-[#090A0F]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5 flex items-center justify-between px-5 h-16">
+            <header className="md:hidden fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-5 h-16">
                 <Link href="/home" className="flex items-center gap-2 group">
-                    <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10" />
-                    <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">A.C.A.P.</span>
+                    <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 rounded-full border border-border" />
+                    <span className="text-lg font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
+                    <ThemeToggle />
                     <UserButton
                         showName={false}
                         appearance={{
@@ -116,13 +118,14 @@ export default function Sidebar() {
             </header>
 
             {/* DESKTOP SIDEBAR */}
-            <aside className="hidden md:flex w-64 border-r border-slate-200/80 dark:border-white/5 bg-slate-50/50 dark:bg-[#090A0F]/50 flex-col h-screen sticky top-0 z-50">
-                <div className="p-6 flex flex-col gap-6 border-b border-slate-200/80 dark:border-white/5">
+            <aside className="hidden md:flex w-64 border-r border-border bg-background dark:bg-slate-950 flex-col h-screen sticky top-0 z-50">
+                <div className="p-6 flex flex-col gap-6 border-b border-border">
                     <div className="flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-3 group">
-                            <img src="/img/stickers 1.jpg" alt="ACAP" className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10" />
-                            <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-500 transition-colors">ACAP</span>
+                            <img src="/img/stickers 1.jpg" alt="ACAP" className="w-10 h-10 rounded-full border border-border" />
+                            <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">ACAP</span>
                         </Link>
+                        <ThemeToggle />
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
@@ -130,8 +133,8 @@ export default function Sidebar() {
                             showName={true}
                             appearance={{
                                 elements: {
-                                    userButtonBox: "hover:bg-slate-200/50 dark:hover:bg-white/5 p-1.5 -ml-1.5 rounded-xl transition-colors",
-                                    userButtonOuterIdentifier: "text-slate-700 dark:text-slate-300 font-medium text-sm",
+                                    userButtonBox: "hover:bg-muted p-1.5 -ml-1.5 rounded-xl transition-colors",
+                                    userButtonOuterIdentifier: "text-foreground font-medium text-sm",
                                 },
                             }}
                         >
@@ -145,9 +148,9 @@ export default function Sidebar() {
                         </UserButton>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-white dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 text-sm focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm">
-                        <Search className="w-4 h-4 text-slate-400" />
-                        <input type="text" placeholder="Buscar jugadores..." className="bg-transparent border-none outline-none w-full text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium" />
+                    <div className="flex items-center gap-3 bg-card px-4 py-2.5 rounded-2xl border border-border text-sm focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-sm">
+                        <Search className="w-4 h-4 text-muted-foreground" />
+                        <input type="text" placeholder="Buscar jugadores..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
                     </div>
                 </div>
 
@@ -156,15 +159,15 @@ export default function Sidebar() {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-100'}`}>
+                            <Link key={item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
                                 <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
                                 <span>{item.label}</span>
                             </Link>
                         );
                     })}
                 </nav>
-                <div className="p-5 border-t border-slate-200/80 dark:border-white/5">
-                    <button className="flex items-center justify-center gap-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-white/10 active:scale-[0.98] transition-all hover:opacity-90">
+                <div className="p-5 border-t border-border">
+                    <button className="flex items-center justify-center gap-2 w-full bg-foreground text-background font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/10 active:scale-[0.98] transition-all hover:opacity-90">
                         <Plus className="w-5 h-5" />
                         Nuevo Post
                     </button>
@@ -172,7 +175,7 @@ export default function Sidebar() {
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}
-            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-white/90 dark:bg-[#090A0F]/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/5 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
+            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-background/90 backdrop-blur-xl border-t border-border pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
                 <div className="flex items-center justify-around px-2 py-2">
                     {navItems.slice(0, 5).map((item) => {
                         const Icon = item.icon;
@@ -180,12 +183,12 @@ export default function Sidebar() {
                         return (
                             <Link key={item.label} href={item.href} className="flex flex-col items-center gap-1 p-2 min-w-[64px] rounded-xl relative">
                                 {isActive && (
-                                    <div className="absolute top-0 w-8 h-1 bg-blue-600 rounded-b-full shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
+                                    <div className="absolute top-0 w-8 h-1 bg-indigo-600 rounded-b-full shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
                                 )}
-                                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-indigo-600/10 text-indigo-600' : 'text-muted-foreground'}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-indigo-600' : 'text-muted-foreground'}`}>
                                     {item.label.split(' ')[0]} {/* Shorten label for mobile if needed */}
                                 </span>
                             </Link>

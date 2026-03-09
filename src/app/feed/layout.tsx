@@ -7,7 +7,7 @@ import Sidebar from "./Sidebar";
 // __padel_role cookie (set server-side) inside Sidebar.
 export default function FeedLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-[#090A0F] text-slate-900 dark:text-slate-200">
+        <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-background text-foreground">
             <Sidebar />
 
             {/* 

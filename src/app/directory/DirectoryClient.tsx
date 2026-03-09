@@ -49,7 +49,7 @@ interface DirectoryClientProps {
 // ── Sub-components ─────────────────────────────────────────────────────────────
 function VerifiedBadge() {
     return (
-        <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-950 border border-blue-800 px-2 py-0.5 rounded-full w-fit">
+        <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 dark:bg-blue-950 dark:border-blue-800 px-2 py-0.5 rounded-full w-fit">
             <CheckCircle2 className="w-3 h-3" />
             Verificado
         </div>
@@ -77,10 +77,10 @@ function Avatar({ url, emoji, name }: { url: string | null; emoji: string; name:
 function EmptyState({ label }: { label: string }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mb-4">
-                <Search className="w-6 h-6 text-slate-600" />
+            <div className="w-14 h-14 bg-card border border-border rounded-3xl flex items-center justify-center mb-4">
+                <Search className="w-6 h-6 text-muted-foreground opacity-30" />
             </div>
-            <p className="text-slate-500 text-sm font-bold">No hay {label} aún</p>
+            <p className="text-muted-foreground text-sm font-bold opacity-60">No hay {label} aún</p>
         </div>
     );
 }
@@ -117,7 +117,7 @@ export default function DirectoryClient({
     const isEmpty = currentList.length === 0;
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white pb-24 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
 
             {/* Ambient glow */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
@@ -129,11 +129,11 @@ export default function DirectoryClient({
 
                 {/* ── Header ── */}
                 <div className="mb-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">Red Padel</p>
-                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-white">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">Red Padel</p>
+                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
                         Directorio
                     </h1>
-                    <p className="text-slate-500 text-sm font-medium mt-1">
+                    <p className="text-muted-foreground text-sm font-medium mt-1">
                         Clubes, centros y profesores de toda la red
                     </p>
                 </div>
@@ -141,12 +141,12 @@ export default function DirectoryClient({
                 {/* ── Search ── */}
                 <div className="relative mb-5">
                     <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
-                        <Search className="h-4 w-4 text-slate-500" />
+                        <Search className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <input
                         type="text"
                         inputMode="search"
-                        className="w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-base text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-700 transition-all"
+                        className="w-full pl-10 pr-10 py-3 bg-card border border-border rounded-2xl text-base text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-700 transition-all shadow-inner"
                         placeholder={`Buscar ${tab === "centros" ? "centros" : tab === "clubes" ? "clubes" : "profesores"}...`}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
@@ -154,7 +154,7 @@ export default function DirectoryClient({
                     {search && (
                         <button
                             onClick={() => setSearch("")}
-                            className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                            className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <XCircle className="h-4 w-4" />
                         </button>
@@ -171,12 +171,12 @@ export default function DirectoryClient({
                                 onClick={() => { setTab(t.key); setSearch(""); }}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${isActive
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                                    : "bg-card border border-border text-muted-foreground hover:border-blue-500/30 hover:text-foreground"
                                     }`}
                             >
                                 {t.icon}
                                 {t.label}
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-slate-800"}`}>
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
                                     {t.count}
                                 </span>
                             </button>
@@ -197,31 +197,31 @@ export default function DirectoryClient({
                         {/* CLUBES */}
                         {tab === "clubes" && filteredClubs.map(club => (
                             <Link key={club.id} href={`/profiles/club?id=${club.id}`} className="group block">
-                                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden transition-all hover:border-slate-700 active:scale-[0.99]">
+                                <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
                                     <div className="p-4 flex items-center gap-4">
                                         {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex items-center justify-center">
+                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
                                             <Avatar url={club.logoUrl} emoji="🏟️" name={club.name} />
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white truncate group-hover:text-blue-300 transition-colors">
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground truncate group-hover:text-blue-500 transition-colors">
                                                     {club.name}
                                                 </h3>
                                                 <StarRating rating={club.rating} />
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 mb-2">
+                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-2">
                                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                                 <span className="truncate">{club.location || "Sin ubicación"}</span>
                                             </div>
                                             <div className="flex flex-wrap gap-1.5">
-                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full">
+                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">
                                                     <Building2 className="w-2.5 h-2.5" /> Club
                                                 </span>
                                                 {club.amenities?.slice(0, 2).map(a => (
-                                                    <span key={a} className="text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-950 border border-emerald-900 px-2 py-0.5 rounded-full">
+                                                    <span key={a} className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900 px-2 py-0.5 rounded-full">
                                                         {a}
                                                     </span>
                                                 ))}
@@ -243,7 +243,7 @@ export default function DirectoryClient({
                                                 <MessageCircle className="w-5 h-5 font-bold" />
                                             </button>
                                         )}
-                                        <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
+                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
                             </Link>
@@ -252,31 +252,31 @@ export default function DirectoryClient({
                         {/* CENTROS */}
                         {tab === "centros" && filteredCentros.map(centro => (
                             <Link key={centro.id} href={`/profiles/centro?id=${centro.id}`} className="group block">
-                                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden transition-all hover:border-slate-700 active:scale-[0.99]">
+                                <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
                                     <div className="p-4 flex items-center gap-4">
                                         {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex items-center justify-center">
+                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
                                             <Avatar url={centro.logoUrl} emoji="🎾" name={centro.name} />
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white truncate group-hover:text-blue-300 transition-colors">
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground truncate group-hover:text-blue-500 transition-colors">
                                                     {centro.name}
                                                 </h3>
                                                 <StarRating rating={centro.rating} />
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 mb-2">
+                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-2">
                                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                                 <span className="truncate">{centro.location || "Sin ubicación"}</span>
                                             </div>
                                             <div className="flex flex-wrap gap-1.5">
-                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full">
+                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">
                                                     <Layers className="w-2.5 h-2.5" /> {centro.courts || 0} canchas
                                                 </span>
                                                 {centro.surfaces?.slice(0, 2).map(s => (
-                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-purple-400 bg-purple-950 border border-purple-900 px-2 py-0.5 rounded-full">
+                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-500/10 border border-purple-500/20 dark:bg-purple-950 dark:border-purple-900 px-2 py-0.5 rounded-full">
                                                         {s}
                                                     </span>
                                                 ))}
@@ -298,7 +298,7 @@ export default function DirectoryClient({
                                                 <MessageCircle className="w-5 h-5 font-bold" />
                                             </button>
                                         )}
-                                        <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
+                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
                             </Link>
@@ -307,30 +307,30 @@ export default function DirectoryClient({
                         {/* PROFES */}
                         {tab === "profes" && filteredProfes.map(profe => (
                             <Link key={profe.id} href={`/profiles/profe?id=${profe.id}`} className="group block">
-                                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden transition-all hover:border-slate-700 active:scale-[0.99]">
+                                <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
                                     <div className="p-4 flex items-center gap-4">
                                         {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex items-center justify-center">
+                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
                                             <Avatar url={profe.avatarUrl} emoji="🎓" name={profe.name} />
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white truncate group-hover:text-blue-300 transition-colors">
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground truncate group-hover:text-blue-500 transition-colors">
                                                     {profe.name}
                                                 </h3>
                                                 <StarRating rating={profe.rating} />
                                             </div>
                                             <div className="flex items-center gap-x-3 gap-y-1 flex-wrap mb-2">
                                                 {profe.location && (
-                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
                                                         <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                                         <span className="truncate">{profe.location}</span>
                                                     </div>
                                                 )}
                                                 {profe.level && (
-                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
                                                         <GraduationCap className="w-3 h-3 text-amber-500 shrink-0" />
                                                         {profe.level}
                                                     </div>
@@ -338,7 +338,7 @@ export default function DirectoryClient({
                                             </div>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {profe.specialities?.slice(0, 3).map(s => (
-                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-amber-400 bg-amber-950 border border-amber-900 px-2 py-0.5 rounded-full">
+                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 dark:bg-amber-950 dark:border-amber-900 px-2 py-0.5 rounded-full">
                                                         {s}
                                                     </span>
                                                 ))}
@@ -360,7 +360,7 @@ export default function DirectoryClient({
                                                 <MessageCircle className="w-5 h-5 font-bold" />
                                             </button>
                                         )}
-                                        <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
+                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
                             </Link>

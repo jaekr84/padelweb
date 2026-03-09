@@ -13,19 +13,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     }
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white font-sans flex flex-col md:flex-row">
+        <div className="min-h-screen bg-background text-white font-sans flex flex-col md:flex-row">
             {/* Sidebar */}
-            <aside className="w-full md:w-64 bg-slate-900 border-r border-white/5 flex flex-col md:min-h-screen p-6 gap-6">
+            <aside className="w-full md:w-64 bg-slate-900 border-r border-border/50 flex flex-col md:min-h-screen p-6 gap-6">
                 <div className="flex items-center gap-3 mb-4">
                     <ShieldCheck className="w-8 h-8 text-indigo-500" />
                     <h2 className="text-xl font-black uppercase tracking-widest italic">Superadmin</h2>
                 </div>
 
                 <nav className="flex flex-col gap-2">
-                    <Link href="/admin" className="px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-sm font-bold uppercase tracking-wider text-slate-300">
+                    <Link href="/admin" className="px-4 py-3 rounded-xl hover:bg-card transition-colors text-sm font-bold uppercase tracking-wider text-slate-300">
                         Dashboard
                     </Link>
-                    <Link href="/admin/invitations" className="px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <Link href="/admin/invitations" className="px-4 py-3 rounded-xl hover:bg-card transition-colors text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
                         <Users className="w-4 h-4" /> Invitaciones
                     </Link>
                 </nav>

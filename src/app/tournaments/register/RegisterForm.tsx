@@ -111,7 +111,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
 
     /* ────────────────────────────────────── */
     return (
-        <div className="min-h-screen bg-[#090A0F] overflow-x-hidden">
+        <div className="min-h-screen bg-background overflow-x-hidden">
 
             {/* ── Ambient glow ── */}
             <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-blue-600/8 to-transparent pointer-events-none z-0" />
@@ -138,7 +138,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                     <div className="mb-8">
                         {/* Progress track */}
                         <div className="relative flex items-center justify-between">
-                            <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-slate-800">
+                            <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-muted">
                                 <div
                                     className="absolute top-0 bottom-0 left-0 bg-blue-600 transition-all duration-500"
                                     style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
@@ -176,9 +176,9 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                     <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300">
 
                         {/* Tournament card */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl mb-6">
+                        <div className="bg-slate-900 border border-border rounded-3xl overflow-hidden shadow-2xl mb-6">
                             {/* Banner image */}
-                            <div className="relative h-44 w-full bg-slate-800 flex items-end">
+                            <div className="relative h-44 w-full bg-muted flex items-end">
                                 {tournament.imageUrl ? (
                                     <>
                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent z-10" />
@@ -201,14 +201,14 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                             {/* Info pills */}
                             <div className="p-4 space-y-3">
                                 {tournament.description && (
-                                    <p className="text-slate-400 text-sm leading-relaxed border-b border-slate-800 pb-3">
+                                    <p className="text-slate-400 text-sm leading-relaxed border-b border-border pb-3">
                                         {tournament.description}
                                     </p>
                                 )}
 
                                 <div className="grid grid-cols-2 gap-2">
                                     {tournament.startDate && (
-                                        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
+                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
                                             <div className="w-8 h-8 rounded-xl bg-blue-950 border border-blue-800 flex items-center justify-center shrink-0">
                                                 <Calendar className="w-4 h-4 text-blue-400" />
                                             </div>
@@ -222,7 +222,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                         </div>
                                     )}
                                     {tournament.surface && (
-                                        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
+                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
                                             <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center shrink-0">
                                                 <MapPin className="w-4 h-4 text-emerald-400" />
                                             </div>
@@ -232,7 +232,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             </div>
                                         </div>
                                     )}
-                                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
+                                    <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
                                         <div className="w-8 h-8 rounded-xl bg-purple-950 border border-purple-800 flex items-center justify-center shrink-0">
                                             {isIndividual ? <User className="w-4 h-4 text-purple-400" /> : <Users className="w-4 h-4 text-purple-400" />}
                                         </div>
@@ -242,7 +242,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                         </div>
                                     </div>
                                     {tournament.modalidad?.genero && (
-                                        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
+                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
                                             <div className="w-8 h-8 rounded-xl bg-amber-950 border border-amber-800 flex items-center justify-center shrink-0">
                                                 <Info className="w-4 h-4 text-amber-400" />
                                             </div>
@@ -260,7 +260,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
 
                         {/* Category selector */}
                         {hasCategories && (
-                            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 mb-4">
+                            <div className="bg-slate-900 border border-border rounded-3xl p-4 mb-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Seleccioná tu categoría</p>
                                 <div className="grid grid-cols-3 gap-2">
                                     {cats.map((cat) => (
@@ -269,7 +269,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             onClick={() => setCategory(cat)}
                                             className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
                                                     ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20"
-                                                    : "bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                                                    : "bg-muted border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
                                                 }`}
                                         >
                                             {cat}
@@ -321,7 +321,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
 
                         {/* Divider */}
                         <div className="flex items-center justify-center">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-muted border border-slate-700 flex items-center justify-center">
                                 <UserPlus className="w-4 h-4 text-slate-500" />
                             </div>
                         </div>
@@ -331,7 +331,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                             <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2 pl-1">Jugador 2 · Compañero/a</p>
                             <div className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden">
                                 {/* Mode toggle */}
-                                <div className="flex m-3 mb-0 bg-slate-800 rounded-xl p-1 relative">
+                                <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
                                     <button
                                         onClick={() => switchMode("search")}
                                         className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
@@ -355,7 +355,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                         <div className="relative animate-in fade-in duration-200">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
-                                                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                                                className="w-full bg-muted border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
                                                 placeholder="Nombre del invitado..."
                                                 value={guestName}
                                                 onChange={(e) => setGuestName(e.target.value)}
@@ -369,7 +369,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                         <div className="relative animate-in fade-in duration-200">
                                             <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" />
                                             <input
-                                                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                                                className="w-full bg-muted border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
                                                 placeholder="Buscar jugador registrado..."
                                                 value={search}
                                                 onChange={(e) => { setSearch(e.target.value); setPartnerName(""); }}
@@ -395,7 +395,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             )}
 
                                             {focused && !partnerName && search.trim() && (
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-2xl z-20">
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-muted border border-slate-700 rounded-xl p-2 shadow-2xl z-20">
                                                     {search.trim().length < 2 ? (
                                                         <p className="text-center py-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest">Mínimo 2 caracteres</p>
                                                     ) : (
@@ -422,7 +422,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white transition-all"
+                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-muted hover:text-white transition-all"
                             >
                                 Volver
                             </button>
@@ -452,9 +452,9 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         </div>
 
                         {/* Summary card */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+                        <div className="bg-slate-900 border border-border rounded-3xl overflow-hidden">
                             {/* Torneo header */}
-                            <div className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+                            <div className="bg-muted border-b border-slate-700 px-4 py-3 flex items-center justify-between">
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Torneo</p>
                                 <p className="text-sm font-black text-white">{tournament.name}</p>
                             </div>
@@ -471,9 +471,9 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                     <span className="text-xs font-bold text-slate-300">{isIndividual ? "Individual" : "En Pareja"}</span>
                                 </div>
 
-                                <div className="border-t border-slate-800 pt-3 space-y-2">
+                                <div className="border-t border-border pt-3 space-y-2">
                                     {/* Player 1 */}
-                                    <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
+                                    <div className="bg-muted border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
                                         <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
                                         <div className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-[10px] font-black text-slate-400 ml-1.5">1</div>
                                         <span className="font-bold text-white text-sm truncate">{currentUser.name}</span>
@@ -481,7 +481,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
 
                                     {/* Player 2 */}
                                     {!isIndividual && (
-                                        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
+                                        <div className="bg-muted border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
                                             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
                                             <div className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-[10px] font-black text-slate-400 ml-1.5">2</div>
                                             <span className="font-bold text-white text-sm truncate flex items-center gap-2 flex-1 min-w-0">
@@ -504,7 +504,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         )}
 
                         {/* Términos */}
-                        <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700 transition-colors">
+                        <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-900 border border-border cursor-pointer hover:border-slate-700 transition-colors">
                             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-blue-600 border-blue-600 text-white" : "border-slate-600 text-transparent"
                                 }`}>
                                 <Check className="w-3 h-3" strokeWidth={3} />
@@ -519,7 +519,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         <div className="flex gap-3">
                             <button
                                 onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white transition-all"
+                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-muted hover:text-white transition-all"
                             >
                                 Volver
                             </button>
@@ -569,7 +569,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         </p>
 
                         {/* Next steps */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 w-full text-left mb-8">
+                        <div className="bg-slate-900 border border-border rounded-2xl p-4 w-full text-left mb-8">
                             <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2">Próximos pasos</p>
                             <p className="text-sm text-slate-400 leading-relaxed">
                                 Asegurate de abonar la inscripción antes del cierre. Las llaves se generarán automáticamente.
@@ -579,7 +579,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                         <div className="flex flex-col gap-3 w-full">
                             <Link
                                 href="/tournaments"
-                                className="w-full py-4 rounded-2xl border border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-slate-800 hover:text-white transition-all text-center"
+                                className="w-full py-4 rounded-2xl border border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-muted hover:text-white transition-all text-center"
                             >
                                 Ver otros torneos
                             </Link>

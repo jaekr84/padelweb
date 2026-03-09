@@ -245,13 +245,13 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
 
     return (
         <FeedLayout>
-            <div className="min-h-screen bg-[#090A0F] text-white pb-20 pt-4 px-4 font-sans selection:bg-blue-500/30">
+            <div className="min-h-screen bg-background text-foreground pb-20 pt-4 px-4 font-sans selection:bg-blue-500/30">
                 <div className="max-w-2xl mx-auto flex flex-col gap-8 animate-in fade-in duration-700">
 
                     {/* Header */}
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-4">
-                            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90">
+                            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90">
                                 <ChevronLeft className="h-5 w-5" />
                             </button>
                             <div>
@@ -262,7 +262,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                     </div>
 
                     {/* Step Indicator */}
-                    <div className="bg-white/5 border border-white/10 p-4 rounded-[2rem] shadow-xl flex justify-between relative overflow-hidden">
+                    <div className="bg-card border border-border p-4 rounded-[2rem] shadow-xl flex justify-between relative overflow-hidden">
                         <div className="absolute inset-0 bg-blue-500/5 blur-[50px] pointer-events-none" />
                         {STEPS.map((s, idx) => {
                             const Icon = s.icon;
@@ -272,7 +272,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                 <div key={s.id} className="flex flex-col items-center gap-2 relative z-10 flex-1">
                                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${isActive ? "bg-blue-600 text-white shadow-xl shadow-blue-900/40 scale-110" :
                                         isDone ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                            "bg-white/5 text-white/20 border border-white/5 opacity-40"
+                                            "bg-card text-white/20 border border-border/50 opacity-40"
                                         }`}>
                                         {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                                     </div>
@@ -283,7 +283,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                     </div>
 
                     {/* Form Body */}
-                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[400px]">
+                    <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[400px]">
                         <AnimatePresence mode="wait">
                             {step === 0 && (
                                 <motion.div
@@ -291,7 +291,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                     className="flex flex-col gap-8"
                                 >
                                     <div className="flex flex-col gap-6">
-                                        <div className="bg-white/5 border border-white/10 p-2 rounded-3xl relative aspect-video overflow-hidden group">
+                                        <div className="bg-card border border-border p-2 rounded-3xl relative aspect-video overflow-hidden group">
                                             {imagePreview ? (
                                                 <>
                                                     <img src={imagePreview} className="w-full h-full object-cover rounded-2xl opacity-60 transition-transform duration-700 group-hover:scale-105" alt="Preview" />
@@ -306,7 +306,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                     </div>
                                                 </>
                                             ) : (
-                                                <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-white/5 transition-all">
+                                                <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-card transition-all">
                                                     <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                                                         {imageUploading ? <Activity className="h-8 w-8 text-blue-500 animate-spin" /> : <Camera className="h-8 w-8 text-blue-500" />}
                                                     </div>
@@ -325,7 +325,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                 type="text"
                                                 value={info.name}
                                                 onChange={e => setInfo({ ...info, name: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-lg font-black uppercase italic tracking-tight outline-none focus:border-blue-500 transition-all shadow-inner"
+                                                className="w-full bg-card border border-border rounded-2xl py-5 px-6 text-white text-lg font-black uppercase italic tracking-tight outline-none focus:border-blue-500 transition-all shadow-inner"
                                                 placeholder="CIRCUITO PADEL PRO..."
                                             />
                                         </div>
@@ -337,7 +337,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                     type="date"
                                                     value={info.startDate}
                                                     onChange={e => setInfo({ ...info, startDate: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
+                                                    className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-2">
@@ -346,7 +346,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                     type="date"
                                                     value={info.endDate}
                                                     onChange={e => setInfo({ ...info, endDate: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
+                                                    className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-xs font-bold outline-none focus:border-blue-500 transition-all appearance-none"
                                                 />
                                             </div>
                                         </div>
@@ -357,7 +357,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                 value={info.description}
                                                 onChange={e => setInfo({ ...info, description: e.target.value })}
                                                 rows={4}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm font-medium leading-relaxed outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
+                                                className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-sm font-medium leading-relaxed outline-none focus:border-blue-500 transition-all resize-none shadow-inner"
                                                 placeholder="Contá de qué trata el evento, premios, formato..."
                                             />
                                         </div>
@@ -373,7 +373,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col gap-4">
                                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Configuración de Categoría</h3>
-                                            <div className="bg-white/5 p-1.5 rounded-3xl border border-white/10 flex">
+                                            <div className="bg-card p-1.5 rounded-3xl border border-border flex">
                                                 <button
                                                     onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
                                                     className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${modalidad.mode === "categorias" ? "bg-blue-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
@@ -404,7 +404,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                                         : [...modalidad.selectedCats, cat].sort();
                                                                     setModalidad({ ...modalidad, selectedCats: next });
                                                                 }}
-                                                                className={`py-4 rounded-2xl border transition-all text-[11px] font-black uppercase italic ${isSelected ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-900/40" : "bg-white/5 border-white/5 text-white/30 hover:border-white/20"}`}
+                                                                className={`py-4 rounded-2xl border transition-all text-[11px] font-black uppercase italic ${isSelected ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-900/40" : "bg-card border-border/50 text-white/30 hover:border-white/20"}`}
                                                             >
                                                                 {cat}
                                                             </button>
@@ -420,7 +420,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                 <select
                                                     value={modalidad.genero}
                                                     onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
+                                                    className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
                                                 >
                                                     <option value="mixto">Mixto</option>
                                                     <option value="hombre">Solo Hombres</option>
@@ -432,7 +432,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                 <select
                                                     value={info.surface}
                                                     onChange={e => setInfo({ ...info, surface: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
+                                                    className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none transition-all appearance-none"
                                                 >
                                                     <option value="cemento">Cemento</option>
                                                     <option value="sintetico">Césped Sintético</option>
@@ -457,10 +457,10 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                     <button
                                                         key={i}
                                                         onClick={() => setPreset(i)}
-                                                        className={`w-full p-6 rounded-[2rem] border transition-all text-left flex justify-between items-center group ${preset === i ? "bg-blue-600 border-blue-500 shadow-xl shadow-blue-900/40" : "bg-white/5 border-white/5 hover:border-white/10"}`}
+                                                        className={`w-full p-6 rounded-[2rem] border transition-all text-left flex justify-between items-center group ${preset === i ? "bg-blue-600 border-blue-500 shadow-xl shadow-blue-900/40" : "bg-card border-border/50 hover:border-border"}`}
                                                     >
                                                         <span className={`text-[11px] font-black uppercase tracking-widest ${preset === i ? "text-white" : "text-white/40 group-hover:text-white"}`}>{p.label}</span>
-                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${preset === i ? "border-white bg-white text-blue-600" : "border-white/10"}`}>
+                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${preset === i ? "border-white bg-white text-blue-600" : "border-border"}`}>
                                                             {preset === i && <Check className="h-4 w-4" />}
                                                         </div>
                                                     </button>
@@ -477,7 +477,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                             type="number"
                                                             value={customPoints[k as keyof typeof customPoints]}
                                                             onChange={e => setCustomPoints({ ...customPoints, [k]: e.target.value })}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-center text-sm font-black italic tracking-tight outline-none"
+                                                            className="w-full bg-card border border-border rounded-2xl py-4 px-4 text-center text-sm font-black italic tracking-tight outline-none"
                                                         />
                                                     </div>
                                                 ))}
@@ -493,7 +493,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                     className="flex flex-col gap-8"
                                 >
                                     <div className="flex flex-col gap-8">
-                                        <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10 flex flex-col gap-6 text-center shadow-xl">
+                                        <div className="bg-card p-8 rounded-[2rem] border border-border flex flex-col gap-6 text-center shadow-xl">
                                             <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center self-center shadow-lg shadow-emerald-900/20 mb-2">
                                                 <Sparkles className="h-8 w-8 text-emerald-500" />
                                             </div>
@@ -506,11 +506,11 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] flex flex-col gap-2">
+                                            <div className="bg-card border border-border/50 p-6 rounded-[2rem] flex flex-col gap-2">
                                                 <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Nombre</span>
                                                 <span className="text-sm font-black italic tracking-tight truncate">{info.name}</span>
                                             </div>
-                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] flex flex-col gap-2">
+                                            <div className="bg-card border border-border/50 p-6 rounded-[2rem] flex flex-col gap-2">
                                                 <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Categoría</span>
                                                 <span className="text-sm font-black italic tracking-tight truncate">
                                                     {modalidad.mode === "libre" ? "Libre" : modalidad.selectedCats.join(", ")}
@@ -523,11 +523,11 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="flex gap-4 mt-12 bg-white/5 -m-8 p-8 border-t border-white/5">
+                        <div className="flex gap-4 mt-12 bg-card -m-8 p-8 border-t border-border/50">
                             {step > 0 && (
                                 <button
                                     onClick={prevStep}
-                                    className="px-6 py-5 rounded-3xl bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex-1"
+                                    className="px-6 py-5 rounded-3xl bg-card border border-border text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex-1"
                                 >
                                     Atrás
                                 </button>

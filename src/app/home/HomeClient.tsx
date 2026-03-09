@@ -124,7 +124,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
     };
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white pb-24 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
             {/* Ambient glow */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
                 <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -135,23 +135,23 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
 
                 {/* ── Header ── */}
                 <div className="mb-6 px-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">
                         A.C.A.P.
                     </p>
-                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-white mb-2">
+                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground mb-2">
                         Feed
                     </h1>
                 </div>
 
                 {/* ── Compose Post ── */}
                 {currentUser && (
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 mb-8 shadow-sm">
+                    <div className="bg-card border border-border rounded-3xl p-4 mb-8 shadow-sm">
                         <div className="flex gap-3 mb-3">
-                            <div className="w-10 h-10 shrink-0 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                            <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border">
                                 {currentUser.imageUrl ? (
                                     <img src={currentUser.imageUrl} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-slate-800 text-slate-500">
+                                    <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground">
                                         {currentUser.name?.charAt(0) || "U"}
                                     </div>
                                 )}
@@ -160,13 +160,13 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                 value={content}
                                 onChange={e => setContent(e.target.value)}
                                 placeholder="¿Qué está pasando en la cancha?"
-                                className="w-full bg-transparent resize-none text-white placeholder-slate-500 outline-none text-sm pt-2 min-h-[60px]"
+                                className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground outline-none text-sm pt-2 min-h-[60px]"
                             />
                         </div>
 
                         {/* Image Preview */}
                         {imagePreview && (
-                            <div className="relative mb-3 ml-13 mr-2 bg-slate-800 rounded-2xl overflow-hidden group">
+                            <div className="relative mb-3 ml-13 mr-2 bg-muted rounded-2xl overflow-hidden group">
                                 <img src={imagePreview} className="w-full h-auto max-h-[300px] object-cover" alt="Preview" />
                                 <button
                                     onClick={() => { setImagePreview(null); setCompressedFile(null); }}
@@ -177,7 +177,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between ml-13 border-t border-slate-800 pt-3">
+                        <div className="flex items-center justify-between ml-13 border-t border-border pt-3">
                             <label className="p-2 -ml-2 text-blue-500 hover:bg-blue-500/10 rounded-full cursor-pointer transition-colors">
                                 <ImageIcon className="w-5 h-5" />
                                 <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
@@ -197,31 +197,31 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                 {/* ── Posts List ── */}
                 <div className="flex flex-col gap-4">
                     {initialPosts.length === 0 ? (
-                        <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-3xl">
-                            <p className="text-slate-500 font-bold text-sm">No hay publicaciones aún.</p>
-                            <p className="text-slate-600 text-xs mt-1">Sé el primero en publicarlo.</p>
+                        <div className="text-center py-20 bg-card border border-border rounded-3xl">
+                            <p className="text-muted-foreground font-bold text-sm">No hay publicaciones aún.</p>
+                            <p className="text-muted-foreground/60 text-xs mt-1">Sé el primero en publicarlo.</p>
                         </div>
                     ) : (
                         initialPosts.map(post => {
                             const userInitials = post.user.name?.charAt(0) || "U";
                             return (
-                                <div key={post.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-sm">
+                                <div key={post.id} className="bg-card border border-border rounded-3xl p-4 sm:p-5 shadow-sm hover:border-indigo-500/20 transition-all">
                                     {/* Author */}
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                                            <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0">
                                                 {post.user.imageUrl ? (
                                                     <img src={post.user.imageUrl} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <span className="text-sm font-bold text-slate-500">{userInitials}</span>
+                                                    <span className="text-sm font-bold text-muted-foreground">{userInitials}</span>
                                                 )}
                                             </div>
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-sm font-bold text-white">{post.user.name}</span>
-                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 font-bold uppercase tracking-wider">{post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'centro' ? 'Centro' : 'Profe'}</span>
+                                                    <span className="text-sm font-bold text-foreground">{post.user.name}</span>
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-bold uppercase tracking-wider">{post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'centro' ? 'Centro' : 'Profe'}</span>
                                                 </div>
-                                                <span className="text-xs text-slate-500">{timeAgo(post.createdAt)}</span>
+                                                <span className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -229,13 +229,13 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                     {/* Content */}
                                     <div className="pl-13">
                                         {post.content && (
-                                            <p className="text-white text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                                            <p className="text-foreground text-sm leading-relaxed mb-3 whitespace-pre-wrap">
                                                 {post.content}
                                             </p>
                                         )}
 
                                         {post.imageUrl && (
-                                            <div className="rounded-2xl border border-slate-800 overflow-hidden mb-3 bg-slate-950">
+                                            <div className="rounded-2xl border border-border overflow-hidden mb-3 bg-muted">
                                                 <img src={post.imageUrl} className="w-full h-auto object-cover max-h-[400px]" alt="Publicación" loading="lazy" />
                                             </div>
                                         )}

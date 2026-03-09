@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
-import { tournaments, registrations } from "@/db/schema";
+import { tournaments, registrations, users } from "@/db/schema";
 import FeedLayout from "@/app/feed/layout";
 import Link from "next/link";
 import {
@@ -28,9 +28,13 @@ export default async function TournamentsPage({
     const currentFilter = typeof sp.filter === "string" ? sp.filter : "todos";
 
     let userId: string | null = null;
+    let dbUser: any = null;
     try {
         const authData = await auth();
         userId = authData.userId;
+        if (userId) {
+            [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        }
     } catch (e) { console.error(e); }
 
     let allTournaments: any[] = [];
@@ -94,7 +98,7 @@ export default async function TournamentsPage({
 
     return (
         <FeedLayout>
-            <div className="min-h-screen bg-[#090A0F] text-white pb-24 font-sans selection:bg-blue-500/30">
+            <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
 
                 {/* ── Ambient glow ── */}
                 <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
@@ -107,38 +111,40 @@ export default async function TournamentsPage({
                     {/* ── Header ── */}
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1">
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">
                                 ACAP
                             </p>
-                            <h1 className="text-3xl font-black uppercase italic tracking-tight text-white">
+                            <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
                                 Torneos
                             </h1>
                         </div>
 
-                        <Link href="/tournaments/create">
-                            <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/30">
-                                <Plus className="w-4 h-4" />
-                                <span className="hidden sm:inline">Crear</span>
-                            </button>
-                        </Link>
+                        {dbUser && dbUser.role !== 'jugador' && (
+                            <Link href="/tournaments/create">
+                                <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/30">
+                                    <Plus className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Crear</span>
+                                </button>
+                            </Link>
+                        )}
                     </div>
 
                     {/* ── Stats pills ── */}
                     <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col items-center gap-1">
-                            <Trophy className="w-4 h-4 text-blue-400" />
-                            <span className="text-xl font-black text-white">{total}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Total</span>
+                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
+                            <Trophy className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-xl font-black text-foreground">{total}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
                         </div>
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col items-center gap-1">
-                            <Zap className="w-4 h-4 text-red-400" />
-                            <span className="text-xl font-black text-white">{live}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">En Vivo</span>
+                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
+                            <Zap className="w-4 h-4 text-red-500" />
+                            <span className="text-xl font-black text-foreground">{live}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">En Vivo</span>
                         </div>
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col items-center gap-1">
-                            <CheckCircle className="w-4 h-4 text-emerald-400" />
-                            <span className="text-xl font-black text-white">{open}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Abiertos</span>
+                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
+                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            <span className="text-xl font-black text-foreground">{open}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Abiertos</span>
                         </div>
                     </div>
 
@@ -149,12 +155,12 @@ export default async function TournamentsPage({
                             return (
                                 <Link key={f.key} href={`/tournaments?filter=${f.key}`} scroll={false} className="shrink-0">
                                     <button className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                                        : "bg-card border border-border text-muted-foreground hover:border-indigo-500/30 hover:text-foreground"
                                         }`}>
                                         {f.label}
                                         {f.count !== null && (
-                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-slate-800"}`}>
+                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
                                                 {f.count}
                                             </span>
                                         )}
@@ -167,10 +173,10 @@ export default async function TournamentsPage({
                     {/* ── Tournament list ── */}
                     {filteredTournaments.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mb-5">
-                                <Trophy className="w-8 h-8 text-slate-600" />
+                            <div className="w-16 h-16 bg-card border border-border rounded-3xl flex items-center justify-center mb-5">
+                                <Trophy className="w-8 h-8 text-muted-foreground/30" />
                             </div>
-                            <h3 className="text-lg font-black uppercase italic text-slate-400 mb-2">Sin torneos</h3>
+                            <h3 className="text-lg font-black uppercase italic text-muted-foreground mb-2">Sin torneos</h3>
                             <p className="text-slate-600 text-sm max-w-[220px] leading-relaxed">
                                 No encontramos torneos en esta categoría.
                             </p>
@@ -199,12 +205,12 @@ function TournamentCard({ tournament }: { tournament: any }) {
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
-        ? { label: "En Vivo", dot: true, bg: "bg-red-950 border-red-900", pill: "bg-red-500", text: "text-red-400" }
+        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20 dark:bg-red-950 dark:border-red-900", pill: "bg-red-500", text: "text-red-600 dark:text-red-400" }
         : isOpen
-            ? { label: "Abierto", dot: false, bg: "bg-emerald-950 border-emerald-900", pill: "bg-emerald-600", text: "text-emerald-400" }
+            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900", pill: "bg-emerald-600", text: "text-emerald-600 dark:text-emerald-400" }
             : isFinished
-                ? { label: "Finalizado", dot: false, bg: "bg-slate-900 border-slate-800", pill: "bg-slate-700", text: "text-slate-500" }
-                : { label: "Borrador", dot: false, bg: "bg-slate-900 border-slate-800", pill: "bg-slate-700", text: "text-slate-500" };
+                ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
+                : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
 
     const href = isOpen
         ? `/tournaments/register?id=${tournament.id}`
@@ -212,7 +218,7 @@ function TournamentCard({ tournament }: { tournament: any }) {
 
     return (
         <Link href={href} className="group block">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden transition-all duration-200 hover:border-slate-700 active:scale-[0.99]">
+            <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all duration-200 hover:border-indigo-500/30 active:scale-[0.99] shadow-sm">
                 <div className="p-4 flex items-start gap-4">
 
                     {/* Icon / Image */}
@@ -228,16 +234,16 @@ function TournamentCard({ tournament }: { tournament: any }) {
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div className="flex flex-col">
-                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-tight line-clamp-2 group-hover:text-blue-300 transition-colors">
+                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-tight line-clamp-2 group-hover:text-indigo-500 transition-colors">
                                     {tournament.name}
                                 </h3>
-                                <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-0.5">
+                                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
                                     CLUB ORGANIZADOR: {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
                                 </div>
                             </div>
 
                             {/* Status pill */}
-                            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shrink-0 ${statusConfig.pill}`}>
+                            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shrink-0 ${statusConfig.pill} shadow-sm shadow-black/10`}>
                                 {statusConfig.dot && (
                                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                                 )}
@@ -249,16 +255,16 @@ function TournamentCard({ tournament }: { tournament: any }) {
 
                         {/* Meta */}
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-                            <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold">
+                            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
                                 <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
                                 {formatDate(tournament.startDate)}
                             </div>
-                            <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold min-w-0">
+                            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold min-w-0">
                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                 <span className="truncate">{tournament.location || "Por definir"}</span>
                             </div>
                             {tournament.category && (
-                                <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold">
+                                <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
                                     <Activity className="w-3 h-3 text-purple-500 shrink-0" />
                                     {tournament.category}
                                 </div>
@@ -268,19 +274,19 @@ function TournamentCard({ tournament }: { tournament: any }) {
                 </div>
 
                 {/* CTA footer */}
-                <div className={`px-4 py-3 border-t flex items-center justify-between ${isLive ? "border-red-900 bg-red-950/50" :
-                    isOpen ? "border-emerald-900 bg-emerald-950/50" :
-                        "border-slate-800 bg-slate-800/30"
+                <div className={`px-4 py-3 border-t flex items-center justify-between transition-colors ${isLive ? "border-red-500/20 bg-red-500/5 dark:bg-red-500/10" :
+                    isOpen ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10" :
+                        "border-border bg-muted/30"
                     }`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-400" : isOpen ? "text-emerald-400" : "text-slate-500"
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                         }`}>
                         {isLive ? "Ver resultados en vivo" :
                             isOpen ? "Inscribirse ahora" :
                                 isFinished ? "Torneo finalizado" : "Ver detalles"}
                     </span>
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-transform group-hover:translate-x-0.5 ${isLive ? "bg-red-800" : isOpen ? "bg-emerald-800" : "bg-slate-700"
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : "bg-muted"
                         }`}>
-                        <Clock className={`w-3.5 h-3.5 ${isLive ? "text-red-300" : isOpen ? "text-emerald-300" : "text-slate-400"}`} />
+                        <Clock className={`w-3.5 h-3.5 ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`} />
                     </div>
                 </div>
             </div>
