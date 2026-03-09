@@ -32,6 +32,7 @@ import FeedLayout from "@/app/feed/layout";
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
 import CentroProfileClient from "../profiles/centro/CentroProfileClient";
 import ProfeProfileClient from "../profiles/profe/ProfeProfileClient";
+import Image from "next/image";
 
 interface PlayerProfileClientProps {
     dbUser: any;
@@ -186,7 +187,7 @@ export default function PlayerProfileClient({
                                     <div className="relative group">
                                         <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
                                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative">
-                                            <img src={user.imageUrl} alt={user.fullName || ""} className="w-full h-full object-cover" />
+                                            <Image src={user.imageUrl} alt={user.fullName || ""} fill className="object-cover" priority />
                                         </div>
                                     </div>
 

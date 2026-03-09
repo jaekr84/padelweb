@@ -29,6 +29,7 @@ import {
     MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default function ClubProfileClient({
@@ -58,7 +59,6 @@ export default function ClubProfileClient({
         location: club?.location || "",
         phone: club?.phone || "",
         website: club?.website || "",
-        amenities: club?.amenities?.join(", ") || "",
     });
 
     const clubName = club?.name || user?.fullName || "Mi Club";
@@ -146,10 +146,12 @@ export default function ClubProfileClient({
                             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
                                 {clerkUser?.imageUrl || user?.imageUrl ? (
-                                    <img
+                                    <Image
                                         src={clerkUser?.imageUrl || user?.imageUrl}
                                         alt="Club avatar"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        priority
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
@@ -207,16 +209,6 @@ export default function ClubProfileClient({
                                     <p className="text-foreground/80 text-sm leading-relaxed font-medium">
                                         {clubBio}
                                     </p>
-                                </div>
-                                <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Servicios y Amenidades</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {club?.amenities?.map((a: string, i: number) => (
-                                            <span key={i} className="px-4 py-2 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 dark:border-indigo-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                                                {a}
-                                            </span>
-                                        )) || <span className="text-muted-foreground text-[10px]">No hay servicios listados</span>}
-                                    </div>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-6">
@@ -433,10 +425,6 @@ export default function ClubProfileClient({
                                         <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Sitio Web</label>
                                         <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500" />
                                     </div>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Servicios (coma)</label>
-                                    <input type="text" value={formData.amenities} onChange={e => setFormData({ ...formData, amenities: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500" placeholder="Parking, Bar, WiFi..." />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 mt-6">
                                     <button type="button" onClick={() => setIsEditing(false)} className="bg-card text-foreground/80 border border-border py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</button>

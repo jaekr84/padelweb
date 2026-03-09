@@ -1,24 +1,16 @@
 import { db } from "@/db";
-import { clubs, instructorProfiles } from "@/db/schema";
+import { clubs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import FeedLayout from "@/app/feed/layout";
 import DirectoryClient from "./DirectoryClient";
 
 export default async function DirectoryPage() {
-    // Fetch data from database
-    const allClubsAndCentros = await db.select().from(clubs);
-    const allProfes = await db.select().from(instructorProfiles);
-
-    const clubList = allClubsAndCentros.filter(c => c.type === "club");
-    const centroList = allClubsAndCentros.filter(c => c.type === "centro");
+    // Fetch only clubs from database
+    const clubList = await db.select().from(clubs).where(eq(clubs.type, "club"));
 
     return (
         <FeedLayout>
-            <DirectoryClient
-                initialClubs={clubList}
-                initialCentros={centroList}
-                initialProfes={allProfes}
-            />
+            <DirectoryClient initialClubs={clubList} />
         </FeedLayout>
     );
 }

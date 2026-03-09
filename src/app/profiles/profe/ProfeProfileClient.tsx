@@ -29,6 +29,7 @@ import {
     LayoutDashboard
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const DAYS = ["L", "M", "X", "J", "V", "S", "D"];
 const SLOT_LABELS = ["Mañana", "Tarde", "Noche"];
@@ -153,7 +154,13 @@ export default function ProfeProfileClient({ profe, isOwner, embedded = false }:
                             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
                                 {profe?.avatarUrl ? (
-                                    <img src={profe.avatarUrl} alt={profe.name} className="w-full h-full object-cover" />
+                                    <Image
+                                        src={profe.avatarUrl}
+                                        alt={profe.name}
+                                        fill
+                                        className="object-cover"
+                                        priority
+                                    />
                                 ) : (
                                     <GraduationCap className="h-10 w-10 text-muted-foreground/60" />
                                 )}

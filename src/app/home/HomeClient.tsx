@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createPost } from "./actions";
 import { Image as ImageIcon, X } from "lucide-react";
 import imageCompression from "browser-image-compression";
+import Image from "next/image";
 
 // ── Time Ago helper ────────────────────────────────────────────────────────
 function timeAgo(dateStr: string) {
@@ -147,11 +148,11 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                 {currentUser && (
                     <div className="bg-card border border-border rounded-3xl p-4 mb-8 shadow-sm">
                         <div className="flex gap-3 mb-3">
-                            <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border">
+                            <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
                                 {currentUser.imageUrl ? (
-                                    <img src={currentUser.imageUrl} alt="" className="w-full h-full object-cover" />
+                                    <Image src={currentUser.imageUrl} alt="" fill className="object-cover" priority />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground">
+                                    <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
                                         {currentUser.name?.charAt(0) || "U"}
                                     </div>
                                 )}
@@ -166,8 +167,8 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
 
                         {/* Image Preview */}
                         {imagePreview && (
-                            <div className="relative mb-3 ml-13 mr-2 bg-muted rounded-2xl overflow-hidden group">
-                                <img src={imagePreview} className="w-full h-auto max-h-[300px] object-cover" alt="Preview" />
+                            <div className="relative mb-3 ml-13 mr-2 bg-muted rounded-2xl overflow-hidden group aspect-video">
+                                <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized />
                                 <button
                                     onClick={() => { setImagePreview(null); setCompressedFile(null); }}
                                     className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-all"
@@ -209,11 +210,11 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                     {/* Author */}
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                                            <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                                                 {post.user.imageUrl ? (
-                                                    <img src={post.user.imageUrl} className="w-full h-full object-cover" />
+                                                    <Image src={post.user.imageUrl} alt={post.user.name || ""} fill className="object-cover" />
                                                 ) : (
-                                                    <span className="text-sm font-bold text-muted-foreground">{userInitials}</span>
+                                                    <span className="text-sm font-bold text-muted-foreground uppercase">{userInitials}</span>
                                                 )}
                                             </div>
                                             <div className="flex flex-col">
@@ -235,8 +236,14 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                         )}
 
                                         {post.imageUrl && (
-                                            <div className="rounded-2xl border border-border overflow-hidden mb-3 bg-muted">
-                                                <img src={post.imageUrl} className="w-full h-auto object-cover max-h-[400px]" alt="Publicación" loading="lazy" />
+                                            <div className="relative rounded-2xl border border-border overflow-hidden mb-3 bg-muted aspect-video w-full">
+                                                <Image
+                                                    src={post.imageUrl}
+                                                    fill
+                                                    className="object-cover"
+                                                    alt="Publicación"
+                                                    sizes="(max-width: 768px) 100vw, 672px"
+                                                />
                                             </div>
                                         )}
 

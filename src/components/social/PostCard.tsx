@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./social.module.css";
 
 interface PostCardProps {
@@ -27,8 +28,8 @@ export default function PostCard({ author, content, timeAgo, likes, comments }: 
 
     return (
         <article className={styles.postCard}>
-            <div className={styles.avatar}>
-                {author.avatar ? <img src={author.avatar} alt={author.name} style={{ width: '100%', borderRadius: '50%' }} /> : getRoleIcon(author.role)}
+            <div className={`${styles.avatar} relative overflow-hidden flex items-center justify-center`}>
+                {author.avatar ? <Image src={author.avatar} alt={author.name} fill className="object-cover rounded-full" /> : getRoleIcon(author.role)}
             </div>
             <div className={styles.postContent}>
                 <div className={styles.postHeader}>

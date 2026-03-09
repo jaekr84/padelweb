@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { Trophy, Star, Users, MapPin, Activity, LayoutGrid, ArrowRight, Zap } from "lucide-react";
@@ -34,11 +35,15 @@ export default function LandingPage({
             <div className="fixed top-0 left-0 right-0 z-[100] flex justify-center p-4 md:p-6">
                 <nav className="flex items-center justify-between w-full max-w-[1200px] h-16 md:h-20 px-4 md:px-8 bg-card/40 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-2xl transition-all">
                     <div className="flex items-center gap-3">
-                        <img
-                            src="/img/stickers 1.jpg"
-                            alt="Logo A.C.A.P."
-                            className="h-10 w-10 md:h-12 md:w-12 shrink-0 aspect-square rounded-full border border-border shadow-lg object-cover"
-                        />
+                        <div className="h-10 w-10 md:h-12 md:w-12 relative shrink-0">
+                            <Image
+                                src="/img/stickers 1.jpg"
+                                alt="Logo A.C.A.P."
+                                fill
+                                className="rounded-full border border-border shadow-lg object-cover"
+                                priority
+                            />
+                        </div>
                         <div className="flex flex-col leading-none">
                             <span className="text-[1.4rem] md:text-[1.8rem] font-black tracking-tighter italic uppercase text-foreground">A.C.A.P.</span>
                         </div>
@@ -64,11 +69,13 @@ export default function LandingPage({
                 {/* ── Logo Central ── */}
                 <div className="relative group mb-16">
                     <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-red-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                    <div className="relative flex items-center justify-center bg-white rounded-full p-2 border border-border overflow-hidden shadow-[0_0_50px_rgba(79,70,229,0.2)] shrink-0 aspect-square mx-auto">
-                        <img
+                    <div className="relative flex items-center justify-center bg-white rounded-full p-2 border border-border overflow-hidden shadow-[0_0_50px_rgba(79,70,229,0.2)] shrink-0 aspect-square mx-auto w-[280px] h-[280px] md:w-[580px] md:h-[580px]">
+                        <Image
                             src="/img/stickers 1.jpg"
                             alt="A.C.A.P."
-                            className="w-[280px] h-[280px] md:w-[580px] md:h-[580px] object-cover rounded-full aspect-square"
+                            fill
+                            className="object-cover rounded-full"
+                            priority
                         />
                     </div>
                 </div>
@@ -149,7 +156,14 @@ export default function LandingPage({
             <footer className="py-12 px-6 border-t border-border/50 relative z-10">
                 <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-3">
-                        <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 shrink-0 aspect-square rounded-full grayscale opacity-50" />
+                        <div className="w-8 h-8 relative shrink-0">
+                            <Image
+                                src="/img/stickers 1.jpg"
+                                alt="A.C.A.P."
+                                fill
+                                className="rounded-full grayscale opacity-50 object-cover"
+                            />
+                        </div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">
                             © {new Date().getFullYear()} Asociación Coreana Argentina de Pádel
                         </span>

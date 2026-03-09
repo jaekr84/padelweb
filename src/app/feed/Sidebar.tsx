@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Home, Trophy, User, Star, FolderOpen, Search, Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Image from "next/image";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -15,28 +16,28 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Directorio" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     profe: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Directorio" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     centro_de_padel: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profile", icon: User, label: "Mi Centro" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Directorio" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Directorio" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
 };
 
@@ -59,12 +60,7 @@ export default function Sidebar() {
 
     useEffect(() => {
         setRole(getCookieRole());
-        const id = setInterval(() => {
-            const r = getCookieRole();
-            setRole((prev) => (prev !== r ? r : prev));
-        }, 800);
-        return () => clearInterval(id);
-    }, []);
+    }, [pathname]); // Refresh role when navigating to ensure current state
 
     // ── Hide bottom nav when iOS virtual keyboard is open ──────────────────
     const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -92,7 +88,7 @@ export default function Sidebar() {
             {/* MOBILE TOP HEADER */}
             <header className="md:hidden fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-5 h-16">
                 <Link href="/home" className="flex items-center gap-2 group">
-                    <img src="/img/stickers 1.jpg" alt="A.C.A.P." className="w-8 h-8 rounded-full border border-border" />
+                    <Image src="/img/stickers 1.jpg" alt="A.C.A.P." width={32} height={32} className="rounded-full border border-border" priority />
                     <span className="text-lg font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
@@ -122,7 +118,7 @@ export default function Sidebar() {
                 <div className="p-6 flex flex-col gap-6 border-b border-border">
                     <div className="flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-3 group">
-                            <img src="/img/stickers 1.jpg" alt="ACAP" className="w-10 h-10 rounded-full border border-border" />
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border" priority />
                             <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">ACAP</span>
                         </Link>
                         <ThemeToggle />

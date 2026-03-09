@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, notInArray, or, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments, registrations, users } from "@/db/schema";
 import FeedLayout from "@/app/feed/layout";
@@ -37,62 +37,70 @@ export default async function TournamentsPage({
         }
     } catch (e) { console.error(e); }
 
-    let allTournaments: any[] = [];
+    let filteredTournaments: any[] = [];
+    let liveC = 0, openC = 0, finishedC = 0, totalActiveC = 0, totalC = 0;
+
     try {
-        allTournaments = await db.query.tournaments.findMany({
-            with: {
-                club: true,
-                createdBy: {
-                    with: {
-                        clubs: true
-                    }
-                }
-            },
-            orderBy: [desc(tournaments.createdAt)]
-        });
+        // 1. Fetch counts for stats (could be optimized further with Promise.all and count() but keeping it simple for now)
+        const counts = await Promise.all([
+            db.select().from(tournaments).where(notInArray(tournaments.status, ["finalizado", "draft"])), // Active
+            db.select().from(tournaments).where(eq(tournaments.status, "published")), // Open
+            db.select().from(tournaments).where(or(eq(tournaments.status, "en_curso"), eq(tournaments.status, "en_eliminatorias"))), // Live
+            db.select().from(tournaments).where(eq(tournaments.status, "finalizado")), // Finished
+            db.select().from(tournaments), // Total
+        ]);
+
+        totalActiveC = counts[0].length;
+        openC = counts[1].length;
+        liveC = counts[2].length;
+        finishedC = counts[3].length;
+        totalC = counts[4].length;
+
+        // 2. Fetch only the data needed for the current filter
+        if (currentFilter === "todos") {
+            filteredTournaments = await db.query.tournaments.findMany({
+                where: notInArray(tournaments.status, ["finalizado", "draft"]),
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            });
+        } else if (currentFilter === "abiertas") {
+            filteredTournaments = await db.query.tournaments.findMany({
+                where: eq(tournaments.status, "published"),
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            });
+        } else if (currentFilter === "envivo") {
+            filteredTournaments = await db.query.tournaments.findMany({
+                where: or(eq(tournaments.status, "en_curso"), eq(tournaments.status, "en_eliminatorias")),
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            });
+        } else if (currentFilter === "terminados") {
+            filteredTournaments = await db.query.tournaments.findMany({
+                where: eq(tournaments.status, "finalizado"),
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            });
+        } else if (currentFilter === "mios" && userId) {
+            // Complex one: created by me OR registered by me
+            const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
+            const regIds = userRegs.map(r => r.tournamentId);
+
+            filteredTournaments = await db.query.tournaments.findMany({
+                where: or(eq(tournaments.createdByUserId, userId), regIds.length > 0 ? inArray(tournaments.id, regIds) : undefined),
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            });
+        }
     } catch (e) {
-        // Fallback or basic query if relationship fails
-        console.error(e);
-        try {
-            const raw = await db.select().from(tournaments).orderBy(desc(tournaments.createdAt));
-            // Map to mock the relations shape temporarily if needed
-            allTournaments = raw.map(t => ({ ...t, club: null, createdBy: null }));
-        } catch (err) { }
+        console.error("Database fetch error:", e);
     }
-
-    let filteredTournaments = allTournaments;
-    if (currentFilter === "todos") {
-        filteredTournaments = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
-    } else if (currentFilter === "abiertas") {
-        filteredTournaments = allTournaments.filter(t => t.status === "published");
-    } else if (currentFilter === "envivo") {
-        filteredTournaments = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
-    } else if (currentFilter === "terminados") {
-        filteredTournaments = allTournaments.filter(t => t.status === "finalizado");
-    } else if (currentFilter === "mios" && userId) {
-        let userRegs: any[] = [];
-        try {
-            userRegs = await db.select().from(registrations).where(eq(registrations.userId, userId));
-        } catch (e) { console.error(e); }
-        filteredTournaments = allTournaments.filter(t =>
-            t.createdByUserId === userId || userRegs.some(r => r.tournamentId === t.id)
-        );
-    } else if (currentFilter === "mios" && !userId) {
-        filteredTournaments = [];
-    }
-
-    // Stats summary
-    const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias").length;
-    const open = allTournaments.filter(t => t.status === "published").length;
-    const finished = allTournaments.filter(t => t.status === "finalizado").length;
-    const totalActive = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft").length;
-    const total = allTournaments.length;
 
     const filters = [
-        { key: "todos", label: "Activos", count: totalActive },
-        { key: "abiertas", label: "Inscripción", count: open },
-        { key: "envivo", label: "En Vivo", count: live },
-        { key: "terminados", label: "Finalizados", count: finished },
+        { key: "todos", label: "Activos", count: totalActiveC },
+        { key: "abiertas", label: "Inscripción", count: openC },
+        { key: "envivo", label: "En Vivo", count: liveC },
+        { key: "terminados", label: "Finalizados", count: finishedC },
         { key: "mios", label: "Mis Torneos", count: null },
     ];
 
@@ -133,17 +141,17 @@ export default async function TournamentsPage({
                     <div className="grid grid-cols-3 gap-3 mb-6">
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
                             <Trophy className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                            <span className="text-xl font-black text-foreground">{total}</span>
+                            <span className="text-xl font-black text-foreground">{totalC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
                         </div>
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
                             <Zap className="w-4 h-4 text-red-500" />
-                            <span className="text-xl font-black text-foreground">{live}</span>
+                            <span className="text-xl font-black text-foreground">{liveC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">En Vivo</span>
                         </div>
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
                             <CheckCircle className="w-4 h-4 text-emerald-500" />
-                            <span className="text-xl font-black text-foreground">{open}</span>
+                            <span className="text-xl font-black text-foreground">{openC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Abiertos</span>
                         </div>
                     </div>

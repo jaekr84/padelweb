@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
     Search, MapPin, Star, CheckCircle2,
-    Building2, Map, Users, XCircle, GraduationCap,
-    ChevronRight, Layers, MessageCircle
+    Building2, XCircle, ChevronRight, MessageCircle
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Tab = "clubes" | "centros" | "profes";
-
 interface Club {
     id: string;
     name: string;
@@ -26,24 +24,8 @@ interface Club {
     whatsapp: string | null;
 }
 
-interface Instructor {
-    id: string;
-    name: string;
-    location: string | null;
-    level: string | null;
-    specialities: string[] | null;
-    rating: string | null;
-    verified: boolean | null;
-    avatarUrl: string | null;
-    experience: string | null;
-    phone: string | null;
-    whatsapp: string | null;
-}
-
 interface DirectoryClientProps {
     initialClubs: Club[];
-    initialCentros: Club[];
-    initialProfes: Instructor[];
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -69,7 +51,7 @@ function StarRating({ rating }: { rating: string | null }) {
 
 function Avatar({ url, emoji, name }: { url: string | null; emoji: string; name: string }) {
     if (url) {
-        return <img src={url} alt={name} className="w-full h-full object-cover" />;
+        return <Image src={url} alt={name} fill className="object-cover" />;
     }
     return <span className="text-2xl">{emoji}</span>;
 }
@@ -88,33 +70,16 @@ function EmptyState({ label }: { label: string }) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function DirectoryClient({
     initialClubs,
-    initialCentros,
-    initialProfes,
 }: DirectoryClientProps) {
-    const [tab, setTab] = useState<Tab>("clubes");
     const [search, setSearch] = useState("");
 
-    const tabs: { key: Tab; label: string; icon: React.ReactNode; count: number }[] = [
-        { key: "clubes", label: "Clubes", icon: <Building2 className="w-3.5 h-3.5" />, count: initialClubs.length },
-        { key: "centros", label: "Centros", icon: <Map className="w-3.5 h-3.5" />, count: initialCentros.length },
-        { key: "profes", label: "Profesores", icon: <Users className="w-3.5 h-3.5" />, count: initialProfes.length },
-    ];
-
     const q = search.toLowerCase();
-    const filteredClubs = initialClubs.filter(c => c.name.toLowerCase().includes(q) || (c.location ?? "").toLowerCase().includes(q));
-    const filteredCentros = initialCentros.filter(c => c.name.toLowerCase().includes(q) || (c.location ?? "").toLowerCase().includes(q));
-    const filteredProfes = initialProfes.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        (p.location ?? "").toLowerCase().includes(q) ||
-        p.specialities?.some(s => s.toLowerCase().includes(q))
+    const filteredClubs = initialClubs.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        (c.location ?? "").toLowerCase().includes(q)
     );
 
-    const currentList =
-        tab === "clubes" ? filteredClubs :
-            tab === "centros" ? filteredCentros :
-                filteredProfes;
-
-    const isEmpty = currentList.length === 0;
+    const isEmpty = filteredClubs.length === 0;
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
@@ -131,15 +96,15 @@ export default function DirectoryClient({
                 <div className="mb-6">
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">Red Padel</p>
                     <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
-                        Directorio
+                        Directorio de Clubes
                     </h1>
                     <p className="text-muted-foreground text-sm font-medium mt-1">
-                        Clubes, centros y profesores de toda la red
+                        Explorá los mejores clubes de nuestra red
                     </p>
                 </div>
 
                 {/* ── Search ── */}
-                <div className="relative mb-5">
+                <div className="relative mb-8">
                     <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -147,7 +112,7 @@ export default function DirectoryClient({
                         type="text"
                         inputMode="search"
                         className="w-full pl-10 pr-10 py-3 bg-card border border-border rounded-2xl text-base text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-700 transition-all shadow-inner"
-                        placeholder={`Buscar ${tab === "centros" ? "centros" : tab === "clubes" ? "clubes" : "profesores"}...`}
+                        placeholder="Buscar clubes por nombre o ubicación..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -161,46 +126,17 @@ export default function DirectoryClient({
                     )}
                 </div>
 
-                {/* ── Tabs ── */}
-                <div className="flex gap-2 overflow-x-auto pb-1 mb-6 no-scrollbar">
-                    {tabs.map(t => {
-                        const isActive = tab === t.key;
-                        return (
-                            <button
-                                key={t.key}
-                                onClick={() => { setTab(t.key); setSearch(""); }}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${isActive
-                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                    : "bg-card border border-border text-muted-foreground hover:border-blue-500/30 hover:text-foreground"
-                                    }`}
-                            >
-                                {t.icon}
-                                {t.label}
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
-                                    {t.count}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-
                 {/* ── Content ── */}
                 {isEmpty ? (
-                    <EmptyState label={
-                        tab === "clubes" ? "clubes registrados" :
-                            tab === "centros" ? "centros registrados" :
-                                "profesores registrados"
-                    } />
+                    <EmptyState label="clubes registrados" />
                 ) : (
                     <div className="flex flex-col gap-3">
-
-                        {/* CLUBES */}
-                        {tab === "clubes" && filteredClubs.map(club => (
+                        {filteredClubs.map(club => (
                             <Link key={club.id} href={`/profiles/club?id=${club.id}`} className="group block">
                                 <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
                                     <div className="p-4 flex items-center gap-4">
                                         {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
+                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center relative">
                                             <Avatar url={club.logoUrl} emoji="🏟️" name={club.name} />
                                         </div>
 
@@ -215,17 +151,6 @@ export default function DirectoryClient({
                                             <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-2">
                                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                                 <span className="truncate">{club.location || "Sin ubicación"}</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">
-                                                    <Building2 className="w-2.5 h-2.5" /> Club
-                                                </span>
-                                                {club.amenities?.slice(0, 2).map(a => (
-                                                    <span key={a} className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900 px-2 py-0.5 rounded-full">
-                                                        {a}
-                                                    </span>
-                                                ))}
-                                                {club.verified && <VerifiedBadge />}
                                             </div>
                                         </div>
 
@@ -248,124 +173,6 @@ export default function DirectoryClient({
                                 </div>
                             </Link>
                         ))}
-
-                        {/* CENTROS */}
-                        {tab === "centros" && filteredCentros.map(centro => (
-                            <Link key={centro.id} href={`/profiles/centro?id=${centro.id}`} className="group block">
-                                <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
-                                    <div className="p-4 flex items-center gap-4">
-                                        {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
-                                            <Avatar url={centro.logoUrl} emoji="🎾" name={centro.name} />
-                                        </div>
-
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground truncate group-hover:text-blue-500 transition-colors">
-                                                    {centro.name}
-                                                </h3>
-                                                <StarRating rating={centro.rating} />
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-2">
-                                                <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
-                                                <span className="truncate">{centro.location || "Sin ubicación"}</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">
-                                                    <Layers className="w-2.5 h-2.5" /> {centro.courts || 0} canchas
-                                                </span>
-                                                {centro.surfaces?.slice(0, 2).map(s => (
-                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-500/10 border border-purple-500/20 dark:bg-purple-950 dark:border-purple-900 px-2 py-0.5 rounded-full">
-                                                        {s}
-                                                    </span>
-                                                ))}
-                                                {centro.verified && <VerifiedBadge />}
-                                            </div>
-                                        </div>
-
-                                        {/* WhatsApp Button */}
-                                        {(centro.whatsapp || centro.phone) && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    const phone = centro.whatsapp || centro.phone;
-                                                    window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
-                                                }}
-                                                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0"
-                                            >
-                                                <MessageCircle className="w-5 h-5 font-bold" />
-                                            </button>
-                                        )}
-                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-
-                        {/* PROFES */}
-                        {tab === "profes" && filteredProfes.map(profe => (
-                            <Link key={profe.id} href={`/profiles/profe?id=${profe.id}`} className="group block">
-                                <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all hover:border-blue-500/30 active:scale-[0.99] shadow-sm">
-                                    <div className="p-4 flex items-center gap-4">
-                                        {/* Avatar */}
-                                        <div className="w-14 h-14 shrink-0 bg-muted border border-border rounded-2xl overflow-hidden flex items-center justify-center">
-                                            <Avatar url={profe.avatarUrl} emoji="🎓" name={profe.name} />
-                                        </div>
-
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground truncate group-hover:text-blue-500 transition-colors">
-                                                    {profe.name}
-                                                </h3>
-                                                <StarRating rating={profe.rating} />
-                                            </div>
-                                            <div className="flex items-center gap-x-3 gap-y-1 flex-wrap mb-2">
-                                                {profe.location && (
-                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
-                                                        <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
-                                                        <span className="truncate">{profe.location}</span>
-                                                    </div>
-                                                )}
-                                                {profe.level && (
-                                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
-                                                        <GraduationCap className="w-3 h-3 text-amber-500 shrink-0" />
-                                                        {profe.level}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {profe.specialities?.slice(0, 3).map(s => (
-                                                    <span key={s} className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 dark:bg-amber-950 dark:border-amber-900 px-2 py-0.5 rounded-full">
-                                                        {s}
-                                                    </span>
-                                                ))}
-                                                {profe.verified && <VerifiedBadge />}
-                                            </div>
-                                        </div>
-
-                                        {/* WhatsApp Button */}
-                                        {(profe.whatsapp || profe.phone) && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    const phone = profe.whatsapp || profe.phone;
-                                                    window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
-                                                }}
-                                                className="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0"
-                                            >
-                                                <MessageCircle className="w-5 h-5 font-bold" />
-                                            </button>
-                                        )}
-                                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-
                     </div>
                 )}
             </div>

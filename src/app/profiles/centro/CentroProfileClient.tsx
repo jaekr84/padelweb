@@ -26,6 +26,7 @@ import {
     Clock as ClockIcon
 } from "lucide-react";
 import { toast } from "sonner";
+import NextImage from "next/image";
 
 const DAYS_OF_WEEK = [
     { key: "lun", label: "Lunes" },
@@ -147,7 +148,7 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                     <div className="h-32 md:h-48 bg-gradient-to-br from-indigo-900/40 via-blue-900/30 to-slate-900/50 relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),transparent)]" />
                         {photos.length > 0 && (
-                            <img src={photos[0]} alt="Centro" className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay blur-[2px]" />
+                            <NextImage src={photos[0]} alt="Centro" fill className="object-cover opacity-30 mix-blend-overlay blur-[2px]" priority />
                         )}
                     </div>
 
@@ -167,7 +168,7 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
                                 {photos.length > 0 ? (
-                                    <img src={photos[0]} alt="Avatar" className="w-full h-full object-cover" />
+                                    <NextImage src={photos[0]} alt="Avatar" fill className="object-cover" priority />
                                 ) : (
                                     <LayoutDashboard className="h-10 w-10 text-muted-foreground/60" />
                                 )}
@@ -299,7 +300,7 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {photos.map((p, i) => (
                                         <div key={i} className="aspect-square rounded-[1.5rem] overflow-hidden border border-border shadow-lg relative group">
-                                            <img src={p} alt="Centro" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                            <NextImage src={p} alt="Centro" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" />
                                         </div>
                                     ))}
@@ -427,8 +428,8 @@ export default function CentroProfileClient({ centro, isOwner, embedded = false 
                                             <div key={i} className={`aspect-square rounded-2xl border-2 border-dashed flex items-center justify-center relative overflow-hidden transition-all ${photos[i] ? "border-indigo-500/30" : "border-border/50"}`}>
                                                 {photos[i] ? (
                                                     <>
-                                                        <img src={photos[i]} className="w-full h-full object-cover" />
-                                                        <button onClick={() => handleRemovePhoto(i)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-foreground shadow-xl">
+                                                        <NextImage src={photos[i]} alt="Preview" fill className="object-cover" />
+                                                        <button onClick={() => handleRemovePhoto(i)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-foreground shadow-xl z-10">
                                                             <Trash2 className="h-3 w-3" />
                                                         </button>
                                                     </>
