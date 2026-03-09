@@ -8,21 +8,7 @@ import {
     Building2, XCircle, ChevronRight, MessageCircle
 } from "lucide-react";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-interface Club {
-    id: string;
-    name: string;
-    location: string | null;
-    type: string;
-    rating: string | null;
-    verified: boolean | null;
-    logoUrl: string | null;
-    amenities: string[] | null;
-    courts: number | null;
-    surfaces: string[] | null;
-    phone: string | null;
-    whatsapp: string | null;
-}
+import { type Club } from "@/db/schema";
 
 interface DirectoryClientProps {
     initialClubs: Club[];

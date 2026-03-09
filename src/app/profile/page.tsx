@@ -24,6 +24,8 @@ export default async function ProfilePage() {
         ? existingUser.role
         : clerkRole;
 
+    const invitedByClubId = (user.publicMetadata?.invitedByClubId as string) || null;
+
     const [dbUser] = await db
         .insert(users)
         .values({
@@ -33,12 +35,14 @@ export default async function ProfilePage() {
             role: roleToSet,
             points: 0,
             category: "5ta",
+            clubId: invitedByClubId,
         })
         .onConflictDoUpdate({
             target: users.id,
             set: {
                 email: user.emailAddresses[0]?.emailAddress,
                 role: roleToSet, // respects the logic above
+                clubId: invitedByClubId,
             }
         })
         .returning();
@@ -103,6 +107,16 @@ export default async function ProfilePage() {
         .where(eq(tournaments.createdByUserId, user.id))
         .orderBy(desc(tournaments.createdAt));
 
+    // Fetch club members if it is a club
+    let clubMembers: any[] = [];
+    if (clubProfile) {
+        clubMembers = await db
+            .select()
+            .from(users)
+            .where(eq(users.clubId, clubProfile.id))
+            .orderBy(desc(users.points));
+    }
+
     return (
         <PlayerProfileClient
             dbUser={dbUser}
@@ -111,6 +125,7 @@ export default async function ProfilePage() {
             isOwnProfile={true}
             profeProfile={profeProfile || null}
             clubProfile={clubProfile || null}
+            members={JSON.parse(JSON.stringify(clubMembers))}
             createdTournaments={JSON.parse(JSON.stringify(createdTournaments))}
         />
     );

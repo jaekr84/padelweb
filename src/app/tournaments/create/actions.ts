@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { tournaments, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 type PointsConfig = {
     winner: number;
@@ -59,6 +60,10 @@ export async function createTournament(data: TournamentInput) {
         })
         .returning();
 
+    revalidatePath("/tournaments");
+    revalidatePath("/profile");
+    revalidatePath("/profiles/club");
+
     return { success: true, tournamentId: tournament.id };
 }
 
@@ -87,6 +92,11 @@ export async function updateTournament(id: string, data: TournamentInput) {
             modalidad: data.modalidad || null,
         })
         .where(eq(tournaments.id, id));
+
+    revalidatePath("/tournaments");
+    revalidatePath(`/tournaments/${id}`);
+    revalidatePath("/profile");
+    revalidatePath("/profiles/club");
 
     return { success: true };
 }

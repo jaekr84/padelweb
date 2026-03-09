@@ -8,6 +8,7 @@ const ROLES = [
     { id: "profe", label: "Profe", emoji: "🏫" },
     { id: "centro_de_padel", label: "Centro de Pádel", emoji: "🏟️" },
     { id: "club", label: "Club", emoji: "🏟️" },
+    { id: "superadmin", label: "Super Admin", emoji: "⚡" },
 ] as const;
 
 type Role = typeof ROLES[number]["id"];

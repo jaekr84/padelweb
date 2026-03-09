@@ -33,6 +33,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 pointsConfig: t.pointsConfig as any,
                 imageUrl: t.imageUrl ?? null,
+                modalidad: t.modalidad as any,
             };
         }
     }

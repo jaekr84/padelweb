@@ -10,6 +10,7 @@ export const users = pgTable("users", {
     side: varchar("side", { length: 50 }), // drive | reves | ambos
     category: varchar("category", { length: 50 }).default("5ta"),
     points: integer("points").default(0),
+    clubId: varchar("club_id", { length: 256 }).references(() => clubs.id),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -158,4 +159,7 @@ export const clubsRelations = relations(clubs, ({ one, many }) => ({
     }),
     tournaments: many(tournaments),
 }));
+
+import { type InferSelectModel } from "drizzle-orm";
+export type Club = InferSelectModel<typeof clubs>;
 

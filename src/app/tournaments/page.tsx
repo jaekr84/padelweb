@@ -18,6 +18,20 @@ function formatDate(dateStr: string | null) {
     return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
 }
 
+function getDaysUntil(dateStr: string | null): number | null {
+    if (!dateStr) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tournamentDate = new Date(dateStr);
+    // Adjust for timezone if string is YYYY-MM-DD to avoid offset issues
+    if (dateStr.length === 10) {
+        tournamentDate.setMinutes(tournamentDate.getMinutes() + tournamentDate.getTimezoneOffset());
+    }
+    tournamentDate.setHours(0, 0, 0, 0);
+    const diffTime = tournamentDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────
 export default async function TournamentsPage({
     searchParams,
@@ -41,56 +55,41 @@ export default async function TournamentsPage({
     let liveC = 0, openC = 0, finishedC = 0, totalActiveC = 0, totalC = 0;
 
     try {
-        // 1. Fetch counts for stats (could be optimized further with Promise.all and count() but keeping it simple for now)
-        const counts = await Promise.all([
-            db.select().from(tournaments).where(notInArray(tournaments.status, ["finalizado", "draft"])), // Active
-            db.select().from(tournaments).where(eq(tournaments.status, "published")), // Open
-            db.select().from(tournaments).where(or(eq(tournaments.status, "en_curso"), eq(tournaments.status, "en_eliminatorias"))), // Live
-            db.select().from(tournaments).where(eq(tournaments.status, "finalizado")), // Finished
-            db.select().from(tournaments), // Total
-        ]);
+        const allTournaments = await db.query.tournaments.findMany({
+            with: { club: true, createdBy: { with: { clubs: true } } },
+            orderBy: [desc(tournaments.createdAt)]
+        });
 
-        totalActiveC = counts[0].length;
-        openC = counts[1].length;
-        liveC = counts[2].length;
-        finishedC = counts[3].length;
-        totalC = counts[4].length;
+        totalC = allTournaments.length;
 
-        // 2. Fetch only the data needed for the current filter
+        const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
+        liveC = live.length;
+
+        const finished = allTournaments.filter(t => t.status === "finalizado");
+        finishedC = finished.length;
+
+        const published = allTournaments.filter(t => t.status === "published");
+        const registrable = published.filter(t => {
+            const days = getDaysUntil(t.startDate);
+            return days !== null && days <= 7;
+        });
+        openC = registrable.length;
+
+        const active = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
+        totalActiveC = active.length;
+
         if (currentFilter === "todos") {
-            filteredTournaments = await db.query.tournaments.findMany({
-                where: notInArray(tournaments.status, ["finalizado", "draft"]),
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            });
+            filteredTournaments = active;
         } else if (currentFilter === "abiertas") {
-            filteredTournaments = await db.query.tournaments.findMany({
-                where: eq(tournaments.status, "published"),
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            });
+            filteredTournaments = registrable;
         } else if (currentFilter === "envivo") {
-            filteredTournaments = await db.query.tournaments.findMany({
-                where: or(eq(tournaments.status, "en_curso"), eq(tournaments.status, "en_eliminatorias")),
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            });
+            filteredTournaments = live;
         } else if (currentFilter === "terminados") {
-            filteredTournaments = await db.query.tournaments.findMany({
-                where: eq(tournaments.status, "finalizado"),
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            });
+            filteredTournaments = finished;
         } else if (currentFilter === "mios" && userId) {
-            // Complex one: created by me OR registered by me
             const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
-            const regIds = userRegs.map(r => r.tournamentId);
-
-            filteredTournaments = await db.query.tournaments.findMany({
-                where: or(eq(tournaments.createdByUserId, userId), regIds.length > 0 ? inArray(tournaments.id, regIds) : undefined),
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            });
+            const regIds = new Set(userRegs.map(r => r.tournamentId));
+            filteredTournaments = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
         }
     } catch (e) {
         console.error("Database fetch error:", e);
@@ -101,7 +100,7 @@ export default async function TournamentsPage({
         { key: "abiertas", label: "Inscripción", count: openC },
         { key: "envivo", label: "En Vivo", count: liveC },
         { key: "terminados", label: "Finalizados", count: finishedC },
-        { key: "mios", label: "Mis Torneos", count: null },
+        // { key: "mios", label: "Mis Torneos", count: null },
     ];
 
     return (
@@ -126,15 +125,6 @@ export default async function TournamentsPage({
                                 Torneos
                             </h1>
                         </div>
-
-                        {dbUser && dbUser.role !== 'jugador' && (
-                            <Link href="/tournaments/create">
-                                <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/30">
-                                    <Plus className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Crear</span>
-                                </button>
-                            </Link>
-                        )}
                     </div>
 
                     {/* ── Stats pills ── */}
@@ -209,16 +199,21 @@ export default async function TournamentsPage({
 // ─── Tournament Card ────────────────────────────────────────────────────────
 function TournamentCard({ tournament }: { tournament: any }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    const isOpen = tournament.status === "published";
+    const daysUntil = getDaysUntil(tournament.startDate);
+    const isWithin7Days = daysUntil !== null && daysUntil <= 7;
+    const isOpen = tournament.status === "published" && isWithin7Days;
+    const isPreregistration = tournament.status === "published" && !isWithin7Days;
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
         ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20 dark:bg-red-950 dark:border-red-900", pill: "bg-red-500", text: "text-red-600 dark:text-red-400" }
         : isOpen
             ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900", pill: "bg-emerald-600", text: "text-emerald-600 dark:text-emerald-400" }
-            : isFinished
-                ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
-                : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
+            : isPreregistration
+                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20 dark:bg-blue-950 dark:border-blue-900", pill: "bg-blue-600", text: "text-blue-600 dark:text-blue-400" }
+                : isFinished
+                    ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
+                    : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
 
     const href = isOpen
         ? `/tournaments/register?id=${tournament.id}`
@@ -284,13 +279,15 @@ function TournamentCard({ tournament }: { tournament: any }) {
                 {/* CTA footer */}
                 <div className={`px-4 py-3 border-t flex items-center justify-between transition-colors ${isLive ? "border-red-500/20 bg-red-500/5 dark:bg-red-500/10" :
                     isOpen ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10" :
-                        "border-border bg-muted/30"
+                        isPreregistration ? "border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/10" :
+                            "border-border bg-muted/30"
                     }`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isPreregistration ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground"
                         }`}>
                         {isLive ? "Ver resultados en vivo" :
                             isOpen ? "Inscribirse ahora" :
-                                isFinished ? "Torneo finalizado" : "Ver detalles"}
+                                isPreregistration ? `Inscripción abre en ${daysUntil! - 7} días` :
+                                    isFinished ? "Torneo finalizado" : "Ver detalles"}
                     </span>
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : "bg-muted"
                         }`}>

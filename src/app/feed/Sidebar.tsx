@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Star, FolderOpen, Search, Plus } from "lucide-react";
+import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -39,12 +39,20 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
+    superadmin: [
+        { href: "/home", icon: Home, label: "Inicio" },
+        { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/profile", icon: User, label: "Mi Perfil" },
+        { href: "/ranking", icon: Star, label: "Ranking" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
+    ],
 };
 
 function getProfileUrl(role: string): string {
     if (role === "club") return "/profiles/club";
     if (role === "centro_de_padel") return "/profiles/centro";
     if (role === "profesor" || role === "profe") return "/profiles/profe";
+    if (role === "superadmin") return "/profile";
     return "/profile";
 }
 

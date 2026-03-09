@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { clubs, tournaments } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { clubs, tournaments, users } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import FeedLayout from "@/app/feed/layout";
 import ClubProfileClient from "./ClubProfileClient";
 
@@ -33,10 +33,15 @@ export default async function ClubProfilePage({
         return <div className="flex items-center justify-center min-h-screen text-white/60">Club no encontrado. Si sos dueño de un club, completá tu perfil para crearlo.</div>;
     }
 
-    // Fetch tournaments created by the club owner
     const userTournaments = club.ownerId
         ? await db.select().from(tournaments).where(eq(tournaments.createdByUserId, club.ownerId))
         : [];
+
+    const clubMembers = await db
+        .select()
+        .from(users)
+        .where(eq(users.clubId, club.id))
+        .orderBy(desc(users.points));
 
     const isOwner = user?.id === club.ownerId;
 
@@ -45,7 +50,7 @@ export default async function ClubProfilePage({
             <ClubProfileClient
                 user={user ? JSON.parse(JSON.stringify(user)) : null}
                 club={JSON.parse(JSON.stringify(club))}
-                members={[]}
+                members={JSON.parse(JSON.stringify(clubMembers))}
                 userTournaments={JSON.parse(JSON.stringify(userTournaments))}
                 isOwner={isOwner}
             />

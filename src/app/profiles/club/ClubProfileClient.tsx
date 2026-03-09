@@ -46,7 +46,7 @@ export default function ClubProfileClient({
     isOwner?: boolean;
 }) {
     const [showInvite, setShowInvite] = useState(false);
-    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "invitar" | "account">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "miembros" | "invitar" | "account">("info");
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [hideFinished, setHideFinished] = useState(true);
@@ -91,6 +91,7 @@ export default function ClubProfileClient({
     const tabs = [
         { id: "info" as const, label: "Información", icon: Shield },
         { id: "torneos" as const, label: "Torneos", icon: Trophy },
+        { id: "miembros" as const, label: "Miembros", icon: Users },
         ...(isOwner ? [
             { id: "invitar" as const, label: "Invitar", icon: MessageCircle },
             { id: "account" as const, label: "Cuenta", icon: Settings }
@@ -333,6 +334,92 @@ export default function ClubProfileClient({
                             )}
                         </div>
                     )}
+                    {activeTab === "miembros" && (
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-4">
+                                <h2 className="text-lg font-black uppercase tracking-widest italic">Miembros y Ranking</h2>
+                                <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">{totalMembers} Jugadores</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-card border border-border rounded-[2rem] shadow-xl overflow-hidden">
+                                {members && members.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="border-b border-border/50 bg-muted/30">
+                                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-16 text-center">Pos</th>
+                                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Nivel</th>
+                                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right">Puntos</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border/50">
+                                                {[...members]
+                                                    .sort((a, b) => (b.points || 0) - (a.points || 0))
+                                                    .map((member, index) => {
+                                                        const isTop3 = index < 3;
+                                                        const colors = [
+                                                            "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
+                                                            "text-slate-300 bg-slate-300/10 border-slate-300/20",
+                                                            "text-amber-600 bg-amber-600/10 border-amber-600/20"
+                                                        ];
+
+                                                        return (
+                                                            <tr key={member.id} className="hover:bg-muted/50 transition-colors group">
+                                                                <td className="px-8 py-6">
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic border ${isTop3 ? colors[index] : "text-muted-foreground bg-muted/50 border-border"}`}>
+                                                                        {index + 1}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-8 py-6">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted shrink-0 border border-border">
+                                                                            {member.imageUrl ? (
+                                                                                <Image src={member.imageUrl} alt={member.name || ""} fill className="object-cover" />
+                                                                            ) : (
+                                                                                <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/40" /></div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-sm font-bold tracking-tight group-hover:text-indigo-400 transition-colors uppercase italic">{member.name || member.fullName || "Jugador"}</span>
+                                                                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">{member.side === 'reves' ? 'Revés' : member.side === 'drive' ? 'Drive' : 'Polivalente'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-8 py-6 text-center">
+                                                                    <span className="px-3 py-1 bg-muted/50 border border-border rounded-full text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                                                        {member.category || "5ta"}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-8 py-6">
+                                                                    <div className="flex items-center justify-end gap-2">
+                                                                        <Star className={`w-3.5 h-3.5 ${isTop3 ? "text-yellow-500 fill-yellow-500" : "text-indigo-500"}`} />
+                                                                        <span className="text-sm font-black italic tabular-nums">{member.points || 0}</span>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="p-16 text-center flex flex-col items-center gap-6">
+                                        <div className="w-16 h-16 rounded-[2rem] bg-muted flex items-center justify-center">
+                                            <Users className="h-8 w-8 text-muted-foreground/40" />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <p className="text-muted-foreground text-sm font-medium italic">Aún no hay miembros registrados en este club.</p>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/50">Invite players to join</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
 
                     {activeTab === "account" && isOwner && (
                         <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 md:scale-100 origin-top">

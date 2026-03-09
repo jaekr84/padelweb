@@ -56,6 +56,11 @@ type InitialData = {
     categories: string[] | null;
     pointsConfig: PointsConfig | null;
     imageUrl: string | null;
+    modalidad: {
+        mode: "categorias" | "libre";
+        participacion: "pareja" | "individual";
+        genero: "hombre" | "mujer" | "mixto";
+    } | null;
 };
 
 function detectPreset(pc: PointsConfig | null): number {
@@ -134,10 +139,10 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
     });
 
     const [modalidad, setModalidad] = useState({
-        mode: isCatMode ? ("categorias" as const) : ("libre" as const),
+        mode: initialData?.modalidad?.mode ?? (isCatMode ? "categorias" : "libre"),
         selectedCats: isCatMode ? cats : ([] as string[]),
-        participacion: "pareja" as "pareja" | "individual",
-        genero: "mixto" as "hombre" | "mujer" | "mixto",
+        participacion: initialData?.modalidad?.participacion ?? "pareja",
+        genero: initialData?.modalidad?.genero ?? "mixto",
     });
 
     const [preset, setPreset] = useState(detectedPreset);
@@ -229,8 +234,23 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                 await createTournament(tournamentData);
                 toast.success("Torneo creado con éxito");
             }
-            router.push("/profile");
-            router.refresh();
+
+            // Get target profile based on role
+            const getTargetProfileUrl = () => {
+                if (typeof document === "undefined") return "/profile";
+                const match = document.cookie.match(/(?:^|;\s*)__padel_role=([^;]+)/);
+                const role = match ? decodeURIComponent(match[1]) : "jugador";
+
+                if (role === "club") return "/profiles/club";
+                if (role === "centro_de_padel") return "/profiles/centro";
+                if (role === "profesor" || role === "profe") return "/profiles/profe";
+                return "/profile";
+            };
+
+            const target = getTargetProfileUrl();
+            router.push(target);
+            // Non-infinite loading fix: if navigation is slow, we eventually want to reset state if we ever come back
+            // but for now, we leave it in loading until the new page arrives.
         } catch (err: any) {
             toast.error(err.message || "Error al guardar");
             setIsLoading(false); // Re-enable only on error
@@ -414,6 +434,24 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                             </div>
                                         )}
 
+                                        <div className="flex flex-col gap-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Tipo de Participación</h3>
+                                            <div className="bg-card p-1.5 rounded-3xl border border-border flex">
+                                                <button
+                                                    onClick={() => setModalidad({ ...modalidad, participacion: "individual" })}
+                                                    className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${modalidad.participacion === "individual" ? "bg-blue-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
+                                                >
+                                                    Individual
+                                                </button>
+                                                <button
+                                                    onClick={() => setModalidad({ ...modalidad, participacion: "pareja" })}
+                                                    className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${modalidad.participacion === "pareja" ? "bg-blue-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
+                                                >
+                                                    Pareja
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="flex flex-col gap-4">
                                                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Género</h3>
@@ -511,9 +549,9 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                                 <span className="text-sm font-black italic tracking-tight truncate">{info.name}</span>
                                             </div>
                                             <div className="bg-card border border-border/50 p-6 rounded-[2rem] flex flex-col gap-2">
-                                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Categoría</span>
-                                                <span className="text-sm font-black italic tracking-tight truncate">
-                                                    {modalidad.mode === "libre" ? "Libre" : modalidad.selectedCats.join(", ")}
+                                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Modalidad</span>
+                                                <span className="text-sm font-black italic tracking-tight truncate uppercase">
+                                                    {modalidad.mode === "libre" ? "Libre" : modalidad.selectedCats.join(", ")} • {modalidad.participacion}
                                                 </span>
                                             </div>
                                         </div>

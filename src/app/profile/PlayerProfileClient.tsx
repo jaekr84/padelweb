@@ -42,6 +42,7 @@ interface PlayerProfileClientProps {
     clubProfile?: any;
     createdTournaments?: any[];
     profeProfile?: any;
+    members?: any[];
 }
 
 export default function PlayerProfileClient({
@@ -51,7 +52,8 @@ export default function PlayerProfileClient({
     isOwnProfile,
     clubProfile,
     createdTournaments,
-    profeProfile
+    profeProfile,
+    members
 }: PlayerProfileClientProps) {
     const { user, isLoaded } = useUser();
     const router = useRouter();
@@ -135,7 +137,7 @@ export default function PlayerProfileClient({
                                 <ClubProfileClient
                                     user={user}
                                     club={clubProfile}
-                                    members={[]}
+                                    members={members || []}
                                     userTournaments={createdTournaments || []}
                                 />
                             ) : (
