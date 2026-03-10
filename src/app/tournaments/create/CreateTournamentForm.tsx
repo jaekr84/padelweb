@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-const ALL_CATEGORIES = ["1ra", "2da", "3ra", "4ta", "5ta", "6ta", "7ma", "8va", "9na"];
+// Removing the hardcoded ALL_CATEGORIES as it will now be passed as a prop from the DB
 
 const POINTS_PRESETS = [
     { label: "Estándar (1000/600/360/180)", winner: 1000, finalist: 600, semi: 360, quarter: 180 },
@@ -116,7 +116,13 @@ const compressImage = (file: File): Promise<Blob> => {
     });
 };
 
-export default function CreateTournamentForm({ initialData }: { initialData?: InitialData | null }) {
+export default function CreateTournamentForm({
+    initialData,
+    allCategoriesFromDb = ["1ra", "2da", "3ra", "4ta", "5ta", "6ta", "7ma", "8va", "9na"]
+}: {
+    initialData?: InitialData | null,
+    allCategoriesFromDb?: string[]
+}) {
     const isEditing = !!initialData;
     const router = useRouter();
     const cats = initialData?.categories ?? [];
@@ -413,7 +419,7 @@ export default function CreateTournamentForm({ initialData }: { initialData?: In
                                             <div className="flex flex-col gap-4">
                                                 <p className="text-[10px] font-black uppercase text-white/20 italic ml-2">Selecciona categorías habilitadas</p>
                                                 <div className="grid grid-cols-3 gap-3">
-                                                    {ALL_CATEGORIES.map(cat => {
+                                                    {allCategoriesFromDb.map(cat => {
                                                         const isSelected = modalidad.selectedCats.includes(cat);
                                                         return (
                                                             <button

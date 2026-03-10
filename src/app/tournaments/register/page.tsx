@@ -1,11 +1,10 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import FeedLayout from "@/app/feed/layout";
-
 
 type Props = {
     searchParams: Promise<{ id?: string }>;
@@ -18,11 +17,12 @@ export default async function RegisterPage({ searchParams }: Props) {
     const tid = params?.id;
 
     // Must be logged in
-    const clerkUser = await currentUser();
-    if (!clerkUser) redirect("/sign-in");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) redirect("/login");
+    const userId = session.userId;
 
     // Fetch role from DB
-    const [dbUser] = await db.select().from(users).where(eq(users.id, clerkUser.id)).limit(1);
+    const [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
     // Block clubs / centros
     if (!dbUser || !ALLOWED_ROLES.includes(dbUser.role)) {
@@ -94,9 +94,9 @@ export default async function RegisterPage({ searchParams }: Props) {
             <RegisterForm
                 tournament={serialized}
                 currentUser={{
-                    id: clerkUser.id,
-                    name: clerkUser.fullName ?? clerkUser.username ?? "Usuario",
-                    email: clerkUser.emailAddresses[0]?.emailAddress ?? "",
+                    id: userId,
+                    name: dbUser.firstName && dbUser.lastName ? `${dbUser.firstName} ${dbUser.lastName}` : (dbUser.firstName || "Usuario"),
+                    email: dbUser.email || "",
                 }}
             />
         </FeedLayout>

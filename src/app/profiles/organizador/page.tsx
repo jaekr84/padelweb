@@ -4,7 +4,8 @@ import { useState } from "react";
 import FeedLayout from "@/app/feed/layout";
 import styles from "@/app/profiles/profile.module.css";
 import { InviteModal } from "@/app/profiles/club/InviteModal";
-import { UserProfile } from "@clerk/nextjs";
+import { logoutAction } from "../../login/actions";
+import { LogOut, Settings, Shield } from "lucide-react";
 
 export default function CentroPadelProfilePage() {
     const [showInvite, setShowInvite] = useState(false);
@@ -162,7 +163,26 @@ export default function CentroPadelProfilePage() {
 
                         {activeTab === "account" && (
                             <div className={styles.accountSection}>
-                                <UserProfile routing="hash" />
+                                <div className="max-w-md mx-auto w-full bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                    <div className="flex flex-col items-center gap-4 text-center">
+                                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                                            <Settings className="h-10 w-10 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black uppercase italic tracking-tight">Padel Norte Center</h3>
+                                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest text-center">Configuración de Cuenta</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-border" />
+
+                                    <button
+                                        onClick={() => logoutAction()}
+                                        className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20 active:scale-95"
+                                    >
+                                        <LogOut className="h-4 w-4" /> Cerrar Sesión
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

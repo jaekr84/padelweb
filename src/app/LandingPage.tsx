@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
 import { Trophy, Star, Users, MapPin, Activity, LayoutGrid, ArrowRight, Zap } from "lucide-react";
 
 export default function LandingPage({
@@ -16,7 +15,9 @@ export default function LandingPage({
     instructorCount?: number;
     clubCount?: number;
 }) {
-    const { isSignedIn, isLoaded } = useAuth();
+    // Since this is rendered from page.tsx only when NOT logged in
+    const isSignedIn = false;
+    const isLoaded = true;
 
     return (
         <div className="min-h-screen bg-background text-foreground font-sans selection:bg-indigo-500/30 overflow-x-hidden transition-colors duration-500">
@@ -50,16 +51,8 @@ export default function LandingPage({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {!isLoaded ? null : isSignedIn ? (
-                            <Link href="/home" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/25 flex items-center gap-2 group">
-                                Entrar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                        ) : (
-                            <>
-                                <Link href="/sign-in" className="text-muted-foreground hover:text-foreground text-[10px] md:text-xs font-black uppercase tracking-widest no-underline px-3 md:px-4 transition-all">Entrar</Link>
-                                <Link href="/sign-up" className="bg-foreground text-background px-4 md:px-6 py-2 md:py-2.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl">Unirse</Link>
-                            </>
-                        )}
+                        <Link href="/login" className="text-muted-foreground hover:text-foreground text-[10px] md:text-xs font-black uppercase tracking-widest no-underline px-3 md:px-4 transition-all">Entrar</Link>
+                        <Link href="/register" className="bg-foreground text-background px-4 md:px-6 py-2 md:py-2.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl">Unirse</Link>
                     </div>
                 </nav>
             </div>
@@ -140,15 +133,9 @@ export default function LandingPage({
                         ¿Listo para entrar a la <span className="text-indigo-500">cancha</span>?
                     </h2>
 
-                    {!isLoaded ? null : isSignedIn ? (
-                        <Link href="/home" className="inline-flex items-center gap-3 bg-indigo-600 text-white px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/25 hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95 group">
-                            Entrar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    ) : (
-                        <Link href="/sign-up" className="inline-flex items-center gap-3 bg-foreground text-background px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl hover:opacity-90 transition-all hover:scale-105 active:scale-95">
-                            Registrarse Ahora <ArrowRight className="w-5 h-5" />
-                        </Link>
-                    )}
+                    <Link href="/register" className="inline-flex items-center gap-3 bg-foreground text-background px-12 py-6 rounded-[1.8rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl hover:opacity-90 transition-all hover:scale-105 active:scale-95">
+                        Registrarse Ahora <ArrowRight className="w-5 h-5" />
+                    </Link>
                 </div>
             </section>
 

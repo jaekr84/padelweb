@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { posts, users } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import FeedLayout from "@/app/feed/layout";
 import HomeClient from "./HomeClient";
 
@@ -12,29 +12,16 @@ export default async function HomePage() {
     let initialPosts: any[] = [];
 
     try {
-        const authData = await auth();
-        const userId = authData.userId;
+        const session = await getSession();
+        const userId = session?.userId as string | undefined;
 
-        if (userId) {
-            const dbUser = await db.query.users.findFirst({
-                where: eq(users.id, userId),
-            });
-            if (dbUser) {
-                currentUser = {
-                    id: dbUser.id,
-                    name: dbUser.name,
-                    imageUrl: null, // Si hubiese avatarUrl en schema, lo pasaría
-                };
-            }
-        }
-
-        // Fetch posts joined with users
         const rows = await db
             .select({
                 post: posts,
                 user: {
                     id: users.id,
-                    name: users.name,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
                     role: users.role,
                 }
             })
@@ -43,6 +30,19 @@ export default async function HomePage() {
             .orderBy(desc(posts.createdAt))
             .limit(50);
 
+        if (userId) {
+            const dbUser = await db.query.users.findFirst({
+                where: eq(users.id, userId),
+            });
+            if (dbUser) {
+                currentUser = {
+                    id: dbUser.id,
+                    name: `${dbUser.firstName} ${dbUser.lastName}`.trim() || dbUser.email,
+                    imageUrl: null,
+                };
+            }
+        }
+
         initialPosts = rows.map(r => ({
             id: r.post.id,
             content: r.post.content,
@@ -50,9 +50,9 @@ export default async function HomePage() {
             createdAt: r.post.createdAt.toISOString(),
             user: {
                 id: r.user?.id || "unknown",
-                name: r.user?.name || "Usuario Eliminado",
+                name: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : "Usuario Eliminado",
                 role: r.user?.role || "jugador",
-                imageUrl: null, // Add if user avatar is tracked
+                imageUrl: null,
             }
         }));
 

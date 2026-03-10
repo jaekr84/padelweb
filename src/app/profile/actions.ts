@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { users, instructorProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 
 export async function updatePlayerProfile(formData: {
@@ -12,38 +12,40 @@ export async function updatePlayerProfile(formData: {
     bio: string;
     side: string;
 }) {
-    const user = await currentUser();
-    if (!user) throw new Error("No autorizado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autorizado");
+    const userId = session.userId;
 
     await db
         .update(users)
         .set({
-            name: formData.name,
+            firstName: formData.name, // Using firstName as the display name for now
             location: formData.location,
             bio: formData.bio,
             side: formData.side,
         })
-        .where(eq(users.id, user.id));
+        .where(eq(users.id, userId));
 
     revalidatePath("/profile");
     return { ok: true };
 }
 
 export async function switchRole(newRole: "jugador" | "profe") {
-    const user = await currentUser();
-    if (!user) throw new Error("No autorizado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autorizado");
+    const userId = session.userId;
 
     await db
         .update(users)
         .set({ role: newRole })
-        .where(eq(users.id, user.id));
+        .where(eq(users.id, userId));
 
     if (newRole === "profe") {
-        const [existing] = await db.select().from(instructorProfiles).where(eq(instructorProfiles.userId, user.id));
+        const [existing] = await db.select().from(instructorProfiles).where(eq(instructorProfiles.userId, userId));
         if (!existing) {
             await db.insert(instructorProfiles).values({
-                userId: user.id,
-                name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0] || "Profesor",
+                userId: userId,
+                name: session.email.split('@')[0] || "Profesor",
                 level: "Profesor",
                 experience: "Años de experiencia",
                 availability: [

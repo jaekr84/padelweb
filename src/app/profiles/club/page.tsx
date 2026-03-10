@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { clubs, tournaments, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -10,7 +10,7 @@ export default async function ClubProfilePage({
 }: {
     searchParams: Promise<{ id?: string }>
 }) {
-    const user = await currentUser();
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
     const resolvedSearchParams = await searchParams;
     const targetClubId = resolvedSearchParams?.id;
 
@@ -20,13 +20,13 @@ export default async function ClubProfilePage({
         // Viewing a specific club by ID
         const foundClubs = await db.select().from(clubs).where(eq(clubs.id, targetClubId));
         club = foundClubs[0] ?? null;
-    } else if (user) {
+    } else if (session?.userId) {
         // Viewing own club profile
-        const userClubs = await db.select().from(clubs).where(eq(clubs.ownerId, user.id));
+        const userClubs = await db.select().from(clubs).where(eq(clubs.ownerId, session.userId));
         club = userClubs[0] ?? null;
     }
 
-    if (!user && !club) {
+    if (!session && !club) {
         return <div className="flex items-center justify-center min-h-screen text-white/60">Debe iniciar sesión o especificar un club</div>;
     }
     if (!club) {
@@ -43,12 +43,12 @@ export default async function ClubProfilePage({
         .where(eq(users.clubId, club.id))
         .orderBy(desc(users.points));
 
-    const isOwner = user?.id === club.ownerId;
+    const isOwner = session?.userId === club.ownerId;
 
     return (
         <FeedLayout>
             <ClubProfileClient
-                user={user ? JSON.parse(JSON.stringify(user)) : null}
+                user={session ? { id: session.userId, email: session.email, publicMetadata: { role: session.role } } : null}
                 club={JSON.parse(JSON.stringify(club))}
                 members={JSON.parse(JSON.stringify(clubMembers))}
                 userTournaments={JSON.parse(JSON.stringify(userTournaments))}

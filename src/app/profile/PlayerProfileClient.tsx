@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { UserProfile, useUser } from "@clerk/nextjs";
 import { updatePlayerProfile, switchRole } from "./actions";
+import { logoutAction } from "../login/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -24,9 +24,11 @@ import {
     LayoutDashboard,
     ShieldCheck,
     Send,
-    Loader2
+    Loader2,
+    LogOut,
+    User
 } from "lucide-react";
-import { createClubInvitation } from "../admin/invitations/actions";
+import { createInvitation } from "../admin/invitations/actions";
 import Link from "next/link";
 import FeedLayout from "@/app/feed/layout";
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
@@ -55,14 +57,13 @@ export default function PlayerProfileClient({
     profeProfile,
     members
 }: PlayerProfileClientProps) {
-    const { user, isLoaded } = useUser();
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState("tournaments");
     const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: dbUser?.name || user?.fullName || "",
+        name: dbUser?.firstName || "",
         location: dbUser?.location || "",
         side: dbUser?.side || "drive",
         bio: dbUser?.bio || ""
@@ -94,7 +95,7 @@ export default function PlayerProfileClient({
         router.push("/profiles/profe");
     };
 
-    const myName = dbUser?.name || user?.fullName || "";
+    const myName = dbUser?.firstName || "";
 
     // Stats aggregation
     const stats = useMemo(() => {
@@ -112,8 +113,6 @@ export default function PlayerProfileClient({
             side: dbUser?.side || "drive"
         };
     }, [matchHistory, myName, dbUser]);
-
-    if (!isLoaded || !user) return null;
 
     const activeTournaments = registrations.filter(r =>
         r.tournament.status === "en_curso" || r.tournament.status === "en_eliminatorias"
@@ -135,7 +134,7 @@ export default function PlayerProfileClient({
                         <div className="col-span-full">
                             {dbUser?.role === "club" ? (
                                 <ClubProfileClient
-                                    user={user}
+                                    user={dbUser}
                                     club={clubProfile}
                                     members={members || []}
                                     userTournaments={createdTournaments || []}
@@ -188,14 +187,18 @@ export default function PlayerProfileClient({
                                 <div className="px-6 pb-8 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6">
                                     <div className="relative group">
                                         <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
-                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative">
-                                            <Image src={user.imageUrl} alt={user.fullName || ""} fill className="object-cover" priority />
+                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
+                                            {dbUser.image_url ? (
+                                                <Image src={dbUser.image_url} alt={dbUser.firstName || ""} fill className="object-cover" priority />
+                                            ) : (
+                                                <User className="w-12 h-12 text-muted-foreground/40" />
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="flex-1 text-center md:text-left pt-2 pb-1">
                                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
-                                            <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{user.fullName}</h1>
+                                            <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{dbUser.firstName} {dbUser.lastName}</h1>
                                             <div className="flex self-center md:self-auto px-3 py-1 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 dark:border-indigo-500/30 rounded-full">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
                                                     {dbUser.role === 'superadmin' ? 'SUPERADMIN' : dbUser.role === 'profe' ? 'PROFE' : dbUser.role === 'admin' ? 'Administrador' : 'Jugador'}
@@ -208,7 +211,7 @@ export default function PlayerProfileClient({
                                                 <MapPin className="h-3.5 w-3.5" /> {dbUser?.location || "Sin ubicación"}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Calendar className="h-3.5 w-3.5 text-indigo-500/50" /> {user.createdAt ? `Desde ${user.createdAt.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}` : "Recientemente"}
+                                                <Calendar className="h-3.5 w-3.5 text-indigo-500/50" /> {dbUser.createdAt ? `Desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}` : "Recientemente"}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Hand className="h-3.5 w-3.5 text-blue-500/50" /> {stats.side === "drive" ? "Drive" : "Revés"}
@@ -397,8 +400,45 @@ export default function PlayerProfileClient({
                                 )}
 
                                 {activeTab === "account" && (
-                                    <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 md:scale-100 origin-top">
-                                        <UserProfile routing="hash" />
+                                    <div className="max-w-md mx-auto w-full">
+                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                            <div className="flex flex-col items-center gap-4 text-center">
+                                                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                                                    <User className="h-10 w-10 text-muted-foreground" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-black uppercase italic tracking-tight">{dbUser.firstName} {dbUser.lastName}</h3>
+                                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">{dbUser.email}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="h-px bg-border" />
+
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <ShieldCheck className="h-4 w-4 text-indigo-500" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Rol Actual</span>
+                                                    </div>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">{dbUser.role}</span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <UserCircle className="h-4 w-4 text-indigo-500" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">ID de Usuario</span>
+                                                    </div>
+                                                    <span className="text-[9px] font-mono text-muted-foreground/60">{dbUser.id.slice(0, 12)}...</span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => logoutAction()}
+                                                className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20 active:scale-95"
+                                            >
+                                                <LogOut className="h-4 w-4" /> Cerrar Sesión
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
@@ -452,7 +492,7 @@ export default function PlayerProfileClient({
                                                     onSubmit={async (e) => {
                                                         e.preventDefault();
                                                         const formData = new FormData(e.currentTarget);
-                                                        const res = await createClubInvitation(formData);
+                                                        const res = await createInvitation(formData);
                                                         if (res.error) toast.error(res.error);
                                                         else {
                                                             toast.success(res.message);
@@ -481,6 +521,27 @@ export default function PlayerProfileClient({
                                                         Enviar Invitación <Send className="h-3.5 w-3.5" />
                                                     </button>
                                                 </form>
+
+                                                <div className="mt-12 flex flex-col gap-4">
+                                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2 italic">Configuración Global</h3>
+                                                    <Link
+                                                        href="/admin/categories"
+                                                        className="group bg-card border border-border rounded-[2rem] p-8 flex items-center justify-between hover:border-indigo-500/50 transition-all shadow-xl"
+                                                    >
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500/20 transition-all">
+                                                                <ShieldCheck className="h-7 w-7 text-indigo-500" />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-xl font-black uppercase italic tracking-tight mb-1">Categorías y Puntos</h4>
+                                                                <p className="text-[10px] font-medium text-white/30 uppercase tracking-[0.1em]">Gestionar umbrales, nombres y géneros</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-all">
+                                                            <ChevronRight className="h-5 w-5" />
+                                                        </div>
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -1,35 +1,62 @@
 "use server";
+import { getSession, setSession } from "@/lib/auth-server";
+import { jwtVerify } from "jose";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+const JWT_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
-export async function linkRoleToUser(role: string, invitedByClubId?: string | null) {
-    const { userId } = await auth();
+export async function linkRoleToUser(role: string, invitedByClubId?: string | null, token?: string | null) {
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
 
-    if (!userId) {
+    if (!session?.userId) {
         throw new Error("No estás autenticado");
     }
 
+    const userId = session.userId;
+    let finalRole = role;
+
+    // Verify token if present
+    if (token) {
+        try {
+            const { payload } = await jwtVerify(token, JWT_SECRET);
+            if (payload.issuer !== 'superadmin') {
+                throw new Error("Token de invitación inválido");
+            }
+            finalRole = payload.role as string;
+        } catch (e: any) {
+            console.error("JWT Verification failed:", e);
+            throw new Error("El link de invitación ha expirado o es inválido (vida útil: 2hs)");
+        }
+    }
+
     // List of allowed roles
-    const allowedRoles = ["jugador", "club", "profesor", "centro_de_padel"];
-    if (!allowedRoles.includes(role)) {
+    const allowedRoles = ["jugador", "club", "profesor", "centro_de_padel", "profe"]; // Added 'profe' for consistency
+    if (!allowedRoles.includes(finalRole)) {
         throw new Error("Rol inválido");
     }
 
-    // Attach role to publicMetadata
-    // Using Clerk V5 APIs (clerkClient().users...)
     try {
-        const client = await clerkClient()
-        const metadataParams: any = { role };
+        // Update DB
+        const updateData: any = { role: finalRole };
         if (invitedByClubId) {
-            metadataParams.invitedByClubId = invitedByClubId;
+            updateData.clubId = invitedByClubId;
         }
 
-        await client.users.updateUserMetadata(userId, {
-            publicMetadata: metadataParams,
-        });
+        // Note: isLibre is not in the current schema. If needed, we should add it.
+        // For now, we only update role and clubId.
+
+        await db.update(users)
+            .set(updateData)
+            .where(eq(users.id, userId));
+
+        // Refresh the session cookie with the new role
+        await setSession(userId, session.email, finalRole);
+
         return { success: true };
     } catch (err) {
-        console.error("Error setting role in Clerk", err);
+        console.error("Error setting role in DB", err);
         return { success: false, error: "Hubo un error al asignar el rol" };
     }
 }

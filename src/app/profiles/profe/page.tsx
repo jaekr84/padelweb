@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { instructorProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import FeedLayout from "@/app/feed/layout";
 import ProfeProfileClient from "./ProfeProfileClient";
 
@@ -10,7 +10,7 @@ export default async function ProfesorProfilePage({
 }: {
     searchParams: Promise<{ id?: string }>
 }) {
-    const user = await currentUser();
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
     const resolvedSearchParams = await searchParams;
     const profeId = resolvedSearchParams?.id;
 
@@ -31,29 +31,28 @@ export default async function ProfesorProfilePage({
         }
 
         profe = found[0] || null;
-    } else if (user) {
+    } else if (session?.userId) {
         // Upsert for current user profile if no ID provided (own profile)
         const result = await db
             .insert(instructorProfiles)
             .values({
-                userId: user.id,
-                name: user.fullName || user.emailAddresses[0]?.emailAddress.split('@')[0],
+                userId: session.userId,
+                name: session.email.split('@')[0], // Simplified naming
                 bio: "Instructor de padel",
                 level: "PROFE Nacional",
                 experience: "En formación",
                 rating: "0.0",
                 verified: false,
-                avatarUrl: user.imageUrl,
             })
             .onConflictDoUpdate({
                 target: instructorProfiles.userId,
-                set: { avatarUrl: user.imageUrl } // Keep it simple
+                set: { workingZones: [] } // Just to have an update target
             })
             .returning();
         profe = result[0];
     }
 
-    const isOwner = user?.id === profe?.userId;
+    const isOwner = session?.userId === profe?.userId;
 
     return (
         <FeedLayout>

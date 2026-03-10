@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LandingPage from "./LandingPage";
 import { db } from "@/db";
@@ -6,7 +6,10 @@ import { users, tournaments } from "@/db/schema";
 import { sql, eq, inArray } from "drizzle-orm";
 
 export default async function Home() {
-  const { userId } = await auth();
+  const user = await getCurrentUser();
+  if (user) {
+    redirect("/home");
+  }
 
   // Fetch real stats
   let tournamentCount = 50;

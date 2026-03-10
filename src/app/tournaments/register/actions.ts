@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { registrations, users, tournaments } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -14,8 +14,9 @@ type RegisterInput = {
 };
 
 export async function registerForTournament(input: RegisterInput) {
-    const { userId } = await auth();
-    if (!userId) throw new Error("No autenticado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autenticado");
+    const userId = session.userId;
 
     // Verify user role
     const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);

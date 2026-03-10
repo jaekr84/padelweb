@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { currentUser } from "@clerk/nextjs/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getCurrentUser } from "@/lib/auth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
@@ -29,41 +25,30 @@ export const viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  let currentRole = "jugador";
-
-  try {
-    const clerkUser = await currentUser();
-    if (clerkUser) {
-      const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, clerkUser.id)).limit(1);
-      if (dbUser) currentRole = dbUser.role;
-    }
-  } catch {
-    // DB cold start or connection issue — use default role
-  }
+  const user = await getCurrentUser();
+  const currentRole = user?.role || "jugador";
 
   return (
-    <ClerkProvider>
-      <html lang="es" suppressHydrationWarning>
-        <head>
-        </head>
-        <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={true}
-            disableTransitionOnChange
-          >
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
-              }}
-            />
-            {children}
-            <RoleSwitcher currentRole={currentRole} />
-            <Toaster position="bottom-right" theme="dark" closeButton richColors />
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="es" suppressHydrationWarning>
+      <head>
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={true}
+          disableTransitionOnChange
+        >
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
+            }}
+          />
+          {children}
+          <RoleSwitcher currentRole={currentRole} />
+          <Toaster position="bottom-right" theme="dark" closeButton richColors />
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

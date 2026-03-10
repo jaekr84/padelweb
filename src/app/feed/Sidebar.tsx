@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
+import { logoutAction } from "@/app/login/actions";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -45,6 +45,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
+        { href: "/admin/categories", icon: Settings, label: "Configuración" },
     ],
 };
 
@@ -65,12 +66,12 @@ function getCookieRole(): string {
 export default function Sidebar() {
     const [role, setRole] = useState("jugador");
     const pathname = usePathname();
+    const router = useRouter();
 
     useEffect(() => {
         setRole(getCookieRole());
-    }, [pathname]); // Refresh role when navigating to ensure current state
+    }, [pathname]);
 
-    // ── Hide bottom nav when iOS virtual keyboard is open ──────────────────
     const [keyboardOpen, setKeyboardOpen] = useState(false);
 
     useEffect(() => {
@@ -78,7 +79,6 @@ export default function Sidebar() {
         if (!vv) return;
 
         const onResize = () => {
-            // When keyboard opens, visual viewport height shrinks significantly
             const ratio = vv.height / window.innerHeight;
             setKeyboardOpen(ratio < 0.75);
         };
@@ -87,9 +87,12 @@ export default function Sidebar() {
         return () => vv.removeEventListener("resize", onResize);
     }, []);
 
-
     const navItems = NAV[role] ?? NAV["jugador"];
     const profileUrl = getProfileUrl(role);
+
+    const handleLogout = async () => {
+        await logoutAction();
+    };
 
     return (
         <>
@@ -101,23 +104,16 @@ export default function Sidebar() {
                 </Link>
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
-                    <UserButton
-                        showName={false}
-                        appearance={{
-                            elements: {
-                                userButtonBox: "p-1 rounded-full",
-                                userButtonOuterIdentifier: "text-slate-300",
-                            },
-                        }}
+                    <button
+                        onClick={handleLogout}
+                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Cerrar Sesión"
                     >
-                        <UserButton.MenuItems>
-                            <UserButton.Link
-                                label="Mi Perfil Público"
-                                labelIcon={<User className="w-4 h-4 ml-1" />}
-                                href={profileUrl}
-                            />
-                        </UserButton.MenuItems>
-                    </UserButton>
+                        <LogOut className="w-5 h-5 text-slate-500" />
+                    </button>
+                    <Link href={profileUrl} className="p-1 rounded-full border border-border bg-slate-100 dark:bg-slate-800">
+                        <User className="w-5 h-5 text-slate-500" />
+                    </Link>
                 </div>
             </header>
 
@@ -133,23 +129,20 @@ export default function Sidebar() {
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
-                        <UserButton
-                            showName={true}
-                            appearance={{
-                                elements: {
-                                    userButtonBox: "hover:bg-muted p-1.5 -ml-1.5 rounded-xl transition-colors",
-                                    userButtonOuterIdentifier: "text-foreground font-medium text-sm",
-                                },
-                            }}
-                        >
-                            <UserButton.MenuItems>
-                                <UserButton.Link
-                                    label="Mi Perfil Público"
-                                    labelIcon={<User className="w-4 h-4 ml-1" />}
-                                    href={profileUrl}
-                                />
-                            </UserButton.MenuItems>
-                        </UserButton>
+                        <div className="flex items-center gap-3 w-full group">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-border flex items-center justify-center">
+                                <User className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <div className="flex flex-col flex-1 min-w-0">
+                                <span className="text-sm font-bold truncate text-foreground">Usuario</span>
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-400 transition-colors text-left"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3 bg-card px-4 py-2.5 rounded-2xl border border-border text-sm focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-sm">
@@ -193,7 +186,7 @@ export default function Sidebar() {
                                     <Icon className="w-5 h-5" />
                                 </div>
                                 <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-indigo-600' : 'text-muted-foreground'}`}>
-                                    {item.label.split(' ')[0]} {/* Shorten label for mobile if needed */}
+                                    {item.label.split(' ')[0]}
                                 </span>
                             </Link>
                         );

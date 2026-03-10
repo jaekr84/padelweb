@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { tournaments } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { tournaments, categoriesTable } from "@/db/schema";
+import { eq, asc } from "drizzle-orm";
 import CreateTournamentForm from "./CreateTournamentForm";
 
 type Props = {
@@ -10,6 +10,12 @@ type Props = {
 export default async function CreateTournamentPage({ searchParams }: Props) {
     const params = await searchParams;
     const editId = params?.edit;
+
+    const allCategoriesFromDb = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.isActive, true))
+        .orderBy(asc(categoriesTable.categoryOrder));
 
     let initialData = null;
 
@@ -38,5 +44,5 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
         }
     }
 
-    return <CreateTournamentForm initialData={initialData} />;
+    return <CreateTournamentForm initialData={initialData} allCategoriesFromDb={allCategoriesFromDb.map(c => c.name)} />;
 }

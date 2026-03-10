@@ -1,107 +1,68 @@
-import { clerkMiddleware, createRouteMatcher, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-const isPublicRoute = createRouteMatcher([
-    '/login(.*)',
-    '/sign-in(.*)',
-    '/onboarding(.*)',            // Role selection for new users
-    '/',                         // Landing page
-    '/profiles/centro/(.*)',     // Perfiles públicos de centros
-    '/profiles/profe/(.*)',      // Perfiles públicos de instructores
-]);
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "padel_master_secret_key_change_me_in_prod");
 
-const isOnboardingRoute = createRouteMatcher(['/onboarding']);
+const PUBLIC_ROUTES = [
+    "/",
+    "/login",
+    "/register",
+    "/profiles/centro",
+    "/profiles/profe",
+];
 
-export default clerkMiddleware(async (auth, req) => {
-    const { userId, sessionClaims } = await auth();
+export async function middleware(req: NextRequest) {
+    const { pathname } = req.nextUrl;
 
-    // Allow access to /sign-up ONLY if it's an invitation link (has __clerk_ticket)
-    const isSignUpRoute = req.nextUrl.pathname.startsWith('/sign-up');
-    const isInvitation = req.nextUrl.searchParams.has('__clerk_ticket');
+    // Check if it's a public route
+    const isPublic = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route));
 
-    if (isSignUpRoute && isInvitation) {
-        // Skip protection for invitation links so unauthenticated users can accept them
+    // Static assets and internal routes
+    if (
+        pathname.startsWith("/_next") ||
+        pathname.startsWith("/api") || // We handle API protection inside actions/routes usually, but can also protect here
+        pathname.includes(".")
+    ) {
         return NextResponse.next();
     }
 
-    if (userId && !isPublicRoute(req) && !isSignUpRoute) {
-        const metadata = sessionClaims?.metadata as { role?: string } | undefined;
-        const hasRoleCookie = req.cookies.get('has_role')?.value === 'true';
-        let hasRole = !!metadata?.role || hasRoleCookie;
+    const token = req.cookies.get("session")?.value;
 
-        // Fallback: If not in claims and no cookie, fetch from Clerk API once
-        if (!hasRole) {
-            try {
-                const client = await clerkClient();
-                const user = await client.users.getUser(userId);
-
-                // HYBRID SUPERADMIN STRATEGY
-                const superadminEmails = process.env.SUPERADMIN_EMAIL?.split(',').map(e => e.trim().toLowerCase()) || [];
-                const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress?.toLowerCase();
-
-                if (!user.publicMetadata?.role && userEmail && superadminEmails.includes(userEmail)) {
-                    await client.users.updateUserMetadata(userId, {
-                        publicMetadata: { role: 'superadmin' }
-                    });
-                    hasRole = true;
-                    console.log(`Assigned superadmin role to ${userEmail}`);
-                } else if (user.publicMetadata?.role) {
-                    hasRole = true;
-                }
-            } catch (error) {
-                console.error("Error fetching/updating user in proxy:", error);
-            }
-        }
-
-        // Check if there's no role in the JWT AND no fallback cookie AND no role in API
-        if (!hasRole && !isOnboardingRoute(req)) {
-            const onboardingUrl = new URL('/onboarding', req.url);
-            return NextResponse.redirect(onboardingUrl);
-        }
-
-        // If user has a role and tries to access onboarding, auth pages, or the landing page
-        const isAuthRoute = req.nextUrl.pathname.startsWith('/sign-in') || req.nextUrl.pathname.startsWith('/sign-up');
-        const isLandingRoute = req.nextUrl.pathname === '/';
-
-        if (hasRole && (isOnboardingRoute(req) || isAuthRoute || isLandingRoute)) {
-            // Determine redirect URL based on role
-            let targetPath = '/tournaments'; // Default fallback
-
-            const role = metadata?.role as string | undefined;
-
-            if (role === 'superadmin') {
-                targetPath = '/admin';
-            } else if (role === 'club') {
-                targetPath = '/club/dashboard'; // Or /tournaments depending on the complete structure
-            }
-
-            const homeUrl = new URL(targetPath, req.url);
-            const response = NextResponse.redirect(homeUrl);
-            if (!hasRoleCookie) {
-                response.cookies.set('has_role', 'true', { maxAge: 60 * 60 * 24 * 365, path: '/' });
-            }
-            return response;
-        }
-
-        // If they have a role but no cookie on a normal route, set the cookie to avoid future API hits
-        if (hasRole && !hasRoleCookie && !isOnboardingRoute(req)) {
-            const response = NextResponse.next();
-            response.cookies.set('has_role', 'true', { maxAge: 60 * 60 * 24 * 365, path: '/' });
-            return response;
+    let session = null;
+    if (token) {
+        try {
+            const { payload } = await jwtVerify(token, JWT_SECRET);
+            session = payload;
+        } catch (e) {
+            console.error("Session verification failed", e);
         }
     }
 
-    // By default, protect everything except public routes
-    if (!isPublicRoute(req)) {
-        await auth.protect();
+    // Redirect authenticated users away from login/register
+    if (session && (pathname === "/login" || pathname === "/register")) {
+        return NextResponse.redirect(new URL("/home", req.url));
     }
-});
+
+    // Protect private routes
+    if (!session && !isPublic) {
+        const loginUrl = new URL("/login", req.url);
+        // Save targeted URL to redirect back after login?
+        return NextResponse.redirect(loginUrl);
+    }
+
+    // Admin route protection
+    if (pathname.startsWith("/admin")) {
+        if (!session || session.role !== "superadmin") {
+            return NextResponse.redirect(new URL("/home", req.url));
+        }
+    }
+
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: [
-        // Skip Next.js internals and all static files, unless found in search params
         "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-        // Always run for API routes
-        "/(api|trpc)(.*)",
     ],
 };

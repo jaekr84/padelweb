@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { instructorProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfeProfile(data: {
@@ -20,8 +20,8 @@ export async function updateProfeProfile(data: {
     availability?: any;
     pricing?: any;
 }) {
-    const user = await currentUser();
-    if (!user) throw new Error("No autorizado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autorizado");
 
     await db
         .update(instructorProfiles)
@@ -39,7 +39,7 @@ export async function updateProfeProfile(data: {
             availability: data.availability,
             pricing: data.pricing,
         })
-        .where(eq(instructorProfiles.userId, user.id));
+        .where(eq(instructorProfiles.userId, session.userId));
 
     revalidatePath("/profiles/profe");
     return { ok: true };

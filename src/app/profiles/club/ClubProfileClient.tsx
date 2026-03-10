@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { InviteModal } from "./InviteModal";
-import { UserProfile, useUser } from "@clerk/nextjs";
 import { updateClubProfile } from "./actions";
+import { logoutAction } from "../../login/actions";
 import { deleteTournament } from "@/app/tournaments/fixture/actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -51,7 +51,6 @@ export default function ClubProfileClient({
     const [saving, setSaving] = useState(false);
     const [hideFinished, setHideFinished] = useState(true);
     const router = useRouter();
-    const { user: clerkUser } = useUser();
 
     const [formData, setFormData] = useState({
         name: club?.name || user?.fullName || "",
@@ -146,9 +145,9 @@ export default function ClubProfileClient({
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
-                                {clerkUser?.imageUrl || user?.imageUrl ? (
+                                {user?.image_url ? (
                                     <Image
-                                        src={clerkUser?.imageUrl || user?.imageUrl}
+                                        src={user.image_url}
                                         alt="Club avatar"
                                         fill
                                         className="object-cover"
@@ -422,8 +421,37 @@ export default function ClubProfileClient({
 
 
                     {activeTab === "account" && isOwner && (
-                        <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 md:scale-100 origin-top">
-                            <UserProfile routing="hash" />
+                        <div className="max-w-md mx-auto w-full">
+                            <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
+                                <div className="flex flex-col items-center gap-4 text-center">
+                                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                                        <Settings className="h-10 w-10 text-muted-foreground" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black uppercase italic tracking-tight">{clubName}</h3>
+                                        {user?.email && <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">{user?.email}</p>}
+                                    </div>
+                                </div>
+
+                                <div className="h-px bg-border" />
+
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50">
+                                        <div className="flex items-center gap-3">
+                                            <Shield className="h-4 w-4 text-indigo-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Rol Administrador</span>
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">{user?.role}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => logoutAction()}
+                                    className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20 active:scale-95"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                            </div>
                         </div>
                     )}
 

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { eq, desc, notInArray, or, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments, registrations, users } from "@/db/schema";
@@ -43,56 +43,64 @@ export default async function TournamentsPage({
 
     let userId: string | null = null;
     let dbUser: any = null;
+    let allTournaments: any[] = [];
+
     try {
-        const authData = await auth();
-        userId = authData.userId;
+        const [session, tournamentsRes] = await Promise.all([
+            getSession() as Promise<{ userId: string, role: string, email: string } | null>,
+            db.query.tournaments.findMany({
+                with: { club: true, createdBy: { with: { clubs: true } } },
+                orderBy: [desc(tournaments.createdAt)]
+            })
+        ]);
+
+        allTournaments = tournamentsRes;
+        userId = session?.userId || null;
+
         if (userId) {
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error("Fetch error:", e);
+    }
 
     let filteredTournaments: any[] = [];
     let liveC = 0, openC = 0, finishedC = 0, totalActiveC = 0, totalC = 0;
 
-    try {
-        const allTournaments = await db.query.tournaments.findMany({
-            with: { club: true, createdBy: { with: { clubs: true } } },
-            orderBy: [desc(tournaments.createdAt)]
-        });
+    totalC = allTournaments.length;
 
-        totalC = allTournaments.length;
+    const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
+    liveC = live.length;
 
-        const live = allTournaments.filter(t => t.status === "en_curso" || t.status === "en_eliminatorias");
-        liveC = live.length;
+    const finished = allTournaments.filter(t => t.status === "finalizado");
+    finishedC = finished.length;
 
-        const finished = allTournaments.filter(t => t.status === "finalizado");
-        finishedC = finished.length;
+    const published = allTournaments.filter(t => t.status === "published");
+    const registrable = published.filter(t => {
+        const days = getDaysUntil(t.startDate);
+        return days !== null && days <= 7;
+    });
+    openC = registrable.length;
 
-        const published = allTournaments.filter(t => t.status === "published");
-        const registrable = published.filter(t => {
-            const days = getDaysUntil(t.startDate);
-            return days !== null && days <= 7;
-        });
-        openC = registrable.length;
+    const active = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
+    totalActiveC = active.length;
 
-        const active = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
-        totalActiveC = active.length;
-
-        if (currentFilter === "todos") {
-            filteredTournaments = active;
-        } else if (currentFilter === "abiertas") {
-            filteredTournaments = registrable;
-        } else if (currentFilter === "envivo") {
-            filteredTournaments = live;
-        } else if (currentFilter === "terminados") {
-            filteredTournaments = finished;
-        } else if (currentFilter === "mios" && userId) {
+    if (currentFilter === "todos") {
+        filteredTournaments = active;
+    } else if (currentFilter === "abiertas") {
+        filteredTournaments = registrable;
+    } else if (currentFilter === "envivo") {
+        filteredTournaments = live;
+    } else if (currentFilter === "terminados") {
+        filteredTournaments = finished;
+    } else if (currentFilter === "mios" && userId) {
+        try {
             const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
             const regIds = new Set(userRegs.map(r => r.tournamentId));
             filteredTournaments = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
+        } catch (e) {
+            console.error("Mios filter error:", e);
         }
-    } catch (e) {
-        console.error("Database fetch error:", e);
     }
 
     const filters = [

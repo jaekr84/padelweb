@@ -1,6 +1,4 @@
-"use server";
-
-import { auth } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -30,8 +28,9 @@ type TournamentInput = {
 };
 
 export async function createTournament(data: TournamentInput) {
-    const { userId } = await auth();
-    if (!userId) throw new Error("No estás autenticado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No estás autenticado");
+    const userId = session.userId;
 
     const existingUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (existingUser.length === 0) throw new Error("Usuario no encontrado en la base de datos");
@@ -68,8 +67,9 @@ export async function createTournament(data: TournamentInput) {
 }
 
 export async function updateTournament(id: string, data: TournamentInput) {
-    const { userId } = await auth();
-    if (!userId) throw new Error("No estás autenticado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No estás autenticado");
+    const userId = session.userId;
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 

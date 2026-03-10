@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { clubs, users } from "@/db/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -22,23 +22,12 @@ interface CentroProfileData {
 }
 
 export async function updateCentroProfile(data: CentroProfileData) {
-    const user = await currentUser();
-    if (!user) throw new Error("No estás autenticado");
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No estás autenticado");
 
-    const primaryEmail =
-        user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ||
-        user.emailAddresses[0]?.emailAddress ||
-        "no-email@padelweb.com";
+    const userId = session.userId;
 
-    const role = (user.publicMetadata?.role as string) || "club";
-
-    await db.insert(users).values({
-        id: user.id,
-        email: primaryEmail,
-        role,
-    }).onConflictDoNothing();
-
-    const existing = await db.select().from(clubs).where(eq(clubs.ownerId, user.id));
+    const existing = await db.select().from(clubs).where(eq(clubs.ownerId, userId));
 
     if (existing.length > 0) {
         await db.update(clubs).set({
@@ -54,11 +43,11 @@ export async function updateCentroProfile(data: CentroProfileData) {
             amenities: data.amenities,
             schedule: data.schedule,
             photos: data.photos,
-        }).where(eq(clubs.ownerId, user.id));
+        }).where(eq(clubs.ownerId, userId));
     } else {
         await db.insert(clubs).values({
-            id: user.id,
-            ownerId: user.id,
+            id: userId,
+            ownerId: userId,
             name: data.name || "Mi Centro",
             bio: data.bio,
             location: data.location,
@@ -75,7 +64,7 @@ export async function updateCentroProfile(data: CentroProfileData) {
     }
 
     revalidatePath("/profile");
-    revalidatePath(`/profiles/centro/${user.id}`);
+    revalidatePath(`/profiles/centro/${userId}`);
     return { success: true };
 }
 

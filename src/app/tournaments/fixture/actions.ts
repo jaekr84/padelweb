@@ -178,19 +178,25 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 }
             });
 
-            // Update user points
-            const updates = Array.from(userPointsAddition.entries()).map(([uid, pts]) => {
+            // Evaluate updates sequentially and check for category changes
+            for (const [uid, pts] of userPointsAddition.entries()) {
                 if (pts > 0) {
-                    return db
+                    // Update points
+                    const [updatedUser] = await db
                         .update(users)
                         .set({ points: sql`${users.points} + ${pts}` })
-                        .where(eq(users.id, uid));
-                }
-                return null;
-            }).filter(Boolean);
+                        .where(eq(users.id, uid))
+                        .returning();
 
-            if (updates.length > 0) {
-                await Promise.all(updates);
+                    if (updatedUser) {
+                        // Recalculate category based on thresholds
+                        const { getCategoryFromPoints } = await import("@/lib/categories");
+                        const newCat = await getCategoryFromPoints(updatedUser.points ?? 0);
+                        if (newCat && newCat !== updatedUser.category) {
+                            await db.update(users).set({ category: newCat }).where(eq(users.id, uid));
+                        }
+                    }
+                }
             }
         }
 

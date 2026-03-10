@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { User, Users, GraduationCap, Building2, ArrowRight, Loader2 } from "lucide-react";
-import { useSession } from "@clerk/nextjs";
+import { User, Users, GraduationCap, Building2, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { linkRoleToUser } from "./actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,6 +53,7 @@ function OnboardingForm() {
     const searchParams = useSearchParams();
     const inviteClubId = searchParams.get("invite");
     const requestedRole = searchParams.get("role");
+    const inviteToken = searchParams.get("invitation");
 
     const [role, setRole] = useState(() => {
         if (inviteClubId) return "jugador";
@@ -62,10 +62,9 @@ function OnboardingForm() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { session } = useSession();
     const router = useRouter();
 
-    // Lock role to jugador if invited
+    // Lock role to jugador if invited by club
     useEffect(() => {
         if (inviteClubId) {
             setRole("jugador");
@@ -78,13 +77,9 @@ function OnboardingForm() {
         setError(null);
 
         try {
-            const res = await linkRoleToUser(role, inviteClubId);
+            const res = await linkRoleToUser(role, inviteClubId, inviteToken);
             if (res.success) {
-                // Break the redirect loop on the server by setting a temporary bypass cookie
-                document.cookie = "has_role=true; path=/; max-age=3600";
-
-                // Force a hard reload of the clerk session token so the middleware catches the new role eventually
-                await session?.reload();
+                // Redirect to feed. The cookie is already updated by the server action.
                 window.location.href = "/feed";
             } else {
                 setError(res.error || "Ocurrió un error.");
@@ -142,15 +137,25 @@ function OnboardingForm() {
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
-                                    className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-4 rounded-2xl text-sm font-bold text-center flex items-center justify-center gap-3"
+                                    className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-4 rounded-2xl text-[13px] font-bold text-center flex items-center justify-center gap-3"
                                 >
-                                    <span className="text-xl">🎉</span>
+                                    <Users className="w-5 h-5 shrink-0" />
                                     Has sido invitado a unirte a un club. Te registrarás como jugador.
+                                </motion.div>
+                            )}
+                            {inviteToken && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-4 rounded-2xl text-[13px] font-bold text-center flex items-center justify-center gap-3"
+                                >
+                                    <ShieldCheck className="w-5 h-5 shrink-0" />
+                                    Invitación verificada por administración. Tu rol será asignado automáticamente.
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${inviteClubId ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${(inviteClubId || inviteToken) ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                             {ROLES.map((r) => {
                                 const isSelected = role === r.id;
                                 const Icon = r.icon;

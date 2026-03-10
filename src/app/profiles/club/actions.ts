@@ -2,16 +2,17 @@
 
 import { db } from "@/db";
 import { clubs, users } from "@/db/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function updateClubProfile(formData: FormData) {
-    const user = await currentUser();
-    if (!user) {
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) {
         throw new Error("No estás autenticado");
     }
 
+    const userId = session.userId;
     const name = formData.get("name") as string;
     const bio = formData.get("bio") as string;
     const location = formData.get("location") as string;
@@ -22,22 +23,7 @@ export async function updateClubProfile(formData: FormData) {
     const amenitiesString = formData.get("amenities") as string;
     const amenities = amenitiesString ? amenitiesString.split(",").map(s => s.trim()).filter(Boolean) : [];
 
-    // Check if club exists
-
-    // Ensure the user exists in our Neon DB to prevent FK constraint failures
-    const primaryEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress
-        || user.emailAddresses[0]?.emailAddress
-        || "no-email@padelweb.com";
-
-    const role = (user.publicMetadata?.role as string) || "club";
-
-    await db.insert(users).values({
-        id: user.id,
-        email: primaryEmail,
-        role: role
-    }).onConflictDoNothing();
-
-    const existingClubs = await db.select().from(clubs).where(eq(clubs.ownerId, user.id));
+    const existingClubs = await db.select().from(clubs).where(eq(clubs.ownerId, userId));
 
     if (existingClubs.length > 0) {
         // Update
@@ -48,13 +34,13 @@ export async function updateClubProfile(formData: FormData) {
             phone,
             website,
             amenities
-        }).where(eq(clubs.ownerId, user.id));
+        }).where(eq(clubs.ownerId, userId));
     } else {
         // Insert
         await db.insert(clubs).values({
-            id: user.id, // using clerk id mapped 1:1 for simplicity
-            ownerId: user.id,
-            name: name || user.firstName || "Mi Club",
+            id: userId,
+            ownerId: userId,
+            name: name || "Mi Club",
             bio,
             location,
             phone,

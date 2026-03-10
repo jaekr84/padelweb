@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { UserProfile } from "@clerk/nextjs";
 import { updateProfeProfile } from "./actions";
 import { switchRole } from "@/app/profile/actions";
 import Link from "next/link";

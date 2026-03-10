@@ -3,7 +3,7 @@ import { clubs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import CentroProfileClient from "../CentroProfileClient";
-import { currentUser } from "@clerk/nextjs/server";
+import { getSession } from "@/lib/auth-server";
 import type { Metadata } from "next";
 
 interface Props {
@@ -23,15 +23,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CentroPublicPage({ params }: Props) {
     const { id } = await params;
-    const [user, centroResult] = await Promise.all([
-        currentUser(),
+    const [session, centroResult] = await Promise.all([
+        getSession(),
         db.select().from(clubs).where(eq(clubs.id, id)),
     ]);
 
     const centro = centroResult[0];
     if (!centro) notFound();
 
-    const isOwner = user?.id === centro.ownerId;
+    const isOwner = session?.userId === centro.ownerId;
 
     return (
         <CentroProfileClient

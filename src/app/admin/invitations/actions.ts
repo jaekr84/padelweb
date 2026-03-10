@@ -1,38 +1,61 @@
 "use server"
 
-import { clerkClient, auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { SignJWT } from "jose";
+import { checkSuperadmin } from "@/lib/auth";
+import { getSession } from "@/lib/auth-server";
 
-export async function createClubInvitation(formData: FormData) {
-    const { sessionClaims } = await auth();
+const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
-    // Verify role on the server action
-    if (sessionClaims?.metadata?.role !== 'superadmin') {
+export async function generateInvitationLink(role: string) {
+    if (!(await checkSuperadmin())) {
+        throw new Error('No autorizado');
+    }
+
+    const session = await getSession();
+    const userId = session?.userId;
+
+    // Create a token that expires in 2 hours
+    const token = await new SignJWT({ role, issuer: 'superadmin', createdBy: userId })
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("2h")
+        .sign(INVITATION_SECRET);
+
+    // Dynamic base URL (replace with env var in production)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    return `${baseUrl}/register?invitation=${token}`;
+}
+
+export async function createInvitation(formData: FormData) {
+    // Verify role on the server action using the robust helper
+    if (!(await checkSuperadmin())) {
         return { error: 'No autorizado' };
     }
 
     const email = formData.get('email') as string;
+    const role = (formData.get('role') as string) || 'club';
+    const type = formData.get('type') as string; // 'email' or 'link'
 
-    if (!email) {
-        return { error: 'El email es requerido' };
+    if (type === 'link') {
+        try {
+            const link = await generateInvitationLink(role);
+            return { success: true, link, message: 'Link generado con éxito (vence en 2hs)' };
+        } catch (e: any) {
+            return { error: e.message || 'Error al generar link' };
+        }
     }
 
+    // For now, since we removed Clerk, we just generate the link instead of sending an email
+    // Later we can integrate Resend or something similar
     try {
-        const client = await clerkClient();
-
-        // Use clerk client to create an invitation
-        const invitation = await client.invitations.createInvitation({
-            emailAddress: email,
-            publicMetadata: {
-                role: 'club' // Add "club" role to the public_metadata
-            },
-            ignoreExisting: true // if they somehow exist, ignore
-        });
-
-        revalidatePath('/admin/invitations');
-        return { success: true, message: 'Invitación enviada a ' + email };
+        const link = await generateInvitationLink(role);
+        return {
+            success: true,
+            link,
+            message: `Para ${email}: Copia este link para enviarlo manualmente.`
+        };
     } catch (e: any) {
-        console.error("Error creating invitation:", e);
-        return { error: e.message || 'Error al enviar invitación' };
+        return { error: e.message || 'Error al generar invitación' };
     }
 }
