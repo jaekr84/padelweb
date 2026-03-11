@@ -1,8 +1,8 @@
 import FeedLayout from "@/app/feed/layout";
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
-import { users, registrations } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { users, registrations, categoriesTable } from "@/db/schema";
+import { eq, inArray, asc } from "drizzle-orm";
 
 export default async function RankingPage() {
     // 1. Fetch all users that are players or instructors (exclude clubs/centers)
@@ -12,6 +12,12 @@ export default async function RankingPage() {
 
     // 2. Fetch all tournament registrations to count tournaments played per player
     const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));
+
+    // 3. Fetch custom categories
+    const customCategories = await db.select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.isActive, true))
+        .orderBy(asc(categoriesTable.categoryOrder));
 
     // 3. Map registrations to tournament counts
     const tournamentCounts: Record<string, number> = {};
@@ -34,15 +40,20 @@ export default async function RankingPage() {
     // 4. Transform users mapping
     const rankingUsers = allUsers.map(u => ({
         id: u.id,
-        name: u.name,
+        name: u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.firstName || u.lastName || "Jugador"),
         email: u.email,
         category: u.category,
+        gender: u.gender,
         points: u.points || 0
     }));
 
     return (
         <FeedLayout>
-            <RankingClient users={rankingUsers} tournamentCounts={tournamentCounts} />
+            <RankingClient 
+                users={rankingUsers} 
+                tournamentCounts={tournamentCounts} 
+                availableCategories={customCategories}
+            />
         </FeedLayout>
     );
 }
