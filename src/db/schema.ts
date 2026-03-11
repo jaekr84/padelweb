@@ -163,6 +163,24 @@ export const posts = pgTable("posts", {
     userIdIdx: index("posts_user_id_idx").on(table.userId),
 }));
 
+export const marketplaceItems = pgTable("marketplace_items", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: varchar("user_id", { length: 256 }).references((): any => users.id).notNull(),
+    title: varchar("title", { length: 256 }).notNull(),
+    description: text("description"),
+    price: integer("price").notNull(),
+    images: text("images").array().notNull(), // Array of image URLs
+    category: varchar("category", { length: 100 }), // racket, shoes, clothes, etc.
+    condition: varchar("condition", { length: 50 }), // new, used, like_new
+    status: varchar("status", { length: 50 }).notNull().default("active"), // active, sold, inactive
+    whatsappUrl: text("whatsapp_url"),
+    observations: text("observations"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    userIdIdx: index("marketplace_user_id_idx").on(table.userId),
+}));
+
 import { relations } from "drizzle-orm";
 
 export const tournamentsRelations = relations(tournaments, ({ one }) => ({
@@ -179,6 +197,14 @@ export const tournamentsRelations = relations(tournaments, ({ one }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
     tournaments: many(tournaments),
     clubs: many(clubs),
+    marketplaceItems: many(marketplaceItems),
+}));
+
+export const marketplaceItemsRelations = relations(marketplaceItems, ({ one }) => ({
+    user: one(users, {
+        fields: [marketplaceItems.userId],
+        references: [users.id],
+    }),
 }));
 
 export const clubsRelations = relations(clubs, ({ one, many }) => ({

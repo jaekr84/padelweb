@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings, LogOut } from "lucide-react";
+import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -14,6 +14,7 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
@@ -21,6 +22,7 @@ const NAV: Record<string, NavItem[]> = {
     profe: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
@@ -28,6 +30,7 @@ const NAV: Record<string, NavItem[]> = {
     centro_de_padel: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Centro" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
@@ -35,6 +38,7 @@ const NAV: Record<string, NavItem[]> = {
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
@@ -42,6 +46,7 @@ const NAV: Record<string, NavItem[]> = {
     superadmin: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
