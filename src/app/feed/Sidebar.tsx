@@ -46,11 +46,11 @@ const NAV: Record<string, NavItem[]> = {
     superadmin: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-        { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/admin/categories", icon: Settings, label: "Configuración" },
+        { href: "/profile", icon: User, label: "Mi Perfil" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
 };
 

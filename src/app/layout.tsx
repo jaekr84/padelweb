@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, checkSuperadmin } from "@/lib/auth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 import "./globals.css";
 
@@ -26,7 +25,8 @@ export const viewport = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
-  const currentRole = user?.role || "jugador";
+  const isSuperadmin = await checkSuperadmin();
+  const currentRole = isSuperadmin ? "superadmin" : (user?.role || "jugador");
 
   return (
     <html lang="es" suppressHydrationWarning>
@@ -45,7 +45,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             }}
           />
           {children}
-          <RoleSwitcher currentRole={currentRole} />
           <Toaster position="bottom-right" theme="dark" closeButton richColors />
         </ThemeProvider>
       </body>
