@@ -248,7 +248,6 @@ export default function CreateTournamentForm({
                 const role = match ? decodeURIComponent(match[1]) : "jugador";
 
                 if (role === "club") return "/profiles/club";
-                if (role === "centro_de_padel") return "/profiles/centro";
                 if (role === "profesor" || role === "profe") return "/profiles/profe";
                 return "/profile";
             };

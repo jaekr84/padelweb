@@ -6,7 +6,7 @@ import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings, LogOut, S
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
-import { logoutAction } from "@/app/login/actions";
+import { logoutAction, getSidebarUser } from "@/app/login/actions";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -24,14 +24,6 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
-        { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Clubes" },
-    ],
-    centro_de_padel: [
-        { href: "/home", icon: Home, label: "Inicio" },
-        { href: "/tournaments", icon: Trophy, label: "Torneos" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-        { href: "/profile", icon: User, label: "Mi Centro" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
@@ -54,9 +46,15 @@ const NAV: Record<string, NavItem[]> = {
     ],
 };
 
+const ROLE_LABELS: Record<string, string> = {
+    jugador: "Jugador",
+    profe: "Profesor",
+    club: "Club",
+    superadmin: "Administrador",
+};
+
 function getProfileUrl(role: string): string {
     if (role === "club") return "/profiles/club";
-    if (role === "centro_de_padel") return "/profiles/centro";
     if (role === "profesor" || role === "profe") return "/profiles/profe";
     if (role === "superadmin") return "/profile";
     return "/profile";
@@ -70,11 +68,18 @@ function getCookieRole(): string {
 
 export default function Sidebar() {
     const [role, setRole] = useState("jugador");
+    const [userData, setUserData] = useState<{ name: string; role: string } | null>(null);
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
         setRole(getCookieRole());
+        getSidebarUser().then(data => {
+            if (data) {
+                setUserData(data);
+                setRole(data.role);
+            }
+        });
     }, [pathname]);
 
     const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -139,7 +144,10 @@ export default function Sidebar() {
                                 <User className="w-5 h-5 text-slate-500" />
                             </div>
                             <div className="flex flex-col flex-1 min-w-0">
-                                <span className="text-sm font-bold truncate text-foreground">Usuario</span>
+                                <span className="text-sm font-bold truncate text-foreground">{userData?.name || "Usuario"}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                                    {ROLE_LABELS[userData?.role || role] || (userData?.role || role)}
+                                </span>
                                 <button
                                     onClick={handleLogout}
                                     className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-400 transition-colors text-left"
@@ -168,7 +176,15 @@ export default function Sidebar() {
                         );
                     })}
                 </nav>
-                <div className="p-5 border-t border-border">
+                <div className="p-5 border-t border-border flex flex-col gap-3">
+                    {(role === "club" || role === "superadmin") && (
+                        <Link href="/tournaments/create">
+                            <button className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/20 active:scale-[0.98] transition-all hover:bg-indigo-500">
+                                <Trophy className="w-5 h-5" />
+                                Crear Torneo
+                            </button>
+                        </Link>
+                    )}
                     <button className="flex items-center justify-center gap-2 w-full bg-foreground text-background font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/10 active:scale-[0.98] transition-all hover:opacity-90">
                         <Plus className="w-5 h-5" />
                         Nuevo Post

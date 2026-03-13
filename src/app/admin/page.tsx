@@ -10,7 +10,7 @@ export default async function AdminDashboardPage() {
     try {
         const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
         const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
-        const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(inArray(users.role, ["club", "centro_de_padel"]));
+        const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
 
         tournamentCount = tCount;
         playerCount = pCount;

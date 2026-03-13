@@ -6,7 +6,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-const VALID_ROLES = ["jugador", "profe", "centro_de_padel", "club", "superadmin"] as const;
+const VALID_ROLES = ["jugador", "profe", "club", "superadmin"] as const;
 type Role = typeof VALID_ROLES[number];
 
 export async function switchRole(role: Role) {

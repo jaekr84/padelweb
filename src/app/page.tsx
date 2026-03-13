@@ -21,7 +21,7 @@ export default async function Home() {
     const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
     const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
     const [{ count: iCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "profe"));
-    const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(inArray(users.role, ["club", "centro_de_padel"]));
+    const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
 
     // Use DB data if available (> 0), keeping fallbacks for initial display
     if (tCount > 0) tournamentCount = tCount;

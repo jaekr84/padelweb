@@ -31,7 +31,6 @@ import {
 import Link from "next/link";
 import FeedLayout from "@/app/feed/layout";
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
-import CentroProfileClient from "../profiles/centro/CentroProfileClient";
 import ProfeProfileClient from "../profiles/profe/ProfeProfileClient";
 import Image from "next/image";
 
@@ -87,7 +86,7 @@ export default function PlayerProfileClient({
         const promise = switchRole("profe");
         toast.promise(promise, {
             loading: 'Cambiando rol...',
-            success: 'Ahora eres Profesor. ¡Configura tu perfil!',
+            success: 'Ahora eres Profesor. Â¡Configura tu perfil!',
             error: 'Error al cambiar rol'
         });
         await promise;
@@ -128,27 +127,21 @@ export default function PlayerProfileClient({
             <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-indigo-500/30">
                 <div className="max-w-4xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 animate-in fade-in duration-700">
 
-                    {/* ── Specialized Profiles (Club / Centro) ── */}
-                    {(dbUser?.role === "club" || dbUser?.role === "centro_de_padel") ? (
+                    {/* ââ Specialized Profiles (Club / Centro) â                    {/* ââ Specialized Profiles (Club) ââ */}
+                    {dbUser?.role === "club" && (
                         <div className="col-span-full">
-                            {dbUser?.role === "club" ? (
-                                <ClubProfileClient
-                                    user={dbUser}
-                                    club={clubProfile}
-                                    members={members || []}
-                                    userTournaments={createdTournaments || []}
-                                />
-                            ) : (
-                                <CentroProfileClient
-                                    centro={clubProfile}
-                                    isOwner={isOwnProfile}
-                                    embedded={false}
-                                />
-                            )}
+                            <ClubProfileClient
+                                user={dbUser}
+                                club={clubProfile}
+                                members={members || []}
+                                userTournaments={createdTournaments || []}
+                            />
                         </div>
-                    ) : (
+                    )}
+
+                    {dbUser?.role !== "club" && (
                         <>
-                            {/* ── Hero section (Unificada) ── */}
+                            {/* ââ Hero section (Unificada) ââ */}
                             <div className="bg-card backdrop-blur-3xl border border-border rounded-[2rem] overflow-hidden shadow-2xl relative">
                                 <div className="h-32 md:h-48 bg-gradient-to-br from-indigo-900/40 via-blue-900/30 to-slate-900/50 relative overflow-hidden">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),transparent)]" />
@@ -207,24 +200,24 @@ export default function PlayerProfileClient({
 
                                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-muted-foreground text-[10px] font-black uppercase tracking-widest">
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="h-3.5 w-3.5" /> {dbUser?.location || "Sin ubicación"}
+                                                <MapPin className="h-3.5 w-3.5" /> {dbUser?.location || "Sin ubicaciÃ³n"}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-3.5 w-3.5 text-indigo-500/50" /> {dbUser.createdAt ? `Desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}` : "Recientemente"}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Hand className="h-3.5 w-3.5 text-blue-500/50" /> {stats.side === "drive" ? "Drive" : "Revés"}
+                                                <Hand className="h-3.5 w-3.5 text-blue-500/50" /> {stats.side === "drive" ? "Drive" : "RevÃ©s"}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* ── Navigation ── */}
+                            {/* ââ Navigation ââ */}
                             <div className="flex items-center gap-2 bg-card p-1.5 rounded-[1.5rem] border border-border overflow-x-auto no-scrollbar shadow-inner">
                                 {[
                                     { id: "tournaments", label: "Torneos", icon: Trophy },
-                                    { id: "stats", label: "Estadísticas", icon: Activity },
+                                    { id: "stats", label: "EstadÃ­sticas", icon: Activity },
                                     { id: "trophies", label: "Trofeos", icon: Award },
                                     ...((profeProfile || dbUser.role === 'profe') ? [{ id: "profe", label: "PROFE", icon: GraduationCap }] : []),
                                     { id: "account", label: "Cuenta", icon: Settings },
@@ -242,15 +235,15 @@ export default function PlayerProfileClient({
                                 ))}
                             </div>
 
-                            {/* ── Active Content ── */}
+                            {/* ââ Active Content ââ */}
                             <div className="animate-in slide-in-from-bottom-4 duration-500">
                                 {activeTab === "tournaments" && (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="md:col-span-2 flex flex-col gap-6">
                                             <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl">
-                                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Sobre mí</h3>
+                                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Sobre mÃ­</h3>
                                                 <p className="text-foreground/80 text-sm leading-relaxed font-medium">
-                                                    {dbUser?.bio || "Sin biografía aún. ¡Cuéntanos sobre tu juego! 🎾"}
+                                                    {dbUser?.bio || "Sin biografÃ­a aÃºn. Â¡CuÃ©ntanos sobre tu juego! ð¾"}
                                                 </p>
                                             </div>
 
@@ -372,7 +365,7 @@ export default function PlayerProfileClient({
                                         ) : (
                                             <div className="p-16 text-center flex flex-col items-center gap-4">
                                                 <Activity className="h-10 w-10 text-muted-foreground/40" />
-                                                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">Aún no has jugado partidos</p>
+                                                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">AÃºn no has jugado partidos</p>
                                             </div>
                                         )}
                                     </div>
@@ -439,18 +432,16 @@ export default function PlayerProfileClient({
                                         </div>
                                     </div>
                                 )}
-
                             </div>
                         </>
                     )}
-
-                    {/* ── Edit Modal Unificado ── */}
+                    {/* ―― Edit Modal Unificado ―― */}
                     {isEditing && (
                         <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[1000] flex items-center justify-center p-4">
                             <div className="bg-card border border-border rounded-[2.5rem] w-full max-w-[500px] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 shadow-2xl">
                                 <div className="px-8 pt-8 pb-4 flex justify-between items-center sticky top-0 bg-card/80 backdrop-blur-lg z-10 border-b border-border/50">
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Editar Perfil</h2>
-                                    <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-card hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all">✕</button>
+                                    <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-card hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all">â</button>
                                 </div>
                                 <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
                                     <div className="flex flex-col gap-2">
@@ -464,7 +455,7 @@ export default function PlayerProfileClient({
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Ubicación</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">UbicaciÃ³n</label>
                                             <input
                                                 type="text"
                                                 value={formData.location}
@@ -480,7 +471,7 @@ export default function PlayerProfileClient({
                                                 className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-white text-sm font-bold outline-none focus:border-indigo-500 shadow-inner appearance-none"
                                             >
                                                 <option value="drive">Drive</option>
-                                                <option value="reves">Revés</option>
+                                                <option value="reves">RevÃ©s</option>
                                                 <option value="ambos">Ambos</option>
                                             </select>
                                         </div>

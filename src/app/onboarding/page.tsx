@@ -37,16 +37,6 @@ const ROLES = [
         active: "bg-purple-600 border-purple-400 shadow-[0_0_30px_-5px_#a855f7]",
         iconColor: "text-purple-400"
     },
-    {
-        id: "centro_de_padel",
-        label: "Centro de Padel",
-        icon: Building2,
-        description: "Gestioná tus canchas, reservas y torneos.",
-        color: "from-amber-500/20 to-amber-600/5",
-        border: "border-amber-500/30",
-        active: "bg-amber-600 border-amber-400 shadow-[0_0_30px_-5px_#f59e0b]",
-        iconColor: "text-amber-400"
-    },
 ];
 
 function OnboardingForm() {

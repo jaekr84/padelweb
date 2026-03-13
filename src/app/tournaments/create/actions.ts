@@ -38,7 +38,7 @@ export async function createTournament(data: TournamentInput) {
     if (existingUser.length === 0) throw new Error("Usuario no encontrado en la base de datos");
 
     const userRole = existingUser[0].role;
-    if (userRole !== 'club' && userRole !== 'centro_de_padel' && userRole !== 'superadmin') {
+    if (userRole !== 'club' && userRole !== 'superadmin') {
         throw new Error("Solo los clubes y administradores pueden crear torneos");
     }
 
@@ -75,10 +75,13 @@ export async function updateTournament(id: string, data: TournamentInput) {
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 
-    // Ensure this tournament belongs to the current user
+    // Ensure this tournament belongs to the current user, or user is superadmin
+    const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const isSuperAdmin = userResult[0]?.role === "superadmin";
+
     const existing = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
     if (existing.length === 0) throw new Error("Torneo no encontrado");
-    if (existing[0].createdByUserId !== userId) throw new Error("No tenés permiso para editar este torneo");
+    if (existing[0].createdByUserId !== userId && !isSuperAdmin) throw new Error("No tenés permiso para editar este torneo");
 
     await db
         .update(tournaments)

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, clubs } from "@/db/schema";
 import { comparePassword, setSession } from "@/lib/auth-server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -42,4 +42,32 @@ export async function logoutAction() {
     const { deleteSession } = await import("@/lib/auth-server");
     await deleteSession();
     redirect("/login");
+}
+
+export async function getSidebarUser() {
+    const { getSession } = await import("@/lib/auth-server");
+    const session = await getSession();
+    if (!session || !session.userId) return null;
+
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, session.userId as string)
+    });
+
+    if (!user) return null;
+
+    let displayName = user.firstName 
+        ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+        : user.email.split('@')[0];
+    
+    if (user.role === 'club') {
+        const club = await db.query.clubs.findFirst({
+            where: eq(clubs.ownerId, user.id)
+        });
+        if (club) displayName = club.name;
+    }
+
+    return {
+        name: displayName,
+        role: user.role
+    };
 }
