@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { SignJWT } from "jose";
 import { checkSuperadmin } from "@/lib/auth";
 import { getSession } from "@/lib/auth-server";
+import { headers } from "next/headers";
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
@@ -22,8 +23,15 @@ export async function generateInvitationLink(role: string) {
         .setExpirationTime("2h")
         .sign(INVITATION_SECRET);
 
-    // Dynamic base URL (replace with env var in production)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Dynamic base URL based on request headers
+    const headerList = await headers();
+    const host = headerList.get("host");
+    const protocol = host?.includes("localhost") ? "http" : "https";
+    
+    const baseUrl = host 
+        ? `${protocol}://${host}` 
+        : (process.env.NEXT_PUBLIC_APP_URL || "https://acap.ar");
+
     return `${baseUrl}/register?invitation=${token}`;
 }
 
