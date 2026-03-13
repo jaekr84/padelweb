@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth-server";
 
 type PlayerLike = { id: string; name: string };
 type BracketSlot = PlayerLike | "BYE" | null;
@@ -49,11 +50,21 @@ function slotName(t: BracketSlot): string | null {
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
         const [prevT] = await db
-            .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig })
+            .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId })
             .from(tournaments)
             .where(eq(tournaments.id, input.tournamentId));
 
         if (!prevT) throw new Error("Tournament not found");
+
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
+        const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin';
+
+        if (prevT.createdByUserId !== session.userId && !isSuperAdmin) {
+            throw new Error("No tenés permiso para gestionar este torneo");
+        }
 
         // Since neon-http doesn't support transactions in the same way, 
         // we execute these calls sequentially. 
@@ -220,6 +231,19 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
 
 export async function deleteTournament(id: string): Promise<{ ok: boolean; error?: string }> {
     try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
+        if (!t) throw new Error("Torneo no encontrado");
+
+        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
+        const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin';
+
+        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+            throw new Error("No tenés permiso para eliminar este torneo");
+        }
+
         // Sequentially delete related records to clear constraints
         await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, id));
         await db.delete(groupMatches).where(eq(groupMatches.tournamentId, id));

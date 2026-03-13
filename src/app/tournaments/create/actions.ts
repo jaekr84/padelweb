@@ -38,8 +38,8 @@ export async function createTournament(data: TournamentInput) {
     if (existingUser.length === 0) throw new Error("Usuario no encontrado en la base de datos");
 
     const userRole = existingUser[0].role;
-    if (userRole !== 'club' && userRole !== 'superadmin') {
-        throw new Error("Solo los clubes y administradores pueden crear torneos");
+    if (userRole !== 'club' && userRole !== 'superadmin' && userRole !== 'admin') {
+        throw new Error("Solo los clubes y la administración pueden crear torneos");
     }
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");

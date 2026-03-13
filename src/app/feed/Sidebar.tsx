@@ -177,7 +177,7 @@ export default function Sidebar() {
                     })}
                 </nav>
                 <div className="p-5 border-t border-border flex flex-col gap-3">
-                    {(role === "club" || role === "superadmin") && (
+                    {(role === "club" || role === "superadmin" || role === "admin") && (
                         <Link href="/tournaments/create">
                             <button className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/20 active:scale-[0.98] transition-all hover:bg-indigo-500">
                                 <Trophy className="w-5 h-5" />

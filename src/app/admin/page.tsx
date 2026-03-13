@@ -21,9 +21,20 @@ export default async function AdminDashboardPage() {
 
     return (
         <div>
-            <h1 className="text-3xl font-black uppercase italic mb-8 border-b border-indigo-500/20 pb-4">
-                Administración General
-            </h1>
+            <div className="flex items-center justify-between mb-8 border-b border-indigo-500/20 pb-4">
+                <h1 className="text-3xl font-black uppercase italic tracking-tight text-white">
+                    Administración General
+                </h1>
+                <a 
+                    href="/tournaments/create"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2 active:scale-95"
+                >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nuevo Torneo
+                </a>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
