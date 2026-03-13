@@ -254,11 +254,15 @@ export default function TournamentManager({
         });
 
         const numParticipants = allQualifiers.length;
+        if (numParticipants === 0) return;
+
+        // Calculate next power of 2
         const numRounds = Math.ceil(Math.log2(numParticipants));
-        const bracketSize = Math.pow(2, numRounds);
+        const bracketSize = Math.pow(2, numRounds); // e.g. 8 for 6 players
 
         const newBracket: BracketMatch[] = [];
-        for (let r = numRounds - 1; r >= 0; r--) {
+        // Create full tree from finalized round 0 up to first round
+        for (let r = 0; r < numRounds; r++) {
             const matchesInRound = Math.pow(2, r);
             for (let s = 0; s < matchesInRound; s++) {
                 newBracket.push({
@@ -274,27 +278,50 @@ export default function TournamentManager({
 
         const firstRound = numRounds - 1;
         const firstRoundMatches = newBracket.filter(m => m.round === firstRound);
-        allQualifiers.forEach((q, idx) => {
-            const matchIdx = Math.floor(idx / 2);
-            const isTeam2 = idx % 2 === 1;
-            const match = firstRoundMatches[matchIdx];
-            if (match) {
-                if (!isTeam2) match.team1 = q.player;
-                else match.team2 = q.player;
+        
+        // Seeding: Top seeds vs Bottom seeds (simplified)
+        // With BYEs: If we have 6 players and size 8, we have 2 BYEs.
+        // We fill indices 0..5 with players, 6..7 with BYEs.
+        // Match 0: P0 vs P7(BYE) -> P0 advances
+        // Match 1: P1 vs P6(BYE) -> P1 advances
+        // Match 2: P2 vs P5
+        // Match 3: P3 vs P4
+        
+        for (let i = 0; i < bracketSize / 2; i++) {
+            const m = firstRoundMatches[i];
+            const p1 = allQualifiers[i]?.player || null;
+            // team2 comes from the "mirror" side of the bracket size
+            const p2Index = bracketSize - 1 - i;
+            const p2 = allQualifiers[p2Index]?.player || (p2Index < bracketSize ? "BYE" : null);
+
+            m.team1 = p1;
+            m.team2 = p2;
+
+            // Auto-advance if team2 is BYE
+            if (p1 && (p2 as any) === "BYE") {
+                m.confirmed = true;
+                m.winnerId = p1.id;
             }
-        });
+        }
+
+        // Propagate winners to subsequent rounds
+        advanceBracketWinners(newBracket, numRounds);
 
         setBracket(newBracket);
         setStep("elim");
 
         setSaving(true);
-        await saveTournamentFixture({
-            tournamentId,
-            phase: "eliminatorias",
-            groups,
-            matches,
-            bracket: newBracket,
-        });
+        try {
+            await saveTournamentFixture({
+                tournamentId,
+                phase: "eliminatorias",
+                groups,
+                matches,
+                bracket: newBracket,
+            });
+        } catch (e) {
+            console.error("[generateBracket]", e);
+        }
         setSaving(false);
     };
 
@@ -319,9 +346,19 @@ export default function TournamentManager({
                     const isTeam2 = m.slot % 2 === 1;
                     const nextMatch = currentBracket.find(nm => nm.round === nextRound && nm.slot === nextSlot);
                     if (nextMatch) {
-                        const winner = [m.team1, m.team2].find(t => t !== null && t !== "BYE" && (t as Player).id === m.winnerId);
+                        const winner = [m.team1, m.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player).id === m.winnerId);
                         if (isTeam2) nextMatch.team2 = winner as Player;
                         else nextMatch.team1 = winner as Player;
+
+                        // Recursive auto-advance if the newly filled match has a BYE
+                        if (nextMatch.team1 && nextMatch.team2) {
+                            if ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE") {
+                                nextMatch.confirmed = true;
+                                nextMatch.winnerId = (nextMatch.team1 as any) !== "BYE" 
+                                    ? (nextMatch.team1 as Player).id 
+                                    : (nextMatch.team2 as Player).id;
+                            }
+                        }
                     }
                 }
             });
@@ -346,13 +383,19 @@ export default function TournamentManager({
         });
 
         setSaving(true);
-        const isFinal = finalBracket.find(m => m.id === matchId)?.round === 0;
+        const match = finalBracket.find(m => m.id === matchId);
+        const isFinal = match?.round === 0;
+        const championName = isFinal 
+            ? groups.flatMap(g => g.players).find(p => p.id === match?.winnerId)?.name 
+            : undefined;
+
         await saveTournamentFixture({
             tournamentId,
             phase: isFinal ? "finalizado" : "eliminatorias",
             groups,
             matches,
             bracket: finalBracket,
+            championName,
         });
         setSaving(false);
     };

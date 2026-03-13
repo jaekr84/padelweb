@@ -1,3 +1,5 @@
+"use server";
+
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users } from "@/db/schema";

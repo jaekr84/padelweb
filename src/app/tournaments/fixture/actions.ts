@@ -249,7 +249,7 @@ export async function getAvailablePlayers(tournamentId: string) {
         // Filter out already registered
         return allUsers.filter(u => !registeredIds.has(u.id)).map(u => ({
             id: u.id,
-            name: u.name || u.email.split("@")[0],
+            name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
             email: u.email,
             category: u.category
         }));
@@ -277,7 +277,7 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             ok: true,
             player: {
                 id: newReg.id,
-                name: `${user.name || user.email.split("@")[0]} / Invitado`,
+                name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`,
                 category: newReg.category || undefined
             }
         };

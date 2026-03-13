@@ -12,7 +12,7 @@ const PUBLIC_ROUTES = [
     "/profiles/profe",
 ];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Check if it's a public route
