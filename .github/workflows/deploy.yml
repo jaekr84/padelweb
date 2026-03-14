@@ -19,6 +19,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          timeout: 60s
+          command_timeout: 30m
           script: |
             # 1. Configurar el entorno de Node 20
             export NODE_PATH=/opt/alt/alt-nodejs20/root/usr/bin
