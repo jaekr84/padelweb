@@ -3,7 +3,7 @@ name: Deploy to Hostinger
 on:
   push:
     branches:
-      - main
+      - main  # Asegúrate de que tu rama se llame main
 
 jobs:
   deploy:
@@ -20,19 +20,25 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # 1. Definir rutas a Node 20 y NPM de Hostinger
+            # 1. Configurar el entorno de Node 20
             export NODE_PATH=/opt/alt/alt-nodejs20/root/usr/bin
             export PATH=$NODE_PATH:$PATH
-
-            # 2. Entrar a la carpeta del proyecto
+            
+            # 2. Entrar a la carpeta (donde ya verificamos que está el package.json)
             cd domains/acap.ar/public_html
-
-            # 3. Bajar los cambios de GitHub
-            git pull origin main
-
-            # 4. Instalar y Compilar usando las rutas directas
-            $NODE_PATH/npm install
-            $NODE_PATH/npm run build
-
-            # 5. Reiniciar el proceso para que se vean los cambios
+            
+            # 3. Limpiar cualquier cambio local y traer lo nuevo de GitHub
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # 4. Instalar dependencias
+            # Usamos legacy-peer-deps por si hay conflictos de versiones de React
+            $NODE_PATH/npm install --legacy-peer-deps
+            
+            # 5. Compilar el proyecto
+            # Limitamos la memoria de Node para que el servidor de Hostinger no mate el proceso
+            NODE_OPTIONS="--max-old-space-size=1024" $NODE_PATH/npm run build
+            
+            # 6. Reiniciar la aplicación
+            # Matamos el proceso actual de Next para que Hostinger lo levante de nuevo con el nuevo build
             pkill -f next-server || true
