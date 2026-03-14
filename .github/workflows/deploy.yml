@@ -3,7 +3,10 @@ name: Deploy to Hostinger
 on:
   push:
     branches:
-      - main  # Asegúrate de que tu rama se llame main, si es master cámbialo aquí
+      - main
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
