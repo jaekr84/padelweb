@@ -3,44 +3,52 @@ name: Deploy to Hostinger
 on:
   push:
     branches:
-      - main  # Asegúrate de que tu rama se llame main
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build project
+        run: npm run build
+        env:
+          # Aquí podrías necesitar tus variables de entorno si el build las requiere
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+      - name: Upload build to Hostinger via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          # Subimos solo lo necesario para que funcione
+          source: ".next/,public/,package.json,package-lock.json,next.config.mjs"
+          target: "domains/acap.ar/public_html"
+
+      - name: Restart Server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 60s
-          command_timeout: 30m
           script: |
-            # 1. Configurar el entorno de Node 20
             export NODE_PATH=/opt/alt/alt-nodejs20/root/usr/bin
-            export PATH=$NODE_PATH:$PATH
-            
-            # 2. Entrar a la carpeta (donde ya verificamos que está el package.json)
             cd domains/acap.ar/public_html
-            
-            # 3. Limpiar cualquier cambio local y traer lo nuevo de GitHub
-            git fetch origin main
-            git reset --hard origin/main
-            
-            # 4. Instalar dependencias
-            # Usamos legacy-peer-deps por si hay conflictos de versiones de React
-            $NODE_PATH/npm install --legacy-peer-deps
-            
-            # 5. Compilar el proyecto
-            # Limitamos la memoria de Node para que el servidor de Hostinger no mate el proceso
-            NODE_OPTIONS="--max-old-space-size=1024" $NODE_PATH/npm run build
-            
-            # 6. Reiniciar la aplicación
-            # Matamos el proceso actual de Next para que Hostinger lo levante de nuevo con el nuevo build
+            # Instalar solo dependencias de producción (rápido y usa poca RAM)
+            $NODE_PATH/npm install --production --legacy-peer-deps
+            # Reiniciar
             pkill -f next-server || true
