@@ -31,6 +31,7 @@ const NAV: Record<string, NavItem[]> = {
     superadmin: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/profile", icon: User, label: "Mi Perfil" },

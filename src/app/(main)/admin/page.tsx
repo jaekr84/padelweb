@@ -70,6 +70,7 @@ export default async function AdminDashboardPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
                         { label: 'Crear Torneo', href: '/tournaments/create', icon: '✨', color: 'from-indigo-600/20 to-indigo-600/5', text: 'text-indigo-600' },
+                        { label: 'Marketplace', href: '/marketplace', icon: '🛍️', color: 'from-emerald-500/20 to-emerald-500/5', text: 'text-emerald-500' },
                         { label: 'Torneos', href: '/admin/tournaments', icon: '🏆', color: 'from-amber-500/20 to-amber-500/5', text: 'text-amber-500' },
                         { label: 'Solicitudes', href: '/admin/requests', icon: '📩', color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
                         { label: 'Usuarios', href: '/admin/users', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
