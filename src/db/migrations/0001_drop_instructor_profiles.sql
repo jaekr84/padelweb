@@ -1,1 +1,0 @@
-DROP TABLE "instructor_profiles" CASCADE;

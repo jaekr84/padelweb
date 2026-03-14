@@ -44,9 +44,11 @@ export async function createTournament(data: TournamentInput) {
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 
-    const [tournament] = (await db
+    const tournamentId = crypto.randomUUID();
+    await db
         .insert(tournaments)
         .values({
+            id: tournamentId,
             createdByUserId: userId,
             name: data.name.trim(),
             description: data.description || null,
@@ -58,14 +60,13 @@ export async function createTournament(data: TournamentInput) {
             imageUrl: data.imageUrl || null,
             modalidad: data.modalidad || null,
             status: "published",
-        })
-        .returning()) as any[];
+        });
 
     revalidatePath("/tournaments");
     revalidatePath("/profile");
     revalidatePath("/profiles/club");
 
-    return { success: true, tournamentId: tournament.id };
+    return { success: true, tournamentId: tournamentId };
 }
 
 export async function updateTournament(id: string, data: TournamentInput) {

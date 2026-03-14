@@ -44,9 +44,9 @@ const STEPS = [
     { id: 3, label: "Finalizar", icon: CheckCircle2 }
 ];
 
-type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
+export type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
 
-type InitialData = {
+export type InitialData = {
     id: string;
     name: string;
     description: string | null;

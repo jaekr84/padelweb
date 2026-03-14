@@ -28,7 +28,7 @@ export default async function ClubProfilePage({
 
         // Auto-create if club role but no club found
         if (!club && session.role === 'club') {
-            const result = await db.insert(clubs).values({
+            const clubData = {
                 id: session.userId,
                 ownerId: session.userId,
                 name: "Mi Club",
@@ -36,8 +36,9 @@ export default async function ClubProfilePage({
                 bio: "Nuevo club en PadelWeb",
                 location: "",
                 amenities: [],
-            }).returning();
-            club = result[0];
+            };
+            await db.insert(clubs).values(clubData);
+            club = clubData;
         }
     }
 

@@ -20,6 +20,7 @@ export async function requestRegistrationAction(formData: FormData) {
 
     try {
         await db.insert(registrationRequests).values({
+            id: crypto.randomUUID(),
             fullName,
             whatsapp,
             status: "pendiente"

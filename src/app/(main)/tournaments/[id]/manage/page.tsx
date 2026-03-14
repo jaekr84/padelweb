@@ -9,6 +9,8 @@ interface Props {
     params: Promise<{ id: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function TournamentManagePage({ params }: Props) {
     const { id } = await params;
 

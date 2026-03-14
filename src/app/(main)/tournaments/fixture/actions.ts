@@ -78,15 +78,16 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         const groupIdMap = new Map<string, string>();
 
         for (const g of input.groups) {
-            const [inserted] = (await db
+            const newId = crypto.randomUUID();
+            await db
                 .insert(tournamentGroups)
                 .values({
+                    id: newId,
                     tournamentId: input.tournamentId,
                     name: g.name,
                     players: g.players,
-                })
-                .returning({ id: tournamentGroups.id })) as any[];
-            groupIdMap.set(g.id, inserted.id);
+                });
+            groupIdMap.set(g.id, newId);
         }
 
         // 3. Insert group matches
@@ -95,6 +96,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 const dbGroupId = groupIdMap.get(m.groupId);
                 if (!dbGroupId) throw new Error(`Internal Error: Group ID ${m.groupId} not found in map`);
                 return {
+                    id: crypto.randomUUID(),
                     tournamentId: input.tournamentId,
                     groupId: dbGroupId,
                     team1Name: m.team1.name,
@@ -116,6 +118,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     : null;
 
                 return {
+                    id: crypto.randomUUID(),
                     tournamentId: input.tournamentId,
                     round: bm.round,
                     slot: bm.slot,
@@ -193,11 +196,12 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             for (const [uid, pts] of userPointsAddition.entries()) {
                 if (pts > 0) {
                     // Update points
-                    const [updatedUser] = await db
+                    await db
                         .update(users)
                         .set({ points: sql`${users.points} + ${pts}` })
-                        .where(eq(users.id, uid))
-                        .returning();
+                        .where(eq(users.id, uid));
+
+                    const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
 
                     if (updatedUser) {
                         // Recalculate category based on thresholds
@@ -288,21 +292,23 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
         const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (!user) throw new Error("User not found");
 
-        const [newReg] = (await db.insert(registrations).values({
+        const newId = crypto.randomUUID();
+        await db.insert(registrations).values({
+            id: newId,
             tournamentId,
             userId,
             category: category || user.category || "5ta",
             status: "confirmed"
-        }).returning()) as any[];
+        });
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
 
         return {
             ok: true,
             player: {
-                id: newReg.id,
+                id: newId,
                 name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`,
-                category: newReg.category || undefined
+                category: category || user.category || "5ta"
             }
         };
     } catch (err) {

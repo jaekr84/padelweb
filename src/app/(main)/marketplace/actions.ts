@@ -27,7 +27,8 @@ export async function createMarketplaceItem(data: {
     const session = await getSession() as { userId: string } | null;
     if (!session?.userId) throw new Error("No estás autenticado");
 
-    const [item] = await db.insert(marketplaceItems).values({
+    const newItem = {
+        id: crypto.randomUUID(),
         userId: session.userId,
         title: data.title,
         price: data.price,
@@ -36,10 +37,12 @@ export async function createMarketplaceItem(data: {
         condition: data.condition,
         whatsappUrl: data.whatsappUrl,
         observations: data.observations || "",
-    }).returning();
+    };
+
+    await db.insert(marketplaceItems).values(newItem);
 
     revalidatePath("/marketplace");
-    return { success: true, item };
+    return { success: true, item: newItem };
 }
 
 export async function deleteMarketplaceItem(id: string) {

@@ -11,6 +11,7 @@ export async function createPost(content: string, imageUrl: string | null) {
     const userId = session.userId;
 
     await db.insert(posts).values({
+        id: crypto.randomUUID(),
         userId,
         content,
         imageUrl,

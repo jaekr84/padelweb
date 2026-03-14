@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { tournaments, categoriesTable } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
-import CreateTournamentForm from "./CreateTournamentForm";
+import CreateTournamentForm, { InitialData } from "./CreateTournamentForm";
 
 type Props = {
     searchParams: Promise<{ edit?: string }>;
@@ -17,7 +17,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
 
-    let initialData = null;
+    let initialData: InitialData | null = null;
 
     if (editId) {
         const rows = await db
@@ -35,11 +35,10 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 surface: t.surface,
                 startDate: t.startDate,
                 endDate: t.endDate,
-                categories: t.categories,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                pointsConfig: t.pointsConfig as any,
+                categories: t.categories as string[] | null,
+                pointsConfig: t.pointsConfig as InitialData["pointsConfig"],
                 imageUrl: t.imageUrl ?? null,
-                modalidad: t.modalidad as any,
+                modalidad: t.modalidad as InitialData["modalidad"],
             };
         }
     }

@@ -43,7 +43,10 @@ export async function createCategory(data: any) {
         throw new Error('No autorizado');
     }
 
-    await db.insert(categoriesTable).values(data);
+    await db.insert(categoriesTable).values({
+        ...data,
+        id: crypto.randomUUID(),
+    });
 
     revalidatePath('/admin/categories');
     revalidatePath('/tournaments/create');
