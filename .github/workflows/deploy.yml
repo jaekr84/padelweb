@@ -23,11 +23,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            # Forzar carga de perfil y PATHs comunes
+            export PATH=$PATH:$HOME/bin:$HOME/.local/bin
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # Intentar encontrar npm si no está en el path
+            if ! command -v npm &> /dev/null; then
+              export PATH=$PATH:$(find $HOME/.nvm/versions/node -maxdepth 2 -type d -name "bin" | head -n 1)
+            fi
+
             cd domains/acap.ar/public_html
             git pull origin main
             npm install
             npm run build
-            # Esto reinicia el proceso para que se vean los cambios
             pkill -f next-server || true
