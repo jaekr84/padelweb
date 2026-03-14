@@ -32,7 +32,7 @@ export async function linkRoleToUser(role: string, invitedByClubId?: string | nu
     }
 
     // List of allowed roles
-    const allowedRoles = ["jugador", "club", "profesor", "profe"]; // Added 'profe' for consistency
+    const allowedRoles = ["jugador", "club"];
     if (!allowedRoles.includes(finalRole)) {
         throw new Error("Rol inválido");
     }

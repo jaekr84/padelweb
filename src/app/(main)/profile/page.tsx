@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { tournaments, registrations, users, groupMatches, bracketMatches, instructorProfiles, clubs } from "@/db/schema";
+import { tournaments, registrations, users, groupMatches, bracketMatches, clubs } from "@/db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
@@ -14,7 +14,6 @@ export default async function ProfilePage() {
     const [
         dbUserRes,
         userRegistrations,
-        profeProfileRes,
         clubProfileRes,
         createdTournaments
     ] = await Promise.all([
@@ -37,7 +36,7 @@ export default async function ProfilePage() {
             .innerJoin(tournaments, eq(registrations.tournamentId, tournaments.id))
             .where(eq(registrations.userId, userId))
             .orderBy(desc(registrations.createdAt)),
-        db.select().from(instructorProfiles).where(eq(instructorProfiles.userId, userId)),
+
         db.select().from(clubs).where(eq(clubs.ownerId, userId)),
         db.select().from(tournaments).where(eq(tournaments.createdByUserId, userId)).orderBy(desc(tournaments.createdAt))
     ]);
@@ -45,7 +44,6 @@ export default async function ProfilePage() {
     const dbUser = dbUserRes[0];
     if (!dbUser) redirect("/login");
 
-    const profeProfile = profeProfileRes[0];
     const clubProfile = clubProfileRes[0];
 
     // Fetch matches if there are registrations
@@ -97,7 +95,6 @@ export default async function ProfilePage() {
             registrations={userRegistrations}
             matchHistory={[...allMatches, ...allBracketMatches]}
             isOwnProfile={true}
-            profeProfile={profeProfile || null}
             clubProfile={clubProfile || null}
             members={JSON.parse(JSON.stringify(clubMembers))}
             createdTournaments={JSON.parse(JSON.stringify(createdTournaments))}

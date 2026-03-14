@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -19,14 +19,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
-    profe: [
-        { href: "/home", icon: Home, label: "Inicio" },
-        { href: "/tournaments", icon: Trophy, label: "Torneos" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-        { href: "/profile", icon: User, label: "Mi Perfil" },
-        { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/directory", icon: FolderOpen, label: "Clubes" },
-    ],
+
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
@@ -42,20 +35,21 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/categories", icon: Settings, label: "Configuración" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+        { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
 };
 
 const ROLE_LABELS: Record<string, string> = {
     jugador: "Jugador",
-    profe: "Profesor",
+
     club: "Club",
     superadmin: "Administrador",
 };
 
 function getProfileUrl(role: string): string {
     if (role === "club") return "/profiles/club";
-    if (role === "profesor" || role === "profe") return "/profiles/profe";
+
     if (role === "superadmin") return "/profile";
     return "/profile";
 }

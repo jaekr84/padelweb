@@ -10,7 +10,7 @@ type Props = {
     searchParams: Promise<{ id?: string }>;
 };
 
-const ALLOWED_ROLES = ["jugador", "profe"];
+const ALLOWED_ROLES = ["jugador"];
 
 export default async function RegisterPage({ searchParams }: Props) {
     const params = await searchParams;
@@ -32,7 +32,7 @@ export default async function RegisterPage({ searchParams }: Props) {
                     <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🚫</div>
                     <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.75rem" }}>Acceso no permitido</h2>
                     <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-                        Solo los <strong>jugadores</strong> y <strong>profes</strong> pueden inscribirse en torneos. Los clubes y centros de pádel no pueden participar como jugadores.
+                        Solo los <strong>jugadores</strong> pueden inscribirse en torneos. Los clubes y centros de pádel no pueden participar como jugadores.
                     </p>
                     <Link href="/tournaments" style={{ display: "inline-block", padding: "0.75rem 1.5rem", background: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "0.75rem", fontWeight: 700, textDecoration: "none" }}>
                         ← Volver a Torneos

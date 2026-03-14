@@ -8,7 +8,7 @@ const DUMMY_POSTS = [
     {
         id: 1,
         author: { name: "Juan Pérez", username: "juanperez", role: "jugador" as const },
-        content: "¡Qué partidazo el de ayer! Gracias @marcos por la invitación. Buscando profe por zona norte para mejorar esa bandeja que me quedó en la red 😅",
+        content: "¡Qué partidazo el de ayer! Gracias @marcos por la invitación. Buscando alguien que quiera jugar por zona norte para seguir mejorando esa bandeja que me quedó en la red 😅",
         timeAgo: "2h", likes: 12, comments: 3,
     },
     {
@@ -19,8 +19,8 @@ const DUMMY_POSTS = [
     },
     {
         id: 3,
-        author: { name: "Martín Coach", username: "martinprof", role: "profesor" as const },
-        content: "Tip rápido: El armado del globo tiene que ser corto y por debajo de la pelota. Si levantás mucho la paleta perdés control.\nMañana subo video 🎓",
+        author: { name: "Martín Padel", username: "martinpadel", role: "jugador" as const },
+        content: "Tip rápido: El armado del globo tiene que ser corto y por debajo de la pelota. Si levantás mucho la paleta perdés control.\nMañana subo video 🎾",
         timeAgo: "1 día", likes: 89, comments: 5,
     },
     {
@@ -31,7 +31,7 @@ const DUMMY_POSTS = [
     },
     {
         id: 5,
-        author: { name: "Valentina Torres", username: "valepadel", role: "profesor" as const },
+        author: { name: "Valentina Torres", username: "valepadel", role: "jugador" as const },
         content: "Clínica de volea este sábado a las 10hs en Club Social del Norte. Cupos limitados a 8 personas. Nivel requerido: 5ta en adelante. DM para inscribirse 🎾",
         timeAgo: "6h", likes: 33, comments: 7,
     },
@@ -134,7 +134,7 @@ export default function FeedPage() {
                     <div className={styles.widget}>
                         <div className={styles.widgetHeader}>👥 A quién seguir</div>
                         {[
-                            { name: "Martín Coach", handle: "@martinprof", role: "Profesor APF" },
+                            { name: "Martín Padel", handle: "@martinpadel", role: "Jugador" },
                             { name: "Club Padelazo", handle: "@padelazo_ok", role: "Club" },
                         ].map(u => (
                             <div key={u.handle} className={styles.followItem}>

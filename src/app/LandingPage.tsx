@@ -7,12 +7,10 @@ import { Trophy, Star, Users, MapPin, Activity, LayoutGrid, ArrowRight, Zap } fr
 export default function LandingPage({
     tournamentCount = 50,
     playerCount = 300,
-    instructorCount = 20,
     clubCount = 15
 }: {
     tournamentCount?: number;
     playerCount?: number;
-    instructorCount?: number;
     clubCount?: number;
 }) {
     // Since this is rendered from page.tsx only when NOT logged in
@@ -74,11 +72,10 @@ export default function LandingPage({
                 </div>
 
                 {/* ── Stats Row ── */}
-                <div className="grid grid-cols-4 md:grid-cols-4 items-center justify-center md:gap-6 w-full max-w-5xl animate-fade-in-up">
+                <div className="grid grid-cols-3 md:grid-cols-3 items-center justify-center md:gap-6 w-full max-w-4xl animate-fade-in-up">
                     {[
                         { label: 'Torneos', value: tournamentCount, color: 'text-indigo-400' },
                         { label: 'Jugadores', value: playerCount, color: 'text-red-400' },
-                        { label: 'Profes', value: instructorCount, color: 'text-emerald-400' },
                         { label: 'Centros', value: clubCount, color: 'text-blue-400' }
                     ].map((stat, idx) => (
                         <div
@@ -105,12 +102,11 @@ export default function LandingPage({
                         <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Todo lo que necesitas en una sola plataforma</p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-4">
                         {[
                             { title: 'Torneos', icon: Trophy, color: 'text-indigo-400', desc: 'Inscripción online y cuadros en tiempo real.' },
                             { title: 'Ranking', icon: Star, color: 'text-yellow-400', desc: 'Sigue tu evolución y compite por el top 1.' },
                             { title: 'Directorio', icon: MapPin, color: 'text-emerald-400', desc: 'Encuentra los mejores centros y clubes.' },
-                            { title: 'Instructores', icon: Activity, color: 'text-red-400', desc: 'Contacta con profes certificados por ACAP.' },
                             { title: 'Comunidad', icon: Users, color: 'text-blue-400', desc: 'Conecta con otros jugadores de tu nivel.' },
                             { title: 'Estadísticas', icon: LayoutGrid, color: 'text-purple-400', desc: 'Análisis detallado de tus partidos.' },
                         ].map((feature, i) => (

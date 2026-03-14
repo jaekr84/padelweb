@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { User, Users, GraduationCap, Building2, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
+import { User, Users, Building2, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { linkRoleToUser } from "./actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,16 +17,7 @@ const ROLES = [
         active: "bg-blue-600 border-blue-400 shadow-[0_0_30px_-5px_#3b82f6]",
         iconColor: "text-blue-400"
     },
-    {
-        id: "profesor",
-        label: "Profesor",
-        icon: GraduationCap,
-        description: "Ofrecé clases, gestioná tus alumnos y horarios.",
-        color: "from-emerald-500/20 to-emerald-600/5",
-        border: "border-emerald-500/30",
-        active: "bg-emerald-600 border-emerald-400 shadow-[0_0_30px_-5px_#10b981]",
-        iconColor: "text-emerald-400"
-    },
+
     {
         id: "club",
         label: "Club / Equipo",

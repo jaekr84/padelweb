@@ -31,6 +31,16 @@ export async function loginAction(formData: FormData) {
         return { error: "Credenciales inválidas" };
     }
 
+    // 2.5 Check if active/banned
+    if (user.isActive === false) {
+        return { error: "Tu cuenta ha sido desactivada. Contacta al soporte." };
+    }
+
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+        const dateStr = new Date(user.bannedUntil).toLocaleDateString();
+        return { error: `Tu cuenta se encuentra baneada hasta el ${dateStr}.` };
+    }
+
     // 3. Set session
     await setSession(user.id, user.email, user.role);
 

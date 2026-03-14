@@ -14,19 +14,16 @@ export default async function Home() {
   // Fetch real stats
   let tournamentCount = 50;
   let playerCount = 300;
-  let instructorCount = 20;
   let clubCount = 15;
 
   try {
     const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
     const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
-    const [{ count: iCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "profe"));
     const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
 
     // Use DB data if available (> 0), keeping fallbacks for initial display
     if (tCount > 0) tournamentCount = tCount;
     if (pCount > 0) playerCount = pCount;
-    if (iCount > 0) instructorCount = iCount;
     if (cCount > 0) clubCount = cCount;
   } catch (e) {
     console.error("Error fetching landing stats:", e);
@@ -37,7 +34,6 @@ export default async function Home() {
     <LandingPage
       tournamentCount={tournamentCount}
       playerCount={playerCount}
-      instructorCount={instructorCount}
       clubCount={clubCount}
     />
   );

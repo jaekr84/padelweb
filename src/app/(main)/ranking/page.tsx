@@ -5,10 +5,10 @@ import { users, registrations, categoriesTable } from "@/db/schema";
 import { eq, inArray, asc } from "drizzle-orm";
 
 export default async function RankingPage() {
-    // 1. Fetch all users that are players or instructors (exclude clubs/centers)
+    // 1. Fetch all users that are players (exclude clubs/centers)
     const allUsers = await db.select()
         .from(users)
-        .where(inArray(users.role, ["jugador", "profe"]));
+        .where(eq(users.role, "jugador"));
 
     // 2. Fetch all tournament registrations to count tournaments played per player
     const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));

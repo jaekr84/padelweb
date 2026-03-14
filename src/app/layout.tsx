@@ -11,8 +11,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: "A.C.A.P. | Asociación Coreana Argentina de Pádel",
-  description: "La plataforma definitiva para la comunidad del pádel en Argentina. Inscribite en torneos, seguí el ranking y conectá con los mejores clubes y profesores.",
-  keywords: ["pádel", "argentina", "acap", "torneos de pádel", "ranking de pádel", "clubes de pádel", "profesores de pádel"],
+  description: "La plataforma definitiva para la comunidad del pádel en Argentina. Inscribite en torneos, seguí el ranking y conectá con los mejores clubes.",
+  keywords: ["pádel", "argentina", "acap", "torneos de pádel", "ranking de pádel", "clubes de pádel"],
   authors: [{ name: "A.C.A.P. Team" }],
   robots: "index, follow",
 };

@@ -55,8 +55,8 @@ const ALL_NOTIFICATIONS: Notification[] = [
         id: 4,
         type: "follow",
         read: true,
-        user: { name: "Profe Martín Coach", avatar: "🎓" },
-        text: "<strong>Profe Martín Coach</strong> comenzó a seguirte.",
+        user: { name: "Martín Rodriguez", avatar: "👤" },
+        text: "<strong>Martín Rodriguez</strong> comenzó a seguirte.",
         timeAgo: "Hace 5 horas",
     },
     {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { updatePlayerProfile, switchRole } from "./actions";
+import { updatePlayerProfile } from "./actions";
 import { logoutAction } from "@/app/login/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -14,8 +14,6 @@ import {
     Settings,
     ChevronRight,
     Award,
-    GraduationCap,
-    Clock,
     Medal,
     Star,
     Hand,
@@ -31,7 +29,6 @@ import {
 import Link from "next/link";
 
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
-import ProfeProfileClient from "../profiles/profe/ProfeProfileClient";
 import Image from "next/image";
 
 interface PlayerProfileClientProps {
@@ -41,7 +38,6 @@ interface PlayerProfileClientProps {
     isOwnProfile: boolean;
     clubProfile?: any;
     createdTournaments?: any[];
-    profeProfile?: any;
     members?: any[];
 }
 
@@ -52,7 +48,6 @@ export default function PlayerProfileClient({
     isOwnProfile,
     clubProfile,
     createdTournaments,
-    profeProfile,
     members
 }: PlayerProfileClientProps) {
     const router = useRouter();
@@ -82,16 +77,7 @@ export default function PlayerProfileClient({
         }
     };
 
-    const handleSwitchRole = async () => {
-        const promise = switchRole("profe");
-        toast.promise(promise, {
-            loading: 'Cambiando rol...',
-            success: 'Ahora eres Profesor. Â¡Configura tu perfil!',
-            error: 'Error al cambiar rol'
-        });
-        await promise;
-        router.push("/profiles/profe");
-    };
+
 
     const myName = dbUser?.firstName || "";
 
@@ -158,22 +144,7 @@ export default function PlayerProfileClient({
                                                     <LayoutDashboard className="h-3.5 w-3.5" /> Panel Admin
                                                 </Link>
                                             )}
-                                            {!profeProfile && dbUser?.role === "jugador" && (
-                                                <button
-                                                    onClick={handleSwitchRole}
-                                                    className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
-                                                >
-                                                    <GraduationCap className="h-3.5 w-3.5" /> Ser Profe
-                                                </button>
-                                            )}
-                                            {profeProfile && (
-                                                <Link
-                                                    href="/profiles/profe"
-                                                    className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
-                                                >
-                                                    <GraduationCap className="h-3.5 w-3.5" /> Perfil Profe
-                                                </Link>
-                                            )}
+
                                             <button
                                                 onClick={() => setIsEditing(true)}
                                                 className="flex items-center gap-1.5 bg-indigo-600/90 backdrop-blur-md border border-indigo-500 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-indigo-500 active:scale-95 shadow-lg"
@@ -201,7 +172,7 @@ export default function PlayerProfileClient({
                                             <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{dbUser.firstName} {dbUser.lastName}</h1>
                                             <div className="flex self-center md:self-auto px-3 py-1 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 dark:border-indigo-500/30 rounded-full">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                                                    {dbUser.role === 'superadmin' ? 'SUPERADMIN' : dbUser.role === 'profe' ? 'PROFE' : dbUser.role === 'admin' ? 'Administrador' : 'Jugador'}
+                                                    {dbUser.role === 'superadmin' ? 'SUPERADMIN' : dbUser.role === 'admin' ? 'Administrador' : 'Jugador'}
                                                 </span>
                                             </div>
                                         </div>
@@ -227,7 +198,6 @@ export default function PlayerProfileClient({
                                     { id: "tournaments", label: "Torneos", icon: Trophy },
                                     { id: "stats", label: "Estadísticas", icon: Activity },
                                     { id: "trophies", label: "Trofeos", icon: Award },
-                                    ...((profeProfile || dbUser.role === 'profe') ? [{ id: "profe", label: "PROFE", icon: GraduationCap }] : []),
                                     ...(dbUser.role === 'superadmin' ? [{ id: "managed", label: "Gestionar", icon: LayoutDashboard }] : []),
                                     { id: "account", label: "Cuenta", icon: Settings },
                                 ].map((tab) => (
@@ -391,13 +361,7 @@ export default function PlayerProfileClient({
                                     </div>
                                 )}
 
-                                {activeTab === "profe" && (
-                                    <ProfeProfileClient
-                                        profe={profeProfile || { name: dbUser.name, userId: dbUser.id, role: 'profe' }}
-                                        isOwner={isOwnProfile}
-                                        embedded={true}
-                                    />
-                                )}
+
 
                                 {activeTab === "managed" && dbUser.role === 'superadmin' && (
                                     <div className="flex flex-col gap-6">

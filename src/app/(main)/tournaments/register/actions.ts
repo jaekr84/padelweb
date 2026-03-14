@@ -21,8 +21,8 @@ export async function registerForTournament(input: RegisterInput) {
     // Verify user role
     const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
     if (!dbUser) throw new Error("Usuario no encontrado");
-    if (!["jugador", "profe"].includes(dbUser.role)) {
-        throw new Error("Solo jugadores y profes pueden inscribirse");
+    if (dbUser.role !== "jugador") {
+        throw new Error("Solo jugadores pueden inscribirse");
     }
 
     // Verify tournament exists and is published

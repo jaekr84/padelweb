@@ -9,7 +9,6 @@ const PUBLIC_ROUTES = [
     "/login",
     "/register",
     "/profiles/centro",
-    "/profiles/profe",
 ];
 
 export async function proxy(req: NextRequest) {

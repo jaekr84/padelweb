@@ -17,6 +17,8 @@ export const users = pgTable("users", {
     category: varchar("category", { length: 50 }).default("5ta"),
     points: integer("points").default(0),
     clubId: varchar("club_id", { length: 256 }).references((): any => clubs.id),
+    isActive: boolean("is_active").default(true),
+    bannedUntil: timestamp("banned_until"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     clubIdIdx: index("users_club_id_idx").on(table.clubId),
@@ -49,28 +51,7 @@ export const clubs = pgTable("clubs", {
     ownerIdIdx: index("clubs_owner_id_idx").on(table.ownerId),
 }));
 
-export const instructorProfiles = pgTable("instructor_profiles", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: varchar("user_id", { length: 256 }).references((): any => users.id).notNull().unique(),
-    name: varchar("name", { length: 256 }).notNull(),
-    bio: text("bio"),
-    location: varchar("location", { length: 256 }),
-    level: varchar("level", { length: 100 }),
-    specialities: text("specialities").array(),
-    experience: varchar("experience", { length: 100 }),
-    rating: varchar("rating", { length: 10 }).default("0.0"),
-    verified: boolean("verified").default(false),
-    phone: varchar("phone", { length: 50 }),
-    whatsapp: varchar("whatsapp", { length: 50 }),
-    instagram: varchar("instagram", { length: 100 }),
-    workingZones: text("working_zones").array(),
-    availability: json("availability"),
-    pricing: json("pricing"),
-    avatarUrl: varchar("avatar_url", { length: 512 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-    userIdIdx: index("instructor_userId_idx").on(table.userId),
-}));
+
 
 export const tournaments = pgTable("tournaments", {
     id: uuid("id").defaultRandom().primaryKey(),
