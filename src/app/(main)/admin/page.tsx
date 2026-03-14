@@ -30,22 +30,13 @@ export default async function AdminDashboardPage() {
 
     return (
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-12">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
+            <header className="border-b border-border pb-8">
                 <div>
                     <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tight text-foreground leading-none">
                         Administración
                     </h1>
                     <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-muted-foreground mt-2">Panel de Control General</p>
                 </div>
-                <Link 
-                    href="/tournaments/create"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 active:scale-95 shrink-0"
-                >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nuevo Torneo
-                </Link>
             </header>
 
             {/* Stats Grid */}
@@ -78,11 +69,11 @@ export default async function AdminDashboardPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {[
+                        { label: 'Crear Torneo', href: '/tournaments/create', icon: '✨', color: 'from-indigo-600/20 to-indigo-600/5', text: 'text-indigo-600' },
                         { label: 'Torneos', href: '/admin/tournaments', icon: '🏆', color: 'from-amber-500/20 to-amber-500/5', text: 'text-amber-500' },
                         { label: 'Solicitudes', href: '/admin/requests', icon: '📩', color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
                         { label: 'Usuarios', href: '/admin/users', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
                         { label: 'Invitaciones', href: '/admin/invitations', icon: '🔗', color: 'from-indigo-500/20 to-indigo-500/5', text: 'text-indigo-500' },
-                        { label: 'Categorías', href: '/admin/categories', icon: '🏷️', color: 'from-emerald-500/20 to-emerald-500/5', text: 'text-emerald-500' },
                         { label: 'Configuración', href: '/admin/categories', icon: '⚙️', color: 'from-slate-500/20 to-slate-500/5', text: 'text-slate-500' },
                         { label: 'Mi Perfil', href: '/profile', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
                     ].map((module) => (
