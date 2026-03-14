@@ -25,9 +25,23 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(bytes);
 
         // Generate unique filename
-        const ext = file.name.split(".").pop() ?? "jpg";
-        const filename = `tournament_${Date.now()}.${ext}`;
-        const uploadDir = path.join(process.cwd(), "public", "uploads");
+        let ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        
+        // Fix for browser-image-compression or other tools that might send generic "blob" name
+        if (ext === "blob" || !["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
+            if (file.type === "image/png") ext = "png";
+            else if (file.type === "image/webp") ext = "webp";
+            else if (file.type === "image/gif") ext = "gif";
+            else ext = "jpg";
+        }
+        
+        const filename = `up_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+        
+        // In Hostinger, we want to save to the persistent public_html/uploads folder
+        // Outside the application folder so uploads are not lost on redeploy
+        const uploadDir = process.env.NODE_ENV === 'production'
+            ? '/home/u957097802/domains/acap.ar/public_html/uploads'
+            : path.join(process.cwd(), "public", "uploads");
 
         await mkdir(uploadDir, { recursive: true });
         await writeFile(path.join(uploadDir, filename), buffer);

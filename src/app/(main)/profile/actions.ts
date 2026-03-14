@@ -7,7 +7,9 @@ import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 
 export async function updatePlayerProfile(formData: {
-    name: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
     location: string;
     bio: string;
     side: string;
@@ -19,7 +21,9 @@ export async function updatePlayerProfile(formData: {
     await db
         .update(users)
         .set({
-            firstName: formData.name, // Using firstName as the display name for now
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
             location: formData.location,
             bio: formData.bio,
             side: formData.side,

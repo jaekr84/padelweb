@@ -15,36 +15,41 @@ export async function loginAction(formData: FormData) {
         return { error: "Faltan campos obligatorios" };
     }
 
-    // 1. Find user
-    const user = await db.query.users.findFirst({
-        where: eq(users.email, email.toLowerCase())
-    });
+    try {
+        // 1. Find user
+        const user = await db.query.users.findFirst({
+            where: eq(users.email, email.toLowerCase())
+        });
 
-    if (!user || !user.passwordHash) {
-        return { error: "Credenciales inválidas" };
+        if (!user || !user.passwordHash) {
+            return { error: "Credenciales inválidas" };
+        }
+
+        // 2. Compare password
+        const isValid = await comparePassword(password, user.passwordHash);
+
+        if (!isValid) {
+            return { error: "Credenciales inválidas" };
+        }
+
+        // 2.5 Check if active/banned
+        if (user.isActive === false) {
+            return { error: "Tu cuenta ha sido desactivada. Contacta al soporte." };
+        }
+
+        if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+            const dateStr = new Date(user.bannedUntil).toLocaleDateString();
+            return { error: `Tu cuenta se encuentra baneada hasta el ${dateStr}.` };
+        }
+
+        // 3. Set session
+        await setSession(user.id, user.email, user.role);
+
+        revalidatePath("/home");
+    } catch (e: any) {
+        console.error("Login Error:", e);
+        return { error: "Error de servidor: " + (e.message || "Desconocido") };
     }
-
-    // 2. Compare password
-    const isValid = await comparePassword(password, user.passwordHash);
-
-    if (!isValid) {
-        return { error: "Credenciales inválidas" };
-    }
-
-    // 2.5 Check if active/banned
-    if (user.isActive === false) {
-        return { error: "Tu cuenta ha sido desactivada. Contacta al soporte." };
-    }
-
-    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
-        const dateStr = new Date(user.bannedUntil).toLocaleDateString();
-        return { error: `Tu cuenta se encuentra baneada hasta el ${dateStr}.` };
-    }
-
-    // 3. Set session
-    await setSession(user.id, user.email, user.role);
-
-    revalidatePath("/home");
     redirect("/home");
 }
 

@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth-server";
 import { eq, desc, notInArray, or, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { tournaments, registrations, users } from "@/db/schema";
+import { tournaments, registrations, users, clubs } from "@/db/schema";
 
 import Link from "next/link";
 import {
@@ -46,16 +46,24 @@ export default async function TournamentsPage({
     let allTournaments: any[] = [];
 
     try {
-        const [session, tournamentsRes] = await Promise.all([
-            getSession() as Promise<{ userId: string, role: string, email: string } | null>,
-            db.query.tournaments.findMany({
-                with: { club: true, createdBy: { with: { clubs: true } } },
-                orderBy: [desc(tournaments.createdAt)]
-            })
-        ]);
-
-        allTournaments = tournamentsRes;
+        const session = await getSession() as { userId: string, role: string, email: string } | null;
         userId = session?.userId || null;
+
+        // Fetch tournaments with joins manually
+        const tournamentsRes = await db
+            .select({
+                tournament: tournaments,
+                club: clubs,
+            })
+            .from(tournaments)
+            .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
+            .orderBy(desc(tournaments.createdAt));
+        
+        // Map to the structure expected by the component
+        allTournaments = tournamentsRes.map(r => ({
+            ...r.tournament,
+            club: r.club,
+        }));
 
         if (userId) {
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);

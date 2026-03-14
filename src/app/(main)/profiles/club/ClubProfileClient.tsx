@@ -27,6 +27,9 @@ import {
     Copy,
     Filter,
     MessageCircle,
+    Loader2,
+    LogOut,
+    User,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -46,8 +49,7 @@ export default function ClubProfileClient({
     isOwner?: boolean;
 }) {
     const [showInvite, setShowInvite] = useState(false);
-    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "miembros" | "invitar" | "account">("info");
-    const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState<"info" | "torneos" | "miembros" | "invitar" | "account" | "edit">("info");
     const [saving, setSaving] = useState(false);
     const [hideFinished, setHideFinished] = useState(true);
     const router = useRouter();
@@ -78,7 +80,7 @@ export default function ClubProfileClient({
             const fd = new FormData();
             Object.entries(formData).forEach(([key, value]) => fd.append(key, value));
             await updateClubProfile(fd);
-            setIsEditing(false);
+            setActiveTab("info");
             toast.success("Perfil de club actualizado");
             router.refresh();
         } catch {
@@ -92,6 +94,7 @@ export default function ClubProfileClient({
         { id: "torneos" as const, label: "Torneos", icon: Trophy },
         { id: "miembros" as const, label: "Miembros", icon: Users },
         ...(isOwner ? [
+            { id: "edit" as const, label: "Editar", icon: Edit2 },
             { id: "invitar" as const, label: "Invitar", icon: MessageCircle },
             { id: "account" as const, label: "Cuenta", icon: Settings }
         ] : []),
@@ -129,16 +132,6 @@ export default function ClubProfileClient({
                     </div>
 
                     <div className="absolute top-4 right-4 z-10 flex gap-2">
-                        {isOwner && (
-                            <>
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-1.5 bg-indigo-600/90 backdrop-blur-md border border-indigo-500 text-foreground px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-indigo-500 active:scale-95 shadow-lg"
-                                >
-                                    <Edit2 className="h-3.5 w-3.5" /> Editar Club
-                                </button>
-                            </>
-                        )}
                     </div>
 
                     <div className="px-6 pb-8 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6">
@@ -304,6 +297,11 @@ export default function ClubProfileClient({
                                                         <Link href={`/tournaments/${t.id}/manage`} className="flex-1 flex items-center justify-center gap-2 bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                                                             Gestionar <ChevronRight className="h-3 w-3" />
                                                         </Link>
+                                                        {isOwner && (
+                                                            <Link href={`/tournaments/${t.id}/edit`} className="w-12 flex items-center justify-center bg-card hover:bg-white/5 border border-border text-white/40 hover:text-white rounded-2xl transition-all">
+                                                                <Edit2 className="h-4 w-4" />
+                                                            </Link>
+                                                        )}
                                                         {isOwner && (
                                                             <button
                                                                 onClick={async () => {
@@ -506,52 +504,95 @@ export default function ClubProfileClient({
                             </div>
                         </div>
                     )}
-                </div>
 
-                {/* ── Edit Modal ── */}
-                {isEditing && (
-                    <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[1000] flex items-center justify-center p-4">
-                        <div className="bg-card border border-border rounded-[2.5rem] w-full max-w-[600px] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 shadow-2xl">
-                            <div className="px-8 pt-8 pb-4 flex justify-between items-center sticky top-0 bg-card/80 backdrop-blur-lg z-10 border-b border-border/50">
-                                <h2 className="text-2xl font-black uppercase italic tracking-tight">Editar Club</h2>
-                                <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-card hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all">✕</button>
+                    {activeTab === "edit" && isOwner && (
+                        <div className="bg-card border border-border rounded-[2rem] shadow-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+                            <div className="px-8 py-6 border-b border-border/50 bg-muted/20">
+                                <h2 className="text-sm font-black uppercase tracking-widest italic">Editar Información del Club</h2>
                             </div>
                             <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Nombre Comercial</label>
-                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner" />
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Nombre Comercial</label>
+                                        <input
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all"
+                                            placeholder="Nombre del club"
+                                        />
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Ubicación</label>
-                                        <input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner" />
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Ubicación</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <input
+                                                type="text"
+                                                value={formData.location}
+                                                onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all"
+                                                placeholder="Ciudad, Provincia"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Teléfono de Contacto</label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <input
+                                                type="text"
+                                                value={formData.phone}
+                                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all"
+                                                placeholder="Ej: 1122334455"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Sitio Web / Redes</label>
+                                        <div className="relative">
+                                            <Globe className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <input
+                                                type="text"
+                                                value={formData.website}
+                                                onChange={e => setFormData({ ...formData, website: e.target.value })}
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all"
+                                                placeholder="www.tuclub.com"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Biografía</label>
-                                    <textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} rows={4} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 resize-none shadow-inner" />
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Biografía del Club</label>
+                                    <textarea
+                                        value={formData.bio}
+                                        onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                        rows={4}
+                                        className="w-full bg-background border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 resize-none shadow-inner transition-all"
+                                        placeholder="Cuenta a los jugadores qué ofrece tu club..."
+                                    />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Teléfono</label>
-                                        <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500" />
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2">Sitio Web</label>
-                                        <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className="w-full bg-card border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-6">
-                                    <button type="button" onClick={() => setIsEditing(false)} className="bg-card text-foreground/80 border border-border py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</button>
-                                    <button type="submit" disabled={saving} className="bg-indigo-600 hover:bg-indigo-500 text-foreground py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40 disabled:opacity-50">
+
+                                <div className="flex justify-end pt-4">
+                                    <button
+                                        type="submit"
+                                        disabled={saving}
+                                        className="w-full md:w-auto px-10 bg-indigo-600 hover:bg-indigo-500 text-foreground py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {saving ? <Zap className="h-4 w-4 animate-spin" /> : <Edit2 className="h-4 w-4" />}
                                         {saving ? "Guardando..." : "Guardar Cambios"}
                                     </button>
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    )}
+                </div>
 
-                )}
+                {/* MODAL REMOVED */}
 
                 {/* ── Invite Modal ── */}
                 {showInvite && (

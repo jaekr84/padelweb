@@ -23,7 +23,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
-import { createMarketplaceItem, deleteMarketplaceItem } from "./actions";
+import { createMarketplaceItem, deleteMarketplaceItem, updateMarketplaceItem } from "./actions";
 import Image from "next/image";
 
 type MarketplaceItem = {
@@ -82,6 +82,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [isCompressing, setIsCompressing] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -142,6 +143,22 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
         return urls;
     };
 
+    const openEditModal = (item: MarketplaceItem) => {
+        setEditingId(item.id);
+        setFormData({
+            title: item.title,
+            price: formatCurrency(item.price.toString()),
+            category: item.category || "",
+            condition: item.condition || "usado",
+            observations: item.observations || "",
+        });
+        // Set existing images as previews (they won't be in the 'images' File array unless re-uploaded)
+        setPreviews(getAllImages(item));
+        setImages([]); // Clear new uploads
+        setIsPublishing(true);
+        setSelectedItem(null); // Close detail modal
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (images.length === 0) {
@@ -155,7 +172,9 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
         setIsLoading(true);
         try {
-            const imageUrls = await uploadImages();
+            const urlsFromPreviews = previews.filter(p => p.startsWith("/uploads/"));
+            const newUploadedUrls = await uploadImages();
+            const imageUrls = [...urlsFromPreviews, ...newUploadedUrls];
             
             // The phone is handled on the server side or from session
             const phone = session?.user?.phone;
@@ -165,15 +184,26 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
             if (!cleanPhone.startsWith("54")) cleanPhone = "54" + cleanPhone;
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=Hola! Vi tu publicación en ACAP Marketplace: ${formData.title}`;
 
-            await createMarketplaceItem({
-                ...formData,
-                price: Number(parseCurrency(formData.price)),
-                images: imageUrls,
-                whatsappUrl,
-            });
+            if (editingId) {
+                await updateMarketplaceItem(editingId, {
+                    ...formData,
+                    price: Number(parseCurrency(formData.price)),
+                    images: imageUrls,
+                    whatsappUrl,
+                });
+                toast.success("Publicación actualizada con éxito");
+            } else {
+                await createMarketplaceItem({
+                    ...formData,
+                    price: Number(parseCurrency(formData.price)),
+                    images: imageUrls,
+                    whatsappUrl,
+                });
+                toast.success("Publicación creada con éxito");
+            }
 
-            toast.success("Publicación creada con éxito");
             setIsPublishing(false);
+            setEditingId(null);
             setFormData({
                 title: "",
                 price: "",
@@ -191,6 +221,27 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
         }
     };
 
+    const getFirstImage = (item: MarketplaceItem | null) => {
+        if (!item) return "/placeholder-padel.jpg";
+        try {
+            const imgs = typeof item.images === 'string' ? JSON.parse(item.images) : item.images;
+            if (Array.isArray(imgs) && imgs.length > 0 && imgs[0]) {
+                return imgs[0];
+            }
+        } catch (e) {}
+        return "/placeholder-padel.jpg"; // Fallback image
+    };
+
+    const getAllImages = (item: MarketplaceItem | null): string[] => {
+        if (!item) return [];
+        try {
+            const imgs = typeof item.images === 'string' ? JSON.parse(item.images) : item.images;
+            return Array.isArray(imgs) ? imgs.filter(Boolean) : [];
+        } catch (e) {
+            return [];
+        }
+    };
+
     const filteredItems = items.filter(item => {
         const matchesCategory = filter === "all" || item.category?.toUpperCase() === filter.toUpperCase();
         const matchesCondition = conditionFilter === "all" || item.condition === conditionFilter;
@@ -199,6 +250,8 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                              item.observations?.toLowerCase().includes(search.toLowerCase());
         return matchesCategory && matchesCondition && matchesSearch;
     });
+
+    const itemImages = selectedItem ? getAllImages(selectedItem) : [];
 
     // Extract unique categories from items for the filters, normalized to UPPERCASE
     const existingCats = Array.from(new Set(items.map(i => i.category?.toUpperCase()).filter(Boolean))).sort();
@@ -294,16 +347,17 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             >
                                 <div className="relative aspect-square overflow-hidden">
                                     <Image 
-                                        src={item.images[0]} 
+                                        src={getFirstImage(item)} 
                                         alt={item.title} 
                                         fill 
+                                        unoptimized={true}
                                         className="object-cover group-hover:scale-110 transition-transform duration-700" 
                                     />
                                     <div className="absolute top-3 left-3 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">
                                         ${item.price.toLocaleString()}
                                     </div>
                                     <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-foreground border border-border">
-                                        {item.images.length} FOTOS
+                                        {Array.isArray(item.images) ? item.images.length : 1} FOTOS
                                     </div>
                                 </div>
                                 <div className="p-4 flex flex-col flex-1 gap-2">
@@ -365,14 +419,15 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
                             <div className="relative aspect-square">
                                 <Image 
-                                    src={selectedItem.images[0]} 
+                                    src={getFirstImage(selectedItem)} 
                                     alt={selectedItem.title} 
                                     fill 
+                                    unoptimized={true}
                                     className="object-cover" 
                                 />
-                                {selectedItem.images.length > 1 && (
+                                {itemImages.length > 1 && (
                                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                                        {selectedItem.images.map((_, i) => (
+                                        {itemImages.map((_, i) => (
                                             <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? "bg-white" : "bg-white/40"}`} />
                                         ))}
                                     </div>
@@ -426,18 +481,26 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                         Contactar por WhatsApp
                                     </a>
                                     {session?.userId === selectedItem.userId && (
-                                        <button 
-                                            onClick={async () => {
-                                                if (confirm("¿Borrar esta publicación?")) {
-                                                    await deleteMarketplaceItem(selectedItem.id);
-                                                    toast.success("Publicación borrada");
-                                                    window.location.reload();
-                                                }
-                                            }}
-                                            className="flex-1 bg-red-600/10 border border-red-600/20 text-red-500 rounded-[1.5rem] flex items-center justify-center transition-all hover:bg-red-600 hover:text-white"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex-1 flex gap-2">
+                                            <button 
+                                                onClick={() => openEditModal(selectedItem)}
+                                                className="flex-1 bg-indigo-600/10 border border-indigo-600/20 text-indigo-500 rounded-[1.5rem] flex items-center justify-center transition-all hover:bg-indigo-600 hover:text-white"
+                                            >
+                                                Editar
+                                            </button>
+                                            <button 
+                                                onClick={async () => {
+                                                    if (confirm("¿Borrar esta publicación?")) {
+                                                        await deleteMarketplaceItem(selectedItem.id);
+                                                        toast.success("Publicación borrada");
+                                                        window.location.reload();
+                                                    }
+                                                }}
+                                                className="w-16 bg-red-600/10 border border-red-600/20 text-red-500 rounded-[1.5rem] flex items-center justify-center transition-all hover:bg-red-600 hover:text-white"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -464,7 +527,9 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             className="relative w-full max-w-2xl bg-card border-t md:border border-border rounded-t-[3rem] md:rounded-[3rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[92vh] no-scrollbar"
                         >
                             <div className="sticky top-0 z-10 bg-card/80 backdrop-blur-xl border-b border-border/50 px-8 py-6 flex items-center justify-between">
-                                <h2 className="text-xl font-black uppercase italic tracking-tighter">Publicar Equipamiento</h2>
+                                <h2 className="text-xl font-black uppercase italic tracking-tighter">
+                                    {editingId ? "Editar Publicación" : "Publicar Equipamiento"}
+                                </h2>
                                 <button 
                                     onClick={() => setIsPublishing(false)}
                                     className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted"
@@ -610,7 +675,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                         className="w-full bg-indigo-600 text-white h-16 rounded-[1.5rem] font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-2xl shadow-indigo-600/30 active:scale-[0.98] transition-all disabled:opacity-50"
                                     >
                                         {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                                        {isLoading ? "Publicando..." : "Confirmar Publicación"}
+                                        {isLoading ? (editingId ? "Guardando..." : "Publicando...") : (editingId ? "Guardar Cambios" : "Confirmar Publicación")}
                                     </button>
                                 </div>
                             </form>

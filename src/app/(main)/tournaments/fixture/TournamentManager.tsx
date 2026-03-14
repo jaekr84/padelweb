@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
@@ -444,13 +445,24 @@ export default function TournamentManager({
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4">
                     {/* Top row: back + status */}
                     <div className="flex items-center justify-between gap-3 mb-3">
-                        <button
-                            onClick={() => router.back()}
-                            className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Volver
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => router.back()}
+                                className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Volver
+                            </button>
+                            {!readOnly && (
+                                <Link
+                                    href={`/tournaments/${tournamentId}/edit`}
+                                    className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-slate-800 pl-3"
+                                >
+                                    <Settings className="w-4 h-4" />
+                                    Editar Info
+                                </Link>
+                            )}
+                        </div>
                         <div className="flex items-center gap-2">
                             {readOnly && (
                                 <button

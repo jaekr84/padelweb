@@ -220,7 +220,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="text-sm font-bold text-foreground">{post.user.name}</span>
-                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-bold uppercase tracking-wider">{post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'superadmin' ? 'Admin' : 'Usuario'}</span>
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-bold uppercase tracking-wider">{post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'superadmin' ? 'Administrador' : 'Usuario'}</span>
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</span>
                                             </div>

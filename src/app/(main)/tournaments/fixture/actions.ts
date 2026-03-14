@@ -60,7 +60,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         if (!session?.userId) throw new Error("No autorizado");
 
         const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin';
+        const isSuperAdmin = user?.role === 'superadmin';
 
         if (prevT.createdByUserId !== session.userId && !isSuperAdmin) {
             throw new Error("No tenés permiso para gestionar este torneo");
@@ -242,7 +242,7 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
         if (!t) throw new Error("Torneo no encontrado");
 
         const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'admin';
+        const isSuperAdmin = user?.role === 'superadmin';
 
         if (t.createdByUserId !== session.userId && !isSuperAdmin) {
             throw new Error("No tenés permiso para eliminar este torneo");

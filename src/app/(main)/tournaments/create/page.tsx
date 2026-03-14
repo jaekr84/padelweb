@@ -7,7 +7,15 @@ type Props = {
     searchParams: Promise<{ edit?: string }>;
 };
 
+import { getSession } from "@/lib/auth-server";
+import { redirect } from "next/navigation";
+
 export default async function CreateTournamentPage({ searchParams }: Props) {
+    const session = await getSession();
+    if (session?.role !== "superadmin") {
+        redirect("/home");
+    }
+
     const params = await searchParams;
     const editId = params?.edit;
 

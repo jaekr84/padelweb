@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -30,13 +30,12 @@ const NAV: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: "/home", icon: Home, label: "Inicio" },
-        { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/admin/categories", icon: Settings, label: "Configuración" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
-        { href: "/directory", icon: FolderOpen, label: "Clubes" },
+        { href: "/admin/categories", icon: Settings, label: "Categorías" },
     ],
 };
 
@@ -60,21 +59,25 @@ function getCookieRole(): string {
     return match ? decodeURIComponent(match[1]) : "jugador";
 }
 
-export default function Sidebar() {
-    const [role, setRole] = useState("jugador");
-    const [userData, setUserData] = useState<{ name: string; role: string } | null>(null);
+export default function Sidebar({ initialUser }: { initialUser?: any }) {
+    const [role, setRole] = useState(initialUser?.role || "jugador");
+    const [userData, setUserData] = useState<{ name: string; role: string } | null>(
+        initialUser?.userId ? { name: "", role: initialUser.role } : null
+    );
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
-        setRole(getCookieRole());
-        getSidebarUser().then(data => {
-            if (data) {
-                setUserData(data);
-                setRole(data.role);
-            }
-        });
-    }, []);
+        // Only fetch sidebar details if we don't have the user name yet
+        if (initialUser?.userId) {
+            getSidebarUser().then(data => {
+                if (data) {
+                    setUserData(data);
+                    if (data.role !== role) setRole(data.role);
+                }
+            });
+        }
+    }, [initialUser, role]);
 
     const [keyboardOpen, setKeyboardOpen] = useState(false);
 
@@ -122,7 +125,7 @@ export default function Sidebar() {
             </header>
 
             {/* DESKTOP SIDEBAR */}
-            <aside className="hidden md:flex w-64 border-r border-border bg-background dark:bg-slate-950 flex-col h-screen sticky top-0 z-50">
+            <aside className="hidden md:flex w-64 border-r border-border bg-background flex-col h-screen sticky top-0 z-50">
                 <div className="p-6 flex flex-col gap-6 border-b border-border">
                     <div className="flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-3 group">
@@ -180,7 +183,7 @@ export default function Sidebar() {
                     })}
                 </nav>
                 <div className="p-5 border-t border-border flex flex-col gap-3">
-                    {(role === "club" || role === "superadmin" || role === "admin") && (
+                    {role === "superadmin" && (
                         <Link href="/tournaments/create">
                             <button className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/20 active:scale-[0.98] transition-all hover:bg-indigo-500">
                                 <Trophy className="w-5 h-5" />
