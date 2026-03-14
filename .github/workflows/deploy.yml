@@ -24,21 +24,24 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          # Aquí podrías necesitar tus variables de entorno si el build las requiere
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
-      - name: Upload build to Hostinger via SCP
+      - name: Create Deployment Package
+        # Comprimimos todo en un solo archivo para evitar errores de conexión
+        run: tar -czf deploy.tar.gz .next/ public/ package.json package-lock.json next.config.mjs
+
+      - name: Upload Package via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          # Subimos solo lo necesario para que funcione
-          source: ".next/,public/,package.json,package-lock.json,next.config.mjs"
+          source: "deploy.tar.gz"
           target: "domains/acap.ar/public_html"
+          timeout: 60s
 
-      - name: Restart Server via SSH
+      - name: Extract and Restart via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -48,7 +51,13 @@ jobs:
           script: |
             export NODE_PATH=/opt/alt/alt-nodejs20/root/usr/bin
             cd domains/acap.ar/public_html
-            # Instalar solo dependencias de producción (rápido y usa poca RAM)
+            
+            # Descomprimir el paquete
+            tar -xzf deploy.tar.gz
+            rm deploy.tar.gz
+            
+            # Instalar solo dependencias de producción
             $NODE_PATH/npm install --production --legacy-peer-deps
-            # Reiniciar
+            
+            # Reiniciar servidor
             pkill -f next-server || true
