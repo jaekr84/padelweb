@@ -28,7 +28,7 @@ jobs:
 
       - name: Create Deployment Package
         # Comprimimos todo en un solo archivo para evitar errores de conexión
-        run: tar -czf deploy.tar.gz .next/ public/ package.json package-lock.json next.config.mjs
+        run: tar -czf deploy.tar.gz .next/ public/ package.json package-lock.json next.config.ts
 
       - name: Upload Package via SCP
         uses: appleboy/scp-action@v0.1.7
