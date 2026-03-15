@@ -47,33 +47,41 @@ export default async function RegisterPage({ searchParams }: Props) {
     const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, tid)).limit(1);
     if (!tournament) redirect("/tournaments");
 
-    // 7-day rule check
-    function getDaysUntil(dateStr: string | null): number | null {
-        if (!dateStr) return null;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tournamentDate = new Date(dateStr);
-        if (dateStr.length === 10) {
-            tournamentDate.setMinutes(tournamentDate.getMinutes() + tournamentDate.getTimezoneOffset());
+    // Open date check
+    const today = new Date().toISOString().split("T")[0];
+    const hasClub = !!dbUser.clubId;
+    
+    let isOpen = false;
+    let openDate: string | null = null;
+    let message = "";
+
+    if (tournament.status === "published") {
+        if (hasClub) {
+            openDate = tournament.openDateClub;
+            isOpen = openDate ? today >= openDate : false;
+            message = "Las inscripciones para jugadores con club se habilitarán el ";
+        } else {
+            openDate = tournament.openDateGeneral;
+            isOpen = openDate ? today >= openDate : false;
+            message = "Las inscripciones generales se habilitarán el ";
         }
-        tournamentDate.setHours(0, 0, 0, 0);
-        const diffTime = tournamentDate.getTime() - today.getTime();
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } else if (tournament.status !== "draft") {
+        // If it's already live or finished, registration is closed
+        isOpen = false;
+        openDate = null;
     }
 
-    const daysUntil = getDaysUntil(tournament.startDate);
-    const isWithin7Days = daysUntil !== null && daysUntil <= 7;
-
-    if (tournament.status === "published" && !isWithin7Days) {
+    if (!isOpen) {
         return (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "4rem 2rem" }}>
                 <div style={{ textAlign: "center", maxWidth: 420, padding: "2.5rem", borderRadius: "1rem", border: "1px solid var(--surface-border)", background: "var(--surface)" }}>
                     <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⏳</div>
                     <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.75rem" }}>Inscripción no abierta</h2>
                     <p style={{ color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-                        Las inscripciones para este torneo se habilitarán 7 días antes de la fecha de inicio ({new Date(tournament.startDate!).toLocaleDateString("es-ES")}).
-                        <br /><br />
-                        Faltan <strong>{daysUntil! - 7} días</strong> para que abra la inscripción.
+                        {openDate 
+                            ? `${message} ${new Date(openDate + "T12:00:00").toLocaleDateString("es-ES")}.`
+                            : "Este torneo no tiene una fecha de inscripción definida o ya ha finalizado."
+                        }
                     </p>
                     <Link href="/tournaments" style={{ display: "inline-block", padding: "0.75rem 1.5rem", background: "var(--primary)", color: "var(--primary-foreground)", borderRadius: "0.75rem", fontWeight: 700, textDecoration: "none" }}>
                         ← Volver a Torneos

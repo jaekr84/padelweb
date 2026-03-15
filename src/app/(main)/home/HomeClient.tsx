@@ -150,7 +150,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                         <div className="flex gap-3 mb-3">
                             <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
                                 {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill className="object-cover" priority />
+                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
                                         {currentUser.name?.charAt(0) || "U"}
@@ -212,7 +212,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                                                 {post.user.imageUrl ? (
-                                                    <Image src={post.user.imageUrl} alt={post.user.name || ""} fill className="object-cover" />
+                                                    <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" />
                                                 ) : (
                                                     <span className="text-sm font-bold text-muted-foreground uppercase">{userInitials}</span>
                                                 )}
@@ -240,6 +240,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                                                 <Image
                                                     src={post.imageUrl}
                                                     fill
+                                                    unoptimized
                                                     className="object-cover"
                                                     alt="Publicación"
                                                     sizes="(max-width: 768px) 100vw, 672px"

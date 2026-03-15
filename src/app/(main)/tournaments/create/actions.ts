@@ -22,6 +22,8 @@ type TournamentInput = {
     categories: string[];
     pointsConfig: PointsConfig;
     imageUrl?: string | null;
+    openDateClub?: string | null;
+    openDateGeneral?: string | null;
     modalidad?: {
         mode: string;
         participacion: string;
@@ -55,6 +57,8 @@ export async function createTournament(data: TournamentInput) {
             surface: data.surface || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
+            openDateClub: data.openDateClub || null,
+            openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
             pointsConfig: data.pointsConfig,
             imageUrl: data.imageUrl || null,
@@ -93,6 +97,8 @@ export async function updateTournament(id: string, data: TournamentInput) {
             surface: data.surface || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
+            openDateClub: data.openDateClub || null,
+            openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
             pointsConfig: data.pointsConfig,
             imageUrl: data.imageUrl || null,

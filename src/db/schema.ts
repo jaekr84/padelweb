@@ -65,6 +65,8 @@ export const tournaments = mysqlTable("tournaments", {
     categories: json("categories"), // MySQL uses JSON
     pointsConfig: json("points_config"),
     modalidad: json("modalidad"),
+    openDateClub: varchar("open_date_club", { length: 50 }),
+    openDateGeneral: varchar("open_date_general", { length: 50 }),
     status: varchar("status", { length: 50 }).notNull().default("draft"),
     imageUrl: varchar("image_url", { length: 512 }),
     youtubeUrl: varchar("youtube_url", { length: 512 }),

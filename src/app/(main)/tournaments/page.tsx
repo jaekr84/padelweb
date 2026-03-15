@@ -60,6 +60,8 @@ export default async function TournamentsPage({
                     endDate: tournaments.endDate,
                     imageUrl: tournaments.imageUrl,
                     clubId: tournaments.clubId,
+                    openDateClub: tournaments.openDateClub,
+                    openDateGeneral: tournaments.openDateGeneral,
                     createdByUserId: tournaments.createdByUserId,
                     createdAt: tournaments.createdAt,
                 },
@@ -95,8 +97,19 @@ export default async function TournamentsPage({
 
     const published = allTournaments.filter(t => t.status === "published");
     const registrable = published.filter(t => {
-        const days = getDaysUntil(t.startDate);
-        return days !== null && days <= 7;
+        const today = new Date().toISOString().split("T")[0];
+        const hasClub = dbUser?.clubId != null;
+        
+        if (hasClub && t.openDateClub) {
+            return today >= t.openDateClub;
+        }
+        if (t.openDateGeneral) {
+            return today >= t.openDateGeneral;
+        }
+        
+        // Fallback or if no dates set, maybe it shouldn't be "open" yet
+        // but let's keep a default if both dates are missing (unlikely but just in case)
+        return false;
     });
     openC = registrable.length;
 
@@ -208,7 +221,7 @@ export default async function TournamentsPage({
                     ) : (
                         <div className="flex flex-col gap-3">
                             {filteredTournaments.map((t) => (
-                                <TournamentCard key={t.id} tournament={t} />
+                                <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} />
                             ))}
                         </div>
                     )}
@@ -223,12 +236,26 @@ export default async function TournamentsPage({
 }
 
 // ─── Tournament Card ────────────────────────────────────────────────────────
-function TournamentCard({ tournament }: { tournament: any }) {
+function TournamentCard({ tournament, userClubId }: { tournament: any, userClubId?: string | null }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    const daysUntil = getDaysUntil(tournament.startDate);
-    const isWithin7Days = daysUntil !== null && daysUntil <= 7;
-    const isOpen = tournament.status === "published" && isWithin7Days;
-    const isPreregistration = tournament.status === "published" && !isWithin7Days;
+    
+    const today = new Date().toISOString().split("T")[0];
+    const hasClub = !!userClubId;
+    
+    let isOpen = false;
+    let openDate: string | null = null;
+
+    if (tournament.status === "published") {
+        if (hasClub) {
+            isOpen = tournament.openDateClub ? today >= tournament.openDateClub : false;
+            openDate = tournament.openDateClub;
+        } else {
+            isOpen = tournament.openDateGeneral ? today >= tournament.openDateGeneral : false;
+            openDate = tournament.openDateGeneral;
+        }
+    }
+
+    const isPreregistration = tournament.status === "published" && !isOpen;
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
@@ -312,7 +339,7 @@ function TournamentCard({ tournament }: { tournament: any }) {
                         }`}>
                         {isLive ? "Ver resultados en vivo" :
                             isOpen ? "Inscribirse ahora" :
-                                isPreregistration ? `Inscripción abre en ${daysUntil! - 7} días` :
+                                isPreregistration ? (openDate ? `Inscripción abre el ${formatDate(openDate)}` : "Próximamente") :
                                     isFinished ? "Torneo finalizado" : "Ver detalles"}
                     </span>
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : "bg-muted"

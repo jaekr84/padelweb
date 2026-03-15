@@ -30,6 +30,8 @@ export type InitialData = {
     surface: string | null;
     startDate: string | null;
     endDate: string | null;
+    openDateClub: string | null;
+    openDateGeneral: string | null;
     categories: string[] | null;
     pointsConfig: PointsConfig | null;
     imageUrl: string | null;
@@ -109,6 +111,8 @@ export default function CreateTournamentForm({
         name: initialData?.name ?? "",
         startDate: initialData?.startDate ?? "",
         endDate: initialData?.endDate ?? "",
+        openDateClub: initialData?.openDateClub ?? "",
+        openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
     });
 
@@ -186,6 +190,8 @@ export default function CreateTournamentForm({
                 description: info.description,
                 startDate: info.startDate,
                 endDate: info.endDate,
+                openDateClub: info.openDateClub,
+                openDateGeneral: info.openDateGeneral,
                 categories: finalCategories,
                 pointsConfig: points,
                 imageUrl: imageUrl,
@@ -332,6 +338,36 @@ export default function CreateTournamentForm({
                                         className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground/80 text-sm font-medium leading-relaxed outline-none focus:border-indigo-500 transition-all resize-none placeholder:text-foreground/20"
                                         placeholder="Detalles sobre el formato del torneo, premios para ganadores, etc..."
                                     />
+                                </div>
+
+                                <div className="flex flex-col gap-3 pt-4 border-t border-border/50 md:col-span-2">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2 mb-2">Apertura de Inscripciones (Personalizable)</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Jugadores con Club</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                <input
+                                                    type="date"
+                                                    value={info.openDateClub}
+                                                    onChange={e => setInfo({ ...info, openDateClub: e.target.value })}
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Público General</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                <input
+                                                    type="date"
+                                                    value={info.openDateGeneral}
+                                                    onChange={e => setInfo({ ...info, openDateGeneral: e.target.value })}
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
