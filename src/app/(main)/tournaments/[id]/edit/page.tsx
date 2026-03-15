@@ -59,6 +59,8 @@ export default async function EditTournamentPage({ params }: Props) {
         surface: tournament.surface,
         startDate: tournament.startDate,
         endDate: tournament.endDate,
+        openDateClub: tournament.openDateClub,
+        openDateGeneral: tournament.openDateGeneral,
         categories: (tournament.categories as string[]) || [],
         pointsConfig: tournament.pointsConfig as any,
         imageUrl: tournament.imageUrl,

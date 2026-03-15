@@ -114,6 +114,7 @@ export default function CreateTournamentForm({
         openDateClub: initialData?.openDateClub ?? "",
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
+        surface: initialData?.surface ?? "",
     });
 
     const [modalidad, setModalidad] = useState({
@@ -188,6 +189,7 @@ export default function CreateTournamentForm({
             const tournamentData = {
                 name: info.name,
                 description: info.description,
+                surface: info.surface,
                 startDate: info.startDate,
                 endDate: info.endDate,
                 openDateClub: info.openDateClub,
@@ -300,6 +302,17 @@ export default function CreateTournamentForm({
                                         onChange={e => setInfo({ ...info, name: e.target.value })}
                                         className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-lg font-black uppercase italic tracking-tight outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-foreground/20"
                                         placeholder="Ej: MASTER SERIES 2024"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Superficie</label>
+                                    <input
+                                        type="text"
+                                        value={info.surface}
+                                        onChange={e => setInfo({ ...info, surface: e.target.value })}
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                        placeholder="Sintético, Cemento, etc."
                                     />
                                 </div>
 

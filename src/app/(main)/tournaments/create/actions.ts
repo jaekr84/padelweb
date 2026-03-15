@@ -80,14 +80,16 @@ export async function updateTournament(id: string, data: TournamentInput) {
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
 
-    // Ensure user is superadmin
+    // Ensure user is superadmin or owner
     const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     const isSuperAdmin = userResult[0]?.role === "superadmin";
-    
-    if (!isSuperAdmin) throw new Error("Solo los superadministradores pueden gestionar torneos");
 
     const existing = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
     if (existing.length === 0) throw new Error("Torneo no encontrado");
+
+    const isOwner = existing[0].createdByUserId === userId;
+    
+    if (!isSuperAdmin && !isOwner) throw new Error("No tienes permiso para editar este torneo");
 
     await db
         .update(tournaments)
