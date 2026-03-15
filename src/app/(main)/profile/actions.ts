@@ -13,6 +13,7 @@ export async function updatePlayerProfile(formData: {
     location: string;
     bio: string;
     side: string;
+    gender: string;
     imageUrl?: string | null;
 }) {
     const session = await getSession() as { userId: string, role: string, email: string } | null;
@@ -28,6 +29,7 @@ export async function updatePlayerProfile(formData: {
             location: formData.location,
             bio: formData.bio,
             side: formData.side,
+            gender: formData.gender,
             imageUrl: formData.imageUrl,
         })
         .where(eq(users.id, userId));

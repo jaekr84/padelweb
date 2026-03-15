@@ -184,20 +184,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         );
                     })}
                 </nav>
-                <div className="p-5 border-t border-border flex flex-col gap-3">
-                    {role === "superadmin" && (
-                        <Link href="/tournaments/create">
-                            <button className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/20 active:scale-[0.98] transition-all hover:bg-indigo-500">
-                                <Trophy className="w-5 h-5" />
-                                Crear Torneo
-                            </button>
-                        </Link>
-                    )}
-                    <button className="flex items-center justify-center gap-2 w-full bg-foreground text-background font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-900/10 active:scale-[0.98] transition-all hover:opacity-90">
-                        <Plus className="w-5 h-5" />
-                        Nuevo Post
-                    </button>
-                </div>
+
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}

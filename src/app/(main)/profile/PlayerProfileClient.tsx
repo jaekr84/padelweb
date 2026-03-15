@@ -28,7 +28,8 @@ import {
     Loader2,
     LogOut,
     User,
-    Phone
+    Phone,
+    Users
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,7 +72,8 @@ export default function PlayerProfileClient({
         location: dbUser?.location || "",
         side: dbUser?.side || "drive",
         bio: dbUser?.bio || "",
-        imageUrl: dbUser?.imageUrl || ""
+        imageUrl: dbUser?.imageUrl || "",
+        gender: dbUser?.gender || "masculino"
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(dbUser?.imageUrl || null);
@@ -529,6 +531,21 @@ export default function PlayerProfileClient({
                                                         className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all"
                                                         placeholder="Ej: 1122334455"
                                                     />
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Género</label>
+                                                <div className="relative">
+                                                    <Users className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                    <select
+                                                        value={formData.gender}
+                                                        onChange={e => setFormData({ ...formData, gender: e.target.value })}
+                                                        className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-inner transition-all appearance-none"
+                                                    >
+                                                        <option value="masculino">Masculino</option>
+                                                        <option value="femenino">Femenino</option>
+                                                        <option value="otro">Otro</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>

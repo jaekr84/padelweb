@@ -143,6 +143,17 @@ export const posts = mysqlTable("posts", {
     userIdIdx: index("posts_user_id_idx").on(table.userId),
 }));
 
+export const postComments = mysqlTable("post_comments", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    postId: varchar("post_id", { length: 36 }).notNull(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    postIdIdx: index("post_comments_post_id_idx").on(table.postId),
+    userIdIdx: index("post_comments_user_id_idx").on(table.userId),
+}));
+
 export const marketplaceItems = mysqlTable("marketplace_items", {
     id: varchar("id", { length: 36 }).primaryKey(),
     userId: varchar("user_id", { length: 256 }).notNull(),
@@ -178,6 +189,27 @@ export const usersRelations = relations(users, ({ many }) => ({
     tournaments: many(tournaments),
     clubs: many(clubs),
     marketplaceItems: many(marketplaceItems),
+    posts: many(posts),
+    comments: many(postComments),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+    user: one(users, {
+        fields: [posts.userId],
+        references: [users.id],
+    }),
+    comments: many(postComments),
+}));
+
+export const postCommentsRelations = relations(postComments, ({ one }) => ({
+    post: one(posts, {
+        fields: [postComments.postId],
+        references: [posts.id],
+    }),
+    user: one(users, {
+        fields: [postComments.userId],
+        references: [users.id],
+    }),
 }));
 
 export const marketplaceItemsRelations = relations(marketplaceItems, ({ one }) => ({

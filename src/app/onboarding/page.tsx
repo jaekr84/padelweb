@@ -61,7 +61,7 @@ function OnboardingForm() {
             const res = await linkRoleToUser(role, inviteClubId, inviteToken);
             if (res.success) {
                 // Redirect to feed. The cookie is already updated by the server action.
-                window.location.href = "/feed";
+                window.location.href = "/home";
             } else {
                 setError(res.error || "Ocurrió un error.");
                 setLoading(false);

@@ -151,10 +151,10 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                 return (
                                     <div key={s.id} className="relative flex flex-col items-center gap-2">
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
-                                                ? "bg-blue-600 border-blue-600 text-white"
-                                                : active
-                                                    ? "bg-slate-900 border-blue-500 text-blue-400"
-                                                    : "bg-slate-900 border-slate-700 text-slate-600"
+                                            ? "bg-blue-600 border-blue-600 text-white"
+                                            : active
+                                                ? "bg-slate-900 border-blue-500 text-blue-400"
+                                                : "bg-slate-900 border-slate-700 text-slate-600"
                                             }`}>
                                             {done ? <Check className="w-3.5 h-3.5" /> : (realIdx + 1)}
                                         </div>
@@ -268,8 +268,8 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             key={cat}
                                             onClick={() => setCategory(cat)}
                                             className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
-                                                    ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20"
-                                                    : "bg-muted border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                                                ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20"
+                                                : "bg-muted border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
                                                 }`}
                                         >
                                             {cat}
@@ -584,7 +584,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                 Ver otros torneos
                             </Link>
                             <Link
-                                href="/feed"
+                                href="/home"
                                 className="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 text-[10px] uppercase tracking-widest text-center"
                             >
                                 Ir al inicio →

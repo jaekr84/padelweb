@@ -33,7 +33,7 @@ export default async function AdminTournamentsPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black uppercase italic tracking-tight">Gestionar Torneos</h1>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Panel de Administración</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Panel de Administración</p>
                     </div>
                     <Link href="/tournaments/create">
                         <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-[10px] py-4 px-6 rounded-2xl shadow-xl shadow-blue-900/20 transition-all active:scale-95">
@@ -50,7 +50,7 @@ export default async function AdminTournamentsPage() {
                             <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Trophy className="w-8 h-8 text-blue-500/30" />
                             </div>
-                            <h3 className="text-xl font-black uppercase italic text-white/40">No tenés torneos creados</h3>
+                            <h3 className="text-xl font-black uppercase italic text-muted-foreground/40">No tenés torneos creados</h3>
                         </div>
                     ) : (
                         adminTournaments.map(({ tournament, club }) => (
@@ -67,7 +67,7 @@ export default async function AdminTournamentsPage() {
                                 {/* Info */}
                                 <div className="flex-1 min-w-0 text-center md:text-left">
                                     <h3 className="text-xl font-black uppercase italic tracking-tight mb-1 truncate">{tournament.name}</h3>
-                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/30">
+                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                         <div className="flex items-center gap-1.5 font-bold">
                                             <Calendar className="w-3 h-3 text-blue-500" />
                                             {tournament.startDate || "Sin fecha"}
@@ -82,7 +82,7 @@ export default async function AdminTournamentsPage() {
                                 {/* Actions */}
                                 <div className="flex flex-wrap justify-center gap-3 shrink-0">
                                     <Link href={`/tournaments/${tournament.id}/edit`}>
-                                        <button className="flex items-center gap-2 bg-card hover:bg-white/5 border border-border text-white/60 hover:text-white font-black uppercase tracking-widest text-[9px] py-3.5 px-5 rounded-xl transition-all active:scale-95">
+                                        <button className="flex items-center gap-1.5 bg-muted/30 hover:bg-muted/50 border border-border text-foreground font-black uppercase tracking-widest text-[9px] py-3 px-5 rounded-xl transition-all active:scale-95">
                                             <Edit className="w-3.5 h-3.5" />
                                             Editar Info
                                         </button>

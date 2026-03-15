@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { posts, users } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { posts, users, postComments } from "@/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
 import HomeClient from "./HomeClient";
 
 export const dynamic = "force-dynamic";
@@ -14,66 +14,78 @@ export default async function HomePage() {
         const session = await getSession();
         const userId = session?.userId as string | undefined;
 
-        const rows = await db
+        if (userId) {
+            const userResults = await db
+                .select()
+                .from(users)
+                .where(eq(users.id, userId))
+                .limit(1);
+            
+            if (userResults.length > 0) {
+                const u = userResults[0];
+                currentUser = {
+                    id: u.id,
+                    name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email,
+                    imageUrl: u.imageUrl,
+                    role: u.role
+                };
+            }
+        }
+
+        // 1. Fetch posts joined with users
+        const postRows = await db
             .select({
-                post: {
-                    id: posts.id,
-                    content: posts.content,
-                    imageUrl: posts.imageUrl,
-                    createdAt: posts.createdAt,
-                    userId: posts.userId,
-                },
-                user: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    role: users.role,
-                    imageUrl: users.imageUrl,
-                }
+                post: posts,
+                user: users
             })
             .from(posts)
             .leftJoin(users, eq(posts.userId, users.id))
             .orderBy(desc(posts.createdAt))
             .limit(50);
 
-        if (userId) {
-            const userResults = await db
-                .select({
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    email: users.email,
-                    imageUrl: users.imageUrl,
-                })
-                .from(users)
-                .where(eq(users.id, userId))
-                .limit(1);
+        if (postRows.length > 0) {
+            const postIds = postRows.map(r => r.post.id);
             
-            const dbUser = userResults[0];
-            if (dbUser) {
-                currentUser = {
-                    id: dbUser.id,
-                    name: `${dbUser.firstName} ${dbUser.lastName}`.trim() || dbUser.email,
-                    imageUrl: dbUser.imageUrl,
-                };
-            }
-        }
+            // 2. Fetch comments joined with users
+            const commentRows = await db
+                .select({
+                    comment: postComments,
+                    user: users
+                })
+                .from(postComments)
+                .leftJoin(users, eq(postComments.userId, users.id))
+                .where(inArray(postComments.postId, postIds))
+                .orderBy(postComments.createdAt);
 
-        initialPosts = rows.map(r => ({
-            id: r.post.id,
-            content: r.post.content,
-            imageUrl: r.post.imageUrl,
-            createdAt: r.post.createdAt.toISOString(),
+            // 3. Assemble
+            initialPosts = postRows.map(r => ({
+                id: r.post.id,
+                content: r.post.content,
+                imageUrl: r.post.imageUrl,
+                createdAt: r.post.createdAt.toISOString(),
                 user: {
                     id: r.user?.id || "unknown",
-                    name: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : "Usuario Eliminado",
+                    name: r.user ? `${r.user.firstName || ""} ${r.user.lastName || ""}`.trim() : "Usuario Eliminado",
                     role: r.user?.role || "jugador",
                     imageUrl: r.user?.imageUrl || null,
-                }
-        }));
+                },
+                comments: commentRows
+                    .filter(c => c.comment.postId === r.post.id)
+                    .map(c => ({
+                        id: c.comment.id,
+                        content: c.comment.content,
+                        createdAt: c.comment.createdAt.toISOString(),
+                        user: {
+                            id: c.user?.id || "unknown",
+                            name: c.user ? `${c.user.firstName || ""} ${c.user.lastName || ""}`.trim() : "Usuario Eliminado",
+                            imageUrl: c.user?.imageUrl || null,
+                        }
+                    }))
+            }));
+        }
 
     } catch (e) {
-        console.error("Error loading home page:", e);
+        console.error("DEBUG: Error loading home page or feed:", e);
     }
 
     return (
