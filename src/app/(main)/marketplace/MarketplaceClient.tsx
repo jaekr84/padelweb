@@ -248,9 +248,10 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const filteredItems = items.filter(item => {
         const matchesCategory = filter === "all" || item.category?.toUpperCase() === filter.toUpperCase();
         const matchesCondition = conditionFilter === "all" || item.condition === conditionFilter;
-        const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || 
-                             item.category?.toLowerCase().includes(search.toLowerCase()) ||
-                             item.observations?.toLowerCase().includes(search.toLowerCase());
+        const s = search.toLowerCase();
+        const matchesSearch = (item.title?.toLowerCase() || "").includes(s) || 
+                             (item.category?.toLowerCase() || "").includes(s) ||
+                             (item.observations?.toLowerCase() || "").includes(s);
         return matchesCategory && matchesCondition && matchesSearch;
     });
 
