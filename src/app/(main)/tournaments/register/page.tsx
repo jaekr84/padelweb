@@ -1,10 +1,11 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { tournaments, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { tournaments, users, registrations } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import Link from "next/link";
+import { Trophy } from "lucide-react";
 
 type Props = {
     searchParams: Promise<{ id?: string }>;
@@ -42,10 +43,52 @@ export default async function RegisterPage({ searchParams }: Props) {
         );
     }
 
-    // Fetch tournament
+    // Fetch tournament and check existing registration
     if (!tid) redirect("/tournaments");
     const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, tid)).limit(1);
     if (!tournament) redirect("/tournaments");
+
+    const [existingRegistration] = await db
+        .select()
+        .from(registrations)
+        .where(
+            and(
+                eq(registrations.tournamentId, tid),
+                eq(registrations.userId, userId)
+            )
+        )
+        .limit(1);
+
+    if (existingRegistration) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center p-6">
+                <div className="bg-card border border-border p-10 rounded-[2.5rem] text-center shadow-2xl max-w-sm w-full relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
+                    <div className="w-20 h-20 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Trophy className="w-10 h-10 text-blue-500" />
+                    </div>
+                    <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">¡Ya estás inscripto!</h2>
+                    <p className="text-slate-400 text-sm font-bold mb-8">
+                        Ya formás parte de {tournament.name}. Podés ver la lista de inscriptos y esperar el inicio del fixture.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <Link 
+                            href={`/tournaments/${tid}/manage`} 
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            Ver jugadores inscriptos
+                        </Link>
+                        <Link 
+                            href="/tournaments" 
+                            className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                        >
+                            Volver a torneos
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // Open date check
     const today = new Date().toISOString().split("T")[0];

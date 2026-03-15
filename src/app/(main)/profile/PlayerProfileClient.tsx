@@ -98,22 +98,34 @@ export default function PlayerProfileClient({
 
     const myName = dbUser?.firstName || "";
 
+    const myTeamNames = useMemo(() => {
+        return new Set(registrations.map(r => (r.teamName || "").toLowerCase().trim()));
+    }, [registrations]);
+
     // Stats aggregation
     const stats = useMemo(() => {
-        const matches = matchHistory.length;
-        const wins = matchHistory.filter(m => {
-            const isT1 = m.match.team1Name?.includes(myName);
-            return isT1 ? m.match.score1 > m.match.score2 : m.match.score2 > m.match.score1;
+        const matchesParticipated = matchHistory.filter(m => {
+            const team1 = (m.match.team1Name || "").toLowerCase().trim();
+            const team2 = (m.match.team2Name || "").toLowerCase().trim();
+            return myTeamNames.has(team1) || myTeamNames.has(team2);
+        });
+
+        const wins = matchesParticipated.filter(m => {
+            const team1 = (m.match.team1Name || "").toLowerCase().trim();
+            const isT1 = myTeamNames.has(team1);
+            const s1 = Number(m.match.score1) || 0;
+            const s2 = Number(m.match.score2) || 0;
+            return isT1 ? s1 > s2 : s2 > s1;
         }).length;
 
         return {
-            matches,
+            matches: matchesParticipated.length,
             wins,
             points: dbUser?.points || 0,
             category: dbUser?.category || "D",
             side: dbUser?.side || "drive"
         };
-    }, [matchHistory, myName, dbUser]);
+    }, [matchHistory, dbUser, myTeamNames]);
 
     const realCategory = useMemo(() => {
         if (!availableCategories) return dbUser?.category || "D";
@@ -127,11 +139,26 @@ export default function PlayerProfileClient({
         r.tournament.status === "en_curso" || r.tournament.status === "en_eliminatorias"
     );
 
-    const allMatchesHistory = matchHistory.map(m => ({
-        ...m,
-        type: m.match.type === "group" ? "Fase de Grupos" : "Eliminatorias",
-        tournamentName: m.tournamentName
-    })).sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
+    const allMatchesHistory = useMemo(() => {
+        return matchHistory.map(m => {
+            const team1 = (m.match.team1Name || "").toLowerCase().trim();
+            const team2 = (m.match.team2Name || "").toLowerCase().trim();
+            const isT1 = myTeamNames.has(team1);
+            const isT2 = myTeamNames.has(team2);
+
+            return {
+                ...m,
+                type: m.match.type === "group" ? "Fase de Grupos" : "Eliminatorias",
+                tournamentName: m.tournamentName,
+                isParticipant: isT1 || isT2,
+                isT1,
+                opponents: isT1 ? m.match.team2Name : m.match.team1Name,
+                won: isT1 ? (m.match.score1 || 0) > (m.match.score2 || 0) : (m.match.score2 || 0) > (m.match.score1 || 0)
+            };
+        })
+        .filter(m => m.isParticipant)
+        .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
+    }, [matchHistory, myTeamNames]);
 
     return (
 
@@ -261,8 +288,8 @@ export default function PlayerProfileClient({
                                                                     {reg.tournament.status === "en_curso" ? "Activo" : "Cruces"}
                                                                 </div>
                                                             </div>
-                                                            <Link href={`/tournaments/${reg.tournamentId}/manage`} className="w-full bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                                                Gestionar <ChevronRight className="h-3 w-3" />
+                                                            <Link href={`/tournaments/${reg.tournamentId}`} className="w-full bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                                                                Ver Resultados <ChevronRight className="h-3 w-3" />
                                                             </Link>
                                                         </div>
                                                     ))}
@@ -327,9 +354,7 @@ export default function PlayerProfileClient({
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
                                                     {allMatchesHistory.map((m, i) => {
-                                                        const isT1 = m.match.team1Name?.includes(myName);
-                                                        const opponents = isT1 ? m.match.team2Name : m.match.team1Name;
-                                                        const won = isT1 ? m.match.score1 > m.match.score2 : m.match.score2 > m.match.score1;
+                                                        const won = m.won;
                                                         const date = new Date(m.match.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
                                                         return (
                                                             <tr key={i} className="hover:bg-muted transition-colors group">
@@ -340,7 +365,7 @@ export default function PlayerProfileClient({
                                                                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{m.type}</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-8 py-6 text-xs font-bold text-foreground/80">{opponents}</td>
+                                                                <td className="px-8 py-6 text-xs font-bold text-foreground/80">{m.opponents}</td>
                                                                 <td className="px-8 py-6">
                                                                     <div className="flex items-center justify-end gap-3">
                                                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[9px] font-black ${won ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"}`}>

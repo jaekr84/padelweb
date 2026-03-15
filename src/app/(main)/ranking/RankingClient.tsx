@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Trophy, Medal, Crown, Shield, User, Users, X, Activity, Calendar as CalendarIcon, Hash } from "lucide-react";
+import { Trophy, Medal, Crown, Shield, User, Users, X, Activity, Calendar as CalendarIcon, Hash, ChevronRight } from "lucide-react";
 import { type Category } from "@/db/schema";
 import { getPlayerMatchHistory } from "./actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +37,8 @@ function getUserHandle(email: string) {
 
 export default function RankingClient({ users, tournamentCounts, availableCategories }: RankingClientProps) {
     const [genderFilter, setGenderFilter] = useState("all");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedPlayer, setSelectedPlayer] = useState<RankingUser | null>(null);
     const [matches, setMatches] = useState<any[]>([]);
     const [loadingMatches, setLoadingMatches] = useState(false);
@@ -63,8 +65,22 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
             list = list.filter(u => u.gender === genderFilter);
         }
 
+        // Filter by category
+        if (categoryFilter !== "all") {
+            list = list.filter(u => u.category === categoryFilter);
+        }
+
+        // Search by name
+        if (searchQuery.trim() !== "") {
+            const query = searchQuery.toLowerCase();
+            list = list.filter(u => 
+                (u.name || "").toLowerCase().includes(query) ||
+                u.email.toLowerCase().includes(query)
+            );
+        }
+
         return list.sort((a, b) => (b.points || 0) - (a.points || 0));
-    }, [users, genderFilter]);
+    }, [users, genderFilter, categoryFilter, searchQuery]);
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
@@ -88,23 +104,67 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     </p>
                 </div>
 
-                {/* ── Gender Filters ── */}
-                <div className="flex gap-2 mb-4">
-                    {[
-                        { id: "all", label: "Todos", icon: Shield },
-                        { id: "masculino", label: "Masculino", icon: Shield },
-                        { id: "femenino", label: "Femenino", icon: Shield },
-                    ].map(g => (
-                        <button
-                            key={g.id}
-                            onClick={() => {
-                                setGenderFilter(g.id);
-                            }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${genderFilter === g.id ? "bg-indigo-600 border-indigo-600 text-white shadow-lg" : "bg-card border-border text-muted-foreground hover:border-indigo-500/50"}`}
-                        >
-                            {g.label}
-                        </button>
-                    ))}
+                {/* ── Search & Filters ── */}
+                <div className="space-y-4 mb-8">
+                    {/* Search Input */}
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Activity className="w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar jugador por nombre..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                        />
+                        {searchQuery && (
+                            <button 
+                                onClick={() => setSearchQuery("")}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                            >
+                                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Gender Switch */}
+                        <div className="flex bg-card border border-border rounded-2xl p-1 gap-1">
+                            {[
+                                { id: "all", label: "Todos" },
+                                { id: "masculino", label: "M" },
+                                { id: "femenino", label: "F" },
+                            ].map(g => (
+                                <button
+                                    key={g.id}
+                                    onClick={() => setGenderFilter(g.id)}
+                                    className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${genderFilter === g.id ? "bg-indigo-600 text-white shadow-md scale-[1.02]" : "text-muted-foreground hover:bg-muted/50"}`}
+                                >
+                                    {g.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Category Select */}
+                        <div className="relative">
+                            <select
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                className="w-full bg-card border border-border rounded-2xl py-2.5 px-4 text-[10px] font-black uppercase tracking-widest appearance-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all cursor-pointer text-muted-foreground"
+                            >
+                                <option value="all">Todas las Categorías</option>
+                                {availableCategories?.map(cat => (
+                                    <option key={cat.id} value={cat.name}>
+                                        Categoría {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <ChevronRight className="w-3 h-3 text-muted-foreground rotate-90" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
 

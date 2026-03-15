@@ -2,19 +2,13 @@
 
 import { db } from "@/db";
 import { groupMatches, bracketMatches, registrations, tournaments, users } from "@/db/schema";
-import { eq, or, and, sql } from "drizzle-orm";
+import { eq, or, and, sql, inArray } from "drizzle-orm";
 
 export async function getPlayerMatchHistory(userId: string) {
     try {
         // 1. Get all registrations for this user (as main or partner)
         const userRegs = await db
-            .select({
-                regId: registrations.id,
-                tournamentId: registrations.tournamentId,
-                partnerName: registrations.partnerName,
-                partnerUserId: registrations.partnerUserId,
-                userId: registrations.userId,
-            })
+            .select()
             .from(registrations)
             .where(
                 or(
@@ -25,57 +19,67 @@ export async function getPlayerMatchHistory(userId: string) {
 
         if (userRegs.length === 0) return [];
 
-        // 2. For each registration, reconstruct the "Team Name" that was used in the fixture
-        // We need the user's name for those tournaments
-        const userIds = Array.from(new Set(userRegs.map(r => r.userId).concat(userRegs.map(r => r.partnerUserId || ""))));
-        const dbUsers = await db.select().from(users).where(sql`${users.id} IN (${userIds.map(id => `'${id}'`).join(',')})`);
+        // 2. Collect all relevant IDs
+        const tournamentIds = Array.from(new Set(userRegs.map(r => r.tournamentId)));
+        const allUserIds = Array.from(new Set([
+            ...userRegs.map(r => r.userId),
+            ...userRegs.map(r => r.partnerUserId)
+        ])).filter((id): id is string => !!id);
+
+        // 3. Batch fetch supporting data
+        const [dbTournaments, dbUsers] = await Promise.all([
+            db.select().from(tournaments).where(inArray(tournaments.id, tournamentIds)),
+            db.select().from(users).where(inArray(users.id, allUserIds))
+        ]);
 
         const playerMatches: any[] = [];
 
+        // 4. For each registration, find its matches
         for (const reg of userRegs) {
+            const tournament = dbTournaments.find(t => t.id === reg.tournamentId);
             const mainUser = dbUsers.find(u => u.id === reg.userId);
+            
             const namePart1 = mainUser 
-                ? ([mainUser.firstName, mainUser.lastName].filter(Boolean).join(" ") || mainUser.email.split("@")[0])
+                ? ([mainUser.firstName, mainUser.lastName].filter(Boolean).join(" ").trim() || mainUser.email.split("@")[0])
                 : "Jugador";
-            const namePart2 = reg.partnerName || "Invitado";
+            const namePart2 = (reg.partnerName || "Invitado").trim();
             const teamName = `${namePart1} / ${namePart2}`;
 
-            // Get Tournament Info
-            const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, reg.tournamentId)).limit(1);
-
-            // Get group matches
-            const gMatches = await db
-                .select()
-                .from(groupMatches)
-                .where(
+            // Batch fetch matches for this tournament to avoid N+1 queries in the loop
+            // Optimization: Get only confirmed matches where this team played
+            const [gMatches, bMatches] = await Promise.all([
+                db.select().from(groupMatches).where(
                     and(
                         eq(groupMatches.tournamentId, reg.tournamentId),
+                        eq(groupMatches.confirmed, true),
                         or(
                             eq(groupMatches.team1Name, teamName),
                             eq(groupMatches.team2Name, teamName)
-                        ),
-                        eq(groupMatches.confirmed, true)
+                        )
                     )
-                );
-
-            // Get bracket matches
-            const bMatches = await db
-                .select()
-                .from(bracketMatches)
-                .where(
+                ),
+                db.select().from(bracketMatches).where(
                     and(
                         eq(bracketMatches.tournamentId, reg.tournamentId),
+                        eq(bracketMatches.confirmed, true),
                         or(
                             eq(bracketMatches.team1Name, teamName),
                             eq(bracketMatches.team2Name, teamName)
-                        ),
-                        eq(bracketMatches.confirmed, true)
+                        )
                     )
-                );
+                )
+            ]);
 
-            const allMatches = [...gMatches.map(m => ({ ...m, type: 'Grupo' })), ...bMatches.map(m => ({ ...m, type: 'Playoff', round: (m as any).round }))];
+            const allMatches = [
+                ...gMatches.map(m => ({ ...m, type: 'Grupo' })), 
+                ...bMatches.map(m => ({ ...m, type: 'Playoff' }))
+            ];
             
             for (const m of allMatches) {
+                const score1 = m.score1 ?? 0;
+                const score2 = m.score2 ?? 0;
+                const matchesTeam1 = (m.team1Name || "").trim() === teamName.trim();
+                
                 playerMatches.push({
                     id: m.id,
                     tournamentName: tournament?.name || "Torneo",
@@ -83,14 +87,15 @@ export async function getPlayerMatchHistory(userId: string) {
                     round: (m as any).round,
                     team1: m.team1Name,
                     team2: m.team2Name,
-                    score1: m.score1,
-                    score2: m.score2,
-                    isWinner: m.team1Name === teamName ? (m.score1 || 0) > (m.score2 || 0) : (m.score2 || 0) > (m.score1 || 0),
-                    date: tournament?.createdAt
+                    score1: score1,
+                    score2: score2,
+                    isWinner: matchesTeam1 ? score1 > score2 : score2 > score1,
+                    date: tournament?.createdAt || new Date()
                 });
             }
         }
 
+        // 5. Final sort by date
         return playerMatches.sort((a, b) => b.date.getTime() - a.date.getTime());
     } catch (error) {
         console.error("Error fetching match history:", error);

@@ -74,9 +74,13 @@ export default async function TournamentsPage({
             .orderBy(desc(tournaments.createdAt));
         
         // Map to the structure expected by the component
+        const userRegs = userId ? await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId)) : [];
+        const registeredSet = new Set(userRegs.map(r => r.tournamentId));
+
         allTournaments = tournamentsRes.map(r => ({
             ...r.tournament,
             club: r.club,
+            isRegistered: registeredSet.has(r.tournament.id),
         }));
 
         if (userId) {
@@ -228,7 +232,7 @@ export default async function TournamentsPage({
                     ) : (
                         <div className="flex flex-col gap-3">
                             {filteredTournaments.map((t) => (
-                                <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} />
+                                <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} isUserRegistered={t.isRegistered} />
                             ))}
                         </div>
                     )}
@@ -243,7 +247,7 @@ export default async function TournamentsPage({
 }
 
 // ─── Tournament Card ────────────────────────────────────────────────────────
-function TournamentCard({ tournament, userClubId }: { tournament: any, userClubId?: string | null }) {
+function TournamentCard({ tournament, userClubId, isUserRegistered }: { tournament: any, userClubId?: string | null, isUserRegistered?: boolean }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
     
     const today = new Date().toISOString().split("T")[0];
@@ -275,9 +279,11 @@ function TournamentCard({ tournament, userClubId }: { tournament: any, userClubI
                     ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
                     : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
 
-    const href = isOpen
-        ? `/tournaments/register?id=${tournament.id}`
-        : `/tournaments/${tournament.id}`;
+    const href = isUserRegistered || isLive || isFinished
+        ? `/tournaments/${tournament.id}`
+        : isOpen
+            ? `/tournaments/register?id=${tournament.id}`
+            : `/tournaments/${tournament.id}`;
 
     return (
         <Link href={href} className="group block">
@@ -306,13 +312,21 @@ function TournamentCard({ tournament, userClubId }: { tournament: any, userClubI
                             </div>
 
                             {/* Status pill */}
-                            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shrink-0 ${statusConfig.pill} shadow-sm shadow-black/10`}>
-                                {statusConfig.dot && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                {isUserRegistered && (
+                                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-sm">
+                                        <CheckCircle className="w-2.5 h-2.5 text-blue-500" />
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Inscripto</span>
+                                    </div>
                                 )}
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white">
-                                    {statusConfig.label}
-                                </span>
+                                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full ${statusConfig.pill} shadow-sm shadow-black/10`}>
+                                    {statusConfig.dot && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                    )}
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-white">
+                                        {statusConfig.label}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -370,16 +384,17 @@ function TournamentCard({ tournament, userClubId }: { tournament: any, userClubI
                         isPreregistration ? "border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/10" :
                             "border-border bg-muted/30"
                     }`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isPreregistration ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isUserRegistered ? "text-blue-600 dark:text-blue-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isPreregistration ? "text-blue-600 dark:text-blue-400" : isFinished ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"
                         }`}>
                         {isLive ? "Ver resultados en vivo" :
-                            isOpen ? "Inscribirse ahora" :
-                                isPreregistration ? (openDate ? `Inscripción abre el ${formatDate(openDate)}` : "Próximamente") :
-                                    isFinished ? "Torneo finalizado" : "Ver detalles"}
+                            isUserRegistered ? "Ver mis inscripción / jugadores" :
+                                isOpen ? "Inscribirse ahora" :
+                                    isPreregistration ? (openDate ? `Inscripción abre el ${formatDate(openDate)}` : "Próximamente") :
+                                        isFinished ? "Ver resultados finales" : "Ver detalles"}
                     </span>
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : "bg-muted"
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : isFinished ? "bg-indigo-500/10 dark:bg-indigo-500/20" : "bg-muted"
                         }`}>
-                        <Clock className={`w-3.5 h-3.5 ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`} />
+                        <Trophy className={`w-3.5 h-3.5 ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isFinished ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"}`} />
                     </div>
                 </div>
             </div>

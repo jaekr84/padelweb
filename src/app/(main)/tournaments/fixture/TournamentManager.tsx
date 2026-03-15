@@ -5,7 +5,7 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check, FlaskConical, AlertTriangle, X, RefreshCw
+    BarChart3, Check, X, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -69,92 +69,10 @@ export default function TournamentManager({
     );
     const [qualPerGroup, setQualPerGroup] = useState(2);
     const [saving, setSaving] = useState(false);
-    const [showDevPanel, setShowDevPanel] = useState(false);
-    const [seedingGroups, setSeedingGroups] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    // ─── DEV: Seed fake players into groups and regenerate all matches ───
-    const FAKE_NAMES = [
-        "Pablo Ruiz", "Diego Torres", "Martín López", "Sebastián García",
-        "Andrés Pérez", "Lucas Sánchez", "Nicolás Fernández", "Matías González",
-        "Rodrigo Díaz", "Tomás Álvarez", "Facundo Romero", "Ignacio Moreno",
-        "Gustavo Jiménez", "Federico Herrera", "Ramiro Medina", "Santiago Molina",
-    ];
-
-    function generateRoundRobinMatches(group: Group): Match[] {
-        const players = group.players;
-        const newMatches: Match[] = [];
-        for (let i = 0; i < players.length; i++) {
-            for (let j = i + 1; j < players.length; j++) {
-                newMatches.push({
-                    id: `m_${group.id}_${i}_${j}_${Date.now()}`,
-                    groupId: group.id,
-                    team1: players[i],
-                    team2: players[j],
-                    played: false,
-                    confirmed: false,
-                });
-            }
-        }
-        return newMatches;
-    }
-
-    async function seedFakePlayers(playersPerGroup = 4) {
-        setSeedingGroups(true);
-        let nameIndex = 0;
-        const seededGroups: Group[] = groups.map((g) => {
-            const newPlayers: Player[] = [];
-            for (let i = 0; i < playersPerGroup; i++) {
-                newPlayers.push({
-                    id: `fake_${g.id}_${i}_${Date.now()}`,
-                    name: FAKE_NAMES[nameIndex++ % FAKE_NAMES.length],
-                });
-            }
-            return { ...g, players: [...g.players, ...newPlayers] };
-        });
-
-        const newMatches = seededGroups.flatMap(generateRoundRobinMatches);
-        setGroups(seededGroups);
-        setMatches(newMatches);
-
-        // Persist to DB
-        try {
-            await saveTournamentFixture({
-                tournamentId,
-                phase: "grupos",
-                groups: seededGroups,
-                matches: newMatches,
-                bracket: [],
-            });
-        } catch (e) {
-            console.error("[DEV seed]", e);
-        }
-        setSeedingGroups(false);
-        setShowDevPanel(false);
-    }
-
-    async function clearPlayers() {
-        setSeedingGroups(true);
-        const emptyGroups: Group[] = groups.map((g) => ({ ...g, players: [] }));
-        setGroups(emptyGroups);
-        setMatches([]);
-        try {
-            await saveTournamentFixture({
-                tournamentId,
-                phase: "grupos",
-                groups: emptyGroups,
-                matches: [],
-                bracket: [],
-            });
-        } catch (e) {
-            console.error("[DEV clear]", e);
-        }
-        setSeedingGroups(false);
-    }
-
     // ─── Renderizado Condicional ───
-    const showDevLink = !readOnly && process.env.NODE_ENV === 'development';
 
     // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
     const isGroupStageFinished = useMemo(() => {
@@ -173,32 +91,47 @@ export default function TournamentManager({
         if (!group) return [];
         const groupMatches = matches.filter(m => m.groupId === groupId && m.confirmed);
 
-        const playersArray = Array.isArray(group.players) 
+        const parsedPlayers = Array.isArray(group.players) 
             ? group.players 
             : typeof group.players === 'string' 
-                ? JSON.parse(group.players) 
+                ? (() => { try { return JSON.parse(group.players as string); } catch { return []; } })()
                 : [];
+        
+        const playersArray = Array.isArray(parsedPlayers) ? parsedPlayers : [];
 
         const standings = playersArray.map((p: Player) => ({
             playerId: p.id,
             player: p,
             points: 0,
             matchesPlayed: 0,
-            h2hNote: "",
+            won: 0,
+            lost: 0,
         }));
 
         groupMatches.forEach(m => {
-            if (m.score1 === undefined || m.score2 === undefined) return;
-            const p1 = standings.find((s: any) => s.playerId === m.team1.id);
-            const p2 = standings.find((s: any) => s.playerId === m.team2.id);
+            if (m.score1 === undefined || m.score2 === undefined || m.score1 === null || m.score2 === null) return;
+            
+            // Match by ID or Name to handle potential hydration mismatches
+            const p1 = standings.find((s: any) => s.playerId === m.team1.id || s.player.name === m.team1.name);
+            const p2 = standings.find((s: any) => s.playerId === m.team2.id || s.player.name === m.team2.name);
+            
             if (p1 && p2) {
                 p1.matchesPlayed++;
                 p2.matchesPlayed++;
-                p1.points += (m.score1 - m.score2);
-                p2.points -= (m.score1 - m.score2);
+                
+                const score1 = Number(m.score1);
+                const score2 = Number(m.score2);
+                
+                // Point difference: winner gets +, loser gets -
+                p1.points += (score1 - score2);
+                p2.points += (score2 - score1);
+
+                if (score1 > score2) p1.won++;
+                else if (score2 > score1) p2.won++;
             }
         });
 
+        // Sort by points (difference), then by games won? For now just points.
         return standings.sort((a: any, b: any) => b.points - a.points);
     };
 
@@ -404,6 +337,9 @@ export default function TournamentManager({
             bracket: finalBracket,
             championName,
         });
+        if (isFinal) {
+            setShowSuccessModal(true);
+        }
         setSaving(false);
     };
 
@@ -523,68 +459,7 @@ export default function TournamentManager({
             {/* ── Page content ── */}
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-32">
 
-                {/* ── DEV TESTING PANEL ── */}
-                <div className="mb-6">
-                    <button
-                        onClick={() => setShowDevPanel(v => !v)}
-                        className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 text-[10px] font-black uppercase tracking-widest transition-all"
-                    >
-                        <FlaskConical className="h-3.5 w-3.5" />
-                        Panel de Pruebas
-                        {showDevPanel ? <X className="h-3 w-3 ml-1" /> : null}
-                    </button>
 
-                    {showDevPanel && (
-                        <div className="mt-3 bg-amber-950/30 border border-amber-500/25 rounded-2xl p-4 flex flex-col gap-4">
-                            <div className="flex items-start gap-2">
-                                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-amber-300 text-xs font-bold">Modo Desarrollo</p>
-                                    <p className="text-amber-400/60 text-[10px] mt-0.5">
-                                        Datos ficticios para probar el flujo. Eliminá este panel cuando termines.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-2">
-                                <button
-                                    onClick={() => seedFakePlayers(4)}
-                                    disabled={seedingGroups}
-                                    className="flex items-center justify-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
-                                >
-                                    <Users2 className="h-3.5 w-3.5" />
-                                    {seedingGroups ? "Cargando..." : "+ 4 jugadores / grupo"}
-                                </button>
-                                <button
-                                    onClick={() => seedFakePlayers(6)}
-                                    disabled={seedingGroups}
-                                    className="flex items-center justify-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
-                                >
-                                    <Users2 className="h-3.5 w-3.5" />
-                                    {seedingGroups ? "Cargando..." : "+ 6 jugadores / grupo"}
-                                </button>
-                                <button
-                                    onClick={clearPlayers}
-                                    disabled={seedingGroups}
-                                    className="flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
-                                >
-                                    <X className="h-3.5 w-3.5" />
-                                    {seedingGroups ? "Limpiando..." : "Limpiar todo"}
-                                </button>
-                            </div>
-
-                            {groups.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                    {groups.map(g => (
-                                        <span key={g.id} className="px-2.5 py-1 bg-amber-900/30 border border-amber-700/30 rounded-full text-[9px] text-amber-400 font-bold">
-                                            {g.name}: {g.players.length} jugadores
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
                 <AnimatePresence mode="wait">
                     {step === "done" && (
                         <motion.div
@@ -651,7 +526,7 @@ export default function TournamentManager({
                                                 <div className="px-6 py-3 bg-muted/30 border-b border-slate-800">
                                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Partidos · {g.name}</p>
                                                 </div>
-                                                <div className="max-h-[400px] overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                                                <div className="p-4 space-y-2">
                                                     {groupMatches.map(m => (
                                                         <div
                                                             key={m.id}
@@ -790,9 +665,10 @@ export default function TournamentManager({
                             {(() => {
                                 const finalMatch = bracket.find(m => m.round === 0);
                                 if (finalMatch?.confirmed && finalMatch.winnerId) {
-                                    const allPlayers = groups.flatMap(g => g.players);
-                                    const champ = allPlayers.find(p => p.id === finalMatch.winnerId);
-                                    if (champ) return (
+                                    const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId);
+                                    const champName = (winnerSlot as Player)?.name || finalMatch.winnerId;
+
+                                    return (
                                         <div className="space-y-3">
                                             {/* Champion banner */}
                                             <motion.div
@@ -808,7 +684,7 @@ export default function TournamentManager({
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-[10px] font-black uppercase tracking-[0.25em] opacity-70">Campeón del Torneo</p>
-                                                        <h2 className="text-2xl font-black italic uppercase tracking-tight leading-tight truncate">{champ.name}</h2>
+                                                        <h2 className="text-2xl font-black italic uppercase tracking-tight leading-tight truncate">{champName}</h2>
                                                         <p className="text-[11px] font-bold opacity-60 mt-0.5">¡Felicidades!</p>
                                                     </div>
                                                 </div>
@@ -827,7 +703,7 @@ export default function TournamentManager({
                                                             await saveTournamentFixture({
                                                                 tournamentId,
                                                                 phase: "finalizado",
-                                                                championName: champ.name,
+                                                                championName: champName,
                                                                 groups,
                                                                 matches,
                                                                 bracket,
@@ -846,7 +722,7 @@ export default function TournamentManager({
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Trophy className="w-4 h-4" />
+                                                                <CheckCircle2 className="w-4 h-4" />
                                                                 Finalizar Torneo
                                                             </>
                                                         )}
@@ -1078,10 +954,58 @@ export default function TournamentManager({
                                             </div>
                                         </div>
                                     ))}
-                                </div>
                             </div>
-                        </motion.div>
-                    )}
+                        </div>
+
+                        {/* Finalize Tournament Action Bar (Bottom) */}
+                        {(() => {
+                            const finalMatch = bracket.find(m => m.round === 0);
+                            const allPlayers = groups.flatMap(g => g.players);
+                            const champ = allPlayers.find(p => p.id === finalMatch?.winnerId);
+                            
+                            if (finalMatch?.confirmed && champ && initialStatus !== "finalizado") {
+                                return (
+                                    <div className="mt-12 p-8 bg-emerald-950 border border-emerald-800 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+                                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                                    <Trophy className="w-6 h-6 text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">¡Final de Torneo!</h2>
+                                                    <p className="text-emerald-400/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champ.name}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    setSaving(true);
+                                                    await saveTournamentFixture({
+                                                        tournamentId,
+                                                        phase: "finalizado",
+                                                        championName: champ.name,
+                                                        groups,
+                                                        matches,
+                                                        bracket,
+                                                    });
+                                                    setSaving(false);
+                                                    setShowSuccessModal(true);
+                                                    setTimeout(() => router.refresh(), 2000);
+                                                }}
+                                                disabled={saving}
+                                                className="w-full md:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm flex items-center justify-center gap-2"
+                                            >
+                                                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trophy className="w-4 h-4" />}
+                                                Finalizar Torneo
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </motion.div>
+                )}
                 </AnimatePresence>
             </div>
 

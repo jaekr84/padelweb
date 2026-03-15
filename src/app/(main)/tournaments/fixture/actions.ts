@@ -156,11 +156,14 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 if (!playerId || playerId === "BYE") return;
                 const r = regs.find(reg => reg.id === playerId);
                 if (r) {
+                    const pointsToAdd = Number(pts) || 0;
+                    if (pointsToAdd === 0) return;
+
                     if (r.userId) {
-                        userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pts);
+                        userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pointsToAdd);
                     }
                     if (r.partnerUserId) {
-                        userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pts);
+                        userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pointsToAdd);
                     }
                 }
             };
@@ -195,10 +198,10 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             // Evaluate updates sequentially and check for category changes
             for (const [uid, pts] of userPointsAddition.entries()) {
                 if (pts > 0) {
-                    // Update points
+                    // Update points - use COALESCE to handle potential NULL values
                     await db
                         .update(users)
-                        .set({ points: sql`${users.points} + ${pts}` })
+                        .set({ points: sql`COALESCE(${users.points}, 0) + ${pts}` })
                         .where(eq(users.id, uid));
 
                     const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
