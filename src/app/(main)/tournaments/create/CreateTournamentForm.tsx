@@ -27,7 +27,6 @@ export type InitialData = {
     id: string;
     name: string;
     description: string | null;
-    surface: string | null;
     startDate: string | null;
     endDate: string | null;
     openDateClub: string | null;
@@ -114,7 +113,6 @@ export default function CreateTournamentForm({
         openDateClub: initialData?.openDateClub ?? "",
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
-        surface: initialData?.surface ?? "",
     });
 
     const [modalidad, setModalidad] = useState({
@@ -189,7 +187,6 @@ export default function CreateTournamentForm({
             const tournamentData = {
                 name: info.name,
                 description: info.description,
-                surface: info.surface,
                 startDate: info.startDate,
                 endDate: info.endDate,
                 openDateClub: info.openDateClub,
@@ -302,17 +299,6 @@ export default function CreateTournamentForm({
                                         onChange={e => setInfo({ ...info, name: e.target.value })}
                                         className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-lg font-black uppercase italic tracking-tight outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-foreground/20"
                                         placeholder="Ej: MASTER SERIES 2024"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Superficie</label>
-                                    <input
-                                        type="text"
-                                        value={info.surface}
-                                        onChange={e => setInfo({ ...info, surface: e.target.value })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
-                                        placeholder="Sintético, Cemento, etc."
                                     />
                                 </div>
 
@@ -434,7 +420,7 @@ export default function CreateTournamentForm({
                                         className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         <Layers className="w-4 h-4" />
-                                        Múltiples Categorías
+                                        Por Categoría
                                     </button>
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "libre" })}
@@ -456,10 +442,7 @@ export default function CreateTournamentForm({
                                                 <button
                                                     key={`${cat}-${idx}`}
                                                     onClick={() => {
-                                                        const next = isSelected
-                                                            ? modalidad.selectedCats.filter(c => c !== cat)
-                                                            : [...modalidad.selectedCats, cat].sort();
-                                                        setModalidad({ ...modalidad, selectedCats: next });
+                                                        setModalidad({ ...modalidad, selectedCats: [cat] });
                                                     }}
                                                     className={`py-3.5 rounded-xl border transition-all text-[11px] font-bold uppercase ${isSelected ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-900/40" : "bg-muted/30 border-border text-muted-foreground hover:border-accent hover:text-foreground"}`}
                                                 >

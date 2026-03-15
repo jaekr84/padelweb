@@ -18,7 +18,6 @@ type TournamentInput = {
     startDate?: string | null;
     endDate?: string | null;
     description?: string | null;
-    surface?: string | null;
     categories: string[];
     pointsConfig: PointsConfig;
     imageUrl?: string | null;
@@ -54,7 +53,6 @@ export async function createTournament(data: TournamentInput) {
             createdByUserId: userId,
             name: data.name.trim(),
             description: data.description || null,
-            surface: data.surface || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
             openDateClub: data.openDateClub || null,
@@ -96,7 +94,6 @@ export async function updateTournament(id: string, data: TournamentInput) {
         .set({
             name: data.name.trim(),
             description: data.description || null,
-            surface: data.surface || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
             openDateClub: data.openDateClub || null,
