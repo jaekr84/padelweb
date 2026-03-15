@@ -18,12 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-const POINTS_PRESETS = [
-    { label: "Estándar (1000/600/360/180)", winner: 1000, finalist: 600, semi: 360, quarter: 180 },
-    { label: "Amateur (500/300/160/80)", winner: 500, finalist: 300, semi: 160, quarter: 80 },
-    { label: "Personalizado", winner: 0, finalist: 0, semi: 0, quarter: 0 },
-];
 
 export type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
 
@@ -44,12 +40,6 @@ export type InitialData = {
     } | null;
 };
 
-function detectPreset(pc: PointsConfig | null): number {
-    if (!pc) return 0;
-    if (pc.winner === 1000 && pc.finalist === 600) return 0;
-    if (pc.winner === 500 && pc.finalist === 300) return 1;
-    return 2;
-}
 
 const compressImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -109,7 +99,6 @@ export default function CreateTournamentForm({
     const cats = initialData?.categories ?? [];
     const isCatMode = cats.length === 0 || cats[0] !== "libre";
     const pc = initialData?.pointsConfig ?? null;
-    const detectedPreset = detectPreset(pc);
 
     const [isLoading, setIsLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
@@ -121,7 +110,6 @@ export default function CreateTournamentForm({
         startDate: initialData?.startDate ?? "",
         endDate: initialData?.endDate ?? "",
         description: initialData?.description ?? "",
-        surface: initialData?.surface ?? "cemento",
     });
 
     const [modalidad, setModalidad] = useState({
@@ -131,7 +119,6 @@ export default function CreateTournamentForm({
         genero: initialData?.modalidad?.genero ?? "mixto",
     });
 
-    const [preset, setPreset] = useState(detectedPreset);
     const [customPoints, setCustomPoints] = useState({
         winner: String(pc?.winner ?? 1000),
         finalist: String(pc?.finalist ?? 600),
@@ -187,17 +174,16 @@ export default function CreateTournamentForm({
             }
 
             const finalCategories = modalidad.mode === "libre" ? ["libre"] : modalidad.selectedCats;
-            const points = preset === 2 ? {
+            const points = {
                 winner: Number(customPoints.winner),
                 finalist: Number(customPoints.finalist),
                 semi: Number(customPoints.semi),
                 quarter: Number(customPoints.quarter),
-            } : POINTS_PRESETS[preset];
+            };
 
             const tournamentData = {
                 name: info.name,
                 description: info.description,
-                surface: info.surface,
                 startDate: info.startDate,
                 endDate: info.endDate,
                 categories: finalCategories,
@@ -233,7 +219,7 @@ export default function CreateTournamentForm({
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0c] text-slate-200 pb-40 pt-6 px-4 font-sans selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-background text-foreground pb-20 pt-6 px-4 font-sans selection:bg-indigo-500/30 transition-colors duration-300">
             <div className="max-w-3xl mx-auto flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
                 {/* Header Superior */}
@@ -241,18 +227,21 @@ export default function CreateTournamentForm({
                     <div className="flex items-center gap-5">
                         <button 
                             onClick={() => router.back()} 
-                            className="group w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:border-slate-700 transition-all active:scale-95"
+                            className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-accent transition-all active:scale-95"
                         >
                             <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">
+                            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">
                                 {isEditing ? "Editar Torneo" : "Nuevo Torneo"}
                             </h1>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-500/60">Gestión de Competición ACAP</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-500/60 transition-colors">Gestión de Competición ACAP</p>
                         </div>
                     </div>
-                    <Trophy className="w-10 h-10 text-indigo-500 opacity-20 hidden md:block" />
+                    <div className="flex items-center gap-3">
+                        <ThemeToggle />
+                        <Trophy className="w-10 h-10 text-indigo-500 opacity-20 hidden md:block" />
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-10">
@@ -263,12 +252,12 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Sparkles className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-white/50 italic">Información Principal</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Información Principal</h2>
                         </div>
 
-                        <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8">
+                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
                             {/* Banner Upload */}
-                            <div className="relative group overflow-hidden rounded-3xl border border-slate-800 aspect-[21/9] bg-slate-950/50">
+                            <div className="relative group overflow-hidden rounded-3xl border border-border aspect-[21/9] bg-muted/50 transition-colors">
                                 {imagePreview ? (
                                     <>
                                         <img src={imagePreview} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" alt="Banner Preview" />
@@ -283,64 +272,64 @@ export default function CreateTournamentForm({
                                         </div>
                                     </>
                                 ) : (
-                                    <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-slate-900 transition-all border-2 border-dashed border-slate-800 hover:border-indigo-500/30">
+                                    <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted transition-all border-2 border-dashed border-border hover:border-indigo-500/30">
                                         <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center">
                                             {imageUploading ? <Activity className="h-8 w-8 text-indigo-500 animate-spin" /> : <Camera className="h-8 w-8 text-indigo-500" />}
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Subir Banner del Torneo</p>
-                                            <span className="text-[9px] font-medium text-slate-600">Recomendado: 1200x500px</span>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subir Banner del Torneo</p>
+                                            <span className="text-[9px] font-medium text-muted-foreground/60">Recomendado: 1200x500px</span>
                                         </div>
                                         <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                                     </label>
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre del Evento</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Nombre del Evento</label>
                                     <input
                                         type="text"
                                         value={info.name}
                                         onChange={e => setInfo({ ...info, name: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-5 px-6 text-white text-lg font-black uppercase italic tracking-tight outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-lg font-black uppercase italic tracking-tight outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-foreground/20"
                                         placeholder="Ej: MASTER SERIES 2024"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Fecha de Inicio</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Fecha de Inicio</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
                                             type="date"
                                             value={info.startDate}
                                             onChange={e => setInfo({ ...info, startDate: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-5 text-white text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Fecha de Finalización</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Fecha de Finalización</label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
                                             type="date"
                                             value={info.endDate}
                                             onChange={e => setInfo({ ...info, endDate: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-5 text-white text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Descripción y Premios</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Descripción y Premios</label>
                                     <textarea
                                         value={info.description}
                                         onChange={e => setInfo({ ...info, description: e.target.value })}
                                         rows={4}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-6 text-slate-300 text-sm font-medium leading-relaxed outline-none focus:border-indigo-500 transition-all resize-none"
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground/80 text-sm font-medium leading-relaxed outline-none focus:border-indigo-500 transition-all resize-none placeholder:text-foreground/20"
                                         placeholder="Detalles sobre el formato del torneo, premios para ganadores, etc..."
                                     />
                                 </div>
@@ -354,25 +343,53 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Target className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-white/50 italic">Modalidad de Juego</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Modalidad de Juego</h2>
                         </div>
 
-                        <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-10">
+                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
                             
+                            {/* Género y Participación */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Género</label>
+                                    <select
+                                        value={modalidad.genero}
+                                        onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none"
+                                    >
+                                        <option value="mixto">Mixto</option>
+                                        <option value="hombre">Solo Hombres</option>
+                                        <option value="mujer">Solo Mujeres</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Participación</label>
+                                    <select
+                                        value={modalidad.participacion}
+                                        onChange={e => setModalidad({ ...modalidad, participacion: e.target.value as any })}
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none"
+                                    >
+                                        <option value="pareja">Parejas</option>
+                                        <option value="individual">Individual</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             {/* Toggle Modo */}
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Formato de Categorización</label>
-                                <div className="bg-slate-950/50 p-2 rounded-2xl border border-slate-800 flex gap-2">
+                            <div className="space-y-4 pt-4 border-t border-border">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Formato de Categorización</label>
+                                <div className="bg-muted/30 p-2 rounded-2xl border border-border flex gap-2">
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         <Layers className="w-4 h-4" />
                                         Múltiples Categorías
                                     </button>
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "libre" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "libre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-slate-500 hover:text-slate-300"}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "libre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         <Activity className="w-4 h-4" />
                                         Categoría única / Libre
@@ -395,7 +412,7 @@ export default function CreateTournamentForm({
                                                             : [...modalidad.selectedCats, cat].sort();
                                                         setModalidad({ ...modalidad, selectedCats: next });
                                                     }}
-                                                    className={`py-3.5 rounded-xl border transition-all text-[11px] font-bold uppercase ${isSelected ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-900/40" : "bg-slate-950/50 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300"}`}
+                                                    className={`py-3.5 rounded-xl border transition-all text-[11px] font-bold uppercase ${isSelected ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-900/40" : "bg-muted/30 border-border text-muted-foreground hover:border-accent hover:text-foreground"}`}
                                                 >
                                                     {cat}
                                                 </button>
@@ -404,46 +421,6 @@ export default function CreateTournamentForm({
                                     </div>
                                 </div>
                             )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Participación</label>
-                                    <select
-                                        value={modalidad.participacion}
-                                        onChange={e => setModalidad({ ...modalidad, participacion: e.target.value as any })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none"
-                                    >
-                                        <option value="pareja">Parejas</option>
-                                        <option value="individual">Individual</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Género</label>
-                                    <select
-                                        value={modalidad.genero}
-                                        onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none"
-                                    >
-                                        <option value="mixto">Mixto</option>
-                                        <option value="hombre">Solo Hombres</option>
-                                        <option value="mujer">Solo Mujeres</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Superficie</label>
-                                    <select
-                                        value={info.surface}
-                                        onChange={e => setInfo({ ...info, surface: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-5 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none"
-                                    >
-                                        <option value="sintetico">Césped Sintético</option>
-                                        <option value="cemento">Cemento</option>
-                                        <option value="alfombra">Alfombra Pro</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -453,62 +430,40 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Star className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-white/50 italic">Sistema de Puntos (Ranking)</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Sistema de Puntos (Ranking)</h2>
                         </div>
 
-                        <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {POINTS_PRESETS.map((p, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPreset(i)}
-                                        className={`p-5 rounded-2xl border transition-all text-left flex flex-col gap-2 relative overflow-hidden group ${preset === i ? "bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-900/40" : "bg-slate-950/50 border-slate-800 hover:border-slate-700"}`}
-                                    >
-                                        <span className={`text-[10px] font-black uppercase tracking-tighter ${preset === i ? "text-white" : "text-slate-500"}`}>{p.label}</span>
-                                        {p.winner > 0 && (
-                                            <span className={`text-[10px] font-bold ${preset === i ? "text-indigo-200" : "text-slate-600"}`}>
-                                                {p.winner} / {p.finalist} / {p.semi}
-                                            </span>
-                                        )}
-                                        {preset === i && (
-                                            <div className="absolute top-3 right-3 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                                                <Check className="w-2.5 h-2.5 text-indigo-600 font-black" />
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {preset === 2 && (
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-500 pt-4 border-t border-slate-800/50">
-                                    {[
-                                        { id: "winner", label: "Campeón" },
-                                        { id: "finalist", label: "Final" },
-                                        { id: "semi", label: "Semis" },
-                                        { id: "quarter", label: "Cuartos" }
-                                    ].map(k => (
-                                        <div key={k.id} className="space-y-2 text-center">
-                                            <label className="text-[8px] font-black uppercase text-indigo-500/50">{k.label}</label>
+                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {[
+                                    { id: "winner", label: "Campeón" },
+                                    { id: "finalist", label: "Final" },
+                                    { id: "semi", label: "Semis" },
+                                    { id: "quarter", label: "Cuartos" }
+                                ].map(k => (
+                                    <div key={k.id} className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic">{k.label}</label>
+                                        <div className="relative group">
                                             <input
                                                 type="number"
                                                 value={customPoints[k.id as keyof typeof customPoints]}
                                                 onChange={e => setCustomPoints({ ...customPoints, [k.id]: e.target.value })}
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-2 text-center text-sm font-black italic tracking-tighter text-white outline-none focus:border-indigo-500"
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-2 text-center text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
                                             />
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Footer Flotante Acciones */}
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-40">
+                {/* Botón de Acción Final */}
+                <div className="w-full pt-10 border-t border-border/50">
                     <button
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="w-full shadow-2xl shadow-indigo-900/60 bg-indigo-600 hover:bg-indigo-500 text-white py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-indigo-400/20"
+                        className="w-full shadow-2xl shadow-indigo-900/20 bg-indigo-600 hover:bg-indigo-500 text-white py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-indigo-400/20"
                     >
                         {isLoading ? (
                             <Activity className="h-6 w-6 animate-spin" />
@@ -519,6 +474,9 @@ export default function CreateTournamentForm({
                             {isEditing ? "Guardar Cambios del Torneo" : "Publicar Torneo Oficial"}
                         </span>
                     </button>
+                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                        Al publicar, el torneo será visible para todos los jugadores de la plataforma.
+                    </p>
                 </div>
 
             </div>

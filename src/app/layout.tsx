@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             }}
           />
           {children}
-          <Toaster position="bottom-right" theme="dark" closeButton richColors />
+          <Toaster position="bottom-right" theme="system" closeButton richColors />
         </ThemeProvider>
       </body>
     </html>
