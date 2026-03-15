@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Trophy, Medal, Crown, Shield, User, Users } from "lucide-react";
+import { Trophy, Medal, Crown, Shield, User, Users, X, Activity, Calendar as CalendarIcon, Hash } from "lucide-react";
 import { type Category } from "@/db/schema";
+import { getPlayerMatchHistory } from "./actions";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface RankingUser {
     id: string;
@@ -35,14 +37,23 @@ function getUserHandle(email: string) {
 
 export default function RankingClient({ users, tournamentCounts, availableCategories }: RankingClientProps) {
     const [genderFilter, setGenderFilter] = useState("all");
+    const [selectedPlayer, setSelectedPlayer] = useState<RankingUser | null>(null);
+    const [matches, setMatches] = useState<any[]>([]);
+    const [loadingMatches, setLoadingMatches] = useState(false);
 
-    // Helper to find category by points and gender
-    const getCategoryByPoints = (points: number, userGender: string | null) => {
-        if (!availableCategories) return null;
-        return availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
+    const handlePlayerClick = async (player: RankingUser) => {
+        setSelectedPlayer(player);
+        setLoadingMatches(true);
+        setMatches([]);
+        try {
+            const history = await getPlayerMatchHistory(player.id);
+            setMatches(history);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingMatches(false);
+        }
     };
-
-
 
     const filteredPlayers = useMemo(() => {
         let list = [...users];
@@ -113,7 +124,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             return (
                                 <div
                                     key={player.id}
-                                    className="group block bg-card border border-border rounded-3xl overflow-hidden transition-all duration-300 hover:border-indigo-500/30 shadow-sm"
+                                    onClick={() => handlePlayerClick(player)}
+                                    className="group block bg-card border border-border rounded-3xl overflow-hidden transition-all duration-300 hover:border-indigo-500/30 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                                 >
                                     <div className="p-4 flex items-center gap-4">
 
@@ -226,6 +238,119 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     )}
                 </div>
             </div>
+
+            {/* ── Match History Modal ── */}
+            <AnimatePresence>
+                {selectedPlayer && (
+                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedPlayer(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="relative w-full max-w-2xl bg-card border-t md:border border-border rounded-t-[2.5rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl"
+                        >
+                            {/* Modal Header */}
+                            <div className="p-6 md:p-8 bg-muted/50 border-b border-border flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-indigo-600 rounded-3xl flex items-center justify-center text-white text-xl font-black italic shadow-lg shadow-indigo-600/20">
+                                        {getAvatarPlaceholder(selectedPlayer.name)}
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground leading-tight">
+                                            {selectedPlayer.name}
+                                        </h2>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Historial de Partidos</span>
+                                            <span className="w-1 h-1 bg-border rounded-full" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">@{getUserHandle(selectedPlayer.email)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedPlayer(null)}
+                                    className="w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-muted-foreground" />
+                                </button>
+                            </div>
+
+                            {/* Match List */}
+                            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 no-scrollbar">
+                                {loadingMatches ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Consultando Actas...</p>
+                                    </div>
+                                ) : matches.length > 0 ? (
+                                    matches.map((match) => (
+                                        <div key={match.id} className="bg-muted/30 border border-border rounded-3xl overflow-hidden">
+                                            {/* Tournament Info */}
+                                            <div className="px-5 py-3 bg-muted/50 border-b border-border/50 flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className="w-3.5 h-3.5 text-indigo-500" />
+                                                    <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground truncate max-w-[150px]">{match.tournamentName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-card border border-border rounded-lg text-muted-foreground">
+                                                        {match.type === 'Playoff' ? `Ronda ${match.round}` : 'Grupos'}
+                                                    </span>
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg ${match.isWinner ? 'bg-emerald-500 text-black' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                                                        {match.isWinner ? 'Victoria' : 'Derrota'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Scoreboard */}
+                                            <div className="p-5 flex items-center justify-between gap-4">
+                                                <div className="flex-1 text-right">
+                                                    <p className={`text-xs font-black uppercase italic tracking-tight ${match.team1.includes(selectedPlayer.name) ? 'text-foreground' : 'text-muted-foreground opacity-60'}`}>{match.team1}</p>
+                                                </div>
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl font-black italic ${match.isWinner ? 'bg-indigo-600 text-white' : 'bg-muted border border-border text-muted-foreground opacity-50'}`}>
+                                                        {match.score1}
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-muted-foreground opacity-30 italic">VS</span>
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl font-black italic ${!match.isWinner && match.score2 !== undefined ? 'bg-indigo-600 text-white' : 'bg-muted border border-border text-muted-foreground opacity-50'}`}>
+                                                        {match.score2}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 text-left">
+                                                    <p className={`text-xs font-black uppercase italic tracking-tight ${match.team2.includes(selectedPlayer.name) ? 'text-foreground' : 'text-muted-foreground opacity-60'}`}>{match.team2}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Footer Match Info */}
+                                            <div className="px-5 py-2.5 bg-muted/20 flex items-center justify-between text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+                                                <div className="flex items-center gap-1.5">
+                                                    <CalendarIcon className="w-2.5 h-2.5" />
+                                                    {new Date(match.date).toLocaleDateString()}
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Hash className="w-2.5 h-2.5" />
+                                                    ID: {match.id.slice(0, 8)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-20 opacity-30 grayscale italic">
+                                        <Activity className="w-10 h-10 mb-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-center">Sin actividad reciente registrada</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
