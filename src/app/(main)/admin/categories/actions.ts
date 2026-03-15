@@ -10,7 +10,6 @@ export async function addCategory(data: {
     name: string;
     minPoints: number;
     maxPoints: number;
-    gender: "masculino" | "femenino" | "mixto";
     categoryOrder: number;
 }) {
     const session = await getSession();
@@ -30,7 +29,6 @@ export async function updateCategory(id: string, data: Partial<{
     name: string;
     minPoints: number;
     maxPoints: number;
-    gender: "masculino" | "femenino" | "mixto";
     categoryOrder: number;
     isActive: boolean;
 }>) {

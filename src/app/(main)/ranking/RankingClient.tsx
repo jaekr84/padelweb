@@ -39,16 +39,6 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     // Helper to find category by points and gender
     const getCategoryByPoints = (points: number, userGender: string | null) => {
         if (!availableCategories) return null;
-        // First try to find a category that matches points AND gender
-        const matched = availableCategories.find(c => 
-            points >= c.minPoints && 
-            points <= c.maxPoints && 
-            (c.gender === "mixto" || c.gender === userGender)
-        );
-        if (matched) return matched;
-        
-        // Fallback: search just by points if gender doesn't match 
-        // (useful if they define the same threshold for both but only one is found)
         return availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
     };
 

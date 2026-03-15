@@ -198,7 +198,6 @@ export const categoriesTable = mysqlTable("categories", {
     name: varchar("name", { length: 50 }).notNull(),
     minPoints: int("min_points").notNull().default(0),
     maxPoints: int("max_points").notNull().default(10000),
-    gender: varchar("gender", { length: 20 }).notNull().default("mixto"),
     categoryOrder: int("category_order").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -8,6 +8,20 @@
       "when": 1773498209113,
       "tag": "0000_smiling_manta",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1773545129161,
+      "tag": "0001_demonic_talos",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1773545157356,
+      "tag": "0002_misty_karnak",
+      "breakpoints": true
     }
   ]
 }
