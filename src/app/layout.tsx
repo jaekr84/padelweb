@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   keywords: ["pádel", "argentina", "acap", "torneos de pádel", "ranking de pádel", "clubes de pádel"],
   authors: [{ name: "A.C.A.P. Team" }],
   robots: "index, follow",
+  icons: {
+    icon: "/img/favicon.png",
+  },
 };
 
 export const viewport = {
