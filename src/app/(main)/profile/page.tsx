@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { tournaments, registrations, users, groupMatches, bracketMatches, clubs } from "@/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { tournaments, registrations, users, groupMatches, bracketMatches, clubs, categoriesTable } from "@/db/schema";
+import { eq, desc, inArray, gt, and, asc, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import PlayerProfileClient from "./PlayerProfileClient";
@@ -15,7 +15,8 @@ export default async function ProfilePage() {
         dbUserRes,
         userRegistrations,
         clubProfileRes,
-        createdTournaments
+        createdTournaments,
+        availableCategories
     ] = await Promise.all([
         db.select().from(users).where(eq(users.id, userId)).limit(1),
         db.select({
@@ -38,13 +39,27 @@ export default async function ProfilePage() {
             .orderBy(desc(registrations.createdAt)),
 
         db.select().from(clubs).where(eq(clubs.ownerId, userId)),
-        db.select().from(tournaments).where(eq(tournaments.createdByUserId, userId)).orderBy(desc(tournaments.createdAt))
+        db.select().from(tournaments).where(eq(tournaments.createdByUserId, userId)).orderBy(desc(tournaments.createdAt)),
+        db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(asc(categoriesTable.categoryOrder))
     ]);
 
     const dbUser = dbUserRes[0];
     if (!dbUser) redirect("/login");
 
     const clubProfile = clubProfileRes[0];
+
+    // Ranking position: Count players with more points
+    const rankingPositionRes = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(
+            and(
+                eq(users.role, "jugador"),
+                gt(users.points, dbUser.points || 0)
+            )
+        );
+    
+    const rankingPosition = (Number(rankingPositionRes[0].count) || 0) + 1;
 
     // Fetch matches if there are registrations
     const tournamentIds = userRegistrations.map(r => r.tournamentId);
@@ -98,6 +113,8 @@ export default async function ProfilePage() {
             clubProfile={clubProfile || null}
             members={JSON.parse(JSON.stringify(clubMembers))}
             createdTournaments={JSON.parse(JSON.stringify(createdTournaments))}
+            availableCategories={availableCategories}
+            rankingPosition={rankingPosition}
         />
     );
 }

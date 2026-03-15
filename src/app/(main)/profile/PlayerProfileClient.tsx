@@ -45,6 +45,8 @@ interface PlayerProfileClientProps {
     clubProfile?: any;
     createdTournaments?: any[];
     members?: any[];
+    availableCategories?: any[];
+    rankingPosition?: number;
 }
 
 export default function PlayerProfileClient({
@@ -54,7 +56,9 @@ export default function PlayerProfileClient({
     isOwnProfile,
     clubProfile,
     createdTournaments,
-    members
+    members,
+    availableCategories,
+    rankingPosition
 }: PlayerProfileClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("tournaments");
@@ -108,6 +112,14 @@ export default function PlayerProfileClient({
             side: dbUser?.side || "drive"
         };
     }, [matchHistory, myName, dbUser]);
+
+    const realCategory = useMemo(() => {
+        if (!availableCategories) return dbUser?.category || "5ta";
+        const points = dbUser?.points || 0;
+        // Search categories by points
+        const cat = availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
+        return cat ? cat.name : (dbUser?.category || "5ta");
+    }, [availableCategories, dbUser?.points, dbUser?.category]);
 
     const activeTournaments = registrations.filter(r =>
         r.tournament.status === "en_curso" || r.tournament.status === "en_eliminatorias"
@@ -262,11 +274,11 @@ export default function PlayerProfileClient({
                                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nivel y Ranking</h3>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-2xl font-black italic tracking-tighter text-indigo-500">{dbUser?.points || 0}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Puntos</span>
+                                                    <span className="text-2xl font-black italic tracking-tighter text-indigo-500">#{rankingPosition || 1}</span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Ranking</span>
                                                 </div>
                                                 <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-2xl font-black italic tracking-tighter text-emerald-500">{dbUser?.category || "5ta"}</span>
+                                                    <span className="text-2xl font-black italic tracking-tighter text-emerald-500">{realCategory}</span>
                                                     <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Nivel</span>
                                                 </div>
                                             </div>
