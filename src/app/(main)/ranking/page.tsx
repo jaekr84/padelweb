@@ -74,7 +74,7 @@ export default async function RankingPage() {
         category: u.category,
         gender: u.gender,
         points: u.points || 0,
-        winsInCurrentCategory: winCounts[u.id]?.[u.category || "5ta"] || 0
+        winsInCurrentCategory: winCounts[u.id]?.[u.category || "D"] || 0
     }));
 
     return (

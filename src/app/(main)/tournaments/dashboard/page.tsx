@@ -24,9 +24,9 @@ type LogEntry = {
 };
 
 const MATCHES = [
-    { id: 1, stage: "CUARTOS", category: "5ta", court: 1, team1: "Perez / García", team2: "Torres / Silva" },
-    { id: 2, stage: "CUARTOS", category: "5ta", court: 2, team1: "Gomez / Lopez", team2: "Ruiz / Soto" },
-    { id: 3, stage: "SEMIFINAL", category: "1ra", court: 1, team1: "Tapia / Coello", team2: "Galán / Chingotto" },
+    { id: 1, stage: "CUARTOS", category: "D", court: 1, team1: "Perez / García", team2: "Torres / Silva" },
+    { id: 2, stage: "CUARTOS", category: "D", court: 2, team1: "Gomez / Lopez", team2: "Ruiz / Soto" },
+    { id: 3, stage: "SEMIFINAL", category: "A+", court: 1, team1: "Tapia / Coello", team2: "Galán / Chingotto" },
 ];
 
 // The dashboard is dedicated to ONE match — no switching allowed.

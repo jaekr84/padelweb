@@ -90,7 +90,7 @@ const compressImage = (file: File): Promise<Blob> => {
 
 export default function CreateTournamentForm({
     initialData,
-    allCategoriesFromDb = ["1ra", "2da", "3ra", "4ta", "5ta", "6ta", "7ma", "8va", "9na"]
+    allCategoriesFromDb = ["A+", "A", "B", "C", "D"]
 }: {
     initialData?: InitialData | null,
     allCategoriesFromDb?: string[]

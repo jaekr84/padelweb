@@ -312,7 +312,7 @@ export default function ClubProfileClient({
                                                                 </td>
                                                                 <td className="px-8 py-6 text-center">
                                                                     <span className="px-3 py-1 bg-muted/50 border border-border rounded-full text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                                                                        {member.category || "5ta"}
+                                                                        {member.category || "D"}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-8 py-6">

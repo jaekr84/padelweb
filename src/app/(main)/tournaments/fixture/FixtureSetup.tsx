@@ -19,7 +19,7 @@ export interface FixtureSetupProps {
     initialPlayers: Player[];
 }
 
-type Player = { id: string; name: string; category?: string };
+type Player = { id: string; name: string; category?: string; email?: string; gender?: string };
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -72,6 +72,9 @@ export default function FixtureSetup({
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
     const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
     const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [genderFilter, setGenderFilter] = useState("all");
 
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
@@ -292,10 +295,30 @@ export default function FixtureSetup({
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Presentismo</h2>
                                     <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
                                 </div>
-                                <div className="text-right flex flex-col items-end gap-2">
-                                    <div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Inscriptos</span>
-                                        <span className="text-2xl font-black italic text-blue-500 leading-none">{players.length}</span>
+                                <div className="flex flex-col items-end gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            < MonitorPlay  className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/20" />
+                                            <input 
+                                                type="text"
+                                                placeholder="Buscar..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="bg-black/20 border border-border/40 rounded-xl py-2 pl-9 pr-3 text-[10px] font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all w-32 md:w-48"
+                                            />
+                                        </div>
+                                        <select 
+                                            value={categoryFilter}
+                                            onChange={(e) => setCategoryFilter(e.target.value)}
+                                            className="bg-black/20 border border-border/40 rounded-xl py-2 px-3 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                        >
+                                            <option value="all">Cat.</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                            <option value="D">D</option>
+                                        </select>
                                     </div>
                                     <button
                                         onClick={() => {
@@ -320,49 +343,72 @@ export default function FixtureSetup({
                                 </div>
 
                                 <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
-                                    {players.map(p => {
-                                        const isPaid = paid.has(p.id);
-                                        const isPresent = present.has(p.id);
+                                    {(() => {
+                                        const filtered = players.filter(p => {
+                                            const matchesSearch = !searchQuery || 
+                                                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                p.id.toLowerCase().includes(searchQuery.toLowerCase());
+                                            
+                                            const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+                                            const matchesGender = genderFilter === "all" || p.gender === genderFilter;
+                                            
+                                            return matchesSearch && matchesCategory && matchesGender;
+                                        });
 
-                                        return (
-                                            <div
-                                                key={p.id}
-                                                className={`group flex items-center justify-between px-6 py-4 transition-all ${isPresent ? "bg-blue-600/5" : "opacity-40"
-                                                    }`}
-                                            >
-                                                <div className="flex flex-col">
-                                                    <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-white" : "text-white/40"}`}>
-                                                        {p.name}
-                                                    </span>
-                                                    <div className="flex gap-2 mt-1">
-                                                        {isPaid && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">Pago</span>}
-                                                        {isPresent && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">Ok</span>}
+                                        if (filtered.length === 0) {
+                                            return (
+                                                <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
+                                                    No se encontraron jugadores
+                                                </div>
+                                            );
+                                        }
+
+                                        return filtered.map(p => {
+                                            const isPaid = paid.has(p.id);
+                                            const isPresent = present.has(p.id);
+
+                                            return (
+                                                <div
+                                                    key={p.id}
+                                                    className={`group flex items-center justify-between px-6 py-4 transition-all ${isPresent ? "bg-blue-600/5" : "opacity-40"
+                                                        }`}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-white" : "text-white/40"}`}>
+                                                            {p.name}
+                                                        </span>
+                                                        <div className="flex gap-2 mt-1">
+                                                            {isPaid && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">Pago</span>}
+                                                            {isPresent && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">Ok</span>}
+                                                            {p.category && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-white/5 text-white/40 rounded border border-white/5">{p.category}</span>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => togglePaid(p.id)}
+                                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
+                                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                                                                : "bg-card border border-border text-white/20 hover:border-white/20"
+                                                                }`}
+                                                        >
+                                                            <CreditCard className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => togglePresent(p.id)}
+                                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
+                                                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                                                : "bg-card border border-border text-white/20 hover:border-white/20"
+                                                                }`}
+                                                        >
+                                                            <UserCheck className="w-5 h-5" />
+                                                        </button>
                                                     </div>
                                                 </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => togglePaid(p.id)}
-                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
-                                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                            : "bg-card border border-border text-white/20 hover:border-white/20"
-                                                            }`}
-                                                    >
-                                                        <CreditCard className="w-5 h-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => togglePresent(p.id)}
-                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
-                                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                                            : "bg-card border border-border text-white/20 hover:border-white/20"
-                                                            }`}
-                                                    >
-                                                        <UserCheck className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        });
+                                    })()}
                                 </div>
                             </div>
 
@@ -616,20 +662,76 @@ export default function FixtureSetup({
                             >
                                 <div className="px-6 py-6 border-b border-border/50 bg-card">
                                     <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Jugador</h3>
-                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Elegí un jugador existente de la plataforma</p>
+                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase mb-4">Elegí un jugador existente de la plataforma</p>
+                                    
+                                    <div className="space-y-3">
+                                        <div className="relative">
+                                            < MonitorPlay  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <input 
+                                                type="text"
+                                                placeholder="Buscar por nombre, ID o email..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="w-full bg-black/20 border border-border/50 rounded-2xl py-3 pl-11 pr-4 text-sm font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <select 
+                                                value={categoryFilter}
+                                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                            >
+                                                <option value="all">Todas las Categorías</option>
+                                                <option value="A+">A+</option>
+                                                <option value="A">A</option>
+                                                <option value="B">B</option>
+                                                <option value="C">C</option>
+                                                <option value="D">D</option>
+                                                <option value="libre">Libre</option>
+                                            </select>
+
+                                            <select 
+                                                value={genderFilter}
+                                                onChange={(e) => setGenderFilter(e.target.value)}
+                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                            >
+                                                <option value="all">Todos los Géneros</option>
+                                                <option value="masculino">Masculino</option>
+                                                <option value="femenino">Femenino</option>
+                                                <option value="mixto">Mixto</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="p-4 max-h-[60vh] overflow-y-auto no-scrollbar space-y-2">
+                                <div className="p-4 max-h-[50vh] overflow-y-auto no-scrollbar space-y-2">
                                     {isLoadingAvailable ? (
                                         <div className="py-12 text-center text-white/20 animate-pulse font-black uppercase italic text-xs tracking-widest">
                                             Buscando jugadores...
                                         </div>
-                                    ) : availablePlayers.length === 0 ? (
-                                        <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
-                                            No hay más jugadores disponibles
-                                        </div>
-                                    ) : (
-                                        availablePlayers.map(p => (
+                                    ) : (() => {
+                                        const filtered = availablePlayers.filter(p => {
+                                            const matchesSearch = !searchQuery || 
+                                                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                p.id.toLowerCase().includes(searchQuery.toLowerCase());
+                                            
+                                            const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+                                            const matchesGender = genderFilter === "all" || p.gender === genderFilter;
+                                            
+                                            return matchesSearch && matchesCategory && matchesGender;
+                                        });
+
+                                        if (filtered.length === 0) {
+                                            return (
+                                                <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
+                                                    No se encontraron jugadores que coincidan
+                                                </div>
+                                            );
+                                        }
+
+                                        return filtered.map(p => (
                                             <button
                                                 key={p.id}
                                                 onClick={() => handleQuickInscribe(p.id)}
@@ -638,13 +740,18 @@ export default function FixtureSetup({
                                                 <div className="text-left">
                                                     <div className="font-black uppercase italic tracking-tight group-hover:text-blue-400 transition-colors">{p.name}</div>
                                                     <div className="text-[10px] text-white/40 font-bold">{p.email}</div>
+                                                    {p.gender && (
+                                                        <div className="text-[8px] text-white/20 font-black uppercase tracking-widest mt-1">
+                                                            {p.gender === 'masculino' ? '♂ Masculino' : p.gender === 'femenino' ? '♀ Femenino' : '⚤ Mixto'}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="px-2 py-1 bg-card rounded text-[8px] font-black uppercase tracking-widest text-white/40 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all">
                                                     {p.category || "???"}
                                                 </div>
                                             </button>
-                                        ))
-                                    )}
+                                        ));
+                                    })()}
                                 </div>
 
                                 <div className="p-4 bg-card border-t border-border/50">

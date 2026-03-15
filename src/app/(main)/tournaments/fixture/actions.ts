@@ -208,13 +208,13 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                         const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
                         
                         const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
-                        const currentCatObj = await getCategoryByName(updatedUser.category || "5ta");
+                        const currentCatObj = await getCategoryByName(updatedUser.category || "D");
                         
                         // Rule: Only promote (order increases), never demote.
                         if (newCatObj && currentCatObj && newCatObj.categoryOrder > currentCatObj.categoryOrder) {
                             // Points threshold met. Now check title requirement.
                             const currentYear = new Date().getFullYear();
-                            const titleWins = await countUserWins(uid, updatedUser.category || "5ta", currentYear);
+                            const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
                             
                             if (titleWins >= 2) {
                                 // ASCENDIDO: Both points and titles met.
@@ -291,7 +291,8 @@ export async function getAvailablePlayers(tournamentId: string) {
             id: u.id,
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
             email: u.email,
-            category: u.category
+            category: u.category,
+            gender: u.gender
         }));
     } catch (err) {
         console.error("[getAvailablePlayers]", err);
@@ -309,7 +310,7 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             id: newId,
             tournamentId,
             userId,
-            category: category || user.category || "5ta",
+            category: category || user.category || "D",
             status: "confirmed"
         });
 
@@ -320,7 +321,7 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             player: {
                 id: newId,
                 name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`,
-                category: category || user.category || "5ta"
+                category: category || user.category || "D"
             }
         };
     } catch (err) {

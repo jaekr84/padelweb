@@ -110,17 +110,17 @@ export default function PlayerProfileClient({
             matches,
             wins,
             points: dbUser?.points || 0,
-            category: dbUser?.category || "5ta",
+            category: dbUser?.category || "D",
             side: dbUser?.side || "drive"
         };
     }, [matchHistory, myName, dbUser]);
 
     const realCategory = useMemo(() => {
-        if (!availableCategories) return dbUser?.category || "5ta";
+        if (!availableCategories) return dbUser?.category || "D";
         const points = dbUser?.points || 0;
         // Search categories by points
         const cat = availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
-        return cat ? cat.name : (dbUser?.category || "5ta");
+        return cat ? cat.name : (dbUser?.category || "D");
     }, [availableCategories, dbUser?.points, dbUser?.category]);
 
     const activeTournaments = registrations.filter(r =>

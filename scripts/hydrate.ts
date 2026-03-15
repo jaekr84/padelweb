@@ -29,7 +29,7 @@ async function seed() {
             lastName: "",
             role: "club",
             points: 0,
-            category: "5ta",
+            category: "D",
             gender: "masculino",
         });
 
@@ -60,7 +60,7 @@ async function seed() {
                 lastName: faker.person.lastName(),
                 role: "jugador",
                 points: faker.number.int({ min: 0, max: 1500 }),
-                category: faker.helpers.arrayElement(["7ma", "6ta", "5ta", "4ta", "3ra", "2da", "1ra"]),
+                category: faker.helpers.arrayElement(["D", "C", "B", "A", "A+"]),
                 gender: faker.helpers.arrayElement(["masculino", "femenino"]),
             };
             allUsers.push(player);
@@ -71,7 +71,7 @@ async function seed() {
     // 3. Generar Torneos
     for (const club of clubsIds) {
         const tId = crypto.randomUUID();
-        const category = faker.helpers.arrayElement(["5ta", "4ta", "6ta"]);
+        const category = faker.helpers.arrayElement(["D", "C", "B"]);
 
         allTournaments.push({
             id: tId,

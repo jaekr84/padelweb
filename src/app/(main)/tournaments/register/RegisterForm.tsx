@@ -12,7 +12,6 @@ type Tournament = {
     id: string;
     name: string;
     description: string | null;
-    surface: string | null;
     startDate: string | null;
     endDate: string | null;
     categories: any; // Can be string[] | string | null depending on DB driver/ MariaDB version
@@ -24,13 +23,6 @@ type CurrentUser = { id: string; name: string; email: string };
 
 type Step = "info" | "team" | "confirm" | "success";
 
-function getSurfaceLabel(surface: string | null) {
-    const map: Record<string, string> = {
-        cesped: "Césped Verde", cesped_azul: "Césped Azul",
-        cemento: "Hormigón", indoor: "Indoor",
-    };
-    return surface ? (map[surface] || surface) : "—";
-}
 
 function Initials({ name }: { name: string }) {
     const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
@@ -235,17 +227,6 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                                     {tournament.startDate}
                                                     {tournament.endDate && tournament.endDate !== tournament.startDate && ` → ${tournament.endDate}`}
                                                 </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {tournament.surface && (
-                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center shrink-0">
-                                                <MapPin className="w-4 h-4 text-emerald-400" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Superficie</p>
-                                                <p className="text-xs font-bold text-slate-200 capitalize leading-tight">{getSurfaceLabel(tournament.surface)}</p>
                                             </div>
                                         </div>
                                     )}

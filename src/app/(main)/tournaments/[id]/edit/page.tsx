@@ -56,7 +56,6 @@ export default async function EditTournamentPage({ params }: Props) {
         id: tournament.id,
         name: tournament.name,
         description: tournament.description,
-        surface: tournament.surface,
         startDate: tournament.startDate,
         endDate: tournament.endDate,
         openDateClub: tournament.openDateClub,

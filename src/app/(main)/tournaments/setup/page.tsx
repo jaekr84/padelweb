@@ -7,25 +7,25 @@ import styles from "./setup.module.css";
 
 // ─── Datos simulados ───────────────────────────────────────────────────────────
 const REGISTERED: Record<string, { id: string; name: string; level: string }[]> = {
-    "5ta": [
-        { id: "p1", name: "Perez / García", level: "5ta Cat." },
-        { id: "p2", name: "Torres / Silva", level: "5ta Cat." },
-        { id: "p3", name: "Gomez / Lopez", level: "5ta Cat." },
-        { id: "p4", name: "Ruiz / Soto", level: "5ta Cat." },
-        { id: "p5", name: "Díaz / Fernández", level: "5ta Cat." },
-        { id: "p6", name: "Mora / Ríos", level: "5ta Cat." },
+    "D": [
+        { id: "p1", name: "Perez / García", level: "D Cat." },
+        { id: "p2", name: "Torres / Silva", level: "D Cat." },
+        { id: "p3", name: "Gomez / Lopez", level: "D Cat." },
+        { id: "p4", name: "Ruiz / Soto", level: "D Cat." },
+        { id: "p5", name: "Díaz / Fernández", level: "D Cat." },
+        { id: "p6", name: "Mora / Ríos", level: "D Cat." },
     ],
-    "1ra": [
-        { id: "q1", name: "Tapia / Coello", level: "1ra Cat." },
-        { id: "q2", name: "Galán / Chingotto", level: "1ra Cat." },
-        { id: "q3", name: "Lebron / Paquito", level: "1ra Cat." },
-        { id: "q4", name: "Stupaczuk / Di Nenno", level: "1ra Cat." },
+    "A+": [
+        { id: "q1", name: "Tapia / Coello", level: "A+ Cat." },
+        { id: "q2", name: "Galán / Chingotto", level: "A+ Cat." },
+        { id: "q3", name: "Lebron / Paquito", level: "A+ Cat." },
+        { id: "q4", name: "Stupaczuk / Di Nenno", level: "A+ Cat." },
     ],
-    "7ma": [
-        { id: "r1", name: "Olaeta / Vergara", level: "7ma Cat." },
-        { id: "r2", name: "Suarez / Ibáñez", level: "7ma Cat." },
-        { id: "r3", name: "Perales / Méndez", level: "7ma Cat." },
-        { id: "r4", name: "Castro / Vega", level: "7ma Cat." },
+    "B": [
+        { id: "r1", name: "Olaeta / Vergara", level: "B Cat." },
+        { id: "r2", name: "Suarez / Ibáñez", level: "B Cat." },
+        { id: "r3", name: "Perales / Méndez", level: "B Cat." },
+        { id: "r4", name: "Castro / Vega", level: "B Cat." },
     ],
 };
 

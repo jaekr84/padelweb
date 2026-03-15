@@ -58,7 +58,7 @@ export default async function TournamentFixturePage({ params }: Props) {
     // Also fetch the names of the registrants to build the "Team Name"
     const registrantIds = dbRegistrations.map(r => r.userId);
     const dbUsers = await db
-        .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName })
+        .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, gender: users.gender })
         .from(users)
         .where(inArray(users.id, registrantIds));
 
@@ -69,9 +69,11 @@ export default async function TournamentFixturePage({ params }: Props) {
             : "Jugador";
         const namePart2 = reg.partnerName || "Invitado";
         return {
-            id: reg.id, // Using registration ID as player ID for the fixture
+            id: reg.id,
             name: `${namePart1} / ${namePart2}`,
             category: reg.category || undefined,
+            email: user?.email || undefined,
+            gender: user?.gender || undefined,
         };
     });
 

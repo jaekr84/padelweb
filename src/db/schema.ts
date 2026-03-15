@@ -15,7 +15,7 @@ export const users = mysqlTable("users", {
     bio: text("bio"),
     location: varchar("location", { length: 256 }),
     side: varchar("side", { length: 50 }), // drive | reves | ambos
-    category: varchar("category", { length: 50 }).default("5ta"),
+    category: varchar("category", { length: 50 }).default("D"),
     points: int("points").default(0),
     clubId: varchar("club_id", { length: 256 }), // references added below in relations or manually
     isActive: boolean("is_active").default(true),
