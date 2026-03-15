@@ -15,7 +15,7 @@ type Tournament = {
     surface: string | null;
     startDate: string | null;
     endDate: string | null;
-    categories: string[] | null;
+    categories: any; // Can be string[] | string | null depending on DB driver/ MariaDB version
     imageUrl: string | null;
     modalidad: { mode: string; participacion: string; genero: string; tipoTorneo: string } | null;
 };
@@ -39,7 +39,24 @@ function Initials({ name }: { name: string }) {
 
 export default function RegisterForm({ tournament, currentUser }: { tournament: Tournament; currentUser: CurrentUser }) {
     const isIndividual = tournament.modalidad?.participacion === "individual";
-    const cats = tournament.categories ?? [];
+    
+    // Safety check for categories which might come as a string from MariaDB JSON columns
+    let cats: string[] = [];
+    try {
+        if (Array.isArray(tournament.categories)) {
+            cats = tournament.categories;
+        } else if (typeof tournament.categories === 'string' && tournament.categories.trim().startsWith('[')) {
+            cats = JSON.parse(tournament.categories);
+        } else if (typeof tournament.categories === 'string' && tournament.categories.trim() !== '') {
+            // It's a single string or old format
+            cats = [tournament.categories.trim()];
+        } else if (tournament.categories) {
+            console.warn("Categories format unknown:", tournament.categories);
+        }
+    } catch (e) {
+        console.error("Error parsing categories:", e);
+    }
+
     const hasCategories = cats.length > 0 && cats[0] !== "libre";
 
     const steps: { id: Step; label: string }[] = isIndividual

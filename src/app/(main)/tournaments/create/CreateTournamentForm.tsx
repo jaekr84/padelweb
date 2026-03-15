@@ -208,7 +208,7 @@ export default function CreateTournamentForm({
                 await updateTournament(initialData.id, tournamentData);
                 toast.success("Torneo actualizado correctamente");
             } else {
-                await createTournament(tournamentData);
+                await createTournament(tournamentData as any);
                 toast.success("Torneo creado con éxito");
             }
 
