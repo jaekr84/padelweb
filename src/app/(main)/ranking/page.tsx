@@ -1,8 +1,8 @@
 
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
-import { users, registrations, categoriesTable } from "@/db/schema";
-import { eq, inArray, asc } from "drizzle-orm";
+import { users, registrations, categoriesTable, bracketMatches, tournaments } from "@/db/schema";
+import { eq, inArray, asc, and, sql } from "drizzle-orm";
 
 export default async function RankingPage() {
     // 1. Fetch all users that are players (exclude clubs/centers)
@@ -19,32 +19,62 @@ export default async function RankingPage() {
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
 
-    // 3. Map registrations to tournament counts
+    // 4. Map registrations to tournament counts
     const tournamentCounts: Record<string, number> = {};
     for (const reg of allRegistrations) {
         if (!tournamentCounts[reg.userId]) {
             tournamentCounts[reg.userId] = 0;
         }
         tournamentCounts[reg.userId]++;
-
-        // Count for registered guest partner if any (or platform partner if registered together)
         if (reg.partnerUserId) {
             if (!tournamentCounts[reg.partnerUserId]) {
                 tournamentCounts[reg.partnerUserId] = 0;
             }
-            // we should be careful about double counting if both registered, but normally one makes the team reg
             tournamentCounts[reg.partnerUserId]++;
         }
     }
+    const currentYear = new Date().getFullYear();
+    const allWins = await db
+        .select({
+            userId: registrations.userId,
+            partnerUserId: registrations.partnerUserId,
+            category: registrations.category,
+        })
+        .from(bracketMatches)
+        .innerJoin(registrations, eq(bracketMatches.winnerId, registrations.id))
+        .innerJoin(tournaments, eq(bracketMatches.tournamentId, tournaments.id))
+        .where(
+            and(
+                eq(bracketMatches.round, 0),
+                eq(bracketMatches.confirmed, true),
+                sql`YEAR(${tournaments.createdAt}) = ${currentYear}`
+            )
+        );
 
-    // 4. Transform users mapping
+    const winCounts: Record<string, Record<string, number>> = {};
+    for (const win of allWins) {
+        const cats = [win.category].filter(Boolean) as string[];
+        for (const cat of cats) {
+            if (win.userId) {
+                if (!winCounts[win.userId]) winCounts[win.userId] = {};
+                winCounts[win.userId][cat] = (winCounts[win.userId][cat] || 0) + 1;
+            }
+            if (win.partnerUserId) {
+                if (!winCounts[win.partnerUserId]) winCounts[win.partnerUserId] = {};
+                winCounts[win.partnerUserId][cat] = (winCounts[win.partnerUserId][cat] || 0) + 1;
+            }
+        }
+    }
+
+    // 5. Transform users mapping
     const rankingUsers = allUsers.map(u => ({
         id: u.id,
         name: u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.firstName || u.lastName || "Jugador"),
         email: u.email,
         category: u.category,
         gender: u.gender,
-        points: u.points || 0
+        points: u.points || 0,
+        winsInCurrentCategory: winCounts[u.id]?.[u.category || "5ta"] || 0
     }));
 
     return (

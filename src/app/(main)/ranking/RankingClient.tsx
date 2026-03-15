@@ -133,7 +133,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                         {/* Categoria In-Avatar */}
                                         <div className="w-12 h-12 shrink-0 bg-muted border border-border rounded-2xl flex flex-col items-center justify-center shadow-inner text-muted-foreground">
                                             {(() => {
-                                                const catObj = getCategoryByPoints(points, player.gender);
+                                                const catObj = availableCategories?.find(c => player.category === c.name);
                                                 const label = catObj ? catObj.name.toUpperCase() : (player.category || "-");
                                                 return (
                                                     <>
@@ -173,6 +173,44 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 Pts
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Promotion Merit Section */}
+                                    <div className="px-4 pb-4 pt-1 border-t border-border/10 bg-muted/20 flex flex-wrap gap-x-6 gap-y-2">
+                                        {(() => {
+                                            const currentCat = availableCategories?.find(c => player.category === c.name);
+                                            const pointsThreshold = currentCat?.maxPoints || 0;
+                                            const pointsMet = points > pointsThreshold;
+                                            const winsMet = (player as any).winsInCurrentCategory >= 2;
+                                            
+                                            let status = "Pendiente de Puntos";
+                                            if (pointsMet && !winsMet) status = "Pendiente de Títulos";
+                                            if (pointsMet && winsMet) status = "Aprobado para Ascenso";
+                                            if (!pointsMet) status = "En Competencia";
+
+                                            return (
+                                                <>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Puntos Acumulados</span>
+                                                        <span className={`text-[10px] font-bold ${pointsMet ? 'text-emerald-500' : 'text-foreground'}`}>
+                                                            {points} / {pointsThreshold}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Torneos Ganados ({new Date().getFullYear()})</span>
+                                                        <span className={`text-[10px] font-bold ${winsMet ? 'text-emerald-500' : 'text-foreground'}`}>
+                                                            {(player as any).winsInCurrentCategory} / 2
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Estatus de Ascenso</span>
+                                                        <span className={`text-[10px] font-black uppercase italic ${pointsMet && winsMet ? 'text-indigo-500' : 'text-muted-foreground'}`}>
+                                                            {status}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             );

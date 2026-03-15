@@ -204,11 +204,23 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
 
                     if (updatedUser) {
-                        // Recalculate category based on thresholds
-                        const { getCategoryFromPoints } = await import("@/lib/categories");
-                        const newCat = await getCategoryFromPoints(updatedUser.points ?? 0);
-                        if (newCat && newCat !== updatedUser.category) {
-                            await db.update(users).set({ category: newCat }).where(eq(users.id, uid));
+                        // merit-based promotion logic
+                        const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
+                        
+                        const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
+                        const currentCatObj = await getCategoryByName(updatedUser.category || "5ta");
+                        
+                        // Rule: Only promote (order increases), never demote.
+                        if (newCatObj && currentCatObj && newCatObj.categoryOrder > currentCatObj.categoryOrder) {
+                            // Points threshold met. Now check title requirement.
+                            const currentYear = new Date().getFullYear();
+                            const titleWins = await countUserWins(uid, updatedUser.category || "5ta", currentYear);
+                            
+                            if (titleWins >= 2) {
+                                // ASCENDIDO: Both points and titles met.
+                                await db.update(users).set({ category: newCatObj.name }).where(eq(users.id, uid));
+                            } 
+                            // Else: "Líder de Categoría" but not promoted yet (status quo maintained in DB)
                         }
                     }
                 }
