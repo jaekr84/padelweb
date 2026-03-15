@@ -3,43 +3,21 @@ import { categoriesTable } from "@/db/schema";
 import { eq, and, lte, gte, asc } from "drizzle-orm";
 
 /**
- * Finds the appropriate category name for a given point value and gender.
- * If no specific gender match is found, it looks for 'mixto'.
+ * Finds the appropriate category name for a given point value.
  */
-export async function getCategoryFromPoints(points: number, gender: string = 'mixto'): Promise<string | null> {
-    // Try to find matching category for specific gender
-    let [matched] = await db
+export async function getCategoryFromPoints(points: number): Promise<string | null> {
+    const [matched] = await db
         .select()
         .from(categoriesTable)
         .where(
             and(
                 eq(categoriesTable.isActive, true),
-                eq(categoriesTable.gender, gender),
                 lte(categoriesTable.minPoints, points),
                 gte(categoriesTable.maxPoints, points)
             )
         )
         .limit(1);
 
-    // If not found, try 'mixto'
-    if (!matched && gender !== 'mixto') {
-        [matched] = await db
-            .select()
-            .from(categoriesTable)
-            .where(
-                and(
-                    eq(categoriesTable.isActive, true),
-                    eq(categoriesTable.gender, 'mixto'),
-                    lte(categoriesTable.minPoints, points),
-                    gte(categoriesTable.maxPoints, points)
-                )
-            )
-            .limit(1);
-    }
-
-    // Still not found? Get the one with highest maxPoints if points exceed everything, 
-    // or lowest minPoints if below everything. 
-    // For now, let's just return the matched name if it exists.
     return matched?.name ?? null;
 }
 

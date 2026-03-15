@@ -5,7 +5,7 @@ async function checkCategories() {
     const cats = await db.select().from(categoriesTable);
     console.log("Categories found:", cats.length);
     cats.forEach(c => {
-        console.log(`Name: ${c.name}, Gender: '${c.gender}'`);
+        console.log(`Name: ${c.name}, Points: ${c.minPoints} - ${c.maxPoints}`);
     });
     process.exit(0);
 }
