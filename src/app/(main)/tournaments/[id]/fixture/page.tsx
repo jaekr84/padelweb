@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { tournaments, registrations, users } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-server";
 import FixtureSetup from "../../fixture/FixtureSetup";
 
 
@@ -19,12 +20,29 @@ export default async function TournamentFixturePage({ params }: Props) {
             id: tournaments.id,
             name: tournaments.name,
             status: tournaments.status,
+            createdByUserId: tournaments.createdByUserId,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
         .limit(1);
 
     if (!tournament) notFound();
+    
+    // Authorization check
+    const session = await getSession();
+    const isSuperAdmin = session?.role === 'superadmin';
+    const isOwner = tournament.createdByUserId === session?.userId;
+
+    if (!isOwner && !isSuperAdmin) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+                <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
+                    <h1 className="text-2xl font-black uppercase text-red-500 mb-4">No autorizado</h1>
+                    <p className="text-white/60">No tenés permisos para configurar este torneo.</p>
+                </div>
+            </div>
+        );
+    }
 
     // Fetch registered players
     const dbRegistrations = await db

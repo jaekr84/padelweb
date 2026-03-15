@@ -63,6 +63,8 @@ export default async function TournamentsPage({
                     openDateClub: tournaments.openDateClub,
                     openDateGeneral: tournaments.openDateGeneral,
                     createdByUserId: tournaments.createdByUserId,
+                    categories: tournaments.categories,
+                    modalidad: tournaments.modalidad,
                     createdAt: tournaments.createdAt,
                 },
                 club: clubs,
@@ -126,9 +128,14 @@ export default async function TournamentsPage({
         filteredTournaments = finished;
     } else if (currentFilter === "mios" && userId) {
         try {
-            const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
-            const regIds = new Set(userRegs.map(r => r.tournamentId));
-            filteredTournaments = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
+            const isSuperAdmin = dbUser?.role === 'superadmin';
+            if (isSuperAdmin) {
+                filteredTournaments = allTournaments;
+            } else {
+                const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
+                const regIds = new Set(userRegs.map(r => r.tournamentId));
+                filteredTournaments = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
+            }
         } catch (e) {
             console.error("Mios filter error:", e);
         }
@@ -319,12 +326,40 @@ function TournamentCard({ tournament, userClubId }: { tournament: any, userClubI
                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                 <span className="truncate">{tournament.location || "Por definir"}</span>
                             </div>
-                            {tournament.category && (
-                                <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
-                                    <Activity className="w-3 h-3 text-purple-500 shrink-0" />
-                                    {tournament.category}
-                                </div>
-                            )}
+                            {/* Category and Gender Info */}
+                            {(() => {
+                                let cats = tournament.categories;
+                                if (typeof cats === 'string') {
+                                    try { cats = JSON.parse(cats); } catch (e) { cats = null; }
+                                }
+                                
+                                if (Array.isArray(cats) && cats.length > 0) {
+                                    return (
+                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                            <Activity className="w-3 h-3 text-purple-500 shrink-0" />
+                                            {cats[0] === "libre" ? "Libre" : cats.join(", ")}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
+                            {(() => {
+                                let mod = tournament.modalidad;
+                                if (typeof mod === 'string') {
+                                    try { mod = JSON.parse(mod); } catch (e) { mod = null; }
+                                }
+                                
+                                if (mod?.genero) {
+                                    return (
+                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                            <Zap className="w-3 h-3 text-amber-500 shrink-0" />
+                                            <span className="capitalize">{mod.genero === 'hombre' ? 'Masculino' : mod.genero === 'mujer' ? 'Femenino' : 'Mixto'}</span>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </div>
                     </div>
                 </div>

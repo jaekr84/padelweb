@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../fixture/TournamentManager";
 
 
@@ -21,6 +22,12 @@ export default async function TournamentDisplayPage({ params }: Props) {
         .limit(1);
 
     if (!tournament) notFound();
+    
+    // Check authorization for management
+    const session = await getSession();
+    const isSuperAdmin = session?.role === 'superadmin';
+    const isOwner = tournament.createdByUserId === session?.userId;
+    const canManage = isSuperAdmin || isOwner;
 
     if (tournament.status === "published" || tournament.status === "draft") {
         redirect(`/tournaments/${id}/fixture`);
@@ -72,7 +79,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
             initialMatches={mappedMatches}
             initialBracket={mappedBracket}
             initialStatus={tournament.status}
-            readOnly={true}
+            readOnly={!canManage}
         />
     );
 }

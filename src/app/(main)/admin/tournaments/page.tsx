@@ -3,8 +3,9 @@ import { tournaments, users, clubs } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import Link from "next/link";
-import { Trophy, Edit, LayoutDashboard, Plus, Calendar, MapPin } from "lucide-react";
+import { Trophy, Edit, LayoutDashboard, Plus, Calendar, MapPin, Trash2 } from "lucide-react";
 import { redirect } from "next/navigation";
+import DeleteTournamentButton from "./DeleteTournamentButton";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function AdminTournamentsPage() {
         redirect("/home");
     }
 
-    // Fetch tournaments created by this user
+    // Fetch all tournaments for superadmin
     const adminTournaments = await db
         .select({
             tournament: tournaments,
@@ -23,7 +24,6 @@ export default async function AdminTournamentsPage() {
         })
         .from(tournaments)
         .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
-        .where(eq(tournaments.createdByUserId, session.userId as string))
         .orderBy(desc(tournaments.createdAt));
 
     return (
@@ -93,6 +93,10 @@ export default async function AdminTournamentsPage() {
                                             Gestionar Fixture
                                         </button>
                                     </Link>
+                                    <DeleteTournamentButton 
+                                        tournamentId={tournament.id} 
+                                        tournamentName={tournament.name} 
+                                    />
                                 </div>
                             </div>
                         ))

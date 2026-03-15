@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../../fixture/TournamentManager";
 
 
@@ -21,6 +22,22 @@ export default async function TournamentManagePage({ params }: Props) {
         .limit(1);
 
     if (!tournament) notFound();
+    
+    // Authorization check
+    const session = await getSession();
+    const isSuperAdmin = session?.role === 'superadmin';
+    const isOwner = tournament.createdByUserId === session?.userId;
+
+    if (!isOwner && !isSuperAdmin) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+                <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
+                    <h1 className="text-2xl font-black uppercase text-red-500 mb-4">No autorizado</h1>
+                    <p className="text-white/60">No tenés permisos para gestionar este torneo.</p>
+                </div>
+            </div>
+        );
+    }
 
     // If still in draft/published, redirect back to setup
     if (tournament.status === "published" || tournament.status === "draft") {

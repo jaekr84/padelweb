@@ -173,7 +173,13 @@ export default function TournamentManager({
         if (!group) return [];
         const groupMatches = matches.filter(m => m.groupId === groupId && m.confirmed);
 
-        const standings = group.players.map(p => ({
+        const playersArray = Array.isArray(group.players) 
+            ? group.players 
+            : typeof group.players === 'string' 
+                ? JSON.parse(group.players) 
+                : [];
+
+        const standings = playersArray.map((p: Player) => ({
             playerId: p.id,
             player: p,
             points: 0,
@@ -183,8 +189,8 @@ export default function TournamentManager({
 
         groupMatches.forEach(m => {
             if (m.score1 === undefined || m.score2 === undefined) return;
-            const p1 = standings.find(s => s.playerId === m.team1.id);
-            const p2 = standings.find(s => s.playerId === m.team2.id);
+            const p1 = standings.find((s: any) => s.playerId === m.team1.id);
+            const p2 = standings.find((s: any) => s.playerId === m.team2.id);
             if (p1 && p2) {
                 p1.matchesPlayed++;
                 p2.matchesPlayed++;
@@ -193,7 +199,7 @@ export default function TournamentManager({
             }
         });
 
-        return standings.sort((a, b) => b.points - a.points);
+        return standings.sort((a: any, b: any) => b.points - a.points);
     };
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
@@ -249,7 +255,7 @@ export default function TournamentManager({
         const allQualifiers: { player: Player; seed: number }[] = [];
         groups.forEach(g => {
             const standings = computeStandings(g.id);
-            standings.slice(0, qualPerGroup).forEach((s, idx) => {
+            standings.slice(0, qualPerGroup).forEach((s: any, idx: number) => {
                 allQualifiers.push({ player: s.player, seed: idx + 1 });
             });
         });
@@ -606,7 +612,7 @@ export default function TournamentManager({
 
                             {/* Groups Grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                                {groups.map((g) => {
+                                {groups.map((g: any) => {
                                     const standings = computeStandings(g.id);
                                     const groupMatches = matches.filter(m => m.groupId === g.id);
                                     return (
@@ -628,7 +634,7 @@ export default function TournamentManager({
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-800">
-                                                        {standings.map((s, idx) => (
+                                                        {standings.map((s: any, idx: number) => (
                                                             <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
                                                                 <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
                                                                 <td className="py-3 font-bold text-sm tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
