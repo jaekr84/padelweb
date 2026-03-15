@@ -2,7 +2,7 @@
 
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { registrations, users, tournaments } from "@/db/schema";
+import { registrations, users, tournaments, categoriesTable } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 type RegisterInput = {
@@ -18,11 +18,32 @@ export async function registerForTournament(input: RegisterInput) {
     if (!session?.userId) throw new Error("No autenticado");
     const userId = session.userId;
 
-    // Verify user role
-    const [dbUser] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+    // Verify user role and points
+    const [dbUser] = await db.select({ 
+        role: users.role,
+        points: users.points 
+    }).from(users).where(eq(users.id, userId)).limit(1);
+    
     if (!dbUser) throw new Error("Usuario no encontrado");
     if (dbUser.role !== "jugador") {
         throw new Error("Solo jugadores pueden inscribirse");
+    }
+
+    const userPoints = dbUser.points || 0;
+
+    // Point-category validation
+    if (input.category && input.category !== "libre" && input.category !== "Libre") {
+        const [targetCat] = await db
+            .select()
+            .from(categoriesTable)
+            .where(eq(categoriesTable.name, input.category))
+            .limit(1);
+
+        if (targetCat) {
+            if (userPoints > targetCat.maxPoints) {
+                throw new Error(`Tu puntaje (${userPoints}) es superior al límite de la categoría ${input.category}. Deberías inscribirte en una categoría superior.`);
+            }
+        }
     }
 
     // Verify tournament exists and is published
