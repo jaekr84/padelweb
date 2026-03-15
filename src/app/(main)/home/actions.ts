@@ -62,3 +62,38 @@ export async function deleteComment(commentId: string) {
     
     revalidatePath("/home");
 }
+
+export async function updatePost(postId: string, content: string) {
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autenticado");
+    const userId = session.userId;
+
+    await db.update(posts)
+        .set({ content })
+        .where(and(
+            eq(posts.id, postId),
+            eq(posts.userId, userId)
+        ));
+    
+    revalidatePath("/home");
+}
+
+export async function deletePost(postId: string) {
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autenticado");
+    const userId = session.userId;
+
+    // First delete comments (manual cascade)
+    await db.delete(postComments)
+        .where(eq(postComments.postId, postId));
+
+    // Then delete post
+    await db.delete(posts)
+        .where(and(
+            eq(posts.id, postId),
+            eq(posts.userId, userId)
+        ));
+    
+    revalidatePath("/home");
+}
+

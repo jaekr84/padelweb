@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createPost, addComment, updateComment, deleteComment } from "./actions";
+import { createPost, addComment, updateComment, deleteComment, updatePost, deletePost } from "./actions";
 import { Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2, Check, RotateCcw } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
@@ -232,6 +232,12 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditingPost, setIsEditingPost] = useState(false);
+    const [editPostContent, setEditPostContent] = useState(post.content || "");
+    const [isUpdatingPost, setIsUpdatingPost] = useState(false);
+    const [isDeletingPost, setIsDeletingPost] = useState(false);
+
+    const isPostOwner = currentUser?.id === post.user.id;
 
     const handleComment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -250,10 +256,41 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
         }
     };
 
+    const handleUpdatePost = async () => {
+        if (!editPostContent.trim() || editPostContent === post.content) {
+            setIsEditingPost(false);
+            return;
+        }
+        setIsUpdatingPost(true);
+        try {
+            await updatePost(post.id, editPostContent);
+            setIsEditingPost(false);
+            router.refresh();
+            toast.success("Publicación actualizada");
+        } catch (err) {
+            toast.error("Error al actualizar");
+        } finally {
+            setIsUpdatingPost(false);
+        }
+    };
+
+    const handleDeletePost = async () => {
+        if (!confirm("¿Seguro que quieres borrar esta publicación? Se eliminarán también todos los comentarios.")) return;
+        setIsDeletingPost(true);
+        try {
+            await deletePost(post.id);
+            router.refresh();
+            toast.success("Publicación eliminada");
+        } catch (err) {
+            toast.error("Error al eliminar");
+            setIsDeletingPost(false);
+        }
+    };
+
     const userInitials = post.user.name?.charAt(0) || "U";
 
     return (
-        <div className="bg-card border border-border rounded-3xl p-4 sm:p-5 shadow-sm hover:border-indigo-500/20 transition-all">
+        <div className="group bg-card border border-border rounded-3xl p-4 sm:p-5 shadow-sm hover:border-indigo-500/20 transition-all">
             {/* Author */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -274,14 +311,65 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                         <span className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</span>
                     </div>
                 </div>
+
+                {isPostOwner && !isEditingPost && (
+                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                            onClick={() => {
+                                setIsEditingPost(true);
+                                setEditPostContent(post.content || "");
+                            }} 
+                            className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-full transition-colors"
+                            title="Editar publicación"
+                        >
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={handleDeletePost}
+                            disabled={isDeletingPost}
+                            className="p-2 hover:bg-red-500/10 text-red-500 rounded-full transition-colors disabled:opacity-50"
+                            title="Borrar publicación"
+                        >
+                            {isDeletingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Content */}
             <div>
-                {post.content && (
-                    <p className="text-foreground text-sm leading-relaxed mb-3 whitespace-pre-wrap">
-                        {post.content}
-                    </p>
+                {isEditingPost ? (
+                    <div className="flex flex-col gap-3 mb-4 bg-muted/20 p-4 rounded-2xl border border-blue-500/20">
+                        <textarea
+                            value={editPostContent}
+                            onChange={(e) => setEditPostContent(e.target.value)}
+                            className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder-muted-foreground resize-none min-h-[100px]"
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => { setIsEditingPost(false); setEditPostContent(post.content || ""); }}
+                                className="px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors flex items-center gap-2"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleUpdatePost}
+                                disabled={isUpdatingPost || !editPostContent.trim()}
+                                className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-colors flex items-center gap-2"
+                            >
+                                {isUpdatingPost ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    post.content && (
+                        <p className="text-foreground text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                            {post.content}
+                        </p>
+                    )
                 )}
 
                 {post.imageUrl && (
