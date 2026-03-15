@@ -13,6 +13,7 @@ export async function updatePlayerProfile(formData: {
     location: string;
     bio: string;
     side: string;
+    imageUrl?: string | null;
 }) {
     const session = await getSession() as { userId: string, role: string, email: string } | null;
     if (!session?.userId) throw new Error("No autorizado");
@@ -27,6 +28,7 @@ export async function updatePlayerProfile(formData: {
             location: formData.location,
             bio: formData.bio,
             side: formData.side,
+            imageUrl: formData.imageUrl,
         })
         .where(eq(users.id, userId));
 

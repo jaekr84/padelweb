@@ -19,11 +19,41 @@ export default async function ClubProfilePage({
 
     if (targetClubId) {
         // Viewing a specific club by ID
-        const foundClubs = await db.select().from(clubs).where(eq(clubs.id, targetClubId));
+        const foundClubs = await db
+            .select({
+                id: clubs.id,
+                ownerId: clubs.ownerId,
+                name: clubs.name,
+                type: clubs.type,
+                bio: clubs.bio,
+                location: clubs.location,
+                logoUrl: clubs.logoUrl,
+                phone: clubs.phone,
+                website: clubs.website,
+                whatsapp: clubs.whatsapp,
+                amenities: clubs.amenities,
+            })
+            .from(clubs)
+            .where(eq(clubs.id, targetClubId));
         club = foundClubs[0] ?? null;
     } else if (session?.userId) {
         // Viewing own club profile
-        const userClubs = await db.select().from(clubs).where(eq(clubs.ownerId, session.userId));
+        const userClubs = await db
+            .select({
+                id: clubs.id,
+                ownerId: clubs.ownerId,
+                name: clubs.name,
+                type: clubs.type,
+                bio: clubs.bio,
+                location: clubs.location,
+                logoUrl: clubs.logoUrl,
+                phone: clubs.phone,
+                website: clubs.website,
+                whatsapp: clubs.whatsapp,
+                amenities: clubs.amenities,
+            })
+            .from(clubs)
+            .where(eq(clubs.ownerId, session.userId));
         club = userClubs[0] ?? null;
 
         // Auto-create if club role but no club found
@@ -65,6 +95,11 @@ export default async function ClubProfilePage({
         );
     }
 
+    const ownerRes = club.ownerId
+        ? await db.select().from(users).where(eq(users.id, club.ownerId)).limit(1)
+        : [];
+    const owner = ownerRes[0] || null;
+
     const userTournaments = club.ownerId
         ? await db.select().from(tournaments).where(eq(tournaments.createdByUserId, club.ownerId))
         : [];
@@ -79,7 +114,12 @@ export default async function ClubProfilePage({
 
     return (
         <ClubProfileClient
-            user={session ? { id: session.userId, email: session.email, publicMetadata: { role: session.role } } : null}
+            user={session ? { 
+                id: session.userId, 
+                email: session.email, 
+                publicMetadata: { role: session.role },
+                imageUrl: owner?.imageUrl // Fallback to owner's photo
+            } : null}
             club={JSON.parse(JSON.stringify(club))}
             members={JSON.parse(JSON.stringify(clubMembers))}
             userTournaments={JSON.parse(JSON.stringify(userTournaments))}

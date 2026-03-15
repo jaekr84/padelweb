@@ -45,8 +45,9 @@ export async function createMarketplaceItem(data: {
     whatsappUrl: string;
     observations?: string;
 }) {
-    const session = await getSession() as { userId: string } | null;
+    const session = await getSession() as { userId: string, role: string } | null;
     if (!session?.userId) throw new Error("No estás autenticado");
+    if (session.role !== 'superadmin') throw new Error("Solo los administradores pueden publicar en el marketplace");
 
     const newItem = {
         id: crypto.randomUUID(),

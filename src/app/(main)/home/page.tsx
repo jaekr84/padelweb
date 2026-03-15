@@ -16,12 +16,19 @@ export default async function HomePage() {
 
         const rows = await db
             .select({
-                post: posts,
+                post: {
+                    id: posts.id,
+                    content: posts.content,
+                    imageUrl: posts.imageUrl,
+                    createdAt: posts.createdAt,
+                    userId: posts.userId,
+                },
                 user: {
                     id: users.id,
                     firstName: users.firstName,
                     lastName: users.lastName,
                     role: users.role,
+                    imageUrl: users.imageUrl,
                 }
             })
             .from(posts)
@@ -30,14 +37,24 @@ export default async function HomePage() {
             .limit(50);
 
         if (userId) {
-            const dbUser = await db.query.users.findFirst({
-                where: eq(users.id, userId),
-            });
+            const userResults = await db
+                .select({
+                    id: users.id,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                    email: users.email,
+                    imageUrl: users.imageUrl,
+                })
+                .from(users)
+                .where(eq(users.id, userId))
+                .limit(1);
+            
+            const dbUser = userResults[0];
             if (dbUser) {
                 currentUser = {
                     id: dbUser.id,
                     name: `${dbUser.firstName} ${dbUser.lastName}`.trim() || dbUser.email,
-                    imageUrl: null,
+                    imageUrl: dbUser.imageUrl,
                 };
             }
         }
@@ -47,12 +64,12 @@ export default async function HomePage() {
             content: r.post.content,
             imageUrl: r.post.imageUrl,
             createdAt: r.post.createdAt.toISOString(),
-            user: {
-                id: r.user?.id || "unknown",
-                name: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : "Usuario Eliminado",
-                role: r.user?.role || "jugador",
-                imageUrl: null,
-            }
+                user: {
+                    id: r.user?.id || "unknown",
+                    name: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : "Usuario Eliminado",
+                    role: r.user?.role || "jugador",
+                    imageUrl: r.user?.imageUrl || null,
+                }
         }));
 
     } catch (e) {

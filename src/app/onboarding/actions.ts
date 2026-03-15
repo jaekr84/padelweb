@@ -21,13 +21,13 @@ export async function linkRoleToUser(role: string, invitedByClubId?: string | nu
     if (token) {
         try {
             const { payload } = await jwtVerify(token, JWT_SECRET);
-            if (payload.issuer !== 'superadmin') {
+            if (payload.issuer !== 'superadmin' && payload.issuer !== 'club') {
                 throw new Error("Token de invitación inválido");
             }
             finalRole = payload.role as string;
         } catch (e: any) {
             console.error("JWT Verification failed:", e);
-            throw new Error("El link de invitación ha expirado o es inválido (vida útil: 2hs)");
+            throw new Error("El link de invitación ha expirado o es inválido (vida útil: 24hs)");
         }
     }
 

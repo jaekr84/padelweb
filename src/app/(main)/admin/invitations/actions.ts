@@ -20,7 +20,7 @@ export async function generateInvitationLink(role: string) {
     const token = await new SignJWT({ role, issuer: 'superadmin', createdBy: userId })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
-        .setExpirationTime("2h")
+        .setExpirationTime("24h")
         .sign(INVITATION_SECRET);
 
     // Dynamic base URL based on request headers
@@ -48,7 +48,7 @@ export async function createInvitation(formData: FormData) {
     if (type === 'link') {
         try {
             const link = await generateInvitationLink(role);
-            return { success: true, link, message: 'Link generado con éxito (vence en 2hs)' };
+            return { success: true, link, message: 'Link generado con éxito (vence en 24hs)' };
         } catch (e: any) {
             return { error: e.message || 'Error al generar link' };
         }

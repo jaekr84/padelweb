@@ -49,7 +49,7 @@ export default function InvitationsClient() {
                     </h1>
                 </div>
                 <p className="text-muted-foreground text-sm font-medium leading-relaxed">
-                    Genera links de invitación exclusivos para nuevos clubes o jugadores. Los links tienen una validez de 2 horas.
+                    Genera links de invitación exclusivos para nuevos clubes o jugadores. Los links tienen una validez de 24 horas.
                 </p>
             </header>
 
@@ -91,7 +91,7 @@ export default function InvitationsClient() {
                     <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-amber-600 dark:text-amber-500 flex items-start gap-4">
                         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                         <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
-                            El link será de uso único y tendrá una <span className="underline decoration-2 underline-offset-4">validez de 2 horas</span>. Luego deberá generarse uno nuevo.
+                            El link será de uso único y tendrá una <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>. Luego deberá generarse uno nuevo.
                         </p>
                     </div>
 
@@ -115,7 +115,7 @@ export default function InvitationsClient() {
                                         {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                                     </button>
                                     <a
-                                        href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te enviamos tu link de invitación para ACAP (válido por 2hs): ${generatedLink}`)}`}
+                                        href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te enviamos tu link de invitación para ACAP (válido por 24hs): ${generatedLink}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex-1 sm:w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl transition-all shadow-lg shadow-emerald-600/20 active:scale-90 flex items-center justify-center"

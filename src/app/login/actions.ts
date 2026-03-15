@@ -17,9 +17,20 @@ export async function loginAction(formData: FormData) {
 
     try {
         // 1. Find user
-        const user = await db.query.users.findFirst({
-            where: eq(users.email, email.toLowerCase())
-        });
+        const userResults = await db
+            .select({
+                id: users.id,
+                email: users.email,
+                passwordHash: users.passwordHash,
+                role: users.role,
+                isActive: users.isActive,
+                bannedUntil: users.bannedUntil,
+            })
+            .from(users)
+            .where(eq(users.email, email.toLowerCase()))
+            .limit(1);
+        
+        const user = userResults[0];
 
         if (!user || !user.passwordHash) {
             return { error: "Credenciales inválidas" };
@@ -64,9 +75,19 @@ export async function getSidebarUser() {
     const session = await getSession();
     if (!session || !session.userId) return null;
 
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, session.userId as string)
-    });
+    const userResults = await db
+        .select({
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            role: users.role,
+        })
+        .from(users)
+        .where(eq(users.id, session.userId as string))
+        .limit(1);
+
+    const user = userResults[0];
 
     if (!user) return null;
 

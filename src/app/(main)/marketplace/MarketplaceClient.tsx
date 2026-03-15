@@ -84,6 +84,8 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const [isCompressing, setIsCompressing] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    const isSuperAdmin = session?.user?.role === 'superadmin';
+
     const [formData, setFormData] = useState({
         title: "",
         price: "",
@@ -108,9 +110,10 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
         try {
             for (const file of files) {
                 const options = {
-                    maxSizeMB: 0.8,
-                    maxWidthOrHeight: 1200,
+                    maxSizeMB: 0.5, // Reduced from 0.8
+                    maxWidthOrHeight: 1000, // Reduced from 1200
                     useWebWorker: true,
+                    fileType: 'image/jpeg' // Normalize to jpeg for better compression
                 };
                 const compressedFile = await imageCompression(file, options);
                 newImages.push(compressedFile);
@@ -271,13 +274,15 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 Equipamiento de Padel Pro
                             </p>
                         </div>
-                        <button 
-                            onClick={() => setIsPublishing(true)}
-                            className="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Vender Algo
-                        </button>
+                        {isSuperAdmin && (
+                            <button 
+                                onClick={() => setIsPublishing(true)}
+                                className="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Vender Algo
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-4">

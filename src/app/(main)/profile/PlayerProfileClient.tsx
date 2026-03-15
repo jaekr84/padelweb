@@ -34,6 +34,8 @@ import Link from "next/link";
 
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
 import Image from "next/image";
+import imageCompression from "browser-image-compression";
+import { Image as ImageIcon } from "lucide-react";
 
 interface PlayerProfileClientProps {
     dbUser: any;
@@ -64,8 +66,12 @@ export default function PlayerProfileClient({
         phone: dbUser?.phone || "",
         location: dbUser?.location || "",
         side: dbUser?.side || "drive",
-        bio: dbUser?.bio || ""
+        bio: dbUser?.bio || "",
+        imageUrl: dbUser?.imageUrl || ""
     });
+
+    const [imagePreview, setImagePreview] = useState<string | null>(dbUser?.imageUrl || null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -153,8 +159,8 @@ export default function PlayerProfileClient({
                                 <div className="relative group">
                                     <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
                                     <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
-                                        {dbUser.image_url ? (
-                                            <Image src={dbUser.image_url} alt={dbUser.firstName || ""} fill className="object-cover" priority />
+                                        {dbUser.imageUrl ? (
+                                            <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover" priority />
                                         ) : (
                                             <User className="w-12 h-12 text-muted-foreground/40" />
                                         )}
@@ -404,6 +410,64 @@ export default function PlayerProfileClient({
                                     <div className="px-8 py-6 border-b border-border/50 bg-muted/20">
                                         <h2 className="text-sm font-black uppercase tracking-widest italic">Editar Información del Perfil</h2>
                                     </div>
+
+                                    <div className="p-8 border-b border-border/50">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground mb-4 block tracking-widest">Foto de Perfil</label>
+                                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                                            <div className="w-24 h-24 rounded-full bg-background border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shrink-0">
+                                                {imagePreview ? (
+                                                    <Image src={imagePreview} alt="Profile preview" fill className="object-cover" unoptimized />
+                                                ) : (
+                                                    <User className="w-10 h-10 text-muted-foreground/20" />
+                                                )}
+                                                {isUploading && (
+                                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-20">
+                                                        <Loader2 className="w-5 h-5 animate-spin text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-3 flex-1 w-full text-center sm:text-left">
+                                                <p className="text-[10px] text-muted-foreground font-medium max-w-xs">Sube una foto cuadrada para que otros jugadores te reconozcan en los torneos.</p>
+                                                <label className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-indigo-600/20 active:scale-95">
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    {isUploading ? "Subiendo..." : "Cambiar Foto"}
+                                                    <input 
+                                                        type="file" 
+                                                        className="hidden" 
+                                                        accept="image/*" 
+                                                        disabled={isUploading}
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            
+                                                            setIsUploading(true);
+                                                            try {
+                                                                const options = { maxSizeMB: 0.5, maxWidthOrHeight: 600, useWebWorker: true };
+                                                                const compressedBlob = await imageCompression(file, options);
+                                                                const compressedFile = new File([compressedBlob], "profile.jpg", { type: "image/jpeg" });
+                                                                
+                                                                const uploadFormData = new FormData();
+                                                                uploadFormData.append("file", compressedFile);
+                                                                
+                                                                const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
+                                                                if (!res.ok) throw new Error("Error al subir");
+                                                                
+                                                                const data = await res.json();
+                                                                setFormData(prev => ({ ...prev, imageUrl: data.url }));
+                                                                setImagePreview(data.url);
+                                                                toast.success("Foto cargada correctamente");
+                                                            } catch (err) {
+                                                                toast.error("Error al procesar la imagen");
+                                                            } finally {
+                                                                setIsUploading(false);
+                                                            }
+                                                        }} 
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="flex flex-col gap-2">

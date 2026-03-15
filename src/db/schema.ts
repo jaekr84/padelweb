@@ -20,6 +20,7 @@ export const users = mysqlTable("users", {
     clubId: varchar("club_id", { length: 256 }), // references added below in relations or manually
     isActive: boolean("is_active").default(true),
     bannedUntil: timestamp("banned_until"),
+    imageUrl: varchar("image_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     clubIdIdx: index("users_club_id_idx").on(table.clubId),

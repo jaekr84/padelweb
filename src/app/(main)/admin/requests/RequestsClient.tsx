@@ -81,7 +81,7 @@ export default function RequestsClient() {
     };
 
     const getStatusStyle = (status: string, createdAt: Date) => {
-        const isExpired = status === 'enviado' && (new Date().getTime() - new Date(createdAt).getTime() > 2 * 60 * 60 * 1000);
+        const isExpired = status === 'enviado' && (new Date().getTime() - new Date(createdAt).getTime() > 24 * 60 * 60 * 1000);
         const currentStatus = isExpired ? 'caducado' : status;
 
         switch (currentStatus) {
@@ -253,7 +253,7 @@ export default function RequestsClient() {
                                                                 <Copy className="w-4 h-4" />
                                                             </button>
                                                             <a
-                                                                href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${req.fullName}! Te enviamos tu link de registro para ACAP (válido por 2hs): ${generatedLinks[req.id]}`)}`}
+                                                                href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${req.fullName}! Te enviamos tu link de registro para ACAP (válido por 24hs): ${generatedLinks[req.id]}`)}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="flex-1 sm:flex-none h-12 w-12 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-90"

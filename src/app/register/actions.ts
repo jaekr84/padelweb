@@ -53,6 +53,7 @@ export async function registerAction(formData: FormData) {
     const birthDate = formData.get("birthDate") as string;
     const gender = formData.get("gender") as string;
     const invitationToken = formData.get("invitationToken") as string;
+    const inviteClubId = formData.get("inviteClubId") as string;
 
     if (!email || !password || !firstName || !lastName) {
         return { error: "Faltan campos obligatorios" };
@@ -107,5 +108,14 @@ export async function registerAction(formData: FormData) {
     }
 
     revalidatePath("/home");
-    redirect("/home");
+    
+    let redirectUrl = "/onboarding";
+    const params = new URLSearchParams();
+    if (invitationToken) params.set("invitation", invitationToken);
+    if (inviteClubId) params.set("invite", inviteClubId);
+    
+    const queryString = params.toString();
+    if (queryString) redirectUrl += `?${queryString}`;
+    
+    redirect(redirectUrl);
 }

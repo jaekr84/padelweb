@@ -15,7 +15,11 @@ export default async function TournamentFixturePage({ params }: Props) {
     const { id } = await params;
 
     const [tournament] = await db
-        .select()
+        .select({
+            id: tournaments.id,
+            name: tournaments.name,
+            status: tournaments.status,
+        })
         .from(tournaments)
         .where(eq(tournaments.id, id))
         .limit(1);

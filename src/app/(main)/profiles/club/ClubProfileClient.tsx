@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { InviteModal } from "./InviteModal";
-import { updateClubProfile } from "./actions";
+import { updateClubProfile, generateClubInviteLink } from "./actions";
 import { logoutAction } from "@/app/login/actions";
 import { deleteTournament } from "@/app/(main)/tournaments/fixture/actions";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import {
     Plus,
     Users,
     Layout,
+    Building2,
     X,
     ChevronRight,
     Zap,
@@ -33,6 +34,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import imageCompression from "browser-image-compression";
+import { Image as ImageIcon } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default function ClubProfileClient({
@@ -60,12 +63,25 @@ export default function ClubProfileClient({
         location: club?.location || "",
         phone: club?.phone || "",
         website: club?.website || "",
+        logoUrl: club?.logoUrl || "",
     });
+
+    const [logoPreview, setLogoPreview] = useState<string | null>(club?.logoUrl || null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
+
+    useEffect(() => {
+        if (activeTab === "invitar" && club?.id) {
+            generateClubInviteLink(club.id).then(setGeneratedInviteLink);
+        }
+    }, [activeTab, club?.id]);
 
     const clubName = club?.name || user?.fullName || "Mi Club";
     const clubBio =
         club?.bio ||
         "Completá la biografía de tu club para que más jugadores te encuentren.";
+    const isSuperadmin = user?.publicMetadata?.role === "superadmin";
     const isOwner = isOwnerProp ?? user?.id === club?.ownerId;
 
     const activeTournamentsCount =
@@ -91,7 +107,6 @@ export default function ClubProfileClient({
 
     const tabs = [
         { id: "info" as const, label: "Información", icon: Shield },
-        { id: "torneos" as const, label: "Torneos", icon: Trophy },
         { id: "miembros" as const, label: "Miembros", icon: Users },
         ...(isOwner ? [
             { id: "edit" as const, label: "Editar", icon: Edit2 },
@@ -138,9 +153,17 @@ export default function ClubProfileClient({
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
-                                {user?.image_url ? (
+                                {club?.logoUrl ? (
                                     <Image
-                                        src={user.image_url}
+                                        src={club.logoUrl}
+                                        alt="Club logo"
+                                        fill
+                                        className="object-cover"
+                                        priority
+                                    />
+                                ) : user?.imageUrl ? (
+                                    <Image
+                                        src={user.imageUrl}
                                         alt="Club avatar"
                                         fill
                                         className="object-cover"
@@ -168,9 +191,7 @@ export default function ClubProfileClient({
                                         <MapPin className="h-3.5 w-3.5" /> {club.location}
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2">
-                                    <Users className="h-3.5 w-3.5 text-indigo-500/50" /> {totalMembers} Miembros
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -229,108 +250,12 @@ export default function ClubProfileClient({
                                         <MessageCircle className="h-4 w-4 fill-current" /> Contactar por WhatsApp
                                     </button>
                                 )}
-                                <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Estadísticas</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                            <span className="text-2xl font-black italic tracking-tighter text-indigo-500">{activeTournamentsCount}</span>
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Activos</span>
-                                        </div>
-                                        <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                            <span className="text-2xl font-black italic tracking-tighter text-emerald-500">{totalTournaments}</span>
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Torneos</span>
-                                        </div>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     )}
 
-                    {activeTab === "torneos" && (
-                        <div className="flex flex-col gap-6">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-4">
-                                <h2 className="text-lg font-black uppercase tracking-widest italic">Torneos Organizados</h2>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setHideFinished(!hideFinished)}
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[10px] font-black uppercase tracking-widest ${hideFinished
-                                            ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-400"
-                                            : "bg-card border-border text-muted-foreground hover:text-foreground"
-                                            }`}
-                                    >
-                                        <Filter className="h-3 w-3" />
-                                        {hideFinished ? "Mostrando Activos" : "Ocultar Finalizados"}
-                                    </button>
-                                    {isOwner && (
-                                        <Link
-                                            href="/tournaments/create"
-                                            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-foreground shadow-lg shadow-indigo-900/30"
-                                        >
-                                            <Plus className="h-3.5 w-3.5" /> Crear
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
 
-                            {userTournaments && userTournaments.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {userTournaments
-                                        .filter((t: any) => !hideFinished || t.status !== "finalizado")
-                                        .map((t: any) => {
-                                            const status = statusConfig[t.status] ?? statusConfig.abierto;
-                                            return (
-                                                <div key={t.id} className="group bg-card border border-border rounded-[2rem] p-6 hover:border-indigo-500/50 transition-all flex flex-col gap-4 shadow-xl">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex flex-col gap-1">
-                                                            <h3 className="font-black uppercase italic tracking-tight text-lg group-hover:text-indigo-600 dark:text-indigo-400 transition-colors">{t.name}</h3>
-                                                            <div className="flex items-center gap-1.5 opacity-30">
-                                                                <Clock className="h-2.5 w-2.5" />
-                                                                <span className="text-[9px] font-mono">{t.id.slice(0, 8)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${status.bg} ${status.textColor} ${status.border}`}>
-                                                            {status.label}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex gap-2">
-                                                        <Link href={`/tournaments/${t.id}/manage`} className="flex-1 flex items-center justify-center gap-2 bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">
-                                                            Gestionar <ChevronRight className="h-3 w-3" />
-                                                        </Link>
-                                                        {isOwner && (
-                                                            <Link href={`/tournaments/${t.id}/edit`} className="w-12 flex items-center justify-center bg-card hover:bg-white/5 border border-border text-white/40 hover:text-white rounded-2xl transition-all">
-                                                                <Edit2 className="h-4 w-4" />
-                                                            </Link>
-                                                        )}
-                                                        {isOwner && (
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (confirm("¿Seguro que quieres eliminar este torneo?")) {
-                                                                        await deleteTournament(t.id);
-                                                                        router.refresh();
-                                                                    }
-                                                                }}
-                                                                className="w-12 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-foreground border border-red-500/20 rounded-2xl transition-all"
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            ) : (
-                                <div className="bg-card border border-border rounded-[2rem] p-16 text-center flex flex-col items-center gap-6 shadow-xl">
-                                    < Trophy className="h-12 w-12 text-muted-foreground/40" />
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-muted-foreground text-sm font-medium">Aún no has organizado torneos.</p>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/50">Organize your first event</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
                     {activeTab === "miembros" && (
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-4">
@@ -471,19 +396,19 @@ export default function ClubProfileClient({
                                     <div className="bg-card border border-border rounded-3xl p-6 relative overflow-hidden group">
                                         <div className="absolute inset-0 bg-emerald-500/5 blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <h3 className="text-[10px] font-black uppercase text-muted-foreground mb-4 flex items-center gap-2">
-                                            Link para WhatsApp
+                                            Link de Invitación (Vence en 24hs)
                                         </h3>
                                         <div className="flex items-center gap-3">
                                             <div className="flex-1 bg-black/40 border border-border/50 rounded-xl px-4 py-3 text-[10px] text-muted-foreground font-mono truncate select-all">
-                                                {typeof window !== 'undefined' ? `${window.location.origin}/sign-up?invite=${club?.id}` : '...'}
+                                                {generatedInviteLink || 'Generando link...'}
                                             </div>
                                             <button
+                                                disabled={!generatedInviteLink}
                                                 onClick={() => {
-                                                    const link = `${window.location.origin}/sign-up?invite=${club?.id}`;
-                                                    navigator.clipboard.writeText(link);
+                                                    navigator.clipboard.writeText(generatedInviteLink);
                                                     toast.success("Link de invitación copiado");
                                                 }}
-                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest uppercase"
+                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest uppercase disabled:opacity-50"
                                             >
                                                 Copiar
                                             </button>
@@ -491,12 +416,12 @@ export default function ClubProfileClient({
                                     </div>
 
                                     <button
+                                        disabled={!generatedInviteLink}
                                         onClick={() => {
-                                            const inviteLink = `${window.location.origin}/sign-up?invite=${club?.id}`;
-                                            const message = `¡Hola! Sumate a mi club "${clubName}" en PadelWeb: ${inviteLink}`;
+                                            const message = `¡Hola! Sumate a mi club "${clubName}" en PadelWeb: ${generatedInviteLink}`;
                                             window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
                                         }}
-                                        className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-foreground py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95"
+                                        className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-foreground py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95 disabled:opacity-50"
                                     >
                                         <MessageCircle className="h-4 w-4 fill-current" /> Compartir en WhatsApp
                                     </button>
@@ -510,6 +435,64 @@ export default function ClubProfileClient({
                             <div className="px-8 py-6 border-b border-border/50 bg-muted/20">
                                 <h2 className="text-sm font-black uppercase tracking-widest italic">Editar Información del Club</h2>
                             </div>
+                            
+                            <div className="p-8 border-b border-border/50">
+                                <label className="text-[10px] font-black uppercase text-muted-foreground mb-4 block tracking-widest">Logo del Club</label>
+                                <div className="flex flex-col sm:flex-row items-center gap-6">
+                                    <div className="w-32 h-32 rounded-[2rem] bg-background border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group">
+                                        {logoPreview ? (
+                                            <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized />
+                                        ) : (
+                                            <Building2 className="w-10 h-10 text-muted-foreground/20" />
+                                        )}
+                                        {isUploading && (
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-20">
+                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-3 flex-1 w-full">
+                                        <p className="text-[10px] text-muted-foreground font-medium max-w-xs">Sube una imagen de alta resolución (preferiblemente cuadrada) para el logo de tu club.</p>
+                                        <label className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-indigo-600/20 active:scale-95">
+                                            <ImageIcon className="w-4 h-4" />
+                                            {isUploading ? "Subiendo..." : "Cambiar Logo"}
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                accept="image/*" 
+                                                disabled={isUploading}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    
+                                                    setIsUploading(true);
+                                                    try {
+                                                        const options = { maxSizeMB: 0.5, maxWidthOrHeight: 800, useWebWorker: true };
+                                                        const compressedBlob = await imageCompression(file, options);
+                                                        const compressedFile = new File([compressedBlob], "logo.jpg", { type: "image/jpeg" });
+                                                        
+                                                        const uploadFormData = new FormData();
+                                                        uploadFormData.append("file", compressedFile);
+                                                        
+                                                        const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
+                                                        if (!res.ok) throw new Error("Error al subir");
+                                                        
+                                                        const data = await res.json();
+                                                        setFormData(prev => ({ ...prev, logoUrl: data.url }));
+                                                        setLogoPreview(data.url);
+                                                        toast.success("Logo subido correctamente");
+                                                    } catch (err) {
+                                                        toast.error("Error al procesar la imagen");
+                                                    } finally {
+                                                        setIsUploading(false);
+                                                    }
+                                                }} 
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="flex flex-col gap-2">

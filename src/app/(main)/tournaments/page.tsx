@@ -52,7 +52,17 @@ export default async function TournamentsPage({
         // Fetch tournaments with joins manually
         const tournamentsRes = await db
             .select({
-                tournament: tournaments,
+                tournament: {
+                    id: tournaments.id,
+                    name: tournaments.name,
+                    status: tournaments.status,
+                    startDate: tournaments.startDate,
+                    endDate: tournaments.endDate,
+                    imageUrl: tournaments.imageUrl,
+                    clubId: tournaments.clubId,
+                    createdByUserId: tournaments.createdByUserId,
+                    createdAt: tournaments.createdAt,
+                },
                 club: clubs,
             })
             .from(tournaments)

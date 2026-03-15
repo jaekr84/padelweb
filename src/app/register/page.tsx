@@ -32,6 +32,7 @@ const ROLES = [
 export default function RegisterPage() {
     const searchParams = useSearchParams();
     const invitationToken = searchParams.get("invitation");
+    const inviteClubId = searchParams.get("invite");
 
     const [isPending, startTransition] = useTransition();
     const [showPassword, setShowPassword] = useState(false);
@@ -193,6 +194,7 @@ export default function RegisterPage() {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6 relative text-left">
                         <input type="hidden" name="invitationToken" value={invitationToken || ""} />
+                        <input type="hidden" name="inviteClubId" value={inviteClubId || ""} />
 
                         {/* Role Selection Section */}
                         <div className="space-y-4 mb-8">
