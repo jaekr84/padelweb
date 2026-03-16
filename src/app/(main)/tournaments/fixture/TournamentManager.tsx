@@ -315,7 +315,16 @@ export default function TournamentManager({
                 const winner = m.score1 > m.score2 ? m.team1 : m.team2;
                 const winnerId = (winner as Player)?.id;
                 const winnerName = (winner as Player)?.name;
-                return { ...m, confirmed: true, winnerId, winnerName };
+                
+                // Extra robustness: if winnerName is a UUID or missing, try to find it in the groups
+                let finalWinnerName = winnerName;
+                const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
+                if (!finalWinnerName || isUUID(finalWinnerName)) {
+                    const found = groups.flatMap(g => g.players).find(p => p.id === winnerId);
+                    if (found) finalWinnerName = found.name;
+                }
+
+                return { ...m, confirmed: true, winnerId, winnerName: finalWinnerName };
             });
             const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
             advanceBracketWinners(updated, totalRounds);
@@ -374,11 +383,6 @@ export default function TournamentManager({
         router.refresh();
         setTimeout(() => setIsRefreshing(false), 500);
     };
-
-    const championMatch = bracket.find(m => m.round === 0 && m.confirmed);
-    const championPlayer = championMatch?.winnerId
-        ? [championMatch.team1, championMatch.team2].find(t => t !== null && t !== "BYE" && (t as Player).id === championMatch.winnerId) as Player
-        : null;
 
     return (
         <div className="min-h-screen bg-background overflow-x-hidden">
@@ -669,11 +673,19 @@ export default function TournamentManager({
                                     const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player;
                                     
                                     // Robust check for champName: prefer winnerName IF it doesn't look like a UUID
-                                    const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+                                    const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
                                     
                                     let champName = finalMatch.winnerName;
                                     if (!champName || isUUID(champName)) {
-                                        champName = winnerSlot?.name || finalMatch.winnerId || "Campeón";
+                                        // Try to find the name from the winnerSlot
+                                        const slotName = winnerSlot?.name;
+                                        if (slotName && !isUUID(slotName)) {
+                                            champName = slotName;
+                                        } else {
+                                            // Final fallback: search in all players
+                                            const foundPlayer = groups.flatMap(g => g.players).find(p => p.id === finalMatch.winnerId);
+                                            champName = foundPlayer?.name || "Campeón";
+                                        }
                                     }
 
                                     return (
@@ -962,19 +974,24 @@ export default function TournamentManager({
                                             </div>
                                         </div>
                                     ))}
+                                </div>
                             </div>
-                        </div>
-
+                        
                         {/* Finalize Tournament Action Bar (Bottom) */}
                         {(() => {
                             const finalMatch = bracket.find(m => m.round === 0);
-                            const allPlayers = groups.flatMap(g => g.players);
-                            const champ = allPlayers.find(p => p.id === finalMatch?.winnerId);
-                            const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+                            const winnerSlot = finalMatch ? [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player : null;
+                            const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
 
                             let champName = finalMatch?.winnerName;
-                            if (!champName || (champName && isUUID(champName))) {
-                                champName = champ?.name || finalMatch?.winnerId || "Campeón";
+                            if (!champName || isUUID(champName)) {
+                               const slotName = winnerSlot?.name;
+                               if (slotName && !isUUID(slotName)) {
+                                   champName = slotName;
+                               } else {
+                                   const foundPlayer = groups.flatMap(g => g.players).find(p => p.id === finalMatch?.winnerId);
+                                   champName = foundPlayer?.name || "Campeón";
+                               }
                             }
                             
                             if (finalMatch?.confirmed && champName && initialStatus !== "finalizado" && !readOnly) {

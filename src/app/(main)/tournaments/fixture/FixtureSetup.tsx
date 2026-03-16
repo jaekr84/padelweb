@@ -17,6 +17,7 @@ export interface FixtureSetupProps {
     tournamentName: string;
     initialStatus: string;
     initialPlayers: Player[];
+    categories?: string[];
 }
 
 type Player = { id: string; name: string; category?: string; email?: string; gender?: string };
@@ -52,7 +53,8 @@ export default function FixtureSetup({
     tournamentId,
     tournamentName,
     initialStatus,
-    initialPlayers
+    initialPlayers,
+    categories = ["A+", "A", "B", "C", "D"] // Default fallback
 }: FixtureSetupProps) {
     const router = useRouter();
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
@@ -313,11 +315,9 @@ export default function FixtureSetup({
                                             className="bg-black/20 border border-border/40 rounded-xl py-2 px-3 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
                                         >
                                             <option value="all">Cat.</option>
-                                            <option value="A+">A+</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="C">C</option>
-                                            <option value="D">D</option>
+                                            {categories.map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <button
@@ -683,11 +683,9 @@ export default function FixtureSetup({
                                                 className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
                                             >
                                                 <option value="all">Todas las Categorías</option>
-                                                <option value="A+">A+</option>
-                                                <option value="A">A</option>
-                                                <option value="B">B</option>
-                                                <option value="C">C</option>
-                                                <option value="D">D</option>
+                                                {categories.map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
                                                 <option value="libre">Libre</option>
                                             </select>
 

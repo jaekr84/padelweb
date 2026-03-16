@@ -66,17 +66,13 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 
-        // Since neon-http doesn't support transactions in the same way, 
-        // we execute these calls sequentially. 
-
-        // 1. Delete ALL old data for this tournament to ensure a clean state
+        // Sequential deletes
         await db.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
         await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
         await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
 
         // 2. Insert new groups and collect ID mapping
         const groupIdMap = new Map<string, string>();
-
         for (const g of input.groups) {
             const newId = crypto.randomUUID();
             await db
@@ -115,9 +111,15 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         if (input.bracket.length > 0) {
             const allPlayers = input.groups.flatMap(g => g.players);
             const bracketValues = input.bracket.map(bm => {
-                const winnerName = bm.winnerId
+                // Try to find the winner's name from allPlayers
+                let winnerName = bm.winnerId
                     ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
                     : null;
+                
+                // Fallback: if we have the winner's name in the input match object
+                if (!winnerName && bm.winnerId && (bm as any).winnerName) {
+                    winnerName = (bm as any).winnerName;
+                }
 
                 return {
                     id: crypto.randomUUID(),
@@ -184,7 +186,6 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
             throw new Error("No tenés permiso para eliminar este torneo");
         }
 
-        // Sequentially delete related records to clear constraints
         await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, id));
         await db.delete(groupMatches).where(eq(groupMatches.tournamentId, id));
         await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
@@ -203,14 +204,9 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
 
 export async function getAvailablePlayers(tournamentId: string) {
     try {
-        // Get all users with role 'jugador'
         const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
-
-        // Get already registered users for this tournament
         const existingRegs = await db.select({ userId: registrations.userId }).from(registrations).where(eq(registrations.tournamentId, tournamentId));
         const registeredIds = new Set(existingRegs.map(r => r.userId));
-
-        // Filter out already registered
         return allUsers.filter(u => !registeredIds.has(u.id)).map(u => ({
             id: u.id,
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
@@ -228,7 +224,6 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
     try {
         const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (!user) throw new Error("User not found");
-
         const newId = crypto.randomUUID();
         await db.insert(registrations).values({
             id: newId,
@@ -237,9 +232,7 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             category: category || user.category || "D",
             status: "confirmed"
         });
-
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
-
         return { ok: true, player: { id: newId, name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, category: category || user.category || "D" } };
     } catch (err) {
         console.error("[quickInscribePlayer]", err);
@@ -251,31 +244,21 @@ export async function finalizeTournament(id: string): Promise<{ ok: boolean; err
     try {
         const session = await getSession();
         if (!session?.userId) throw new Error("No autorizado");
-
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
-
         const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
         const isSuperAdmin = user?.role === 'superadmin';
-
         if (t.createdByUserId !== session.userId && !isSuperAdmin) {
             throw new Error("No tenés permiso para finalizar este torneo");
         }
-
         if (t.status !== "finalizado") {
             await awardTournamentPoints(id);
         }
-
-        await db
-            .update(tournaments)
-            .set({ status: "finalizado" })
-            .where(eq(tournaments.id, id));
-
+        await db.update(tournaments).set({ status: "finalizado" }).where(eq(tournaments.id, id));
         revalidatePath("/tournaments");
         revalidatePath(`/tournaments/${id}`);
         revalidatePath(`/tournaments/${id}/manage`);
         revalidatePath("/admin/tournaments");
-
         return { ok: true };
     } catch (err) {
         console.error("[finalizeTournament]", err);
@@ -305,42 +288,38 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                 team2: { id: (bm as any).team2Id },
             }));
             console.log(`[awardTournamentPoints] Loaded ${bracketToProcess.length} matches from DB`);
-        } else {
-            console.log(`[awardTournamentPoints] Using ${bracketToProcess.length} matches from provided bracket`);
         }
 
         const userPointsAddition = new Map<string, number>();
 
         const addPoints = (playerId: string | null | undefined, pts: number) => {
             if (!playerId || playerId === "BYE") return;
-            // If playerId is actually a Name (due to previous bug), this will fail to find the reg.
-            const r = regs.find(reg => reg.id === playerId);
+            
+            let r = regs.find(reg => reg.id === playerId);
+            if (!r) {
+                // Try fallback logic if playerId is actually a UserID
+                r = regs.find(reg => reg.userId === playerId);
+            }
+
             if (r) {
                 const pointsToAdd = Number(pts) || 0;
                 if (pointsToAdd === 0) return;
 
                 if (r.userId) {
                     userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pointsToAdd);
-                    console.log(`[awardTournamentPoints] Adding ${pointsToAdd} to user ${r.userId} (Reg: ${r.id})`);
                 }
                 if (r.partnerUserId) {
                     userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pointsToAdd);
-                    console.log(`[awardTournamentPoints] Adding ${pointsToAdd} to partner ${r.partnerUserId} (Reg: ${r.id})`);
                 }
-            } else {
-                console.log(`[awardTournamentPoints] WARNING: Registration not found for ID: ${playerId}`);
             }
         };
 
         if (bracketToProcess) {
             bracketToProcess.forEach(bm => {
                 if (!bm.confirmed) return;
-
                 const t1Id = (bm.team1 as any)?.id;
                 const t2Id = (bm.team2 as any)?.id;
                 
-                console.log(`[awardTournamentPoints] Processing match round ${bm.round}: T1=${t1Id}, T2=${t2Id}, Winner=${bm.winnerId}`);
-
                 if (bm.round === 0) { // Final
                     if (bm.winnerId === t1Id) {
                         addPoints(t1Id, points.winner || 0);
@@ -357,12 +336,10 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                     addPoints(loserId, points.quarter || 0);
                 } else if (bm.round === 3) { // Octavos
                     const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.octavos || 0);
+                    addPoints(loserId, points.octavos || 100); // Default if not in config
                 }
             });
         }
-
-        console.log(`[awardTournamentPoints] Total users to update: ${userPointsAddition.size}`);
 
         for (const [uid, pts] of userPointsAddition.entries()) {
             if (pts > 0) {
@@ -373,7 +350,6 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
                 const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
                 if (updatedUser) {
-                    console.log(`[awardTournamentPoints] Updated user ${uid}. New total: ${updatedUser.points}`);
                     const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
                     const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
                     const currentCatObj = await getCategoryByName(updatedUser.category || "D");
@@ -383,13 +359,11 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                         const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
                         if (titleWins >= 2) {
                             await db.update(users).set({ category: newCatObj.name }).where(eq(users.id, uid));
-                            console.log(`[awardTournamentPoints] Promoted user ${uid} to ${newCatObj.name}`);
                         }
                     }
                 }
             }
         }
-        console.log(`[awardTournamentPoints] Finished successfully`);
     } catch (err) {
         console.error("[awardTournamentPoints]", err);
     }

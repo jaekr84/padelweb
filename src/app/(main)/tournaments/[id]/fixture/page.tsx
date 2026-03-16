@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { tournaments, registrations, users } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { tournaments, registrations, users, categoriesTable } from "@/db/schema";
+import { eq, inArray, asc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
 import FixtureSetup from "../../fixture/FixtureSetup";
@@ -21,6 +21,7 @@ export default async function TournamentFixturePage({ params }: Props) {
             name: tournaments.name,
             status: tournaments.status,
             createdByUserId: tournaments.createdByUserId,
+            modalidad: tournaments.modalidad,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
@@ -62,11 +63,34 @@ export default async function TournamentFixturePage({ params }: Props) {
         .from(users)
         .where(inArray(users.id, registrantIds));
 
+    // Safely parse tournament modalidad
+    let mod: any = tournament.modalidad;
+    try {
+        if (typeof tournament.modalidad === 'string' && tournament.modalidad.trim().startsWith('{')) {
+            mod = JSON.parse(tournament.modalidad);
+        }
+    } catch (e) {
+        console.error("Error parsing modalidad:", e);
+    }
+
+    const isIndividual = mod?.participacion === "individual";
+
     const initialPlayers = dbRegistrations.map(reg => {
         const user = dbUsers.find(u => u.id === reg.userId);
         const namePart1 = user 
             ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0])
             : "Jugador";
+        
+        if (isIndividual) {
+            return {
+                id: reg.id,
+                name: namePart1,
+                category: reg.category || undefined,
+                email: user?.email || undefined,
+                gender: user?.gender || undefined,
+            };
+        }
+
         const namePart2 = reg.partnerName || "Invitado";
         return {
             id: reg.id,
@@ -82,12 +106,20 @@ export default async function TournamentFixturePage({ params }: Props) {
         redirect(`/tournaments/${id}/manage`);
     }
 
+    // Fetch all available categories
+    const allCategories = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.isActive, true))
+        .orderBy(asc(categoriesTable.categoryOrder));
+
     return (
         <FixtureSetup
             tournamentId={tournament.id}
             tournamentName={tournament.name}
             initialStatus={tournament.status}
             initialPlayers={initialPlayers}
+            categories={allCategories.map(c => c.name)}
         />
     );
 }
