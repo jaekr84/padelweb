@@ -203,7 +203,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
             <div className="max-w-6xl mx-auto space-y-8">
                 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
@@ -405,8 +405,23 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                     {/* Desktop Table Layout */}
                     <div className="hidden md:block bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-                        <div className="overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left border-collapse">
+                        <style jsx>{`
+                            .custom-scrollbar::-webkit-scrollbar {
+                                height: 8px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: #6366f133;
+                                border-radius: 10px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                background: #6366f166;
+                            }
+                        `}</style>
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full min-w-[1100px] text-left border-collapse">
                                 <thead>
                                     <tr className="bg-muted/30 border-b border-border">
                                         <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
