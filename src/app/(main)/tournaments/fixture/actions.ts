@@ -375,15 +375,31 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
                 const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
                 if (updatedUser) {
-                    const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
-                    const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
+                    const { getCategoryFromPoints, getCategoryByName, getAllActiveCategories, countUserWins } = await import("@/lib/categories");
+                    const newCatByPoints = await getCategoryFromPoints(updatedUser.points ?? 0);
                     const currentCatObj = await getCategoryByName(updatedUser.category || "D");
                     
-                    if (newCatObj && currentCatObj && newCatObj.categoryOrder > currentCatObj.categoryOrder) {
+                    console.log(`[ascentCheck] User: ${uid}, Pts: ${updatedUser.points}, CurrentCat: ${updatedUser.category} (Order: ${currentCatObj?.categoryOrder}), CalculatedTarget: ${newCatByPoints?.name} (Order: ${newCatByPoints?.categoryOrder})`);
+
+                    // In our system: Lower Order = Better Category (A+ is 0, D is 4)
+                    // So promotion is targetOrder < currentOrder
+                    if (newCatByPoints && currentCatObj && newCatByPoints.categoryOrder < currentCatObj.categoryOrder) {
                         const currentYear = new Date().getFullYear();
                         const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
+                        console.log(`[ascentCheck] Wins in current category: ${titleWins}`);
+                        
                         if (titleWins >= 2) {
-                            await db.update(users).set({ category: newCatObj.name }).where(eq(users.id, uid));
+                            const allCats = await getAllActiveCategories();
+                            const nextCat = allCats.find(c => c.categoryOrder === currentCatObj.categoryOrder - 1);
+                            
+                            if (nextCat) {
+                                console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (from ${updatedUser.category})`);
+                                await db.update(users).set({ category: nextCat.name }).where(eq(users.id, uid));
+                            } else {
+                                console.log(`[ascentCheck] Already at maximum category or no next category found (TargetOrder ${currentCatObj.categoryOrder - 1})`);
+                            }
+                        } else {
+                            console.log(`[ascentCheck] Not enough wins (needed 2, found ${titleWins})`);
                         }
                     }
                 }
