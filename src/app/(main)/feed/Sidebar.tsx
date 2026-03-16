@@ -34,6 +34,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },

@@ -75,6 +75,7 @@ export default async function AdminDashboardPage() {
                         { label: 'Solicitudes', href: '/admin/requests', icon: '📩', color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
                         { label: 'Usuarios', href: '/admin/users', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
                         { label: 'Invitaciones', href: '/admin/invitations', icon: '🔗', color: 'from-indigo-500/20 to-indigo-500/5', text: 'text-indigo-500' },
+                        { label: 'Clubes', href: '/directory', icon: '🏢', color: 'from-cyan-500/20 to-cyan-500/5', text: 'text-cyan-500' },
                         { label: 'Configuración', href: '/admin/categories', icon: '⚙️', color: 'from-slate-500/20 to-slate-500/5', text: 'text-slate-500' },
                         { label: 'Mi Perfil', href: '/profile', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
                     ].map((module) => (
