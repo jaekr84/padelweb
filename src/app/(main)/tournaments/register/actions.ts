@@ -81,5 +81,17 @@ export async function registerForTournament(input: RegisterInput) {
 
     await db.insert(registrations).values(registrationData);
 
+    // Update last participation date for the user
+    await db.update(users)
+        .set({ lastParticipationAt: new Date() })
+        .where(eq(users.id, userId));
+    
+    // If partner is a registered user, update them too
+    if (input.partnerUserId) {
+        await db.update(users)
+            .set({ lastParticipationAt: new Date() })
+            .where(eq(users.id, input.partnerUserId));
+    }
+
     return registrationData;
 }

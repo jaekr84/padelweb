@@ -100,6 +100,7 @@ export default async function EditTournamentPage({ params }: Props) {
         categories: parsedCategories,
         pointsConfig: tournament.pointsConfig as any,
         imageUrl: tournament.imageUrl,
+        surface: tournament.surface,
         modalidad: parsedModalidad,
     };
 

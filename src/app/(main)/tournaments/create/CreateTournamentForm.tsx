@@ -34,6 +34,7 @@ export type InitialData = {
     categories: string[] | null;
     pointsConfig: PointsConfig | null;
     imageUrl: string | null;
+    surface: string | null;
     modalidad: {
         mode: "categorias" | "libre";
         participacion: "pareja" | "individual";
@@ -127,7 +128,11 @@ export default function CreateTournamentForm({
         finalist: String(pc?.finalist ?? 600),
         semi: String(pc?.semi ?? 360),
         quarter: String(pc?.quarter ?? 180),
+        octavos: String((pc as any)?.octavos ?? 90),
+        groupMatchWin: String((pc as any)?.groupMatchWin ?? 40),
+        participation: String((pc as any)?.participation ?? 20),
     });
+
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -182,6 +187,9 @@ export default function CreateTournamentForm({
                 finalist: Number(customPoints.finalist),
                 semi: Number(customPoints.semi),
                 quarter: Number(customPoints.quarter),
+                octavos: Number(customPoints.octavos),
+                groupMatchWin: Number(customPoints.groupMatchWin),
+                participation: Number(customPoints.participation),
             };
 
             const tournamentData = {
@@ -466,21 +474,24 @@ export default function CreateTournamentForm({
                         </div>
 
                         <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                                 {[
                                     { id: "winner", label: "Campeón" },
                                     { id: "finalist", label: "Final" },
                                     { id: "semi", label: "Semis" },
-                                    { id: "quarter", label: "Cuartos" }
+                                    { id: "quarter", label: "Cuartos" },
+                                    { id: "octavos", label: "Octavos" },
+                                    { id: "groupMatchWin", label: "Victoria Zona" },
+                                    { id: "participation", label: "Asistencia" }
                                 ].map(k => (
                                     <div key={k.id} className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic">{k.label}</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic leading-tight">{k.label}</label>
                                         <div className="relative group">
                                             <input
                                                 type="number"
                                                 value={customPoints[k.id as keyof typeof customPoints]}
                                                 onChange={e => setCustomPoints({ ...customPoints, [k.id]: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-2 text-center text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-2 text-center text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
                                             />
                                         </div>
                                     </div>

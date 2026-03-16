@@ -52,3 +52,17 @@ export async function updateUserRole(userId: string, role: string) {
     revalidatePath("/admin/users");
     return { success: true };
 }
+export async function updateUserCategory(userId: string, category: string, points?: number) {
+    await checkSuperAdmin();
+
+    await db.update(users)
+        .set({ 
+            category,
+            ...(points !== undefined ? { points } : {})
+        })
+        .where(eq(users.id, userId));
+
+    revalidatePath("/admin/users");
+    revalidatePath("/ranking");
+    return { success: true };
+}

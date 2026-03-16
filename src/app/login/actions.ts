@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { checkAndApplyInactivityDowngrade } from "@/lib/categories";
+
 export async function loginAction(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -74,6 +76,13 @@ export async function getSidebarUser() {
     const { getSession } = await import("@/lib/auth-server");
     const session = await getSession();
     if (!session || !session.userId) return null;
+
+    // Check for category inactivity downgrade
+    // We only do this for "jugador" but the function handles checks efficiently
+    if (session.role === 'jugador') {
+        await checkAndApplyInactivityDowngrade(session.userId as string);
+    }
+
 
     const userResults = await db
         .select({

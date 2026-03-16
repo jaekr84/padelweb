@@ -247,6 +247,10 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             category: category || user.category || "D",
             status: "confirmed"
         });
+        await db.update(users)
+            .set({ lastParticipationAt: new Date() })
+            .where(eq(users.id, userId));
+
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
         return { ok: true, player: { id: newId, name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, category: category || user.category || "D" } };
     } catch (err) {
@@ -295,6 +299,8 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
         const regs = await db.select().from(registrations).where(eq(registrations.tournamentId, tournamentId));
         console.log(`[awardTournamentPoints] Encontradas ${regs.length} inscripciones`);
+        const groups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, tournamentId));
+        const groupMatchesList = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, tournamentId));
         
         let bracketToProcess = providedBracket;
         if (!bracketToProcess) {
@@ -332,6 +338,24 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             }
         };
 
+        // 1. Participation Points
+        if (points.participation > 0) {
+            regs.forEach(r => {
+                if (r.userId) userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + points.participation);
+                if (r.partnerUserId) userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + points.participation);
+            });
+        }
+
+        // 2. Group Match Win Points
+        if (points.groupMatchWin > 0) {
+            groupMatchesList.forEach(m => {
+                if (!m.confirmed) return;
+                const winnerId = m.score1! > m.score2! ? m.team1Id : (m.score2! > m.score1! ? m.team2Id : null);
+                if (winnerId) addPoints(winnerId, points.groupMatchWin);
+            });
+        }
+
+        // 3. Bracket Points (Reached Rounds)
         if (bracketToProcess) {
             bracketToProcess.forEach(bm => {
                 if (!bm.confirmed) return;
@@ -341,31 +365,27 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                 
                 if (bm.round === 0) { // Final
                     if (wId === t1Id) {
-                        console.log(`[awardTournamentPoints] Win: ${t1Id}, Finalist: ${t2Id}`);
                         addPoints(t1Id, points.winner || 0);
                         addPoints(t2Id, points.finalist || 0);
                     } else if (wId === t2Id) {
-                        console.log(`[awardTournamentPoints] Win: ${t2Id}, Finalist: ${t1Id}`);
                         addPoints(t2Id, points.winner || 0);
                         addPoints(t1Id, points.finalist || 0);
                     }
                 } else {
-                    // Semifinals, Quarterfinals, Octavos
                     const loserId = wId === t1Id ? t2Id : (wId === t2Id ? t1Id : null);
-                    
                     if (loserId) {
                         let pts = 0;
                         if (bm.round === 1) pts = points.semi || 0;
                         else if (bm.round === 2) pts = points.quarter || 0;
-                        else if (bm.round === 3) pts = points.octavos || 0;
+                        else if (bm.round === 3) pts = points.octavos || points.roundOf16 || 0;
                         
-                        console.log(`[awardTournamentPoints] Loss in Round ${bm.round}: ${loserId}, Pts: ${pts}`);
                         if (pts > 0) addPoints(loserId, pts);
                     }
                 }
             });
         }
 
+        // Final points update and promotion logic
         for (const [uid, pts] of userPointsAddition.entries()) {
             if (pts > 0) {
                 await db
@@ -376,30 +396,30 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                 const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
                 if (updatedUser) {
                     const { getCategoryFromPoints, getCategoryByName, getAllActiveCategories, countUserWins } = await import("@/lib/categories");
+                    
+                    // Logic: Promote if points reach threshold OR if they win trophies
                     const newCatByPoints = await getCategoryFromPoints(updatedUser.points ?? 0);
                     const currentCatObj = await getCategoryByName(updatedUser.category || "D");
                     
-                    console.log(`[ascentCheck] User: ${uid}, Pts: ${updatedUser.points}, CurrentCat: ${updatedUser.category} (Order: ${currentCatObj?.categoryOrder}), CalculatedTarget: ${newCatByPoints?.name} (Order: ${newCatByPoints?.categoryOrder})`);
-
-                    // In our system: Lower Order = Better Category (A+ is 0, D is 4)
-                    // So promotion is targetOrder < currentOrder
                     if (newCatByPoints && currentCatObj && newCatByPoints.categoryOrder < currentCatObj.categoryOrder) {
                         const currentYear = new Date().getFullYear();
                         const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
-                        console.log(`[ascentCheck] Wins in current category: ${titleWins}`);
                         
-                        if (titleWins >= 2) {
+                        // FLEXIBLE RULE:
+                        // 1. If Category suggests promotion AND Wins >= 1 (Make it 1 tournament win + enough points)
+                        // OR 2. Wins >= 2 (Even if points don't reach threshold, winning 2 titles is clear sign)
+                        // OR 3. Points exceed category MAX by 15%
+                        const pointsThreshold = currentCatObj.maxPoints * 1.15;
+                        const deservesPromotion = (titleWins >= 1) || (updatedUser.points! >= pointsThreshold) || (titleWins >= 2);
+
+                        if (deservesPromotion) {
                             const allCats = await getAllActiveCategories();
-                            const nextCat = allCats.find(c => c.categoryOrder === currentCatObj.categoryOrder - 1);
+                            const nextCat = allCats.find(c => c.categoryOrder < currentCatObj.categoryOrder); // Get next best
                             
                             if (nextCat) {
-                                console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (from ${updatedUser.category})`);
+                                console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (deservesPromotion: ${deservesPromotion})`);
                                 await db.update(users).set({ category: nextCat.name }).where(eq(users.id, uid));
-                            } else {
-                                console.log(`[ascentCheck] Already at maximum category or no next category found (TargetOrder ${currentCatObj.categoryOrder - 1})`);
                             }
-                        } else {
-                            console.log(`[ascentCheck] Not enough wins (needed 2, found ${titleWins})`);
                         }
                     }
                 }
@@ -409,3 +429,4 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
         console.error("[awardTournamentPoints]", err);
     }
 }
+

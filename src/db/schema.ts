@@ -21,7 +21,10 @@ export const users = mysqlTable("users", {
     isActive: boolean("is_active").default(true),
     bannedUntil: timestamp("banned_until"),
     imageUrl: varchar("image_url", { length: 512 }),
+    lastParticipationAt: timestamp("last_participation_at"),
+    lastCategoryUpdate: timestamp("last_category_update").defaultNow(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+
 }, (table) => ({
     clubIdIdx: index("users_club_id_idx").on(table.clubId),
     emailIdx: index("users_email_idx").on(table.email),

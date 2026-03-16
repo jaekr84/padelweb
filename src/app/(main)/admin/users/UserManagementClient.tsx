@@ -2,24 +2,29 @@
 
 import { useState } from "react";
 import { 
-    User, 
-    Shield, 
-    Search, 
-    MoreVertical, 
-    Ban, 
-    CheckCircle, 
-    XCircle, 
-    Calendar,
-    Filter,
-    ArrowRight,
-    UserX,
-    UserCheck,
+    Plus, 
+    Trash2, 
+    Save, 
+    MoveUp, 
+    MoveDown, 
+    Layers, 
+    Pencil, 
+    X, 
+    Trophy,
+    Shield,
+    Search,
+    Ban,
+    CheckCircle,
+    XCircle,
     Clock,
-    UserCog
+    UserCog,
+    Filter,
+    UserCheck,
+    UserX
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { toggleUserStatus, banUser, updateUserRole } from "./actions";
+import { toggleUserStatus, banUser, updateUserRole, updateUserCategory } from "./actions";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,22 +36,34 @@ interface ManagedUser {
     role: string;
     isActive: boolean | null;
     bannedUntil: Date | null;
+    points: number | null;
+    category: string | null;
     createdAt: Date;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    categoryOrder: number;
 }
 
 interface UserManagementClientProps {
     initialUsers: ManagedUser[];
+    categories: Category[];
 }
 
-export default function UserManagementClient({ initialUsers }: UserManagementClientProps) {
+export default function UserManagementClient({ initialUsers, categories }: UserManagementClientProps) {
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("all");
     const [usersList, setUsersList] = useState(initialUsers);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [banDays, setBanDays] = useState(7);
     const [newRole, setNewRole] = useState("");
+    const [newCategory, setNewCategory] = useState("");
+    const [newPoints, setNewPoints] = useState<number>(0);
     const [loading, setLoading] = useState<string | null>(null);
 
     const filteredUsers = usersList.filter(u => {
@@ -61,6 +78,22 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
         
         return matchesSearch;
     });
+
+    const handleUpdateCategory = async () => {
+        if (!selectedUser) return;
+        setLoading(selectedUser.id);
+        try {
+            await updateUserCategory(selectedUser.id, newCategory, newPoints);
+            setUsersList(prev => prev.map(u => 
+                u.id === selectedUser.id ? { ...u, category: newCategory, points: newPoints } : u
+            ));
+            setIsCategoryModalOpen(false);
+            toast.success(`Categoría actualizada a ${newCategory}`);
+        } catch (error: any) {
+            toast.error(error.message || "Error al actualizar categoría");
+        }
+        setLoading(null);
+    };
 
     const handleToggleStatus = async (user: ManagedUser) => {
         setLoading(user.id);
@@ -147,7 +180,7 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
                             Gestión de Usuarios
                         </h1>
                         <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
-                            Habilitar, desactivar y banear miembros de la plataforma
+                            Promoción de categorías, asignación de puntos y control de acceso
                         </p>
                     </div>
 
@@ -186,9 +219,9 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
                             <thead>
                                 <tr className="bg-muted/30 border-b border-border">
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cat. / Puntos</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fecha Reg.</th>
                                     <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
                                 </tr>
                             </thead>
@@ -220,6 +253,16 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[11px] font-black uppercase italic text-indigo-500">
+                                                        {user.category || "D"}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-muted-foreground">
+                                                        {user.points || 0} pts
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
                                                     {user.role}
                                                 </span>
@@ -248,6 +291,18 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
                                             </td>
                                             <td className="px-6 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedUser(user);
+                                                            setNewCategory(user.category || "D");
+                                                            setNewPoints(user.points || 0);
+                                                            setIsCategoryModalOpen(true);
+                                                        }}
+                                                        className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                                                        title="Promover / Cambiar Categoría"
+                                                    >
+                                                        <Trophy className="w-4 h-4" />
+                                                    </button>
                                                     {banned ? (
                                                         <button 
                                                             onClick={() => handleUnban(user)}
@@ -440,6 +495,78 @@ export default function UserManagementClient({ initialUsers }: UserManagementCli
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Category Modal (Promotion) */}
+            <AnimatePresence>
+                {isCategoryModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 space-y-6">
+                                <div className="flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                                        <Trophy className="w-8 h-8 text-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Promoción Manual</h2>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Asignar Categoría</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {categories.map((cat: any) => (
+                                                <button 
+                                                    key={cat.id}
+                                                    type="button"
+                                                    onClick={() => setNewCategory(cat.name)}
+                                                    className={`py-3 rounded-xl text-[10px] font-black uppercase italic border transition-all ${newCategory === cat.name ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-muted border-border text-muted-foreground hover:border-indigo-500/50'}`}
+                                                >
+                                                    {cat.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Ajustar Puntos (Manual)</label>
+                                        <input 
+                                            type="number" 
+                                            value={newPoints}
+                                            onChange={(e) => setNewPoints(parseInt(e.target.value) || 0)}
+                                            className="w-full bg-muted border border-border rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button 
+                                        onClick={() => setIsCategoryModalOpen(false)}
+                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={handleUpdateCategory}
+                                        className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
+                                    >
+                                        Confirmar Cambios
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 }

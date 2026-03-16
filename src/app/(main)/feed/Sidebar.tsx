@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -17,6 +17,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
+        { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
 
@@ -26,6 +27,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
+        { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     superadmin: [
@@ -36,11 +38,13 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
+        { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
     ],
 };
+
 
 const ROLE_LABELS: Record<string, string> = {
     jugador: "Jugador",

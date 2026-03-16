@@ -1,9 +1,10 @@
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, categoriesTable } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import UserManagementClient from "@/app/(main)/admin/users/UserManagementClient";
-import { desc } from "drizzle-orm";
+import { desc, asc } from "drizzle-orm";
+
 
 export default async function UserManagementPage() {
     const session = await getSession() as { userId: string, role: string } | null;
@@ -20,12 +21,20 @@ export default async function UserManagementPage() {
         role: users.role,
         isActive: users.isActive,
         bannedUntil: users.bannedUntil,
+        points: users.points,
+        category: users.category,
         createdAt: users.createdAt,
     })
     .from(users)
     .orderBy(desc(users.createdAt));
 
+    const allCategories = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.categoryOrder));
+
     return (
-        <UserManagementClient initialUsers={allUsers} />
+        <UserManagementClient 
+            initialUsers={allUsers as any} 
+            categories={allCategories as any} 
+        />
     );
 }
+
