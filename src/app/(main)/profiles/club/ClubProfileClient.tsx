@@ -32,6 +32,7 @@ import {
     Loader2,
     LogOut,
     User,
+    RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -75,12 +76,9 @@ export default function ClubProfileClient({
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [invitingId, setInvitingId] = useState<string | null>(null);
+    const [isRegenerating, setIsRegenerating] = useState(false);
 
-    useEffect(() => {
-        if (activeTab === "invitar" && club?.id) {
-            generateClubInviteLink(club.id).then(setGeneratedInviteLink);
-        }
-    }, [activeTab, club?.id]);
+
 
     const clubName = club?.name || user?.fullName || "Mi Club";
     const clubBio =
@@ -501,20 +499,42 @@ export default function ClubProfileClient({
                                         <h3 className="text-[10px] font-black uppercase text-muted-foreground mb-4 flex items-center gap-2">
                                             Link de Invitación (Vence en 24hs)
                                         </h3>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex-1 bg-black/40 border border-border/50 rounded-xl px-4 py-3 text-[10px] text-muted-foreground font-mono truncate select-all">
-                                                {generatedInviteLink || 'Generando link...'}
+                                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                                            <div className="flex-1 w-full bg-black/40 border border-border/50 rounded-xl px-4 py-3 text-[10px] text-muted-foreground font-mono truncate select-all">
+                                                {generatedInviteLink || 'Presioná "Generar Link" para obtener uno'}
                                             </div>
-                                            <button
-                                                disabled={!generatedInviteLink}
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(generatedInviteLink);
-                                                    toast.success("Link de invitación copiado");
-                                                }}
-                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
-                                            >
-                                                Copiar
-                                            </button>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <button
+                                                    disabled={!generatedInviteLink}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedInviteLink);
+                                                        toast.success("Link de invitación copiado");
+                                                    }}
+                                                    className="flex-1 sm:flex-none px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                    Copiar
+                                                </button>
+                                                <button
+                                                    disabled={isRegenerating || !club?.id}
+                                                    onClick={async () => {
+                                                        setIsRegenerating(true);
+                                                        try {
+                                                            const newLink = await generateClubInviteLink(club.id);
+                                                            setGeneratedInviteLink(newLink);
+                                                            toast.success(generatedInviteLink ? "Nuevo link generado" : "Link generado correctamente");
+                                                        } catch (err) {
+                                                            toast.error("Error al generar link");
+                                                        } finally {
+                                                            setIsRegenerating(false);
+                                                        }
+                                                    }}
+                                                    className="flex-1 sm:flex-none px-4 py-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                                >
+                                                    {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                                                    {generatedInviteLink ? "Generar Nuevo" : "Generar Link"}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
