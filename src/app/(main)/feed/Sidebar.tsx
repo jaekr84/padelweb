@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -34,8 +34,9 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
+        { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
