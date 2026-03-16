@@ -158,7 +158,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                 </div>
 
                 {/* ── Compose Post ── */}
-                {currentUser && (
+                {currentUser?.role === "superadmin" && (
                     <div className="bg-card border border-border rounded-3xl p-4 mb-8 shadow-sm">
                         <div className="flex gap-3 mb-3">
                             <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">

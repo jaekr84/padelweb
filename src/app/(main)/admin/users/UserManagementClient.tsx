@@ -219,8 +219,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                         </p>
                     </div>
 
-                {/* Filters Section */}
-                <div className="space-y-4">
+                    {/* Filters Section */}
+                    <div className="flex-1 max-w-2xl w-full">
+                        <div className="space-y-4">
                     <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
                         <input 
@@ -276,9 +277,13 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                 <option value="femenino">Femenino</option>
                             </select>
                         </div>
+                        </div>
                     </div>
                 </div>
-                                {/* Users View */}
+
+                </div>
+
+                {/* Users View */}
                 <div className="space-y-4">
                     {/* Mobile Card Layout */}
                     <div className="grid grid-cols-1 gap-4 md:hidden">
@@ -559,7 +564,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             </div>
                         </div>
                     )}
-                </div>   </div>
+                </div>
             </div>
 
             {/* Ban Modal */}
