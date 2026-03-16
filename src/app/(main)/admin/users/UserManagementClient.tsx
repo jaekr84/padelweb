@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { toggleUserStatus, banUser, updateUserRole, updateUserCategory } from "./actions";
+import { toggleUserStatus, banUser, updateUserRole, updateUserCategory, updateUserClub } from "./actions";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -52,9 +52,10 @@ interface Category {
 interface UserManagementClientProps {
     initialUsers: ManagedUser[];
     categories: Category[];
+    clubs: { id: string, name: string }[];
 }
 
-export default function UserManagementClient({ initialUsers, categories }: UserManagementClientProps) {
+export default function UserManagementClient({ initialUsers, categories, clubs }: UserManagementClientProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -64,11 +65,13 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isClubModalOpen, setIsClubModalOpen] = useState(false);
     
     const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [banDays, setBanDays] = useState(7);
     const [newRole, setNewRole] = useState("");
     const [newCategory, setNewCategory] = useState("");
+    const [newClubId, setNewClubId] = useState<string | null>(null);
     const [newPoints, setNewPoints] = useState<number>(0);
     const [loading, setLoading] = useState<string | null>(null);
 
@@ -158,6 +161,21 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
             toast.success(`Rol actualizado a ${newRole}`);
         } catch (error: any) {
             toast.error(error.message || "Error al actualizar rol");
+        }
+        setLoading(null);
+    };
+
+    const handleUpdateClub = async () => {
+        if (!selectedUser) return;
+        setLoading(selectedUser.id);
+        try {
+            await updateUserClub(selectedUser.id, newClubId);
+            // We should ideally have clubId and club name in ManagedUser if we want to display it
+            // For now just success toast
+            setIsClubModalOpen(false);
+            toast.success("Viculación con club actualizada");
+        } catch (error: any) {
+            toast.error(error.message || "Error al actualizar club");
         }
         setLoading(null);
     };
@@ -502,6 +520,18 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                                         </button>
 
                                                         <button 
+                                                            onClick={() => {
+                                                                setSelectedUser(user);
+                                                                // If we had clubId in ManagedUser, we'd set it here
+                                                                setIsClubModalOpen(true);
+                                                            }}
+                                                            className="p-2.5 rounded-xl bg-violet-500/10 text-violet-500 border border-violet-500/20 hover:bg-violet-500 hover:text-white transition-all shadow-sm"
+                                                            title="Vincular a Club"
+                                                        >
+                                                            <Shield className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button 
                                                             onClick={() => handleToggleStatus(user)}
                                                             className={`p-2.5 rounded-xl transition-all shadow-sm border ${isInactive 
                                                                 ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white" 
@@ -721,6 +751,63 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                         className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
                                     >
                                         Confirmar Cambios
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Club Modal */}
+            <AnimatePresence>
+                {isClubModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 space-y-6">
+                                <div className="flex flex-col items-center text-center gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                                        <Shield className="w-8 h-8 text-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Vincular a Club</h2>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Seleccionar Club</label>
+                                    <select 
+                                        value={newClubId || ""}
+                                        onChange={(e) => setNewClubId(e.target.value || null)}
+                                        className="w-full bg-muted border border-border rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                    >
+                                        <option value="">Sin Club / Independiente</option>
+                                        {clubs.map(club => (
+                                            <option key={club.id} value={club.id}>{club.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button 
+                                        onClick={() => setIsClubModalOpen(false)}
+                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={handleUpdateClub}
+                                        className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
+                                    >
+                                        Actualizar Vinculación
                                     </button>
                                 </div>
                             </div>

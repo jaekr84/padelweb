@@ -66,3 +66,15 @@ export async function updateUserCategory(userId: string, category: string, point
     revalidatePath("/ranking");
     return { success: true };
 }
+
+export async function updateUserClub(userId: string, clubId: string | null) {
+    await checkSuperAdmin();
+
+    await db.update(users)
+        .set({ clubId })
+        .where(eq(users.id, userId));
+
+    revalidatePath("/admin/users");
+    return { success: true };
+}
+

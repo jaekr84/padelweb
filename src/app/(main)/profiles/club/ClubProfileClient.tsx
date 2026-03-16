@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { InviteModal } from "./InviteModal";
-import { updateClubProfile, generateClubInviteLink } from "./actions";
+import { updateClubProfile, generateClubInviteLink, sendClubInviteAction } from "./actions";
+import { searchPlayersAction } from "@/lib/actions/search";
 import { logoutAction } from "@/app/login/actions";
 import { deleteTournament } from "@/app/(main)/tournaments/fixture/actions";
 import { useRouter } from "next/navigation";
@@ -70,6 +71,10 @@ export default function ClubProfileClient({
     const [isUploading, setIsUploading] = useState(false);
 
     const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [invitingId, setInvitingId] = useState<string | null>(null);
 
     useEffect(() => {
         if (activeTab === "invitar" && club?.id) {
@@ -88,6 +93,7 @@ export default function ClubProfileClient({
         userTournaments?.filter((t: any) => t.status === "en_curso").length || 0;
     const totalTournaments = userTournaments?.length || 0;
     const totalMembers = members?.length || 0;
+    const memberOfThisClub = user?.clubId === club?.id;
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
@@ -251,6 +257,22 @@ export default function ClubProfileClient({
                                     </button>
                                 )}
 
+                                {!isOwner && user?.role === "jugador" && memberOfThisClub === false && (
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                await sendClubInviteAction(user.id, club.id); // Reusing as 'application' if needed, but for now just send invite
+                                                toast.success("Solicitud enviada al club");
+                                            } catch (err: any) {
+                                                toast.error(err.message || "Error al solicitar unión");
+                                            }
+                                        }}
+                                        className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40 active:scale-95"
+                                    >
+                                        <Plus className="h-4 w-4" /> Solicitar Unirse al Club
+                                    </button>
+                                )}
+
                             </div>
                         </div>
                     )}
@@ -379,17 +401,98 @@ export default function ClubProfileClient({
                     )}
 
                     {activeTab === "invitar" && isOwner && (
-                        <div className="max-w-2xl mx-auto">
+                        <div className="max-w-2xl mx-auto flex flex-col gap-6">
+                            <div className="bg-card border border-border rounded-[2rem] p-8 md:p-12 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-400">
+                                        <User className="h-6 w-6" />
+                                    </div>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Buscar y Vincular Jugador</h2>
+                                </div>
+
+                                <p className="text-foreground/50 text-[10px] font-bold mb-6 leading-relaxed uppercase tracking-widest">
+                                    Si el jugador ya tiene una cuenta, podés buscarlo por <span className="text-white">Nombre, Email o DNI</span> para enviarle una invitación.
+                                </p>
+
+                                <div className="flex flex-col gap-4">
+                                    <div className="relative">
+                                        <Filter className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <input 
+                                            type="text"
+                                            placeholder="Buscar jugador..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter' && searchQuery.length >= 3) {
+                                                    setIsSearching(true);
+                                                    const res = await searchPlayersAction(searchQuery);
+                                                    setSearchResults(res);
+                                                    setIsSearching(false);
+                                                }
+                                            }}
+                                            className="w-full bg-muted border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                        />
+                                        <button 
+                                            onClick={async () => {
+                                                if (searchQuery.length < 3) return;
+                                                setIsSearching(true);
+                                                const res = await searchPlayersAction(searchQuery);
+                                                setSearchResults(res);
+                                                setIsSearching(false);
+                                            }}
+                                            className="absolute right-2 top-1.2 py-2.5 px-6 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all mt-1.5 mr-1"
+                                        >
+                                            {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                                        </button>
+                                    </div>
+
+                                    {searchResults.length > 0 && (
+                                        <div className="bg-muted/50 border border-border rounded-[1.5rem] overflow-hidden mt-4">
+                                            {searchResults.map(player => (
+                                                <div key={player.id} className="p-4 border-b border-border/50 flex items-center justify-between gap-4 last:border-0 hover:bg-white/5 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-neutral-800 shrink-0 relative overflow-hidden">
+                                                            {player.imageUrl && <Image src={player.imageUrl} alt="" fill className="object-cover" />}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-black uppercase italic">{player.firstName} {player.lastName}</span>
+                                                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{player.email}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        disabled={invitingId === player.id || player.clubId === club?.id}
+                                                        onClick={async () => {
+                                                            setInvitingId(player.id);
+                                                            try {
+                                                                await sendClubInviteAction(player.id, club?.id);
+                                                                toast.success("Invitación enviada");
+                                                            } catch (err: any) {
+                                                                toast.error(err.message || "Error al invitar");
+                                                            } finally {
+                                                                setInvitingId(null);
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+                                                    >
+                                                        {player.clubId === club?.id ? "Ya es miembro" : invitingId === player.id ? "Enviando..." : "Invitar"}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="bg-card border border-border rounded-[2rem] p-8 md:p-12 shadow-2xl">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400">
                                         <MessageCircle className="h-6 w-6" />
                                     </div>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Invitar Jugadores</h2>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight">Invitar Nuevos Jugadores</h2>
                                 </div>
 
                                 <p className="text-foreground/50 text-xs font-medium mb-8 leading-relaxed uppercase tracking-widest">
-                                    Compartí este link con tus jugadores. Cuando se registren usando este enlace, quedarán asociados a <span className="text-indigo-600 dark:text-indigo-400 font-black">{clubName}</span> automáticamente.
+                                    Compartí este link con jugadores que aún no estén registrados.
                                 </p>
 
                                 <div className="flex flex-col gap-6">
@@ -408,7 +511,7 @@ export default function ClubProfileClient({
                                                     navigator.clipboard.writeText(generatedInviteLink);
                                                     toast.success("Link de invitación copiado");
                                                 }}
-                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest uppercase disabled:opacity-50"
+                                                className="px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
                                             >
                                                 Copiar
                                             </button>
@@ -421,7 +524,7 @@ export default function ClubProfileClient({
                                             const message = `¡Hola! Sumate a mi club "${clubName}" en PadelWeb: ${generatedInviteLink}`;
                                             window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
                                         }}
-                                        className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-foreground py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95 disabled:opacity-50"
+                                        className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-slate-900 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-green-900/40 active:scale-95 disabled:opacity-50"
                                     >
                                         <MessageCircle className="h-4 w-4 fill-current" /> Compartir en WhatsApp
                                     </button>

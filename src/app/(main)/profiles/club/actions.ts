@@ -86,3 +86,114 @@ export async function generateClubInviteLink(clubId: string) {
 
     return `${baseUrl}/register?invitation=${token}&invite=${clubId}`;
 }
+
+import { clubRequests } from "@/db/schema";
+import { and } from "drizzle-orm";
+
+export async function sendClubInviteAction(targetUserId: string, clubId: string) {
+    const session = await getSession() as { userId: string, role: string } | null;
+    if (!session || (session.role !== "club" && session.role !== "superadmin")) {
+        throw new Error("No autorizado");
+    }
+
+    // Si es un club admin, verificar que sea dueño del club
+    if (session.role === "club") {
+        const clubRes = await db.select().from(clubs).where(eq(clubs.id, clubId)).limit(1);
+        const club = clubRes[0];
+        if (club?.ownerId !== session.userId) throw new Error("No eres administrador de este club");
+    }
+
+    // Verificar si ya existe una invitación pendiente
+    const existingRes = await db.select().from(clubRequests).where(and(
+        eq(clubRequests.userId, targetUserId),
+        eq(clubRequests.clubId, clubId),
+        eq(clubRequests.status, "pending")
+    )).limit(1);
+
+    if (existingRes.length > 0) throw new Error("Ya existe una invitación pendiente para este usuario");
+
+    await db.insert(clubRequests).values({
+        id: crypto.randomUUID(),
+        clubId,
+        userId: targetUserId,
+        type: "invitation",
+        status: "pending"
+    });
+
+    return { success: true, message: "Invitación enviada correctamente" };
+}
+
+export async function acceptClubInviteAction(requestId: string) {
+    const session = await getSession() as { userId: string } | null;
+    if (!session) throw new Error("No autorizado");
+
+    const requestRes = await db.select({
+        id: clubRequests.id,
+        clubId: clubRequests.clubId,
+        userId: clubRequests.userId,
+        status: clubRequests.status
+    })
+    .from(clubRequests)
+    .where(eq(clubRequests.id, requestId))
+    .limit(1);
+
+    const request = requestRes[0];
+
+    if (!request || request.userId !== session.userId) throw new Error("Invitación no encontrada");
+    if (request.status !== "pending") throw new Error("La invitación ya no está vigente");
+
+    // 1. Update request status
+    await db.update(clubRequests)
+        .set({ status: "accepted" })
+        .where(eq(clubRequests.id, requestId));
+
+    // 2. Update user club
+    await db.update(users)
+        .set({ clubId: request.clubId })
+        .where(eq(users.id, session.userId));
+
+    revalidatePath("/profile");
+    return { success: true, message: "Te has unido al club con éxito" };
+}
+
+export async function getMyClubRequests() {
+    const session = await getSession() as { userId: string } | null;
+    if (!session) return [];
+
+    return await db.select({
+        id: clubRequests.id,
+        clubId: clubRequests.clubId,
+        userId: clubRequests.userId,
+        type: clubRequests.type,
+        status: clubRequests.status,
+        createdAt: clubRequests.createdAt,
+        club: {
+            id: clubs.id,
+            name: clubs.name,
+            logoUrl: clubs.logoUrl
+        }
+    })
+    .from(clubRequests)
+    .innerJoin(clubs, eq(clubRequests.clubId, clubs.id))
+    .where(and(
+        eq(clubRequests.userId, session.userId),
+        eq(clubRequests.status, "pending")
+    ));
+}
+
+export async function rejectClubInviteAction(requestId: string) {
+    const session = await getSession() as { userId: string } | null;
+    if (!session) throw new Error("No autorizado");
+
+    await db.update(clubRequests)
+        .set({ status: "rejected" })
+        .where(and(
+            eq(clubRequests.id, requestId),
+            eq(clubRequests.userId, session.userId)
+        ));
+
+    revalidatePath("/profile");
+    return { success: true };
+}
+
+

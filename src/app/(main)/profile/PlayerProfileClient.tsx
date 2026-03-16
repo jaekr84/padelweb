@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { updatePlayerProfile } from "./actions";
 import { logoutAction } from "@/app/login/actions";
 import { useRouter } from "next/navigation";
+import { acceptClubInviteAction, rejectClubInviteAction } from "../profiles/club/actions";
 import { toast } from "sonner";
 import {
     Edit2,
@@ -49,6 +50,8 @@ interface PlayerProfileClientProps {
     availableCategories?: any[];
     rankingPosition?: number;
     categoryRanking?: number;
+    pendingInvites?: any[];
+    memberClub?: any;
 }
 
 export default function PlayerProfileClient({
@@ -61,7 +64,9 @@ export default function PlayerProfileClient({
     members,
     availableCategories,
     rankingPosition,
-    categoryRanking
+    categoryRanking,
+    pendingInvites = [],
+    memberClub
 }: PlayerProfileClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("tournaments");
@@ -203,6 +208,62 @@ export default function PlayerProfileClient({
 
                 {dbUser?.role !== "club" && (
                     <>
+                        {/* Club Invitations */}
+                        {pendingInvites.length > 0 && isOwnProfile && (
+                            <div className="flex flex-col gap-4">
+                                {pendingInvites.map((invite: any) => (
+                                    <div key={invite.id} className="bg-indigo-600 rounded-[2rem] p-6 text-white shadow-xl shadow-indigo-900/20 border border-indigo-400/30 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <ShieldCheck className="h-24 w-24" />
+                                        </div>
+                                        <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0">
+                                                    <Trophy className="h-8 w-8 text-white" />
+                                                </div>
+                                                <div className="text-center md:text-left">
+                                                    <h3 className="text-xl font-black uppercase italic tracking-tight">Invitación de Club</h3>
+                                                    <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mt-1">
+                                                        El club <span className="text-white underline decoration-2 underline-offset-4">{invite.club?.name}</span> te ha invitado a unirte.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-3 w-full md:w-auto">
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            await rejectClubInviteAction(invite.id);
+                                                            toast.success("Invitación rechazada");
+                                                            router.refresh();
+                                                        } catch (err) {
+                                                            toast.error("Error al rechazar");
+                                                        }
+                                                    }}
+                                                    className="flex-1 md:flex-none px-8 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+                                                >
+                                                    Rechazar
+                                                </button>
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            await acceptClubInviteAction(invite.id);
+                                                            toast.success("¡Te has unido al club!");
+                                                            router.refresh();
+                                                        } catch (err) {
+                                                            toast.error("Error al aceptar");
+                                                        }
+                                                    }}
+                                                    className="flex-1 md:flex-none px-8 py-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+                                                >
+                                                    Aceptar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         {/* ââ Hero section (Unificada) ââ */}
                         <div className="bg-card backdrop-blur-3xl border border-border rounded-[2rem] overflow-hidden shadow-2xl relative">
                             <div className="h-32 md:h-48 bg-gradient-to-br from-indigo-900/40 via-blue-900/30 to-slate-900/50 relative overflow-hidden">
@@ -241,6 +302,21 @@ export default function PlayerProfileClient({
                                             </span>
                                         </div>
                                     </div>
+
+                                    {memberClub && (
+                                        <div className="flex justify-center md:justify-start items-center gap-2 mb-3">
+                                            <div className="w-5 h-5 rounded-full bg-muted relative overflow-hidden border border-border">
+                                                {memberClub.logoUrl ? (
+                                                    <Image src={memberClub.logoUrl} alt="" fill className="object-cover" />
+                                                ) : (
+                                                    <ShieldCheck className="w-3 h-3 m-auto" />
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
+                                                Miembro de <span className="text-foreground">{memberClub.name}</span>
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-muted-foreground text-[10px] font-black uppercase tracking-widest">
                                         <div className="flex items-center gap-2">

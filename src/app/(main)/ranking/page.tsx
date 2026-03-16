@@ -1,14 +1,28 @@
 
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
-import { users, registrations, categoriesTable, bracketMatches, tournaments } from "@/db/schema";
+import { users, registrations, categoriesTable, bracketMatches, tournaments, clubs } from "@/db/schema";
 import { eq, inArray, asc, and, sql } from "drizzle-orm";
 
 export default async function RankingPage() {
     // 1. Fetch all users that are players (exclude clubs/centers)
-    const allUsers = await db.select()
-        .from(users)
-        .where(eq(users.role, "jugador"));
+    const allUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        category: users.category,
+        gender: users.gender,
+        points: users.points,
+        clubId: users.clubId,
+        club: {
+            name: clubs.name,
+            logoUrl: clubs.logoUrl
+        }
+    })
+    .from(users)
+    .leftJoin(clubs, eq(users.clubId, clubs.id))
+    .where(eq(users.role, "jugador"));
 
     // 2. Fetch all tournament registrations to count tournaments played per player
     const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));
@@ -74,7 +88,8 @@ export default async function RankingPage() {
         category: u.category,
         gender: u.gender,
         points: u.points || 0,
-        winsInCurrentCategory: winCounts[u.id]?.[u.category || "D"] || 0
+        winsInCurrentCategory: winCounts[u.id]?.[u.category || "D"] || 0,
+        club: u.club
     }));
 
     return (

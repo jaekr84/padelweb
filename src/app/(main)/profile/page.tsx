@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { tournaments, registrations, users, groupMatches, bracketMatches, clubs, categoriesTable } from "@/db/schema";
+import { tournaments, registrations, users, groupMatches, bracketMatches, clubs, categoriesTable, clubRequests } from "@/db/schema";
 import { eq, desc, inArray, gt, and, asc, sql, or } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
@@ -16,9 +16,14 @@ export default async function ProfilePage() {
         userRegistrations,
         clubProfileRes,
         createdTournaments,
-        availableCategories
+        availableCategories,
+        pendingInvites,
+        memberClubRes
     ] = await Promise.all([
-        db.select().from(users).where(eq(users.id, userId)).limit(1),
+        db.select()
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1),
         db.select({
             id: registrations.id,
             tournamentId: registrations.tournamentId,
@@ -47,7 +52,33 @@ export default async function ProfilePage() {
 
         db.select().from(clubs).where(eq(clubs.ownerId, userId)),
         db.select().from(tournaments).where(eq(tournaments.createdByUserId, userId)).orderBy(desc(tournaments.createdAt)),
-        db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(asc(categoriesTable.categoryOrder))
+        db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(asc(categoriesTable.categoryOrder)),
+        db.select({
+            id: clubRequests.id,
+            clubId: clubRequests.clubId,
+            userId: clubRequests.userId,
+            type: clubRequests.type,
+            status: clubRequests.status,
+            createdAt: clubRequests.createdAt,
+            club: {
+                id: clubs.id,
+                name: clubs.name,
+                logoUrl: clubs.logoUrl
+            }
+        })
+        .from(clubRequests)
+        .innerJoin(clubs, eq(clubRequests.clubId, clubs.id))
+        .where(and(eq(clubRequests.userId, userId), eq(clubRequests.status, "pending"))),
+
+        db.select({
+            id: clubs.id,
+            name: clubs.name,
+            logoUrl: clubs.logoUrl
+        })
+        .from(clubs)
+        .innerJoin(users, eq(users.clubId, clubs.id))
+        .where(eq(users.id, userId))
+        .limit(1)
     ]);
 
     const dbUser = dbUserRes[0];
@@ -160,6 +191,8 @@ export default async function ProfilePage() {
             availableCategories={availableCategories}
             rankingPosition={rankingPosition}
             categoryRanking={categoryRanking}
+            pendingInvites={JSON.parse(JSON.stringify(pendingInvites))}
+            memberClub={memberClubRes[0] || null}
         />
     );
 }

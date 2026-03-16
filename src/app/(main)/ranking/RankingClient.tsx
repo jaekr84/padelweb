@@ -13,6 +13,10 @@ interface RankingUser {
     category: string | null;
     gender: string | null;
     points: number | null;
+    club?: {
+        name: string;
+        logoUrl: string | null;
+    } | null;
 }
 
 interface TournamentCounts {
@@ -223,6 +227,12 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 <h3 className="text-base font-black uppercase italic tracking-tight truncate text-foreground group-hover:text-indigo-500 transition-colors">
                                                     {player.name || "Jugador"}
                                                 </h3>
+                                                {player.club && (
+                                                    <span className="text-[9px] font-black uppercase tracking-tighter text-indigo-500/60 flex items-center gap-1 shrink-0 bg-indigo-500/5 px-2 py-0.5 rounded-full border border-indigo-500/10">
+                                                        <Shield className="w-2.5 h-2.5" />
+                                                        {player.club.name}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground truncate tracking-wide">
                                                 <span className="opacity-50">@{getUserHandle(player.email)}</span>

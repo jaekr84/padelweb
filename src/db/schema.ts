@@ -255,6 +255,30 @@ export const registrationRequests = mysqlTable("registration_requests", {
     whatsappIdx: index("registration_requests_whatsapp_idx").on(table.whatsapp),
 }));
 
+export const clubRequests = mysqlTable("club_requests", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    clubId: varchar("club_id", { length: 256 }).notNull(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    type: varchar("type", { length: 20 }).notNull(), // 'invitation' | 'application'
+    status: varchar("status", { length: 20 }).notNull().default("pending"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").onUpdateNow().notNull(),
+}, (table) => ({
+    userIdIdx: index("club_requests_user_id_idx").on(table.userId),
+    clubIdIdx: index("club_requests_club_id_idx").on(table.clubId),
+}));
+
+export const clubRequestsRelations = relations(clubRequests, ({ one }) => ({
+    club: one(clubs, {
+        fields: [clubRequests.clubId],
+        references: [clubs.id],
+    }),
+    user: one(users, {
+        fields: [clubRequests.userId],
+        references: [users.id],
+    }),
+}));
+
 import { type InferSelectModel } from "drizzle-orm";
 export type Club = InferSelectModel<typeof clubs>;
 export type Category = InferSelectModel<typeof categoriesTable>;

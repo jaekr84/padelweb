@@ -36,10 +36,15 @@ export default async function UserManagementPage() {
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
 
+    const allClubs = await db.query.clubs.findMany({
+        orderBy: (clubs, { asc }) => [asc(clubs.name)]
+    });
+
     return (
         <UserManagementClient 
             initialUsers={allUsers as any} 
             categories={allCategories as any} 
+            clubs={allClubs as any}
         />
     );
 }
