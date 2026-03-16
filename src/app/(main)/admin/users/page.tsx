@@ -23,6 +23,7 @@ export default async function UserManagementPage() {
         bannedUntil: users.bannedUntil,
         points: users.points,
         category: users.category,
+        gender: users.gender,
         createdAt: users.createdAt,
     })
     .from(users)

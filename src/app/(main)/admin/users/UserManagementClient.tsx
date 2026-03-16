@@ -38,6 +38,7 @@ interface ManagedUser {
     bannedUntil: Date | null;
     points: number | null;
     category: string | null;
+    gender: string | null;
     createdAt: Date;
 }
 
@@ -54,11 +55,15 @@ interface UserManagementClientProps {
 
 export default function UserManagementClient({ initialUsers, categories }: UserManagementClientProps) {
     const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [roleFilter, setRoleFilter] = useState("all");
+    const [genderFilter, setGenderFilter] = useState("all");
     const [usersList, setUsersList] = useState(initialUsers);
+
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    
     const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [banDays, setBanDays] = useState(7);
     const [newRole, setNewRole] = useState("");
@@ -70,13 +75,21 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
         const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
         const matchesSearch = fullName.includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
         
-        if (filter === "all") return matchesSearch;
-        if (filter === "active") return matchesSearch && u.isActive !== false;
-        if (filter === "disabled") return matchesSearch && u.isActive === false;
-        if (filter === "banned") return matchesSearch && u.bannedUntil && new Date(u.bannedUntil) > new Date();
-        if (filter === "superadmin") return matchesSearch && u.role === "superadmin";
+        // Status Filter
+        let matchesStatus = true;
+        if (statusFilter === "active") matchesStatus = u.isActive !== false;
+        if (statusFilter === "disabled") matchesStatus = u.isActive === false;
+        if (statusFilter === "banned") matchesStatus = !!(u.bannedUntil && new Date(u.bannedUntil) > new Date());
+
+        // Role Filter
+        let matchesRole = true;
+        if (roleFilter !== "all") matchesRole = u.role === roleFilter;
+
+        // Gender Filter
+        let matchesGender = true;
+        if (genderFilter !== "all") matchesGender = u.gender === genderFilter;
         
-        return matchesSearch;
+        return matchesSearch && matchesStatus && matchesRole && matchesGender;
     });
 
     const handleUpdateCategory = async () => {
@@ -184,190 +197,335 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
-                            <input 
-                                type="text"
-                                placeholder="Buscar por nombre o email..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-11 pr-4 py-3.5 bg-card border border-border rounded-2xl w-full sm:w-80 text-sm font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
-                            />
-                        </div>
+                {/* Filters Section */}
+                <div className="space-y-4">
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                        <input 
+                            type="text"
+                            placeholder="Email o nombre..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-11 pr-4 py-3.5 bg-card border border-border rounded-2xl w-full text-sm font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                        {/* Status Filter */}
                         <div className="relative">
-                            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                             <select 
-                                value={filter}
-                                onChange={(e) => setFilter(e.target.value)}
-                                className="pl-11 pr-10 py-3.5 bg-card border border-border rounded-2xl text-sm font-bold outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
                             >
-                                <option value="all">Todos</option>
+                                <option value="all">Todos los Estados</option>
                                 <option value="active">Activos</option>
-                                <option value="disabled">Deshabilitados</option>
+                                <option value="disabled">Desactivados</option>
                                 <option value="banned">Baneados</option>
-                                <option value="superadmin">Administradores</option>
+                            </select>
+                        </div>
+
+                        {/* Role Filter */}
+                        <div className="relative">
+                            <UserCog className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <select 
+                                value={roleFilter}
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
+                            >
+                                <option value="all">Todos los Roles</option>
+                                <option value="jugador">Jugadores</option>
+                                <option value="club">Clubes</option>
+                                <option value="superadmin">Admin</option>
+                            </select>
+                        </div>
+
+                        {/* Gender Filter - Hidden grid span on mobile if odd, or full width */}
+                        <div className="relative col-span-2 lg:col-span-1">
+                            <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <select 
+                                value={genderFilter}
+                                onChange={(e) => setGenderFilter(e.target.value)}
+                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
+                            >
+                                <option value="all">Todos los Géneros</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="femenino">Femenino</option>
                             </select>
                         </div>
                     </div>
                 </div>
+                                {/* Users View */}
+                <div className="space-y-4">
+                    {/* Mobile Card Layout */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {filteredUsers.map((user) => {
+                            const banned = isCurrentlyBanned(user);
+                            const isInactive = user.isActive === false;
+                            
+                            return (
+                                <motion.div 
+                                    key={user.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-card border border-border rounded-3xl p-5 space-y-4 shadow-lg overflow-hidden relative group"
+                                >
+                                    {/* User Info Header */}
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center font-black italic text-indigo-500 text-lg">
+                                                {(user.firstName || "U").charAt(0)}
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <h3 className="text-base font-black uppercase italic tracking-tight truncate leading-tight">
+                                                    {user.firstName} {user.lastName}
+                                                </h3>
+                                                <p className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
+                                                    {user.email}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1 shrink-0">
+                                             <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
+                                                {user.role}
+                                            </span>
+                                            <div className="text-[10px] font-black uppercase italic text-indigo-500 bg-indigo-500/5 px-2 py-0.5 rounded-lg border border-indigo-500/10">
+                                                {user.category || "D"} • {user.points || 0} pts
+                                            </div>
+                                        </div>
+                                    </div>
 
-                {/* Users Table / List */}
-                <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-                    <div className="overflow-x-auto no-scrollbar">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-muted/30 border-b border-border">
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cat. / Puntos</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol</th>
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                                    <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {filteredUsers.map((user) => {
-                                    const banned = isCurrentlyBanned(user);
-                                    const isInactive = user.isActive === false;
-                                    
-                                    return (
-                                        <motion.tr 
-                                            key={user.id}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className={`group hover:bg-muted/50 transition-colors ${loading === user.id ? "opacity-50 pointer-events-none" : ""}`}
+                                    {/* Status Badge */}
+                                    <div className="flex items-center gap-2 py-2 border-y border-border/50">
+                                        {banned ? (
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500">
+                                                <Clock className="w-3.5 h-3.5" /> Baneado hasta {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
+                                            </div>
+                                        ) : isInactive ? (
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
+                                                <XCircle className="w-3.5 h-3.5" /> Cuenta Deshabilitada
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                                                <CheckCircle className="w-3.5 h-3.5" /> Usuario Activo
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setNewCategory(user.category || "D");
+                                                setNewPoints(user.points || 0);
+                                                setIsCategoryModalOpen(true);
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest"
                                         >
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center font-black italic text-indigo-500 shrink-0">
-                                                        {(user.firstName || "U").charAt(0)}
+                                            <Trophy className="w-3.5 h-3.5" /> Puntos
+                                        </button>
+                                        
+                                        <div className="flex gap-2">
+                                            {banned ? (
+                                                <button 
+                                                    onClick={() => handleUnban(user)}
+                                                    className="p-3 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 active:scale-95 transition-all"
+                                                >
+                                                    <UserCheck className="w-4 h-4" />
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setIsBanModalOpen(true);
+                                                    }}
+                                                    className="p-3 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 active:scale-95 transition-all"
+                                                    disabled={user.role === 'superadmin'}
+                                                >
+                                                    <Ban className="w-4 h-4" />
+                                                </button>
+                                            )}
+
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setNewRole(user.role);
+                                                    setIsRoleModalOpen(true);
+                                                }}
+                                                className="p-3 rounded-xl bg-muted border border-border text-muted-foreground active:scale-95 transition-all"
+                                                disabled={user.role === 'superadmin'}
+                                            >
+                                                <UserCog className="w-4 h-4" />
+                                            </button>
+
+                                            <button 
+                                                onClick={() => handleToggleStatus(user)}
+                                                className={`p-3 rounded-xl transition-all border ${isInactive 
+                                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                                                    : "bg-red-500/10 text-red-500 border-red-500/20"}`}
+                                                disabled={user.role === 'superadmin'}
+                                            >
+                                                {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Desktop Table Layout */}
+                    <div className="hidden md:block bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+                        <div className="overflow-x-auto no-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-muted/30 border-b border-border">
+                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
+                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cat. / Puntos</th>
+                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol</th>
+                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                                        <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                    {filteredUsers.map((user) => {
+                                        const banned = isCurrentlyBanned(user);
+                                        const isInactive = user.isActive === false;
+                                        
+                                        return (
+                                            <motion.tr 
+                                                key={user.id}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className={`group hover:bg-muted/50 transition-colors ${loading === user.id ? "opacity-50 pointer-events-none" : ""}`}
+                                            >
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center font-black italic text-indigo-500 shrink-0">
+                                                            {(user.firstName || "U").charAt(0)}
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-sm font-black uppercase italic tracking-tight truncate">
+                                                                {user.firstName} {user.lastName}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
+                                                                {user.email}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col min-w-0">
-                                                        <span className="text-sm font-black uppercase italic tracking-tight truncate">
-                                                            {user.firstName} {user.lastName}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[11px] font-black uppercase italic text-indigo-500">
+                                                            {user.category || "D"}
                                                         </span>
-                                                        <span className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
-                                                            {user.email}
+                                                        <span className="text-[9px] font-bold text-muted-foreground">
+                                                            {user.points || 0} pts
                                                         </span>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-[11px] font-black uppercase italic text-indigo-500">
-                                                        {user.category || "D"}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
+                                                        {user.role}
                                                     </span>
-                                                    <span className="text-[9px] font-bold text-muted-foreground">
-                                                        {user.points || 0} pts
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
-                                                    {user.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex flex-col gap-1">
-                                                    {banned ? (
-                                                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-500">
-                                                            <Clock className="w-3 h-3" /> Baneado hasta {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
-                                                        </span>
-                                                    ) : isInactive ? (
-                                                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-red-500">
-                                                            <XCircle className="w-3 h-3" /> Deshabilitado
-                                                        </span>
-                                                    ) : (
-                                                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-500">
-                                                            <CheckCircle className="w-3 h-3" /> Activo
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className="text-[10px] font-bold text-muted-foreground opacity-60">
-                                                    {format(new Date(user.createdAt), "dd MMM yyyy", { locale: es })}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button 
-                                                        onClick={() => {
-                                                            setSelectedUser(user);
-                                                            setNewCategory(user.category || "D");
-                                                            setNewPoints(user.points || 0);
-                                                            setIsCategoryModalOpen(true);
-                                                        }}
-                                                        className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
-                                                        title="Promover / Cambiar Categoría"
-                                                    >
-                                                        <Trophy className="w-4 h-4" />
-                                                    </button>
-                                                    {banned ? (
-                                                        <button 
-                                                            onClick={() => handleUnban(user)}
-                                                            className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
-                                                            title="Remover baneo"
-                                                        >
-                                                            <UserCheck className="w-4 h-4" />
-                                                        </button>
-                                                    ) : (
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        {banned ? (
+                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-500">
+                                                                <Clock className="w-3 h-3" /> Baneado hasta {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
+                                                            </span>
+                                                        ) : isInactive ? (
+                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+                                                                <XCircle className="w-3 h-3" /> Deshabilitado
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-500">
+                                                                <CheckCircle className="w-3 h-3" /> Activo
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedUser(user);
-                                                                setIsBanModalOpen(true);
+                                                                setNewCategory(user.category || "D");
+                                                                setNewPoints(user.points || 0);
+                                                                setIsCategoryModalOpen(true);
                                                             }}
-                                                            className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
-                                                            title="Banear temporalmente"
+                                                            className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                                                            title="Promover / Cambiar Categoría"
+                                                        >
+                                                            <Trophy className="w-4 h-4" />
+                                                        </button>
+                                                        {banned ? (
+                                                            <button 
+                                                                onClick={() => handleUnban(user)}
+                                                                className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                                                                title="Remover baneo"
+                                                            >
+                                                                <UserCheck className="w-4 h-4" />
+                                                            </button>
+                                                        ) : (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setSelectedUser(user);
+                                                                    setIsBanModalOpen(true);
+                                                                }}
+                                                                className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                                                                title="Banear temporalmente"
+                                                                disabled={user.role === 'superadmin'}
+                                                            >
+                                                                <Ban className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedUser(user);
+                                                                setNewRole(user.role);
+                                                                setIsRoleModalOpen(true);
+                                                            }}
+                                                            className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                                                            title="Cambiar rol"
                                                             disabled={user.role === 'superadmin'}
                                                         >
-                                                            <Ban className="w-4 h-4" />
+                                                            <UserCog className="w-4 h-4" />
                                                         </button>
-                                                    )}
 
-                                                    <button 
-                                                        onClick={() => {
-                                                            setSelectedUser(user);
-                                                            setNewRole(user.role);
-                                                            setIsRoleModalOpen(true);
-                                                        }}
-                                                        className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
-                                                        title="Cambiar rol"
-                                                        disabled={user.role === 'superadmin'}
-                                                    >
-                                                        <UserCog className="w-4 h-4" />
-                                                    </button>
-
-                                                    <button 
-                                                        onClick={() => handleToggleStatus(user)}
-                                                        className={`p-2.5 rounded-xl transition-all shadow-sm border ${isInactive 
-                                                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white" 
-                                                            : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white"}`}
-                                                        title={isInactive ? "Habilitar cuenta" : "Deshabilitar cuenta"}
-                                                        disabled={user.role === 'superadmin'}
-                                                    >
-                                                        {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </motion.tr>
-                                    );
-                                })}
-
-                                {filteredUsers.length === 0 && (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-20 text-center">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <Search className="w-10 h-10 text-muted-foreground opacity-20" />
-                                                <p className="text-sm font-black uppercase italic tracking-widest text-muted-foreground opacity-50">No se encontraron usuarios</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                                        <button 
+                                                            onClick={() => handleToggleStatus(user)}
+                                                            className={`p-2.5 rounded-xl transition-all shadow-sm border ${isInactive 
+                                                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white" 
+                                                                : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white"}`}
+                                                            title={isInactive ? "Habilitar cuenta" : "Deshabilitar cuenta"}
+                                                            disabled={user.role === 'superadmin'}
+                                                        >
+                                                            {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+
+                    {filteredUsers.length === 0 && (
+                        <div className="px-6 py-20 text-center bg-card border border-border rounded-[2.5rem]">
+                            <div className="flex flex-col items-center gap-3">
+                                <Search className="w-10 h-10 text-muted-foreground opacity-20" />
+                                <p className="text-sm font-black uppercase italic tracking-widest text-muted-foreground opacity-50">No se encontraron usuarios</p>
+                            </div>
+                        </div>
+                    )}
+                </div>   </div>
             </div>
 
             {/* Ban Modal */}
@@ -464,7 +622,7 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Seleccionar nuevo rol</label>
                                     <div className="grid grid-cols-1 gap-3">
-                                        {['jugador', 'club'].map(role => (
+                                        {['jugador', 'club', 'superadmin'].map(role => (
                                             <button 
                                                 key={role}
                                                 onClick={() => setNewRole(role)}
