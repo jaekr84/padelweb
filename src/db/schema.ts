@@ -9,7 +9,7 @@ export const users = mysqlTable("users", {
     firstName: varchar("first_name", { length: 256 }),
     lastName: varchar("last_name", { length: 256 }),
     phone: varchar("phone", { length: 50 }),
-    documentNumber: varchar("document_number", { length: 50 }),
+    documentNumber: varchar("document_number", { length: 50 }).unique(),
     birthDate: varchar("birth_date", { length: 50 }),
     gender: varchar("gender", { length: 20 }), // masculino | femenino
     bio: text("bio"),

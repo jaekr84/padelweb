@@ -39,6 +39,7 @@ interface ManagedUser {
     points: number | null;
     category: string | null;
     gender: string | null;
+    documentNumber: string | null;
     createdAt: Date;
 }
 
@@ -73,7 +74,10 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
 
     const filteredUsers = usersList.filter(u => {
         const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
-        const matchesSearch = fullName.includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = 
+            fullName.includes(search.toLowerCase()) || 
+            u.email.toLowerCase().includes(search.toLowerCase()) ||
+            (u.documentNumber && u.documentNumber.includes(search));
         
         // Status Filter
         let matchesStatus = true;
@@ -282,7 +286,7 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                                     {user.firstName} {user.lastName}
                                                 </h3>
                                                 <p className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
-                                                    {user.email}
+                                                    {user.email} {user.documentNumber && `• DNI: ${user.documentNumber}`}
                                                 </p>
                                             </div>
                                         </div>
@@ -411,7 +415,7 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                                                 {user.firstName} {user.lastName}
                                                             </span>
                                                             <span className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
-                                                                {user.email}
+                                                                {user.email} {user.documentNumber && `• DNI: ${user.documentNumber}`}
                                                             </span>
                                                         </div>
                                                     </div>

@@ -24,6 +24,7 @@ export default async function UserManagementPage() {
         points: users.points,
         category: users.category,
         gender: users.gender,
+        documentNumber: users.documentNumber,
         createdAt: users.createdAt,
     })
     .from(users)

@@ -59,13 +59,22 @@ export async function registerAction(formData: FormData) {
         return { error: "Faltan campos obligatorios" };
     }
 
-    // 1. Check if user already exists
+    // 1. Check if user already exists (email or document)
     const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email.toLowerCase())
     });
 
     if (existingUser) {
         return { error: "El email ya está registrado" };
+    }
+
+    if (documentNumber) {
+        const existingDoc = await db.query.users.findFirst({
+            where: eq(users.documentNumber, documentNumber)
+        });
+        if (existingDoc) {
+            return { error: "El documento ya está registrado" };
+        }
     }
 
     // 2. Determine role from invitation or default
