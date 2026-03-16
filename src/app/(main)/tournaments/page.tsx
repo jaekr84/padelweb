@@ -40,14 +40,20 @@ export default async function TournamentsPage({
 }) {
     const sp = await searchParams;
     const currentFilter = typeof sp.filter === "string" ? sp.filter : "todos";
+    const selectedCategory = typeof sp.category === "string" ? sp.category : "todas";
 
     let userId: string | null = null;
     let dbUser: any = null;
     let allTournaments: any[] = [];
+    let availableCategories: any[] = [];
 
     try {
         const session = await getSession() as { userId: string, role: string, email: string } | null;
         userId = session?.userId || null;
+
+        // Fetch categories for filtering
+        const { categoriesTable } = require("@/db/schema");
+        availableCategories = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
 
         // Fetch tournaments with joins manually
         const tournamentsRes = await db
@@ -66,13 +72,14 @@ export default async function TournamentsPage({
                     categories: tournaments.categories,
                     modalidad: tournaments.modalidad,
                     createdAt: tournaments.createdAt,
+                    location: tournaments.surface, // Assuming location or surface field
                 },
                 club: clubs,
             })
             .from(tournaments)
             .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
             .orderBy(desc(tournaments.createdAt));
-        
+
         // Map to the structure expected by the component
         const userRegs = userId ? await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId)) : [];
         const registeredSet = new Set(userRegs.map(r => r.tournamentId));
@@ -105,16 +112,14 @@ export default async function TournamentsPage({
     const registrable = published.filter(t => {
         const today = new Date().toISOString().split("T")[0];
         const hasClub = dbUser?.clubId != null;
-        
+
         if (hasClub && t.openDateClub) {
             return today >= t.openDateClub;
         }
         if (t.openDateGeneral) {
             return today >= t.openDateGeneral;
         }
-        
-        // Fallback or if no dates set, maybe it shouldn't be "open" yet
-        // but let's keep a default if both dates are missing (unlikely but just in case)
+
         return false;
     });
     openC = registrable.length;
@@ -122,35 +127,54 @@ export default async function TournamentsPage({
     const active = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
     totalActiveC = active.length;
 
+    // Apply Filter Pipeline
+    // 1. Status Filter
+    let baseFiltered = [];
     if (currentFilter === "todos") {
-        filteredTournaments = active;
+        baseFiltered = active;
     } else if (currentFilter === "abiertas") {
-        filteredTournaments = registrable;
+        baseFiltered = registrable;
     } else if (currentFilter === "envivo") {
-        filteredTournaments = live;
+        baseFiltered = live;
     } else if (currentFilter === "terminados") {
-        filteredTournaments = finished;
+        baseFiltered = finished;
     } else if (currentFilter === "mios" && userId) {
-        try {
-            const isSuperAdmin = dbUser?.role === 'superadmin';
-            if (isSuperAdmin) {
-                filteredTournaments = allTournaments;
-            } else {
-                const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
-                const regIds = new Set(userRegs.map(r => r.tournamentId));
-                filteredTournaments = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
-            }
-        } catch (e) {
-            console.error("Mios filter error:", e);
+        const isSuperAdmin = dbUser?.role === 'superadmin';
+        if (isSuperAdmin) {
+            baseFiltered = allTournaments;
+        } else {
+            const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
+            const regIds = new Set(userRegs.map(r => r.tournamentId));
+            baseFiltered = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
         }
+    } else {
+        baseFiltered = active;
     }
 
-    const filters = [
+    // 2. Category Filter
+    if (selectedCategory && selectedCategory !== "todas") {
+        filteredTournaments = baseFiltered.filter(t => {
+            let cats: string[] = [];
+            try {
+                if (Array.isArray(t.categories)) {
+                    cats = t.categories;
+                } else if (typeof t.categories === 'string') {
+                    cats = JSON.parse(t.categories);
+                }
+            } catch (e) { cats = []; }
+            
+            // Check if selectedCategory matches any category in the tournament (case insensitive and trimmed)
+            return cats.some(c => c.trim().toLowerCase() === selectedCategory.trim().toLowerCase() || c.trim().toLowerCase() === "libre");
+        });
+    } else {
+        filteredTournaments = baseFiltered;
+    }
+
+    const statusFilters = [
         { key: "todos", label: "Activos", count: totalActiveC },
         { key: "abiertas", label: "Inscripción", count: openC },
         { key: "envivo", label: "En Vivo", count: liveC },
         { key: "terminados", label: "Finalizados", count: finishedC },
-        // { key: "mios", label: "Mis Torneos", count: null },
     ];
 
     return (
@@ -196,22 +220,54 @@ export default async function TournamentsPage({
                         </div>
                     </div>
 
-                    {/* ── Filter pills ── */}
-                    <div className="flex gap-2 overflow-x-auto pb-1 mb-6 no-scrollbar">
-                        {filters.map(f => {
+                    {/* ── Status filters ── */}
+                    <div className="flex gap-2 overflow-x-auto pb-1 mb-3 no-scrollbar">
+                        {statusFilters.map(f => {
                             const isActive = currentFilter === f.key;
                             return (
-                                <Link key={f.key} href={`/tournaments?filter=${f.key}`} scroll={false} className="shrink-0">
-                                    <button className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
+                                <Link key={f.key} href={`/tournaments?filter=${f.key}&category=${selectedCategory}`} scroll={false} className="shrink-0">
+                                    <button className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
                                         ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
                                         : "bg-card border border-border text-muted-foreground hover:border-indigo-500/30 hover:text-foreground"
                                         }`}>
                                         {f.label}
                                         {f.count !== null && (
-                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
+                                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
                                                 {f.count}
                                             </span>
                                         )}
+                                    </button>
+                                </Link>
+                            );
+                        })}
+                    </div>
+
+                    {/* ── Category filters ── */}
+                    <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
+                        <Link 
+                            href={`/tournaments?filter=${currentFilter}&category=todas`} 
+                            scroll={false} 
+                            className="shrink-0"
+                        >
+                            <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedCategory === "todas" 
+                                ? "bg-blue-500/10 border-blue-500 text-blue-500" 
+                                : "bg-card border-border text-muted-foreground"}`}>
+                                Todas las Categorías
+                            </button>
+                        </Link>
+                        {availableCategories.map(cat => {
+                            const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+                            return (
+                                <Link 
+                                    key={cat.id} 
+                                    href={`/tournaments?filter=${currentFilter}&category=${cat.name}`} 
+                                    scroll={false} 
+                                    className="shrink-0"
+                                >
+                                    <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${isActive 
+                                        ? "bg-blue-500/10 border-blue-500 text-blue-500" 
+                                        : "bg-card border-border text-muted-foreground"}`}>
+                                        {cat.name}
                                     </button>
                                 </Link>
                             );
@@ -226,7 +282,7 @@ export default async function TournamentsPage({
                             </div>
                             <h3 className="text-lg font-black uppercase italic text-muted-foreground mb-2">Sin torneos</h3>
                             <p className="text-slate-600 text-sm max-w-[220px] leading-relaxed">
-                                No encontramos torneos en esta categoría.
+                                No encontramos torneos {selectedCategory !== "todas" ? `en la categoría ${selectedCategory}` : ""} con los filtros actuales.
                             </p>
                         </div>
                     ) : (
@@ -249,10 +305,10 @@ export default async function TournamentsPage({
 // ─── Tournament Card ────────────────────────────────────────────────────────
 function TournamentCard({ tournament, userClubId, isUserRegistered }: { tournament: any, userClubId?: string | null, isUserRegistered?: boolean }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    
+
     const today = new Date().toISOString().split("T")[0];
     const hasClub = !!userClubId;
-    
+
     let isOpen = false;
     let openDate: string | null = null;
 
@@ -334,10 +390,12 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
                             <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
                                 <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
+                                <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Fecha:</span>
                                 {formatDate(tournament.startDate)}
                             </div>
                             <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold min-w-0">
                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
+                                <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Lugar:</span>
                                 <span className="truncate">{tournament.location || "Por definir"}</span>
                             </div>
                             {/* Category and Gender Info */}
@@ -346,11 +404,12 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                 if (typeof cats === 'string') {
                                     try { cats = JSON.parse(cats); } catch (e) { cats = null; }
                                 }
-                                
+
                                 if (Array.isArray(cats) && cats.length > 0) {
                                     return (
                                         <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
                                             <Activity className="w-3 h-3 text-purple-500 shrink-0" />
+                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Categoría:</span>
                                             {cats[0] === "libre" ? "Libre" : cats.join(", ")}
                                         </div>
                                     );
@@ -363,11 +422,12 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                 if (typeof mod === 'string') {
                                     try { mod = JSON.parse(mod); } catch (e) { mod = null; }
                                 }
-                                
+
                                 if (mod?.genero) {
                                     return (
-                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold text-nowrap">
                                             <Zap className="w-3 h-3 text-amber-500 shrink-0" />
+                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Género:</span>
                                             <span className="capitalize">{mod.genero === 'hombre' ? 'Masculino' : mod.genero === 'mujer' ? 'Femenino' : 'Mixto'}</span>
                                         </div>
                                     );

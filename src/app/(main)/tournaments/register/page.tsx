@@ -114,6 +114,72 @@ export default async function RegisterPage({ searchParams }: Props) {
         openDate = null;
     }
 
+    // 🔍 Pre-check Requirements (Gender and Category)
+    const modalidad = typeof tournament.modalidad === 'string' 
+        ? JSON.parse(tournament.modalidad) 
+        : tournament.modalidad;
+    
+    const reqGender = modalidad?.genero?.toLowerCase();
+    const userGender = dbUser.gender?.toLowerCase();
+
+    // 1. Check Gender
+    if (reqGender && reqGender !== "mixto") {
+        const isMaleTournament = reqGender.startsWith("hombre");
+        const isFemaleTournament = reqGender.startsWith("mujer");
+        const isMalePlayer = userGender === "masculino";
+        const isFemalePlayer = userGender === "femenino";
+
+        if ((isMaleTournament && !isMalePlayer) || (isFemaleTournament && !isFemalePlayer)) {
+            return (
+                <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+                    <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-2xl max-w-sm">
+                        <div className="text-4xl mb-4">🚻</div>
+                        <h2 className="text-2xl font-black italic uppercase text-white mb-2">Requisito de Género</h2>
+                        <p className="text-slate-400 text-sm mb-8">
+                            Este torneo es exclusivo para {isMaleTournament ? "hombres" : "mujeres"}. Tu perfil indica que no cumples con este requisito.
+                        </p>
+                        <Link href="/tournaments" className="px-8 py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">
+                            ← Volver
+                        </Link>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+    // 2. Check Category (Hierarchical)
+    const tCats: string[] = Array.isArray(tournament.categories) 
+        ? tournament.categories 
+        : (typeof tournament.categories === 'string' ? JSON.parse(tournament.categories) : []);
+    
+    if (tCats.length > 0 && !tCats.includes("libre")) {
+        const { categoriesTable } = require("@/db/schema");
+        const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
+        
+        const userCatData = allCats.find(c => c.name.trim().toLowerCase() === dbUser.category?.trim().toLowerCase());
+        const tournamentCatsData = allCats.filter(c => tCats.some(tc => tc.toLowerCase() === c.name.toLowerCase()));
+        
+        // Find the "highest" category allowed in the tournament (the one with the SMALLEST categoryOrder)
+        const highestTournamentOrder = Math.min(...tournamentCatsData.map(c => c.categoryOrder));
+
+        if (userCatData && userCatData.categoryOrder < highestTournamentOrder) {
+            return (
+                <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+                    <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-2xl max-w-sm">
+                        <div className="text-4xl mb-4">🏆</div>
+                        <h2 className="text-2xl font-black italic uppercase text-white mb-2">Categoría Superior</h2>
+                        <p className="text-slate-400 text-sm mb-8">
+                            Tu categoría ({dbUser.category}) es superior a las permitidas en este torneo. Solo jugadores de categorías acordes o inferiores pueden participar.
+                        </p>
+                        <Link href="/tournaments" className="px-8 py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">
+                            ← Volver
+                        </Link>
+                    </div>
+                </div>
+            );
+        }
+    }
+
     if (!isOpen) {
         return (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "4rem 2rem" }}>

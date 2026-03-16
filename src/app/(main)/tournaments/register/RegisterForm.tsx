@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
-import { registerForTournament } from "./actions";
+import { registerForTournament, searchPlayersForPartner } from "./actions";
 import {
     Check, UserPlus, Users, Trophy, MapPin,
     Calendar, Info, Search, User, ArrowLeft, ChevronRight
@@ -73,12 +73,34 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
     const [partnerName, setPartnerName] = useState("");
     const [search, setSearch] = useState("");
     const [focused, setFocused] = useState(false);
+    const [partnerUserId, setPartnerUserId] = useState<string | null>(null);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (partnerMode !== "search" || search.length < 2 || partnerName) {
+            setSearchResults([]);
+            return;
+        }
+
+        const timeout = setTimeout(async () => {
+            try {
+                const results = await searchPlayersForPartner(search);
+                setSearchResults(results);
+            } catch (e) {
+                console.error(e);
+            }
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [search, partnerMode, partnerName]);
 
     const switchMode = (mode: "search" | "guest") => {
         setPartnerMode(mode);
         setPartnerName("");
+        setPartnerUserId(null);
         setGuestName("");
         setSearch("");
+        setSearchResults([]);
     };
 
     const handleConfirm = () => {
@@ -89,7 +111,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                     tournamentId: tournament.id,
                     category: hasCategories ? category : null,
                     partnerName: isIndividual ? null : partnerDisplayName || null,
-                    partnerUserId: null,
+                    partnerUserId: isIndividual ? null : (partnerMode === "search" ? partnerUserId : null),
                     isGuestPartner: !isIndividual && partnerMode === "guest",
                 });
                 setStep("success");
@@ -391,7 +413,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                                         <span className="font-bold text-blue-100 text-sm">{partnerName}</span>
                                                     </div>
                                                     <button
-                                                        onClick={() => { setPartnerName(""); setSearch(""); }}
+                                                        onClick={() => { setPartnerName(""); setSearch(""); setPartnerUserId(null); }}
                                                         className="text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-white transition-colors"
                                                     >
                                                         Cambiar
@@ -399,21 +421,43 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                                 </div>
                                             )}
 
-                                            {focused && !partnerName && search.trim() && (
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-muted border border-slate-700 rounded-xl p-2 shadow-2xl z-20">
-                                                    {search.trim().length < 2 ? (
-                                                        <p className="text-center py-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest">Mínimo 2 caracteres</p>
+                                            {focused && !partnerName && search.trim().length >= 2 && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-muted border border-slate-700 rounded-xl p-2 shadow-2xl z-20 max-h-60 overflow-y-auto">
+                                                    {searchResults.length > 0 ? (
+                                                        searchResults.map(p => (
+                                                            <button
+                                                                key={p.id}
+                                                                className="w-full text-left p-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 transition-colors mb-1"
+                                                                onMouseDown={() => {
+                                                                    setPartnerName(`${p.firstName} ${p.lastName || ""}`);
+                                                                    setPartnerUserId(p.id);
+                                                                    setSearch("");
+                                                                    setSearchResults([]);
+                                                                }}
+                                                            >
+                                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-xs flex items-center justify-center italic">
+                                                                    {(p.firstName || "U").charAt(0)}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="font-bold text-sm text-white truncate">{p.firstName} {p.lastName}</p>
+                                                                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
+                                                                </div>
+                                                            </button>
+                                                        ))
                                                     ) : (
-                                                        <button
-                                                            className="w-full text-left p-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 transition-colors"
-                                                            onMouseDown={() => { setPartnerName(search.trim()); setSearch(""); }}
-                                                        >
-                                                            <div className="w-8 h-8 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 font-black text-xs">?</div>
-                                                            <div>
-                                                                <p className="font-bold text-sm text-white">Usar "{search.trim()}"</p>
-                                                                <p className="text-[10px] text-slate-500">Como nombre temporal</p>
-                                                            </div>
-                                                        </button>
+                                                        <div className="p-4 text-center">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">No se encontraron jugadores registrados</p>
+                                                            <button
+                                                                className="mt-2 w-full text-left p-3 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center gap-3 transition-colors"
+                                                                onMouseDown={() => { setPartnerName(search.trim()); setPartnerUserId(null); setSearch(""); }}
+                                                            >
+                                                                <div className="w-8 h-8 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 font-black text-xs">?</div>
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-white">Usar "{search.trim()}"</p>
+                                                                    <p className="text-[10px] text-slate-500">Como nombre (no registrado)</p>
+                                                                </div>
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             )}
