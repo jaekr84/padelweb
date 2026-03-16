@@ -49,16 +49,16 @@ function slotName(t: BracketSlot): string | null {
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
 /** Ensures data is an object/array, parsing it only if it's a string */
-function ensureParsed(data: any) {
-    if (typeof data === 'string') {
+function ensureParsed(val: any) {
+    if (typeof val === 'string') {
         try {
-            return JSON.parse(data);
+            return JSON.parse(val);
         } catch (e) {
-            console.error("[ensureParsed] Failed to parse:", data);
-            return [];
+            console.error("[ensureParsed] Failed to parse:", val);
+            return val;
         }
     }
-    return data || [];
+    return val;
 }
 
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
@@ -283,16 +283,18 @@ export async function finalizeTournament(id: string): Promise<{ ok: boolean; err
 
 export async function awardTournamentPoints(tournamentId: string, providedBracket?: any[]) {
     try {
-        console.log(`[awardTournamentPoints] Starting for tournament ${tournamentId}`);
+        console.log(`[awardTournamentPoints] Iniciando para torneo: ${tournamentId}`);
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
         if (!t || !t.pointsConfig) {
-            console.log(`[awardTournamentPoints] No tournament or pointsConfig found for ${tournamentId}`);
+            console.log(`[awardTournamentPoints] No se encontró el torneo o puntosConfig para ${tournamentId}`);
             return;
         }
 
-        const points = t.pointsConfig as any;
+        const points = ensureParsed(t.pointsConfig);
+        console.log(`[awardTournamentPoints] Config de puntos cargada:`, points);
+
         const regs = await db.select().from(registrations).where(eq(registrations.tournamentId, tournamentId));
-        console.log(`[awardTournamentPoints] Found ${regs.length} registrations`);
+        console.log(`[awardTournamentPoints] Encontradas ${regs.length} inscripciones`);
         
         let bracketToProcess = providedBracket;
         if (!bracketToProcess) {
@@ -302,51 +304,54 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                 team1: bm.team1Id ? { id: bm.team1Id } : null,
                 team2: bm.team2Id ? { id: bm.team2Id } : null,
             }));
-            console.log(`[awardTournamentPoints] Loaded ${bracketToProcess.length} matches from DB`);
         }
 
         const userPointsAddition = new Map<string, number>();
 
-        const addPoints = (playerId: string | null | undefined, pts: number) => {
+        const addPoints = (playerId: string | null | undefined, pts: number | string) => {
             if (!playerId || playerId === "BYE") return;
             
+            const pointsToAdd = Number(pts) || 0;
+            if (pointsToAdd === 0) return;
+
             let r = regs.find(reg => reg.id === playerId);
             if (!r) {
-                // Try fallback logic if playerId is actually a UserID
                 r = regs.find(reg => reg.userId === playerId);
             }
 
             if (r) {
-                const pointsToAdd = Number(pts) || 0;
-                if (pointsToAdd === 0) return;
-
+                console.log(`[awardTournamentPoints] -> Jugador ${playerId} (User: ${r.userId}) suma ${pointsToAdd}`);
                 if (r.userId) {
                     userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pointsToAdd);
                 }
                 if (r.partnerUserId) {
                     userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pointsToAdd);
                 }
+            } else {
+                console.warn(`[awardTournamentPoints] No se encontró inscripción para ID: ${playerId}`);
             }
         };
 
         if (bracketToProcess) {
             bracketToProcess.forEach(bm => {
                 if (!bm.confirmed) return;
-                const t1Id = (bm.team1 as any)?.id;
-                const t2Id = (bm.team2 as any)?.id;
+                const t1Id = (bm.team1 as any)?.id?.toString();
+                const t2Id = (bm.team2 as any)?.id?.toString();
+                const wId = bm.winnerId?.toString();
                 
                 if (bm.round === 0) { // Final
-                    if (bm.winnerId === t1Id) {
+                    if (wId === t1Id) {
+                        console.log(`[awardTournamentPoints] Win: ${t1Id}, Finalist: ${t2Id}`);
                         addPoints(t1Id, points.winner || 0);
                         addPoints(t2Id, points.finalist || 0);
-                    } else if (bm.winnerId === t2Id) {
+                    } else if (wId === t2Id) {
+                        console.log(`[awardTournamentPoints] Win: ${t2Id}, Finalist: ${t1Id}`);
                         addPoints(t2Id, points.winner || 0);
                         addPoints(t1Id, points.finalist || 0);
                     }
                 } else {
                     // Semifinals, Quarterfinals, Octavos
-                    const winnerId = bm.winnerId;
-                    const loserId = winnerId === t1Id ? t2Id : (winnerId === t2Id ? t1Id : null);
+                    const loserId = wId === t1Id ? t2Id : (wId === t2Id ? t1Id : null);
                     
                     if (loserId) {
                         let pts = 0;
@@ -354,6 +359,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                         else if (bm.round === 2) pts = points.quarter || 0;
                         else if (bm.round === 3) pts = points.octavos || 0;
                         
+                        console.log(`[awardTournamentPoints] Loss in Round ${bm.round}: ${loserId}, Pts: ${pts}`);
                         if (pts > 0) addPoints(loserId, pts);
                     }
                 }
