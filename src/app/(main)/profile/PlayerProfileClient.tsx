@@ -38,6 +38,7 @@ import ClubProfileClient from "../profiles/club/ClubProfileClient";
 import Image from "next/image";
 import imageCompression from "browser-image-compression";
 import { Image as ImageIcon } from "lucide-react";
+import PlayerCard from "@/components/PlayerCard";
 
 interface PlayerProfileClientProps {
     dbUser: any;
@@ -132,6 +133,9 @@ export default function PlayerProfileClient({
         return {
             matches: matchesParticipated.length,
             wins,
+            losses: matchesParticipated.length - wins,
+            draws: 0,
+            winRate: matchesParticipated.length > 0 ? Math.round((wins / matchesParticipated.length) * 100) : 0,
             points: dbUser?.points || 0,
             category: dbUser?.category || "D",
             side: dbUser?.side || "drive"
@@ -361,91 +365,29 @@ export default function PlayerProfileClient({
                         {/* ââ Active Content ââ */}
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             {activeTab === "tournaments" && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="md:col-span-2 flex flex-col gap-6">
-                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Sobre mí</h3>
-                                            <p className="text-foreground/80 text-sm leading-relaxed font-medium">
-                                                {dbUser?.bio || "Sin biografía aún. ¡Cuéntanos sobre tu juego! 🎾"}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex flex-col gap-4">
-                                            <h2 className="text-sm font-black uppercase tracking-widest italic px-4">Torneos en Curso</h2>
-                                            {activeTournaments.length === 0 ? (
-                                                <div className="bg-card border border-border rounded-[2rem] p-12 text-center flex flex-col items-center gap-4">
-                                                    <Activity className="h-10 w-10 text-muted-foreground/40" />
-                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">No hay torneos activos</p>
-                                                    <Link href="/tournaments" className="mt-2 px-6 py-3 bg-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40">Explorar</Link>
-                                                </div>
-                                            ) : (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {activeTournaments.map(reg => (
-                                                        <div key={reg.id} className="group bg-card border border-border rounded-[2rem] p-6 hover:border-indigo-500/50 transition-all flex flex-col gap-4 shadow-xl">
-                                                            <div className="flex justify-between items-start">
-                                                                <div className="flex flex-col gap-1">
-                                                                    <h3 className="font-black uppercase italic tracking-tight text-lg group-hover:text-indigo-600 dark:text-indigo-400 transition-colors truncate">{reg.tournament.name}</h3>
-                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Partner: {reg.partnerName || "TBD"}</span>
-                                                                </div>
-                                                                <div className={`px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                                                                    reg.tournament.status === "en_curso" ? "bg-blue-500/20 text-blue-400" : 
-                                                                    reg.tournament.status === "en_eliminatorias" ? "bg-purple-500/20 text-purple-400" :
-                                                                    "bg-emerald-500/20 text-emerald-400"
-                                                                }`}>
-                                                                    {reg.tournament.status === "en_curso" ? "Activo" : 
-                                                                     reg.tournament.status === "en_eliminatorias" ? "Cruces" : 
-                                                                     "Inscrito"}
-                                                                </div>
-                                                            </div>
-                                                            <Link href={`/tournaments/${reg.tournamentId}`} className="w-full bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                                                Ver Resultados <ChevronRight className="h-3 w-3" />
-                                                            </Link>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-6">
-                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nivel y Ranking</h3>
-                                            <div className="grid grid-cols-3 gap-2 md:gap-4">
-                                                <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-indigo-500">#{categoryRanking || 1}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Ranking Cat.</span>
-                                                </div>
-                                                <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-emerald-500">{realCategory}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Categoría</span>
-                                                </div>
-                                                <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-blue-500">{(dbUser?.points || 0).toLocaleString()}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Puntos</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Record</h3>
-                                            <div className="flex flex-col gap-4">
-                                                <div className="flex items-center justify-between text-foreground/80">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Partidos</span>
-                                                    <span className="text-sm font-black italic">{stats.matches}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-foreground/80">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Victorias</span>
-                                                    <span className="text-sm font-black italic text-emerald-500">{stats.wins}</span>
-                                                </div>
-                                                <div className="h-1 bg-card rounded-full overflow-hidden mt-2">
-                                                    <div
-                                                        className="h-full bg-indigo-600"
-                                                        style={{ width: `${stats.matches > 0 ? (stats.wins / stats.matches) * 100 : 0}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className="flex flex-col items-center gap-8">
+                                    <PlayerCard 
+                                        player={{
+                                            firstName: dbUser.firstName,
+                                            lastName: dbUser.lastName,
+                                            imageUrl: dbUser.imageUrl,
+                                            category: realCategory,
+                                            side: dbUser.side,
+                                            points: dbUser.points,
+                                            clubName: memberClub?.name
+                                        }}
+                                        stats={{
+                                            pj: stats.matches,
+                                            pg: stats.wins,
+                                            pp: stats.losses,
+                                            pe: stats.draws,
+                                            wr: stats.winRate,
+                                            trofeos: trophies.length
+                                        }}
+                                    />
+                                    
+                                    {/* Optional: We could keep some secondary info below if needed, 
+                                        but the user said "solo que aparezca la tarjeta" */}
                                 </div>
                             )}
 
