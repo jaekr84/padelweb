@@ -41,14 +41,29 @@ export type SaveFixtureInput = {
     }[];
     championName?: string;
 };
-
 function slotName(t: BracketSlot): string | null {
     if (t === null || t === "BYE") return null;
     return (t as PlayerLike).name;
 }
 
+const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+/** Ensures data is an object/array, parsing it only if it's a string */
+function ensureParsed(data: any) {
+    if (typeof data === 'string') {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            console.error("[ensureParsed] Failed to parse:", data);
+            return [];
+        }
+    }
+    return data || [];
+}
+
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
+        console.log(`[saveTournamentFixture] Saving tournament ${input.tournamentId} (Phase: ${input.phase})`);
         const [prevT] = await db
             .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId })
             .from(tournaments)
@@ -71,28 +86,28 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
         await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
 
-        // 2. Insert new groups and collect ID mapping
+        // 2. Insert groups
         const groupIdMap = new Map<string, string>();
         for (const g of input.groups) {
-            const newId = crypto.randomUUID();
+            const idToUse = isUUID(g.id) ? g.id : crypto.randomUUID();
             await db
                 .insert(tournamentGroups)
                 .values({
-                    id: newId,
+                    id: idToUse,
                     tournamentId: input.tournamentId,
                     name: g.name,
-                    players: g.players,
+                    players: ensureParsed(g.players),
                 });
-            groupIdMap.set(g.id, newId);
+            groupIdMap.set(g.id, idToUse);
         }
 
         // 3. Insert group matches
         if (input.matches.length > 0) {
             const matchValues = input.matches.map(m => {
-                const dbGroupId = groupIdMap.get(m.groupId);
-                if (!dbGroupId) throw new Error(`Internal Error: Group ID ${m.groupId} not found in map`);
+                const dbGroupId = groupIdMap.get(m.groupId) || m.groupId; // Fallback if already mapped
+                const idToUse = isUUID(m.id) ? m.id : crypto.randomUUID();
                 return {
-                    id: crypto.randomUUID(),
+                    id: idToUse,
                     tournamentId: input.tournamentId,
                     groupId: dbGroupId,
                     team1Id: (m.team1 as any)?.id ?? null,
@@ -109,20 +124,20 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
 
         // 4. Insert bracket matches
         if (input.bracket.length > 0) {
-            const allPlayers = input.groups.flatMap(g => g.players);
+            const allPlayers = input.groups.flatMap(g => ensureParsed(g.players));
             const bracketValues = input.bracket.map(bm => {
-                // Try to find the winner's name from allPlayers
                 let winnerName = bm.winnerId
                     ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
                     : null;
                 
-                // Fallback: if we have the winner's name in the input match object
                 if (!winnerName && bm.winnerId && (bm as any).winnerName) {
                     winnerName = (bm as any).winnerName;
                 }
 
+                const idToUse = isUUID(bm.id) ? bm.id : crypto.randomUUID();
+
                 return {
-                    id: crypto.randomUUID(),
+                    id: idToUse,
                     tournamentId: input.tournamentId,
                     round: bm.round,
                     slot: bm.slot,
@@ -284,8 +299,8 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, tournamentId));
             bracketToProcess = dbBracket.map(bm => ({
                 ...bm,
-                team1: { id: (bm as any).team1Id },
-                team2: { id: (bm as any).team2Id },
+                team1: bm.team1Id ? { id: bm.team1Id } : null,
+                team2: bm.team2Id ? { id: bm.team2Id } : null,
             }));
             console.log(`[awardTournamentPoints] Loaded ${bracketToProcess.length} matches from DB`);
         }
@@ -328,15 +343,19 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                         addPoints(t2Id, points.winner || 0);
                         addPoints(t1Id, points.finalist || 0);
                     }
-                } else if (bm.round === 1) { // Semifinals
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.semi || 0);
-                } else if (bm.round === 2) { // Quarterfinals
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.quarter || 0);
-                } else if (bm.round === 3) { // Octavos
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.octavos || 100); // Default if not in config
+                } else {
+                    // Semifinals, Quarterfinals, Octavos
+                    const winnerId = bm.winnerId;
+                    const loserId = winnerId === t1Id ? t2Id : (winnerId === t2Id ? t1Id : null);
+                    
+                    if (loserId) {
+                        let pts = 0;
+                        if (bm.round === 1) pts = points.semi || 0;
+                        else if (bm.round === 2) pts = points.quarter || 0;
+                        else if (bm.round === 3) pts = points.octavos || 0;
+                        
+                        if (pts > 0) addPoints(loserId, pts);
+                    }
                 }
             });
         }

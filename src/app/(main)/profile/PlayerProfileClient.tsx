@@ -100,23 +100,26 @@ export default function PlayerProfileClient({
 
     const myName = dbUser?.firstName || "";
 
-    const myTeamNames = useMemo(() => {
-        return new Set(registrations.map(r => (r.teamName || "").toLowerCase().trim()));
+    const myRegistrationIds = useMemo(() => {
+        return new Set(registrations.map(r => r.id));
     }, [registrations]);
 
     // Stats aggregation
     const stats = useMemo(() => {
         const matchesParticipated = matchHistory.filter(m => {
-            const team1 = (m.match.team1Name || "").toLowerCase().trim();
-            const team2 = (m.match.team2Name || "").toLowerCase().trim();
-            return myTeamNames.has(team1) || myTeamNames.has(team2);
+            return myRegistrationIds.has(m.match.team1Id) || myRegistrationIds.has(m.match.team2Id);
         });
 
         const wins = matchesParticipated.filter(m => {
-            const team1 = (m.match.team1Name || "").toLowerCase().trim();
-            const isT1 = myTeamNames.has(team1);
+            const t1Id = m.match.team1Id;
+            const isT1 = myRegistrationIds.has(t1Id);
             const s1 = Number(m.match.score1) || 0;
             const s2 = Number(m.match.score2) || 0;
+            
+            if (m.match.winnerId) {
+                return myRegistrationIds.has(m.match.winnerId);
+            }
+            
             return isT1 ? s1 > s2 : s2 > s1;
         }).length;
 
@@ -127,7 +130,7 @@ export default function PlayerProfileClient({
             category: dbUser?.category || "D",
             side: dbUser?.side || "drive"
         };
-    }, [matchHistory, dbUser, myTeamNames]);
+    }, [matchHistory, dbUser, myRegistrationIds]);
 
     const realCategory = useMemo(() => {
         // Source of truth is the category assigned in the DB
@@ -141,29 +144,45 @@ export default function PlayerProfileClient({
     }, [availableCategories, dbUser?.points, dbUser?.category]);
 
     const activeTournaments = registrations.filter(r =>
-        r.tournament.status === "en_curso" || r.tournament.status === "en_eliminatorias"
+        r.tournament.status === "en_curso" || 
+        r.tournament.status === "en_eliminatorias" ||
+        r.tournament.status === "published"
     );
 
     const allMatchesHistory = useMemo(() => {
         return matchHistory.map(m => {
-            const team1 = (m.match.team1Name || "").toLowerCase().trim();
-            const team2 = (m.match.team2Name || "").toLowerCase().trim();
-            const isT1 = myTeamNames.has(team1);
-            const isT2 = myTeamNames.has(team2);
+            const t1Id = m.match.team1Id;
+            const t2Id = m.match.team2Id;
+            const isT1 = myRegistrationIds.has(t1Id);
+            const isT2 = myRegistrationIds.has(t2Id);
+
+            let won = false;
+            if (m.match.winnerId) {
+                won = myRegistrationIds.has(m.match.winnerId);
+            } else {
+                const s1 = Number(m.match.score1) || 0;
+                const s2 = Number(m.match.score2) || 0;
+                if (isT1) won = s1 > s2;
+                else if (isT2) won = s2 > s1;
+            }
 
             return {
                 ...m,
-                type: m.match.type === "group" ? "Fase de Grupos" : "Eliminatorias",
+                type: m.match.round !== undefined ? "Eliminatorias" : "Fase de Grupos",
                 tournamentName: m.tournamentName,
                 isParticipant: isT1 || isT2,
                 isT1,
                 opponents: isT1 ? m.match.team2Name : m.match.team1Name,
-                won: isT1 ? (m.match.score1 || 0) > (m.match.score2 || 0) : (m.match.score2 || 0) > (m.match.score1 || 0)
+                won
             };
         })
         .filter(m => m.isParticipant)
         .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
-    }, [matchHistory, myTeamNames]);
+    }, [matchHistory, myRegistrationIds]);
+
+    const trophies = useMemo(() => {
+        return allMatchesHistory.filter(m => m.match.round === 0 && m.won);
+    }, [allMatchesHistory]);
 
     return (
 
@@ -289,8 +308,14 @@ export default function PlayerProfileClient({
                                                                     <h3 className="font-black uppercase italic tracking-tight text-lg group-hover:text-indigo-600 dark:text-indigo-400 transition-colors truncate">{reg.tournament.name}</h3>
                                                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Partner: {reg.partnerName || "TBD"}</span>
                                                                 </div>
-                                                                <div className={`px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${reg.tournament.status === "en_curso" ? "bg-blue-500/20 text-blue-400" : "bg-purple-500/20 text-purple-400"}`}>
-                                                                    {reg.tournament.status === "en_curso" ? "Activo" : "Cruces"}
+                                                                <div className={`px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                                                                    reg.tournament.status === "en_curso" ? "bg-blue-500/20 text-blue-400" : 
+                                                                    reg.tournament.status === "en_eliminatorias" ? "bg-purple-500/20 text-purple-400" :
+                                                                    "bg-emerald-500/20 text-emerald-400"
+                                                                }`}>
+                                                                    {reg.tournament.status === "en_curso" ? "Activo" : 
+                                                                     reg.tournament.status === "en_eliminatorias" ? "Cruces" : 
+                                                                     "Inscrito"}
                                                                 </div>
                                                             </div>
                                                             <Link href={`/tournaments/${reg.tournamentId}`} className="w-full bg-white/10 group-hover:bg-indigo-600 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest">
@@ -399,13 +424,65 @@ export default function PlayerProfileClient({
                             )}
 
                             {activeTab === "trophies" && (
-                                <div className="bg-card border border-border rounded-[2rem] p-16 text-center flex flex-col items-center gap-6 shadow-xl relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
-                                    <Trophy className="h-16 w-16 text-muted-foreground/40 relative" />
-                                    <div className="flex flex-col gap-2 relative">
-                                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em]">Muro de Campeones</p>
-                                        <p className="text-muted-foreground/60 text-[9px] font-medium max-w-xs mx-auto">Próximamente tus títulos y trofeos aparecerán aquí para el mundo.</p>
+                                <div className="space-y-6">
+                                    <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col items-center gap-4 text-center relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-amber-500/5 blur-[100px]" />
+                                        <div className="relative">
+                                            <Trophy className="h-12 w-12 text-amber-500 mb-2" />
+                                            <h2 className="text-xl font-black uppercase italic tracking-tight">Muro de Campeones</h2>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{trophies.length} Títulos Conseguidos</p>
+                                        </div>
                                     </div>
+
+                                    {trophies.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {trophies.map((t, idx) => (
+                                                <div key={idx} className="group bg-card border border-border p-6 rounded-[2rem] hover:border-amber-500/50 shadow-xl transition-all relative overflow-hidden">
+                                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                        <Trophy className="h-20 w-20 text-amber-500" />
+                                                    </div>
+                                                    <div className="relative flex flex-col gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                                                                <Medal className="h-5 w-5 text-amber-500" />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-black uppercase italic text-lg tracking-tight group-hover:text-amber-500 transition-colors">{t.tournamentName}</h3>
+                                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Campeon de Torneo</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="h-px bg-border/50" />
+                                                        
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Resultado Final</span>
+                                                                <span className="text-sm font-black italic tabular-nums text-emerald-500">{t.match.score1} - {t.match.score2}</span>
+                                                            </div>
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Fecha</span>
+                                                                <span className="text-xs font-bold text-foreground/80">{new Date(t.match.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <Link href={`/tournaments/${t.match.tournamentId}`} className="w-full bg-white/5 group-hover:bg-amber-500 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-black">
+                                                            Ver Torneo <ChevronRight className="h-3 w-3" />
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-card border border-border rounded-[2rem] p-16 text-center flex flex-col items-center gap-6 shadow-xl relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
+                                            <Trophy className="h-16 w-16 text-muted-foreground/40 relative" />
+                                            <div className="flex flex-col gap-2 relative">
+                                                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em]">Aún no hay títulos</p>
+                                                <p className="text-muted-foreground/60 text-[9px] font-medium max-w-xs mx-auto">¡Seguí compitiendo! Tus trofeos aparecerán aquí cuando ganes tu primer torneo.</p>
+                                                <Link href="/tournaments" className="mt-4 px-8 py-3 bg-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40">Ver Próximos Torneos</Link>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

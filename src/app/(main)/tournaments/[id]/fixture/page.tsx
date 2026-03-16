@@ -101,10 +101,7 @@ export default async function TournamentFixturePage({ params }: Props) {
         };
     });
 
-    // If already started, redirect to manage
-    if (tournament.status !== "published" && tournament.status !== "draft") {
-        redirect(`/tournaments/${id}/manage`);
-    }
+    // Removed redirect to allow accessing inscription list even if started
 
     // Fetch all available categories
     const allCategories = await db

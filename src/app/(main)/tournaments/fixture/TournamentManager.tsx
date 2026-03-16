@@ -10,7 +10,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export interface TournamentManagerProps {
     tournamentId: string;
@@ -73,6 +74,13 @@ export default function TournamentManager({
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+    // Sync state with props when initial data changes (e.g. after router.refresh())
+    useEffect(() => {
+        setGroups(initialGroups);
+        setMatches(initialMatches);
+        setBracket(initialBracket);
+    }, [initialGroups, initialMatches, initialBracket]);
+
     // ─── Renderizado Condicional ───
 
     // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
@@ -99,6 +107,9 @@ export default function TournamentManager({
                 : [];
         
         const playersArray = Array.isArray(parsedPlayers) ? parsedPlayers : [];
+        if (playersArray.length === 0) {
+            console.warn(`[computeStandings] No players found for group ${groupId}`, group.players);
+        }
 
         const standings = playersArray.map((p: Player) => ({
             playerId: p.id,
@@ -111,10 +122,11 @@ export default function TournamentManager({
 
         groupMatches.forEach(m => {
             if (m.score1 === undefined || m.score2 === undefined || m.score1 === null || m.score2 === null) return;
+            if (!m.team1 || !m.team2) return;
             
             // Match by ID or Name to handle potential hydration mismatches
-            const p1 = standings.find((s: any) => s.playerId === m.team1.id || s.player.name === m.team1.name);
-            const p2 = standings.find((s: any) => s.playerId === m.team2.id || s.player.name === m.team2.name);
+            const p1 = standings.find((s: any) => s.playerId === m.team1.id || (m.team1.name && s.player.name === m.team1.name));
+            const p2 = standings.find((s: any) => s.playerId === m.team2.id || (m.team2.name && s.player.name === m.team2.name));
             
             if (p1 && p2) {
                 p1.matchesPlayed++;
@@ -123,7 +135,6 @@ export default function TournamentManager({
                 const score1 = Number(m.score1);
                 const score2 = Number(m.score2);
                 
-                // Point difference: winner gets +, loser gets -
                 p1.points += (score1 - score2);
                 p2.points += (score2 - score1);
 
@@ -163,19 +174,28 @@ export default function TournamentManager({
             if (m.id !== matchId) return m;
             return { ...m, confirmed: true };
         });
-        setMatches(updatedMatches);
-
+        
+        const loadingToast = toast.loading("Guardando resultado...");
         setSaving(true);
         try {
-            await saveTournamentFixture({
+            const res = await saveTournamentFixture({
                 tournamentId,
                 phase: "grupos",
                 groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
                 matches: updatedMatches,
                 bracket: bracket,
             });
+            toast.dismiss(loadingToast);
+            if (res.ok) {
+                setMatches(updatedMatches);
+                toast.success("Marcador guardado");
+            } else {
+                toast.error("Error al guardar: " + res.error);
+            }
         } catch (err) {
+            toast.dismiss(loadingToast);
             console.error(err);
+            toast.error("Error inesperado al guardar marcador");
         } finally {
             setSaving(false);
         }
@@ -186,84 +206,95 @@ export default function TournamentManager({
     };
 
     const generateBracket = async () => {
+        console.log("[generateBracket] Iniciando proceso de generación...");
         const allQualifiers: { player: Player; seed: number }[] = [];
+        
         groups.forEach(g => {
             const standings = computeStandings(g.id);
+            console.log(`[generateBracket] Standings para ${g.name}:`, standings.length);
             standings.slice(0, qualPerGroup).forEach((s: any, idx: number) => {
-                allQualifiers.push({ player: s.player, seed: idx + 1 });
+                if (s.player) {
+                    allQualifiers.push({ player: s.player, seed: idx + 1 });
+                }
             });
         });
 
         const numParticipants = allQualifiers.length;
-        if (numParticipants === 0) return;
-
-        // Calculate next power of 2
-        const numRounds = Math.ceil(Math.log2(numParticipants));
-        const bracketSize = Math.pow(2, numRounds); // e.g. 8 for 6 players
-
-        const newBracket: BracketMatch[] = [];
-        // Create full tree from finalized round 0 up to first round
-        for (let r = 0; r < numRounds; r++) {
-            const matchesInRound = Math.pow(2, r);
-            for (let s = 0; s < matchesInRound; s++) {
-                newBracket.push({
-                    id: `b_${r}_${s}`,
-                    round: r,
-                    slot: s,
-                    team1: null,
-                    team2: null,
-                    confirmed: false,
-                });
-            }
+        console.log("[generateBracket] Total de clasificados:", numParticipants);
+        
+        if (numParticipants < 2) {
+            toast.error(`No hay suficientes clasificados (${numParticipants}) para generar playoffs.`);
+            return;
         }
 
-        const firstRound = numRounds - 1;
-        const firstRoundMatches = newBracket.filter(m => m.round === firstRound);
-        
-        // Seeding: Top seeds vs Bottom seeds (simplified)
-        // With BYEs: If we have 6 players and size 8, we have 2 BYEs.
-        // We fill indices 0..5 with players, 6..7 with BYEs.
-        // Match 0: P0 vs P7(BYE) -> P0 advances
-        // Match 1: P1 vs P6(BYE) -> P1 advances
-        // Match 2: P2 vs P5
-        // Match 3: P3 vs P4
-        
-        for (let i = 0; i < bracketSize / 2; i++) {
-            const m = firstRoundMatches[i];
-            const p1 = allQualifiers[i]?.player || null;
-            // team2 comes from the "mirror" side of the bracket size
-            const p2Index = bracketSize - 1 - i;
-            const p2 = allQualifiers[p2Index]?.player || (p2Index < bracketSize ? "BYE" : null);
-
-            m.team1 = p1;
-            m.team2 = p2;
-
-            // Auto-advance if team2 is BYE
-            if (p1 && (p2 as any) === "BYE") {
-                m.confirmed = true;
-                m.winnerId = p1.id;
-            }
-        }
-
-        // Propagate winners to subsequent rounds
-        advanceBracketWinners(newBracket, numRounds);
-
-        setBracket(newBracket);
-        setStep("elim");
-
+        const loadingToast = toast.loading("Generando cuadro de playoffs...");
         setSaving(true);
+
         try {
-            await saveTournamentFixture({
+            // Calculate next power of 2
+            const numRounds = Math.ceil(Math.log2(numParticipants));
+            const bracketSize = Math.pow(2, numRounds);
+            console.log(`[generateBracket] Rondas: ${numRounds}, Tamaño Cuadro: ${bracketSize}`);
+
+            const newBracket: BracketMatch[] = [];
+            for (let r = 0; r < numRounds; r++) {
+                const matchesInRound = Math.pow(2, r);
+                for (let s = 0; s < matchesInRound; s++) {
+                    newBracket.push({
+                        id: `b_${r}_${s}`,
+                        round: r,
+                        slot: s,
+                        team1: null,
+                        team2: null,
+                        confirmed: false,
+                    });
+                }
+            }
+
+            const firstRound = numRounds - 1;
+            const firstRoundMatches = newBracket.filter(m => m.round === firstRound);
+            
+            for (let i = 0; i < bracketSize / 2; i++) {
+                const m = firstRoundMatches[i];
+                const p1 = allQualifiers[i]?.player || null;
+                const p2Index = bracketSize - 1 - i;
+                const p2 = allQualifiers[p2Index]?.player || (p2Index < bracketSize ? "BYE" : null);
+
+                m.team1 = p1;
+                m.team2 = p2;
+
+                if (p1 && (p2 as any) === "BYE") {
+                    m.confirmed = true;
+                    m.winnerId = p1.id;
+                    m.winnerName = p1.name;
+                }
+            }
+
+            advanceBracketWinners(newBracket, numRounds);
+
+            const res = await saveTournamentFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups,
                 matches,
                 bracket: newBracket,
             });
+
+            toast.dismiss(loadingToast);
+            if (res.ok) {
+                setBracket(newBracket);
+                setStep("elim");
+                toast.success("Playoffs generados correctamente");
+            } else {
+                toast.error("Error al guardar playoffs: " + res.error);
+            }
         } catch (e) {
-            console.error("[generateBracket]", e);
+            toast.dismiss(loadingToast);
+            console.error("[generateBracket] Error fatal:", e);
+            toast.error("Error inesperado al generar playoffs");
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleBracketScore = (matchId: string, s1: string, s2: string) => {
@@ -307,31 +338,32 @@ export default function TournamentManager({
     };
 
     const handleBracketConfirm = async (matchId: string) => {
-        let finalBracket: BracketMatch[] = [];
-        setBracket(prev => {
-            const updated = prev.map(m => {
-                if (m.id !== matchId) return m;
-                if (m.score1 === undefined || m.score2 === undefined) return m;
-                const winner = m.score1 > m.score2 ? m.team1 : m.team2;
-                const winnerId = (winner as Player)?.id;
-                const winnerName = (winner as Player)?.name;
-                
-                // Extra robustness: if winnerName is a UUID or missing, try to find it in the groups
-                let finalWinnerName = winnerName;
-                const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
-                if (!finalWinnerName || isUUID(finalWinnerName)) {
-                    const found = groups.flatMap(g => g.players).find(p => p.id === winnerId);
-                    if (found) finalWinnerName = found.name;
-                }
+        const targetMatch = bracket.find(m => m.id === matchId);
+        if (!targetMatch || targetMatch.score1 === undefined || targetMatch.score2 === undefined) return;
 
-                return { ...m, confirmed: true, winnerId, winnerName: finalWinnerName };
-            });
-            const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
-            advanceBracketWinners(updated, totalRounds);
-            finalBracket = [...updated];
-            return finalBracket;
+        const updated = bracket.map(m => {
+            if (m.id !== matchId) return m;
+            const winner = m.score1! > m.score2! ? m.team1 : m.team2;
+            const winnerId = (winner as Player)?.id;
+            const winnerName = (winner as Player)?.name;
+            
+            let finalWinnerName = winnerName;
+            const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
+            if (!finalWinnerName || isUUID(finalWinnerName)) {
+                const found = groups.flatMap(g => g.players).find(p => p.id === winnerId);
+                if (found) finalWinnerName = found.name;
+            }
+
+            return { ...m, confirmed: true, winnerId, winnerName: finalWinnerName };
         });
 
+        const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
+        advanceBracketWinners(updated, totalRounds);
+        
+        const finalBracket = updated;
+        setBracket(finalBracket);
+
+        const loadingToast = toast.loading("Confirmando resultado...");
         setSaving(true);
         const match = finalBracket.find(m => m.id === matchId);
         const isFinal = match?.round === 0;
@@ -339,22 +371,51 @@ export default function TournamentManager({
             ? groups.flatMap(g => g.players).find(p => p.id === match?.winnerId)?.name 
             : undefined;
 
-        await saveTournamentFixture({
-            tournamentId,
-            phase: isFinal ? "finalizado" : "eliminatorias",
-            groups,
-            matches,
-            bracket: finalBracket,
-            championName,
-        });
-        if (isFinal) {
-            setShowSuccessModal(true);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: isFinal ? "finalizado" : "eliminatorias",
+                groups,
+                matches,
+                bracket: finalBracket,
+                championName,
+            });
+            toast.dismiss(loadingToast);
+            if (res.ok) {
+                toast.success("Resultado de eliminatoria guardado");
+                if (isFinal) setShowSuccessModal(true);
+            } else {
+                toast.error("Error al guardar: " + res.error);
+            }
+        } catch (err) {
+            toast.dismiss(loadingToast);
+            console.error(err);
+            toast.error("Error inesperado al guardar resultado");
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
-    const handleBracketEdit = (matchId: string) => {
-        setBracket(prev => prev.map(m => m.id === matchId ? { ...m, confirmed: false } : m));
+    const handleBracketEdit = async (matchId: string) => {
+        const updatedBracket = bracket.map(m => m.id === matchId ? { ...m, confirmed: false } : m);
+        setBracket(updatedBracket);
+
+        setSaving(true);
+        try {
+            await saveTournamentFixture({
+                tournamentId,
+                phase: "eliminatorias",
+                groups,
+                matches,
+                bracket: updatedBracket,
+            });
+            toast.success("Partido habilitado para edición");
+        } catch (err) {
+            console.error(err);
+            toast.error("Error al actualizar estado del partido");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const roundsArr = useMemo(() => {
@@ -394,7 +455,7 @@ export default function TournamentManager({
                     <div className="flex items-center justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => router.back()}
+                                onClick={() => router.push(`/tournaments/${tournamentId}/fixture`)}
                                 className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                             >
                                 <ArrowLeft className="w-4 h-4" />
@@ -411,16 +472,14 @@ export default function TournamentManager({
                             )}
                         </div>
                         <div className="flex items-center gap-2">
-                            {readOnly && (
-                                <button
-                                    onClick={handleRefresh}
-                                    disabled={isRefreshing}
-                                    className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
-                                >
-                                    <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-400" : ""}`} />
-                                    Actualizar
-                                </button>
-                            )}
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
+                            >
+                                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-400" : ""}`} />
+                                {isRefreshing ? "..." : "Actualizar"}
+                            </button>
                             <div className="px-3 py-1 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                                 {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
@@ -644,13 +703,13 @@ export default function TournamentManager({
 
                                         <button
                                             onClick={generateBracket}
-                                            disabled={!isGroupStageFinished}
-                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
+                                            disabled={!isGroupStageFinished || saving}
+                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished && !saving
                                                 ? "bg-blue-600 hover:bg-blue-500 text-white"
                                                 : "bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600"
                                                 }`}
                                         >
-                                            {isGroupStageFinished ? "Generar Playoffs →" : "Finalizá los grupos"}
+                                            {saving ? "Procesando..." : isGroupStageFinished ? "Generar Playoffs →" : `Finalizá los grupos (${totalGroupMatches - confirmedGroupMatches} restantes)`}
                                         </button>
                                     </div>
                                 </div>
@@ -759,7 +818,20 @@ export default function TournamentManager({
                                         </div>
                                     );
                                 }
-                                return null;
+                                return (
+                                    <div className="flex items-center justify-center py-4">
+                                        {!readOnly && (
+                                            <button 
+                                                onClick={generateBracket}
+                                                disabled={saving || !isGroupStageFinished}
+                                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                            >
+                                                <RefreshCw className="w-3 h-3" />
+                                                Regenerar Playoffs
+                                            </button>
+                                        )}
+                                    </div>
+                                );
                             })()}
 
                             {/* ── Rounds: vertical stack on mobile, horizontal scroll on desktop ── */}

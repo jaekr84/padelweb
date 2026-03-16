@@ -48,11 +48,17 @@ export default async function TournamentManagePage({ params }: Props) {
     const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
     const dbMatches = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id));
     const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id));
+    const parsePlayers = (data: any) => {
+        if (typeof data === 'string') {
+            try { return JSON.parse(data); } catch { return []; }
+        }
+        return Array.isArray(data) ? data : [];
+    };
 
     const initialGroups = dbGroups.map(g => ({
         id: g.id,
         name: g.name,
-        players: (g.players as { id: string, name: string }[]) || [],
+        players: parsePlayers(g.players) as { id: string, name: string }[],
     }));
 
     // Mapping for match teams
