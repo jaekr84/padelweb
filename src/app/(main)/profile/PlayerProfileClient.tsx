@@ -69,7 +69,8 @@ export default function PlayerProfileClient({
     memberClub
 }: PlayerProfileClientProps) {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState("tournaments");
+    const isSuperAdmin = dbUser.role === 'superadmin';
+    const [activeTab, setActiveTab] = useState(isSuperAdmin ? "account" : "tournaments");
     const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -336,9 +337,11 @@ export default function PlayerProfileClient({
                         {/* ââ Navigation ââ */}
                         <div className="flex items-center gap-2 bg-card p-1.5 rounded-[1.5rem] border border-border overflow-x-auto no-scrollbar shadow-inner">
                             {[
-                                { id: "tournaments", label: "Torneos", icon: Trophy },
-                                { id: "stats", label: "Estadísticas", icon: Activity },
-                                { id: "trophies", label: "Trofeos", icon: Award },
+                                ...(!isSuperAdmin ? [
+                                    { id: "tournaments", label: "Torneos", icon: Trophy },
+                                    { id: "stats", label: "Estadísticas", icon: Activity },
+                                    { id: "trophies", label: "Trofeos", icon: Award },
+                                ] : []),
                                 ...(isOwnProfile ? [{ id: "edit", label: "Editar", icon: Edit2 }] : []),
                                 { id: "account", label: "Cuenta", icon: Settings },
                             ].map((tab) => (

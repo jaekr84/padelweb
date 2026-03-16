@@ -20,7 +20,8 @@ import {
     UserCog,
     Filter,
     UserCheck,
-    UserX
+    UserX,
+    Users
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -198,89 +199,151 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         return user.bannedUntil && new Date(user.bannedUntil) > new Date();
     };
 
+    const stats = {
+        total: usersList.length,
+        superadmins: usersList.filter(u => u.role === "superadmin").length,
+        clubs: usersList.filter(u => u.role === "club").length,
+        players: usersList.filter(u => u.role === "jugador").length,
+    };
+
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8">
             <div className="max-w-6xl mx-auto space-y-8">
-                
                 {/* Header */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                <Shield className="w-4 h-4 text-indigo-500" />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Admin Console</span>
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2 mb-2">
+                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                            <Shield className="w-4 h-4 text-indigo-500" />
                         </div>
-                        <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-                            Gestión de Usuarios
-                        </h1>
-                        <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
-                            Promoción de categorías, asignación de puntos y control de acceso
-                        </p>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Admin Console</span>
+                    </div>
+                    <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
+                        Gestión de Usuarios
+                    </h1>
+                    <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
+                        Promoción de categorías, asignación de puntos y control de acceso
+                    </p>
+                </div>
+
+                {/* Dashboard Controls Row */}
+                <div className="flex flex-col xl:flex-row gap-6 items-start">
+                    {/* KPI Section */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-4 w-full">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-indigo-500/30 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Users className="w-6 h-6 text-indigo-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Total</span>
+                                    <span className="text-2xl font-black italic leading-none">{stats.total}</span>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-indigo-500/30 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Shield className="w-6 h-6 text-indigo-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Admin</span>
+                                    <span className="text-2xl font-black italic leading-none">{stats.superadmins}</span>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-violet-500/30 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Shield className="w-6 h-6 text-violet-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Clubes</span>
+                                    <span className="text-2xl font-black italic leading-none">{stats.clubs}</span>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-emerald-500/30 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Trophy className="w-6 h-6 text-emerald-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Jugadores</span>
+                                    <span className="text-2xl font-black italic leading-none">{stats.players}</span>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
 
                     {/* Filters Section */}
-                    <div className="flex-1 max-w-2xl w-full">
-                        <div className="space-y-4">
-                    <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
-                        <input 
-                            type="text"
-                            placeholder="Email o nombre..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-11 pr-4 py-3.5 bg-card border border-border rounded-2xl w-full text-sm font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
-                        />
-                    </div>
+                    <div className="w-full xl:w-[450px] space-y-4">
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                            <input 
+                                type="text"
+                                placeholder="Email, nombre o DNI..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-11 pr-4 py-3.5 bg-card border border-border rounded-2xl w-full text-xs font-bold outline-none focus:border-indigo-500 transition-all shadow-sm"
+                            />
+                        </div>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                        {/* Status Filter */}
-                        <div className="relative">
-                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <div className="grid grid-cols-3 gap-2">
                             <select 
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
+                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
                             >
-                                <option value="all">Todos los Estados</option>
+                                <option value="all">Estados</option>
                                 <option value="active">Activos</option>
                                 <option value="disabled">Desactivados</option>
                                 <option value="banned">Baneados</option>
                             </select>
-                        </div>
 
-                        {/* Role Filter */}
-                        <div className="relative">
-                            <UserCog className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                             <select 
                                 value={roleFilter}
                                 onChange={(e) => setRoleFilter(e.target.value)}
-                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
+                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
                             >
-                                <option value="all">Todos los Roles</option>
-                                <option value="jugador">Jugadores</option>
-                                <option value="club">Clubes</option>
+                                <option value="all">Roles</option>
+                                <option value="jugador">Jugador</option>
+                                <option value="club">Club</option>
                                 <option value="superadmin">Admin</option>
                             </select>
-                        </div>
 
-                        {/* Gender Filter - Hidden grid span on mobile if odd, or full width */}
-                        <div className="relative col-span-2 lg:col-span-1">
-                            <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                             <select 
                                 value={genderFilter}
                                 onChange={(e) => setGenderFilter(e.target.value)}
-                                className="pl-9 pr-4 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
+                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
                             >
-                                <option value="all">Todos los Géneros</option>
-                                <option value="masculino">Masculino</option>
-                                <option value="femenino">Femenino</option>
+                                <option value="all">Género</option>
+                                <option value="masculino">Masc.</option>
+                                <option value="femenino">Fem.</option>
                             </select>
                         </div>
-                        </div>
                     </div>
-                </div>
-
                 </div>
 
                 {/* Users View */}
