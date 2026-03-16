@@ -15,6 +15,10 @@ export const dynamic = "force-dynamic";
 function formatDate(dateStr: string | null) {
     if (!dateStr) return "Por confirmar";
     const d = new Date(dateStr);
+    // Adjust for timezone if string is YYYY-MM-DD
+    if (typeof dateStr === 'string' && dateStr.length === 10) {
+        d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+    }
     return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
 }
 
@@ -24,7 +28,7 @@ function getDaysUntil(dateStr: string | null): number | null {
     today.setHours(0, 0, 0, 0);
     const tournamentDate = new Date(dateStr);
     // Adjust for timezone if string is YYYY-MM-DD to avoid offset issues
-    if (dateStr.length === 10) {
+    if (typeof dateStr === 'string' && dateStr.length === 10) {
         tournamentDate.setMinutes(tournamentDate.getMinutes() + tournamentDate.getTimezoneOffset());
     }
     tournamentDate.setHours(0, 0, 0, 0);
@@ -274,7 +278,7 @@ export default async function TournamentsPage({
                         })}
                     </div>
 
-                    {/* ── Tournament list ── */}
+                    {/* ── Tournament list grouped by month ── */}
                     {filteredTournaments.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-24 text-center">
                             <div className="w-16 h-16 bg-card border border-border rounded-3xl flex items-center justify-center mb-5">
@@ -286,10 +290,51 @@ export default async function TournamentsPage({
                             </p>
                         </div>
                     ) : (
-                        <div className="flex flex-col gap-3">
-                            {filteredTournaments.map((t) => (
-                                <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} isUserRegistered={t.isRegistered} />
-                            ))}
+                        <div className="space-y-8">
+                            {(() => {
+                                // Group by month logic
+                                const groups: { [key: string]: any[] } = {};
+                                filteredTournaments.forEach(t => {
+                                    const date = t.startDate ? new Date(t.startDate) : null;
+                                    // Adjust for timezone to avoid "December" when it should be "January"
+                                    if (date && typeof t.startDate === 'string' && t.startDate.length === 10) {
+                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                    }
+                                    
+                                    const monthKey = date 
+                                        ? date.toLocaleString('es-ES', { month: 'long', year: 'numeric' }) 
+                                        : "Próximamente / Fecha a definir";
+                                    
+                                    if (!groups[monthKey]) groups[monthKey] = [];
+                                    groups[monthKey].push(t);
+                                });
+
+                                // Sort months chronologically
+                                const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
+                                    if (a.includes("definir")) return 1;
+                                    if (b.includes("definir")) return -1;
+                                    const dateA = new Date(groups[a][0].startDate);
+                                    const dateB = new Date(groups[b][0].startDate);
+                                    return dateA.getTime() - dateB.getTime();
+                                });
+
+                                return sortedMonthKeys.map(month => (
+                                    <div key={month} className="space-y-4">
+                                        <div className="flex items-center gap-3 px-2">
+                                            <div className="h-px flex-1 bg-border" />
+                                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 whitespace-nowrap">
+                                                {month}
+                                            </h2>
+                                            <div className="h-px flex-1 bg-border" />
+                                        </div>
+                                        <div className="flex flex-col gap-3">
+                                            {groups[month].map((t) => (
+                                                <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} isUserRegistered={t.isRegistered} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ));
+                            })()}
                         </div>
                     )}
                 </div>
@@ -435,6 +480,30 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                 return null;
                             })()}
                         </div>
+
+                        {/* Registration Dates */}
+                        {(tournament.openDateClub || tournament.openDateGeneral) && (
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 pt-2 border-t border-border/40">
+                                {tournament.openDateClub && (
+                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
+                                        <Clock className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Club:</span>
+                                        <span className="text-blue-600/90 dark:text-blue-400/90">
+                                            {formatDate(tournament.openDateClub)}
+                                        </span>
+                                    </div>
+                                )}
+                                {tournament.openDateGeneral && (
+                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
+                                        <Clock className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Gral:</span>
+                                        <span className="text-emerald-600/90 dark:text-emerald-400/90">
+                                            {formatDate(tournament.openDateGeneral)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
