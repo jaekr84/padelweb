@@ -268,7 +268,7 @@ export default function CreateTournamentForm({
                             <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Información Principal</h2>
                         </div>
 
-                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
+                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
                             {/* Banner Upload */}
                             <div className="relative group overflow-hidden rounded-3xl border border-border aspect-[21/9] bg-muted/50 transition-colors">
                                 {imagePreview ? (
@@ -389,7 +389,7 @@ export default function CreateTournamentForm({
                             <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Modalidad de Juego</h2>
                         </div>
 
-                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
+                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
                             
                             {/* Género y Participación */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground">
@@ -425,14 +425,14 @@ export default function CreateTournamentForm({
                                 <div className="bg-muted/30 p-2 rounded-2xl border border-border flex gap-2">
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         <Layers className="w-4 h-4" />
                                         Por Categoría
                                     </button>
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "libre" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "libre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "libre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         <Activity className="w-4 h-4" />
                                         Categoría única / Libre
@@ -473,8 +473,8 @@ export default function CreateTournamentForm({
                             <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Sistema de Puntos (Ranking)</h2>
                         </div>
 
-                        <div className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-6 sm:space-y-8 transition-colors">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
                                 {[
                                     { id: "winner", label: "Campeón" },
                                     { id: "finalist", label: "Final" },
@@ -484,14 +484,14 @@ export default function CreateTournamentForm({
                                     { id: "groupMatchWin", label: "Victoria Zona" },
                                     { id: "participation", label: "Asistencia" }
                                 ].map(k => (
-                                    <div key={k.id} className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic leading-tight">{k.label}</label>
+                                    <div key={k.id} className="space-y-2 sm:space-y-4">
+                                        <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic leading-tight">{k.label}</label>
                                         <div className="relative group">
                                             <input
                                                 type="number"
                                                 value={customPoints[k.id as keyof typeof customPoints]}
                                                 onChange={e => setCustomPoints({ ...customPoints, [k.id]: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-2 text-center text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                className="w-full bg-muted/30 border border-border rounded-xl sm:rounded-2xl py-2.5 sm:py-4 px-2 text-center text-base sm:text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
                                             />
                                         </div>
                                     </div>
@@ -506,7 +506,7 @@ export default function CreateTournamentForm({
                     <button
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="w-full shadow-2xl shadow-indigo-900/20 bg-indigo-600 hover:bg-indigo-500 text-white py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-indigo-400/20"
+                        className="w-full shadow-2xl shadow-indigo-900/20 bg-indigo-600 hover:bg-indigo-500 text-white py-5 sm:py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-indigo-400/20"
                     >
                         {isLoading ? (
                             <Activity className="h-6 w-6 animate-spin" />
@@ -517,7 +517,7 @@ export default function CreateTournamentForm({
                             {isEditing ? "Guardar Cambios del Torneo" : "Publicar Torneo Oficial"}
                         </span>
                     </button>
-                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-10">
                         Al publicar, el torneo será visible para todos los jugadores de la plataforma.
                     </p>
                 </div>

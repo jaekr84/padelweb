@@ -523,7 +523,7 @@ export default function UserManagementClient({ initialUsers, categories }: UserM
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Asignar Categoría</label>
                                         <div className="grid grid-cols-3 gap-2">
-                                            {categories.map((cat: any) => (
+                                            {Array.from(new Map(categories.map(cat => [cat.name, cat])).values()).map((cat: any) => (
                                                 <button 
                                                     key={cat.id}
                                                     type="button"

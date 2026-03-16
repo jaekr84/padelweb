@@ -3,7 +3,7 @@ import { users, categoriesTable } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import UserManagementClient from "@/app/(main)/admin/users/UserManagementClient";
-import { desc, asc } from "drizzle-orm";
+import { desc, asc, eq } from "drizzle-orm";
 
 
 export default async function UserManagementPage() {
@@ -28,7 +28,11 @@ export default async function UserManagementPage() {
     .from(users)
     .orderBy(desc(users.createdAt));
 
-    const allCategories = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.categoryOrder));
+    const allCategories = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.isActive, true))
+        .orderBy(asc(categoriesTable.categoryOrder));
 
     return (
         <UserManagementClient 

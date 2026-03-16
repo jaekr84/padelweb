@@ -78,10 +78,10 @@ export default function ReglamentoPage() {
                                 <h3 className="text-sm font-black uppercase tracking-widest text-indigo-500/80 italic">Fases de Juego</h3>
                                 <div className="space-y-3">
                                     {[
-                                        { label: "Campeón", points: "Configurable p/ Torneo", icon: Trophy, color: "text-yellow-500" },
-                                        { label: "Finalista", points: "60% del Ganador", icon: Medal, color: "text-slate-400" },
-                                        { label: "Semifinal", points: "36% del Ganador", icon: Medal, color: "text-orange-600" },
-                                        { label: "Cuartos", points: "18% del Ganador", icon: Medal, color: "text-indigo-400" },
+                                        { label: "Campeón", points: "", icon: Trophy, color: "text-yellow-500" },
+                                        { label: "Finalista", points: "", icon: Medal, color: "text-slate-400" },
+                                        { label: "Semifinal", points: "", icon: Medal, color: "text-orange-600" },
+                                        { label: "Cuartos", points: "", icon: Medal, color: "text-indigo-400" },
                                     ].map((stat, i) => (
                                         <div key={i} className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-2xl group hover:border-indigo-500/30 transition-all">
                                             <div className="flex items-center gap-3">
