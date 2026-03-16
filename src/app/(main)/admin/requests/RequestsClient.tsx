@@ -208,14 +208,24 @@ export default function RequestsClient() {
                                             )}
 
                                             {req.status === 'enviado' && (
-                                                <button
-                                                    onClick={() => handleUpdateStatus(req.id, "aceptado")}
-                                                    disabled={isPending}
-                                                    className="w-full flex-1 h-12 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4" />
-                                                    Marcar como Registrado
-                                                </button>
+                                                <div className="flex flex-col sm:flex-row gap-2 w-full flex-1">
+                                                    <button
+                                                        onClick={() => handleProcess(req.id, req.whatsapp, req.fullName)}
+                                                        disabled={isPending}
+                                                        className="w-full flex-1 h-12 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                        Re-generar Link
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleUpdateStatus(req.id, "aceptado")}
+                                                        disabled={isPending}
+                                                        className="w-full flex-[1.5] h-12 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                        Marcar Registrado
+                                                    </button>
+                                                </div>
                                             )}
 
                                             {(req.status === 'rechazado' || req.status === 'aceptado' || req.status === 'caducado') && (
