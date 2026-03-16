@@ -42,6 +42,19 @@ export default async function EditTournamentPage({ params }: Props) {
         );
     }
 
+    // Prevention of editing finished tournaments
+    if (tournament.status === "finalizado") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+                <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
+                    <h1 className="text-2xl font-black uppercase text-amber-500 mb-4">Torneo Finalizado</h1>
+                    <p className="text-white/60">Este torneo ya ha finalizado y no puede ser editado.</p>
+                </div>
+            </div>
+        );
+    }
+
+
     // Fetch categories for the form
     const dbCategories = await db
         .select()
@@ -50,6 +63,30 @@ export default async function EditTournamentPage({ params }: Props) {
         .orderBy(asc(categoriesTable.categoryOrder));
     
     const categories = dbCategories.map(c => c.name);
+
+    // Safe parsing for categories
+    let parsedCategories: string[] = [];
+    try {
+        if (Array.isArray(tournament.categories)) {
+            parsedCategories = tournament.categories as string[];
+        } else if (typeof tournament.categories === 'string' && tournament.categories.trim().startsWith('[')) {
+            parsedCategories = JSON.parse(tournament.categories);
+        } else if (typeof tournament.categories === 'string' && tournament.categories.trim() !== '') {
+            parsedCategories = [tournament.categories.trim()];
+        }
+    } catch (e) {
+        console.error("Error parsing categories:", e);
+    }
+
+    // Safe parsing for modalidad
+    let parsedModalidad: any = tournament.modalidad;
+    try {
+        if (typeof tournament.modalidad === 'string' && tournament.modalidad.trim().startsWith('{')) {
+            parsedModalidad = JSON.parse(tournament.modalidad);
+        }
+    } catch (e) {
+        console.error("Error parsing modalidad:", e);
+    }
 
     // Prepare initial data for the form
     const initialData = {
@@ -60,10 +97,10 @@ export default async function EditTournamentPage({ params }: Props) {
         endDate: tournament.endDate,
         openDateClub: tournament.openDateClub,
         openDateGeneral: tournament.openDateGeneral,
-        categories: (tournament.categories as string[]) || [],
+        categories: parsedCategories,
         pointsConfig: tournament.pointsConfig as any,
         imageUrl: tournament.imageUrl,
-        modalidad: tournament.modalidad as any,
+        modalidad: parsedModalidad,
     };
 
     return (

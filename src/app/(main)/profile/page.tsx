@@ -78,7 +78,7 @@ export default async function ProfilePage() {
 
     const clubProfile = clubProfileRes[0];
 
-    // Ranking position: Count players with more points
+    // Ranking position: Count players with more points (Global)
     const rankingPositionRes = await db
         .select({ count: sql<number>`count(*)` })
         .from(users)
@@ -89,7 +89,21 @@ export default async function ProfilePage() {
             )
         );
     
+    // Category ranking: Count players in the same category with more points
+    const categoryRankingRes = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(
+            and(
+                eq(users.role, "jugador"),
+                eq(users.category, dbUser.category || "D"),
+                gt(users.points, dbUser.points || 0)
+            )
+        );
+    
     const rankingPosition = (Number(rankingPositionRes[0].count) || 0) + 1;
+    const categoryRanking = (Number(categoryRankingRes[0].count) || 0) + 1;
+
 
     // Fetch matches if there are registrations
     const tournamentIds = userRegistrations.map(r => r.tournamentId);
@@ -145,6 +159,7 @@ export default async function ProfilePage() {
             createdTournaments={JSON.parse(JSON.stringify(createdTournaments))}
             availableCategories={availableCategories}
             rankingPosition={rankingPosition}
+            categoryRanking={categoryRanking}
         />
     );
 }

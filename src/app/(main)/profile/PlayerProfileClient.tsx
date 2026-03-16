@@ -48,6 +48,7 @@ interface PlayerProfileClientProps {
     members?: any[];
     availableCategories?: any[];
     rankingPosition?: number;
+    categoryRanking?: number;
 }
 
 export default function PlayerProfileClient({
@@ -59,7 +60,8 @@ export default function PlayerProfileClient({
     createdTournaments,
     members,
     availableCategories,
-    rankingPosition
+    rankingPosition,
+    categoryRanking
 }: PlayerProfileClientProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("tournaments");
@@ -128,11 +130,14 @@ export default function PlayerProfileClient({
     }, [matchHistory, dbUser, myTeamNames]);
 
     const realCategory = useMemo(() => {
-        if (!availableCategories) return dbUser?.category || "D";
+        // Source of truth is the category assigned in the DB
+        if (dbUser?.category) return dbUser.category;
+        
+        // Fallback to calculation if DB category is empty
+        if (!availableCategories) return "D";
         const points = dbUser?.points || 0;
-        // Search categories by points
         const cat = availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
-        return cat ? cat.name : (dbUser?.category || "D");
+        return cat ? cat.name : "D";
     }, [availableCategories, dbUser?.points, dbUser?.category]);
 
     const activeTournaments = registrations.filter(r =>
@@ -301,14 +306,18 @@ export default function PlayerProfileClient({
                                     <div className="flex flex-col gap-6">
                                         <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col gap-6">
                                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nivel y Ranking</h3>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-3 gap-2 md:gap-4">
                                                 <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-2xl font-black italic tracking-tighter text-indigo-500">#{rankingPosition || 1}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Ranking</span>
+                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-indigo-500">#{categoryRanking || 1}</span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Ranking Cat.</span>
                                                 </div>
                                                 <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
-                                                    <span className="text-2xl font-black italic tracking-tighter text-emerald-500">{realCategory}</span>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Nivel</span>
+                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-emerald-500">{realCategory}</span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Categoría</span>
+                                                </div>
+                                                <div className="flex flex-col items-center p-4 bg-card rounded-2xl border border-border">
+                                                    <span className="text-xl md:text-2xl font-black italic tracking-tighter text-blue-500">{(dbUser?.points || 0).toLocaleString()}</span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Puntos</span>
                                                 </div>
                                             </div>
                                         </div>

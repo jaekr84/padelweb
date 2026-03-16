@@ -57,13 +57,29 @@ export default async function TournamentManagePage({ params }: Props) {
 
     // Mapping for match teams
     const allPlayers = initialGroups.flatMap(g => g.players);
-    const getPlayerByName = (name: string) => allPlayers.find(p => p.name === name) || { id: name, name };
+    const getPlayerByIdOrName = (id: string | null, name: string) => {
+        const isUUID = (str: string) => str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        
+        if (id) {
+            const found = allPlayers.find(p => p.id === id);
+            if (found) return found;
+        }
+        
+        // If the name we have is a UUID, but we didn't find the player by ID, 
+        // try to see if any player has this 'name' as their ID
+        if (isUUID(name)) {
+            const foundByIdAsName = allPlayers.find(p => p.id === name);
+            if (foundByIdAsName) return foundByIdAsName;
+        }
+
+        return allPlayers.find(p => p.name === name) || { id: id || name, name: isUUID(name) ? "Jugador" : name };
+    };
 
     const mappedMatches = dbMatches.map(m => ({
         id: m.id,
         groupId: m.groupId,
-        team1: getPlayerByName(m.team1Name),
-        team2: getPlayerByName(m.team2Name),
+        team1: getPlayerByIdOrName(m.team1Id ?? null, m.team1Name),
+        team2: getPlayerByIdOrName(m.team2Id ?? null, m.team2Name),
         score1: m.score1 ?? undefined,
         score2: m.score2 ?? undefined,
         played: m.confirmed,
@@ -74,12 +90,13 @@ export default async function TournamentManagePage({ params }: Props) {
         id: bm.id,
         round: bm.round,
         slot: bm.slot,
-        team1: bm.team1Name ? getPlayerByName(bm.team1Name) : null,
-        team2: bm.team2Name ? getPlayerByName(bm.team2Name) : null,
+        team1: bm.team1Name ? getPlayerByIdOrName(bm.team1Id ?? null, bm.team1Name) : null,
+        team2: bm.team2Name ? getPlayerByIdOrName(bm.team2Id ?? null, bm.team2Name) : null,
         score1: bm.score1 ?? undefined,
         score2: bm.score2 ?? undefined,
         confirmed: bm.confirmed,
         winnerId: bm.winnerId ?? undefined,
+        winnerName: bm.winnerName ?? undefined,
     }));
 
     return (
@@ -90,6 +107,8 @@ export default async function TournamentManagePage({ params }: Props) {
             initialMatches={mappedMatches}
             initialBracket={mappedBracket}
             initialStatus={tournament.status}
+            readOnly={tournament.status === "finalizado"}
         />
     );
 }
+

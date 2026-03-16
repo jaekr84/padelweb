@@ -14,9 +14,9 @@ type Tournament = {
     description: string | null;
     startDate: string | null;
     endDate: string | null;
-    categories: any; // Can be string[] | string | null depending on DB driver/ MariaDB version
+    categories: any;
     imageUrl: string | null;
-    modalidad: { mode: string; participacion: string; genero: string; tipoTorneo: string } | null;
+    modalidad: any; // Can be object or string from DB
 };
 
 type CurrentUser = { id: string; name: string; email: string };
@@ -30,9 +30,7 @@ function Initials({ name }: { name: string }) {
 }
 
 export default function RegisterForm({ tournament, currentUser }: { tournament: Tournament; currentUser: CurrentUser }) {
-    const isIndividual = tournament.modalidad?.participacion === "individual";
-    
-    // Safety check for categories which might come as a string from MariaDB JSON columns
+    // Safety check for categories
     let cats: string[] = [];
     try {
         if (Array.isArray(tournament.categories)) {
@@ -40,14 +38,23 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
         } else if (typeof tournament.categories === 'string' && tournament.categories.trim().startsWith('[')) {
             cats = JSON.parse(tournament.categories);
         } else if (typeof tournament.categories === 'string' && tournament.categories.trim() !== '') {
-            // It's a single string or old format
             cats = [tournament.categories.trim()];
-        } else if (tournament.categories) {
-            console.warn("Categories format unknown:", tournament.categories);
         }
     } catch (e) {
         console.error("Error parsing categories:", e);
     }
+
+    // Safety check for modalidad
+    let mod: any = tournament.modalidad;
+    try {
+        if (typeof tournament.modalidad === 'string' && tournament.modalidad.trim().startsWith('{')) {
+            mod = JSON.parse(tournament.modalidad);
+        }
+    } catch (e) {
+        console.error("Error parsing modalidad:", e);
+    }
+
+    const isIndividual = mod?.participacion === "individual";
 
     const hasCategories = cats.length > 0 && cats[0] !== "libre";
 
@@ -239,7 +246,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             <p className="text-xs font-bold text-slate-200">{isIndividual ? "Individual" : "En Pareja"}</p>
                                         </div>
                                     </div>
-                                    {tournament.modalidad?.genero && (
+                                    {mod?.genero && (
                                         <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
                                             <div className="w-8 h-8 rounded-xl bg-amber-950 border border-amber-800 flex items-center justify-center shrink-0">
                                                 <Info className="w-4 h-4 text-amber-400" />
@@ -247,7 +254,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             <div>
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Género</p>
                                                 <p className="text-xs font-bold text-slate-200 capitalize">
-                                                    {tournament.modalidad.genero === "mixto" ? "Mixto" : tournament.modalidad.genero === "hombre" ? "Hombres" : "Mujeres"}
+                                                    {mod.genero === "mixto" ? "Mixto" : mod.genero === "hombre" ? "Hombres" : "Mujeres"}
                                                 </p>
                                             </div>
                                         </div>

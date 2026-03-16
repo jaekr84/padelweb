@@ -190,16 +190,17 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                     <div className="p-4 flex items-center gap-4">
 
                                         {/* Posición */}
-                                        <div className="w-8 flex items-center justify-center shrink-0">
+                                        <div className="w-10 flex flex-col items-center justify-center shrink-0">
                                             {isFirst ? (
-                                                <Crown className="w-6 h-6 text-yellow-500 dark:text-yellow-400/90 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
+                                                <Crown className="w-5 h-5 text-yellow-500 dark:text-yellow-400/90 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)] mb-1" />
                                             ) : isSecond ? (
-                                                <Medal className="w-6 h-6 text-slate-400 dark:text-slate-300/90 drop-shadow-[0_0_10px_rgba(148,163,184,0.2)]" />
+                                                <Medal className="w-5 h-5 text-slate-400 dark:text-slate-300/90 drop-shadow-[0_0_10px_rgba(148,163,184,0.2)] mb-1" />
                                             ) : isThird ? (
-                                                <Medal className="w-6 h-6 text-orange-600 dark:text-orange-400/80 drop-shadow-[0_0_10px_rgba(194,120,57,0.2)]" />
-                                            ) : (
-                                                <span className="text-xl font-black text-muted-foreground italic opacity-40">{index + 1}</span>
-                                            )}
+                                                <Medal className="w-5 h-5 text-orange-600 dark:text-orange-400/80 drop-shadow-[0_0_10px_rgba(194,120,57,0.2)] mb-1" />
+                                            ) : null}
+                                            <span className={`text-base font-black italic ${isTop3 ? "text-foreground" : "text-muted-foreground opacity-40"}`}>
+                                                #{index + 1}
+                                            </span>
                                         </div>
 
                                         {/* Categoria In-Avatar */}

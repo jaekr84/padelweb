@@ -48,6 +48,7 @@ type BracketMatch = {
     score2?: number;
     confirmed: boolean;
     winnerId?: string;
+    winnerName?: string;
 };
 
 export default function TournamentManager({
@@ -311,10 +312,10 @@ export default function TournamentManager({
             const updated = prev.map(m => {
                 if (m.id !== matchId) return m;
                 if (m.score1 === undefined || m.score2 === undefined) return m;
-                const winnerId = m.score1 > m.score2
-                    ? (m.team1 as Player)?.id
-                    : (m.team2 as Player)?.id;
-                return { ...m, confirmed: true, winnerId };
+                const winner = m.score1 > m.score2 ? m.team1 : m.team2;
+                const winnerId = (winner as Player)?.id;
+                const winnerName = (winner as Player)?.name;
+                return { ...m, confirmed: true, winnerId, winnerName };
             });
             const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
             advanceBracketWinners(updated, totalRounds);
@@ -665,8 +666,15 @@ export default function TournamentManager({
                             {(() => {
                                 const finalMatch = bracket.find(m => m.round === 0);
                                 if (finalMatch?.confirmed && finalMatch.winnerId) {
-                                    const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId);
-                                    const champName = (winnerSlot as Player)?.name || finalMatch.winnerId;
+                                    const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player;
+                                    
+                                    // Robust check for champName: prefer winnerName IF it doesn't look like a UUID
+                                    const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+                                    
+                                    let champName = finalMatch.winnerName;
+                                    if (!champName || isUUID(champName)) {
+                                        champName = winnerSlot?.name || finalMatch.winnerId || "Campeón";
+                                    }
 
                                     return (
                                         <div className="space-y-3">
@@ -962,8 +970,14 @@ export default function TournamentManager({
                             const finalMatch = bracket.find(m => m.round === 0);
                             const allPlayers = groups.flatMap(g => g.players);
                             const champ = allPlayers.find(p => p.id === finalMatch?.winnerId);
+                            const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+                            let champName = finalMatch?.winnerName;
+                            if (!champName || (champName && isUUID(champName))) {
+                                champName = champ?.name || finalMatch?.winnerId || "Campeón";
+                            }
                             
-                            if (finalMatch?.confirmed && champ && initialStatus !== "finalizado") {
+                            if (finalMatch?.confirmed && champName && initialStatus !== "finalizado" && !readOnly) {
                                 return (
                                     <div className="mt-12 p-8 bg-emerald-950 border border-emerald-800 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
@@ -974,7 +988,7 @@ export default function TournamentManager({
                                                 </div>
                                                 <div>
                                                     <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">¡Final de Torneo!</h2>
-                                                    <p className="text-emerald-400/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champ.name}</p>
+                                                    <p className="text-emerald-400/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champName}</p>
                                                 </div>
                                             </div>
                                             <button
@@ -983,7 +997,7 @@ export default function TournamentManager({
                                                     await saveTournamentFixture({
                                                         tournamentId,
                                                         phase: "finalizado",
-                                                        championName: champ.name,
+                                                        championName: champName,
                                                         groups,
                                                         matches,
                                                         bracket,

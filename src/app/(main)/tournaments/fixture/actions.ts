@@ -99,6 +99,8 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     id: crypto.randomUUID(),
                     tournamentId: input.tournamentId,
                     groupId: dbGroupId,
+                    team1Id: (m.team1 as any)?.id ?? null,
+                    team2Id: (m.team2 as any)?.id ?? null,
                     team1Name: m.team1.name,
                     team2Name: m.team2.name,
                     score1: m.score1 ?? null,
@@ -122,6 +124,8 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     tournamentId: input.tournamentId,
                     round: bm.round,
                     slot: bm.slot,
+                    team1Id: (bm.team1 as any)?.id ?? null,
+                    team2Id: (bm.team2 as any)?.id ?? null,
                     team1Name: slotName(bm.team1),
                     team2Name: slotName(bm.team2),
                     score1: bm.score1 ?? null,
@@ -143,91 +147,8 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         const newStatus = statusMap[input.phase];
 
         // 6. Assign points if tournament is being finalized for the first time
-        if (input.phase === "finalizado" && prevT.status !== "finalizado" && prevT.pointsConfig) {
-            const points = prevT.pointsConfig as any;
-
-            // Get all registrations to map player IDs (which are registration IDs) to user IDs
-            const regs = await db.select().from(registrations).where(eq(registrations.tournamentId, input.tournamentId));
-
-            // Track points to add to each user
-            const userPointsAddition = new Map<string, number>();
-
-            const addPoints = (playerId: string | null | undefined, pts: number) => {
-                if (!playerId || playerId === "BYE") return;
-                const r = regs.find(reg => reg.id === playerId);
-                if (r) {
-                    const pointsToAdd = Number(pts) || 0;
-                    if (pointsToAdd === 0) return;
-
-                    if (r.userId) {
-                        userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pointsToAdd);
-                    }
-                    if (r.partnerUserId) {
-                        userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pointsToAdd);
-                    }
-                }
-            };
-
-            // Evaluate bracket matches to determine highest round lost
-            input.bracket.forEach(bm => {
-                if (!bm.confirmed) return;
-
-                const t1Id = (bm.team1 as any)?.id;
-                const t2Id = (bm.team2 as any)?.id;
-
-                if (bm.round === 0) { // Final
-                    if (bm.winnerId === t1Id) {
-                        addPoints(t1Id, points.winner || 0);
-                        addPoints(t2Id, points.finalist || 0);
-                    } else if (bm.winnerId === t2Id) {
-                        addPoints(t2Id, points.winner || 0);
-                        addPoints(t1Id, points.finalist || 0);
-                    }
-                } else if (bm.round === 1) { // Semifinals
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.semi || 0);
-                } else if (bm.round === 2) { // Quarterfinals
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.quarter || 0);
-                } else if (bm.round === 3) { // Round of 16 / Octavos
-                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
-                    addPoints(loserId, points.octavos || 0);
-                }
-            });
-
-            // Evaluate updates sequentially and check for category changes
-            for (const [uid, pts] of userPointsAddition.entries()) {
-                if (pts > 0) {
-                    // Update points - use COALESCE to handle potential NULL values
-                    await db
-                        .update(users)
-                        .set({ points: sql`COALESCE(${users.points}, 0) + ${pts}` })
-                        .where(eq(users.id, uid));
-
-                    const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
-
-                    if (updatedUser) {
-                        // merit-based promotion logic
-                        const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
-                        
-                        const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
-                        const currentCatObj = await getCategoryByName(updatedUser.category || "D");
-                        
-                        // Rule: Only promote (order increases), never demote.
-                        if (newCatObj && currentCatObj && newCatObj.categoryOrder > currentCatObj.categoryOrder) {
-                            // Points threshold met. Now check title requirement.
-                            const currentYear = new Date().getFullYear();
-                            const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
-                            
-                            if (titleWins >= 2) {
-                                // ASCENDIDO: Both points and titles met.
-                                await db.update(users).set({ category: newCatObj.name }).where(eq(users.id, uid));
-                            } 
-                            // Else: "Líder de Categoría" but not promoted yet (status quo maintained in DB)
-                        }
-                    }
-                }
-            }
+        if (input.phase === "finalizado" && prevT.status !== "finalizado") {
+            await awardTournamentPoints(input.tournamentId, input.bracket);
         }
 
         await db
@@ -319,16 +240,157 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
 
-        return {
-            ok: true,
-            player: {
-                id: newId,
-                name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`,
-                category: category || user.category || "D"
-            }
-        };
+        return { ok: true, player: { id: newId, name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, category: category || user.category || "D" } };
     } catch (err) {
         console.error("[quickInscribePlayer]", err);
         return { ok: false, error: String(err) };
+    }
+}
+
+export async function finalizeTournament(id: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
+        if (!t) throw new Error("Torneo no encontrado");
+
+        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
+        const isSuperAdmin = user?.role === 'superadmin';
+
+        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+            throw new Error("No tenés permiso para finalizar este torneo");
+        }
+
+        if (t.status !== "finalizado") {
+            await awardTournamentPoints(id);
+        }
+
+        await db
+            .update(tournaments)
+            .set({ status: "finalizado" })
+            .where(eq(tournaments.id, id));
+
+        revalidatePath("/tournaments");
+        revalidatePath(`/tournaments/${id}`);
+        revalidatePath(`/tournaments/${id}/manage`);
+        revalidatePath("/admin/tournaments");
+
+        return { ok: true };
+    } catch (err) {
+        console.error("[finalizeTournament]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+export async function awardTournamentPoints(tournamentId: string, providedBracket?: any[]) {
+    try {
+        console.log(`[awardTournamentPoints] Starting for tournament ${tournamentId}`);
+        const [t] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        if (!t || !t.pointsConfig) {
+            console.log(`[awardTournamentPoints] No tournament or pointsConfig found for ${tournamentId}`);
+            return;
+        }
+
+        const points = t.pointsConfig as any;
+        const regs = await db.select().from(registrations).where(eq(registrations.tournamentId, tournamentId));
+        console.log(`[awardTournamentPoints] Found ${regs.length} registrations`);
+        
+        let bracketToProcess = providedBracket;
+        if (!bracketToProcess) {
+            const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, tournamentId));
+            bracketToProcess = dbBracket.map(bm => ({
+                ...bm,
+                team1: { id: (bm as any).team1Id },
+                team2: { id: (bm as any).team2Id },
+            }));
+            console.log(`[awardTournamentPoints] Loaded ${bracketToProcess.length} matches from DB`);
+        } else {
+            console.log(`[awardTournamentPoints] Using ${bracketToProcess.length} matches from provided bracket`);
+        }
+
+        const userPointsAddition = new Map<string, number>();
+
+        const addPoints = (playerId: string | null | undefined, pts: number) => {
+            if (!playerId || playerId === "BYE") return;
+            // If playerId is actually a Name (due to previous bug), this will fail to find the reg.
+            const r = regs.find(reg => reg.id === playerId);
+            if (r) {
+                const pointsToAdd = Number(pts) || 0;
+                if (pointsToAdd === 0) return;
+
+                if (r.userId) {
+                    userPointsAddition.set(r.userId, (userPointsAddition.get(r.userId) || 0) + pointsToAdd);
+                    console.log(`[awardTournamentPoints] Adding ${pointsToAdd} to user ${r.userId} (Reg: ${r.id})`);
+                }
+                if (r.partnerUserId) {
+                    userPointsAddition.set(r.partnerUserId, (userPointsAddition.get(r.partnerUserId) || 0) + pointsToAdd);
+                    console.log(`[awardTournamentPoints] Adding ${pointsToAdd} to partner ${r.partnerUserId} (Reg: ${r.id})`);
+                }
+            } else {
+                console.log(`[awardTournamentPoints] WARNING: Registration not found for ID: ${playerId}`);
+            }
+        };
+
+        if (bracketToProcess) {
+            bracketToProcess.forEach(bm => {
+                if (!bm.confirmed) return;
+
+                const t1Id = (bm.team1 as any)?.id;
+                const t2Id = (bm.team2 as any)?.id;
+                
+                console.log(`[awardTournamentPoints] Processing match round ${bm.round}: T1=${t1Id}, T2=${t2Id}, Winner=${bm.winnerId}`);
+
+                if (bm.round === 0) { // Final
+                    if (bm.winnerId === t1Id) {
+                        addPoints(t1Id, points.winner || 0);
+                        addPoints(t2Id, points.finalist || 0);
+                    } else if (bm.winnerId === t2Id) {
+                        addPoints(t2Id, points.winner || 0);
+                        addPoints(t1Id, points.finalist || 0);
+                    }
+                } else if (bm.round === 1) { // Semifinals
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.semi || 0);
+                } else if (bm.round === 2) { // Quarterfinals
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.quarter || 0);
+                } else if (bm.round === 3) { // Octavos
+                    const loserId = bm.winnerId === t1Id ? t2Id : t1Id;
+                    addPoints(loserId, points.octavos || 0);
+                }
+            });
+        }
+
+        console.log(`[awardTournamentPoints] Total users to update: ${userPointsAddition.size}`);
+
+        for (const [uid, pts] of userPointsAddition.entries()) {
+            if (pts > 0) {
+                await db
+                    .update(users)
+                    .set({ points: sql`COALESCE(${users.points}, 0) + ${pts}` })
+                    .where(eq(users.id, uid));
+
+                const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
+                if (updatedUser) {
+                    console.log(`[awardTournamentPoints] Updated user ${uid}. New total: ${updatedUser.points}`);
+                    const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
+                    const newCatObj = await getCategoryFromPoints(updatedUser.points ?? 0);
+                    const currentCatObj = await getCategoryByName(updatedUser.category || "D");
+                    
+                    if (newCatObj && currentCatObj && newCatObj.categoryOrder > currentCatObj.categoryOrder) {
+                        const currentYear = new Date().getFullYear();
+                        const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
+                        if (titleWins >= 2) {
+                            await db.update(users).set({ category: newCatObj.name }).where(eq(users.id, uid));
+                            console.log(`[awardTournamentPoints] Promoted user ${uid} to ${newCatObj.name}`);
+                        }
+                    }
+                }
+            }
+        }
+        console.log(`[awardTournamentPoints] Finished successfully`);
+    } catch (err) {
+        console.error("[awardTournamentPoints]", err);
     }
 }

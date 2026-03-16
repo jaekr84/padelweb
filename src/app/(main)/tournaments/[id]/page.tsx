@@ -52,11 +52,32 @@ export default async function TournamentDisplayPage({ params }: Props) {
             ? await db.select().from(users).where(inArray(users.id, registrantIds))
             : [];
 
+        // Safely parse tournament modalidad
+        let mod: any = tournament.modalidad;
+        try {
+            if (typeof tournament.modalidad === 'string' && tournament.modalidad.trim().startsWith('{')) {
+                mod = JSON.parse(tournament.modalidad);
+            }
+        } catch (e) {
+            console.error("Error parsing modalidad:", e);
+        }
+
+        const isIndividual = mod?.participacion === "individual";
+
         const initialPlayers = dbRegistrations.map(reg => {
             const user = dbUsers.find(u => u.id === reg.userId);
             const namePart1 = user 
                 ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0])
                 : "Jugador";
+            
+            if (isIndividual) {
+                return {
+                    id: reg.id,
+                    name: namePart1,
+                    category: reg.category || "Libre",
+                };
+            }
+
             const namePart2 = reg.partnerName || "Invitado";
             return {
                 id: reg.id,
@@ -80,13 +101,13 @@ export default async function TournamentDisplayPage({ params }: Props) {
                         <div className="px-8 py-6 border-b border-border bg-muted/30 flex items-center justify-between">
                             <h2 className="text-sm font-black uppercase tracking-widest text-white">Jugadores Inscriptos</h2>
                             <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                                {initialPlayers.length} Parejas
+                                {initialPlayers.length} {isIndividual ? "Jugadores" : "Parejas"}
                             </span>
                         </div>
                         
                         {initialPlayers.length === 0 ? (
                             <div className="p-12 text-center">
-                                <p className="text-slate-500 text-sm font-bold">Aún no hay parejas inscriptas.</p>
+                                <p className="text-slate-500 text-sm font-bold">Aún no hay {isIndividual ? "jugadores inscriptos" : "parejas inscriptas"}.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-border">
@@ -135,13 +156,28 @@ export default async function TournamentDisplayPage({ params }: Props) {
 
     // Mapping for match teams
     const allPlayers = initialGroups.flatMap(g => g.players);
-    const getPlayerByName = (name: string) => allPlayers.find(p => p.name === name) || { id: name, name };
+    const getPlayerByIdOrName = (id: string | null, name: string) => {
+        const isUUID = (str: string) => str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+        if (id) {
+            const found = allPlayers.find(p => p.id === id);
+            if (found) return found;
+        }
+
+        // Handle case where name might be a UUID from previous bug
+        if (isUUID(name)) {
+            const foundByIdAsName = allPlayers.find(p => p.id === name);
+            if (foundByIdAsName) return foundByIdAsName;
+        }
+
+        return allPlayers.find(p => p.name === name) || { id: id || name, name: isUUID(name) ? "Jugador" : name };
+    };
 
     const mappedMatches = dbMatches.map(m => ({
         id: m.id,
         groupId: m.groupId,
-        team1: getPlayerByName(m.team1Name),
-        team2: getPlayerByName(m.team2Name),
+        team1: getPlayerByIdOrName(m.team1Id ?? null, m.team1Name),
+        team2: getPlayerByIdOrName(m.team2Id ?? null, m.team2Name),
         score1: m.score1 ?? undefined,
         score2: m.score2 ?? undefined,
         played: m.confirmed,
@@ -152,12 +188,13 @@ export default async function TournamentDisplayPage({ params }: Props) {
         id: bm.id,
         round: bm.round,
         slot: bm.slot,
-        team1: bm.team1Name ? getPlayerByName(bm.team1Name) : null,
-        team2: bm.team2Name ? getPlayerByName(bm.team2Name) : null,
+        team1: bm.team1Name ? getPlayerByIdOrName(bm.team1Id ?? null, bm.team1Name) : null,
+        team2: bm.team2Name ? getPlayerByIdOrName(bm.team2Id ?? null, bm.team2Name) : null,
         score1: bm.score1 ?? undefined,
         score2: bm.score2 ?? undefined,
         confirmed: bm.confirmed,
         winnerId: bm.winnerId ?? undefined,
+        winnerName: bm.winnerName ?? undefined,
     }));
 
     return (
