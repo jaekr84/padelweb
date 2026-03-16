@@ -414,7 +414,11 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
                         if (deservesPromotion) {
                             const allCats = await getAllActiveCategories();
-                            const nextCat = allCats.find(c => c.categoryOrder < currentCatObj.categoryOrder); // Get next best
+                            // Ascending means categoryOrder decreases (e.g. from 3 to 2)
+                            // We want the ONE category immediately better than currentCatObj
+                            const nextCat = allCats
+                                .filter(c => c.categoryOrder < currentCatObj.categoryOrder)
+                                .sort((a, b) => b.categoryOrder - a.categoryOrder)[0]; 
                             
                             if (nextCat) {
                                 console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (deservesPromotion: ${deservesPromotion})`);

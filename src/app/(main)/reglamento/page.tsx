@@ -30,7 +30,7 @@ export default function ReglamentoPage() {
             <div className="relative z-10 max-w-4xl mx-auto px-6 pt-12 md:pt-20">
                 {/* ── Header ── */}
                 <header className="mb-16 text-center md:text-left">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4"
@@ -38,14 +38,14 @@ export default function ReglamentoPage() {
                         <ShieldCheck className="w-3 h-3" />
                         Reglamento Oficial
                     </motion.div>
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none mb-6"
                     >
                         Sistema de <span className="text-indigo-500">Puntos y Categorías</span>
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
@@ -55,7 +55,7 @@ export default function ReglamentoPage() {
                     </motion.p>
                 </header>
 
-                <motion.div 
+                <motion.div
                     variants={container}
                     initial="hidden"
                     animate="show"
@@ -93,7 +93,7 @@ export default function ReglamentoPage() {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-4">
                                 <h3 className="text-sm font-black uppercase tracking-widest text-indigo-500/80 italic">Bonus por Esfuerzo</h3>
                                 <div className="space-y-3">
@@ -125,9 +125,9 @@ export default function ReglamentoPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
                                     <div className="md:col-span-2 space-y-6">
                                         <p className="text-sm font-medium text-muted-foreground leading-relaxed">
-                                            Imagina un torneo con <strong className="text-foreground">26 parejas</strong> y una recompensa de <strong className="text-indigo-500 italic">1.000 puntos</strong> para el campeón:
+                                            Imagina un torneo con <strong className="text-foreground">26 jugadores</strong> (Individual) y una recompensa de <strong className="text-indigo-500 italic">1.000 puntos</strong> para el campeón:
                                         </p>
-                                        
+
                                         <div className="space-y-4">
                                             <div className="flex items-start gap-4">
                                                 <div className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center text-xs font-black italic shrink-0 shadow-lg">1</div>
@@ -179,7 +179,7 @@ export default function ReglamentoPage() {
                                 {/* TABLA DE DISTRIBUCIÓN COMPLETA */}
                                 <div className="mt-12 overflow-hidden rounded-3xl border border-border bg-card">
                                     <div className="bg-indigo-500/10 px-6 py-4 border-b border-border">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 italic">Desglose Final (Distribución para 26 Inscriptos)</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 italic">Desglose Final Torneo Individual (26 Inscriptos)</h4>
                                     </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
@@ -195,12 +195,12 @@ export default function ReglamentoPage() {
                                             </thead>
                                             <tbody className="divide-y divide-border">
                                                 {[
-                                                    { rank: "Campeón", qty: 2, round: 1000, zone: 80, base: 20, total: 1100, highlight: true },
-                                                    { rank: "Subcampeón", qty: 2, round: 600, zone: 80, base: 20, total: 700, highlight: false },
-                                                    { rank: "Semifinalistas", qty: 4, round: 360, zone: 80, base: 20, total: 460, highlight: false },
-                                                    { rank: "Cuartos de Final", qty: 8, round: 180, zone: 40, base: 20, total: 240, highlight: false },
-                                                    { rank: "Octavos de Final", qty: 16, round: 90, zone: 40, base: 20, total: 150, highlight: false },
-                                                    { rank: "Fase de Grupos (Solo Zona)", qty: 20, round: 0, zone: 40, base: 20, total: 60, highlight: false },
+                                                    { rank: "1° - Campeón", qty: 1, round: 1000, zone: 80, base: 20, total: 1100, highlight: true },
+                                                    { rank: "2° - Subcampeón", qty: 1, round: 600, zone: 80, base: 20, total: 700, highlight: false },
+                                                    { rank: "Semifinalistas", qty: 2, round: 360, zone: 80, base: 20, total: 460, highlight: false },
+                                                    { rank: "Cuartos de Final", qty: 4, round: 180, zone: 40, base: 20, total: 240, highlight: false },
+                                                    { rank: "Octavos de Final", qty: 8, round: 90, zone: 40, base: 20, total: 150, highlight: false },
+                                                    { rank: "Fase de Grupos", qty: 10, round: 0, zone: 40, base: 20, total: 60, highlight: false },
                                                 ].map((row, i) => (
                                                     <tr key={i} className={`group hover:bg-muted/30 transition-colors ${row.highlight ? "bg-indigo-500/5" : ""}`}>
                                                         <td className="px-6 py-4">
@@ -240,7 +240,7 @@ export default function ReglamentoPage() {
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
                             <TrendingUp className="w-40 h-40 text-indigo-500" />
                         </div>
-                        
+
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
                                 <ArrowUpRight className="w-6 h-6 text-indigo-500" />
@@ -272,7 +272,7 @@ export default function ReglamentoPage() {
                                 </div>
                             ))}
                         </div>
-                        
+
                         <div className="mt-8 p-4 bg-muted/50 border border-border/50 rounded-2xl flex items-start gap-4">
                             <Info className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-normal">
