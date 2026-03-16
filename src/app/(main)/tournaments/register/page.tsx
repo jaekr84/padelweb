@@ -147,15 +147,15 @@ export default async function RegisterPage({ searchParams }: Props) {
         }
     }
 
+    const { categoriesTable } = require("@/db/schema");
+    const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
+
     // 2. Check Category (Hierarchical)
     const tCats: string[] = Array.isArray(tournament.categories) 
         ? tournament.categories 
         : (typeof tournament.categories === 'string' ? JSON.parse(tournament.categories) : []);
     
     if (tCats.length > 0 && !tCats.includes("libre")) {
-        const { categoriesTable } = require("@/db/schema");
-        const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
-        
         const userCatData = allCats.find(c => c.name.trim().toLowerCase() === dbUser.category?.trim().toLowerCase());
         const tournamentCatsData = allCats.filter(c => tCats.some(tc => tc.toLowerCase() === c.name.toLowerCase()));
         
@@ -201,14 +201,17 @@ export default async function RegisterPage({ searchParams }: Props) {
     }
 
     const serialized = JSON.parse(JSON.stringify(tournament));
+    const serializedCats = JSON.parse(JSON.stringify(allCats));
 
     return (
         <RegisterForm
             tournament={serialized}
+            allCategories={serializedCats}
             currentUser={{
                 id: userId,
                 name: dbUser.firstName && dbUser.lastName ? `${dbUser.firstName} ${dbUser.lastName}` : (dbUser.firstName || "Usuario"),
                 email: dbUser.email || "",
+                gender: dbUser.gender,
             }}
         />
     );

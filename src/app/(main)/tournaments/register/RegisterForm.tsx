@@ -19,7 +19,14 @@ type Tournament = {
     modalidad: any; // Can be object or string from DB
 };
 
-type CurrentUser = { id: string; name: string; email: string };
+type CurrentUser = { id: string; name: string; email: string; gender?: string | null };
+
+type Category = {
+    id: string;
+    name: string;
+    maxPoints: number;
+    categoryOrder: number;
+};
 
 type Step = "info" | "team" | "confirm" | "success";
 
@@ -29,7 +36,7 @@ function Initials({ name }: { name: string }) {
     return <span>{initials}</span>;
 }
 
-export default function RegisterForm({ tournament, currentUser }: { tournament: Tournament; currentUser: CurrentUser }) {
+export default function RegisterForm({ tournament, currentUser, allCategories = [] }: { tournament: Tournament; currentUser: CurrentUser; allCategories?: Category[] }) {
     // Safety check for categories
     let cats: string[] = [];
     try {
@@ -94,6 +101,44 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
         return () => clearTimeout(timeout);
     }, [search, partnerMode, partnerName]);
 
+    // --- Helper for Eligibility ---
+    const checkPlayerEligibility = (player: any) => {
+        if (!allCategories.length) return { ok: true };
+
+        // 1. Gender check
+        const requiredGender = mod?.genero?.toLowerCase(); // hombre, mujer, mixto
+        const playerGender = player.gender?.toLowerCase(); // masculino, femenino
+
+        if (requiredGender && requiredGender !== "mixto") {
+            const isMaleTournament = requiredGender.startsWith("hombre");
+            const isFemaleTournament = requiredGender.startsWith("mujer");
+            const isMalePlayer = playerGender === "masculino";
+            const isFemalePlayer = playerGender === "femenino" || playerGender === "femenino";
+
+            if (isMaleTournament && !isMalePlayer) return { ok: false, reason: "Género no permitido" };
+            if (isFemaleTournament && !isFemalePlayer) return { ok: false, reason: "Género no permitido" };
+        }
+
+        // 2. Category check
+        if (!category || category.toLowerCase() === "libre") return { ok: true };
+
+        const targetCat = allCategories.find(c => c.name.toLowerCase() === category.toLowerCase());
+        const playerCatData = allCategories.find(c => c.name.trim().toLowerCase() === player.category?.trim().toLowerCase());
+
+        if (targetCat && playerCatData) {
+            if (playerCatData.categoryOrder < targetCat.categoryOrder) {
+                return { ok: false, reason: "Nivel Superior" };
+            }
+        }
+        
+        // 3. Points check
+        if (targetCat && (player.points || 0) > targetCat.maxPoints) {
+            return { ok: false, reason: "Exceso de Puntos" };
+        }
+
+        return { ok: true };
+    };
+
     const switchMode = (mode: "search" | "guest") => {
         setPartnerMode(mode);
         setPartnerName("");
@@ -148,6 +193,7 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
     const partnerDisplayName = partnerMode === "guest" ? guestName.trim() : partnerName.trim();
 
     /* ────────────────────────────────────── */
+
     return (
         <div className="min-h-screen bg-background overflow-x-hidden">
 
@@ -426,34 +472,40 @@ export default function RegisterForm({ tournament, currentUser }: { tournament: 
                                             {focused && !partnerName && search.trim().length >= 2 && (
                                                 <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-2xl z-[100] max-h-60 overflow-y-auto">
                                                     {searchResults.length > 0 ? (
-                                                        searchResults.map(p => (
-                                                            <button
-                                                                key={p.id}
-                                                                className="w-full text-left p-3 rounded-lg hover:bg-slate-700 flex items-center gap-3 transition-colors mb-1"
-                                                            >
-                                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-xs flex items-center justify-center italic"
+                                                        searchResults.map(p => {
+                                                            const { ok, reason } = checkPlayerEligibility(p);
+                                                            return (
+                                                                <button
+                                                                    key={p.id}
+                                                                    disabled={!ok}
+                                                                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${
+                                                                        ok ? "hover:bg-slate-700" : "opacity-50 cursor-not-allowed"
+                                                                    }`}
                                                                     onMouseDown={() => {
+                                                                        if (!ok) return;
                                                                         setPartnerName(`${p.firstName} ${p.lastName || ""}`);
                                                                         setPartnerUserId(p.id);
                                                                         setSearch("");
                                                                         setSearchResults([]);
                                                                     }}
                                                                 >
-                                                                    {(p.firstName || "U").charAt(0)}
-                                                                </div>
-                                                                <div className="flex-1 min-w-0"
-                                                                    onMouseDown={() => {
-                                                                        setPartnerName(`${p.firstName} ${p.lastName || ""}`);
-                                                                        setPartnerUserId(p.id);
-                                                                        setSearch("");
-                                                                        setSearchResults([]);
-                                                                    }}
-                                                                >
-                                                                    <p className="font-bold text-sm text-white truncate">{p.firstName} {p.lastName}</p>
-                                                                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
-                                                                </div>
-                                                            </button>
-                                                        ))
+                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-xs flex items-center justify-center italic">
+                                                                        {(p.firstName || "U").charAt(0)}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <p className="font-bold text-sm text-white truncate">{p.firstName} {p.lastName}</p>
+                                                                            {!ok && (
+                                                                                <span className="text-[8px] font-black uppercase tracking-tighter bg-red-950 text-red-400 px-1.5 py-0.5 rounded border border-red-900 ml-2 whitespace-nowrap">
+                                                                                    {reason}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })
                                                     ) : (
                                                         <div className="p-4 text-center">
                                                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">No se encontraron jugadores registrados</p>
