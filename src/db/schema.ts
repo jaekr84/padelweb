@@ -23,6 +23,7 @@ export const users = mysqlTable("users", {
     imageUrl: varchar("image_url", { length: 512 }),
     lastParticipationAt: timestamp("last_participation_at"),
     lastCategoryUpdate: timestamp("last_category_update").defaultNow(),
+    sessionVersion: int("session_version").default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 
 }, (table) => ({
