@@ -505,8 +505,12 @@ export default function CreateTournamentForm({
                                     { id: "groupMatchWin", label: "Victoria Zona" },
                                     { id: "participation", label: "Asistencia" }
                                 ].map(k => (
-                                    <div key={k.id} className="space-y-2 sm:space-y-4">
-                                        <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-500/50 block text-center italic leading-tight">{k.label}</label>
+                                    <div key={k.id} className="flex flex-col">
+                                        <div className="h-7 sm:h-8 flex items-end justify-center mb-2 sm:mb-4">
+                                            <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-500/50 text-center italic leading-tight">
+                                                {k.label}
+                                            </label>
+                                        </div>
                                         <div className="relative group">
                                             <input
                                                 type="number"

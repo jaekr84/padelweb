@@ -57,6 +57,9 @@ export default function LandingPage({
 
             {/* ── HERO SECTION ── */}
             <section className="relative pt-32 md:pt-48 pb-20 px-6 max-w-[1400px] mx-auto z-10 flex flex-col items-center justify-center text-center">
+                {/* ── SEO Title (Hidden H1) ── */}
+                <h1 className="sr-only">Asociación Coreana Argentina de Pádel - La Plataforma Oficial</h1>
+
                 {/* ── Logo Central ── */}
                 <div className="relative group mb-16">
                     <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-red-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
