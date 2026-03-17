@@ -81,7 +81,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
 
     const filteredPlayers = useMemo(() => {
         let list = [...users];
-        
+
         // Filter by gender
         if (genderFilter !== "all") {
             list = list.filter(u => u.gender === genderFilter);
@@ -95,7 +95,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         // Search by name
         if (searchQuery.trim() !== "") {
             const query = searchQuery.toLowerCase();
-            list = list.filter(u => 
+            list = list.filter(u =>
                 (u.name || "").toLowerCase().includes(query) ||
                 u.email.toLowerCase().includes(query)
             );
@@ -141,7 +141,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
                         />
                         {searchQuery && (
-                            <button 
+                            <button
                                 onClick={() => setSearchQuery("")}
                                 className="absolute inset-y-0 right-0 pr-4 flex items-center"
                             >
@@ -277,38 +277,41 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                     </div>
 
                                     {/* Promotion Merit Section */}
-                                    <div className="px-4 pb-4 pt-1 border-t border-border/10 bg-muted/20 flex flex-wrap gap-x-6 gap-y-2">
+                                    <div className="px-5 py-2.5 border-t border-border/5 bg-muted/20 flex items-center gap-5 overflow-x-auto no-scrollbar">
                                         {(() => {
                                             const currentCat = availableCategories?.find(c => player.category === c.name);
-                                            const pointsThreshold = currentCat?.maxPoints || 0;
-                                            const pointsMet = points > pointsThreshold;
+                                            const catMax = currentCat?.maxPoints || 0;
+                                            const pointsForNextCat = points > catMax;
+                                            const pointsExceedBonus = points >= catMax * 1.15;
                                             const winsMet = (player as any).winsInCurrentCategory >= 2;
-                                            
-                                            let status = "Pendiente de Puntos";
-                                            if (pointsMet && !winsMet) status = "Pendiente de Títulos";
-                                            if (pointsMet && winsMet) status = "Aprobado para Ascenso";
-                                            if (!pointsMet) status = "En Competencia";
+
+                                            let status = "En Competencia";
+                                            if (pointsExceedBonus || (pointsForNextCat && winsMet)) {
+                                                status = "Aprobado para Ascenso";
+                                            } else if (pointsForNextCat && !winsMet) {
+                                                status = "Pendiente de Títulos (2)";
+                                            }
 
                                             return (
                                                 <>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Puntos Acumulados</span>
-                                                        <span className={`text-[10px] font-bold ${pointsMet ? 'text-emerald-500' : 'text-foreground'}`}>
-                                                            {points} / {pointsThreshold}
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-muted-foreground opacity-50">Puntos</span>
+                                                        <span className={`text-[10px] font-bold ${pointsForNextCat ? 'text-emerald-500' : 'text-foreground'}`}>
+                                                            {points}
                                                         </span>
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Torneos Ganados ({new Date().getFullYear()})</span>
+
+                                                    <div className="w-px h-3 bg-border/40 shrink-0" />
+
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-muted-foreground opacity-50">Títulos</span>
                                                         <span className={`text-[10px] font-bold ${winsMet ? 'text-emerald-500' : 'text-foreground'}`}>
-                                                            {(player as any).winsInCurrentCategory} / 2
+                                                            {(player as any).winsInCurrentCategory}
                                                         </span>
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Estatus de Ascenso</span>
-                                                        <span className={`text-[10px] font-black uppercase italic ${pointsMet && winsMet ? 'text-indigo-500' : 'text-muted-foreground'}`}>
-                                                            {status}
-                                                        </span>
-                                                    </div>
+
+                                                    <div className="w-px h-3 bg-border/40 shrink-0 ml-auto" />
+
                                                 </>
                                             );
                                         })()}
@@ -370,7 +373,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                 <div className="w-full md:w-[340px] shrink-0 flex flex-col">
                                     {!loadingMatches && selectedPlayer && playerStats && (
                                         <div className="md:sticky md:top-0">
-                                            <PlayerCard 
+                                            <PlayerCard
                                                 player={{
                                                     firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "Jugador",
                                                     lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",

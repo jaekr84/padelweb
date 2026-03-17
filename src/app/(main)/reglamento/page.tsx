@@ -259,7 +259,7 @@ export default function ReglamentoPage() {
                             {[
                                 { title: "Doble Campeón", desc: "Gana 2 torneos en la misma categoría durante el año calendario.", icon: Trophy },
                                 { title: "Nivel Superior", desc: "Superar el puntaje máximo de tu categoría por un 15% adicional.", icon: Star },
-                                { title: "Puntos + Logro", desc: "Alcanzar el umbral de puntos de la siguiente categoría + ganar al menos 1 torneo.", icon: Medal },
+                                { title: "Puntos + Logro", desc: "Alcanzar el umbral de puntos de la siguiente categoría + ganar al menos 2 torneos.", icon: Medal },
                             ].map((card, i) => (
                                 <div key={i} className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl flex flex-col gap-4 group hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all">
                                     <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">

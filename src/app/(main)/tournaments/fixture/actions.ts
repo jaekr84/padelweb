@@ -405,12 +405,10 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                         const currentYear = new Date().getFullYear();
                         const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
                         
-                        // FLEXIBLE RULE:
-                        // 1. If Category suggests promotion AND Wins >= 1 (Make it 1 tournament win + enough points)
-                        // OR 2. Wins >= 2 (Even if points don't reach threshold, winning 2 titles is clear sign)
-                        // OR 3. Points exceed category MAX by 15%
+                        // 1. If Wins >= 2 (Winning 2 titles is clear sign of superior level)
+                        // OR 2. Points exceed category MAX by 15% (Superior level by constant performance)
                         const pointsThreshold = currentCatObj.maxPoints * 1.15;
-                        const deservesPromotion = (titleWins >= 1) || (updatedUser.points! >= pointsThreshold) || (titleWins >= 2);
+                        const deservesPromotion = (titleWins >= 2) || (updatedUser.points! >= pointsThreshold);
 
                         if (deservesPromotion) {
                             const allCats = await getAllActiveCategories();
