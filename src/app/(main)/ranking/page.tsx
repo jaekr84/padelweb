@@ -14,6 +14,8 @@ export default async function RankingPage() {
         category: users.category,
         gender: users.gender,
         points: users.points,
+        side: users.side,
+        imageUrl: users.imageUrl,
         clubId: users.clubId,
         club: {
             name: clubs.name,
@@ -83,11 +85,15 @@ export default async function RankingPage() {
     // 5. Transform users mapping
     const rankingUsers = allUsers.map(u => ({
         id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
         name: u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.firstName || u.lastName || "Jugador"),
         email: u.email,
         category: u.category,
         gender: u.gender,
         points: u.points || 0,
+        imageUrl: u.imageUrl,
+        side: u.side,
         winsInCurrentCategory: winCounts[u.id]?.[u.category || "D"] || 0,
         club: u.club
     }));
