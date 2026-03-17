@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { clubs, tournaments, users } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 
 import ClubProfileClient from "./ClubProfileClient";
 import { Shield } from "lucide-react";
@@ -107,7 +107,12 @@ export default async function ClubProfilePage({
     const clubMembers = await db
         .select()
         .from(users)
-        .where(eq(users.clubId, club.id))
+        .where(
+            and(
+                eq(users.clubId, club.id),
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
+            )
+        )
         .orderBy(desc(users.points));
 
     const isOwner = session?.userId === club.ownerId;

@@ -24,7 +24,12 @@ export default async function RankingPage() {
     })
     .from(users)
     .leftJoin(clubs, eq(users.clubId, clubs.id))
-    .where(eq(users.role, "jugador"));
+    .where(
+        and(
+            eq(users.role, "jugador"),
+            sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
+        )
+    );
 
     // 2. Fetch all tournament registrations to count tournaments played per player
     const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));

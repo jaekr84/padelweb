@@ -217,7 +217,8 @@ export async function searchPlayersForPartner(query: string) {
                     like(users.firstName, `%${query}%`),
                     like(users.lastName, `%${query}%`),
                     like(users.email, `%${query}%`)
-                )
+                ),
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
             )
         )
         .limit(10);

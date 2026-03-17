@@ -3,7 +3,7 @@ import { users, categoriesTable } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import UserManagementClient from "@/app/(main)/admin/users/UserManagementClient";
-import { desc, asc, eq } from "drizzle-orm";
+import { desc, asc, eq, sql, and } from "drizzle-orm";
 
 
 export default async function UserManagementPage() {
@@ -28,6 +28,7 @@ export default async function UserManagementPage() {
         createdAt: users.createdAt,
     })
     .from(users)
+    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
     .orderBy(desc(users.createdAt));
 
     const allCategories = await db
