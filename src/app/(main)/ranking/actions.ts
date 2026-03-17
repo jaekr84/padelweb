@@ -90,7 +90,8 @@ export async function getPlayerMatchHistory(userId: string) {
                     score1: score1,
                     score2: score2,
                     isWinner: matchesTeam1 ? score1 > score2 : score2 > score1,
-                    date: tournament?.createdAt || new Date()
+                    date: tournament?.createdAt || new Date(),
+                    category: reg.category
                 });
             }
         }

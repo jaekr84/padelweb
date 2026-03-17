@@ -49,12 +49,14 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     const [genderFilter, setGenderFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [activeTab, setActiveTab] = useState<'perfil' | 'mural'>('perfil');
     const [selectedPlayer, setSelectedPlayer] = useState<RankingUser | null>(null);
     const [matches, setMatches] = useState<any[]>([]);
     const [loadingMatches, setLoadingMatches] = useState(false);
 
     const handlePlayerClick = async (player: RankingUser) => {
         setSelectedPlayer(player);
+        setActiveTab('perfil');
         setLoadingMatches(true);
         setMatches([]);
         try {
@@ -350,114 +352,234 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             className="relative w-full max-w-5xl bg-card border-t md:border border-border rounded-t-[2.5rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl"
                         >
                             {/* Modal Header */}
-                            <div className="p-6 md:p-8 bg-muted/50 border-b border-border flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div>
-                                        <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground leading-tight">
-                                            Ficha de Jugador
-                                        </h2>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mt-1">Historial Detallado - {selectedPlayer.name}</p>
+                            <div className="p-6 md:p-8 bg-muted/50 border-b border-border">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                                            {activeTab === 'perfil' ? <User className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">
+                                                {activeTab === 'perfil' ? 'Ficha Técnica' : 'Mural de Logros'}
+                                            </h2>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mt-1">{selectedPlayer.name}</p>
+                                        </div>
                                     </div>
+
+                                    {/* Tab Switcher - Premium Capsule */}
+                                    <div className="flex items-center bg-card border border-border p-1 rounded-2xl self-center sm:self-auto">
+                                        <button
+                                            onClick={() => setActiveTab('perfil')}
+                                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-muted-foreground hover:text-foreground'}`}
+                                        >
+                                            <Activity className="w-3.5 h-3.5" />
+                                            <span>Perfil</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('mural')}
+                                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'mural' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/40' : 'text-muted-foreground hover:text-foreground'}`}
+                                        >
+                                            <Trophy className="w-3.5 h-3.5" />
+                                            <span>Logros</span>
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setSelectedPlayer(null)}
+                                        className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center hover:bg-muted transition-all active:scale-90 absolute top-4 right-4 sm:static"
+                                    >
+                                        <X className="w-5 h-5 text-muted-foreground" />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => setSelectedPlayer(null)}
-                                    className="w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors"
-                                >
-                                    <X className="w-5 h-5 text-muted-foreground" />
-                                </button>
                             </div>
 
-                            {/* Two-Column Content */}
-                            <div className="flex-1 overflow-hidden flex flex-col md:flex-row p-4 md:p-8 gap-8">
-                                {/* Left Side: Player Card (Sticky context) */}
-                                <div className="w-full md:w-[340px] shrink-0 flex flex-col">
-                                    {!loadingMatches && selectedPlayer && playerStats && (
-                                        <div className="md:sticky md:top-0">
-                                            <PlayerCard
-                                                player={{
-                                                    firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "Jugador",
-                                                    lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",
-                                                    imageUrl: selectedPlayer.imageUrl,
-                                                    category: selectedPlayer.category || "D",
-                                                    side: selectedPlayer.side || "ambos",
-                                                    points: selectedPlayer.points || 0,
-                                                    clubName: selectedPlayer.club?.name
-                                                }}
-                                                stats={playerStats}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
+                            {/* Modal Content - Scrollable Body */}
+                            <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-10">
+                                <AnimatePresence mode="wait">
+                                    {activeTab === 'perfil' ? (
+                                        <motion.div 
+                                            key="perfil"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="max-w-5xl mx-auto"
+                                        >
+                                            {/* Section 1: Hero & Performance (Flex Layout) */}
+                                            <div className="flex flex-col md:flex-row gap-10 md:gap-12 lg:gap-16 items-start">
+                                                
+                                                {/* Left: Player Visual Card */}
+                                                <div className="w-full md:w-[340px] shrink-0 flex justify-center md:justify-start">
+                                                    {!loadingMatches && selectedPlayer && playerStats && (
+                                                        <div className="w-full">
+                                                            <PlayerCard
+                                                                player={{
+                                                                    firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "Jugador",
+                                                                    lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",
+                                                                    imageUrl: selectedPlayer.imageUrl,
+                                                                    category: selectedPlayer.category || "D",
+                                                                    side: selectedPlayer.side || "ambos",
+                                                                    points: selectedPlayer.points || 0,
+                                                                    clubName: selectedPlayer.club?.name
+                                                                }}
+                                                                stats={playerStats}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                {/* Right Side: Minimalist Match Table */}
-                                <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
-                                    {loadingMatches ? (
-                                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Consultando Actas...</p>
-                                        </div>
-                                    ) : matches.length > 0 ? (
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full border-collapse">
-                                                <thead>
-                                                    <tr className="border-b border-border">
-                                                        <th className="text-left py-3 px-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Fecha</th>
-                                                        <th className="text-left py-3 px-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Torneo</th>
-                                                        <th className="text-left py-3 px-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Rival</th>
-                                                        <th className="text-center py-3 px-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Score</th>
-                                                        <th className="text-right py-3 px-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Res</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-border/50">
-                                                    {matches.map((match) => {
-                                                        const isTeam1 = match.team1.includes(selectedPlayer.name);
-                                                        const opponent = isTeam1 ? match.team2 : match.team1;
+                                                {/* Right: Recent Performance Table */}
+                                                <div className="flex-1 w-full flex flex-col pt-2">
+                                                    <div className="flex items-center gap-3 mb-8">
+                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                                                            <Activity className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-lg font-black uppercase italic tracking-tighter">Rendimiento <span className="text-indigo-500">Reciente</span></h3>
+                                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Últimos partidos computados</p>
+                                                        </div>
+                                                    </div>
 
-                                                        return (
-                                                            <tr key={match.id} className="hover:bg-muted/30 transition-colors group">
-                                                                <td className="py-4 px-2">
-                                                                    <div className="text-[10px] font-bold text-muted-foreground">
-                                                                        {new Date(match.date).toLocaleDateString()}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-4 px-2">
-                                                                    <div className="text-[11px] font-black uppercase italic text-foreground leading-tight">
-                                                                        {match.tournamentName}
-                                                                        <span className="block text-[8px] font-bold tracking-widest opacity-40 not-italic">
-                                                                            {match.type === 'Playoff' ? `R${match.round}` : 'Grupos'}
-                                                                        </span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-4 px-2 max-w-[140px]">
-                                                                    <div className="text-[11px] font-black uppercase italic text-muted-foreground group-hover:text-foreground transition-colors truncate">
-                                                                        {opponent}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-4 px-2 text-center">
-                                                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-muted rounded-lg font-black italic text-xs">
-                                                                        <span className={match.isWinner ? "text-emerald-500" : "text-muted-foreground"}>{match.score1}</span>
-                                                                        <span className="opacity-20">-</span>
-                                                                        <span className={!match.isWinner ? "text-rose-500" : "text-muted-foreground"}>{match.score2}</span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="py-4 px-2 text-right">
-                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${match.isWinner ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                                                                        {match.isWinner ? 'Win' : 'Loss'}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                    {loadingMatches ? (
+                                                        <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 bg-muted/20 rounded-[2rem] border border-border/50">
+                                                            <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Sincronizando Actas...</p>
+                                                        </div>
+                                                    ) : matches.length > 0 ? (
+                                                        <div className="bg-card border border-border/50 rounded-[2rem] overflow-hidden shadow-sm">
+                                                            <div className="overflow-x-auto">
+                                                                <table className="w-full border-collapse">
+                                                                    <thead>
+                                                                        <tr className="bg-muted/30">
+                                                                            <th className="text-left py-4 px-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Fecha</th>
+                                                                            <th className="text-left py-4 px-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Torneo / Fase</th>
+                                                                            <th className="text-left py-4 px-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Oponente</th>
+                                                                            <th className="text-center py-4 px-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Resultado</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y divide-border/30">
+                                                                        {matches.slice(0, 10).map((match) => {
+                                                                            const isTeam1 = match.team1.includes(selectedPlayer.name);
+                                                                            const opponent = isTeam1 ? match.team2 : match.team1;
+
+                                                                            return (
+                                                                                <tr key={match.id} className="hover:bg-muted/20 transition-colors group">
+                                                                                    <td className="py-4 px-5">
+                                                                                        <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+                                                                                            {new Date(match.date).toLocaleDateString()}
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className="py-4 px-5">
+                                                                                        <div className="flex flex-col">
+                                                                                            <span className="text-[11px] font-black uppercase italic text-foreground leading-none mb-1">{match.tournamentName}</span>
+                                                                                            <span className="text-[8px] font-bold tracking-widest text-indigo-500 uppercase">
+                                                                                                {match.type === 'Playoff' ? `Eliminatoria R${match.round}` : 'Fase de Grupos'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-4 px-5">
+                                                                                        <span className="text-[11px] font-black uppercase italic text-muted-foreground group-hover:text-foreground transition-colors truncate block max-w-[150px]">
+                                                                                            {opponent}
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className="py-4 px-5">
+                                                                                        <div className="flex items-center justify-center gap-2">
+                                                                                            <div className="flex items-center gap-1 bg-background border border-border px-2 py-1 rounded-lg font-black italic text-[11px]">
+                                                                                                <span className={match.isWinner ? "text-emerald-500" : "text-muted-foreground opacity-50"}>{match.score1}</span>
+                                                                                                <span className="opacity-20">-</span>
+                                                                                                <span className={!match.isWinner ? "text-rose-500" : "text-muted-foreground opacity-50"}>{match.score2}</span>
+                                                                                            </div>
+                                                                                            <span className={`w-2 h-2 rounded-full ${match.isWinner ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-[2rem] border border-dashed border-border group">
+                                                            <Activity className="w-10 h-10 text-muted-foreground opacity-20 group-hover:scale-110 transition-transform" />
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mt-4">Sin actividad computada</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </motion.div>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center py-20 opacity-30 grayscale italic">
-                                            <Activity className="w-10 h-10 mb-4" />
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-center">Sin actividad reciente</p>
-                                        </div>
+                                        <motion.div 
+                                            key="mural"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="max-w-5xl mx-auto pb-10"
+                                        >
+                                            {/* Section 2: Career Roadmap & Achievements (Full Width) */}
+                                            <div className="space-y-12">
+                                                <div className="flex flex-col items-center text-center">
+                                                    <div className="w-16 h-16 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-6 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
+                                                        <Trophy className="w-8 h-8" />
+                                                    </div>
+                                                    <h3 className="text-3xl font-black uppercase italic tracking-tighter italic">Mural de <span className="text-amber-500">Logros Oro</span></h3>
+                                                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest opacity-60 mt-2 max-w-sm">Títulos oficiales conquistados a lo largo de todas las categorías competitivas</p>
+                                                </div>
+
+                                                {(() => {
+                                                    const achievementsByCategory: Record<string, number> = {};
+                                                    matches.forEach(m => {
+                                                        if (m.type === 'Playoff' && m.round === 0 && m.isWinner) {
+                                                            const cat = m.category || "D";
+                                                            achievementsByCategory[cat] = (achievementsByCategory[cat] || 0) + 1;
+                                                        }
+                                                    });
+
+                                                    const categoriesWithLogros = Object.keys(achievementsByCategory).sort();
+
+                                                    if (categoriesWithLogros.length === 0) {
+                                                        return (
+                                                            <div className="bg-muted/10 border border-dashed border-border rounded-[3rem] p-24 flex flex-col items-center justify-center text-center grayscale opacity-50">
+                                                                <Trophy className="w-16 h-16 text-muted-foreground mb-6 opacity-20" />
+                                                                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground opacity-60">Aún no se registran victorias en finales oficiales</p>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                                            {categoriesWithLogros.map(cat => (
+                                                                <motion.div 
+                                                                    key={cat}
+                                                                    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+                                                                    className="bg-card border border-border/80 rounded-[2.5rem] p-10 flex flex-col items-center text-center relative overflow-hidden group hover:border-amber-500/40 transition-all shadow-2xl"
+                                                                >
+                                                                    {/* Background Decor */}
+                                                                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                                                                        <Trophy className="w-32 h-32 text-amber-500" />
+                                                                    </div>
+                                                                    
+                                                                    <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center mb-6 text-muted-foreground font-black italic text-xl leading-none">
+                                                                        {cat}
+                                                                    </div>
+
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50 mb-1">Categoría</span>
+                                                                    <h4 className="text-3xl font-black italic tracking-tighter text-foreground mb-6">{cat}</h4>
+                                                                    
+                                                                    <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent mb-6" />
+
+                                                                    <div className="flex items-center gap-3 text-amber-500 bg-amber-500/5 px-6 py-2 rounded-full border border-amber-500/10">
+                                                                        <Trophy className="w-5 h-5 fill-amber-500" />
+                                                                        <span className="text-lg font-black italic">{achievementsByCategory[cat]} Título{achievementsByCategory[cat] > 1 ? 's' : ''}</span>
+                                                                    </div>
+                                                                </motion.div>
+                                                            ))}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </motion.div>
                                     )}
-                                </div>
+                                </AnimatePresence>
                             </div>
                         </motion.div>
                     </div>

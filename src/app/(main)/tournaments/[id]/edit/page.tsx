@@ -101,6 +101,7 @@ export default async function EditTournamentPage({ params }: Props) {
         pointsConfig: tournament.pointsConfig as any,
         imageUrl: tournament.imageUrl,
         surface: tournament.surface,
+        maxSlots: parsedModalidad?.maxSlots ?? 0,
         modalidad: parsedModalidad,
     };
 

@@ -122,11 +122,11 @@ export default function PlayerProfileClient({
             const isT1 = myRegistrationIds.has(t1Id);
             const s1 = Number(m.match.score1) || 0;
             const s2 = Number(m.match.score2) || 0;
-            
+
             if (m.match.winnerId) {
                 return myRegistrationIds.has(m.match.winnerId);
             }
-            
+
             return isT1 ? s1 > s2 : s2 > s1;
         }).length;
 
@@ -145,7 +145,7 @@ export default function PlayerProfileClient({
     const realCategory = useMemo(() => {
         // Source of truth is the category assigned in the DB
         if (dbUser?.category) return dbUser.category;
-        
+
         // Fallback to calculation if DB category is empty
         if (!availableCategories) return "D";
         const points = dbUser?.points || 0;
@@ -154,7 +154,7 @@ export default function PlayerProfileClient({
     }, [availableCategories, dbUser?.points, dbUser?.category]);
 
     const activeTournaments = registrations.filter(r =>
-        r.tournament.status === "en_curso" || 
+        r.tournament.status === "en_curso" ||
         r.tournament.status === "en_eliminatorias" ||
         r.tournament.status === "published"
     );
@@ -186,8 +186,8 @@ export default function PlayerProfileClient({
                 won
             };
         })
-        .filter(m => m.isParticipant)
-        .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
+            .filter(m => m.isParticipant)
+            .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
     }, [matchHistory, myRegistrationIds]);
 
     const trophies = useMemo(() => {
@@ -234,7 +234,7 @@ export default function PlayerProfileClient({
                                                 </div>
                                             </div>
                                             <div className="flex gap-3 w-full md:w-auto">
-                                                <button 
+                                                <button
                                                     onClick={async () => {
                                                         try {
                                                             await rejectClubInviteAction(invite.id);
@@ -248,7 +248,7 @@ export default function PlayerProfileClient({
                                                 >
                                                     Rechazar
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={async () => {
                                                         try {
                                                             await acceptClubInviteAction(invite.id);
@@ -342,7 +342,7 @@ export default function PlayerProfileClient({
                         <div className="flex items-center gap-2 bg-card p-1.5 rounded-[1.5rem] border border-border overflow-x-auto no-scrollbar shadow-inner">
                             {[
                                 ...(!isSuperAdmin ? [
-                                    { id: "tournaments", label: "Torneos", icon: Trophy },
+                                    { id: "tournaments", label: "Profile Card", icon: Trophy },
                                     { id: "stats", label: "Estadísticas", icon: Activity },
                                     { id: "trophies", label: "Trofeos", icon: Award },
                                 ] : []),
@@ -366,7 +366,7 @@ export default function PlayerProfileClient({
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             {activeTab === "tournaments" && (
                                 <div className="flex flex-col items-center gap-8">
-                                    <PlayerCard 
+                                    <PlayerCard
                                         player={{
                                             firstName: dbUser.firstName,
                                             lastName: dbUser.lastName,
@@ -385,7 +385,7 @@ export default function PlayerProfileClient({
                                             trofeos: trophies.length
                                         }}
                                     />
-                                    
+
                                     {/* Optional: We could keep some secondary info below if needed, 
                                         but the user said "solo que aparezca la tarjeta" */}
                                 </div>
@@ -446,14 +446,7 @@ export default function PlayerProfileClient({
 
                             {activeTab === "trophies" && (
                                 <div className="space-y-6">
-                                    <div className="bg-card border border-border p-8 rounded-[2rem] shadow-xl flex flex-col items-center gap-4 text-center relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-amber-500/5 blur-[100px]" />
-                                        <div className="relative">
-                                            <Trophy className="h-12 w-12 text-amber-500 mb-2" />
-                                            <h2 className="text-xl font-black uppercase italic tracking-tight">Muro de Campeones</h2>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{trophies.length} Títulos Conseguidos</p>
-                                        </div>
-                                    </div>
+
 
                                     {trophies.length > 0 ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -472,9 +465,9 @@ export default function PlayerProfileClient({
                                                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Campeon de Torneo</p>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="h-px bg-border/50" />
-                                                        
+
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex flex-col">
                                                                 <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Resultado Final</span>
@@ -485,7 +478,7 @@ export default function PlayerProfileClient({
                                                                 <span className="text-xs font-bold text-foreground/80">{new Date(t.match.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}</span>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <Link href={`/tournaments/${t.match.tournamentId}`} className="w-full bg-white/5 group-hover:bg-amber-500 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-black">
                                                             Ver Torneo <ChevronRight className="h-3 w-3" />
                                                         </Link>
@@ -577,27 +570,27 @@ export default function PlayerProfileClient({
                                                 <label className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-indigo-600/20 active:scale-95">
                                                     <ImageIcon className="w-4 h-4" />
                                                     {isUploading ? "Subiendo..." : "Cambiar Foto"}
-                                                    <input 
-                                                        type="file" 
-                                                        className="hidden" 
-                                                        accept="image/*" 
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept="image/*"
                                                         disabled={isUploading}
                                                         onChange={async (e) => {
                                                             const file = e.target.files?.[0];
                                                             if (!file) return;
-                                                            
+
                                                             setIsUploading(true);
                                                             try {
                                                                 const options = { maxSizeMB: 0.5, maxWidthOrHeight: 600, useWebWorker: true };
                                                                 const compressedBlob = await imageCompression(file, options);
                                                                 const compressedFile = new File([compressedBlob], "profile.jpg", { type: "image/jpeg" });
-                                                                
+
                                                                 const uploadFormData = new FormData();
                                                                 uploadFormData.append("file", compressedFile);
-                                                                
+
                                                                 const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
                                                                 if (!res.ok) throw new Error("Error al subir");
-                                                                
+
                                                                 const data = await res.json();
                                                                 setFormData(prev => ({ ...prev, imageUrl: data.url }));
                                                                 setImagePreview(data.url);
@@ -607,7 +600,7 @@ export default function PlayerProfileClient({
                                                             } finally {
                                                                 setIsUploading(false);
                                                             }
-                                                        }} 
+                                                        }}
                                                     />
                                                 </label>
                                             </div>

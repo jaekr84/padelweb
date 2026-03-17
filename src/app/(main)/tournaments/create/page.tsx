@@ -36,6 +36,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
 
         if (rows[0]) {
             const t = rows[0];
+            const tModalidad = t.modalidad as any;
             initialData = {
                 id: t.id,
                 name: t.name,
@@ -48,7 +49,8 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 categories: t.categories as string[] | null,
                 pointsConfig: t.pointsConfig as InitialData["pointsConfig"],
                 imageUrl: t.imageUrl ?? null,
-                modalidad: t.modalidad as InitialData["modalidad"],
+                maxSlots: tModalidad?.maxSlots ?? 0,
+                modalidad: tModalidad,
             };
         }
     }
