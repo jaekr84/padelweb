@@ -20,7 +20,7 @@ export interface FixtureSetupProps {
     categories?: string[];
 }
 
-type Player = { id: string; name: string; category?: string; email?: string; gender?: string };
+type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null };
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -77,6 +77,7 @@ export default function FixtureSetup({
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [genderFilter, setGenderFilter] = useState("all");
+    const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
 
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
@@ -215,12 +216,24 @@ export default function FixtureSetup({
             const shuffled = shuffle(PRESENT_PLAYERS);
             const newGroups = buildGroups(numGroups);
 
-            // Distribute players in a snake-like or round-robin fashion
-            shuffled.forEach((player, idx) => {
-                const groupIdx = idx % numGroups;
-                if (newGroups[groupIdx].players.length < playersPerGroup) {
-                    newGroups[groupIdx].players.push(player);
-                }
+            // Distribute players trying to avoid same club in same group
+            shuffled.forEach((player) => {
+                // Filter groups that aren't full
+                const candidates = newGroups.filter(g => g.players.length < playersPerGroup);
+                if (candidates.length === 0) return;
+
+                // Sort candidates to find the best fit:
+                // 1. Fewer players from the same club (priority)
+                // 2. Fewer players overall (to balance group sizes)
+                candidates.sort((a, b) => {
+                    const sameClubA = player.clubId ? a.players.filter(p => p.clubId === player.clubId).length : 0;
+                    const sameClubB = player.clubId ? b.players.filter(p => p.clubId === player.clubId).length : 0;
+                    
+                    if (sameClubA !== sameClubB) return sameClubA - sameClubB;
+                    return a.players.length - b.players.length;
+                });
+
+                candidates[0].players.push(player);
             });
 
             setGroups(newGroups);
@@ -228,6 +241,109 @@ export default function FixtureSetup({
             setRandomizing(false);
         }, 800);
     }, [numGroups, playersPerGroup, PRESENT_PLAYERS]);
+
+    // ─── Drag and Drop Handlers ───
+    const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
+
+    const onDragStart = (e: React.DragEvent, playerId: string) => {
+        setDraggedPlayerId(playerId);
+        e.dataTransfer.setData("playerId", playerId);
+        e.dataTransfer.effectAllowed = "move";
+        // Visual feedback for the ghost image
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.opacity = "0.5";
+        }
+    };
+
+    const onDragEnd = (e: React.DragEvent) => {
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.opacity = "1";
+        }
+        setDraggedPlayerId(null);
+    };
+
+    const onDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    };
+
+    const onDropOnGroup = useCallback((e: React.DragEvent, targetGroupId: string) => {
+        e.preventDefault();
+        const playerId = e.dataTransfer.getData("playerId") || draggedPlayerId;
+        if (!playerId) return;
+
+        setGroups((prev) => {
+            // 1. Identify player and source group
+            const sourceGroup = prev.find(g => g.players.some(p => p.id === playerId));
+            let player = sourceGroup ? sourceGroup.players.find(p => p.id === playerId) : PRESENT_PLAYERS.find(p => p.id === playerId);
+            
+            if (!player) return prev;
+
+            const targetGroup = prev.find(g => g.id === targetGroupId);
+            if (!targetGroup) return prev;
+
+            // 2. Logic: Move or Swap?
+            const isFull = targetGroup.players.length >= playersPerGroup;
+
+            if (isFull) {
+                if (sourceGroup) {
+                    // SWAP: Source -> Target, Target[Last] -> Source
+                    const playerToSwapOut = targetGroup.players[targetGroup.players.length - 1];
+                    
+                    toast.info(`Intercambio: ${player.name} ⇄ ${playerToSwapOut.name}`, {
+                        icon: "🔄",
+                        description: `A ${targetGroup.name} y B ${sourceGroup.name}`,
+                    });
+
+                    // Visual highlight
+                    setSwappedIds(new Set([player.id, playerToSwapOut.id]));
+                    setTimeout(() => setSwappedIds(new Set()), 2000);
+
+                    return prev.map(g => {
+                        if (g.id === sourceGroup.id) {
+                            return { 
+                                ...g, 
+                                players: g.players.map(p => p.id === playerId ? playerToSwapOut : p) 
+                            };
+                        }
+                        if (g.id === targetGroupId) {
+                            return { 
+                                ...g, 
+                                players: g.players.map(p => p.id === playerToSwapOut.id ? player! : p) 
+                            };
+                        }
+                        return g;
+                    });
+                } else {
+                    // Target full and coming from pool
+                    toast.error("Grupo completo (No hay espacio en este grupo)");
+                    return prev;
+                }
+            } else {
+                // NORMAL MOVE: Remove from anywhere, add to target
+                const updatedGroups = prev.map(g => ({
+                    ...g,
+                    players: g.players.filter(p => p.id !== playerId)
+                }));
+
+                // Highlight moved player
+                setSwappedIds(new Set([player.id]));
+                setTimeout(() => setSwappedIds(new Set()), 1500);
+
+                return updatedGroups.map(g => {
+                    if (g.id !== targetGroupId) return g;
+                    return { ...g, players: [...g.players, player!] };
+                });
+            }
+        });
+    }, [draggedPlayerId, playersPerGroup, PRESENT_PLAYERS]);
+
+    const onDropOnPool = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        const playerId = e.dataTransfer.getData("playerId") || draggedPlayerId;
+        if (!playerId) return;
+        handleRemovePlayer(playerId);
+    }, [draggedPlayerId, handleRemovePlayer]);
 
     return (
         <div className="min-h-screen bg-background text-white">
@@ -547,7 +663,11 @@ export default function FixtureSetup({
                             </div>
 
                             {/* Player Pool */}
-                            <div className="bg-card border border-border rounded-3xl p-6">
+                            <div 
+                                className="bg-card border border-border rounded-3xl p-6"
+                                onDragOver={onDragOver}
+                                onDrop={onDropOnPool}
+                            >
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Sin Asignar ({unassigned.length})</span>
                                 </div>
@@ -557,6 +677,9 @@ export default function FixtureSetup({
                                             <motion.button
                                                 key={p.id}
                                                 layoutId={p.id}
+                                                draggable
+                                                onDragStart={(e) => onDragStart(e as any, p.id)}
+                                                onDragEnd={onDragEnd as any}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.8 }}
@@ -564,7 +687,7 @@ export default function FixtureSetup({
                                                     const firstEmptyGroup = groups.find(g => g.players.length < playersPerGroup);
                                                     if (firstEmptyGroup) handleAddPlayer(p.id, firstEmptyGroup.id);
                                                 }}
-                                                className="px-4 py-2 bg-card hover:bg-blue-500/20 border border-border rounded-xl text-xs font-black uppercase italic tracking-wider transition-all"
+                                                className="px-4 py-2 bg-card hover:bg-blue-500/20 border border-border rounded-xl text-xs font-black uppercase italic tracking-wider transition-all cursor-grab active:cursor-grabbing"
                                             >
                                                 {p.name}
                                             </motion.button>
@@ -580,7 +703,12 @@ export default function FixtureSetup({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-40 md:pb-12">
                                 {groups.map(g => (
-                                    <div key={g.id} className="bg-card border border-border rounded-3xl overflow-hidden flex flex-col">
+                                    <div 
+                                        key={g.id} 
+                                        className="bg-card border border-border rounded-3xl overflow-hidden flex flex-col"
+                                        onDragOver={onDragOver}
+                                        onDrop={(e) => onDropOnGroup(e as any, g.id)}
+                                    >
                                         <div className="px-5 py-3 bg-card border-b border-border/50 flex items-center justify-between">
                                             <span className="text-xs font-black uppercase italic tracking-[0.2em] text-blue-500">{g.name}</span>
                                             <span className="text-[10px] font-black text-white/20">{g.players.length} / {playersPerGroup}</span>
@@ -591,9 +719,18 @@ export default function FixtureSetup({
                                                     <motion.div
                                                         key={p.id}
                                                         layoutId={p.id}
-                                                        className="flex items-center justify-between bg-card rounded-xl px-4 py-3 group"
+                                                        draggable
+                                                        onDragStart={(e) => onDragStart(e as any, p.id)}
+                                                        onDragEnd={onDragEnd as any}
+                                                        className={`flex items-center justify-between rounded-xl px-4 py-3 group cursor-grab active:cursor-grabbing transition-all duration-500 ${
+                                                            swappedIds.has(p.id) 
+                                                                ? "bg-blue-600/40 ring-2 ring-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.3)]" 
+                                                                : "bg-card hover:bg-white/5"
+                                                        }`}
                                                     >
-                                                        <span className="text-xs font-bold uppercase italic">{p.name}</span>
+                                                        <span className={`text-xs font-bold uppercase italic transition-colors ${
+                                                            swappedIds.has(p.id) ? "text-white" : ""
+                                                        }`}>{p.name}</span>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
                                                             className="text-white/20 hover:text-red-500 transition-colors"

@@ -227,7 +227,8 @@ export async function getAvailablePlayers(tournamentId: string) {
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
             email: u.email,
             category: u.category,
-            gender: u.gender
+            gender: u.gender,
+            clubId: u.clubId
         }));
     } catch (err) {
         console.error("[getAvailablePlayers]", err);
@@ -252,7 +253,15 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             .where(eq(users.id, userId));
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
-        return { ok: true, player: { id: newId, name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, category: category || user.category || "D" } };
+        return { 
+            ok: true, 
+            player: { 
+                id: newId, 
+                name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, 
+                category: category || user.category || "D",
+                clubId: user.clubId
+            } 
+        };
     } catch (err) {
         console.error("[quickInscribePlayer]", err);
         return { ok: false, error: String(err) };
