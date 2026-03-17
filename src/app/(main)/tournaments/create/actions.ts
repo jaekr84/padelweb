@@ -23,10 +23,12 @@ type TournamentInput = {
     imageUrl?: string | null;
     openDateClub?: string | null;
     openDateGeneral?: string | null;
+    maxSlots?: number;
     modalidad?: {
         mode: string;
         participacion: string;
         genero: string;
+        maxSlots?: number;
     } | null;
 };
 
@@ -60,7 +62,7 @@ export async function createTournament(data: TournamentInput) {
             categories: data.categories,
             pointsConfig: data.pointsConfig,
             imageUrl: data.imageUrl || null,
-            modalidad: data.modalidad || null,
+            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
             status: "published",
         });
 
@@ -101,7 +103,7 @@ export async function updateTournament(id: string, data: TournamentInput) {
             categories: data.categories,
             pointsConfig: data.pointsConfig,
             imageUrl: data.imageUrl || null,
-            modalidad: data.modalidad || null,
+            modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
         })
         .where(eq(tournaments.id, id));
 

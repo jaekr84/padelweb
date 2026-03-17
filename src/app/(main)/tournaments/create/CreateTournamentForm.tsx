@@ -35,6 +35,7 @@ export type InitialData = {
     pointsConfig: PointsConfig | null;
     imageUrl: string | null;
     surface: string | null;
+    maxSlots: number | null;
     modalidad: {
         mode: "categorias" | "libre";
         participacion: "pareja" | "individual";
@@ -114,6 +115,7 @@ export default function CreateTournamentForm({
         openDateClub: initialData?.openDateClub ?? "",
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
+        maxSlots: String(initialData?.maxSlots ?? 0),
     });
 
     const [modalidad, setModalidad] = useState({
@@ -202,6 +204,7 @@ export default function CreateTournamentForm({
                 categories: finalCategories,
                 pointsConfig: points,
                 imageUrl: imageUrl,
+                maxSlots: Number(info.maxSlots),
                 modalidad: {
                     mode: modalidad.mode,
                     participacion: modalidad.participacion,
@@ -373,6 +376,24 @@ export default function CreateTournamentForm({
                                                     className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="md:col-span-2 space-y-2 pt-4 border-t border-border/50">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Cupos / Slots Máximos</label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="number"
+                                                value={info.maxSlots}
+                                                onChange={e => setInfo({ ...info, maxSlots: e.target.value })}
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground text-sm font-black outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                                placeholder="Ej: 32 (0 para ilimitado)"
+                                            />
+                                        </div>
+                                        <div className="flex-1 text-[10px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60">
+                                            Indica el número máximo de parejas o jugadores que pueden inscribirse.
                                         </div>
                                     </div>
                                 </div>

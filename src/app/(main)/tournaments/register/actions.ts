@@ -3,7 +3,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { registrations, users, tournaments, categoriesTable } from "@/db/schema";
-import { eq, and, like, or, ne } from "drizzle-orm";
+import { eq, and, like, or, ne, sql } from "drizzle-orm";
 
 type RegisterInput = {
     tournamentId: string;
@@ -109,7 +109,7 @@ export async function registerForTournament(input: RegisterInput) {
     const [tournament] = await db.select({ 
         id: tournaments.id, 
         status: tournaments.status, 
-        modalidad: tournaments.modalidad 
+        modalidad: tournaments.modalidad
     }).from(tournaments).where(eq(tournaments.id, input.tournamentId)).limit(1);
     
     if (!tournament) throw new Error("Torneo no encontrado");
@@ -121,6 +121,30 @@ export async function registerForTournament(input: RegisterInput) {
     // 🔍 4. Validar Jugador 2 (solo si es un usuario registrado)
     if (input.partnerUserId) {
         await validatePlayerRequirements(input.partnerUserId, "tu compañero");
+    }
+    
+    // 🔍 5. Verificar cupos disponibles (si hay límite)
+    const tournamentMod = typeof tournament.modalidad === 'string' 
+        ? JSON.parse(tournament.modalidad) 
+        : tournament.modalidad;
+    
+    const maxSlots = tournamentMod?.maxSlots;
+
+    if (maxSlots && maxSlots > 0) {
+        const [regCount] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(registrations)
+            .where(
+                and(
+                    eq(registrations.tournamentId, input.tournamentId),
+                    eq(registrations.status, "confirmed")
+                )
+            );
+        
+        const count = Number((regCount as any).count || 0);
+        if (count >= maxSlots) {
+            throw new Error(`Lo sentimos, el torneo ya ha alcanzado su cupo máximo de ${maxSlots} inscripciones.`);
+        }
     }
 
     // Check duplicate registration (same user in same tournament)

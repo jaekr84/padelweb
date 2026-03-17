@@ -101,7 +101,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                         <div className="px-8 py-6 border-b border-border bg-muted/30 flex items-center justify-between">
                             <h2 className="text-sm font-black uppercase tracking-widest text-white">Jugadores Inscriptos</h2>
                             <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                                {initialPlayers.length} {isIndividual ? "Jugadores" : "Parejas"}
+                                {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
                             </span>
                         </div>
                         
