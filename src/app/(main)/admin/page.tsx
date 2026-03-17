@@ -4,6 +4,7 @@ import { sql, eq, inArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ResetDatabaseButton from "./ResetDatabaseButton";
 
 import { 
     Home, 
@@ -158,6 +159,8 @@ export default async function AdminDashboardPage() {
                     </Link>
                 </div>
             </section>
+
+            <ResetDatabaseButton />
         </div>
     );
 
