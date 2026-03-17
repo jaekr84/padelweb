@@ -71,12 +71,16 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
 
     const playerStats = useMemo(() => {
         if (!selectedPlayer) return null;
-        const pj = matches.length;
-        const pg = matches.filter(m => m.isWinner).length;
+        
+        // Filtrar partidos por la categorÃ­a actual del jugador para simular el reseteo
+        const categoryMatches = matches.filter(m => m.category === selectedPlayer.category);
+        
+        const pj = categoryMatches.length;
+        const pg = categoryMatches.filter(m => m.isWinner).length;
         const pp = pj - pg;
         const pe = 0;
         const wr = pj > 0 ? Math.round((pg / pj) * 100) : 0;
-        const trofeos = matches.filter(m => m.type === 'Playoff' && m.round === 0 && m.isWinner).length;
+        const trofeos = categoryMatches.filter(m => m.type === 'Playoff' && m.round === 0 && m.isWinner).length;
 
         return { pj, pg, pp, pe, wr, trofeos };
     }, [selectedPlayer, matches]);

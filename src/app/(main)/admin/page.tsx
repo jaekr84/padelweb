@@ -5,6 +5,23 @@ import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+import { 
+    Home, 
+    Trophy, 
+    ShoppingBag, 
+    MessageSquare, 
+    UserPlus, 
+    Users, 
+    TrendingUp, 
+    Settings, 
+    Star, 
+    BookOpen, 
+    User, 
+    FolderOpen, 
+    PlusCircle,
+    LayoutDashboard
+} from "lucide-react";
+
 export default async function AdminDashboardPage() {
     const session = await getSession();
 
@@ -27,6 +44,22 @@ export default async function AdminDashboardPage() {
     } catch (e) {
         console.error("Error fetching admin stats:", e);
     }
+
+    const modules = [
+        { label: 'Inicio', href: '/home', icon: Home, color: 'from-slate-500/20 to-slate-500/5', text: 'text-slate-500' },
+        { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'from-amber-500/20 to-amber-500/5', text: 'text-amber-500' },
+        { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
+        { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
+        { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'from-indigo-500/20 to-indigo-500/5', text: 'text-indigo-500' },
+        { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'from-violet-500/20 to-violet-500/5', text: 'text-violet-500' },
+        { label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'from-slate-600/20 to-slate-600/5', text: 'text-slate-600' },
+        { label: 'Ranking', href: '/ranking', icon: Star, color: 'from-yellow-500/20 to-yellow-500/5', text: 'text-yellow-500' },
+        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'from-emerald-500/20 to-emerald-500/5', text: 'text-emerald-500' },
+        { label: 'Clubes', href: '/directory', icon: FolderOpen, color: 'from-cyan-500/20 to-cyan-500/5', text: 'text-cyan-500' },
+        { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'from-orange-500/20 to-orange-500/5', text: 'text-orange-500' },
+        { label: 'Mi Perfil', href: '/profile', icon: User, color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
+        { label: 'Crear Torneo', href: '/tournaments/create', icon: PlusCircle, color: 'from-indigo-600/20 to-indigo-600/5', text: 'text-indigo-600' },
+    ];
 
     return (
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-12">
@@ -68,38 +101,31 @@ export default async function AdminDashboardPage() {
                 </header>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {[
-                        { label: 'Crear Torneo', href: '/tournaments/create', icon: '✨', color: 'from-indigo-600/20 to-indigo-600/5', text: 'text-indigo-600' },
-                        { label: 'Marketplace', href: '/marketplace', icon: '🛍️', color: 'from-emerald-500/20 to-emerald-500/5', text: 'text-emerald-500' },
-                        { label: 'Torneos', href: '/admin/tournaments', icon: '🏆', color: 'from-amber-500/20 to-amber-500/5', text: 'text-amber-500' },
-                        { label: 'Solicitudes', href: '/admin/requests', icon: '📩', color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
-                        { label: 'Usuarios', href: '/admin/users', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
-                        { label: 'Invitaciones', href: '/admin/invitations', icon: '🔗', color: 'from-indigo-500/20 to-indigo-500/5', text: 'text-indigo-500' },
-                        { label: 'Clubes', href: '/directory', icon: '🏢', color: 'from-cyan-500/20 to-cyan-500/5', text: 'text-cyan-500' },
-                        { label: 'Configuración', href: '/admin/categories', icon: '⚙️', color: 'from-slate-500/20 to-slate-500/5', text: 'text-slate-500' },
-                        { label: 'Mi Perfil', href: '/profile', icon: '👤', color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
-                    ].map((module) => (
-                        <Link
-                            key={module.label}
-                            href={module.href}
-                            className={`group relative aspect-square bg-card border border-border rounded-[2rem] p-6 flex flex-col items-center justify-center gap-4 transition-all hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 active:scale-95 overflow-hidden`}
-                        >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${module.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                            
-                            <div className="text-4xl md:text-5xl mb-2 transition-transform duration-500 group-hover:scale-125 group-hover:-rotate-12">
-                                {module.icon}
-                            </div>
-                            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-foreground text-center relative z-10">
-                                {module.label}
-                            </span>
-                            
-                            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                <svg className={`w-4 h-4 ${module.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </Link>
-                    ))}
+                    {modules.map((module) => {
+                        const Icon = module.icon;
+                        return (
+                            <Link
+                                key={module.label}
+                                href={module.href}
+                                className={`group relative aspect-square bg-card border border-border rounded-[2rem] p-6 flex flex-col items-center justify-center gap-4 transition-all hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 active:scale-95 overflow-hidden`}
+                            >
+                                <div className={`absolute inset-0 bg-gradient-to-br ${module.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                                
+                                <div className={`mb-2 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 ${module.text}`}>
+                                    <Icon className="w-10 h-10 md:w-12 md:h-12 stroke-[1.5]" />
+                                </div>
+                                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-foreground text-center relative z-10">
+                                    {module.label}
+                                </span>
+                                
+                                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                    <svg className={`w-4 h-4 ${module.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             </section>
 

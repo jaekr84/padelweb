@@ -111,36 +111,61 @@ export default function PlayerProfileClient({
         return new Set(registrations.map(r => r.id));
     }, [registrations]);
 
-    // Stats aggregation
-    const stats = useMemo(() => {
-        const matchesParticipated = matchHistory.filter(m => {
-            return myRegistrationIds.has(m.match.team1Id) || myRegistrationIds.has(m.match.team2Id);
-        });
-
-        const wins = matchesParticipated.filter(m => {
+    const allMatchesHistory = useMemo(() => {
+        return matchHistory.map(m => {
             const t1Id = m.match.team1Id;
+            const t2Id = m.match.team2Id;
             const isT1 = myRegistrationIds.has(t1Id);
-            const s1 = Number(m.match.score1) || 0;
-            const s2 = Number(m.match.score2) || 0;
+            const isT2 = myRegistrationIds.has(t2Id);
 
+            let won = false;
             if (m.match.winnerId) {
-                return myRegistrationIds.has(m.match.winnerId);
+                won = myRegistrationIds.has(m.match.winnerId);
+            } else {
+                const s1 = Number(m.match.score1) || 0;
+                const s2 = Number(m.match.score2) || 0;
+                if (isT1) won = s1 > s2;
+                else if (isT2) won = s2 > s1;
             }
 
-            return isT1 ? s1 > s2 : s2 > s1;
-        }).length;
+            const reg = registrations.find(r => r.id === t1Id || r.id === t2Id);
+
+            return {
+                ...m,
+                type: m.match.round !== undefined ? (m.match.round === 0 ? "Final" : "Eliminatorias") : "Fase de Grupos",
+                tournamentName: m.tournamentName,
+                isParticipant: isT1 || isT2,
+                isT1,
+                opponents: isT1 ? m.match.team2Name : m.match.team1Name,
+                won,
+                category: reg?.category
+            };
+        })
+            .filter(m => m.isParticipant)
+            .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
+    }, [matchHistory, myRegistrationIds, registrations]);
+
+    // Estadísticas filtradas por la categoría actual para simular el reseteo
+    const stats = useMemo(() => {
+        const currentCategoryMatches = allMatchesHistory.filter(m => m.category === dbUser.category);
+        const winsSize = currentCategoryMatches.filter(m => m.won).length;
 
         return {
-            matches: matchesParticipated.length,
-            wins,
-            losses: matchesParticipated.length - wins,
+            matches: currentCategoryMatches.length,
+            wins: winsSize,
+            losses: currentCategoryMatches.length - winsSize,
             draws: 0,
-            winRate: matchesParticipated.length > 0 ? Math.round((wins / matchesParticipated.length) * 100) : 0,
+            winRate: currentCategoryMatches.length > 0 ? Math.round((winsSize / currentCategoryMatches.length) * 100) : 0,
             points: dbUser?.points || 0,
             category: dbUser?.category || "D",
             side: dbUser?.side || "drive"
         };
-    }, [matchHistory, dbUser, myRegistrationIds]);
+    }, [allMatchesHistory, dbUser]);
+
+    const trophies = useMemo(() => {
+        // Mostrar solo trofeos de la categoría actual en la tarjeta principal
+        return allMatchesHistory.filter(m => m.category === dbUser.category && m.match.round === 0 && m.won);
+    }, [allMatchesHistory, dbUser.category]);
 
     const realCategory = useMemo(() => {
         // Source of truth is the category assigned in the DB
@@ -159,40 +184,6 @@ export default function PlayerProfileClient({
         r.tournament.status === "published"
     );
 
-    const allMatchesHistory = useMemo(() => {
-        return matchHistory.map(m => {
-            const t1Id = m.match.team1Id;
-            const t2Id = m.match.team2Id;
-            const isT1 = myRegistrationIds.has(t1Id);
-            const isT2 = myRegistrationIds.has(t2Id);
-
-            let won = false;
-            if (m.match.winnerId) {
-                won = myRegistrationIds.has(m.match.winnerId);
-            } else {
-                const s1 = Number(m.match.score1) || 0;
-                const s2 = Number(m.match.score2) || 0;
-                if (isT1) won = s1 > s2;
-                else if (isT2) won = s2 > s1;
-            }
-
-            return {
-                ...m,
-                type: m.match.round !== undefined ? "Eliminatorias" : "Fase de Grupos",
-                tournamentName: m.tournamentName,
-                isParticipant: isT1 || isT2,
-                isT1,
-                opponents: isT1 ? m.match.team2Name : m.match.team1Name,
-                won
-            };
-        })
-            .filter(m => m.isParticipant)
-            .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
-    }, [matchHistory, myRegistrationIds]);
-
-    const trophies = useMemo(() => {
-        return allMatchesHistory.filter(m => m.match.round === 0 && m.won);
-    }, [allMatchesHistory]);
 
     return (
 

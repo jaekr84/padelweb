@@ -56,28 +56,46 @@ export default async function PromotionsPage() {
                 id: registrations.id,
                 userId: registrations.userId,
                 partnerUserId: registrations.partnerUserId,
+                category: registrations.category,
             })
             .from(registrations)
             .where(sql`${registrations.id} IN ${Array.from(regIds)}`);
 
-        const regToUsers: Record<string, string[]> = {};
+        const regToData: Record<string, { users: string[], category: string }> = {};
         regs.forEach(r => {
-            regToUsers[r.id] = [r.userId, r.partnerUserId].filter(Boolean) as string[];
+            regToData[r.id] = {
+                users: [r.userId, r.partnerUserId].filter(Boolean) as string[],
+                category: r.category || ""
+            };
         });
 
         finalsData.forEach(f => {
-            const finalists = [...(f.team1Id ? (regToUsers[f.team1Id] || []) : []), ...(f.team2Id ? (regToUsers[f.team2Id] || []) : [])];
-            const winners = f.winnerId ? (regToUsers[f.winnerId] || []) : [];
+            // Get all participants in this final
+            const t1 = f.team1Id ? regToData[f.team1Id] : null;
+            const t2 = f.team2Id ? regToData[f.team2Id] : null;
+            const winnersData = f.winnerId ? regToData[f.winnerId] : null;
 
-            finalists.forEach(uid => {
-                if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
-                playerStats[uid].finals++;
+            // Para cada finalista, solo sumar si la categorÃ­a de la final coincide con la categorÃ­a actual del usuario
+            [t1, t2].filter(Boolean).forEach(team => {
+                team!.users.forEach(uid => {
+                    const user = players.find(p => p.id === uid);
+                    if (user && user.category === team!.category) {
+                        if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
+                        playerStats[uid].finals++;
+                    }
+                });
             });
 
-            winners.forEach(uid => {
-                if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
-                playerStats[uid].titles++;
-            });
+            // Para cada ganador, solo sumar si coincide la categorÃ­a
+            if (winnersData) {
+                winnersData.users.forEach(uid => {
+                    const user = players.find(p => p.id === uid);
+                    if (user && user.category === winnersData.category) {
+                        if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
+                        playerStats[uid].titles++;
+                    }
+                });
+            }
         });
     }
 

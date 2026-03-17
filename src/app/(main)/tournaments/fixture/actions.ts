@@ -420,7 +420,13 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                             
                             if (nextCat) {
                                 console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (deservesPromotion: ${deservesPromotion})`);
-                                await db.update(users).set({ category: nextCat.name }).where(eq(users.id, uid));
+                                await db.update(users)
+                                    .set({ 
+                                        category: nextCat.name,
+                                        points: nextCat.minPoints,
+                                        lastCategoryUpdate: new Date()
+                                    })
+                                    .where(eq(users.id, uid));
                             }
                         }
                     }

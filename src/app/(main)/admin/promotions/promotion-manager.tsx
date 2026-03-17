@@ -99,7 +99,12 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
             const res = await promotePlayerManually(player.id, targetCategory);
             if (res.success) {
                 toast.success(`${player.name} ha sido promovido a ${targetCategory}`);
-                setPlayers(prev => prev.map(p => p.id === player.id ? { ...p, category: targetCategory } : p));
+                setPlayers(prev => prev.map(p => p.id === player.id ? { 
+                    ...p, 
+                    category: targetCategory,
+                    titles: 0,
+                    finals: 0
+                } : p));
             }
         } catch (err: any) {
             toast.error(err.message || "Error al promover");
