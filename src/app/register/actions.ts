@@ -55,8 +55,12 @@ export async function registerAction(formData: FormData) {
     const invitationToken = formData.get("invitationToken") as string;
     const inviteClubId = formData.get("inviteClubId") as string;
 
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !phone || !documentNumber || !birthDate || !gender) {
         return { error: "Faltan campos obligatorios" };
+    }
+
+    if (gender !== "masculino" && gender !== "femenino") {
+        return { error: "Género no válido" };
     }
 
     // 1. Check if user already exists (email or document)

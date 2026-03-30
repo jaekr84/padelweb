@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { registerAction, requestRegistrationAction, verifyTokenAction } from "./actions";
-import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send } from "lucide-react";
+import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -263,12 +263,15 @@ export default function RegisterPage() {
                             {/* Last Name */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-4">Apellido</label>
-                                <input
-                                    name="lastName"
-                                    required
-                                    placeholder="Ej: Perez"
-                                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 px-6 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
-                                />
+                                <div className="group relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                    <input
+                                        name="lastName"
+                                        required
+                                        placeholder="Ej: Perez"
+                                        className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -343,13 +346,13 @@ export default function RegisterPage() {
                                     <select
                                         name="gender"
                                         required
-                                        className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white appearance-none focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
+                                        className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-[13px] font-medium text-white appearance-none focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans cursor-pointer relative z-10"
                                     >
                                         <option value="" disabled selected>Selecciona</option>
                                         <option value="masculino">Masculino</option>
                                         <option value="femenino">Femenino</option>
-                                        <option value="otro">Otro</option>
                                     </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors pointer-events-none" />
                                 </div>
                             </div>
 
