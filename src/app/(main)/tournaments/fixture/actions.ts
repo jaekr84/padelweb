@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users, categoriesTable } from "@/db/schema";
+import { eq, sql, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth-server";
 
@@ -444,6 +444,61 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
         }
     } catch (err) {
         console.error("[awardTournamentPoints]", err);
+    }
+}
+
+export async function registerManualPlayer(tournamentId: string, name: string, category: string, gender: string = "masculino") {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const [t] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        if (!t) throw new Error("Torneo no encontrado");
+
+        const currentUser = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
+        const isSuperAdmin = currentUser?.role === 'superadmin';
+
+        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+            throw new Error("No tenés permiso para gestionar este torneo");
+        }
+
+        const fakeUserId = `manual_${crypto.randomUUID()}`;
+        const registrationId = crypto.randomUUID();
+
+        await db.insert(users).values({
+            id: fakeUserId,
+            email: `${fakeUserId}@manual.test`,
+            firstName: name.split(" ")[0],
+            lastName: name.split(" ").slice(1).join(" ") || " ",
+            role: "jugador",
+            category: category,
+            gender: gender,
+            isActive: true
+        });
+
+        await db.insert(registrations).values({
+            id: registrationId,
+            tournamentId,
+            userId: fakeUserId,
+            category: category,
+            status: "confirmed"
+        });
+
+        revalidatePath(`/tournaments/${tournamentId}/fixture`);
+        revalidatePath("/ranking");
+
+        return { 
+            ok: true, 
+            player: {
+                id: registrationId,
+                name: `${name} / Invitado`,
+                category: category,
+                clubId: null
+            }
+        };
+    } catch (err) {
+        console.error("[registerManualPlayer]", err);
+        return { ok: false, error: String(err) };
     }
 }
 

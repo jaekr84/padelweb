@@ -18,6 +18,7 @@ export async function addCategory(data: {
     await db.insert(categoriesTable).values({
         id: crypto.randomUUID(),
         ...data,
+        name: data.name.toUpperCase(),
         isActive: true,
     });
 
@@ -35,8 +36,13 @@ export async function updateCategory(id: string, data: Partial<{
     const session = await getSession();
     if (!session || session.role !== "superadmin") throw new Error("Unauthorized");
 
+    const updatePayload = { ...data };
+    if (updatePayload.name) {
+        updatePayload.name = updatePayload.name.toUpperCase();
+    }
+
     await db.update(categoriesTable)
-        .set(data)
+        .set(updatePayload)
         .where(eq(categoriesTable.id, id));
 
     revalidatePath("/admin/categories");

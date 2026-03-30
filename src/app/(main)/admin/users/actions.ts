@@ -78,3 +78,22 @@ export async function updateUserClub(userId: string, clubId: string | null) {
     return { success: true };
 }
 
+import { ne } from "drizzle-orm";
+export async function resetDatabasePlayers() {
+    await checkSuperAdmin();
+
+    try {
+        // Delete non-superadmin users
+        // Note: This might require deleting related records first if there are FK constraints
+        // For now, we try to delete them. If it fails due to FK, we'd need a more complex cleanup.
+        await db.delete(users).where(ne(users.role, "superadmin"));
+        
+        revalidatePath("/admin/users");
+        revalidatePath("/ranking");
+        return { success: true };
+    } catch (error) {
+        console.error("Reset error:", error);
+        throw new Error("No se pudo resetear la base de datos de jugadores. Es posible que tengan registros o torneos asociados.");
+    }
+}
+

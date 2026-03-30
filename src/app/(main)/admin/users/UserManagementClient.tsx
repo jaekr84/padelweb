@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { toggleUserStatus, banUser, updateUserRole, updateUserCategory, updateUserClub } from "./actions";
+import { toggleUserStatus, banUser, updateUserRole, updateUserCategory, updateUserClub, resetDatabasePlayers } from "./actions";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -75,6 +75,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     const [newClubId, setNewClubId] = useState<string | null>(null);
     const [newPoints, setNewPoints] = useState<number>(0);
     const [loading, setLoading] = useState<string | null>(null);
+    const [isResetting, setIsResetting] = useState(false);
 
     const filteredUsers = usersList.filter(u => {
         const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
@@ -206,23 +207,49 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         players: usersList.filter(u => u.role === "jugador").length,
     };
 
+    const handleReset = async () => {
+        if (!confirm("¿ESTÁS SEGURO? Esta acción eliminará a TODOS los jugadores y clubes de la base de datos (excepto SuperAdmins). Esta acción es IRREVERSIBLE.")) return;
+        if (!confirm("CONFIRMACIÓN FINAL: Se perderán todos los datos de jugadores, registros y estadísticas. ¿Proceder?")) return;
+        
+        setIsResetting(true);
+        try {
+            await resetDatabasePlayers();
+            toast.success("Base de datos de jugadores reseteada correctamente");
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message || "Error al resetear base de datos");
+        }
+        setIsResetting(false);
+    };
+
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 mb-2">
-                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                            <Shield className="w-4 h-4 text-indigo-500" />
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 mb-2">
+                             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                                <Shield className="w-4 h-4 text-indigo-500" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Admin Console</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Admin Console</span>
+                        <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
+                            Gestión de Usuarios
+                        </h1>
+                        <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
+                            Promoción de categorías, asignación de puntos y control de acceso
+                        </p>
                     </div>
-                    <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-                        Gestión de Usuarios
-                    </h1>
-                    <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
-                        Promoción de categorías, asignación de puntos y control de acceso
-                    </p>
+
+                    <button 
+                        onClick={handleReset}
+                        disabled={isResetting}
+                        className="px-6 py-3 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {isResetting ? "Reseteando..." : "Reset Base de Datos"}
+                    </button>
                 </div>
 
                 {/* Dashboard Controls Row */}

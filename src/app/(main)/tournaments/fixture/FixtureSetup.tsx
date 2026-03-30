@@ -5,9 +5,9 @@ import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, FlaskConical, AlertTriangle
+    Users2, MonitorPlay, AlertTriangle
 } from "lucide-react";
-import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer } from "./actions";
+import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -78,6 +78,30 @@ export default function FixtureSetup({
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [genderFilter, setGenderFilter] = useState("all");
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
+
+    const [manualName, setManualName] = useState("");
+    const [manualCategory, setManualCategory] = useState("");
+    const [manualGender, setManualGender] = useState("masculino");
+    const [isCreatingManual, setIsCreatingManual] = useState(false);
+
+    const handleManualRegister = async () => {
+        if (!manualName.trim()) {
+            toast.error("El nombre es obligatorio");
+            return;
+        }
+        setIsCreatingManual(true);
+        const res = await registerManualPlayer(tournamentId, manualName, manualCategory || "D", manualGender);
+        if (res.ok && res.player) {
+            setPlayers(prev => [...prev, res.player as Player]);
+            setPresent(prev => new Set([...prev, res.player!.id]));
+            setManualName("");
+            setIsPlayerModalOpen(false);
+            toast.success("Jugador creado e inscripto correctamente");
+        } else {
+            toast.error("Error al crear jugador: " + res.error);
+        }
+        setIsCreatingManual(false);
+    };
 
     const PRESENT_PLAYERS = useMemo(() =>
         players.filter(p => present.has(p.id)),
@@ -436,16 +460,18 @@ export default function FixtureSetup({
                                             ))}
                                         </select>
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            setIsPlayerModalOpen(true);
-                                            loadAvailablePlayers();
-                                        }}
-                                        className="px-3 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
-                                    >
-                                        <Plus className="w-3 h-3" />
-                                        Inscribir Existente
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setIsPlayerModalOpen(true);
+                                                loadAvailablePlayers();
+                                            }}
+                                            className="px-3 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                            Inscribir Existente
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -799,9 +825,49 @@ export default function FixtureSetup({
                             >
                                 <div className="px-6 py-6 border-b border-border/50 bg-card">
                                     <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Jugador</h3>
-                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase mb-4">Elegí un jugador existente de la plataforma</p>
+                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase mb-6">Elegí un jugador existente o creá uno nuevo</p>
                                     
+                                    {/* Manual Registration Form */}
+                                    <div className="mb-8 p-4 bg-blue-600/5 border border-blue-500/20 rounded-3xl space-y-3">
+                                        <div className="text-[10px] font-black uppercase text-blue-400 tracking-widest flex items-center gap-2 mb-2">
+                                            <Plus className="w-3 h-3" />
+                                            Registro Manual Rápido
+                                        </div>
+                                        <input 
+                                            type="text"
+                                            placeholder="Nombre completo..."
+                                            value={manualName}
+                                            onChange={(e) => setManualName(e.target.value)}
+                                            className="w-full bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all"
+                                        />
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <select 
+                                                value={manualCategory}
+                                                onChange={(e) => setManualCategory(e.target.value)}
+                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                            >
+                                                <option value="">Categoría...</option>
+                                                {categories.map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                            </select>
+                                            <button 
+                                                onClick={handleManualRegister}
+                                                disabled={isCreatingManual || !manualName.trim()}
+                                                className="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic transition-all disabled:opacity-50"
+                                            >
+                                                {isCreatingManual ? "Creando..." : "Crear e Inscribir"}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-white/5 mb-6" />
+
                                     <div className="space-y-3">
+                                        <div className="text-[10px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2 mb-2">
+                                            <Users2 className="w-3 h-3" />
+                                            Buscar en la Base de Datos
+                                        </div>
                                         <div className="relative">
                                             < MonitorPlay  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                                             <input 

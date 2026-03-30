@@ -13,16 +13,20 @@ interface Category {
     categoryOrder: number;
 }
 
-export default function CategoriesManager({ initialCategories }: { initialCategories: any[] }) {
+export default function CategoriesManager({ initialCategories }: { initialCategories: Category[] }) {
     const [categories, setCategories] = useState<Category[]>(initialCategories);
     const [loading, setLoading] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editData, setEditData] = useState<Partial<Category>>({});
 
+    const highestMax = categories.length > 0 
+        ? Math.max(...categories.map(c => c.maxPoints)) 
+        : -1;
+
     const [newCat, setNewCat] = useState({
         name: "",
-        minPoints: 0,
-        maxPoints: 1000,
+        minPoints: highestMax + 1,
+        maxPoints: highestMax + 501,
     });
 
     const handleAdd = async () => {
@@ -34,8 +38,10 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                 categoryOrder: categories.length,
             });
             toast.success("Categoría añadida");
-            setNewCat({ name: "", minPoints: 0, maxPoints: 1000 });
-            window.location.reload(); // Refresh to get the new ID and updated list
+            // Although it reloads, we set it correctly for safety/non-reload behavior
+            const nextMin = newCat.maxPoints + 1;
+            setNewCat({ name: "", minPoints: nextMin, maxPoints: nextMin + 500 });
+            window.location.reload(); 
         } catch (e) {
             toast.error("Error al añadir");
         } finally {
@@ -93,16 +99,16 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                     <input
                         type="text"
                         placeholder="Nombre (ej: 5ta)"
-                        className="bg-muted border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-foreground"
+                        className="bg-muted border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-foreground uppercase"
                         value={newCat.name}
-                        onChange={e => setNewCat({ ...newCat, name: e.target.value })}
+                        onChange={e => setNewCat({ ...newCat, name: e.target.value.toUpperCase() })}
                     />
                     <div className="flex gap-2">
                         <input
                             type="number"
                             placeholder="Min"
                             className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-foreground"
-                            value={isNaN(newCat.minPoints) ? "" : newCat.minPoints}
+                            value={newCat.minPoints === 0 && highestMax === -1 ? "" : newCat.minPoints}
                             onChange={e => {
                                 const val = parseInt(e.target.value);
                                 setNewCat({ ...newCat, minPoints: isNaN(val) ? 0 : val });
@@ -112,7 +118,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                             type="number"
                             placeholder="Max"
                             className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-foreground"
-                            value={isNaN(newCat.maxPoints) ? "" : newCat.maxPoints}
+                            value={newCat.maxPoints === 0 ? "" : newCat.maxPoints}
                             onChange={e => {
                                 const val = parseInt(e.target.value);
                                 setNewCat({ ...newCat, maxPoints: isNaN(val) ? 0 : val });
@@ -160,9 +166,9 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                     {isEditing ? (
                                         <input
                                             type="text"
-                                            className="bg-muted border border-border rounded-lg px-3 py-1 text-sm font-bold outline-none focus:border-indigo-500 transition-all text-foreground w-full"
+                                            className="bg-muted border border-border rounded-lg px-3 py-1 text-sm font-bold outline-none focus:border-indigo-500 transition-all text-foreground w-full uppercase"
                                             value={editData.name}
-                                            onChange={e => setEditData({ ...editData, name: e.target.value })}
+                                            onChange={e => setEditData({ ...editData, name: e.target.value.toUpperCase() })}
                                         />
                                     ) : (
                                         <>
