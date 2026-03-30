@@ -167,8 +167,12 @@ export default function TournamentManager({
             }
         });
 
-        // Sort by points (difference), then by games won? For now just points.
-        return standings.sort((a: any, b: any) => b.points - a.points);
+        // Sort by matches won (primary), then by games difference (secondary)
+        return standings.sort((a: any, b: any) => {
+            if (b.won !== a.won) return b.won - a.won;
+            return b.points - a.points;
+        });
+
     };
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
@@ -236,17 +240,29 @@ export default function TournamentManager({
 
     const generateBracket = async () => {
         console.log("[generateBracket] Iniciando proceso de generación...");
-        const allQualifiers: { player: Player; seed: number }[] = [];
+        // 1. Group qualifiers into 'pots' (Pote 1: all 1sts, Pote 2: all 2nds, etc.)
+        const pots: any[][] = Array.from({ length: qualPerGroup }, () => []);
+
+
         
         groups.forEach(g => {
-            const standings = computeStandings(g.id);
-            console.log(`[generateBracket] Standings para ${g.name}:`, standings.length);
-            standings.slice(0, qualPerGroup).forEach((s: any, idx: number) => {
-                if (s.player) {
-                    allQualifiers.push({ player: s.player, seed: idx + 1 });
+            const groupStandings = computeStandings(g.id);
+            for (let i = 0; i < qualPerGroup; i++) {
+                if (groupStandings[i]?.player) {
+                    pots[i].push(groupStandings[i]);
                 }
-            });
+            }
         });
+        
+        // 2. Sort each pot by overall merit (Matches Won, then Game Difference)
+        // Then flatten into the final global ranking [Seeded #1, #2, #3, ...]
+        const allQualifiers = pots.flatMap((pot, potIndex) => {
+            return pot
+                .sort((a, b) => (b.won - a.won) || (b.points - a.points))
+                .map(item => ({ player: item.player, seed: potIndex + 1 }));
+        });
+
+
 
         const numParticipants = allQualifiers.length;
         console.log("[generateBracket] Total de clasificados:", numParticipants);
@@ -337,7 +353,8 @@ export default function TournamentManager({
         }));
     };
 
-    const advanceBracketWinners = (currentBracket: BracketMatch[], totalRounds: number) => {
+    function advanceBracketWinners(currentBracket: BracketMatch[], totalRounds: number) {
+
         for (let r = totalRounds - 1; r > 0; r--) {
             const roundMatches = currentBracket.filter(m => m.round === r);
             roundMatches.forEach(m => {
@@ -364,7 +381,8 @@ export default function TournamentManager({
                 }
             });
         }
-    };
+    }
+
 
     const handleBracketConfirm = async (matchId: string) => {
         const targetMatch = bracket.find(m => m.id === matchId);
