@@ -38,7 +38,9 @@ export default async function ProfilePage() {
                 status: tournaments.status,
                 startDate: tournaments.startDate,
                 surface: tournaments.surface,
+                modalidad: tournaments.modalidad,
             }
+
         })
             .from(registrations)
             .innerJoin(tournaments, eq(registrations.tournamentId, tournaments.id))
@@ -98,7 +100,22 @@ export default async function ProfilePage() {
         const u1 = relatedUsers.find(u => u.id === reg.userId);
         const u2 = reg.partnerUserId ? relatedUsers.find(u => u.id === reg.partnerUserId) : null;
 
+        // Check if individual participation
+        let mod: any = reg.tournament.modalidad;
+        try {
+            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+        } catch (e) {}
+        const isIndividual = mod?.participacion === "individual";
+
         const name1 = u1 ? ([u1.firstName, u1.lastName].filter(Boolean).join(" ").trim() || u1.email.split("@")[0]) : "Jugador";
+        
+        if (isIndividual) {
+            return {
+                ...reg,
+                teamName: name1.trim()
+            };
+        }
+
         const name2 = u2 ? ([u2.firstName, u2.lastName].filter(Boolean).join(" ").trim() || u2.email.split("@")[0]) : (reg.partnerName || "Invitado");
         
         return {
@@ -106,6 +123,7 @@ export default async function ProfilePage() {
             teamName: `${name1} / ${name2}`.trim()
         };
     });
+
 
     const clubProfile = clubProfileRes[0];
 

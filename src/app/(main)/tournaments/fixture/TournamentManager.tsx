@@ -5,7 +5,7 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check, X, RefreshCw
+    BarChart3, Check, X, RefreshCw, Dice5
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -94,6 +94,30 @@ export default function TournamentManager({
         ? Math.round((confirmedGroupMatches / totalGroupMatches) * 100)
         : 0;
 
+    const handleSimulateResults = () => {
+        const newMatches = matches.map(m => {
+            if (m.confirmed) return m;
+            // Generate random scores between 0 and 7
+            let s1 = Math.floor(Math.random() * 8); // 0-7
+            let s2 = Math.floor(Math.random() * 8); // 0-7
+            // Avoid draws (though in padel some formats might have tie-breaks, 
+            // for simple point calculation we just need a winner)
+            if (s1 === s2) {
+                if (s1 === 7) s2 = 6;
+                else s2 = s1 + 1;
+            }
+            return {
+                ...m,
+                score1: s1,
+                score2: s2,
+                played: true,
+                confirmed: true
+            };
+        });
+        setMatches(newMatches);
+        toast.success("Resultados simulados. ¡No olvides guardar!");
+    };
+
     // ─── Shared Logic ───
     const computeStandings = (groupId: string) => {
         const group = groups.find(g => g.id === groupId);
@@ -169,6 +193,11 @@ export default function TournamentManager({
     const handleConfirmScore = async (matchId: string) => {
         const match = matches.find(m => m.id === matchId);
         if (!match || match.score1 === undefined || match.score2 === undefined) return;
+
+        if (match.score1 === match.score2) {
+            toast.error("No se permiten empates en los partidos del torneo");
+            return;
+        }
 
         const updatedMatches = matches.map(m => {
             if (m.id !== matchId) return m;
@@ -341,6 +370,11 @@ export default function TournamentManager({
         const targetMatch = bracket.find(m => m.id === matchId);
         if (!targetMatch || targetMatch.score1 === undefined || targetMatch.score2 === undefined) return;
 
+        if (targetMatch.score1 === targetMatch.score2) {
+            toast.error("No se permiten empates en las llaves eliminatorias");
+            return;
+        }
+
         const updated = bracket.map(m => {
             if (m.id !== matchId) return m;
             const winner = m.score1! > m.score2! ? m.team1 : m.team2;
@@ -455,7 +489,13 @@ export default function TournamentManager({
                     <div className="flex items-center justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => router.push(`/tournaments/${tournamentId}/fixture`)}
+                                onClick={() => {
+                                    if (step === "elim") {
+                                        setStep("done");
+                                    } else {
+                                        router.push(`/tournaments/${tournamentId}/fixture`);
+                                    }
+                                }}
                                 className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                             >
                                 <ArrowLeft className="w-4 h-4" />
@@ -535,9 +575,21 @@ export default function TournamentManager({
                         >
                             {/* Progress Bar */}
                             <div className="space-y-4">
-                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
                                     <span>Progreso Fase de Grupos</span>
-                                    <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
+                                    <div className="flex items-center gap-3">
+                                        {!readOnly && progressPercent < 100 && (
+                                            <button 
+                                                onClick={handleSimulateResults}
+                                                className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
+                                                title="Simular resultados aleatorios para pruebas"
+                                            >
+                                                <Dice5 className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                                Simular Todo
+                                            </button>
+                                        )}
+                                        <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
+                                    </div>
                                 </div>
                                 <div className="h-2 bg-muted rounded-full overflow-hidden border border-slate-700">
                                     <motion.div
@@ -635,7 +687,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleConfirmScore(m.id)}
-                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played && m.score1 !== m.score2 ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
@@ -1001,7 +1053,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
-                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>

@@ -220,14 +220,7 @@ export default function CreateTournamentForm({
                 toast.success("Torneo creado con éxito");
             }
 
-            const getTargetProfileUrl = () => {
-                if (typeof document === "undefined") return "/profile";
-                const match = document.cookie.match(/(?:^|;\s*)__padel_role=([^;]+)/);
-                const role = match ? decodeURIComponent(match[1]) : "jugador";
-                return role === "club" ? "/profiles/club" : "/profile";
-            };
-
-            router.push(getTargetProfileUrl());
+            router.push("/admin/tournaments");
         } catch (err: any) {
             toast.error(err.message || "Error al guardar");
             setIsLoading(false);
@@ -237,12 +230,12 @@ export default function CreateTournamentForm({
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 pt-6 px-4 font-sans selection:bg-indigo-500/30 transition-colors duration-300">
             <div className="max-w-3xl mx-auto flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                
+
                 {/* Header Superior */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <button 
-                            onClick={() => router.back()} 
+                        <button
+                            onClick={() => router.back()}
                             className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-accent transition-all active:scale-95"
                         >
                             <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
@@ -261,7 +254,7 @@ export default function CreateTournamentForm({
                 </div>
 
                 <div className="grid grid-cols-1 gap-10">
-                    
+
                     {/* SECCIÓN 1: IDENTIDAD VISUAL Y GENERAL */}
                     <div className="flex flex-col gap-6">
                         <div className="flex items-center gap-3 px-2">
@@ -379,7 +372,7 @@ export default function CreateTournamentForm({
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="md:col-span-2 space-y-2 pt-4 border-t border-border/50">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Cupos / Slots Máximos</label>
                                     <div className="flex items-center gap-4">
@@ -411,7 +404,7 @@ export default function CreateTournamentForm({
                         </div>
 
                         <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
-                            
+
                             {/* Género y Participación */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground">
                                 <div className="space-y-4">

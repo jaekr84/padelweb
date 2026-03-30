@@ -119,6 +119,7 @@ export default async function TournamentFixturePage({ params }: Props) {
             initialStatus={tournament.status}
             initialPlayers={initialPlayers}
             categories={allCategories.map(c => c.name)}
+            isIndividual={isIndividual}
         />
     );
 }

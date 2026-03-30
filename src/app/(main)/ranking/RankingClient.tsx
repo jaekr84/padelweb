@@ -72,8 +72,11 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     const playerStats = useMemo(() => {
         if (!selectedPlayer) return null;
         
-        // Filtrar partidos por la categorÃ­a actual del jugador para simular el reseteo
-        const categoryMatches = matches.filter(m => m.category === selectedPlayer.category);
+        // If we're filtering by a specific category, show stats for that category.
+        // If we're an "all" view, show all-time stats.
+        const categoryMatches = categoryFilter === "all" 
+            ? matches 
+            : matches.filter(m => m.category === categoryFilter);
         
         const pj = categoryMatches.length;
         const pg = categoryMatches.filter(m => m.isWinner).length;
@@ -82,8 +85,10 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         const wr = pj > 0 ? Math.round((pg / pj) * 100) : 0;
         const trofeos = categoryMatches.filter(m => m.type === 'Playoff' && m.round === 0 && m.isWinner).length;
 
+
         return { pj, pg, pp, pe, wr, trofeos };
-    }, [selectedPlayer, matches]);
+    }, [selectedPlayer, matches, categoryFilter]);
+
 
     const filteredPlayers = useMemo(() => {
         let list = [...users];

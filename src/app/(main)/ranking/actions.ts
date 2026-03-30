@@ -37,13 +37,24 @@ export async function getPlayerMatchHistory(userId: string) {
         // 4. For each registration, find its matches
         for (const reg of userRegs) {
             const tournament = dbTournaments.find(t => t.id === reg.tournamentId);
+
+            // Parse tournament modalidad to check participation format
+            let mod: any = tournament?.modalidad;
+            try {
+                if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+            } catch (e) {}
+            const isIndividual = mod?.participacion === "individual";
+
             const mainUser = dbUsers.find(u => u.id === reg.userId);
             
             const namePart1 = mainUser 
                 ? ([mainUser.firstName, mainUser.lastName].filter(Boolean).join(" ").trim() || mainUser.email.split("@")[0])
                 : "Jugador";
-            const namePart2 = (reg.partnerName || "Invitado").trim();
-            const teamName = `${namePart1} / ${namePart2}`;
+            
+            // Construct teamName based on participation type
+            const teamName = isIndividual 
+                ? namePart1.trim()
+                : `${namePart1} / ${(reg.partnerName || "Invitado").trim()}`;
 
             // Batch fetch matches for this tournament to avoid N+1 queries in the loop
             // Optimization: Get only confirmed matches where this team played
@@ -74,6 +85,7 @@ export async function getPlayerMatchHistory(userId: string) {
                 ...gMatches.map(m => ({ ...m, type: 'Grupo' })), 
                 ...bMatches.map(m => ({ ...m, type: 'Playoff' }))
             ];
+
             
             for (const m of allMatches) {
                 const score1 = m.score1 ?? 0;

@@ -145,17 +145,18 @@ export default function PlayerProfileClient({
             .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
     }, [matchHistory, myRegistrationIds, registrations]);
 
-    // Estadísticas filtradas por la categoría actual para simular el reseteo
+    // Estadísticas totales del jugador
     const stats = useMemo(() => {
-        const currentCategoryMatches = allMatchesHistory.filter(m => m.category === dbUser.category);
-        const winsSize = currentCategoryMatches.filter(m => m.won).length;
+        const totalMatches = allMatchesHistory;
+        const winsSize = totalMatches.filter(m => m.won).length;
+
 
         return {
-            matches: currentCategoryMatches.length,
+            matches: totalMatches.length,
             wins: winsSize,
-            losses: currentCategoryMatches.length - winsSize,
+            losses: totalMatches.length - winsSize,
             draws: 0,
-            winRate: currentCategoryMatches.length > 0 ? Math.round((winsSize / currentCategoryMatches.length) * 100) : 0,
+            winRate: totalMatches.length > 0 ? Math.round((winsSize / totalMatches.length) * 100) : 0,
             points: dbUser?.points || 0,
             category: dbUser?.category || "D",
             side: dbUser?.side || "drive"

@@ -18,6 +18,7 @@ export interface FixtureSetupProps {
     initialStatus: string;
     initialPlayers: Player[];
     categories?: string[];
+    isIndividual?: boolean;
 }
 
 type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null };
@@ -54,7 +55,8 @@ export default function FixtureSetup({
     tournamentName,
     initialStatus,
     initialPlayers,
-    categories = ["A+", "A", "B", "C", "D"] // Default fallback
+    categories = ["A+", "A", "B", "C", "D"], // Default fallback
+    isIndividual = false
 }: FixtureSetupProps) {
     const router = useRouter();
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
@@ -95,7 +97,6 @@ export default function FixtureSetup({
             setPlayers(prev => [...prev, res.player as Player]);
             setPresent(prev => new Set([...prev, res.player!.id]));
             setManualName("");
-            setIsPlayerModalOpen(false);
             toast.success("Jugador creado e inscripto correctamente");
         } else {
             toast.error("Error al crear jugador: " + res.error);
@@ -226,7 +227,9 @@ export default function FixtureSetup({
             prev.map((g) => {
                 if (g.id !== groupId) return g;
                 if (g.players.length >= playersPerGroup) return g;
-                return { ...g, players: [...g.players, { id: guestId, name: `${name} (inv.)` }] };
+                // For individual tournaments, we don't need the (inv.) suffix
+                const guestName = isIndividual ? name : `${name} (inv.)`;
+                return { ...g, players: [...g.players, { id: guestId, name: guestName }] };
             })
         );
     }, [playersPerGroup]);
@@ -265,6 +268,20 @@ export default function FixtureSetup({
             setRandomizing(false);
         }, 800);
     }, [numGroups, playersPerGroup, PRESENT_PLAYERS]);
+
+    const handleAddGroup = useCallback(() => {
+        setGroups(prev => {
+            const nextLetter = String.fromCharCode(65 + (prev.length % 26));
+            const suffix = prev.length >= 26 ? Math.floor(prev.length / 26) + 1 : "";
+            return [...prev, {
+                id: `g${prev.length}_${Date.now()}`,
+                name: `Grupo ${nextLetter}${suffix}`,
+                players: []
+            }];
+        });
+        setNumGroups(prev => prev + 1);
+        toast.success("Nuevo grupo añadido");
+    }, []);
 
     // ─── Drag and Drop Handlers ───
     const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
@@ -373,7 +390,7 @@ export default function FixtureSetup({
         <div className="min-h-screen bg-background text-white">
             {/* Sticky Header */}
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
-                <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.back()}
@@ -421,7 +438,7 @@ export default function FixtureSetup({
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto px-4 py-8 pb-32">
+            <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
 
                 <AnimatePresence mode="wait">
                     {step === "checkin" && (
@@ -675,17 +692,26 @@ export default function FixtureSetup({
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Asignación</h2>
                                     <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Armá los grupos para el sorteo</p>
                                 </div>
-                                <button
-                                    onClick={handleRandomize}
-                                    disabled={randomizing || unassigned.length === 0}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all ${randomizing
-                                        ? "bg-amber-500 text-white animate-pulse"
-                                        : "bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white"
-                                        }`}
-                                >
-                                    <Dice5 className={`w-4 h-4 ${randomizing ? 'animate-spin' : ''}`} />
-                                    {randomizing ? "Shuffling..." : "Sorteo"}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleRandomize}
+                                        disabled={randomizing || unassigned.length === 0}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest transition-all ${randomizing
+                                            ? "bg-amber-500 text-white animate-pulse"
+                                            : "bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white"
+                                            }`}
+                                    >
+                                        <Dice5 className={`w-4 h-4 ${randomizing ? 'animate-spin' : ''}`} />
+                                        {randomizing ? "Shuffling..." : "Sorteo"}
+                                    </button>
+                                    <button
+                                        onClick={handleAddGroup}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase italic text-[10px] tracking-widest bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white transition-all"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Nuevo Grupo
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Player Pool */}
@@ -727,7 +753,7 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-40 md:pb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-40 md:pb-12">
                                 {groups.map(g => (
                                     <div 
                                         key={g.id} 
@@ -766,13 +792,23 @@ export default function FixtureSetup({
                                                     </motion.div>
                                                 ))}
                                             </AnimatePresence>
+                                            {/* Espacios faltantes */}
+                                            {Array.from({ length: Math.max(0, playersPerGroup - g.players.length) }).map((_, i) => (
+                                                <div 
+                                                    key={`empty-${g.id}-${i}`} 
+                                                    className="flex items-center justify-between rounded-xl px-4 py-3 bg-red-500/5 border border-dashed border-red-500/20 animate-pulse mt-2 first:mt-0"
+                                                >
+                                                    <span className="text-[9px] font-black uppercase text-red-500/50 tracking-widest">Cupo disponible</span>
+                                                    <AlertCircle className="w-3.5 h-3.5 text-red-500/30" />
+                                                </div>
+                                            ))}
                                         </div>
                                         <button
                                             onClick={() => {
                                                 const name = prompt("Nombre del invitado:");
                                                 if (name) handleAddGuest(name, g.id);
                                             }}
-                                            className="p-3 bg-black/20 text-[8px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-colors border-t border-border/50"
+                                            className="p-3 bg-blue-500/5 text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 hover:bg-blue-500 hover:text-white transition-all border-t border-border/50"
                                         >
                                             + Invitado
                                         </button>
@@ -782,7 +818,7 @@ export default function FixtureSetup({
 
                             {/* Sticky Footer */}
                             <div className="fixed bottom-20 md:bottom-0 left-0 right-0 px-6 pb-4 pt-8 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/95 to-transparent z-50">
-                                <div className="max-w-4xl mx-auto flex gap-4">
+                                <div className="max-w-6xl mx-auto flex gap-4">
                                     <button
                                         onClick={() => setStep("config")}
                                         className="w-16 h-16 rounded-2xl bg-card border border-border flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"

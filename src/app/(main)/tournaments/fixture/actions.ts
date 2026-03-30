@@ -42,7 +42,8 @@ export type SaveFixtureInput = {
     championName?: string;
 };
 function slotName(t: BracketSlot): string | null {
-    if (t === null || t === "BYE") return null;
+    if (t === null) return null;
+    if (t === "BYE") return "BYE";
     return (t as PlayerLike).name;
 }
 
@@ -252,12 +253,21 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             .set({ lastParticipationAt: new Date() })
             .where(eq(users.id, userId));
 
+        const [tournament] = await db.select({ modalidad: tournaments.modalidad }).from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        let mod: any = tournament?.modalidad;
+        try {
+            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+        } catch (e) {}
+        const isIndividual = mod?.participacion === "individual";
+
+        const playerName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0];
+
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
         return { 
             ok: true, 
             player: { 
                 id: newId, 
-                name: `${[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0]} / Invitado`, 
+                name: isIndividual ? playerName : `${playerName} / Invitado`, 
                 category: category || user.category || "D",
                 clubId: user.clubId
             } 
@@ -287,7 +297,10 @@ export async function finalizeTournament(id: string): Promise<{ ok: boolean; err
         revalidatePath(`/tournaments/${id}`);
         revalidatePath(`/tournaments/${id}/manage`);
         revalidatePath("/admin/tournaments");
+        revalidatePath("/ranking");
+        revalidatePath("/profile");
         return { ok: true };
+
     } catch (err) {
         console.error("[finalizeTournament]", err);
         return { ok: false, error: String(err) };
@@ -484,6 +497,12 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             status: "confirmed"
         });
 
+        let mod: any = t.modalidad;
+        try {
+            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+        } catch (e) {}
+        const isIndividual = mod?.participacion === "individual";
+
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
         revalidatePath("/ranking");
 
@@ -491,7 +510,7 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             ok: true, 
             player: {
                 id: registrationId,
-                name: `${name} / Invitado`,
+                name: isIndividual ? name : `${name} / Invitado`,
                 category: category,
                 clubId: null
             }
