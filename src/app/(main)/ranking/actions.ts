@@ -108,8 +108,13 @@ export async function getPlayerMatchHistory(userId: string) {
             }
         }
 
-        // 5. Final sort by date
-        return playerMatches.sort((a, b) => b.date.getTime() - a.date.getTime());
+        // 6. Deduplicate by match ID to avoid double-counting if user appeared in multiple registrations
+        const uniqueMatches = Array.from(
+            new Map(playerMatches.map(m => [m.id, m])).values()
+        );
+
+        // Sort by date (descending)
+        return uniqueMatches.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
         console.error("Error fetching match history:", error);
         return [];
