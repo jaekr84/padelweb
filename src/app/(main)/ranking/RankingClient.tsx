@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { 
     Trophy, Medal, Crown, Shield, User, Users, X, Activity, 
     Calendar as CalendarIcon, Hash, ChevronRight, Search, 
@@ -37,6 +39,7 @@ interface RankingClientProps {
     users: RankingUser[];
     tournamentCounts: TournamentCounts;
     availableCategories?: Category[];
+    isLoggedIn?: boolean;
 }
 
 function getUserHandle(email: string) {
@@ -44,7 +47,7 @@ function getUserHandle(email: string) {
     return email.split("@")[0].toLowerCase();
 }
 
-export default function RankingClient({ users, tournamentCounts, availableCategories }: RankingClientProps) {
+export default function RankingClient({ users, tournamentCounts, availableCategories, isLoggedIn }: RankingClientProps) {
     const [genderFilter, setGenderFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -129,7 +132,25 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12">
+            {/* Public Header */}
+            {!isLoggedIn && (
+                <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0">
+                                <Image src="/img/stickers 1.jpg" alt="Logo" width={32} height={32} className="object-cover" />
+                            </div>
+                            <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                        </Link>
+                        <div className="flex items-center gap-4">
+                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+                            <Link href="/" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className={`relative z-10 max-w-7xl mx-auto px-6 ${!isLoggedIn ? "pt-8" : "pt-12"}`}>
                 {/* Header */}
                 <div className="mb-12">
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>

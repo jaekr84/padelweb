@@ -3,8 +3,12 @@ import RankingClient from "./RankingClient";
 import { db } from "@/db";
 import { users, registrations, categoriesTable, bracketMatches, tournaments, clubs } from "@/db/schema";
 import { eq, inArray, asc, and, sql } from "drizzle-orm";
+import { getSession } from "@/lib/auth-server";
 
 export default async function RankingPage() {
+    const session = await getSession();
+    const isLoggedIn = !!session;
+
     // 1. Fetch all users that are players (exclude clubs/centers)
     const allUsers = await db.select({
         id: users.id,
@@ -108,6 +112,7 @@ export default async function RankingPage() {
             users={rankingUsers} 
             tournamentCounts={tournamentCounts} 
             availableCategories={customCategories}
+            isLoggedIn={isLoggedIn}
         />
     );
 }

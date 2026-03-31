@@ -16,6 +16,7 @@ import { type Club } from "@/db/schema";
 
 interface DirectoryClientProps {
     initialClubs: Club[];
+    isLoggedIn?: boolean;
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ function EmptyState({ label }: { label: string }) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function DirectoryClient({
     initialClubs,
+    isLoggedIn
 }: DirectoryClientProps) {
     const [search, setSearch] = useState("");
 
@@ -130,7 +132,25 @@ export default function DirectoryClient({
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-32">
+            {/* Public Header */}
+            {!isLoggedIn && (
+                <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
+                                <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" />
+                            </div>
+                            <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                        </Link>
+                        <div className="flex items-center gap-4">
+                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+                            <Link href="/" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className={`relative z-10 max-w-7xl mx-auto px-6 pb-32 ${!isLoggedIn ? "pt-8" : "pt-12"}`}>
 
                 {/* ── Header ── */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">

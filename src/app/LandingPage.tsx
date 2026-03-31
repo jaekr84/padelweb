@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
-import { Trophy, Star, Users, MapPin, ArrowRight, Activity } from "lucide-react";
+import { Trophy, Star, Users, MapPin, ArrowRight, Activity, ShoppingBag } from "lucide-react";
 
 // Variantes de Framer Motion
 const staggerContainer: Variants = {
@@ -90,15 +90,31 @@ export default function LandingPage({
                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
                     className="flex justify-between items-center w-full max-w-7xl glass-card rounded-[2rem] px-6 py-3 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
                 >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1">
                         <div className="relative w-10 h-10 border border-emerald-500/30 rounded-full overflow-hidden shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                             <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" priority />
                         </div>
                         <span className="font-black text-xl italic tracking-tighter text-white">A.C.A.P</span>
                     </div>
-                    <div className="flex gap-4 items-center">
-                        <Link href="/login" className="text-sm font-bold tracking-widest text-slate-400 hover:text-white transition-colors uppercase">Login</Link>
-                        <Link href="/register" className="glow-button bg-slate-900 border border-slate-700 text-white px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Entrar a la Cancha</Link>
+
+                    <div className="hidden lg:flex gap-8 items-center justify-center flex-[2]">
+                        <Link href="/ranking" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                            <Trophy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Ranking
+                        </Link>
+                        <Link href="/tournaments" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                            <Trophy className="w-3.5 h-3.5 text-emerald-500 group-hover:scale-110 transition-transform" /> Torneos
+                        </Link>
+                        <Link href="/directory" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                            <MapPin className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Clubes
+                        </Link>
+                        <Link href="/marketplace" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                            <ShoppingBag className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" /> Marketplace
+                        </Link>
+                    </div>
+
+                    <div className="flex gap-4 items-center justify-end flex-1">
+                        <Link href="/login" className="hidden sm:block text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-white transition-colors uppercase">Login</Link>
+                        <Link href="/register" className="glow-button bg-slate-900 border border-slate-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Entrar</Link>
                     </div>
                 </motion.div>
             </nav>
@@ -145,6 +161,9 @@ export default function LandingPage({
                     </motion.p>
 
                     <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5 justify-center">
+                        <Link href="/ranking" className="glow-button bg-slate-900 border border-slate-700 text-white px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                            <Trophy className="w-5 h-5 text-yellow-500" /> Ver Ranking
+                        </Link>
                         <Link href="/register" className="glow-button bg-white text-black px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
                             Unirse <ArrowRight className="w-5 h-5" />
                         </Link>
@@ -189,28 +208,62 @@ export default function LandingPage({
                     </motion.div>
 
                     {/* Tarjeta 2: Torneos */}
-                    <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute -top-10 -left-10 w-48 h-48 bg-emerald-500/20 rounded-full blur-[60px] group-hover:bg-emerald-500/30 transition-colors" />
-                        <Trophy className="w-12 h-12 text-emerald-400 mb-6 relative z-10" />
-                        <h3 className="text-2xl font-black italic uppercase text-white mb-2 relative z-10">Torneos</h3>
-                        <p className="text-sm text-slate-400 relative z-10">Inscripción directa, llaves dinámicas y resultados.</p>
-                    </motion.div>
+                    <Link href="/tournaments" className="block h-full group">
+                        <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 h-full flex flex-col justify-end relative overflow-hidden">
+                            <div className="absolute -top-10 -left-10 w-48 h-48 bg-emerald-500/20 rounded-full blur-[60px] group-hover:bg-emerald-500/30 transition-colors" />
+                            <Trophy className="w-12 h-12 text-emerald-400 mb-6 relative z-10" />
+                            <h3 className="text-2xl font-black italic uppercase text-white mb-2 relative z-10">Torneos</h3>
+                            <div className="flex justify-between items-center relative z-10">
+                                <p className="text-sm text-slate-400">Inscripción directa, llaves dinámicas y resultados.</p>
+                                <ArrowRight className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        </motion.div>
+                    </Link>
 
                     {/* Tarjeta 3: Ranking */}
-                    <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-[60px]" />
-                        <Star className="w-12 h-12 text-yellow-500 mb-6 relative z-10" />
-                        <h3 className="text-2xl font-black italic uppercase text-white mb-2 relative z-10">Ranking Oficial</h3>
-                        <p className="text-sm text-slate-400 relative z-10">Suma puntos oficiales de la A.C.A.P.</p>
-                    </motion.div>
+                    <Link href="/ranking" className="block h-full">
+                        <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card h-full rounded-[2rem] p-8 flex flex-col justify-end relative overflow-hidden group">
+                            <div className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-[60px]" />
+                            <Star className="w-12 h-12 text-yellow-500 mb-6 relative z-10" />
+                            <h3 className="text-2xl font-black italic uppercase text-white mb-2 relative z-10">Ranking Oficial</h3>
+                            <div className="flex justify-between items-center relative z-10">
+                                <p className="text-sm text-slate-400">Suma puntos oficiales de la A.C.A.P.</p>
+                                <ArrowRight className="w-4 h-4 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        </motion.div>
+                    </Link>
 
                     {/* Tarjeta 4: Directorio */}
-                    <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 md:col-span-2 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/20 rounded-full blur-[80px]" />
-                        <MapPin className="w-12 h-12 text-cyan-400 mb-6 relative z-10" />
-                        <h3 className="text-3xl font-black italic uppercase text-white mb-2 relative z-10">Segui en vivo los torneos</h3>
-                        <p className="text-sm text-slate-400 max-w-sm relative z-10">Segui los resultados de los torneos en vivo</p>
-                    </motion.div>
+                    <Link href="/directory" className="md:col-span-2 group">
+                        <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 h-full flex flex-col justify-end relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/20 rounded-full blur-[80px]" />
+                            <MapPin className="w-12 h-12 text-cyan-400 mb-6 relative z-10" />
+                            <h3 className="text-3xl font-black italic uppercase text-white mb-2 relative z-10">Explorá Clubes</h3>
+                            <div className="flex justify-between items-center relative z-10">
+                                <p className="text-sm text-slate-400 max-w-sm">Encontrá las mejores sedes, seguí en vivo los partidos y conectá con nuevos lugares de juego.</p>
+                                <ArrowRight className="w-6 h-6 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        </motion.div>
+                    </Link>
+                    {/* Tarjeta 5: Marketplace */}
+                    <Link href="/marketplace" className="md:col-span-3 group">
+                        <motion.div variants={fadeUp} whileHover={{ scale: 1.01 }} className="glass-card rounded-[2rem] p-8 h-full flex items-center justify-between relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent pointer-events-none" />
+                            <div className="relative z-10 flex items-center gap-8">
+                                <div className="w-20 h-20 bg-cyan-500/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <ShoppingBag className="w-10 h-10 text-cyan-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-3xl font-black italic uppercase text-white mb-1">Marketplace ACAP</h3>
+                                    <p className="text-slate-400 font-medium max-w-md text-sm">Comprá y vendé equipamiento de padel. Paletas, calzado y accesorios entre jugadores de la comunidad.</p>
+                                </div>
+                            </div>
+                            <div className="relative z-10 flex items-center gap-3 bg-white/5 px-6 py-3 rounded-full border border-white/10 group-hover:bg-cyan-500 group-hover:text-black transition-all">
+                                <span className="text-xs font-black uppercase tracking-widest text-nowrap">Ver Bazar</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </div>
+                        </motion.div>
+                    </Link>
                 </motion.div>
             </section>
 

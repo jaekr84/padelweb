@@ -21,6 +21,7 @@ export interface TournamentManagerProps {
     initialBracket: BracketMatch[];
     initialStatus: string;
     readOnly?: boolean;
+    isLoggedIn?: boolean;
 }
 
 type Player = { id: string; name: string };
@@ -59,7 +60,8 @@ export default function TournamentManager({
     initialMatches,
     initialBracket,
     initialStatus,
-    readOnly = false
+    readOnly = false,
+    isLoggedIn = true
 }: TournamentManagerProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
@@ -539,49 +541,59 @@ export default function TournamentManager({
         <div className="min-h-screen bg-background overflow-x-hidden">
 
             {/* ── Sticky Header — full viewport width ── */}
-            <header className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border z-[60]">
+            <header className={`sticky ${isLoggedIn ? 'top-0' : 'top-16'} bg-background/80 backdrop-blur-md border-b border-border z-[40]`}>
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4">
-                    {/* Top row: back + status */}
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => {
-                                    if (step === "elim") {
-                                        setStep("done");
-                                    } else {
-                                        router.push(`/tournaments/${tournamentId}/fixture`);
-                                    }
-                                }}
-                                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Volver
-                            </button>
-                            {!readOnly && (
-                                <Link
-                                    href={`/tournaments/${tournamentId}/edit`}
-                                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
+                    {isLoggedIn && (
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        if (step === "elim") {
+                                            setStep("done");
+                                        } else {
+                                            router.push(`/tournaments/${tournamentId}/fixture`);
+                                        }
+                                    }}
+                                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                                 >
-                                    <Settings className="w-4 h-4" />
-                                    Editar Info
-                                </Link>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isRefreshing}
-                                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-accent text-muted-foreground rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-border"
-                            >
-                                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-500" : ""}`} />
-                                {isRefreshing ? "..." : "Actualizar"}
-                            </button>
-                            <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Volver
+                                </button>
+                                {!readOnly && (
+                                    <Link
+                                        href={`/tournaments/${tournamentId}/edit`}
+                                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        Editar Info
+                                    </Link>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-accent text-muted-foreground rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-border"
+                                >
+                                    <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-500" : ""}`} />
+                                    {isRefreshing ? "..." : "Actualizar"}
+                                </button>
+                                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                    {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {!isLoggedIn && (
+                         <div className="flex items-center justify-center mb-2">
+                            <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
+                            </div>
+                         </div>
+                    )}
 
                     {/* Tournament name */}
                     <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tighter italic uppercase text-center leading-tight mb-3">

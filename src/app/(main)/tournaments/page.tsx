@@ -191,7 +191,25 @@ export default async function TournamentsPage({
                     <div className="absolute top-[10%] right-[-15%] w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px]" />
                 </div>
 
-                <div className="relative z-10 max-w-3xl mx-auto px-4 pt-6">
+                {/* Public Header */}
+                {!userId && (
+                    <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+                        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                            <Link href="/" className="flex items-center gap-2 group">
+                                <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
+                                    <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
+                                </div>
+                                <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                            </Link>
+                            <div className="flex items-center gap-4">
+                                <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+                                <Link href="/" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className={`relative z-10 max-w-3xl mx-auto px-4 ${!userId ? "pt-6" : "pt-6"}`}>
 
                     {/* ── Header ── */}
                     <div className="flex items-center justify-between mb-6">

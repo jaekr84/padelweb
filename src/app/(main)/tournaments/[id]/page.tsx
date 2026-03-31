@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../fixture/TournamentManager";
 import { Trophy, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-
+import Image from "next/image";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -30,6 +30,24 @@ export default async function TournamentDisplayPage({ params }: Props) {
     const isSuperAdmin = session?.role === 'superadmin';
     const isOwner = tournament.createdByUserId === session?.userId;
     const canManage = isSuperAdmin || isOwner;
+    const isLoggedIn = !!session?.userId;
+
+    const publicHeader = !isLoggedIn && (
+        <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2 group">
+                    <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
+                        <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" />
+                    </div>
+                    <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                </Link>
+                <div className="flex items-center gap-4">
+                    <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+                    <Link href="/tournaments" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Ver Más Torneos</Link>
+                </div>
+            </div>
+        </div>
+    );
 
     if (tournament.status === "published" || tournament.status === "draft") {
         if (canManage) {
@@ -87,59 +105,62 @@ export default async function TournamentDisplayPage({ params }: Props) {
         });
 
         return (
-            <div className="min-h-screen bg-background text-foreground pb-24 font-sans">
-                <div className="max-w-3xl mx-auto px-4 pt-12">
-                    <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <Trophy className="w-10 h-10 text-blue-500" />
-                        </div>
-                        <h1 className="text-3xl font-black uppercase italic tracking-tight text-white mb-2">{tournament.name}</h1>
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Las llaves se generarán cuando cierren las inscripciones</p>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-                        <div className="px-8 py-6 border-b border-border bg-muted/30 flex items-center justify-between">
-                            <h2 className="text-sm font-black uppercase tracking-widest text-white">Jugadores Inscriptos</h2>
-                            <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                                {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
-                            </span>
-                        </div>
-                        
-                        {initialPlayers.length === 0 ? (
-                            <div className="p-12 text-center">
-                                <p className="text-slate-500 text-sm font-bold">Aún no hay {isIndividual ? "jugadores inscriptos" : "parejas inscriptas"}.</p>
+            <>
+                {publicHeader}
+                <div className="min-h-screen bg-background text-foreground pb-24 font-sans">
+                    <div className="max-w-3xl mx-auto px-4 pt-12">
+                        <div className="text-center mb-10">
+                            <div className="w-20 h-20 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <Trophy className="w-10 h-10 text-blue-500" />
                             </div>
-                        ) : (
-                            <div className="divide-y divide-border">
-                                {initialPlayers.map((p, i) => (
-                                    <div key={p.id} className="px-8 py-5 flex items-center justify-between hover:bg-muted/10 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-[10px] font-black text-slate-600 w-4">{i + 1}</span>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-white uppercase tracking-tight">{p.name}</span>
-                                                <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mt-0.5">{p.category}</span>
+                            <h1 className="text-3xl font-black uppercase italic tracking-tight text-white mb-2">{tournament.name}</h1>
+                            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Las llaves se generarán cuando cierren las inscripciones</p>
+                        </div>
+
+                        <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+                            <div className="px-8 py-6 border-b border-border bg-muted/30 flex items-center justify-between">
+                                <h2 className="text-sm font-black uppercase tracking-widest text-white">Jugadores Inscriptos</h2>
+                                <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
+                                    {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
+                                </span>
+                            </div>
+                            
+                            {initialPlayers.length === 0 ? (
+                                <div className="p-12 text-center">
+                                    <p className="text-slate-500 text-sm font-bold">Aún no hay {isIndividual ? "jugadores inscriptos" : "parejas inscriptas"}.</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-border">
+                                    {initialPlayers.map((p, i) => (
+                                        <div key={p.id} className="px-8 py-5 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-black text-slate-600 w-4">{i + 1}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-white uppercase tracking-tight">{p.name}</span>
+                                                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mt-0.5">{p.category}</span>
+                                                </div>
+                                            </div>
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                                <CheckCircle className="w-4 h-4 text-emerald-500" />
                                             </div>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                            <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                    <div className="mt-8 text-center">
-                        <Link 
-                            href="/tournaments" 
-                            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Volver a Torneos
-                        </Link>
+                        <div className="mt-8 text-center">
+                            <Link 
+                                href="/tournaments" 
+                                className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Volver a Torneos
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 
@@ -198,14 +219,18 @@ export default async function TournamentDisplayPage({ params }: Props) {
     }));
 
     return (
-        <TournamentManager
-            tournamentId={tournament.id}
-            tournamentName={tournament.name}
-            initialGroups={initialGroups}
-            initialMatches={mappedMatches}
-            initialBracket={mappedBracket}
-            initialStatus={tournament.status}
-            readOnly={!canManage}
-        />
+        <>
+            {publicHeader}
+            <TournamentManager
+                tournamentId={tournament.id}
+                tournamentName={tournament.name}
+                initialGroups={initialGroups}
+                initialMatches={mappedMatches}
+                initialBracket={mappedBracket}
+                initialStatus={tournament.status}
+                readOnly={!canManage}
+                isLoggedIn={isLoggedIn}
+            />
+        </>
     );
 }
