@@ -12,19 +12,19 @@ export default async function Home() {
   }
 
   // Fetch real stats
-  let tournamentCount = 50;
-  let playerCount = 300;
-  let clubCount = 15;
+  let tournamentCount = 0;
+  let playerCount = 0;
+  let clubCount = 0;
 
   try {
     const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
     const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
     const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
 
-    // Use DB data if available (> 0), keeping fallbacks for initial display
-    if (tCount > 0) tournamentCount = tCount;
-    if (pCount > 0) playerCount = pCount;
-    if (cCount > 0) clubCount = cCount;
+    // Use DB data directly
+    tournamentCount = tCount;
+    playerCount = pCount;
+    clubCount = cCount;
   } catch (e) {
     console.error("Error fetching landing stats:", e);
   }
