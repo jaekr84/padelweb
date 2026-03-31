@@ -261,434 +261,496 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const existingCats = Array.from(new Set(items.map(i => i.category?.toUpperCase()).filter(Boolean))).sort();
 
     return (
-        <div className="min-h-screen bg-background pb-24 md:pb-8">
-            {/* Header Section */}
-            <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 px-5 py-4 md:py-6">
-                <div className="max-w-7xl mx-auto flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter flex items-center gap-2">
-                                <ShoppingBag className="w-8 h-8 text-indigo-600" />
-                                Marketplace
-                            </h1>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                                Equipamiento de Padel Pro
-                            </p>
-                        </div>
-                        {isSuperAdmin && (
-                            <button 
-                                onClick={() => setIsPublishing(true)}
-                                className="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Vender Algo
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-4">
-                        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                            <button 
-                                onClick={() => setFilter("all")}
-                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-indigo-600 border-indigo-600 text-white shadow-md" : "bg-card border-border text-muted-foreground hover:border-indigo-600/50"}`}
-                            >
-                                Todas las Categorías
-                            </button>
-                            {existingCats.map(cat => (
-                                <button 
-                                    key={cat}
-                                    onClick={() => setFilter(cat!)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2 ${filter === cat ? "bg-indigo-600 border-indigo-600 text-white shadow-md" : "bg-card border-border text-muted-foreground hover:border-indigo-600/50"}`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => setConditionFilter("all")}
-                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${conditionFilter === "all" ? "bg-slate-700 border-slate-600 text-white shadow-md" : "bg-card border-border text-muted-foreground hover:border-indigo-600/50"}`}
-                            >
-                                Todos los Estados
-                            </button>
-                            {CONDITIONS.map(c => (
-                                <button 
-                                    key={c.id}
-                                    onClick={() => setConditionFilter(c.id)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${conditionFilter === c.id ? "bg-emerald-600 border-emerald-500 text-white shadow-md" : "bg-card border-border text-muted-foreground hover:border-indigo-600/50"}`}
-                                >
-                                    {c.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar equipamiento..." 
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-card border border-border rounded-2xl py-3 px-11 text-sm font-medium focus:border-indigo-600/50 outline-none transition-all"
-                        />
-                    </div>
-                </div>
+        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-emerald-500/30">
+            {/* CSS KEYFRAMES & GLOBAL STYLES */}
+            <style>{`
+                @keyframes gradient-x {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .text-gradient-animate {
+                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    animation: gradient-x 6s ease infinite;
+                }
+                .glass-card {
+                    background-color: color-mix(in srgb, var(--card) 85%, transparent);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                }
+                .glass-card:hover {
+                    border-color: rgba(16, 185, 129, 0.4);
+                }
+                .glow-button {
+                    position: relative;
+                }
+                .glow-button::before {
+                    content: '';
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: inherit;
+                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    z-index: -1;
+                    filter: blur(8px);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .glow-button:hover::before {
+                    opacity: 1;
+                }
+                @keyframes fade-slide-up {
+                    0% { opacity: 0; transform: translateY(20px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                    animation: fade-slide-up 0.6s ease-out forwards;
+                }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}</style>
+            
+            {/* Ambient background glows */}
+            <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
-            {/* Grid Section */}
-            <div className="max-w-7xl mx-auto p-5">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    <AnimatePresence>
-                        {filteredItems.map(item => (
+            <div className="relative z-10">
+                {/* Header Section */}
+                <div className="sticky top-0 z-30 bg-background/60 backdrop-blur-xl border-b border-white/5 py-6 px-6">
+                    <div className="max-w-7xl mx-auto flex flex-col gap-6">
+                        <div className="flex items-center justify-between">
                             <motion.div 
-                                key={item.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                onClick={() => setSelectedItem(item)}
-                                className="group bg-card border border-border rounded-[2rem] overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-indigo-600/10 transition-all duration-500 flex flex-col h-full"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="space-y-1"
                             >
-                                <div className="relative aspect-square overflow-hidden">
-                                    <Image 
-                                        src={getFirstImage(item)} 
-                                        alt={item.title} 
-                                        fill 
-                                        unoptimized={true}
-                                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                                    />
-                                    <div className="absolute top-3 left-3 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">
-                                        ${item.price.toLocaleString()}
-                                    </div>
-                                    <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-foreground border border-border">
-                                        {Array.isArray(item.images) ? item.images.length : 1} FOTOS
-                                    </div>
-                                </div>
-                                <div className="p-4 flex flex-col flex-1 gap-2">
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 mb-0.5">
-                                            {item.category || "General"}
-                                        </span>
-                                        <h3 className="font-bold text-sm leading-tight line-clamp-2 uppercase italic tracking-tight">{item.title}</h3>
-                                    </div>
-                                    <div className="mt-auto flex items-center justify-between border-t border-border pt-2">
-                                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                                            <UserIcon className="w-3 h-3" />
-                                            <span className="text-[9px] font-bold uppercase truncate max-w-[80px]">
-                                                {item.user?.firstName || "Jugador"}
-                                            </span>
-                                        </div>
-                                        <span className="text-[8px] font-black uppercase text-white/30 truncate">
-                                            {item.condition === "nuevo" ? "Nuevo" : "Usado"}
-                                        </span>
-                                    </div>
-                                </div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Comunidad ACAP</p>
+                                <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
+                                    <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Marketplace</span>
+                                </h1>
                             </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
+                            {isSuperAdmin && (
+                                <motion.button 
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    onClick={() => setIsPublishing(true)}
+                                    className="glow-button bg-foreground text-background px-6 py-4 rounded-full font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2 shadow-2xl transition-all active:scale-95"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Vender Algo
+                                </motion.button>
+                            )}
+                        </div>
 
-                {filteredItems.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 opacity-30 select-none">
-                        <ShoppingBag className="w-20 h-20 mb-4" />
-                        <h3 className="text-xl font-black uppercase italic italic tracking-tighter">No se encontró nada</h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest">Probá con otros filtros o publicá algo vos.</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Item Detail Modal */}
-            <AnimatePresence>
-                {selectedItem && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedItem(null)}
-                            className="absolute inset-0 bg-background/60 backdrop-blur-xl"
-                        />
-                        <motion.div 
-                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                            className="relative w-full max-w-lg bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar"
-                        >
-                            <button 
-                                onClick={() => setSelectedItem(null)}
-                                className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full bg-background/50 backdrop-blur-md border border-border flex items-center justify-center hover:bg-background transition-all"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-
-                            <div className="relative aspect-square">
-                                <Image 
-                                    src={getFirstImage(selectedItem)} 
-                                    alt={selectedItem.title} 
-                                    fill 
-                                    unoptimized={true}
-                                    className="object-cover" 
-                                />
-                                {itemImages.length > 1 && (
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                                        {itemImages.map((_, i) => (
-                                            <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? "bg-white" : "bg-white/40"}`} />
-                                        ))}
-                                    </div>
-                                )}
+                        <div className="flex flex-col gap-4">
+                            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+                                <button 
+                                    onClick={() => setFilter("all")}
+                                    className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                >
+                                    Todas las Categorías
+                                </button>
+                                {existingCats.map(cat => (
+                                    <button 
+                                        key={cat}
+                                        onClick={() => setFilter(cat!)}
+                                        className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2 ${filter === cat ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
                             </div>
 
-                            <div className="p-8 flex flex-col gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-3">
-                                        <span className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                                            ${selectedItem.price.toLocaleString()}
-                                        </span>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic truncate">
-                                            {selectedItem.category} • {selectedItem.condition === "nuevo" ? "Nuevo" : "Usado"}
-                                        </span>
-                                    </div>
-                                    <h2 className="text-3xl font-black uppercase italic tracking-tighter leading-none mt-2">
-                                        {selectedItem.title}
-                                    </h2>
-                                </div>
-
-                                <div className="bg-background/50 border border-border rounded-3xl p-5 flex flex-col gap-3">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Observaciones</h4>
-                                    <p className="text-sm font-medium leading-relaxed opacity-80 whitespace-pre-wrap">
-                                        {selectedItem.observations || "Sin observaciones adicionales."}
-                                    </p>
-                                </div>
-
-
-                                <div className="flex items-center gap-4 border-t border-border pt-6 mt-2">
-                                    <div className="flex-1">
-                                        <p className="text-[8px] font-black uppercase text-white/30 tracking-widest">Vendedor</p>
-                                        <p className="text-sm font-bold truncate italic tracking-tight">{selectedItem.user.firstName} {selectedItem.user.lastName}</p>
-                                    </div>
-                                    <div className="flex-1 text-right">
-                                        <p className="text-[8px] font-black uppercase text-white/30 tracking-widest">Publicado</p>
-                                        <p className="text-sm font-bold opacity-60 italic tracking-tight">
-                                            {new Date(selectedItem.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <a 
-                                        href={selectedItem.whatsappUrl || "#"}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex-[2] bg-emerald-600 text-white h-16 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/20 active:scale-95 transition-all"
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setConditionFilter("all")}
+                                    className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border ${conditionFilter === "all" ? "bg-muted text-foreground border-white/20 shadow-md" : "glass-card text-muted-foreground"}`}
+                                >
+                                    Todos los Estados
+                                </button>
+                                {CONDITIONS.map(c => (
+                                    <button 
+                                        key={c.id}
+                                        onClick={() => setConditionFilter(c.id)}
+                                        className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border ${conditionFilter === c.id ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20" : "glass-card text-muted-foreground"}`}
                                     >
-                                        <MessageCircle className="w-5 h-5 fill-white" />
-                                        Contactar por WhatsApp
-                                    </a>
-                                    {session?.userId === selectedItem.userId && (
-                                        <div className="flex-1 flex gap-2">
-                                            <button 
-                                                onClick={() => openEditModal(selectedItem)}
-                                                className="flex-1 bg-indigo-600/10 border border-indigo-600/20 text-indigo-500 rounded-[1.5rem] flex items-center justify-center transition-all hover:bg-indigo-600 hover:text-white"
-                                            >
-                                                Editar
-                                            </button>
-                                            <button 
-                                                onClick={async () => {
-                                                    if (confirm("¿Borrar esta publicación?")) {
-                                                        await deleteMarketplaceItem(selectedItem.id);
-                                                        toast.success("Publicación borrada");
-                                                        window.location.reload();
-                                                    }
-                                                }}
-                                                className="w-16 bg-red-600/10 border border-red-600/20 text-red-500 rounded-[1.5rem] flex items-center justify-center transition-all hover:bg-red-600 hover:text-white"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
+                                        {c.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="relative group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
+                            <input 
+                                type="text" 
+                                placeholder="Buscar equipamiento..." 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full glass-card rounded-2xl py-4 px-12 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all placeholder:text-muted-foreground/40 placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em]"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Grid Section */}
+                <div className="max-w-7xl mx-auto p-5">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                        <AnimatePresence>
+                            {filteredItems.map(item => (
+                                <motion.div 
+                                    key={item.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    onClick={() => setSelectedItem(item)}
+                                    className="group glass-card rounded-[2.5rem] overflow-hidden cursor-pointer shadow-xl transition-all duration-500 flex flex-col h-full hover:shadow-emerald-500/10 relative"
+                                >
+                                    {/* Card Glow Effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    
+                                    <div className="relative aspect-[4/5] overflow-hidden">
+                                        <Image 
+                                            src={getFirstImage(item)} 
+                                            alt={item.title} 
+                                            fill 
+                                            unoptimized={true}
+                                            className="object-cover group-hover:scale-110 transition-transform duration-1000" 
+                                        />
+                                        <div className="absolute top-4 left-4 bg-emerald-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl backdrop-blur-md">
+                                            ${item.price.toLocaleString()}
+                                        </div>
+                                        <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white border border-white/10">
+                                            {(Array.isArray(item.images) ? item.images.length : (typeof item.images === 'string' ? JSON.parse(item.images).length : 1))} FOTOS
+                                        </div>
+                                    </div>
+                                    <div className="p-6 flex flex-col flex-1 gap-3 relative z-10">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-1">
+                                                {item.category || "General"}
+                                            </span>
+                                            <h3 className="font-extrabold text-base leading-tight line-clamp-2 uppercase italic tracking-tighter text-foreground group-hover:text-emerald-400 transition-colors">{item.title}</h3>
+                                        </div>
+                                        <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+                                            <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+                                                <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center">
+                                                    <UserIcon className="w-3 h-3" />
+                                                </div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[80px]">
+                                                    {item.user?.firstName || "Jugador"}
+                                                </span>
+                                            </div>
+                                            <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-black uppercase tracking-widest ${item.condition === 'nuevo' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500' : 'border-blue-500/20 bg-blue-500/10 text-blue-500'}`}>
+                                                {item.condition === "nuevo" ? "NUEVO" : "USADO"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+
+                    {filteredItems.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 opacity-30 select-none">
+                            <ShoppingBag className="w-20 h-20 mb-4" />
+                            <h3 className="text-xl font-black uppercase italic italic tracking-tighter">No se encontró nada</h3>
+                            <p className="text-[10px] font-black uppercase tracking-widest">Probá con otros filtros o publicá algo vos.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Item Detail Modal */}
+                <AnimatePresence>
+                    {selectedItem && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setSelectedItem(null)}
+                                className="absolute inset-0 bg-background/60 backdrop-blur-xl"
+                            />
+                            <motion.div 
+                                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                                className="relative w-full max-w-lg glass-card rounded-[3rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar"
+                            >
+                                <button 
+                                    onClick={() => setSelectedItem(null)}
+                                    className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full bg-background/50 backdrop-blur-md border border-border flex items-center justify-center hover:bg-background transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+
+                                <div className="relative aspect-square">
+                                    <Image 
+                                        src={getFirstImage(selectedItem)} 
+                                        alt={selectedItem.title} 
+                                        fill 
+                                        unoptimized={true}
+                                        className="object-cover" 
+                                    />
+                                    {getAllImages(selectedItem).length > 1 && (
+                                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                                            {getAllImages(selectedItem).map((_, i) => (
+                                                <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? "bg-white" : "bg-white/40"}`} />
+                                            ))}
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
 
-            {/* Publishing Modal */}
-            <AnimatePresence>
-                {isPublishing && (
-                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsPublishing(false)}
-                            className="absolute inset-0 bg-background/60 backdrop-blur-xl"
-                        />
-                        <motion.div 
-                            initial={{ opacity: 0, y: 100 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 100 }}
-                            className="relative w-full max-w-2xl bg-card border-t md:border border-border rounded-t-[3rem] md:rounded-[3rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[92vh] no-scrollbar"
-                        >
-                            <div className="sticky top-0 z-10 bg-card/80 backdrop-blur-xl border-b border-border/50 px-8 py-6 flex items-center justify-between">
-                                <h2 className="text-xl font-black uppercase italic tracking-tighter">
-                                    {editingId ? "Editar Publicación" : "Publicar Equipamiento"}
-                                </h2>
-                                <button 
-                                    onClick={() => setIsPublishing(false)}
-                                    className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
+                                <div className="p-8 flex flex-col gap-6">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-3">
+                                            <span className="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                                                ${selectedItem.price.toLocaleString()}
+                                            </span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic truncate">
+                                                {selectedItem.category} • {selectedItem.condition === "nuevo" ? "NUEVO" : "USADO"}
+                                            </span>
+                                        </div>
+                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter leading-none mt-2">
+                                            {selectedItem.title}
+                                        </h2>
+                                    </div>
 
-                            <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-8 pb-32">
-                                {/* Photo Upload */}
-                                <div className="flex flex-col gap-4">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Fotos del Producto (Máx 3)</h3>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {previews.map((url, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-3xl overflow-hidden border border-border group">
-                                                <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-5 flex flex-col gap-3">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Observaciones</h4>
+                                        <p className="text-sm font-medium leading-relaxed opacity-80 whitespace-pre-wrap">
+                                            {selectedItem.observations || "Sin observaciones adicionales."}
+                                        </p>
+                                    </div>
+
+
+                                    <div className="flex items-center gap-4 border-t border-white/10 pt-6 mt-2">
+                                        <div className="flex-1">
+                                            <p className="text-[8px] font-black uppercase text-white/30 tracking-widest">Vendedor</p>
+                                            <p className="text-sm font-bold truncate italic tracking-tight">{selectedItem.user.firstName} {selectedItem.user.lastName}</p>
+                                        </div>
+                                        <div className="flex-1 text-right">
+                                            <p className="text-[8px] font-black uppercase text-white/30 tracking-widest">Publicado</p>
+                                            <p className="text-sm font-bold opacity-60 italic tracking-tight">
+                                                {new Date(selectedItem.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <a 
+                                            href={selectedItem.whatsappUrl || "#"}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="glow-button flex-[2] bg-emerald-600 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/20 active:scale-95 transition-all"
+                                        >
+                                            <MessageCircle className="w-5 h-5 fill-white" />
+                                            Contactar por WhatsApp
+                                        </a>
+                                        {session?.userId === selectedItem.userId && (
+                                            <div className="flex-1 flex gap-2">
                                                 <button 
-                                                    type="button"
-                                                    onClick={() => removeImage(idx)}
-                                                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                                                    onClick={() => openEditModal(selectedItem!)}
+                                                    className="flex-1 bg-white/5 border border-white/10 text-white rounded-2xl flex items-center justify-center transition-all hover:bg-white/10"
                                                 >
-                                                    <X className="w-4 h-4" />
+                                                    <Tag className="w-5 h-5" />
+                                                </button>
+                                                <button 
+                                                    onClick={async () => {
+                                                        if (confirm("¿Borrar esta publicación?")) {
+                                                            await deleteMarketplaceItem(selectedItem!.id);
+                                                            toast.success("Publicación borrada");
+                                                            window.location.reload();
+                                                        }
+                                                    }}
+                                                    className="w-16 bg-red-600/10 border border-red-600/20 text-red-500 rounded-2xl flex items-center justify-center transition-all hover:bg-red-600 hover:text-white"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
                                                 </button>
                                             </div>
-                                        ))}
-                                        {previews.length < 3 && (
-                                            <label className="aspect-square rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-indigo-600 transition-all group overflow-hidden relative">
-                                                {isCompressing ? (
-                                                    <Activity className="w-8 h-8 text-indigo-500 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        <div className="w-12 h-12 rounded-full bg-indigo-600/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                            <Camera className="w-6 h-6 text-indigo-600" />
-                                                        </div>
-                                                        <span className="text-[8px] font-black uppercase text-white/30 text-center">Tocar para<br/>subir</span>
-                                                    </>
-                                                )}
-                                                <input 
-                                                    type="file" 
-                                                    multiple 
-                                                    accept="image/*" 
-                                                    className="hidden" 
-                                                    onChange={handleImageChange}
-                                                    disabled={isCompressing}
-                                                />
-                                            </label>
                                         )}
                                     </div>
-                                    <p className="text-[8px] font-bold uppercase text-white/20 ml-2 tracking-widest italic">
-                                        * Las fotos se optimizan automáticamente para ahorrar datos.
-                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Publishing Modal */}
+                <AnimatePresence>
+                    {isPublishing && (
+                        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsPublishing(false)}
+                                className="absolute inset-0 bg-background/60 backdrop-blur-xl"
+                            />
+                            <motion.div 
+                                initial={{ opacity: 0, y: 100 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 100 }}
+                                className="relative w-full max-w-2xl glass-card border-t md:border-none rounded-t-[3rem] md:rounded-[3rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[92vh] no-scrollbar"
+                            >
+                                <div className="sticky top-0 z-10 bg-card/50 backdrop-blur-xl border-b border-white/5 px-8 py-6 flex items-center justify-between">
+                                    <h2 className="text-xl font-black uppercase italic tracking-tighter">
+                                        {editingId ? "Editar Publicación" : "Publicar Equipamiento"}
+                                    </h2>
+                                    <button 
+                                        onClick={() => setIsPublishing(false)}
+                                        className="w-10 h-10 rounded-full bg-background/50 border border-border flex items-center justify-center hover:bg-muted"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Título del Producto</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.title}
-                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                            className="w-full bg-background border border-border rounded-2xl py-4 px-6 text-sm font-bold uppercase italic tracking-tight outline-none focus:border-indigo-600 transition-all shadow-inner"
-                                            placeholder="Ej: Siux Electra ST2..."
-                                        />
+                                <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-8 pb-32">
+                                    {/* Photo Upload */}
+                                    <div className="flex flex-col gap-4">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 italic px-2">Fotos del Producto (Máx 3)</h3>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {previews.map((url, idx) => (
+                                                <div key={idx} className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 group shadow-lg">
+                                                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => removeImage(idx)}
+                                                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {previews.length < 3 && (
+                                                <label className="aspect-square rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-emerald-500/50 transition-all hover:bg-white/5 group overflow-hidden relative">
+                                                    {isCompressing ? (
+                                                        <Activity className="w-8 h-8 text-emerald-500 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                <Camera className="w-6 h-6 text-emerald-500" />
+                                                            </div>
+                                                            <span className="text-[8px] font-black uppercase text-muted-foreground text-center">Tocar para<br/>subir</span>
+                                                        </>
+                                                    )}
+                                                    <input 
+                                                        type="file" 
+                                                        multiple 
+                                                        accept="image/*" 
+                                                        className="hidden" 
+                                                        onChange={handleImageChange}
+                                                        disabled={isCompressing}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Precio (ARS)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-indigo-600">$</span>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Título del Producto</label>
                                             <input
                                                 type="text"
                                                 required
-                                                value={formData.price}
-                                                onChange={e => setFormData({ ...formData, price: formatCurrency(e.target.value) })}
-                                                className="w-full bg-background border border-border rounded-2xl py-4 px-12 text-sm font-black italic tracking-tight outline-none focus:border-indigo-600 transition-all shadow-inner"
-                                                placeholder="250.000"
+                                                value={formData.title}
+                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic tracking-tight outline-none focus:border-emerald-500/50 transition-all"
+                                                placeholder="Ej: Siux Electra ST2..."
                                             />
                                         </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Precio (ARS)</label>
+                                            <div className="relative">
+                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-emerald-500">$</span>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={formData.price}
+                                                    onChange={e => setFormData({ ...formData, price: formatCurrency(e.target.value) })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-12 text-sm font-black italic tracking-tight outline-none focus:border-emerald-500/50 transition-all"
+                                                    placeholder="250.000"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-2">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic px-2">Categoría</h3>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.category}
+                                                onChange={e => setFormData({ ...formData, category: e.target.value.toUpperCase() })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic outline-none focus:border-emerald-500/50 transition-all"
+                                                placeholder="Ej: PALETA, CALZADO..."
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic px-2">Estado</h3>
+                                            <div className="bg-white/5 p-1 rounded-2xl border border-white/10 flex">
+                                                {CONDITIONS.map(c => (
+                                                    <button
+                                                        key={c.id}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, condition: c.id })}
+                                                        className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-muted-foreground hover:text-foreground"}`}
+                                                    >
+                                                        {c.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-col gap-2">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Categoría</h3>
-                                        <input
-                                            type="text"
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Observaciones / Detalles</label>
+                                        <textarea
                                             required
-                                            value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value.toUpperCase() })}
-                                            className="w-full bg-background border border-border rounded-2xl py-4 px-6 text-sm font-bold uppercase italic outline-none focus:border-indigo-600 transition-all shadow-inner"
-                                            placeholder="Ej: PALETA, CALZADO..."
+                                            value={formData.observations}
+                                            onChange={e => setFormData({ ...formData, observations: e.target.value })}
+                                            rows={4}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:border-emerald-500/50 transition-all resize-none shadow-inner"
+                                            placeholder="Detalles técnicos, estado, medidas, etc."
                                         />
                                     </div>
-                                    <div className="flex flex-col gap-4">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic px-2">Estado</h3>
-                                        <div className="bg-background p-1 rounded-2xl border border-border flex">
-                                            {CONDITIONS.map(c => (
-                                                <button
-                                                    key={c.id}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, condition: c.id })}
-                                                    className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-indigo-600 text-white shadow-lg" : "text-white/30 hover:text-white"}`}
-                                                >
-                                                    {c.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Observaciones / Detalles</label>
-                                    <textarea
-                                        required
-                                        value={formData.observations}
-                                        onChange={e => setFormData({ ...formData, observations: e.target.value })}
-                                        rows={4}
-                                        className="w-full bg-background border border-border rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:border-indigo-600 transition-all resize-none shadow-inner"
-                                        placeholder="Detalles técnicos, estado, medidas, etc."
-                                    />
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Contacto</label>
-                                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl py-4 px-6 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                                <MessageCircle className="w-4 h-4 text-emerald-500" />
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Contacto</label>
+                                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl py-4 px-6 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                                                    <MessageCircle className="w-4 h-4 text-emerald-500" />
+                                                </div>
+                                                <span className="text-sm font-bold text-emerald-500/80">WhatsApp vinculado</span>
                                             </div>
-                                            <span className="text-sm font-bold text-emerald-500/80">WhatsApp vinculado</span>
+                                            <span className="text-xs font-black italic opacity-60">+{session?.user?.phone}</span>
                                         </div>
-                                        <span className="text-xs font-black italic opacity-60">+{session?.user?.phone}</span>
                                     </div>
-                                    <p className="text-[8px] font-bold uppercase text-white/20 ml-2 tracking-widest">
-                                        Se usará el teléfono registrado en tu perfil para que te contacten.
-                                    </p>
-                                </div>
 
-                                <div className="fixed bottom-0 left-0 right-0 p-8 bg-card/80 backdrop-blur-xl border-t border-border/50 md:relative md:bg-transparent md:border-none md:p-0 md:mt-4">
-                                    <button 
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full bg-indigo-600 text-white h-16 rounded-[1.5rem] font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-2xl shadow-indigo-600/30 active:scale-[0.98] transition-all disabled:opacity-50"
-                                    >
-                                        {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                                        {isLoading ? (editingId ? "Guardando..." : "Publicando...") : (editingId ? "Guardar Cambios" : "Confirmar Publicación")}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                    <div className="fixed bottom-0 left-0 right-0 p-8 bg-background/80 backdrop-blur-xl border-t border-white/5 md:relative md:bg-transparent md:border-none md:p-0 md:mt-4">
+                                        <button 
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="glow-button w-full bg-foreground text-background h-16 rounded-full font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
+                                        >
+                                            {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                                            {isLoading ? (editingId ? "Guardando..." : "Publicando...") : (editingId ? "Guardar Cambios" : "Confirmar Publicación")}
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }

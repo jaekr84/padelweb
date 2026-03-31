@@ -100,18 +100,73 @@ export default function RequestsClient() {
     };
 
     return (
-        <div className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-8">
-            <header className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-[1.25rem] bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
-                        <MessageSquare className="w-7 h-7" />
+        <>
+            <style>{`
+                @keyframes gradient-x {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .text-gradient-animate {
+                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    animation: gradient-x 6s ease infinite;
+                }
+                .glass-card {
+                    background-color: color-mix(in srgb, var(--card) 90%, transparent);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                }
+                .glass-card:hover {
+                    border-color: rgba(16, 185, 129, 0.5);
+                }
+                .glow-button {
+                    position: relative;
+                }
+                .glow-button::before {
+                    content: '';
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: 2rem;
+                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    z-index: -1;
+                    filter: blur(8px);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .glow-button:hover::before {
+                    opacity: 1;
+                }
+            `}</style>
+
+            {/* Ambient glow */}
+            <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
+            </div>
+
+            <div className="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-8 font-sans selection:bg-emerald-500/30">
+                <motion.header 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col gap-4 mb-4"
+                >
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
+                            <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
+                            <MessageSquare className="relative z-10 w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-1">Gestión de nuevos ingresos</p>
+                            <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tight leading-none text-foreground">
+                                Solicitudes de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Registro</span>
+                            </h1>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tight leading-none text-foreground">Notificaciones</h1>
-                        <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">Gestión de nuevos ingresos</p>
-                    </div>
-                </div>
-            </header>
+                </motion.header>
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-32 gap-4">
@@ -119,15 +174,20 @@ export default function RequestsClient() {
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargando solicitudes...</span>
                 </div>
             ) : requests.length === 0 ? (
-                <div className="bg-card border border-border rounded-[2.5rem] p-12 md:p-20 text-center flex flex-col items-center gap-6 shadow-xl">
-                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-border">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass-card rounded-[2.5rem] p-12 md:p-20 text-center flex flex-col items-center gap-6 shadow-xl relative overflow-hidden group"
+                >
+                    <div className="absolute top-[-30%] right-[-10%] w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-border relative z-10">
                         <ShieldCheck className="w-10 h-10 opacity-20" />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative z-10">
                         <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground">Sin solicitudes</h3>
                         <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">Buen trabajo, has procesado todas las peticiones externas.</p>
                     </div>
-                </div>
+                </motion.div>
             ) : (
                 <div className="space-y-4">
                     <AnimatePresence mode="popLayout">
@@ -142,13 +202,16 @@ export default function RequestsClient() {
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.98 }}
-                                    className={`bg-card p-5 md:p-8 rounded-[2.5rem] border transition-all relative overflow-hidden group ${
+                                    className={`glass-card p-5 md:p-8 rounded-[2.5rem] transition-all relative overflow-hidden group ${
                                         req.status === 'pendiente' 
-                                            ? 'border-indigo-500/30 shadow-[0_20px_40px_-15px_rgba(79,70,229,0.1)]' 
-                                            : 'border-border/50 opacity-60 grayscale-[0.5]'
+                                            ? 'shadow-[0_20px_40px_-15px_rgba(16,185,129,0.1)] border-emerald-500/30' 
+                                            : 'opacity-60 grayscale-[0.2] hover:grayscale-0'
                                     }`}
                                 >
-                                    <div className="flex flex-col gap-6">
+                                    {/* Subtler highlight glow */}
+                                    <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    
+                                    <div className="flex flex-col gap-6 relative z-10">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border transition-all shadow-sm ${statusStyle.bg} ${statusStyle.border} ${statusStyle.text}`}>
@@ -191,7 +254,7 @@ export default function RequestsClient() {
                                                     <button
                                                         onClick={() => handleUpdateStatus(req.id, "rechazado")}
                                                         disabled={isPending}
-                                                        className="w-full lg:flex-1 h-12 rounded-xl md:rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                                        className="w-full lg:flex-1 h-12 rounded-xl md:rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
                                                     >
                                                         <XCircle className="w-4 h-4" />
                                                         Rechazar
@@ -199,7 +262,7 @@ export default function RequestsClient() {
                                                     <button
                                                         onClick={() => handleProcess(req.id, req.whatsapp, req.fullName)}
                                                         disabled={isPending}
-                                                        className="w-full lg:flex-[2] h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
+                                                        className="glow-button w-full lg:flex-[2] h-12 bg-foreground hover:bg-foreground/90 text-background rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 disabled:opacity-50 border border-border"
                                                     >
                                                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                                                         Aprobar e Invitar
@@ -283,6 +346,7 @@ export default function RequestsClient() {
                     </AnimatePresence>
                 </div>
             )}
-        </div>
+            </div>
+        </>
     );
 }

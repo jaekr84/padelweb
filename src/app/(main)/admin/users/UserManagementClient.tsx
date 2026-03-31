@@ -21,7 +21,8 @@ import {
     Filter,
     UserCheck,
     UserX,
-    Users
+    Users,
+    ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -223,32 +224,93 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8">
-            <div className="max-w-6xl mx-auto space-y-8">
+        <div className="min-h-screen bg-[#030712] text-slate-200 pb-20 pt-8 px-4 md:px-8 font-sans selection:bg-indigo-500/30 relative">
+            <style>{`
+                @keyframes gradient-x {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .text-gradient-animate {
+                    background: linear-gradient(to right, #6366f1, #a855f7, #3b82f6, #6366f1);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    animation: gradient-x 6s ease infinite;
+                }
+                .glass-card {
+                    background: rgba(15, 23, 42, 0.4);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                }
+                .glow-button {
+                    position: relative;
+                }
+                .glow-button::before {
+                    content: '';
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: 2rem;
+                    background: linear-gradient(45deg, #6366f1, #3b82f6);
+                    z-index: -1;
+                    filter: blur(8px);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .glow-button:hover::before {
+                    opacity: 1;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    height: 8px;
+                    width: 8px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(99, 102, 241, 0.1);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(99, 102, 241, 0.2);
+                }
+            `}</style>
+
+            {/* Ambient Background Effects */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-violet-600/5 blur-[100px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+            </div>
+            <div className="max-w-6xl mx-auto space-y-8 relative z-10">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                     <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 mb-2">
-                             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                <Shield className="w-4 h-4 text-indigo-500" />
+                        <div className="flex items-center gap-4 mb-2">
+                             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                <Shield className="w-6 h-6 text-indigo-400" />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Admin Console</span>
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400/80 italic">Admin Tactical Console</span>
+                                <div className="h-px w-12 bg-indigo-500/30 mt-1" />
+                            </div>
                         </div>
-                        <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-                            Gestión de Usuarios
+                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">
+                            Gestión de <span className="text-gradient-animate">Usuarios</span>
                         </h1>
-                        <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
-                            Promoción de categorías, asignación de puntos y control de acceso
+                        <p className="text-slate-400 text-[10px] font-black mt-2 uppercase tracking-[0.2em] opacity-60 flex items-center gap-2">
+                             <Layers className="w-3 h-3" /> Promoción de categorías, asignación de puntos y control de acceso neural
                         </p>
                     </div>
 
                     <button 
                         onClick={handleReset}
                         disabled={isResetting}
-                        className="px-6 py-3 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
+                        className="px-8 py-4 bg-red-600/10 text-red-400 border border-red-400/20 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.3em] hover:bg-red-500 hover:text-white transition-all flex items-center gap-3 shrink-0 disabled:opacity-50 active:scale-95 shadow-lg group"
                     >
-                        <Trash2 className="w-4 h-4" />
-                        {isResetting ? "Reseteando..." : "Reset Base de Datos"}
+                        <Trash2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                        {isResetting ? "EJECUTANDO RESET..." : "Reset Base de Datos"}
                     </button>
                 </div>
 
@@ -259,15 +321,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-indigo-500/30 transition-all"
+                            className="glass-card rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Users className="w-6 h-6 text-indigo-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-5 relative z-10">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
+                                    <Users className="w-7 h-7 text-indigo-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Total</span>
-                                    <span className="text-2xl font-black italic leading-none">{stats.total}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Total Personnel</span>
+                                    <span className="text-3xl font-black italic leading-none text-white tracking-tighter">{stats.total}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -276,15 +339,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-indigo-500/30 transition-all"
+                            className="glass-card rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Shield className="w-6 h-6 text-indigo-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-5 relative z-10">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
+                                    <Shield className="w-7 h-7 text-indigo-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Admin</span>
-                                    <span className="text-2xl font-black italic leading-none">{stats.superadmins}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Tier 1 Admin</span>
+                                    <span className="text-3xl font-black italic leading-none text-white tracking-tighter">{stats.superadmins}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -293,15 +357,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-violet-500/30 transition-all"
+                            className="glass-card rounded-[2rem] p-6 shadow-xl group hover:border-violet-500/30 transition-all relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Shield className="w-6 h-6 text-violet-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-5 relative z-10">
+                                <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-violet-500/5">
+                                    <Shield className="w-7 h-7 text-violet-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Clubes</span>
-                                    <span className="text-2xl font-black italic leading-none">{stats.clubs}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Verified Clubs</span>
+                                    <span className="text-3xl font-black italic leading-none text-white tracking-tighter">{stats.clubs}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -310,15 +375,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-card border border-border rounded-[2rem] p-5 shadow-sm group hover:border-emerald-500/30 transition-all"
+                            className="glass-card rounded-[2rem] p-6 shadow-xl group hover:border-emerald-500/30 transition-all relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Trophy className="w-6 h-6 text-emerald-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-5 relative z-10">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/5">
+                                    <Trophy className="w-7 h-7 text-emerald-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Jugadores</span>
-                                    <span className="text-2xl font-black italic leading-none">{stats.players}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Active Units</span>
+                                    <span className="text-3xl font-black italic leading-none text-white tracking-tighter">{stats.players}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -327,48 +393,57 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     {/* Filters Section */}
                     <div className="w-full xl:w-[450px] space-y-4">
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                             <input 
                                 type="text"
-                                placeholder="Email, nombre o DNI..."
+                                placeholder="IDENTIFICAR USUARIO (EMAIL, NOMBRE, DNI)..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-11 pr-4 py-3.5 bg-card border border-border rounded-2xl w-full text-xs font-bold outline-none focus:border-indigo-500 transition-all shadow-sm"
+                                className="pl-12 pr-6 py-4 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl w-full text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-indigo-500/50 transition-all shadow-xl placeholder:text-slate-600"
                             />
                         </div>
 
                         <div className="grid grid-cols-3 gap-2">
-                            <select 
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
-                            >
-                                <option value="all">Estados</option>
-                                <option value="active">Activos</option>
-                                <option value="disabled">Desactivados</option>
-                                <option value="banned">Baneados</option>
-                            </select>
+                            <div className="relative">
+                                <select 
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="px-4 py-4 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-slate-300"
+                                >
+                                    <option value="all">ESTADOS</option>
+                                    <option value="active">ACTIVOS</option>
+                                    <option value="disabled">INACTIVOS</option>
+                                    <option value="banned">BANEADOS</option>
+                                </select>
+                                <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600 pointer-events-none" />
+                            </div>
 
-                            <select 
-                                value={roleFilter}
-                                onChange={(e) => setRoleFilter(e.target.value)}
-                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
-                            >
-                                <option value="all">Roles</option>
-                                <option value="jugador">Jugador</option>
-                                <option value="club">Club</option>
-                                <option value="superadmin">Admin</option>
-                            </select>
+                            <div className="relative">
+                                <select 
+                                    value={roleFilter}
+                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                    className="px-4 py-4 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-slate-300"
+                                >
+                                    <option value="all">ROLES</option>
+                                    <option value="jugador">JUGADOR</option>
+                                    <option value="club">CLUB</option>
+                                    <option value="superadmin">ADMIN</option>
+                                </select>
+                                <UserCog className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600 pointer-events-none" />
+                            </div>
 
-                            <select 
-                                value={genderFilter}
-                                onChange={(e) => setGenderFilter(e.target.value)}
-                                className="px-3 py-3 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500 transition-all shadow-sm w-full"
-                            >
-                                <option value="all">Género</option>
-                                <option value="masculino">Masc.</option>
-                                <option value="femenino">Fem.</option>
-                            </select>
+                            <div className="relative">
+                                <select 
+                                    value={genderFilter}
+                                    onChange={(e) => setGenderFilter(e.target.value)}
+                                    className="px-4 py-4 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-slate-300"
+                                >
+                                    <option value="all">GÉNERO</option>
+                                    <option value="masculino">MASC.</option>
+                                    <option value="femenino">FEM.</option>
+                                </select>
+                                <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600 pointer-events-none" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -386,52 +461,60 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                     key={user.id}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="bg-card border border-border rounded-3xl p-5 space-y-4 shadow-lg overflow-hidden relative group"
+                                    className="glass-card rounded-[2rem] p-6 space-y-5 shadow-2xl relative group overflow-hidden"
                                 >
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+                                    
                                     {/* User Info Header */}
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center font-black italic text-indigo-500 text-lg">
+                                    <div className="flex items-start justify-between relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black italic text-indigo-400 text-xl shadow-inner">
                                                 {(user.firstName || "U").charAt(0)}
                                             </div>
                                             <div className="flex flex-col min-w-0">
-                                                <h3 className="text-base font-black uppercase italic tracking-tight truncate leading-tight">
+                                                <h3 className="text-lg font-black uppercase italic tracking-tighter truncate leading-tight text-white">
                                                     {user.firstName} {user.lastName}
                                                 </h3>
-                                                <p className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
-                                                    {user.email} {user.documentNumber && `• DNI: ${user.documentNumber}`}
+                                                <p className="text-[10px] font-black text-slate-500 truncate uppercase tracking-widest mt-0.5">
+                                                    {user.email}
                                                 </p>
+                                                {user.documentNumber && (
+                                                    <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-widest mt-1">DNI: {user.documentNumber}</p>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1 shrink-0">
-                                             <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
+                                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                             <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-lg border shadow-sm ${user.role === 'superadmin' ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'bg-white/5 border-white/10 text-slate-400'}`}>
                                                 {user.role}
                                             </span>
-                                            <div className="text-[10px] font-black uppercase italic text-indigo-500 bg-indigo-500/5 px-2 py-0.5 rounded-lg border border-indigo-500/10">
-                                                {user.category || "D"} • {user.points || 0} pts
+                                            <div className="text-[10px] font-black uppercase italic text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                                                {user.category || "D"} <span className="text-slate-600 px-1">/</span> {user.points || 0} pts
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Status Badge */}
-                                    <div className="flex items-center gap-2 py-2 border-y border-border/50">
+                                    <div className="flex items-center gap-3 py-3 border-y border-white/5 relative z-10">
                                         {banned ? (
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500">
-                                                <Clock className="w-3.5 h-3.5" /> Baneado hasta {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
+                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-amber-400">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                                BANEADO HASTA {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
                                             </div>
                                         ) : isInactive ? (
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
-                                                <XCircle className="w-3.5 h-3.5" /> Cuenta Deshabilitada
+                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-rose-500">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                CUENTA DESHABILITADA
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                                                <CheckCircle className="w-3.5 h-3.5" /> Usuario Activo
+                                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                                                OPERATIVO / ACTIVO
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-2 pt-1">
+                                    <div className="flex items-center gap-3 pt-1 relative z-10">
                                         <button 
                                             onClick={() => {
                                                 setSelectedUser(user);
@@ -439,16 +522,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 setNewPoints(user.points || 0);
                                                 setIsCategoryModalOpen(true);
                                             }}
-                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest"
+                                            className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest border border-indigo-400/20"
                                         >
-                                            <Trophy className="w-3.5 h-3.5" /> Puntos
+                                            <Trophy className="w-4 h-4" /> STATS
                                         </button>
                                         
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2.5">
                                             {banned ? (
                                                 <button 
                                                     onClick={() => handleUnban(user)}
-                                                    className="p-3 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 active:scale-95 transition-all"
+                                                    className="p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 active:scale-95 transition-all"
                                                 >
                                                     <UserCheck className="w-4 h-4" />
                                                 </button>
@@ -458,7 +541,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         setSelectedUser(user);
                                                         setIsBanModalOpen(true);
                                                     }}
-                                                    className="p-3 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 active:scale-95 transition-all"
+                                                    className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20 active:scale-95 transition-all disabled:opacity-20"
                                                     disabled={user.role === 'superadmin'}
                                                 >
                                                     <Ban className="w-4 h-4" />
@@ -471,7 +554,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     setNewRole(user.role);
                                                     setIsRoleModalOpen(true);
                                                 }}
-                                                className="p-3 rounded-xl bg-muted border border-border text-muted-foreground active:scale-95 transition-all"
+                                                className="p-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20 active:scale-95 transition-all disabled:opacity-20"
                                                 disabled={user.role === 'superadmin'}
                                             >
                                                 <UserCog className="w-4 h-4" />
@@ -479,12 +562,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                                             <button 
                                                 onClick={() => handleToggleStatus(user)}
-                                                className={`p-3 rounded-xl transition-all border ${isInactive 
-                                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
-                                                    : "bg-red-500/10 text-red-500 border-red-500/20"}`}
+                                                className={`p-4 rounded-2xl transition-all border shadow-sm ${isInactive 
+                                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                                                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"}`}
                                                 disabled={user.role === 'superadmin'}
                                             >
-                                                {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                                                {isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                                             </button>
                                         </div>
                                     </div>
@@ -494,34 +577,19 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     </div>
 
                     {/* Desktop Table Layout */}
-                    <div className="hidden md:block bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-                        <style jsx>{`
-                            .custom-scrollbar::-webkit-scrollbar {
-                                height: 8px;
-                            }
-                            .custom-scrollbar::-webkit-scrollbar-track {
-                                background: transparent;
-                            }
-                            .custom-scrollbar::-webkit-scrollbar-thumb {
-                                background: #6366f133;
-                                border-radius: 10px;
-                            }
-                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                                background: #6366f166;
-                            }
-                        `}</style>
+                    <div className="hidden md:block glass-card rounded-[2.5rem] overflow-hidden shadow-2xl relative border-white/5">
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full min-w-[1100px] text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-muted/30 border-b border-border">
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cat. / Puntos</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol</th>
-                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                                        <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
+                                    <tr className="bg-white/5 border-b border-white/5">
+                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Identificación</th>
+                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Stats / Tier</th>
+                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Privilegios</th>
+                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Estado Neural</th>
+                                        <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border">
+                                <tbody className="divide-y divide-white/5">
                                     {filteredUsers.map((user) => {
                                         const banned = isCurrentlyBanned(user);
                                         const isInactive = user.isActive === false;
@@ -531,57 +599,62 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 key={user.id}
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className={`group hover:bg-muted/50 transition-colors ${loading === user.id ? "opacity-50 pointer-events-none" : ""}`}
+                                                className={`group hover:bg-white/[0.02] transition-colors relative ${loading === user.id ? "opacity-50 pointer-events-none" : ""}`}
                                             >
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center font-black italic text-indigo-500 shrink-0">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black italic text-indigo-400 shadow-inner group-hover:scale-105 transition-transform duration-300">
                                                             {(user.firstName || "U").charAt(0)}
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="text-sm font-black uppercase italic tracking-tight truncate">
+                                                            <span className="text-base font-black uppercase italic tracking-tighter truncate text-white">
                                                                 {user.firstName} {user.lastName}
                                                             </span>
-                                                            <span className="text-[10px] font-bold text-muted-foreground truncate opacity-60">
-                                                                {user.email} {user.documentNumber && `• DNI: ${user.documentNumber}`}
+                                                            <span className="text-[10px] font-black text-slate-500 truncate uppercase tracking-widest mt-0.5">
+                                                                {user.email} {user.documentNumber && <span className="text-indigo-400/40 ml-2">DNI: {user.documentNumber}</span>}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex flex-col gap-1">
-                                                        <span className="text-[11px] font-black uppercase italic text-indigo-500">
-                                                            {user.category || "D"}
-                                                        </span>
-                                                        <span className="text-[9px] font-bold text-muted-foreground">
-                                                            {user.points || 0} pts
-                                                        </span>
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="px-3 py-1 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+                                                            <span className="text-xs font-black italic text-indigo-400">
+                                                                {user.category || "D"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[11px] font-black italic text-white leading-none">
+                                                                {user.points || 0}
+                                                            </span>
+                                                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-600 mt-0.5">PUNTOS</span>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${user.role === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500' : 'bg-muted border-border text-muted-foreground'}`}>
+                                                <td className="px-8 py-5">
+                                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-lg border shadow-sm ${user.role === 'superadmin' ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'bg-white/5 border-white/10 text-slate-500'}`}>
                                                         {user.role}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex flex-col gap-1">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex flex-col">
                                                         {banned ? (
-                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-500">
-                                                                <Clock className="w-3 h-3" /> Baneado hasta {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
+                                                            <span className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-amber-400">
+                                                                <Clock className="w-3.5 h-3.5" /> BANEADO HASTA {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
                                                             </span>
                                                         ) : isInactive ? (
-                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-red-500">
-                                                                <XCircle className="w-3 h-3" /> Deshabilitado
+                                                            <span className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-rose-500">
+                                                                <XCircle className="w-3.5 h-3.5" /> INACTIVO
                                                             </span>
                                                         ) : (
-                                                            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-500">
-                                                                <CheckCircle className="w-3 h-3" /> Activo
+                                                            <span className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" /> ACTIVO
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-5 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-8 py-5 text-right">
+                                                    <div className="flex items-center justify-end gap-2.5 opacity-40 group-hover:opacity-100 transition-opacity">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedUser(user);
@@ -589,18 +662,18 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewPoints(user.points || 0);
                                                                 setIsCategoryModalOpen(true);
                                                             }}
-                                                            className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
-                                                            title="Promover / Cambiar Categoría"
+                                                            className="p-3 rounded-2xl bg-white/5 text-slate-400 border border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20 transition-all shadow-xl active:scale-90"
+                                                            title="STATS"
                                                         >
-                                                            <Trophy className="w-4 h-4" />
+                                                            <Trophy className="w-4.5 h-4.5" />
                                                         </button>
                                                         {banned ? (
                                                             <button 
                                                                 onClick={() => handleUnban(user)}
-                                                                className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
-                                                                title="Remover baneo"
+                                                                className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-xl active:scale-90"
+                                                                title="UNBAN"
                                                             >
-                                                                <UserCheck className="w-4 h-4" />
+                                                                <UserCheck className="w-4.5 h-4.5" />
                                                             </button>
                                                         ) : (
                                                             <button 
@@ -608,11 +681,11 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                     setSelectedUser(user);
                                                                     setIsBanModalOpen(true);
                                                                 }}
-                                                                className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
-                                                                title="Banear temporalmente"
+                                                                className="p-3 rounded-2xl bg-white/5 text-slate-400 border border-white/10 hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20 transition-all shadow-xl active:scale-90"
+                                                                title="BAN"
                                                                 disabled={user.role === 'superadmin'}
                                                             >
-                                                                <Ban className="w-4 h-4" />
+                                                                <Ban className="w-4.5 h-4.5" />
                                                             </button>
                                                         )}
 
@@ -622,34 +695,33 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewRole(user.role);
                                                                 setIsRoleModalOpen(true);
                                                             }}
-                                                            className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
-                                                            title="Cambiar rol"
+                                                            className="p-3 rounded-2xl bg-white/5 text-slate-400 border border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20 transition-all shadow-xl active:scale-90"
+                                                            title="ROL"
                                                             disabled={user.role === 'superadmin'}
                                                         >
-                                                            <UserCog className="w-4 h-4" />
+                                                            <UserCog className="w-4.5 h-4.5" />
                                                         </button>
 
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedUser(user);
-                                                                // If we had clubId in ManagedUser, we'd set it here
                                                                 setIsClubModalOpen(true);
                                                             }}
-                                                            className="p-2.5 rounded-xl bg-violet-500/10 text-violet-500 border border-violet-500/20 hover:bg-violet-500 hover:text-white transition-all shadow-sm"
-                                                            title="Vincular a Club"
+                                                            className="p-3 rounded-2xl bg-white/5 text-slate-400 border border-white/10 hover:bg-violet-500/10 hover:text-violet-400 hover:border-violet-500/20 transition-all shadow-xl active:scale-90"
+                                                            title="CLUB"
                                                         >
-                                                            <Shield className="w-4 h-4" />
+                                                            <Shield className="w-4.5 h-4.5" />
                                                         </button>
 
                                                         <button 
                                                             onClick={() => handleToggleStatus(user)}
-                                                            className={`p-2.5 rounded-xl transition-all shadow-sm border ${isInactive 
-                                                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white" 
-                                                                : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white"}`}
-                                                            title={isInactive ? "Habilitar cuenta" : "Deshabilitar cuenta"}
+                                                            className={`p-3 rounded-2xl transition-all shadow-xl active:scale-90 border ${isInactive 
+                                                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-white" 
+                                                                : "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500 hover:text-white"}`}
+                                                            title={isInactive ? "ENABLE" : "DISABLE"}
                                                             disabled={user.role === 'superadmin'}
                                                         >
-                                                            {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                                                            {isInactive ? <CheckCircle className="w-4.5 h-4.5" /> : <XCircle className="w-4.5 h-4.5" />}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -662,76 +734,83 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     </div>
 
                     {filteredUsers.length === 0 && (
-                        <div className="px-6 py-20 text-center bg-card border border-border rounded-[2.5rem]">
-                            <div className="flex flex-col items-center gap-3">
-                                <Search className="w-10 h-10 text-muted-foreground opacity-20" />
-                                <p className="text-sm font-black uppercase italic tracking-widest text-muted-foreground opacity-50">No se encontraron usuarios</p>
+                        <div className="px-8 py-24 text-center glass-card border-white/5 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
+                            <div className="flex flex-col items-center gap-6 relative z-10">
+                                <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
+                                    <Search className="w-8 h-8 text-slate-600" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-white text-lg font-black uppercase italic tracking-[0.2em]">Cero Coincidencias</p>
+                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">El radar no detecta usuarios con los parámetros actuales</p>
+                                </div>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Ban Modal */}
             <AnimatePresence>
                 {isBanModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="glass-card border-white/10 rounded-[3rem] w-full max-w-md overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] relative"
                         >
-                            <div className="p-8 space-y-6">
-                                <div className="flex flex-col items-center text-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                        <Ban className="w-8 h-8 text-amber-500" />
+                            <div className="absolute inset-0 bg-amber-500/5 blur-[100px] pointer-events-none" />
+                            <div className="p-10 space-y-8 relative z-10">
+                                <div className="flex flex-col items-center text-center gap-6">
+                                    <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-lg shadow-amber-500/5">
+                                        <Ban className="w-10 h-10 text-amber-400" />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Banear Usuario</h2>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                    <div className="space-y-1">
+                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">RESTRICCIÓN</h2>
+                                        <p className="text-[10px] font-black text-amber-400/60 uppercase tracking-[0.3em]">
+                                            Sancionando a: {selectedUser?.firstName} {selectedUser?.lastName}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Duración del baneo</label>
+                                <div className="space-y-6">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">PERIODO DE EXCLUSIÓN</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {[1, 7, 30].map(days => (
                                             <button 
                                                 key={days}
                                                 onClick={() => setBanDays(days)}
-                                                className={`py-4 rounded-2xl text-xs font-black uppercase italic border transition-all ${banDays === days ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'bg-muted border-border text-muted-foreground hover:border-indigo-500/50'}`}
+                                                className={`py-5 rounded-2xl text-[10px] font-black uppercase italic border transition-all ${banDays === days ? 'bg-amber-500 border-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:border-amber-500/30'}`}
                                             >
-                                                {days} {days === 1 ? 'día' : 'días'}
+                                                {days} {days === 1 ? 'DÍA' : 'DÍAS'}
                                             </button>
                                         ))}
                                     </div>
                                     
-                                    <div className="flex flex-col gap-2 mt-4">
-                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Custom (días)</label>
+                                    <div className="space-y-2">
+                                         <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">MANUAL (DÍAS)</label>
                                          <input 
                                             type="number" 
                                             value={banDays}
                                             onChange={(e) => setBanDays(parseInt(e.target.value) || 0)}
-                                            className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-black text-white outline-none focus:border-amber-500/50 transition-all shadow-inner"
+                                            placeholder="0"
                                          />
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex gap-4 pt-4">
                                     <button 
                                         onClick={() => setIsBanModalOpen(false)}
-                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="flex-1 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 transition-all border border-white/5 active:scale-95"
                                     >
-                                        Cancelar
+                                        ABORTAR
                                     </button>
                                     <button 
                                         onClick={handleBan}
-                                        className="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-amber-900/40"
+                                        className="flex-[2] py-5 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-amber-500/20 active:scale-95"
                                     >
-                                        Confirmar Baneo
+                                        CONFIRMAR EXCLUSIÓN
                                     </button>
                                 </div>
                             </div>
@@ -745,51 +824,52 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 {isRoleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="glass-card border-white/10 rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
                         >
-                            <div className="p-8 space-y-6">
-                                <div className="flex flex-col items-center text-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                        <UserCog className="w-8 h-8 text-indigo-500" />
+                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] pointer-events-none" />
+                            <div className="p-10 space-y-8 relative z-10">
+                                <div className="flex flex-col items-center text-center gap-6">
+                                    <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                        <UserCog className="w-10 h-10 text-indigo-400" />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Cambiar Rol</h2>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                    <div className="space-y-1">
+                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">NIVEL DE ACCESO</h2>
+                                        <p className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.3em]">
+                                            Modificando a: {selectedUser?.firstName} {selectedUser?.lastName}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Seleccionar nuevo rol</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">SELECCIONAR ROL</label>
                                     <div className="grid grid-cols-1 gap-3">
                                         {['jugador', 'club', 'superadmin'].map(role => (
                                             <button 
                                                 key={role}
                                                 onClick={() => setNewRole(role)}
-                                                className={`py-4 rounded-2xl text-xs font-black uppercase italic border transition-all ${newRole === role ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'bg-muted border-border text-muted-foreground hover:border-indigo-500/50'}`}
+                                                className={`py-5 rounded-2xl text-[10px] font-black uppercase italic border transition-all ${newRole === role ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:border-indigo-500/30'}`}
                                             >
-                                                {role}
+                                                {role === 'superadmin' ? 'ADMINISTRADOR' : role}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex gap-4 pt-4">
                                     <button 
                                         onClick={() => setIsRoleModalOpen(false)}
-                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="flex-1 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 transition-all border border-white/5"
                                     >
-                                        Cancelar
+                                        ATRAS
                                     </button>
                                     <button 
                                         onClick={handleUpdateRole}
-                                        className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
+                                        className="flex-[2] py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
                                     >
-                                        Confirmar Cambio
+                                        CONFIRMAR CAMBIO
                                     </button>
                                 </div>
                             </div>
@@ -803,34 +883,35 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 {isCategoryModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="glass-card border-white/10 rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
                         >
-                            <div className="p-8 space-y-6">
-                                <div className="flex flex-col items-center text-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                        <Trophy className="w-8 h-8 text-indigo-500" />
+                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] pointer-events-none" />
+                            <div className="p-10 space-y-8 relative z-10">
+                                <div className="flex flex-col items-center text-center gap-6">
+                                    <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                        <Trophy className="w-10 h-10 text-indigo-400" />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Promoción Manual</h2>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                    <div className="space-y-1">
+                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">AJUSTE DE RANGO</h2>
+                                        <p className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.3em]">
+                                            Sincronizando a: {selectedUser?.firstName} {selectedUser?.lastName}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Asignar Categoría</label>
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">CATEGORIA ASIGNADA</label>
                                         <div className="grid grid-cols-3 gap-2">
                                             {Array.from(new Map(categories.map(cat => [cat.name, cat])).values()).map((cat: any) => (
                                                 <button 
                                                     key={cat.id}
                                                     type="button"
                                                     onClick={() => setNewCategory(cat.name)}
-                                                    className={`py-3 rounded-xl text-[10px] font-black uppercase italic border transition-all ${newCategory === cat.name ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-muted border-border text-muted-foreground hover:border-indigo-500/50'}`}
+                                                    className={`py-4 rounded-2xl text-[10px] font-black uppercase italic border transition-all ${newCategory === cat.name ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:border-indigo-500/30'}`}
                                                 >
                                                     {cat.name}
                                                 </button>
@@ -838,29 +919,30 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Ajustar Puntos (Manual)</label>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">PUNTUACIÓN MANUAL</label>
                                         <input 
                                             type="number" 
                                             value={newPoints}
                                             onChange={(e) => setNewPoints(parseInt(e.target.value) || 0)}
-                                            className="w-full bg-muted border border-border rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-black text-white outline-none focus:border-indigo-500/50 transition-all shadow-inner"
+                                            placeholder="0"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex gap-4 pt-4">
                                     <button 
                                         onClick={() => setIsCategoryModalOpen(false)}
-                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="flex-1 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 transition-all border border-white/5"
                                     >
-                                        Cancelar
+                                        CANCELAR
                                     </button>
                                     <button 
                                         onClick={handleUpdateCategory}
-                                        className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
+                                        className="flex-[2] py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
                                     >
-                                        Confirmar Cambios
+                                        ACTUALIZAR STATS
                                     </button>
                                 </div>
                             </div>
@@ -874,50 +956,56 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 {isClubModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-card border border-border rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="glass-card border-white/10 rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
                         >
-                            <div className="p-8 space-y-6">
-                                <div className="flex flex-col items-center text-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                        <Shield className="w-8 h-8 text-indigo-500" />
+                            <div className="absolute inset-0 bg-violet-500/5 blur-[100px] pointer-events-none" />
+                            <div className="p-10 space-y-8 relative z-10">
+                                <div className="flex flex-col items-center text-center gap-6">
+                                    <div className="w-20 h-20 rounded-3xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-lg shadow-violet-500/5">
+                                        <Shield className="w-10 h-10 text-violet-400" />
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight">Vincular a Club</h2>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                            {selectedUser?.firstName} {selectedUser?.lastName}
+                                    <div className="space-y-1">
+                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">VINCULACIÓN</h2>
+                                        <p className="text-[10px] font-black text-violet-400/60 uppercase tracking-[0.3em]">
+                                            Asociando a: {selectedUser?.firstName} {selectedUser?.lastName}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Seleccionar Club</label>
-                                    <select 
-                                        value={newClubId || ""}
-                                        onChange={(e) => setNewClubId(e.target.value || null)}
-                                        className="w-full bg-muted border border-border rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
-                                    >
-                                        <option value="">Sin Club / Independiente</option>
-                                        {clubs.map(club => (
-                                            <option key={club.id} value={club.id}>{club.name}</option>
-                                        ))}
-                                    </select>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-2">SELECCIONAR CENTRO</label>
+                                    <div className="relative group">
+                                        <select 
+                                            value={newClubId || ""}
+                                            onChange={(e) => setNewClubId(e.target.value || null)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-black text-white outline-none focus:border-violet-500/50 transition-all appearance-none shadow-inner"
+                                        >
+                                            <option value="" className="bg-slate-900">SIN CLUB / INDEPENDIENTE</option>
+                                            {clubs.map(club => (
+                                                <option key={club.id} value={club.id} className="bg-slate-900">{club.name.toUpperCase()}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover:text-violet-400 transition-colors">
+                                            <ChevronRight className="w-5 h-5 rotate-90" />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex gap-4 pt-4">
                                     <button 
                                         onClick={() => setIsClubModalOpen(false)}
-                                        className="flex-1 py-4 bg-muted hover:bg-border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="flex-1 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 transition-all border border-white/5"
                                     >
-                                        Cancelar
+                                        SALIR
                                     </button>
                                     <button 
                                         onClick={handleUpdateClub}
-                                        className="flex-[2] py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
+                                        className="flex-[2] py-5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-violet-500/20 active:scale-95 border border-violet-400/20"
                                     >
-                                        Actualizar Vinculación
+                                        SITUACIÓN ACTUALIZADA
                                     </button>
                                 </div>
                             </div>

@@ -114,90 +114,108 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8">
-            <div className="max-w-5xl mx-auto space-y-8">
+        <div className="min-h-screen bg-[#030712] text-slate-200 pb-20 pt-8 px-4 md:px-8 relative overflow-hidden">
+            {/* Ambient Background Effects */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+            </div>
+
+            <div className="max-w-5xl mx-auto space-y-10 relative z-10">
                 
                 {/* ── Header ── */}
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 mb-2">
-                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
-                            <TrendingUp className="w-4 h-4" />
+                <div className="flex flex-col gap-3">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-3 mb-1"
+                    >
+                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
+                            <TrendingUp className="w-5 h-5" />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 italic">Superadmin Panel</span>
-                    </div>
-                    <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-                        Promoción <span className="text-indigo-500">Manual</span>
-                    </h1>
-                    <p className="text-muted-foreground text-xs font-bold mt-2 uppercase tracking-widest opacity-60">
-                        Gestiona ascensos basados en mérito excepcional fuera del sistema automático
-                    </p>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400/80 italic">SISTEMA DE MÉRITO</span>
+                    </motion.div>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white lg:max-w-2xl"
+                    >
+                        PROMOCIÓN <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">TÁCTICA</span>
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-slate-500 text-[11px] font-black mt-2 uppercase tracking-[0.2em] max-w-xl leading-relaxed"
+                    >
+                        IDENTIFICACIÓN Y GESTIÓN DE ATLETAS CON DESEMPEÑO EXCEPCIONAL PARA ASCENSO MANUAL DE RANGO.
+                    </motion.p>
                 </div>
 
                 {/* ── Dashboard Stats ── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-card border border-border rounded-3xl p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                            <Star className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Con Mérito</p>
-                            <p className="text-2xl font-black italic">{analyzedPlayers.filter(p => p.score > 2).length}</p>
-                        </div>
-                    </div>
-                    <div className="bg-card border border-border rounded-3xl p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                            <Trophy className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Líderes de Puntos</p>
-                            <p className="text-2xl font-black italic">{analyzedPlayers.filter(p => p.merits.pointsMet).length}</p>
-                        </div>
-                    </div>
-                    <div className="bg-card border border-border rounded-3xl p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
-                            <Medal className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Multifinalistas</p>
-                            <p className="text-2xl font-black italic">{analyzedPlayers.filter(p => p.merits.multipleFinals).length}</p>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {[
+                        { icon: Star, color: 'amber', label: 'ELITE DETECTADA', value: analyzedPlayers.filter(p => p.score > 2).length },
+                        { icon: Trophy, color: 'emerald', label: 'LÍDERES PUNTOS', value: analyzedPlayers.filter(p => p.merits.pointsMet).length },
+                        { icon: Medal, color: 'indigo', label: 'FINALISTAS+', value: analyzedPlayers.filter(p => p.merits.multipleFinals).length }
+                    ].map((stat, i) => (
+                        <motion.div 
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 * i }}
+                            className="bg-white/5 border border-white/5 backdrop-blur-xl p-8 flex items-center gap-6 group hover:border-white/10 transition-all duration-500 rounded-[2rem]"
+                        >
+                            <div className={`w-14 h-14 rounded-2xl bg-${stat.color}-500/10 border border-${stat.color}-500/20 flex items-center justify-center text-${stat.color}-400 shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                                <stat.icon className="w-7 h-7" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">{stat.label}</p>
+                                <p className="text-3xl font-black italic text-white tracking-tighter">{stat.value}</p>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
 
                 {/* ── Logic Note ── */}
-                <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl flex items-start gap-4">
-                    <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                        <p className="text-[11px] font-black uppercase tracking-widest text-indigo-500 italic">Nota de Criterio</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
-                            Esta página identifica jugadores que superan los límites de su categoría pero no han cumplido la regla estricta de 2 títulos. Podés evaluarlos por su consistencia en finales o excedente de puntos.
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="p-6 bg-indigo-500/5 border border-indigo-500/20 flex items-start gap-4 backdrop-blur-md rounded-[2.5rem]"
+                >
+                    <Info className="w-6 h-6 text-indigo-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1.5">
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-400 italic">CRITERIO DE SELECCIÓN TÁCTICA</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] leading-relaxed">
+                            ESTE ALGORITMO FILTRA JUGADORES QUE SUPERAN EL TECHO DE PUNTOS O POSEEN CONSISTENCIA EN FINALES, PERMITIENDO BYPASS MANUAL DEL REQUISITO DE DOBLE TÍTULO.
                         </p>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* ── Controls ── */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-5 relative z-10">
                     <div className="relative flex-1 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                         <input 
                             type="text"
-                            placeholder="Buscar por nombre o email..."
+                            placeholder="FILTRAR POR IDENTIDAD O EMAIL..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all shadow-sm"
+                            className="w-full bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[1.5rem] py-5 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-indigo-500/50 transition-all shadow-2xl placeholder:text-slate-700"
                         />
                     </div>
-                    <div className="flex bg-card border border-border rounded-2xl p-1 gap-1">
+                    <div className="flex bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[1.5rem] p-1.5 gap-1.5">
                         {[
-                            { id: "all", label: "Todos" },
-                            { id: "points", label: "Puntos" },
-                            { id: "titles", label: "Títulos" },
-                            { id: "finals", label: "Finales" },
+                            { id: "all", label: "GENERAL" },
+                            { id: "points", label: "PUNTOS" },
+                            { id: "titles", label: "TÍTULOS" },
+                            { id: "finals", label: "FINALES" },
                         ].map(f => (
                             <button
                                 key={f.id}
                                 onClick={() => setFilterBy(f.id as any)}
-                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterBy === f.id ? "bg-indigo-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted/50"}`}
+                                className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-sm ${filterBy === f.id ? "bg-indigo-600 text-white shadow-indigo-500/20" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"}`}
                             >
                                 {f.label}
                             </button>
@@ -206,10 +224,10 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                 </div>
 
                 {/* ── Player Cards ── */}
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-5">
                     <AnimatePresence mode="popLayout">
                         {filteredPlayers.length > 0 ? (
-                            filteredPlayers.map((p) => {
+                            filteredPlayers.map((p, idx) => {
                                 const nextCats = categories.filter(c => c.categoryOrder < p.catOrder).sort((a,b) => b.categoryOrder - a.categoryOrder);
                                 const selectedCat = selectedCategoryPerPlayer[p.id] || (nextCats[0]?.name || "");
 
@@ -217,102 +235,111 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                                     <motion.div
                                         layout
                                         key={p.id}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        className="bg-card border border-border rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 group hover:border-indigo-500/30 transition-all shadow-sm overflow-hidden relative"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        className="bg-white/5 border border-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:border-indigo-500/20 transition-all duration-500 shadow-2xl overflow-hidden relative"
                                     >
-                                        {/* BG Accent */}
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform">
-                                            {p.merits.pointsExceed ? <ArrowUpRight className="w-40 h-40" /> : <Trophy className="w-40 h-40" />}
-                                        </div>
-
-                                        <div className="flex items-center gap-4 flex-1">
-                                            <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex flex-col items-center justify-center shrink-0">
-                                                <span className="text-[10px] font-black uppercase opacity-60 leading-none mb-0.5">Cat</span>
-                                                <span className="text-xl font-black italic tracking-tighter leading-none text-indigo-500">{p.category}</span>
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-500/10 transition-all duration-700" />
+                                        
+                                        <div className="flex items-center gap-6 flex-1 relative z-10 w-full">
+                                            <div className="w-20 h-20 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                                                <span className="text-[8px] font-black uppercase text-indigo-400/60 leading-none mb-1 tracking-widest">RANGO</span>
+                                                <span className="text-3xl font-black italic tracking-tighter leading-none text-white group-hover:text-indigo-400 transition-colors">{p.category}</span>
                                             </div>
-                                            <div className="min-w-0">
-                                                <h3 className="text-xl font-black uppercase italic tracking-tighter truncate leading-tight">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter truncate leading-tight text-white group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-indigo-400 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
                                                     {p.name}
                                                 </h3>
-                                                <div className="flex flex-wrap gap-2 mt-1">
+                                                <div className="flex flex-wrap gap-2 mt-3">
                                                     {p.merits.pointsMet && (
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${p.merits.pointsExceed ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'}`}>
-                                                            Puntos Líder {p.merits.pointsExceed ? '(+15%)' : ''}
+                                                        <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border shadow-sm ${p.merits.pointsExceed ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'}`}>
+                                                            {p.merits.pointsExceed ? 'SOBLE ELIMITE (+15%)' : 'LÍDER RANKING'}
                                                         </span>
                                                     )}
                                                     {p.titles > 0 && (
-                                                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                                                            {p.titles} Título{p.titles > 1 ? 's' : ''}
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-sm animate-pulse">
+                                                            {p.titles} TÍTULO{p.titles > 1 ? 'S' : ''} OBTENIDO
                                                         </span>
                                                     )}
                                                     {p.finals > 0 && (
-                                                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-500 opacity-80">
-                                                            {p.finals} Final{p.finals > 1 ? 'es' : ''}
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-500 shadow-sm">
+                                                            {p.finals} FINAL{p.finals > 1 ? 'ES' : ''} JUGADA
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Merit Details */}
-                                        <div className="grid grid-cols-2 gap-x-8 gap-y-2 px-6 border-x border-border/50">
+                                        <div className="grid grid-cols-2 gap-x-12 gap-y-2 px-10 border-x border-white/5 relative z-10 w-full md:w-auto">
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Puntos Ranking</span>
-                                                <span className="text-base font-black italic tracking-tighter">{p.points.toLocaleString()}</span>
+                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-1">TOTAL PUNTOS</span>
+                                                <span className="text-2xl font-black italic tracking-tighter text-white">{p.points.toLocaleString()}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Efectividad</span>
-                                                <span className="text-base font-black italic tracking-tighter">
+                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-1">RATIO ÉXITO</span>
+                                                <span className="text-2xl font-black italic tracking-tighter text-indigo-400">
                                                     {p.finals > 0 ? Math.round((p.titles / p.finals) * 100) : 0}%
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Action Area */}
-                                        <div className="flex items-center gap-3 w-full md:w-auto">
+                                        <div className="flex items-center gap-5 w-full md:w-auto relative z-10">
                                             <div className="flex flex-col flex-1 md:flex-none">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-1 ml-1">Nueva Categoría</span>
-                                                <div className="relative">
+                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-400/60 mb-2 ml-1">DESTINO</span>
+                                                <div className="relative group/sel">
                                                     <select 
                                                         value={selectedCat}
                                                         onChange={(e) => setSelectedCategoryPerPlayer(prev => ({ ...prev, [p.id]: e.target.value }))}
-                                                        className="w-full bg-card border border-border rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer md:min-w-[140px] pr-10"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer md:min-w-[160px] pr-12 shadow-inner"
                                                     >
-                                                        <option value="" disabled>Seleccionar...</option>
+                                                        <option value="" disabled className="bg-slate-900">CATEGORÍA</option>
                                                         {categories.map(c => (
                                                             <option 
                                                                 key={c.id} 
                                                                 value={c.name}
                                                                 disabled={c.name === p.category}
+                                                                className="bg-slate-900"
                                                             >
-                                                                {c.name === p.category ? `Actual (${c.name})` : `Categoría ${c.name}`}
+                                                                {c.name === p.category ? `ACTUAL (${c.name})` : `${c.name}`}
                                                             </option>
                                                         ))}
                                                     </select>
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                                                        <ChevronRight className="w-3 h-3 rotate-90" />
+                                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600 group-hover/sel:text-indigo-400 transition-colors">
+                                                        <ChevronRight className="w-4 h-4 rotate-90" />
                                                     </div>
                                                 </div>
                                             </div>
                                             <button
                                                 disabled={loading === p.id || !selectedCat}
                                                 onClick={() => handlePromote(p, selectedCat)}
-                                                className={`flex items-center justify-center gap-2 py-3 px-6 mt-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${loading === p.id || !selectedCat ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-900/40 hover:-translate-y-0.5'}`}
+                                                className={`flex items-center justify-center gap-3 py-5 px-10 mt-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl active:scale-95 border ${loading === p.id || !selectedCat ? 'bg-white/5 text-slate-700 border-white/5 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-400/20 shadow-indigo-600/20'}`}
                                             >
-                                                {loading === p.id ? <Activity className="w-3 h-3 animate-spin" /> : <ChevronRight className="w-3 h-3" />}
-                                                Ejecutar
+                                                {loading === p.id ? <Activity className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />}
+                                                <span>ASCENDER</span>
                                             </button>
                                         </div>
                                     </motion.div>
                                 );
                             })
                         ) : (
-                            <div className="py-20 text-center bg-card border border-border rounded-[2.5rem] mt-8">
-                                <AlertCircle className="w-12 h-12 text-muted-foreground opacity-20 mx-auto mb-4" />
-                                <p className="text-sm font-black uppercase italic tracking-widest text-muted-foreground opacity-50">No hay candidatos con méritos destacados</p>
-                            </div>
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="py-24 text-center bg-white/5 border border-white/5 backdrop-blur-xl rounded-[3rem] mt-10 relative overflow-hidden group"
+                            >
+                                <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
+                                <div className="relative z-10 flex flex-col items-center gap-8">
+                                    <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
+                                        <AlertCircle className="w-10 h-10 text-slate-700" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-white text-xl font-black uppercase italic tracking-[0.2em]">RADAR EN CALMA</p>
+                                        <p className="text-slate-500 text-[11px] font-black uppercase tracking-[0.2em]">NO SE HAN DETECTADO CANDIDATOS CON MÉRITOS FUERA DE RANGO</p>
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>

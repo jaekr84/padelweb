@@ -30,8 +30,10 @@ import {
     LogOut,
     User,
     Phone,
-    Users
+    Users,
+    Zap
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 import ClubProfileClient from "../profiles/club/ClubProfileClient";
@@ -187,9 +189,22 @@ export default function PlayerProfileClient({
 
 
     return (
+        <div className="min-h-screen bg-[#030712] text-slate-200 pb-20 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+            {/* Ambient Background Effects */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-600/10 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-indigo-600/5 blur-[100px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+            </div>
 
-        <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-indigo-500/30">
-            <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 animate-in fade-in duration-700">
+            <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 relative z-10">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex flex-col gap-6"
+                >
 
 
                 {/* ââ Specialized Profiles (Club / Centro) â                    {/* ââ Specialized Profiles (Club) ââ */}
@@ -262,164 +277,225 @@ export default function PlayerProfileClient({
                             </div>
                         )}
 
-                        {/* ââ Hero section (Unificada) ââ */}
-                        <div className="bg-card backdrop-blur-3xl border border-border rounded-[2rem] overflow-hidden shadow-2xl relative">
-                            <div className="h-32 md:h-48 bg-gradient-to-br from-indigo-900/40 via-blue-900/30 to-slate-900/50 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),transparent)]" />
+                                 {/* ── Hero section (Unificada) ── */}
+                        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                            <div className="h-32 md:h-48 bg-gradient-to-br from-blue-900/20 via-slate-900/40 to-emerald-900/20 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(56,189,248,0.1),transparent)]" />
+                                <div className="absolute inset-0 bg-grid-white/[0.02]" />
                             </div>
 
                             <div className="absolute top-4 right-4 z-10 flex gap-2">
                                 {isOwnProfile && dbUser?.role === "superadmin" && (
                                     <Link
                                         href="/admin"
-                                        className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/20 active:scale-95 shadow-lg"
+                                        className="flex items-center gap-1.5 bg-white/5 backdrop-blur-md border border-white/10 text-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/10 active:scale-95 shadow-lg group/btn"
                                     >
-                                        <LayoutDashboard className="h-3.5 w-3.5" /> Panel Admin
+                                        <LayoutDashboard className="h-3.5 w-3.5 text-blue-400 group-hover/btn:rotate-12 transition-transform" /> Panel Admin
                                     </Link>
                                 )}
                             </div>
 
-                            <div className="px-6 pb-8 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6">
+                            <div className="px-8 pb-10 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-8">
                                 <div className="relative group">
-                                    <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-40 transition-opacity" />
-                                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background overflow-hidden bg-muted shadow-2xl relative flex items-center justify-center">
+                                    <div className="absolute -inset-1.5 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity" />
+                                    <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-[#030712] overflow-hidden bg-slate-800 shadow-2xl relative flex items-center justify-center">
                                         {dbUser.imageUrl ? (
-                                            <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover" priority />
+                                            <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority />
                                         ) : (
-                                            <User className="w-12 h-12 text-muted-foreground/40" />
+                                            <User className="w-12 h-12 text-slate-600" />
                                         )}
                                     </div>
+                                    {isOwnProfile && (
+                                        <button 
+                                            onClick={() => setActiveTab("edit")}
+                                            className="absolute bottom-1 right-1 bg-blue-600 p-2 rounded-full border-4 border-[#030712] shadow-xl hover:bg-blue-500 transition-colors active:scale-90"
+                                        >
+                                            <Edit2 className="h-4 w-4 text-white" />
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="flex-1 text-center md:text-left pt-2 pb-1">
-                                    <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
-                                        <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight">{dbUser.firstName} {dbUser.lastName}</h1>
-                                        <div className="flex self-center md:self-auto px-3 py-1 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/20 dark:border-indigo-500/30 rounded-full">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                                                {dbUser.role === 'superadmin' ? 'SUPERADMIN' : dbUser.role === 'club' ? 'Club' : 'Jugador'}
+                                    <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 justify-center md:justify-start">
+                                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40">
+                                            {dbUser.firstName} {dbUser.lastName}
+                                        </h1>
+                                        <div className="flex self-center md:self-auto px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full backdrop-blur-md">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">
+                                                {dbUser.role === 'superadmin' ? 'SYSTEM ARCHITECT' : dbUser.role === 'club' ? 'CLUB MANAGER' : 'COMPETITOR'}
                                             </span>
                                         </div>
                                     </div>
 
                                     {memberClub && (
-                                        <div className="flex justify-center md:justify-start items-center gap-2 mb-3">
-                                            <div className="w-5 h-5 rounded-full bg-muted relative overflow-hidden border border-border">
+                                        <div className="flex justify-center md:justify-start items-center gap-2.5 mb-4 px-4 py-2 bg-white/5 rounded-2xl w-fit border border-white/5">
+                                            <div className="w-6 h-6 rounded-lg bg-slate-800 relative overflow-hidden border border-white/10">
                                                 {memberClub.logoUrl ? (
                                                     <Image src={memberClub.logoUrl} alt="" fill className="object-cover" />
                                                 ) : (
-                                                    <ShieldCheck className="w-3 h-3 m-auto" />
+                                                    <ShieldCheck className="w-3 h-3 m-auto text-blue-400" />
                                                 )}
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
-                                                Miembro de <span className="text-foreground">{memberClub.name}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                                                Active Unit: <span className="text-blue-400">{memberClub.name}</span>
                                             </span>
                                         </div>
                                     )}
 
-                                    <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-3.5 w-3.5" /> {dbUser?.location || "Sin ubicación"}
+                                    <div className="flex flex-wrap justify-center md:justify-start gap-5 mt-2 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                        <div className="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                                            <MapPin className="h-3.5 w-3.5 text-emerald-400" /> {dbUser?.location || "Sector Desconocido"}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="h-3.5 w-3.5 text-indigo-500/50" /> {dbUser.createdAt ? `Desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}` : "Recientemente"}
+                                        <div className="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                                            <Calendar className="h-3.5 w-3.5 text-blue-400" /> {dbUser.createdAt ? `Activo desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}` : "Nuevos Datos"}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Hand className="h-3.5 w-3.5 text-blue-500/50" /> {stats.side === "drive" ? "Drive" : "Revés"}
+                                        <div className="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                                            <Zap className="h-3.5 w-3.5 text-amber-400" /> {stats.side === "drive" ? "Drive Specialist" : stats.side === "reves" ? "Backhand Elite" : "Standard Neutral"}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* ââ Navigation ââ */}
-                        <div className="flex items-center gap-2 bg-card p-1.5 rounded-[1.5rem] border border-border overflow-x-auto no-scrollbar shadow-inner">
+                        {/* ── Navigation ── */}
+                        <div className="flex items-center gap-2 bg-slate-900/40 backdrop-blur-xl p-2 rounded-[2rem] border border-white/5 overflow-x-auto no-scrollbar shadow-2xl">
                             {[
                                 ...(!isSuperAdmin ? [
-                                    { id: "tournaments", label: "Profile Card", icon: Trophy },
-                                    { id: "stats", label: "Estadísticas", icon: Activity },
-                                    { id: "trophies", label: "Trofeos", icon: Award },
+                                    { id: "tournaments", label: "Player ID", icon: Trophy },
+                                    { id: "stats", label: "Analytics", icon: Activity },
+                                    { id: "trophies", label: "Hall of Fame", icon: Award },
                                 ] : []),
-                                ...(isOwnProfile ? [{ id: "edit", label: "Editar", icon: Edit2 }] : []),
-                                { id: "account", label: "Cuenta", icon: Settings },
+                                ...(isOwnProfile ? [{ id: "edit", label: "Modify Data", icon: Edit2 }] : []),
+                                { id: "account", label: "System Config", icon: Settings },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
-                                    className={`flex-1 min-w-[100px] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-indigo-600 text-white shadow-xl shadow-indigo-900/40" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                                    className={`flex-1 min-w-[120px] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative group/tab ${activeTab === tab.id ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
                                     onClick={() => setActiveTab(tab.id)}
                                 >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <tab.icon className="h-3.5 w-3.5" />
+                                    <div className="flex items-center justify-center gap-2.5 relative z-10">
+                                        <tab.icon className={`h-4 w-4 transition-transform group-hover/tab:scale-110 ${activeTab === tab.id ? "text-blue-400" : ""}`} />
                                         {tab.label}
                                     </div>
+                                    {activeTab === tab.id && (
+                                        <motion.div 
+                                            layoutId="activeTab"
+                                            className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+                                        />
+                                    )}
                                 </button>
                             ))}
                         </div>
 
-                        {/* ââ Active Content ââ */}
-                        <div className="animate-in slide-in-from-bottom-4 duration-500">
+                                     <AnimatePresence mode="wait">
                             {activeTab === "tournaments" && (
-                                <div className="flex flex-col items-center gap-8">
-                                    <PlayerCard
-                                        player={{
-                                            firstName: dbUser.firstName,
-                                            lastName: dbUser.lastName,
-                                            imageUrl: dbUser.imageUrl,
-                                            category: realCategory,
-                                            side: dbUser.side,
-                                            points: dbUser.points,
-                                            clubName: memberClub?.name
-                                        }}
-                                        stats={{
-                                            pj: stats.matches,
-                                            pg: stats.wins,
-                                            pp: stats.losses,
-                                            pe: stats.draws,
-                                            wr: stats.winRate,
-                                            trofeos: trophies.length
-                                        }}
-                                    />
+                                <motion.div 
+                                    key="tab-tournaments"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="flex flex-col items-center gap-8 py-10"
+                                >
+                                    <div className="relative group/card-wrapper">
+                                        <div className="absolute -inset-10 bg-blue-600/10 blur-[100px] rounded-full opacity-0 group-hover/card-wrapper:opacity-100 transition-opacity pointer-events-none" />
+                                        <PlayerCard
+                                            player={{
+                                                firstName: dbUser.firstName,
+                                                lastName: dbUser.lastName,
+                                                imageUrl: dbUser.imageUrl,
+                                                category: realCategory,
+                                                side: dbUser.side,
+                                                points: dbUser.points,
+                                                clubName: memberClub?.name
+                                            }}
+                                            stats={{
+                                                pj: stats.matches,
+                                                pg: stats.wins,
+                                                pp: stats.losses,
+                                                pe: stats.draws,
+                                                wr: stats.winRate,
+                                                trofeos: trophies.length
+                                            }}
+                                        />
+                                    </div>
 
-                                    {/* Optional: We could keep some secondary info below if needed, 
-                                        but the user said "solo que aparezca la tarjeta" */}
-                                </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">
+                                        {[
+                                            { label: "Analytic Score", value: dbUser.points, icon: Star, color: "text-amber-400" },
+                                            { label: "Global Rank", value: `#${rankingPosition}`, icon: Award, color: "text-blue-400" },
+                                            { label: "Category Rank", value: `#${categoryRanking}`, icon: Medal, color: "text-emerald-400" },
+                                            { label: "Active Tier", value: realCategory, icon: ShieldCheck, color: "text-indigo-400" },
+                                        ].map((item, i) => (
+                                            <div key={i} className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-4 rounded-2xl flex flex-col items-center gap-1 group/item hover:border-white/10 transition-colors">
+                                                <item.icon className={`h-4 w-4 ${item.color} mb-1 group-hover/item:scale-110 transition-transform`} />
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">{item.label}</span>
+                                                <span className="text-lg font-black italic tracking-tighter text-white">{item.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
                             )}
 
                             {activeTab === "stats" && (
-                                <div className="bg-card border border-border rounded-[2rem] shadow-xl overflow-hidden">
-                                    <div className="px-8 py-6 border-b border-border/50">
-                                        <h2 className="text-sm font-black uppercase tracking-widest italic">Historial de Partidos</h2>
+                                <motion.div 
+                                    key="tab-stats"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden"
+                                >
+                                    <div className="px-8 py-8 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                                        <div>
+                                            <h2 className="text-xl font-black uppercase tracking-tighter italic bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">Performance Intelligence</h2>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/60 mt-1">Full Match Log & Neural Stats</p>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <div className="text-right">
+                                                <div className="text-[8px] font-black uppercase tracking-widest text-slate-500">Win Rate</div>
+                                                <div className="text-xl font-black italic tabular-nums text-emerald-400">{stats.winRate}%</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[8px] font-black uppercase tracking-widest text-slate-500">Combat Load</div>
+                                                <div className="text-xl font-black italic tabular-nums text-blue-400">{stats.matches} Matches</div>
+                                            </div>
+                                        </div>
                                     </div>
                                     {allMatchesHistory.length > 0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left">
                                                 <thead>
-                                                    <tr className="border-b border-border/50">
-                                                        <th className="px-8 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
-                                                        <th className="px-8 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Torneo / Fase</th>
-                                                        <th className="px-8 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Oponentes</th>
-                                                        <th className="px-8 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right">Score</th>
+                                                    <tr className="border-b border-white/5 bg-slate-900/20">
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-500">Timestamp</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-500">Simulation Data</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-500">Adversaries</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-500 text-right">Simulation Result</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-white/5">
                                                     {allMatchesHistory.map((m, i) => {
                                                         const won = m.won;
-                                                        const date = new Date(m.match.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                                                        const date = new Date(m.match.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
                                                         return (
-                                                            <tr key={i} className="hover:bg-muted transition-colors group">
-                                                                <td className="px-8 py-6 text-xs font-bold text-muted-foreground group-hover:text-muted-foreground tabular-nums">{date}</td>
+                                                            <tr key={i} className="hover:bg-white/5 transition-all group">
+                                                                <td className="px-8 py-6 text-xs font-black text-slate-500 group-hover:text-slate-300 tabular-nums uppercase">{date}</td>
                                                                 <td className="px-8 py-6">
                                                                     <div className="flex flex-col">
-                                                                        <span className="text-xs font-black uppercase italic tracking-tight mb-1">{m.tournamentName}</span>
-                                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{m.type}</span>
+                                                                        <span className="text-sm font-black uppercase italic tracking-tighter mb-1 text-white group-hover:text-blue-400 transition-colors">{m.tournamentName}</span>
+                                                                        <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full w-fit ${m.type === 'Final' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-slate-400'}`}>{m.type}</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-8 py-6 text-xs font-bold text-foreground/80">{m.opponents}</td>
+                                                                <td className="px-8 py-6 text-xs font-bold text-slate-400 group-hover:text-slate-200">{m.opponents}</td>
                                                                 <td className="px-8 py-6">
-                                                                    <div className="flex items-center justify-end gap-3">
-                                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[9px] font-black ${won ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30"}`}>
-                                                                            {won ? "V" : "D"}
+                                                                    <div className="flex items-center justify-end gap-5">
+                                                                        <div className="flex flex-col items-end">
+                                                                            <span className={`text-[10px] font-black italic ${won ? "text-emerald-400" : "text-rose-500"}`}>
+                                                                                {won ? "SUCCESSFUL" : "DEFEATED"}
+                                                                            </span>
+                                                                            <span className="text-xl font-black italic tracking-tighter tabular-nums text-white">{m.match.score1}<span className="text-slate-600 px-1.5">-</span>{m.match.score2}</span>
                                                                         </div>
-                                                                        <span className="text-sm font-black italic tracking-tighter tabular-nums">{m.match.score1}-{m.match.score2}</span>
+                                                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black ${won ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"}`}>
+                                                                            {won ? "W" : "L"}
+                                                                        </div>
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -429,68 +505,89 @@ export default function PlayerProfileClient({
                                             </table>
                                         </div>
                                     ) : (
-                                        <div className="p-16 text-center flex flex-col items-center gap-4">
-                                            <Activity className="h-10 w-10 text-muted-foreground/40" />
-                                            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">Aún no has jugado partidos</p>
+                                        <div className="p-20 text-center flex flex-col items-center gap-6 bg-slate-900/20">
+                                            <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border border-white/5 animate-pulse">
+                                                <Activity className="h-8 w-8 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-white text-sm font-black uppercase tracking-widest italic">Awaiting Telemetry</p>
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">No match data detected in current records</p>
+                                            </div>
                                         </div>
                                     )}
-                                </div>
+                                </motion.div>
                             )}
 
                             {activeTab === "trophies" && (
-                                <div className="space-y-6">
-
+                                <motion.div 
+                                    key="tab-trophies"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="space-y-8"
+                                >
+                                    <div className="flex items-center justify-between px-4">
+                                        <div>
+                                            <h2 className="text-2xl font-black uppercase italic tracking-tighter">Hall of Fame</h2>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/60 mt-1">Verified Championship Wins</p>
+                                        </div>
+                                    </div>
 
                                     {trophies.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {trophies.map((t, idx) => (
-                                                <div key={idx} className="group bg-card border border-border p-6 rounded-[2rem] hover:border-amber-500/50 shadow-xl transition-all relative overflow-hidden">
-                                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                        <Trophy className="h-20 w-20 text-amber-500" />
+                                                <div key={idx} className="group bg-slate-900/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] hover:border-amber-500/40 shadow-2xl transition-all relative overflow-hidden">
+                                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
+                                                        <Trophy className="h-32 w-32 text-amber-500" />
                                                     </div>
-                                                    <div className="relative flex flex-col gap-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                                                                <Medal className="h-5 w-5 text-amber-500" />
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    
+                                                    <div className="relative flex flex-col gap-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 ring-4 ring-amber-500/5">
+                                                                <Medal className="h-7 w-7 text-amber-500" />
                                                             </div>
                                                             <div>
-                                                                <h3 className="font-black uppercase italic text-lg tracking-tight group-hover:text-amber-500 transition-colors">{t.tournamentName}</h3>
-                                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Campeon de Torneo</p>
+                                                                <h3 className="font-black uppercase italic text-2xl tracking-tighter group-hover:text-amber-400 transition-colors">{t.tournamentName}</h3>
+                                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Simulation Victory Verified</span>
                                                             </div>
                                                         </div>
 
-                                                        <div className="h-px bg-border/50" />
+                                                        <div className="h-px bg-white/5" />
 
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex flex-col">
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Resultado Final</span>
-                                                                <span className="text-sm font-black italic tabular-nums text-emerald-500">{t.match.score1} - {t.match.score2}</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Final Result</span>
+                                                                <span className="text-2xl font-black italic tabular-nums text-emerald-400">{t.match.score1} <span className="text-slate-700 mx-1">-</span> {t.match.score2}</span>
                                                             </div>
                                                             <div className="flex flex-col items-end">
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Fecha</span>
-                                                                <span className="text-xs font-bold text-foreground/80">{new Date(t.match.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Date Logged</span>
+                                                                <span className="text-xs font-black uppercase italic tracking-tighter text-slate-300">{new Date(t.match.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}</span>
                                                             </div>
                                                         </div>
 
-                                                        <Link href={`/tournaments/${t.match.tournamentId}`} className="w-full bg-white/5 group-hover:bg-amber-500 transition-all py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-black">
-                                                            Ver Torneo <ChevronRight className="h-3 w-3" />
+                                                        <Link href={`/tournaments/${t.match.tournamentId}`} className="w-full bg-white/5 group-hover:bg-amber-500 transition-all py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest group-hover:text-black group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                                                            Review Details <ChevronRight className="h-4 w-4" />
                                                         </Link>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="bg-card border border-border rounded-[2rem] p-16 text-center flex flex-col items-center gap-6 shadow-xl relative overflow-hidden">
-                                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
-                                            <Trophy className="h-16 w-16 text-muted-foreground/40 relative" />
-                                            <div className="flex flex-col gap-2 relative">
-                                                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em]">Aún no hay títulos</p>
-                                                <p className="text-muted-foreground/60 text-[9px] font-medium max-w-xs mx-auto">¡Seguí compitiendo! Tus trofeos aparecerán aquí cuando ganes tu primer torneo.</p>
-                                                <Link href="/tournaments" className="mt-4 px-8 py-3 bg-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-900/40">Ver Próximos Torneos</Link>
+                                        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-24 text-center flex flex-col items-center gap-8 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-blue-500/5 blur-[120px]" />
+                                            <div className="relative">
+                                                <Trophy className="h-24 w-24 text-slate-800 relative z-10" />
+                                                <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full" />
+                                            </div>
+                                            <div className="flex flex-col gap-4 relative">
+                                                <h4 className="text-white text-lg font-black uppercase tracking-[0.2em] italic">Legacy: Empty</h4>
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest max-w-xs mx-auto leading-relaxed">System scan reveals 0 championship titles. Initiate your first objective to populate this log.</p>
+                                                <Link href="/tournaments" className="mt-4 px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all active:scale-95">Engage Competition</Link>
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </motion.div>
                             )}
 
 
@@ -708,10 +805,10 @@ export default function PlayerProfileClient({
                                     </form>
                                 </div>
                             )}
-                        </div>
-                    </>
-                )}
-                {/* MODAL REMOVED */}
+                            </AnimatePresence>
+                        </>
+                    )}
+                </motion.div>
             </div>
         </div>
     );
