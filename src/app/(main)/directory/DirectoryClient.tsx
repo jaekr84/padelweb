@@ -76,7 +76,8 @@ export default function DirectoryClient({
                 <div className="absolute bottom-[10%] left-[-10%] w-[300px] h-[300px] bg-blue-600/8 rounded-full blur-[100px]" />
             </div>
 
-            <div className="relative z-10 max-w-3xl mx-auto px-4 pt-6">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 pt-6">
+
 
                 {/* ── Header ── */}
                 <div className="mb-6">

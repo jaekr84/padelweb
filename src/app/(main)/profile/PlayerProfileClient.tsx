@@ -189,7 +189,8 @@ export default function PlayerProfileClient({
     return (
 
         <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-indigo-500/30">
-            <div className="max-w-4xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 animate-in fade-in duration-700">
+            <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 animate-in fade-in duration-700">
+
 
                 {/* ââ Specialized Profiles (Club / Centro) â                    {/* ââ Specialized Profiles (Club) ââ */}
                 {dbUser?.role === "club" && (

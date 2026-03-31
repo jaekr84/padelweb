@@ -8,9 +8,10 @@ import { toast } from "sonner";
 interface Props {
     tournamentId: string;
     tournamentName: string;
+    compact?: boolean;
 }
 
-export default function FinalizeTournamentButton({ tournamentId, tournamentName }: Props) {
+export default function FinalizeTournamentButton({ tournamentId, tournamentName, compact }: Props) {
     const [loading, setLoading] = useState(false);
     const [confirming, setConfirming] = useState(false);
 
@@ -26,7 +27,7 @@ export default function FinalizeTournamentButton({ tournamentId, tournamentName 
         try {
             const res = await finalizeTournament(tournamentId);
             if (res.ok) {
-                toast.success("Torneo finalizado correctamente. Ya no se puede editar.");
+                toast.success("Torneo finalizado correctamente");
             } else {
                 toast.error(res.error || "Error al finalizar el torneo");
                 setConfirming(false);
@@ -44,7 +45,10 @@ export default function FinalizeTournamentButton({ tournamentId, tournamentName 
         <button
             onClick={handleFinalize}
             disabled={loading}
-            className={`flex items-center gap-1.5 font-black uppercase tracking-widest text-[9px] py-3 px-5 rounded-xl transition-all active:scale-95 border ${
+            title={confirming ? "Hacé clic de nuevo para confirmar finalización" : "Finalizar Torneo"}
+            className={`flex items-center justify-center gap-1.5 font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 border ${
+                compact ? "p-2 rounded-lg" : "py-3 px-5 rounded-xl"
+            } ${
                 confirming 
                 ? "bg-slate-700 text-white border-slate-800 hover:bg-slate-600 animate-pulse" 
                 : "bg-slate-600/10 hover:bg-slate-600/20 border-slate-500/30 text-slate-400"
@@ -53,11 +57,11 @@ export default function FinalizeTournamentButton({ tournamentId, tournamentName 
             {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : confirming ? (
-                "¿Finalizar?"
+                compact ? <CheckCircle2 className="w-4 h-4 text-white" /> : "¿Finalizar?"
             ) : (
                 <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Finalizar
+                    <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    {!compact && "Finalizar"}
                 </>
             )}
         </button>

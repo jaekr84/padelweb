@@ -167,12 +167,34 @@ export default function TournamentManager({
             }
         });
 
-        // Sort by matches won (primary), then by games difference (secondary)
+        // Sort by priority:
+        // 1. Matches won
+        // 2. Head-to-head (if only 2 players are tied in wins)
+        // 3. Points balance (game difference)
         return standings.sort((a: any, b: any) => {
             if (b.won !== a.won) return b.won - a.won;
+
+            // Tie-break: Head-to-head
+            const tiedOnWins = standings.filter((s: any) => s.won === a.won);
+            if (tiedOnWins.length === 2) {
+                const match = groupMatches.find(m =>
+                    ((m.team1.id === a.playerId && m.team2.id === b.playerId) ||
+                    (m.team1.id === b.playerId && m.team2.id === a.playerId)) &&
+                    m.confirmed
+                );
+                
+                if (match) {
+                    const aIsTeam1 = match.team1.id === a.playerId;
+                    const aScore = aIsTeam1 ? match.score1! : match.score2!;
+                    const bScore = aIsTeam1 ? match.score2! : match.score1!;
+                    if (aScore !== bScore) {
+                        return bScore - aScore; // Ascending order in sort means return negative if 'a' should be before 'b'
+                    }
+                }
+            }
+
             return b.points - a.points;
         });
-
     };
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {

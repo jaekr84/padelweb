@@ -20,8 +20,11 @@ import {
     User, 
     FolderOpen, 
     PlusCircle,
-    LayoutDashboard
+    LayoutDashboard,
+    MapPin,
+    ChevronRight
 } from "lucide-react";
+
 
 export default async function AdminDashboardPage() {
     const session = await getSession();
@@ -46,122 +49,128 @@ export default async function AdminDashboardPage() {
         console.error("Error fetching admin stats:", e);
     }
 
-    const modules = [
-        { label: 'Inicio', href: '/home', icon: Home, color: 'from-slate-500/20 to-slate-500/5', text: 'text-slate-500' },
-        { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'from-amber-500/20 to-amber-500/5', text: 'text-amber-500' },
-        { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'from-blue-500/20 to-blue-500/5', text: 'text-blue-500' },
-        { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
-        { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'from-indigo-500/20 to-indigo-500/5', text: 'text-indigo-500' },
-        { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'from-violet-500/20 to-violet-500/5', text: 'text-violet-500' },
-        { label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'from-slate-600/20 to-slate-600/5', text: 'text-slate-600' },
-        { label: 'Ranking', href: '/ranking', icon: Star, color: 'from-yellow-500/20 to-yellow-500/5', text: 'text-yellow-500' },
-        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'from-emerald-500/20 to-emerald-500/5', text: 'text-emerald-500' },
-        { label: 'Clubes', href: '/directory', icon: FolderOpen, color: 'from-cyan-500/20 to-cyan-500/5', text: 'text-cyan-500' },
-        { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'from-orange-500/20 to-orange-500/5', text: 'text-orange-500' },
-        { label: 'Mi Perfil', href: '/profile', icon: User, color: 'from-rose-500/20 to-rose-500/5', text: 'text-rose-500' },
-        { label: 'Crear Torneo', href: '/tournaments/create', icon: PlusCircle, color: 'from-indigo-600/20 to-indigo-600/5', text: 'text-indigo-600' },
+    const allItems = [
+        // Comunidad
+        { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'text-blue-500' },
+        { label: 'Clubes', href: '/directory', icon: MapPin, color: 'text-indigo-500' },
+        { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'text-sky-500' },
+        { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'text-violet-500' },
+        
+        // Competencia
+        { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'text-amber-500' },
+        { label: 'Nuevo Evento', href: '/tournaments/create', icon: PlusCircle, color: 'text-emerald-500' },
+        { label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'text-slate-500' },
+        { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' },
+        
+        // Sistema
+        { label: 'Ranking', href: '/ranking', icon: Star, color: 'text-yellow-500' },
+        { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'text-teal-500' },
+        { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'text-orange-500' },
+        { label: 'Mi Perfil', href: '/profile', icon: User, color: 'text-slate-400' },
+
+        { label: 'Reset', href: '#', icon: Settings, color: 'text-red-500', isReset: true },
     ];
 
     return (
-        <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-12">
-            <header className="border-b border-border pb-8">
-                <div>
-                    <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tight text-foreground leading-none">
-                        Administración
-                    </h1>
-                    <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-muted-foreground mt-2">Panel de Control General</p>
-                </div>
-            </header>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 md:gap-6">
-                {[
-                    { label: 'Torneos', value: tournamentCount, color: 'text-indigo-500' },
-                    { label: 'Jugadores', value: playerCount, color: 'text-rose-500' },
-                    { label: 'Clubes', value: clubCount, color: 'text-emerald-500' }
-                ].map((stat) => (
-                    <div
-                        key={stat.label}
-                        className="bg-card border border-border md:px-8 md:py-10 py-5 px-2 rounded-2xl md:rounded-[2.5rem] shadow-xl flex flex-col items-center justify-center transition-all hover:scale-[1.02] duration-300"
-                    >
-                        <dt className={`text-xl md:text-6xl font-black mb-1 md:mb-3 ${stat.color} tracking-tighter`}>
-                            {stat.value}
-                        </dt>
-                        <dd className="text-[8px] md:text-[11px] font-black uppercase tracking-wider md:tracking-[0.2em] text-muted-foreground text-center">
-                            {stat.label}
-                        </dd>
-                    </div>
-                ))}
+        <div className="min-h-screen bg-background text-foreground relative overflow-hidden font-sans selection:bg-indigo-500/30">
+            {/* Background Accents */}
+            <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
+                <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[5%] right-[-5%] w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px]" />
             </div>
 
-            {/* Quick Access Modules Hub (Square Buttons) */}
-            <section className="space-y-8">
-                <header className="flex flex-col gap-1">
-                    <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Gestión de Módulos</h2>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acceso rápido a todas las herramientas</p>
+            <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16 space-y-16">
+                
+                {/* Header */}
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/40 pb-12">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500">Administración General</p>
+                        <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tight text-foreground leading-[0.9]">
+                            Panel de <span className="text-muted-foreground/20">Control</span>
+                        </h1>
+                    </div>
+                    <Link href="/home" className="group flex items-center gap-3 bg-card border border-border/60 hover:border-indigo-500/40 px-6 py-3.5 rounded-2xl transition-all hover:shadow-lg active:scale-95">
+                        <Home className="w-4 h-4 text-muted-foreground transition-colors group-hover:text-indigo-500" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground">Volver</span>
+                    </Link>
                 </header>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {modules.map((module) => {
-                        const Icon = module.icon;
-                        return (
-                            <Link
-                                key={module.label}
-                                href={module.href}
-                                className={`group relative aspect-square bg-card border border-border rounded-[2rem] p-6 flex flex-col items-center justify-center gap-4 transition-all hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 active:scale-95 overflow-hidden`}
-                            >
-                                <div className={`absolute inset-0 bg-gradient-to-br ${module.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                                
-                                <div className={`mb-2 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 ${module.text}`}>
-                                    <Icon className="w-10 h-10 md:w-12 md:h-12 stroke-[1.5]" />
-                                </div>
-                                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-foreground text-center relative z-10">
-                                    {module.label}
-                                </span>
-                                
-                                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                    <svg className={`w-4 h-4 ${module.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </section>
-
-            {/* Pending Actions Section */}
-            <section className="mt-16 bg-indigo-600/[0.03] border border-indigo-500/10 rounded-[3rem] p-8 md:p-14 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] -mr-48 -mt-48" />
-                
-                <div className="flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-left relative z-10">
-                    <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[9px] font-black uppercase tracking-widest">
-                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                            Acción Pendiente
+                {/* Dashboard Stats */}
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                        { label: 'Torneos', value: tournamentCount, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/5' },
+                        { label: 'Jugadores', value: playerCount, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/5' },
+                        { label: 'Clubes', value: clubCount, icon: MapPin, color: 'text-emerald-500', bg: 'bg-emerald-500/5' }
+                    ].map((stat) => (
+                        <div
+                            key={stat.label}
+                            className="bg-card/40 backdrop-blur-sm border border-border/40 p-8 rounded-[2rem] flex items-center justify-between group hover:border-indigo-500/20 transition-all"
+                        >
+                            <div className="space-y-1">
+                                <dd className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
+                                    Total {stat.label}
+                                </dd>
+                                <dt className={`text-4xl font-black tracking-tighter ${stat.color}`}>
+                                    {stat.value}
+                                </dt>
+                            </div>
+                            <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity`}>
+                                <stat.icon className="w-5 h-5 shrink-0" />
+                            </div>
                         </div>
-                        <h3 className="text-3xl md:text-4xl font-black uppercase italic text-foreground tracking-tight leading-tight">
-                            Solicitudes de <br className="hidden md:block" /> Registro
-                        </h3>
-                        <p className="text-muted-foreground font-medium max-w-sm leading-relaxed text-sm md:text-base">
-                            Hay nuevos perfiles esperando validación para unirse a la asociación.
-                        </p>
+                    ))}
+                </section>
+
+                {/* Grid of 8x3 Square Buttons */}
+                <section className="space-y-8">
+                    <div className="border-l-2 border-indigo-500/40 pl-6 space-y-1">
+                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Accesos Rápidos</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Panel administrativo</p>
                     </div>
 
-                    <Link
-                        href="/admin/requests"
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-12 py-6 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-indigo-600/40 flex items-center gap-4 active:scale-95 shrink-0"
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+                        {allItems.map((item, idx) => (
+                            item.isReset ? (
+                                <div key="reset-button" className="aspect-square">
+                                    <ResetDatabaseButton compact={true} />
+                                </div>
+                            ) : (
+                                <Link
+                                    key={item.label + idx}
+                                    href={item.href}
+                                    className="group relative aspect-square flex flex-col items-center justify-center bg-card border border-border/40 rounded-xl transition-all hover:bg-muted/10 hover:border-indigo-500/40 active:scale-95 shadow-sm hover:shadow-indigo-500/10"
+                                >
+                                    <div className={`w-12 h-12 rounded-2xl bg-muted/50 ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform mb-3`}>
+                                        <item.icon className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground text-center px-2 line-clamp-2">
+                                        {item.label}
+                                    </span>
+                                </Link>
+                            )
+                        ))}
+                    </div>
+                </section>
+
+                {/* Notifications / Critical Actions Callout */}
+                <section className="bg-indigo-600/5 border border-indigo-500/10 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                            <MessageSquare className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-lg font-black uppercase italic tracking-tight">Acciones Críticas</h4>
+                            <p className="text-xs font-medium text-muted-foreground leading-relaxed">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
+                        </div>
+                    </div>
+                    <Link 
+                        href="/admin/requests" 
+                        className="w-full md:w-auto px-10 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/10 active:scale-95 text-center"
                     >
                         Revisar Ahora
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
                     </Link>
-                </div>
-            </section>
-
-            <ResetDatabaseButton />
+                </section>
+            </div>
         </div>
     );
-
 }

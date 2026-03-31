@@ -122,7 +122,9 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 <div className="absolute top-[-20%] left-[-10%] w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px]" />
             </div>
 
-            <div className="relative z-10 max-w-3xl mx-auto px-4 pt-6">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 pt-6 shadow-sm">
+
+
 
                 {/* ── Header ── */}
                 <div className="mb-8">
@@ -253,6 +255,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                         {/* Jugador Info */}
                                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                                             <div className="flex items-center gap-2 mb-0.5">
+
                                                 <h3 className="text-base font-black uppercase italic tracking-tight truncate text-foreground group-hover:text-indigo-500 transition-colors">
                                                     {player.name || "Jugador"}
                                                 </h3>
@@ -358,7 +361,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="relative w-full max-w-5xl bg-card border-t md:border border-border rounded-t-[2.5rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl"
+                            className="relative w-full max-w-7xl bg-card border-t md:border border-border rounded-t-[2.5rem] md:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl"
                         >
                             {/* Modal Header */}
                             <div className="p-6 md:p-8 bg-muted/50 border-b border-border">
@@ -411,7 +414,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className="max-w-5xl mx-auto"
+                                            className="max-w-7xl mx-auto"
                                         >
                                             {/* Section 1: Hero & Performance (Flex Layout) */}
                                             <div className="flex flex-col md:flex-row gap-10 md:gap-12 lg:gap-16 items-start">
@@ -522,7 +525,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className="max-w-5xl mx-auto pb-10"
+                                            className="max-w-7xl mx-auto space-y-8"
                                         >
                                             {/* Section 2: Career Roadmap & Achievements (Full Width) */}
                                             <div className="space-y-12">
