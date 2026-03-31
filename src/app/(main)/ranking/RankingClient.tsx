@@ -50,6 +50,7 @@ function getUserHandle(email: string) {
 export default function RankingClient({ users, tournamentCounts, availableCategories, isLoggedIn }: RankingClientProps) {
     const [genderFilter, setGenderFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
+    const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<'perfil' | 'mural'>('perfil');
     const [selectedPlayer, setSelectedPlayer] = useState<RankingUser | null>(null);
@@ -187,18 +188,57 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                         ))}
                     </div>
 
-                    <div className="relative md:col-span-1">
-                        <select
-                            value={categoryFilter}
-                            onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="w-full glass-card rounded-2xl py-3.5 px-6 text-[10px] font-black uppercase tracking-widest appearance-none outline-none cursor-pointer text-muted-foreground focus:text-foreground transition-all"
+                    <div className="relative md:col-span-1" id="category-filter-container">
+                        <button
+                            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                            className="w-full glass-card rounded-2xl py-4 px-6 flex items-center justify-between text-[10px] font-black uppercase tracking-widest transition-all hover:border-emerald-500/40"
                         >
-                            <option value="all">Filtro Categoría</option>
-                            {availableCategories?.map(cat => (
-                                <option key={cat.id} value={cat.name}>CATEGORÍA {cat.name}</option>
-                            ))}
-                        </select>
-                        <Filter className="absolute right-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                            <span className={categoryFilter === "all" ? "text-muted-foreground" : "text-emerald-500"}>
+                                {categoryFilter === "all" ? "Filtro Categoría" : `Categoría ${categoryFilter}`}
+                            </span>
+                            <Filter className={`w-3.5 h-3.5 transition-transform duration-300 ${isCategoryDropdownOpen ? "rotate-180 text-emerald-500" : "text-muted-foreground"}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {isCategoryDropdownOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsCategoryDropdownOpen(false)} />
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute top-full left-0 right-0 mt-2 z-50 glass-card rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                                    >
+                                        <div className="max-h-60 overflow-y-auto no-scrollbar py-2">
+                                            <button
+                                                onClick={() => {
+                                                    setCategoryFilter("all");
+                                                    setIsCategoryDropdownOpen(false);
+                                                }}
+                                                className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-500/10 flex items-center justify-between ${categoryFilter === "all" ? "text-emerald-500 bg-emerald-500/5" : "text-muted-foreground"}`}
+                                            >
+                                                Todas las Categorías
+                                                {categoryFilter === "all" && <Star className="w-3 h-3 fill-emerald-500" />}
+                                            </button>
+                                            <div className="h-px bg-white/5 mx-4 my-1" />
+                                            {availableCategories?.map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => {
+                                                        setCategoryFilter(cat.name);
+                                                        setIsCategoryDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-500/10 flex items-center justify-between ${categoryFilter === cat.name ? "text-emerald-500 bg-emerald-500/5" : "text-muted-foreground"}`}
+                                                >
+                                                    Categoría {cat.name}
+                                                    {categoryFilter === cat.name && <Star className="w-3 h-3 fill-emerald-500" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
