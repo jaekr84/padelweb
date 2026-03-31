@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon, Lock, Search, ChevronDown, MoreVertical, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import { Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon, Lock, Search, ChevronDown, MoreVertical, MapPin, Plus } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
 import FinalizeTournamentButton from "./FinalizeTournamentButton";
 import { tournaments, clubs } from "@/db/schema";
@@ -64,9 +65,85 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
     }, [initialTournaments, statusFilter, monthFilter, searchQuery]);
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto">
-            {/* Barra de Filtros */}
-            <div className="bg-background border border-border rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="space-y-6 max-w-7xl mx-auto relative font-sans selection:bg-emerald-500/30">
+            {/* CSS KEYFRAMES */}
+            <style>{`
+                @keyframes gradient-x {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .text-gradient-animate {
+                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    animation: gradient-x 6s ease infinite;
+                }
+                .glass-card {
+                    background-color: color-mix(in srgb, var(--card) 90%, transparent);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                }
+                .glass-card:hover {
+                    border-color: rgba(16, 185, 129, 0.5);
+                }
+                .glow-button {
+                    position: relative;
+                }
+                .glow-button::before {
+                    content: '';
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: 2rem;
+                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    z-index: -1;
+                    filter: blur(8px);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .glow-button:hover::before {
+                    opacity: 1;
+                }
+            `}</style>
+
+            {/* Ambient glow */}
+            <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
+            </div>
+
+            <div className="relative z-10 w-full flex flex-col space-y-6 pt-2">
+                {/* Header Animado */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4"
+                >
+                    <div className="flex flex-col">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500/80 mb-1">
+                            A.C.A.P. Control Panel
+                        </p>
+                        <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-foreground mb-1">
+                            Gestión de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Torneos</span>
+                        </h1>
+                    </div>
+                    
+                    <Link href="/tournaments/create">
+                        <button className="glow-button flex items-center justify-center gap-2 bg-foreground hover:bg-foreground/90 text-background font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-2xl shadow-xl shadow-emerald-900/20 transition-all active:scale-95 border border-border">
+                            <Plus className="w-4 h-4" />
+                            Nuevo Torneo
+                        </button>
+                    </Link>
+                </motion.div>
+
+                {/* Barra de Filtros */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card rounded-[2rem] p-4 shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between"
+                >
 
                 {/* Buscador */}
                 <div className="relative w-full md:max-w-md group">
@@ -117,10 +194,11 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     </div>
                 </div>
+                </motion.div>
             </div>
 
             {/* Grid de Torneos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 relative z-10">
                 {filteredTournaments.length === 0 ? (
                     <div className="col-span-full border border-dashed border-border p-20 rounded-[2rem] text-center flex flex-col items-center justify-center bg-muted/5">
                         <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-6">
@@ -150,11 +228,17 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                                     : { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
 
                         return (
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3 }}
                                 key={tournament.id}
-                                className="group block bg-card border border-border rounded-3xl overflow-hidden transition-all duration-200 hover:border-indigo-500/30 shadow-sm flex flex-col"
+                                className="group block glass-card rounded-[2rem] overflow-hidden transition-all duration-300 shadow-sm flex flex-col relative"
                             >
-                                <div className="p-4 flex items-start gap-4">
+                                {/* Highlight glow for post card */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                
+                                <div className="p-4 sm:p-5 flex items-start gap-4 z-10">
                                     {/* Icon / Image */}
                                     <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 overflow-hidden ${statusConfig.bg}`}>
                                         {tournament.imageUrl ? (
@@ -259,7 +343,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                                         </>
                                     )}
                                 </div>
-                            </div>
+                            </motion.div>
                         );
                     })
                 )}

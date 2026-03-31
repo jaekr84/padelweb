@@ -7,6 +7,7 @@ import { createPost, addComment, updateComment, deleteComment, updatePost, delet
 import { Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2, Check, RotateCcw } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 // ── Time Ago helper ────────────────────────────────────────────────────────
 function timeAgo(dateStr: string) {
@@ -138,28 +139,78 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
+        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-emerald-500/30">
+            {/* CSS KEYFRAMES */}
+            <style>{`
+                @keyframes gradient-x {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                .text-gradient-animate {
+                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background-size: 300% 300%;
+                    -webkit-background-clip: text;
+                    color: transparent;
+                    animation: gradient-x 6s ease infinite;
+                }
+                .glow-button {
+                    position: relative;
+                }
+                .glow-button::before {
+                    content: '';
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: 2rem;
+                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    z-index: -1;
+                    filter: blur(8px);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .glow-button:hover::before {
+                    opacity: 1;
+                }
+                .glass-card {
+                    background-color: color-mix(in srgb, var(--card) 90%, transparent);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                }
+                .glass-card:hover {
+                    border-color: rgba(16, 185, 129, 0.5);
+                }
+            `}</style>
+
             {/* Ambient glow */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
-                <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
-                <div className="absolute top-[30%] right-[-15%] w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px]" />
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
             <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col pt-6 md:pt-12 px-4 md:px-6">
 
                 {/* ── Header ── */}
-                <div className="mb-6 px-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8 px-1 text-center md:text-left"
+                >
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500/80 mb-1">
                         A.C.A.P.
                     </p>
-                    <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground mb-2">
-                        Feed
+                    <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tight text-foreground mb-2">
+                        Comunidad <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Feed</span>
                     </h1>
-                </div>
+                </motion.div>
 
                 {/* ── Compose Post ── */}
                 {currentUser?.role === "superadmin" && (
-                    <div className="bg-card border border-border rounded-3xl p-4 mb-8 shadow-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="glass-card rounded-[2rem] p-5 mb-8 shadow-xl"
+                    >
                         <div className="flex gap-3 mb-3">
                             <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
                                 {currentUser.imageUrl ? (
@@ -180,7 +231,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
 
                         {/* Image Preview */}
                         {imagePreview && (
-                            <div className="relative mb-3 mr-2 bg-muted rounded-2xl overflow-hidden group aspect-video">
+                            <div className="relative mb-3 mr-2 bg-muted/50 rounded-2xl overflow-hidden group aspect-video">
                                 <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized />
                                 <button
                                     onClick={() => { setImagePreview(null); setCompressedFile(null); }}
@@ -192,7 +243,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                         )}
 
                         <div className="flex items-center justify-between border-t border-border pt-3">
-                            <label className="p-2 -ml-2 text-blue-500 hover:bg-blue-500/10 rounded-full cursor-pointer transition-colors">
+                            <label className="p-2 -ml-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full cursor-pointer transition-colors">
                                 <ImageIcon className="w-5 h-5" />
                                 <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                             </label>
@@ -200,20 +251,20 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                             <button
                                 onClick={handlePost}
                                 disabled={isPosting || (!content.trim() && !compressedFile)}
-                                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 disabled:opacity-50 disabled:active:scale-100 rounded-full text-[11px] font-black uppercase tracking-widest text-white transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                                className="glow-button px-6 py-2 bg-foreground border border-border hover:border-emerald-500/50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 rounded-full text-[11px] font-black uppercase tracking-widest text-background transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
                             >
                                 {isPosting ? "Enviando..." : "Publicar"}
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* ── Posts List ── */}
                 <div className="flex flex-col gap-4">
                     {initialPosts.length === 0 ? (
-                        <div className="text-center py-20 bg-card border border-border rounded-3xl">
-                            <p className="text-muted-foreground font-bold text-sm">No hay publicaciones aún.</p>
-                            <p className="text-muted-foreground/60 text-xs mt-1">Sé el primero en publicarlo.</p>
+                        <div className="text-center py-20 glass-card rounded-3xl">
+                            <p className="text-foreground/80 font-bold text-sm">No hay publicaciones aún.</p>
+                            <p className="text-muted-foreground text-xs mt-1">Sé el primero en publicarlo.</p>
                         </div>
                     ) : (
                         initialPosts.map(post => (
@@ -290,7 +341,14 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const userInitials = post.user.name?.charAt(0) || "U";
 
     return (
-        <div className="group bg-card border border-border rounded-3xl p-4 sm:p-5 shadow-sm hover:border-indigo-500/20 transition-all">
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            className="group glass-card rounded-[2rem] p-5 sm:p-6 shadow-sm transition-all relative overflow-hidden"
+        >
+            {/* Highlight glow for post card */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity" />
             {/* Author */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -337,9 +395,9 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
             </div>
 
             {/* Content */}
-            <div>
+            <div className="relative z-10">
                 {isEditingPost ? (
-                    <div className="flex flex-col gap-3 mb-4 bg-muted/20 p-4 rounded-2xl border border-blue-500/20">
+                    <div className="flex flex-col gap-3 mb-4 bg-muted/50 p-4 rounded-2xl border border-blue-500/30">
                         <textarea
                             value={editPostContent}
                             onChange={(e) => setEditPostContent(e.target.value)}
@@ -357,7 +415,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                             <button
                                 onClick={handleUpdatePost}
                                 disabled={isUpdatingPost || !editPostContent.trim()}
-                                className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-colors flex items-center gap-2"
+                                className="px-4 py-2 text-xs font-bold text-slate-900 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2"
                             >
                                 {isUpdatingPost ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                                 Guardar Cambios
@@ -366,7 +424,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                     </div>
                 ) : (
                     post.content && (
-                        <p className="text-foreground text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                        <p className="text-foreground text-sm leading-relaxed mb-4 whitespace-pre-wrap">
                             {post.content}
                         </p>
                     )
@@ -389,7 +447,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                 <div className="flex items-center gap-4 mt-2">
                     <button
                         onClick={() => setShowComments(!showComments)}
-                        className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-500 transition-colors py-1 pr-2"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-emerald-500 transition-colors py-1 pr-2"
                     >
                         <MessageSquare className="w-4 h-4" />
                         <span className="text-[11px] font-bold">{post.comments?.length || 0}</span>
@@ -412,7 +470,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                             {!showComments && post.comments.length > 3 && (
                                 <button
                                     onClick={() => setShowComments(true)}
-                                    className="text-[11px] font-bold text-blue-500 hover:text-blue-400 transition-colors pl-11 text-left"
+                                    className="text-[11px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors pl-11 text-left"
                                 >
                                     Ver los {post.comments.length - 3} comentarios restantes...
                                 </button>
@@ -438,21 +496,21 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                                     value={commentText}
                                     onChange={e => setCommentText(e.target.value)}
                                     placeholder="Escribe un comentario..."
-                                    className="w-full bg-muted/50 border border-border rounded-full py-2 px-4 pr-10 text-xs text-foreground placeholder-muted-foreground outline-none focus:border-blue-500 transition-colors"
+                                    className="w-full bg-muted/80 border border-border/50 focus:border-emerald-500/50 rounded-full py-2.5 px-4 pr-10 text-xs text-foreground placeholder-muted-foreground outline-none transition-colors"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!commentText.trim() || isSubmitting}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 disabled:opacity-30 disabled:hover:bg-transparent p-1 hover:bg-blue-500/10 rounded-full transition-all"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent p-1.5 hover:bg-emerald-500/10 rounded-full transition-all"
                                 >
-                                    {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                 </button>
                             </div>
                         </form>
                     )}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -506,8 +564,8 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                 )}
             </div>
             <div className="flex flex-col flex-1">
-                <div className={`flex flex-col flex-1 bg-muted/30 rounded-2xl px-4 py-2 ${isEditing ? 'ring-1 ring-blue-500/30 bg-muted/50' : ''}`}>
-                    <div className="flex items-center justify-between mb-0.5">
+                <div className={`flex flex-col flex-1 bg-muted/40 border border-border/50 rounded-2xl px-4 py-3 ${isEditing ? 'ring-1 ring-emerald-500/30' : ''}`}>
+                    <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px] font-bold text-foreground">{comment.user.name}</span>
                         <div className="flex items-center gap-2">
                             <span className="text-[9px] text-muted-foreground opacity-60">{timeAgo(comment.createdAt)}</span>
