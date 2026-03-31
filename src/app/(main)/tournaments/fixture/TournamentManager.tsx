@@ -142,6 +142,8 @@ export default function TournamentManager({
             matchesPlayed: 0,
             won: 0,
             lost: 0,
+            gamesWon: 0,
+            gamesLost: 0,
         }));
 
         groupMatches.forEach(m => {
@@ -156,14 +158,19 @@ export default function TournamentManager({
                 p1.matchesPlayed++;
                 p2.matchesPlayed++;
                 
-                const score1 = Number(m.score1);
-                const score2 = Number(m.score2);
+                const s1 = Number(m.score1);
+                const s2 = Number(m.score2);
                 
-                p1.points += (score1 - score2);
-                p2.points += (score2 - score1);
+                p1.gamesWon += s1;
+                p1.gamesLost += s2;
+                p2.gamesWon += s2;
+                p2.gamesLost += s1;
 
-                if (score1 > score2) p1.won++;
-                else if (score2 > score1) p2.won++;
+                p1.points += (s1 - s2);
+                p2.points += (s2 - s1);
+
+                if (s1 > s2) p1.won++;
+                else if (s2 > s1) p2.won++;
             }
         });
 
@@ -171,6 +178,7 @@ export default function TournamentManager({
         // 1. Matches won
         // 2. Head-to-head (if only 2 players are tied in wins)
         // 3. Points balance (game difference)
+        // 4. Total games won
         return standings.sort((a: any, b: any) => {
             if (b.won !== a.won) return b.won - a.won;
 
@@ -188,12 +196,13 @@ export default function TournamentManager({
                     const aScore = aIsTeam1 ? match.score1! : match.score2!;
                     const bScore = aIsTeam1 ? match.score2! : match.score1!;
                     if (aScore !== bScore) {
-                        return bScore - aScore; // Ascending order in sort means return negative if 'a' should be before 'b'
+                        return bScore - aScore;
                     }
                 }
             }
 
-            return b.points - a.points;
+            if (b.points !== a.points) return b.points - a.points;
+            return b.gamesWon - a.gamesWon;
         });
     };
 
@@ -261,49 +270,62 @@ export default function TournamentManager({
     };
 
     const generateBracket = async () => {
-        console.log("[generateBracket] Iniciando proceso de generación...");
-        // 1. Group qualifiers into 'pots' (Pote 1: all 1sts, Pote 2: all 2nds, etc.)
-        const pots: any[][] = Array.from({ length: qualPerGroup }, () => []);
-
-
+        console.log("[generateBracket] Iniciando proceso de generación profesional...");
         
+        // 1. Pot winners and runners-up
+        const winners: any[] = [];
+        const runnersUp: any[] = [];
+
         groups.forEach(g => {
             const groupStandings = computeStandings(g.id);
-            for (let i = 0; i < qualPerGroup; i++) {
-                if (groupStandings[i]?.player) {
-                    pots[i].push(groupStandings[i]);
-                }
+            if (groupStandings[0]) winners.push({ ...groupStandings[0], groupId: g.id });
+            if (groupStandings[1]) runnersUp.push({ ...groupStandings[1], groupId: g.id });
+        });
+
+        // Sort by merit (Wins > Game Diff > Games Won)
+        const sortedWinners = winners.sort((a, b) => (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon));
+        const sortedRunners = runnersUp.sort((a, b) => (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon));
+
+        const getRunnerFor = (winner: any, list: any[], usedIds: Set<string>) => {
+            let foundIndex = list.findIndex(r => !usedIds.has(r.playerId) && r.groupId !== winner.groupId);
+            if (foundIndex === -1) foundIndex = list.findIndex(r => !usedIds.has(r.playerId));
+            return foundIndex;
+        };
+
+        const usedRunners = new Set<string>();
+        const pairings: { t1: Player, t2: BracketSlot }[] = [];
+
+        // Professional Seeding Path (1st Half: Seed 1 & 4, 2nd Half: Seed 2 & 3)
+        // Match Layout: [Match 1, Match 2] (Top Half) vs [Match 3, Match 4] (Bottom Half)
+        const winnerOrder = [0, 3, 2, 1]; // Winner Seeds in bracket positions
+        const runnerPref = [3, 0, 1, 2]; // Preferred Runner merit for those winners (1v8, 4v5, 3v6, 2v7)
+
+        winnerOrder.forEach((winIdx, i) => {
+            const winner = sortedWinners[winIdx];
+            if (!winner) return;
+
+            let runIdx = runnerPref[i];
+            let runner = sortedRunners[runIdx];
+
+            if (!runner || usedRunners.has(runner.playerId) || runner.groupId === winner.groupId) {
+                runIdx = getRunnerFor(winner, sortedRunners, usedRunners);
+                runner = sortedRunners[runIdx];
             }
-        });
-        
-        // 2. Sort each pot by overall merit (Matches Won, then Game Difference)
-        // Then flatten into the final global ranking [Seeded #1, #2, #3, ...]
-        const allQualifiers = pots.flatMap((pot, potIndex) => {
-            return pot
-                .sort((a, b) => (b.won - a.won) || (b.points - a.points))
-                .map(item => ({ player: item.player, seed: potIndex + 1 }));
+
+            pairings.push({ 
+                t1: winner.player, 
+                t2: runner ? runner.player : "BYE" 
+            });
+            if (runner) usedRunners.add(runner.playerId);
         });
 
-
-
-        const numParticipants = allQualifiers.length;
-        console.log("[generateBracket] Total de clasificados:", numParticipants);
-        
-        if (numParticipants < 2) {
-            toast.error(`No hay suficientes clasificados (${numParticipants}) para generar playoffs.`);
-            return;
-        }
-
-        const loadingToast = toast.loading("Generando cuadro de playoffs...");
+        const loadingToast = toast.loading("Generando llaves profesionales...");
         setSaving(true);
 
         try {
-            // Calculate next power of 2
-            const numRounds = Math.ceil(Math.log2(numParticipants));
-            const bracketSize = Math.pow(2, numRounds);
-            console.log(`[generateBracket] Rondas: ${numRounds}, Tamaño Cuadro: ${bracketSize}`);
-
+            const numRounds = 3; // Quarters, Semis, Final
             const newBracket: BracketMatch[] = [];
+
             for (let r = 0; r < numRounds; r++) {
                 const matchesInRound = Math.pow(2, r);
                 for (let s = 0; s < matchesInRound; s++) {
@@ -318,24 +340,18 @@ export default function TournamentManager({
                 }
             }
 
-            const firstRound = numRounds - 1;
-            const firstRoundMatches = newBracket.filter(m => m.round === firstRound);
-            
-            for (let i = 0; i < bracketSize / 2; i++) {
-                const m = firstRoundMatches[i];
-                const p1 = allQualifiers[i]?.player || null;
-                const p2Index = bracketSize - 1 - i;
-                const p2 = allQualifiers[p2Index]?.player || (p2Index < bracketSize ? "BYE" : null);
-
-                m.team1 = p1;
-                m.team2 = p2;
-
-                if (p1 && (p2 as any) === "BYE") {
-                    m.confirmed = true;
-                    m.winnerId = p1.id;
-                    m.winnerName = p1.name;
+            const qMatches = newBracket.filter(m => m.round === 2);
+            pairings.forEach((p, idx) => {
+                if (qMatches[idx]) {
+                    qMatches[idx].team1 = p.t1;
+                    qMatches[idx].team2 = p.t2;
+                    if (p.t2 === "BYE") {
+                        qMatches[idx].confirmed = true;
+                        qMatches[idx].winnerId = p.t1.id;
+                        qMatches[idx].winnerName = p.t1.name;
+                    }
                 }
-            }
+            });
 
             advanceBracketWinners(newBracket, numRounds);
 
@@ -351,14 +367,14 @@ export default function TournamentManager({
             if (res.ok) {
                 setBracket(newBracket);
                 setStep("elim");
-                toast.success("Playoffs generados correctamente");
+                toast.success("Cuadro profesional generado. ¡Éxito en playoffs!");
             } else {
-                toast.error("Error al guardar playoffs: " + res.error);
+                toast.error("Error al guardar: " + res.error);
             }
         } catch (e) {
             toast.dismiss(loadingToast);
-            console.error("[generateBracket] Error fatal:", e);
-            toast.error("Error inesperado al generar playoffs");
+            console.error(e);
+            toast.error("Error al generar cuadro");
         } finally {
             setSaving(false);
         }
@@ -536,7 +552,7 @@ export default function TournamentManager({
                                         router.push(`/tournaments/${tournamentId}/fixture`);
                                     }
                                 }}
-                                className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
+                                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 Volver
@@ -544,7 +560,7 @@ export default function TournamentManager({
                             {!readOnly && (
                                 <Link
                                     href={`/tournaments/${tournamentId}/edit`}
-                                    className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-slate-800 pl-3"
+                                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
                                 >
                                     <Settings className="w-4 h-4" />
                                     Editar Info
@@ -555,30 +571,30 @@ export default function TournamentManager({
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
-                                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-slate-700 text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-slate-700 hover:border-slate-600"
+                                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-accent text-muted-foreground rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-border"
                             >
-                                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-400" : ""}`} />
+                                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-500" : ""}`} />
                                 {isRefreshing ? "..." : "Actualizar"}
                             </button>
-                            <div className="px-3 py-1 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                            <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                 {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
                             </div>
                         </div>
                     </div>
 
                     {/* Tournament name */}
-                    <h1 className="text-2xl md:text-4xl font-black text-white tracking-tighter italic uppercase text-center leading-tight mb-3">
+                    <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tighter italic uppercase text-center leading-tight mb-3">
                         {tournamentName}
                     </h1>
 
                     {/* Tab Navigation */}
-                    <div className="flex p-1 bg-muted border border-slate-700 rounded-xl max-w-xs mx-auto">
+                    <div className="flex p-1 bg-muted border border-border rounded-xl max-w-xs mx-auto">
                         <button
                             onClick={() => setStep("done")}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                : "text-slate-400 hover:text-white hover:bg-slate-700"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
                                 }`}
                         >
                             <Users2 className="w-3.5 h-3.5" />
@@ -589,7 +605,7 @@ export default function TournamentManager({
                                 onClick={() => setStep("elim")}
                                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "elim"
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-700"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
                                     }`}
                             >
                                 <Trophy className="w-3.5 h-3.5" />
@@ -615,13 +631,13 @@ export default function TournamentManager({
                         >
                             {/* Progress Bar */}
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                     <span>Progreso Fase de Grupos</span>
                                     <div className="flex items-center gap-3">
                                         {!readOnly && progressPercent < 100 && (
                                             <button 
                                                 onClick={handleSimulateResults}
-                                                className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
+                                                className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
                                                 title="Simular resultados aleatorios para pruebas"
                                             >
                                                 <Dice5 className="w-3 h-3 group-hover:rotate-12 transition-transform" />
@@ -631,7 +647,7 @@ export default function TournamentManager({
                                         <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
                                     </div>
                                 </div>
-                                <div className="h-2 bg-muted rounded-full overflow-hidden border border-slate-700">
+                                <div className="h-2 bg-muted rounded-full overflow-hidden border border-border">
                                     <motion.div
                                         className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
                                         initial={{ width: 0 }}
@@ -647,30 +663,30 @@ export default function TournamentManager({
                                     const standings = computeStandings(g.id);
                                     const groupMatches = matches.filter(m => m.groupId === g.id);
                                     return (
-                                        <div key={g.id} className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-xl flex flex-col h-fit">
+                                        <div key={g.id} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl flex flex-col h-fit">
                                             {/* Header + Standings table */}
-                                            <div className="bg-muted px-6 py-5 border-b border-slate-700 flex items-center justify-between">
-                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-400">{g.name}</h3>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Posiciones</span>
+                                            <div className="bg-muted px-6 py-5 border-b border-border flex items-center justify-between">
+                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-primary">{g.name}</h3>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Posiciones</span>
                                             </div>
 
-                                            <div className="p-4 border-b border-slate-800 bg-slate-900/50">
+                                            <div className="p-4 border-b border-border/50 bg-card/50">
                                                 <table className="w-full text-left">
                                                     <thead>
-                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-slate-500 border-b border-slate-700">
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-muted-foreground border-b border-border">
                                                             <th className="pb-3 pr-3">#</th>
                                                             <th className="pb-3">Jugador</th>
                                                             <th className="pb-3 px-3 text-center">PJ</th>
                                                             <th className="pb-3 px-3 text-center">Pts</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-slate-800">
+                                                    <tbody className="divide-y divide-border/50">
                                                         {standings.map((s: any, idx: number) => (
                                                             <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
-                                                                <td className="py-3 pr-3 text-xs font-black italic text-slate-500">#{idx + 1}</td>
-                                                                <td className="py-3 font-bold text-sm tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
-                                                                <td className="py-3 px-3 text-center text-xs font-bold text-slate-400">{s.matchesPlayed}</td>
-                                                                <td className="py-3 px-3 text-center font-black text-blue-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                <td className="py-3 pr-3 text-xs font-black italic text-muted-foreground">#{idx + 1}</td>
+                                                                <td className="py-3 font-bold text-sm tracking-tight text-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-muted-foreground">{s.matchesPlayed}</td>
+                                                                <td className="py-3 px-3 text-center font-black text-primary">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -679,32 +695,32 @@ export default function TournamentManager({
 
                                             {/* Matches list within the same card */}
                                             <div className="flex-1 flex flex-col min-h-0">
-                                                <div className="px-6 py-3 bg-muted/30 border-b border-slate-800">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Partidos · {g.name}</p>
+                                                <div className="px-6 py-3 bg-muted/30 border-b border-border/50">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Partidos · {g.name}</p>
                                                 </div>
                                                 <div className="p-4 space-y-2">
                                                     {groupMatches.map(m => (
                                                         <div
                                                             key={m.id}
                                                             className={`rounded-xl overflow-hidden transition-all duration-300 border ${m.confirmed
-                                                                ? "bg-slate-900 border-slate-700 shadow-inner"
-                                                                : "bg-slate-800/40 border-slate-700/50"
+                                                                ? "bg-card border-border shadow-inner"
+                                                                : "bg-muted/20 border-border/50"
                                                                 }`}
                                                         >
                                                             {/* Team 1 */}
                                                             <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-blue-500 ${m.confirmed && m.score1! > m.score2! ? "bg-blue-500/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score1! > m.score2! ? "text-blue-300 font-black" : "text-blue-400"}`}>
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score1! > m.score2! ? "text-blue-600 font-black" : "text-blue-500"}`}>
                                                                         {m.team1.name}
                                                                     </span>
                                                                 </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>
                                                                 )}
                                                             </div>
 
                                                             {/* Score row */}
-                                                            <div className="px-3 py-1.5 bg-muted/50 border-y border-slate-700/30 flex items-center gap-2">
+                                                            <div className="px-3 py-1.5 bg-muted/50 border-y border-border/30 flex items-center gap-2">
                                                                 {!m.confirmed && !readOnly ? (
                                                                     <>
                                                                         <input
@@ -712,22 +728,22 @@ export default function TournamentManager({
                                                                             inputMode="numeric"
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/20 text-blue-200 rounded-lg text-center font-black border border-blue-500/40 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-blue-400/50 text-sm"
+                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/10 text-blue-700 rounded-lg text-center font-black border border-blue-500/20 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-blue-400/50 text-sm"
                                                                             placeholder="0"
                                                                         />
-                                                                        <span className="text-slate-600 font-bold text-[10px] shrink-0">vs</span>
+                                                                        <span className="text-muted-foreground font-bold text-[10px] shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
                                                                             value={m.score2 ?? ""}
                                                                             onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/20 text-rose-200 rounded-lg text-center font-black border border-rose-500/40 focus:ring-1 focus:ring-rose-500 outline-none transition-all placeholder:text-rose-400/50 text-sm"
+                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/10 text-rose-700 rounded-lg text-center font-black border border-rose-500/20 focus:ring-1 focus:ring-rose-500 outline-none transition-all placeholder:text-rose-400/50 text-sm"
                                                                             placeholder="0"
                                                                         />
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleConfirmScore(m.id)}
-                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played && m.score1 !== m.score2 ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played && m.score1 !== m.score2 ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
@@ -735,17 +751,17 @@ export default function TournamentManager({
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-slate-800/30 text-blue-400 rounded-lg font-black text-sm border border-blue-500/10">
+                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-muted/30 text-blue-600 rounded-lg font-black text-sm border border-blue-500/10">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-slate-600 font-bold text-[10px] shrink-0">vs</span>
-                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-slate-800/30 text-rose-400 rounded-lg font-black text-sm border border-rose-500/10">
+                                                                        <span className="text-muted-foreground font-bold text-[10px] shrink-0">vs</span>
+                                                                        <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-muted/30 text-rose-600 rounded-lg font-black text-sm border border-rose-500/10">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {m.confirmed && !readOnly && (
                                                                             <button
                                                                                 onClick={() => handleEditScore(m.id)}
-                                                                                className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-90"
+                                                                                className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-90"
                                                                             >
                                                                                 <Settings className="w-3.5 h-3.5" />
                                                                             </button>
@@ -757,12 +773,12 @@ export default function TournamentManager({
                                                             {/* Team 2 */}
                                                             <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-rose-500 ${m.confirmed && m.score2! > m.score1! ? "bg-rose-500/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score2! > m.score1! ? "text-rose-300 font-black" : "text-rose-400"}`}>
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score2! > m.score1! ? "text-rose-600 font-black" : "text-rose-500"}`}>
                                                                         {m.team2.name}
                                                                     </span>
                                                                 </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -776,18 +792,18 @@ export default function TournamentManager({
 
                             {/* ActionBar / Tournament finalization action */}
                             {!readOnly && (
-                                <div className="p-8 bg-blue-950 border border-blue-800 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-blue-500/10">
+                                <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-blue-500/5">
                                     <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
                                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
                                         <div className="space-y-3">
-                                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Fase de Grupos</h2>
+                                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">Fase de Grupos</h2>
                                             <div className="flex items-center gap-3 justify-center md:justify-start">
-                                                <div className="px-4 py-2.5 bg-muted rounded-xl border border-slate-700 flex items-center gap-3">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clasifican:</p>
+                                                <div className="px-4 py-2.5 bg-muted rounded-xl border border-border flex items-center gap-3">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clasifican:</p>
                                                     <div className="flex items-center gap-2">
-                                                        <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
-                                                        <span className="text-sm font-black text-white w-4 text-center">{qualPerGroup}</span>
-                                                        <button className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-sm text-white hover:bg-slate-600 transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                                                        <button className="w-7 h-7 rounded-lg bg-card border border-border flex items-center justify-center text-sm text-foreground hover:bg-muted transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
+                                                        <span className="text-sm font-black text-foreground w-4 text-center">{qualPerGroup}</span>
+                                                        <button className="w-7 h-7 rounded-lg bg-card border border-border flex items-center justify-center text-sm text-foreground hover:bg-muted transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -798,7 +814,7 @@ export default function TournamentManager({
                                             disabled={!isGroupStageFinished || saving}
                                             className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished && !saving
                                                 ? "bg-blue-600 hover:bg-blue-500 text-white"
-                                                : "bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600"
+                                                : "bg-muted text-muted-foreground cursor-not-allowed border border-border"
                                                 }`}
                                         >
                                             {saving ? "Procesando..." : isGroupStageFinished ? "Generar Playoffs →" : `Finalizá los grupos (${totalGroupMatches - confirmedGroupMatches} restantes)`}
@@ -845,7 +861,7 @@ export default function TournamentManager({
                                             <motion.div
                                                 initial={{ scale: 0.9, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
-                                                className="relative bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 text-black overflow-hidden shadow-2xl shadow-yellow-500/20"
+                                                className="relative bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 text-slate-950 overflow-hidden shadow-2xl shadow-yellow-500/20"
                                             >
                                                 {/* Shimmer */}
                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse" />
@@ -903,7 +919,7 @@ export default function TournamentManager({
 
                                             {/* Torneo ya finalizado — estado de lectura */}
                                             {initialStatus === "finalizado" && (
-                                                <div className="w-full py-3 bg-muted border border-slate-700 rounded-2xl text-slate-400 text-[10px] font-black uppercase tracking-widest text-center">
+                                                <div className="w-full py-3 bg-muted border border-border rounded-2xl text-muted-foreground text-[10px] font-black uppercase tracking-widest text-center">
                                                     Torneo Finalizado
                                                 </div>
                                             )}
@@ -916,7 +932,7 @@ export default function TournamentManager({
                                             <button 
                                                 onClick={generateBracket}
                                                 disabled={saving || !isGroupStageFinished}
-                                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                                className="px-4 py-2 bg-muted hover:bg-accent text-muted-foreground hover:text-white border border-border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
                                             >
                                                 <RefreshCw className="w-3 h-3" />
                                                 Regenerar Playoffs
@@ -939,11 +955,11 @@ export default function TournamentManager({
                                                 <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-blue-600/30">
                                                     R{roundsArr.length - rIdx}
                                                 </div>
-                                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">
+                                                <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
                                                     {roundLabel(r)}
                                                 </h3>
-                                                <div className="flex-1 h-px bg-slate-700" />
-                                                <span className="text-[10px] font-bold text-slate-500">{roundMatches.length} partido{roundMatches.length !== 1 ? "s" : ""}</span>
+                                                <div className="flex-1 h-px bg-border" />
+                                                <span className="text-[10px] font-bold text-muted-foreground">{roundMatches.length} partido{roundMatches.length !== 1 ? "s" : ""}</span>
                                             </div>
 
                                             {/* Matches */}
@@ -956,36 +972,36 @@ export default function TournamentManager({
 
                                                     return (
                                                         <div key={m.id} className={`rounded-2xl overflow-hidden border transition-all duration-300 ${m.confirmed
-                                                            ? "bg-slate-950 border-slate-800"
-                                                            : "bg-slate-900 border-slate-700"
+                                                            ? "bg-card border-border shadow-inner"
+                                                            : "bg-muted/10 border-border"
                                                             }`}>
                                                             {/* Team 1 row */}
-                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-blue-500 ${isWinner1 ? "bg-blue-500/10" : "bg-slate-800/10"}`}>
-                                                                <span className={`text-sm font-black uppercase tracking-tight truncate ${isWinner1 ? "text-blue-300 font-black" : "text-blue-400"}`}>
+                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-blue-500 ${isWinner1 ? "bg-blue-500/10" : ""}`}>
+                                                                <span className={`text-sm font-black uppercase tracking-tight truncate ${isWinner1 ? "text-blue-700 font-black" : "text-blue-600"}`}>
                                                                     {m.team1 ? slotName(m.team1) : "En espera..."}
                                                                 </span>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner1 ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>
+                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner1 ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>
                                                                 )}
                                                             </div>
 
                                                             {/* Score input or divider */}
-                                                            <div className="px-3 py-2 bg-muted border-y border-slate-700 flex items-center gap-2">
+                                                            <div className="px-3 py-2 bg-muted/50 border-y border-border flex items-center gap-2">
                                                                 {canPlay && !readOnly ? (
                                                                     <>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
-                                                                            className="flex-1 min-w-0 h-10 bg-blue-500/20 border border-blue-500/40 text-blue-100 rounded-xl text-center text-base font-black placeholder:text-blue-400/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                                            className="flex-1 min-w-0 h-10 bg-blue-500/10 border border-blue-500/20 text-blue-700 rounded-xl text-center text-base font-black placeholder:text-blue-400/50 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                                                             placeholder="0"
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                         />
-                                                                        <div className="w-4 text-center text-slate-500 font-black text-sm shrink-0">vs</div>
+                                                                        <div className="w-4 text-center text-muted-foreground font-black text-sm shrink-0">vs</div>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
-                                                                            className="flex-1 min-w-0 h-10 bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-xl text-center text-base font-black placeholder:text-rose-400/50 focus:ring-2 focus:ring-rose-500 outline-none transition-all"
+                                                                            className="flex-1 min-w-0 h-10 bg-rose-500/10 border border-rose-500/20 text-rose-700 rounded-xl text-center text-base font-black placeholder:text-rose-400/50 focus:ring-2 focus:ring-rose-500 outline-none transition-all"
                                                                             placeholder="0"
                                                                             value={m.score2 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
@@ -993,7 +1009,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
-                                                                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-4 h-4" />
                                                                             </button>
@@ -1001,11 +1017,11 @@ export default function TournamentManager({
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        <div className="flex-1 min-w-0 h-10 bg-slate-800/50 border border-blue-500/20 rounded-xl flex items-center justify-center text-base font-black text-blue-400">
+                                                                        <div className="flex-1 min-w-0 h-10 bg-background/50 border border-blue-500/20 rounded-xl flex items-center justify-center text-base font-black text-blue-600">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <div className="w-4 text-center text-slate-500 font-black text-sm shrink-0">vs</div>
-                                                                        <div className="flex-1 min-w-0 h-10 bg-slate-800/50 border border-rose-500/20 rounded-xl flex items-center justify-center text-base font-black text-rose-400">
+                                                                        <div className="w-4 text-center text-muted-foreground font-black text-sm shrink-0">vs</div>
+                                                                        <div className="flex-1 min-w-0 h-10 bg-background/50 border border-rose-500/20 rounded-xl flex items-center justify-center text-base font-black text-rose-600">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {m.confirmed && !readOnly && !isBye && (
@@ -1021,12 +1037,12 @@ export default function TournamentManager({
                                                             </div>
 
                                                             {/* Team 2 row */}
-                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : "bg-slate-800/10"}`}>
-                                                                <span className={`text-sm font-black uppercase tracking-tight truncate ${isWinner2 ? "text-rose-300 font-black" : "text-rose-400"}`}>
+                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : ""}`}>
+                                                                <span className={`text-sm font-black uppercase tracking-tight truncate ${isWinner2 ? "text-rose-700 font-black" : "text-rose-600"}`}>
                                                                     {isBye ? "BYE — Pasa automático" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                 </span>
                                                                 {m.confirmed && !isBye && (
-                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner2 ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>
+                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>
                                                                 )}
                                                             </div>
 
@@ -1049,7 +1065,7 @@ export default function TournamentManager({
                                                 <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-[11px] font-black text-white shadow-lg shadow-blue-600/20">
                                                     R{roundsArr.length - rIdx}
                                                 </div>
-                                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">{roundLabel(r)}</h3>
+                                                <h3 className="text-sm font-black uppercase tracking-widest text-foreground">{roundLabel(r)}</h3>
                                             </div>
 
                                             <div className="flex-1 flex flex-col justify-around min-h-[600px] gap-8">
@@ -1059,33 +1075,33 @@ export default function TournamentManager({
                                                     const isBye = m.team2 === "BYE";
 
                                                     return (
-                                                        <div key={m.id} className={`bg-slate-900 border rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ${m.confirmed ? "border-slate-700" : "border-slate-700 hover:border-blue-600/50"
+                                                        <div key={m.id} className={`bg-card border rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ${m.confirmed ? "border-border" : "border-border hover:border-blue-600/50"
                                                             }`}>
                                                             {/* Team 1 */}
-                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-blue-500 ${isWinner1 ? "bg-blue-500/10" : "bg-slate-800/20"}`}>
+                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-blue-500 ${isWinner1 ? "bg-blue-500/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner1 ? "text-blue-300 font-black" : "text-blue-400"}`}>
+                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner1 ? "text-blue-700 font-black" : "text-blue-600"}`}>
                                                                         {m.team1 ? slotName(m.team1) : "En espera..."}
                                                                     </span>
                                                                 </div>
-                                                                {m.confirmed && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner1 ? "text-blue-400" : "text-slate-500"}`}>{m.score1}</span>}
+                                                                {m.confirmed && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner1 ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>}
                                                             </div>
 
                                                             {/* Score or divider */}
-                                                            <div className="p-2 bg-muted/50 border-y border-slate-700/50 flex items-center gap-2 px-3">
+                                                            <div className="p-2 bg-muted/50 border-y border-border/50 flex items-center gap-2 px-3">
                                                                 {!m.confirmed && m.team1 && m.team2 && !isBye && !readOnly ? (
                                                                     <div className="flex items-center gap-2 w-full min-w-0">
                                                                         <input
                                                                             type="number"
-                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/20 border border-blue-500/40 text-blue-100 rounded-lg text-center text-sm font-black placeholder:text-blue-400/50 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                                            className="flex-1 min-w-0 h-8 bg-blue-500/10 border border-blue-500/20 text-blue-700 rounded-lg text-center text-sm font-black placeholder:text-blue-400/50 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                             placeholder="0"
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                         />
-                                                                        <span className="text-slate-500 text-[10px] font-bold shrink-0">vs</span>
+                                                                        <span className="text-muted-foreground text-[10px] font-bold shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
-                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-lg text-center text-sm font-black placeholder:text-rose-400/50 focus:ring-1 focus:ring-rose-500 outline-none"
+                                                                            className="flex-1 min-w-0 h-8 bg-rose-500/10 border border-rose-500/20 text-rose-700 rounded-lg text-center text-sm font-black placeholder:text-rose-400/50 focus:ring-1 focus:ring-rose-500 outline-none"
                                                                             placeholder="0"
                                                                             value={m.score2 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "", e.target.value)}
@@ -1093,7 +1109,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
-                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
@@ -1101,35 +1117,35 @@ export default function TournamentManager({
                                                                     </div>
                                                                 ) : m.confirmed && !isBye ? (
                                                                     <div className="flex items-center gap-2 w-full min-w-0">
-                                                                        <div className="flex-1 min-w-0 h-8 bg-slate-800/50 text-blue-400 rounded-lg flex items-center justify-center text-sm font-black border border-blue-500/20">
+                                                                        <div className="flex-1 min-w-0 h-8 bg-background/50 text-blue-600 rounded-lg flex items-center justify-center text-sm font-black border border-blue-500/20">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-slate-500 text-[10px] font-bold shrink-0">vs</span>
-                                                                        <div className="flex-1 min-w-0 h-8 bg-slate-800/50 text-rose-400 rounded-lg flex items-center justify-center text-sm font-black border border-rose-500/20">
+                                                                        <span className="text-muted-foreground text-[10px] font-bold shrink-0">vs</span>
+                                                                        <div className="flex-1 min-w-0 h-8 bg-background/50 text-rose-600 rounded-lg flex items-center justify-center text-sm font-black border border-rose-500/20">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketEdit(m.id)}
-                                                                                className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-[0.9]"
+                                                                                className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center hover:bg-amber-500/20 transition-all active:scale-[0.9]"
                                                                             >
                                                                                 <Settings className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         )}
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="w-full h-px bg-slate-700 flex-1 my-1" />
+                                                                    <div className="w-full h-px bg-border flex-1 my-1" />
                                                                 )}
                                                             </div>
 
                                                             {/* Team 2 */}
-                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : "bg-slate-800/20"}`}>
+                                                            <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner2 ? "text-rose-300 font-black" : "text-rose-400"}`}>
+                                                                    <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner2 ? "text-rose-700 font-black" : "text-rose-600"}`}>
                                                                         {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                     </span>
                                                                 </div>
-                                                                {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-400" : "text-slate-500"}`}>{m.score2}</span>}
+                                                                {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>}
                                                             </div>
 
                                                         </div>
@@ -1160,16 +1176,16 @@ export default function TournamentManager({
                             
                             if (finalMatch?.confirmed && champName && initialStatus !== "finalizado" && !readOnly) {
                                 return (
-                                    <div className="mt-12 p-8 bg-emerald-950 border border-emerald-800 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="mt-12 p-8 bg-emerald-600/5 border border-emerald-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/5 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
                                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                                    <Trophy className="w-6 h-6 text-emerald-400" />
+                                                    <Trophy className="w-6 h-6 text-emerald-600" />
                                                 </div>
                                                 <div>
-                                                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">¡Final de Torneo!</h2>
-                                                    <p className="text-emerald-400/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champName}</p>
+                                                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">¡Final de Torneo!</h2>
+                                                    <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champName}</p>
                                                 </div>
                                             </div>
                                             <button
@@ -1219,7 +1235,7 @@ export default function TournamentManager({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-8 text-center shadow-2xl overflow-hidden"
+                            className="relative w-full max-w-sm bg-card border border-border rounded-3xl p-8 text-center shadow-2xl overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-rose-500" />
 
@@ -1238,10 +1254,10 @@ export default function TournamentManager({
                                 />
                             </div>
 
-                            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">
+                            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground mb-2">
                                 ¡Torneo Finalizado!
                             </h3>
-                            <p className="text-slate-400 text-sm font-bold mb-8">
+                            <p className="text-muted-foreground text-sm font-bold mb-8">
                                 Los resultados han sido guardados y el campeón ha sido coronado con éxito.
                             </p>
 

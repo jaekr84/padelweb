@@ -387,9 +387,9 @@ export default function FixtureSetup({
     }, [draggedPlayerId, handleRemovePlayer]);
 
     return (
-        <div className="min-h-screen bg-background text-white">
+        <div className="min-h-screen bg-background text-foreground">
             {/* Sticky Header */}
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 py-4">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-4">
                 <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <button
@@ -401,7 +401,7 @@ export default function FixtureSetup({
                         <div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic">Fixture</span>
-                                <div className="w-1 h-1 rounded-full bg-white/20" />
+                                <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 italic">Setup</span>
                             </div>
                             <h1 className="text-lg font-black uppercase italic tracking-tight leading-none truncate max-w-[180px]">
@@ -427,7 +427,7 @@ export default function FixtureSetup({
                                         ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-110"
                                         : isPast
                                             ? "text-emerald-500"
-                                            : "text-white/20"
+                                            : "text-muted-foreground/20"
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -452,24 +452,24 @@ export default function FixtureSetup({
                             <div className="flex items-center justify-between px-2">
                                 <div>
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Presentismo</h2>
-                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
+                                    <p className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-3">
                                     <div className="flex items-center gap-3">
                                         <div className="relative">
-                                            < MonitorPlay  className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/20" />
+                                            < MonitorPlay  className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/20" />
                                             <input 
                                                 type="text"
                                                 placeholder="Buscar..."
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="bg-black/20 border border-border/40 rounded-xl py-2 pl-9 pr-3 text-[10px] font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all w-32 md:w-48"
+                                                className="bg-muted border border-border rounded-xl py-2 pl-9 pr-3 text-[10px] font-bold placeholder:text-muted-foreground/50 outline-none focus:border-blue-500/50 transition-all w-32 md:w-48"
                                             />
                                         </div>
                                         <select 
                                             value={categoryFilter}
                                             onChange={(e) => setCategoryFilter(e.target.value)}
-                                            className="bg-black/20 border border-border/40 rounded-xl py-2 px-3 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                            className="bg-muted border border-border rounded-xl py-2 px-3 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
                                         >
                                             <option value="all">Cat.</option>
                                             {categories.map(cat => (
@@ -492,9 +492,9 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
-                            <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">
+                            <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
                                 <div className="px-6 py-4 bg-card flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Jugadores</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Jugadores</span>
                                     <div className="flex gap-4">
                                         <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">Todo Pago</button>
                                         <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors">Todo Ok</button>
@@ -517,7 +517,7 @@ export default function FixtureSetup({
 
                                         if (filtered.length === 0) {
                                             return (
-                                                <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
+                                                <div className="py-12 text-center text-muted-foreground/20 font-black uppercase italic text-xs tracking-widest">
                                                     No se encontraron jugadores
                                                 </div>
                                             );
@@ -534,13 +534,13 @@ export default function FixtureSetup({
                                                         }`}
                                                 >
                                                     <div className="flex flex-col">
-                                                        <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-white" : "text-white/40"}`}>
+                                                        <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-muted-foreground/40"}`}>
                                                             {p.name}
                                                         </span>
                                                         <div className="flex gap-2 mt-1">
                                                             {isPaid && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">Pago</span>}
                                                             {isPresent && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">Ok</span>}
-                                                            {p.category && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-white/5 text-white/40 rounded border border-white/5">{p.category}</span>}
+                                                            {p.category && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border">{p.category}</span>}
                                                         </div>
                                                     </div>
 
@@ -549,7 +549,7 @@ export default function FixtureSetup({
                                                             onClick={() => togglePaid(p.id)}
                                                             className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
                                                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                                : "bg-card border border-border text-white/20 hover:border-white/20"
+                                                                : "bg-card border border-border text-muted-foreground/20 hover:border-muted-foreground/40"
                                                                 }`}
                                                         >
                                                             <CreditCard className="w-5 h-5" />
@@ -558,7 +558,7 @@ export default function FixtureSetup({
                                                             onClick={() => togglePresent(p.id)}
                                                             className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
                                                                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                                                : "bg-card border border-border text-white/20 hover:border-white/20"
+                                                                : "bg-card border border-border text-muted-foreground/20 hover:border-muted-foreground/40"
                                                                 }`}
                                                         >
                                                             <UserCheck className="w-5 h-5" />
@@ -576,7 +576,7 @@ export default function FixtureSetup({
                                 disabled={present.size === 0}
                                 className={`w-full py-5 rounded-3xl font-black uppercase italic tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${present.size > 0
                                     ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
-                                    : "bg-card text-white/20 cursor-not-allowed"
+                                    : "bg-card text-muted-foreground/20 cursor-not-allowed border border-border"
                                     }`}
                             >
                                 <span>Continuar ({present.size})</span>
@@ -595,7 +595,7 @@ export default function FixtureSetup({
                         >
                             <div className="px-2">
                                 <h2 className="text-2xl font-black uppercase italic tracking-tight">Estructura</h2>
-                                <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
+                                <p className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -604,7 +604,7 @@ export default function FixtureSetup({
                                         <Users2 className="w-5 h-5" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-black/20 rounded-2xl p-2">
+                                    <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
                                         <button
                                             onClick={() => setNumGroups(Math.max(1, numGroups - 1))}
                                             className="w-12 h-12 rounded-xl bg-card flex items-center justify-center hover:bg-white/10 transition-colors"
@@ -626,7 +626,7 @@ export default function FixtureSetup({
                                         <Users className="w-5 h-5" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Jugadores / Parejas</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-black/20 rounded-2xl p-2">
+                                    <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
                                         <button
                                             onClick={() => setPlayersPerGroup(Math.max(2, playersPerGroup - 1))}
                                             className="w-12 h-12 rounded-xl bg-card flex items-center justify-center hover:bg-white/10 transition-colors"
@@ -647,16 +647,16 @@ export default function FixtureSetup({
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {[
                                     { label: "Check-in", value: PRESENT_PLAYERS.length, color: "text-blue-500" },
-                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-white/40" },
+                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-muted-foreground/40" },
                                     {
                                         label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Sobran" : "Faltan",
                                         value: Math.abs(PRESENT_PLAYERS.length - numGroups * playersPerGroup),
                                         color: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "text-emerald-500" : "text-amber-500"
                                     },
-                                    { label: "Min. Partido", value: "2", color: "text-white/20" }
+                                    { label: "Min. Partido", value: "2", color: "text-muted-foreground/20" }
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-1">{stat.label}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/20 block mb-1">{stat.label}</span>
                                         <span className={`text-xl font-black italic ${stat.color}`}>{stat.value}</span>
                                     </div>
                                 ))}
@@ -690,7 +690,7 @@ export default function FixtureSetup({
                             <div className="px-2 flex items-center justify-between">
                                 <div>
                                     <h2 className="text-2xl font-black uppercase italic tracking-tight">Asignación</h2>
-                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase">Armá los grupos para el sorteo</p>
+                                    <p className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">Armá los grupos para el sorteo</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -721,7 +721,7 @@ export default function FixtureSetup({
                                 onDrop={onDropOnPool}
                             >
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Sin Asignar ({unassigned.length})</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sin Asignar ({unassigned.length})</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <AnimatePresence>
@@ -739,7 +739,7 @@ export default function FixtureSetup({
                                                     const firstEmptyGroup = groups.find(g => g.players.length < playersPerGroup);
                                                     if (firstEmptyGroup) handleAddPlayer(p.id, firstEmptyGroup.id);
                                                 }}
-                                                className="px-4 py-2 bg-card hover:bg-blue-500/20 border border-border rounded-xl text-xs font-black uppercase italic tracking-wider transition-all cursor-grab active:cursor-grabbing"
+                                                className="px-4 py-2 bg-muted hover:bg-blue-500/20 border border-border rounded-xl text-xs font-black uppercase italic tracking-wider transition-all cursor-grab active:cursor-grabbing text-foreground"
                                             >
                                                 {p.name}
                                             </motion.button>
@@ -747,7 +747,7 @@ export default function FixtureSetup({
                                     </AnimatePresence>
                                     {unassigned.length === 0 && (
                                         <div className="w-full py-4 text-center border border-dashed border-border rounded-2xl">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/20 italic">Todo listo</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/20 italic">Todo listo</span>
                                         </div>
                                     )}
                                 </div>
@@ -761,9 +761,9 @@ export default function FixtureSetup({
                                         onDragOver={onDragOver}
                                         onDrop={(e) => onDropOnGroup(e as any, g.id)}
                                     >
-                                        <div className="px-5 py-3 bg-card border-b border-border/50 flex items-center justify-between">
+                                        <div className="px-5 py-3 bg-muted border-b border-border/50 flex items-center justify-between">
                                             <span className="text-xs font-black uppercase italic tracking-[0.2em] text-blue-500">{g.name}</span>
-                                            <span className="text-[10px] font-black text-white/20">{g.players.length} / {playersPerGroup}</span>
+                                            <span className="text-[10px] font-black text-muted-foreground/20">{g.players.length} / {playersPerGroup}</span>
                                         </div>
                                         <div className="p-3 space-y-2 flex-1 min-h-[140px]">
                                             <AnimatePresence mode="popLayout">
@@ -776,8 +776,8 @@ export default function FixtureSetup({
                                                         onDragEnd={onDragEnd as any}
                                                         className={`flex items-center justify-between rounded-xl px-4 py-3 group cursor-grab active:cursor-grabbing transition-all duration-500 ${
                                                             swappedIds.has(p.id) 
-                                                                ? "bg-blue-600/40 ring-2 ring-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.3)]" 
-                                                                : "bg-card hover:bg-white/5"
+                                                                ? "bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-white" 
+                                                                : "bg-muted hover:bg-foreground/5 text-foreground"
                                                         }`}
                                                     >
                                                         <span className={`text-xs font-bold uppercase italic transition-colors ${
@@ -785,7 +785,7 @@ export default function FixtureSetup({
                                                         }`}>{p.name}</span>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
-                                                            className="text-white/20 hover:text-red-500 transition-colors"
+                                                            className="text-muted-foreground/20 hover:text-red-500 transition-colors"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
@@ -808,7 +808,7 @@ export default function FixtureSetup({
                                                 const name = prompt("Nombre del invitado:");
                                                 if (name) handleAddGuest(name, g.id);
                                             }}
-                                            className="p-3 bg-blue-500/5 text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 hover:bg-blue-500 hover:text-white transition-all border-t border-border/50"
+                                            className="p-3 bg-muted/50 text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 hover:bg-blue-600 hover:text-white transition-all border-t border-border/50"
                                         >
                                             + Invitado
                                         </button>
@@ -817,7 +817,7 @@ export default function FixtureSetup({
                             </div>
 
                             {/* Sticky Footer */}
-                            <div className="fixed bottom-20 md:bottom-0 left-0 right-0 px-6 pb-4 pt-8 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/95 to-transparent z-50">
+                            <div className="fixed bottom-20 md:bottom-0 left-0 right-0 px-6 pb-4 pt-8 bg-gradient-to-t from-background via-background/95 to-transparent z-50">
                                 <div className="max-w-6xl mx-auto flex gap-4">
                                     <button
                                         onClick={() => setStep("config")}
@@ -829,7 +829,7 @@ export default function FixtureSetup({
                                         disabled={!allFull || saving}
                                         onClick={handleConfirmGroups}
                                         className={`flex-1 h-16 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-2xl flex items-center justify-center gap-3 backdrop-blur-xl ${!allFull
-                                            ? "bg-card text-white/10 border border-border/50"
+                                            ? "bg-card text-muted-foreground/30 border border-border/50"
                                             : "bg-emerald-600 text-white shadow-emerald-900/40"
                                             }`}
                                     >
@@ -857,11 +857,11 @@ export default function FixtureSetup({
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-[#12141C] border border-border rounded-[2rem] overflow-hidden shadow-2xl shadow-black"
+                                className="relative w-full max-w-md bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl"
                             >
-                                <div className="px-6 py-6 border-b border-border/50 bg-card">
+                                <div className="px-6 py-6 border-b border-border bg-muted/30">
                                     <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Jugador</h3>
-                                    <p className="text-white/40 text-[10px] font-black tracking-widest uppercase mb-6">Elegí un jugador existente o creá uno nuevo</p>
+                                    <p className="text-muted-foreground text-[10px] font-black tracking-widest uppercase mb-6">Elegí un jugador existente o creá uno nuevo</p>
                                     
                                     {/* Manual Registration Form */}
                                     <div className="mb-8 p-4 bg-blue-600/5 border border-blue-500/20 rounded-3xl space-y-3">
@@ -874,13 +874,13 @@ export default function FixtureSetup({
                                             placeholder="Nombre completo..."
                                             value={manualName}
                                             onChange={(e) => setManualName(e.target.value)}
-                                            className="w-full bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all"
+                                            className="w-full bg-card border border-border rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-muted-foreground/30 outline-none focus:border-blue-500/50 transition-all text-foreground"
                                         />
                                         <div className="grid grid-cols-2 gap-2">
                                             <select 
                                                 value={manualCategory}
                                                 onChange={(e) => setManualCategory(e.target.value)}
-                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
                                             >
                                                 <option value="">Categoría...</option>
                                                 {categories.map(cat => (
@@ -897,21 +897,21 @@ export default function FixtureSetup({
                                         </div>
                                     </div>
 
-                                    <div className="h-px bg-white/5 mb-6" />
+                                    <div className="h-px bg-border mb-6" />
 
                                     <div className="space-y-3">
-                                        <div className="text-[10px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2 mb-2">
+                                        <div className="text-[10px] font-black uppercase text-muted-foreground/30 tracking-widest flex items-center gap-2 mb-2">
                                             <Users2 className="w-3 h-3" />
                                             Buscar en la Base de Datos
                                         </div>
                                         <div className="relative">
-                                            < MonitorPlay  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            < MonitorPlay  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
                                             <input 
                                                 type="text"
                                                 placeholder="Buscar por nombre, ID o email..."
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="w-full bg-black/20 border border-border/50 rounded-2xl py-3 pl-11 pr-4 text-sm font-bold placeholder:text-white/10 outline-none focus:border-blue-500/50 transition-all"
+                                                className="w-full bg-card border border-border rounded-2xl py-3 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 outline-none focus:border-blue-500/50 transition-all text-foreground"
                                             />
                                         </div>
 
@@ -919,7 +919,7 @@ export default function FixtureSetup({
                                             <select 
                                                 value={categoryFilter}
                                                 onChange={(e) => setCategoryFilter(e.target.value)}
-                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
                                             >
                                                 <option value="all">Todas las Categorías</option>
                                                 {categories.map(cat => (
@@ -931,7 +931,7 @@ export default function FixtureSetup({
                                             <select 
                                                 value={genderFilter}
                                                 onChange={(e) => setGenderFilter(e.target.value)}
-                                                className="bg-black/20 border border-border/50 rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer"
+                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
                                             >
                                                 <option value="all">Todos los Géneros</option>
                                                 <option value="masculino">Masculino</option>
@@ -944,7 +944,7 @@ export default function FixtureSetup({
 
                                 <div className="p-4 max-h-[50vh] overflow-y-auto no-scrollbar space-y-2">
                                     {isLoadingAvailable ? (
-                                        <div className="py-12 text-center text-white/20 animate-pulse font-black uppercase italic text-xs tracking-widest">
+                                        <div className="py-12 text-center text-muted-foreground/30 animate-pulse font-black uppercase italic text-xs tracking-widest">
                                             Buscando jugadores...
                                         </div>
                                     ) : (() => {
@@ -962,7 +962,7 @@ export default function FixtureSetup({
 
                                         if (filtered.length === 0) {
                                             return (
-                                                <div className="py-12 text-center text-white/20 font-black uppercase italic text-xs tracking-widest">
+                                                <div className="py-12 text-center text-muted-foreground/30 font-black uppercase italic text-xs tracking-widest">
                                                     No se encontraron jugadores que coincidan
                                                 </div>
                                             );
@@ -972,18 +972,18 @@ export default function FixtureSetup({
                                             <button
                                                 key={p.id}
                                                 onClick={() => handleQuickInscribe(p.id)}
-                                                className="w-full flex items-center justify-between p-4 bg-card hover:bg-white/10 border border-border rounded-2xl transition-all group"
+                                                className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted border border-border rounded-2xl transition-all group"
                                             >
                                                 <div className="text-left">
-                                                    <div className="font-black uppercase italic tracking-tight group-hover:text-blue-400 transition-colors">{p.name}</div>
-                                                    <div className="text-[10px] text-white/40 font-bold">{p.email}</div>
+                                                    <div className="font-black uppercase italic tracking-tight group-hover:text-blue-400 transition-colors text-foreground">{p.name}</div>
+                                                    <div className="text-[10px] text-muted-foreground font-bold">{p.email}</div>
                                                     {p.gender && (
-                                                        <div className="text-[8px] text-white/20 font-black uppercase tracking-widest mt-1">
+                                                        <div className="text-[8px] text-muted-foreground/30 font-black uppercase tracking-widest mt-1">
                                                             {p.gender === 'masculino' ? '♂ Masculino' : p.gender === 'femenino' ? '♀ Femenino' : '⚤ Mixto'}
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="px-2 py-1 bg-card rounded text-[8px] font-black uppercase tracking-widest text-white/40 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all">
+                                                <div className="px-2 py-1 bg-card rounded text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all border border-border">
                                                     {p.category || "???"}
                                                 </div>
                                             </button>
