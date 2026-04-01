@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users, categoriesTable } from "@/db/schema";
-import { eq, sql, inArray } from "drizzle-orm";
+import { eq, sql, inArray, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth-server";
 
@@ -241,6 +241,31 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
     try {
         const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (!user) throw new Error("User not found");
+
+        const [tournament] = await db.select({ modalidad: tournaments.modalidad }).from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        if (!tournament) throw new Error("Torneo no encontrado");
+
+        let mod: any = tournament?.modalidad;
+        try {
+            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+        } catch (e) {}
+
+        const maxSlots = mod?.maxSlots;
+        if (maxSlots && maxSlots > 0) {
+            const [regCount] = await db
+                .select({ count: sql<number>`count(*)` })
+                .from(registrations)
+                .where(
+                    and(
+                        eq(registrations.tournamentId, tournamentId),
+                        eq(registrations.status, "confirmed")
+                    )
+                );
+            if (Number((regCount as any).count || 0) >= maxSlots) {
+                throw new Error(`Este torneo ha alcanzado su límite máximo de ${maxSlots} inscriptos.`);
+            }
+        }
+
         const newId = crypto.randomUUID();
         await db.insert(registrations).values({
             id: newId,
@@ -253,11 +278,6 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             .set({ lastParticipationAt: new Date() })
             .where(eq(users.id, userId));
 
-        const [tournament] = await db.select({ modalidad: tournaments.modalidad }).from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
-        let mod: any = tournament?.modalidad;
-        try {
-            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
-        } catch (e) {}
         const isIndividual = mod?.participacion === "individual";
 
         const playerName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0];
@@ -475,6 +495,27 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 
+        let mod: any = t.modalidad;
+        try {
+            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
+        } catch (e) {}
+
+        const maxSlots = mod?.maxSlots;
+        if (maxSlots && maxSlots > 0) {
+            const [regCount] = await db
+                .select({ count: sql<number>`count(*)` })
+                .from(registrations)
+                .where(
+                    and(
+                        eq(registrations.tournamentId, tournamentId),
+                        eq(registrations.status, "confirmed")
+                    )
+                );
+            if (Number((regCount as any).count || 0) >= maxSlots) {
+                throw new Error(`Este torneo ha alcanzado su límite máximo de ${maxSlots} inscriptos.`);
+            }
+        }
+
         const fakeUserId = `manual_${crypto.randomUUID()}`;
         const registrationId = crypto.randomUUID();
 
@@ -497,10 +538,6 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             status: "confirmed"
         });
 
-        let mod: any = t.modalidad;
-        try {
-            if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
-        } catch (e) {}
         const isIndividual = mod?.participacion === "individual";
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);

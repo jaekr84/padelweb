@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { 
@@ -57,6 +57,15 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     const [matches, setMatches] = useState<any[]>([]);
     const [loadingMatches, setLoadingMatches] = useState(false);
 
+    useEffect(() => {
+        if (selectedPlayer || isCategoryDropdownOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [selectedPlayer, isCategoryDropdownOpen]);
+
     const handlePlayerClick = async (player: RankingUser) => {
         setSelectedPlayer(player);
         setActiveTab('perfil');
@@ -91,11 +100,16 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         let list = [...users];
         if (genderFilter !== "all") list = list.filter(u => u.gender === genderFilter);
         if (categoryFilter !== "all") list = list.filter(u => u.category === categoryFilter);
+        list.sort((a, b) => (b.points || 0) - (a.points || 0));
+        
+        const rankedList = list.map((u, i) => ({ ...u, _rank: i + 1 }));
+
         if (searchQuery.trim() !== "") {
             const query = searchQuery.toLowerCase();
-            list = list.filter(u => (u.name || "").toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
+            return rankedList.filter(u => (u.name || "").toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
         }
-        return list.sort((a, b) => (b.points || 0) - (a.points || 0));
+        
+        return rankedList;
     }, [users, genderFilter, categoryFilter, searchQuery]);
 
     return (
@@ -264,11 +278,11 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                         <div className="p-5 md:p-6 flex items-center gap-6 relative z-10">
                                             {/* Rank */}
                                             <div className="w-14 flex flex-col items-center justify-center shrink-0 border-r border-white/5 pr-2">
-                                                {index === 0 ? <Crown className="w-6 h-6 text-yellow-400 mb-1" /> : 
-                                                 index === 1 ? <Medal className="w-6 h-6 text-slate-300 mb-1" /> :
-                                                 index === 2 ? <Medal className="w-6 h-6 text-orange-400 mb-1" /> : null}
-                                                <span className={`text-xl font-black italic ${isTop3 ? "text-foreground" : "text-muted-foreground/30"}`}>
-                                                    #{index + 1}
+                                                {player._rank === 1 ? <Crown className="w-6 h-6 text-yellow-400 mb-1" /> : 
+                                                 player._rank === 2 ? <Medal className="w-6 h-6 text-slate-300 mb-1" /> :
+                                                 player._rank === 3 ? <Medal className="w-6 h-6 text-orange-400 mb-1" /> : null}
+                                                <span className={`text-xl font-black italic ${player._rank <= 3 ? "text-foreground" : "text-muted-foreground/30"}`}>
+                                                    #{player._rank}
                                                 </span>
                                             </div>
 
@@ -340,42 +354,73 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                 <button onClick={() => setSelectedPlayer(null)} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-90 transition-all"><X className="w-6 h-6" /></button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto no-scrollbar p-8">
+                            <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar p-8">
                                 <AnimatePresence mode="wait">
                                     {activeTab === 'perfil' ? (
-                                        <motion.div key="p" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col md:flex-row gap-12">
-                                            <div className="w-full md:w-[350px] shrink-0">
-                                                {playerStats && <PlayerCard 
-                                                    player={{ 
-                                                        firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "",
-                                                        lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",
-                                                        imageUrl: selectedPlayer.imageUrl,
-                                                        category: selectedPlayer.category || "D",
-                                                        side: selectedPlayer.side || "ambos",
-                                                        points: selectedPlayer.points || 0,
-                                                        clubName: selectedPlayer.club?.name
-                                                    }} 
-                                                    stats={playerStats} 
-                                                />}
+                                        <motion.div key="p" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col md:flex-row gap-12 md:items-start relative">
+                                            <div className="w-full md:w-[350px] shrink-0 md:sticky md:top-0 md:z-10 flex items-start justify-center">
+                                                <div 
+                                                    className="w-full"
+                                                    style={{ transform: 'scale(min(1, calc((100vh - 280px) / 550)))', transformOrigin: 'top center' }}
+                                                >
+                                                    {playerStats && <PlayerCard 
+                                                        player={{ 
+                                                            firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "",
+                                                            lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",
+                                                            imageUrl: selectedPlayer.imageUrl,
+                                                            category: selectedPlayer.category || "D",
+                                                            side: selectedPlayer.side || "ambos",
+                                                            points: selectedPlayer.points || 0,
+                                                            clubName: selectedPlayer.club?.name
+                                                        }} 
+                                                        stats={playerStats} 
+                                                    />}
+                                                </div>
                                             </div>
                                             <div className="flex-1 w-full">
                                                 <h3 className="text-xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3"><Activity className="w-6 h-6 text-emerald-500" /> Rendimiento Reciente</h3>
                                                 {loadingMatches ? (
                                                     <div className="flex flex-col items-center justify-center py-20 animate-pulse"><Activity className="w-8 h-8 text-emerald-500 animate-spin mb-4" /><span className="text-[10px] font-black uppercase tracking-widest">Sincronizando...</span></div>
                                                 ) : matches.length > 0 ? (
-                                                    <div className="space-y-3">
-                                                        {matches.slice(0, 8).map(m => (
-                                                            <div key={m.id} className="glass-card rounded-2xl p-5 flex items-center justify-between group hover:border-emerald-500/30 transition-all">
-                                                                <div className="flex flex-col">
-                                                                    <span className="text-[10px] font-black uppercase text-emerald-500 mb-0.5">{m.tournamentName}</span>
-                                                                    <span className="text-sm font-bold truncate max-w-[180px] italic uppercase tracking-tight">{m.team1.includes(selectedPlayer.name) ? m.team2 : m.team1}</span>
-                                                                </div>
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className={`text-lg font-black italic ${m.isWinner ? 'text-emerald-500' : 'text-rose-500'}`}>{m.score1} - {m.score2}</div>
-                                                                    <div className={`w-2.5 h-2.5 rounded-full ${m.isWinner ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500'}`} />
-                                                                </div>
-                                                            </div>
-                                                        ))}
+                                                    <div className="w-full overflow-hidden glass-card rounded-3xl">
+                                                        <table className="w-full text-left border-collapse">
+                                                            <thead>
+                                                                <tr className="border-b border-white/5 bg-white/5">
+                                                                    <th className="py-4 px-6 text-[9px] font-black uppercase tracking-widest text-emerald-500/50">Fecha / Torneo</th>
+                                                                    <th className="py-4 px-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Rival</th>
+                                                                    <th className="py-4 px-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right w-28 whitespace-nowrap">Res</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-white/5">
+                                                                {matches.slice(0, 30).map(m => {
+                                                                    const rival = m.team1.includes(selectedPlayer.name) ? m.team2 : m.team1;
+                                                                    return (
+                                                                        <tr key={m.id} className="hover:bg-white/5 transition-colors group">
+                                                                            <td className="py-4 px-6 align-middle">
+                                                                                <div className="flex flex-col">
+                                                                                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500/80 group-hover:text-emerald-400 transition-colors truncate max-w-[140px]">
+                                                                                        {m.tournamentName}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-4 px-6 align-middle">
+                                                                                <div className="text-xs font-black uppercase italic tracking-tighter truncate max-w-[180px] text-foreground/80 group-hover:text-foreground transition-colors">
+                                                                                    {rival}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-4 px-6 align-middle text-right">
+                                                                                <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                                                                                    <span className={`text-sm font-black italic tracking-tighter ${m.isWinner ? 'text-emerald-500' : 'text-rose-500/80'}`}>
+                                                                                        {m.score1} - {m.score2}
+                                                                                    </span>
+                                                                                    <div className={`w-2 h-2 rounded-full shrink-0 ${m.isWinner ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-rose-500/50'}`} />
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 ) : <div className="py-20 text-center opacity-20 font-black uppercase text-xs italic">Sin partidos registrados</div>}
                                             </div>

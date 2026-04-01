@@ -64,6 +64,8 @@ export async function getPlayerMatchHistory(userId: string) {
                         eq(groupMatches.tournamentId, reg.tournamentId),
                         eq(groupMatches.confirmed, true),
                         or(
+                            eq(groupMatches.team1Id, reg.id),
+                            eq(groupMatches.team2Id, reg.id),
                             eq(groupMatches.team1Name, teamName),
                             eq(groupMatches.team2Name, teamName)
                         )
@@ -74,6 +76,8 @@ export async function getPlayerMatchHistory(userId: string) {
                         eq(bracketMatches.tournamentId, reg.tournamentId),
                         eq(bracketMatches.confirmed, true),
                         or(
+                            eq(bracketMatches.team1Id, reg.id),
+                            eq(bracketMatches.team2Id, reg.id),
                             eq(bracketMatches.team1Name, teamName),
                             eq(bracketMatches.team2Name, teamName)
                         )
@@ -86,12 +90,18 @@ export async function getPlayerMatchHistory(userId: string) {
                 ...bMatches.map(m => ({ ...m, type: 'Playoff' }))
             ];
 
-            
             for (const m of allMatches) {
                 const score1 = m.score1 ?? 0;
                 const score2 = m.score2 ?? 0;
-                const matchesTeam1 = (m.team1Name || "").trim() === teamName.trim();
+                const matchesTeam1 = m.team1Id === reg.id || (m.team1Name || "").trim() === teamName.trim();
                 
+                let isWinner = false;
+                if ((m as any).winnerId) {
+                    isWinner = (m as any).winnerId === reg.id;
+                } else {
+                    isWinner = matchesTeam1 ? score1 > score2 : score2 > score1;
+                }
+
                 playerMatches.push({
                     id: m.id,
                     tournamentName: tournament?.name || "Torneo",
@@ -101,7 +111,7 @@ export async function getPlayerMatchHistory(userId: string) {
                     team2: m.team2Name,
                     score1: score1,
                     score2: score2,
-                    isWinner: matchesTeam1 ? score1 > score2 : score2 > score1,
+                    isWinner,
                     date: tournament?.createdAt || new Date(),
                     category: reg.category
                 });

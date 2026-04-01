@@ -86,6 +86,9 @@ export default function FixtureSetup({
     const [manualGender, setManualGender] = useState("masculino");
     const [isCreatingManual, setIsCreatingManual] = useState(false);
 
+    const [autoFillCount, setAutoFillCount] = useState<number | "">("");
+    const [isAutoFilling, setIsAutoFilling] = useState(false);
+
     const handleManualRegister = async () => {
         if (!manualName.trim()) {
             toast.error("El nombre es obligatorio");
@@ -102,6 +105,48 @@ export default function FixtureSetup({
             toast.error("Error al crear jugador: " + res.error);
         }
         setIsCreatingManual(false);
+    };
+
+    const handleAutoFill = async () => {
+        let count = typeof autoFillCount === 'number' ? autoFillCount : parseInt(autoFillCount as string);
+        if (isNaN(count) || count <= 0) {
+            toast.error("Ingresá una cantidad válida");
+            return;
+        }
+        
+        setIsAutoFilling(true);
+        toast.loading(`Generando ${count} jugadores...`, { id: 'autofill' });
+        
+        const baseName = "Jugador Gen-" + Math.floor(Math.random() * 1000);
+        const cat = manualCategory || categories[0] || "D";
+        const promises = [];
+
+        for (let i = 1; i <= count; i++) {
+            promises.push(registerManualPlayer(tournamentId, `${baseName} #${i}`, cat, "masculino"));
+        }
+
+        try {
+            const results = await Promise.all(promises);
+            const newPlayers: Player[] = [];
+            const newIds: string[] = [];
+            
+            for (let r of results) {
+                if (r.ok && r.player) {
+                    newPlayers.push(r.player as Player);
+                    newIds.push(r.player.id);
+                }
+            }
+            
+            setPlayers(prev => [...prev, ...newPlayers]);
+            setPresent(prev => new Set([...prev, ...newIds]));
+            toast.success(`Se generaron e inscribieron ${newPlayers.length} jugadores`, { id: 'autofill' });
+            setAutoFillCount("");
+        } catch (err) {
+            console.error(err);
+            toast.error("Error en la generación automática", { id: 'autofill' });
+        }
+
+        setIsAutoFilling(false);
     };
 
     const PRESENT_PLAYERS = useMemo(() =>
@@ -893,6 +938,31 @@ export default function FixtureSetup({
                                                 className="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic transition-all disabled:opacity-50"
                                             >
                                                 {isCreatingManual ? "Creando..." : "Crear e Inscribir"}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Auto Fill Feature */}
+                                    <div className="mb-8 p-4 bg-emerald-600/5 border border-emerald-500/20 rounded-3xl space-y-3">
+                                        <div className="text-[10px] font-black uppercase text-emerald-400 tracking-widest flex items-center gap-2 mb-2">
+                                            <Dice5 className="w-3 h-3" />
+                                            Generar Jugadores (Auto-Fill)
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input 
+                                                type="number"
+                                                min="1"
+                                                placeholder="Cantidad..."
+                                                value={autoFillCount}
+                                                onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
+                                                className="w-full bg-card border border-border rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-muted-foreground/30 outline-none focus:border-emerald-500/50 transition-all text-foreground"
+                                            />
+                                            <button 
+                                                onClick={handleAutoFill}
+                                                disabled={isAutoFilling || !autoFillCount}
+                                                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 flex items-center justify-center gap-1"
+                                            >
+                                                {isAutoFilling ? "Generando..." : "Generar Automático"}
                                             </button>
                                         </div>
                                     </div>

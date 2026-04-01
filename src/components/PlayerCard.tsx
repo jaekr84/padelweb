@@ -30,7 +30,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-center py-12"
+            className="flex justify-center mb-8"
         >
             <div className="relative group">
                 {/* BORDE CON DEGRADADO DINÁMICO */}
