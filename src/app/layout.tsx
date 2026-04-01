@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getCurrentUser, checkSuperadmin } from "@/lib/auth";
 import { Toaster } from "sonner";
+import { Providers } from "@/components/Providers";
 
 import "./globals.css";
 
@@ -86,8 +87,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
             }}
           />
-          {children}
-          <Toaster position="bottom-right" theme="light" closeButton richColors />
+          <Providers>
+            {children}
+            <Toaster position="bottom-right" closeButton richColors />
+          </Providers>
       </body>
     </html>
   );

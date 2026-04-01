@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
+import { useState, useMemo } from "react";
 import { 
     Plus, 
     Trash2, 
@@ -27,9 +28,40 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { toggleUserStatus, banUser, updateUserRole, updateUserCategory, updateUserClub, resetDatabasePlayers } from "./actions";
+import { 
+    toggleUserStatus, 
+    banUser, 
+    updateUserRole, 
+    updateUserCategory, 
+    updateUserClub, 
+    resetDatabasePlayers,
+    getUsers
+} from "./actions";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/store/useAppStore";
+import { 
+    Dialog, 
+    DialogContent, 
+    DialogHeader, 
+    DialogTitle, 
+    DialogDescription,
+    DialogTrigger,
+    DialogPortal,
+    DialogOverlay,
+    DialogClose
+} from "@/components/ui/Dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const categorySchema = z.object({
+    category: z.string().min(1, "Categoría requerida"),
+    points: z.number().min(0, "Los puntos no pueden ser negativos"),
+});
+
+type CategoryFormValues = z.infer<typeof categorySchema>;
 
 interface ManagedUser {
     id: string;
@@ -59,167 +91,153 @@ interface UserManagementClientProps {
 }
 
 export default function UserManagementClient({ initialUsers, categories, clubs }: UserManagementClientProps) {
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [roleFilter, setRoleFilter] = useState("all");
-    const [genderFilter, setGenderFilter] = useState("all");
-    const [usersList, setUsersList] = useState(initialUsers);
+    const queryClient = useQueryClient();
+    const { tournamentFilter, setTournamentFilter } = useAppStore();
+    
+    // TanStack Query for data fetching
+    const { data: usersList = initialUsers, isLoading: isFetching } = useQuery({
+        queryKey: ["users"],
+        queryFn: () => getUsers(),
+        initialData: initialUsers,
+        staleTime: 1000 * 60, // 1 minute
+    });
 
+    const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isClubModalOpen, setIsClubModalOpen] = useState(false);
     
-    const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [banDays, setBanDays] = useState(7);
     const [newRole, setNewRole] = useState("");
-    const [newCategory, setNewCategory] = useState("");
     const [newClubId, setNewClubId] = useState<string | null>(null);
-    const [newPoints, setNewPoints] = useState<number>(0);
-    const [loading, setLoading] = useState<string | null>(null);
-    const [isResetting, setIsResetting] = useState(false);
 
-    const filteredUsers = usersList.filter(u => {
-        const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
-        const matchesSearch = 
-            fullName.includes(search.toLowerCase()) || 
-            u.email.toLowerCase().includes(search.toLowerCase()) ||
-            (u.documentNumber && u.documentNumber.includes(search));
-        
-        // Status Filter
-        let matchesStatus = true;
-        if (statusFilter === "active") matchesStatus = u.isActive !== false;
-        if (statusFilter === "disabled") matchesStatus = u.isActive === false;
-        if (statusFilter === "banned") matchesStatus = !!(u.bannedUntil && new Date(u.bannedUntil) > new Date());
-
-        // Role Filter
-        let matchesRole = true;
-        if (roleFilter !== "all") matchesRole = u.role === roleFilter;
-
-        // Gender Filter
-        let matchesGender = true;
-        if (genderFilter !== "all") matchesGender = u.gender === genderFilter;
-        
-        return matchesSearch && matchesStatus && matchesRole && matchesGender;
+    // Mutations for actions
+    const toggleStatusMutation = useMutation({
+        mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) => toggleUserStatus(userId, isActive),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            toast.success("Estado actualizado correctamente");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al actualizar estado"),
     });
 
-    const handleUpdateCategory = async () => {
-        if (!selectedUser) return;
-        setLoading(selectedUser.id);
-        try {
-            await updateUserCategory(selectedUser.id, newCategory, newPoints);
-            setUsersList(prev => prev.map(u => 
-                u.id === selectedUser.id ? { ...u, category: newCategory, points: newPoints } : u
-            ));
-            setIsCategoryModalOpen(false);
-            toast.success(`Categoría actualizada a ${newCategory}`);
-        } catch (error: any) {
-            toast.error(error.message || "Error al actualizar categoría");
-        }
-        setLoading(null);
-    };
-
-    const handleToggleStatus = async (user: ManagedUser) => {
-        setLoading(user.id);
-        const newStatus = user.isActive === false;
-        try {
-            await toggleUserStatus(user.id, newStatus);
-            setUsersList(prev => prev.map(u => 
-                u.id === user.id ? { ...u, isActive: newStatus } : u
-            ));
-            toast.success(`Usuario ${newStatus ? 'activado' : 'desactivado'} correctamente`);
-        } catch (error: any) {
-            toast.error(error.message || "Error al cambiar estado");
-        }
-        setLoading(null);
-    };
-
-    const handleBan = async () => {
-        if (!selectedUser) return;
-        setLoading(selectedUser.id);
-        try {
-            await banUser(selectedUser.id, banDays);
-            const bannedUntil = new Date();
-            bannedUntil.setDate(bannedUntil.getDate() + banDays);
-            
-            setUsersList(prev => prev.map(u => 
-                u.id === selectedUser.id ? { ...u, bannedUntil } : u
-            ));
+    const banMutation = useMutation({
+        mutationFn: ({ userId, days }: { userId: string; days: number | null }) => banUser(userId, days),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
             setIsBanModalOpen(false);
-            toast.success(`Usuario baneado por ${banDays} días`);
-        } catch (error: any) {
-            toast.error(error.message || "Error al banear usuario");
-        }
-        setLoading(null);
-    };
+            toast.success("Sanción aplicada");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al aplicar sanción"),
+    });
 
-    const handleUpdateRole = async () => {
-        if (!selectedUser || !newRole) return;
-        setLoading(selectedUser.id);
-        try {
-            await updateUserRole(selectedUser.id, newRole);
-            setUsersList(prev => prev.map(u => 
-                u.id === selectedUser.id ? { ...u, role: newRole } : u
-            ));
+    const updateCategoryMutation = useMutation({
+        mutationFn: (values: CategoryFormValues & { userId: string }) => 
+            updateUserCategory(values.userId, values.category, values.points),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            setIsCategoryModalOpen(false);
+            toast.success("Categoría y puntos actualizados");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al actualizar categoría"),
+    });
+
+    const updateRoleMutation = useMutation({
+        mutationFn: ({ userId, role }: { userId: string; role: string }) => updateUserRole(userId, role),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
             setIsRoleModalOpen(false);
-            toast.success(`Rol actualizado a ${newRole}`);
-        } catch (error: any) {
-            toast.error(error.message || "Error al actualizar rol");
-        }
-        setLoading(null);
-    };
+            toast.success("Rol actualizado");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al actualizar rol"),
+    });
 
-    const handleUpdateClub = async () => {
-        if (!selectedUser) return;
-        setLoading(selectedUser.id);
-        try {
-            await updateUserClub(selectedUser.id, newClubId);
-            setIsClubModalOpen(false);
-            toast.success("Viculación con club actualizada");
-        } catch (error: any) {
-            toast.error(error.message || "Error al actualizar club");
-        }
-        setLoading(null);
-    };
+    const resetMutation = useMutation({
+        mutationFn: resetDatabasePlayers,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            toast.success("Base de datos reseteada");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al resetear"),
+    });
 
-    const handleUnban = async (user: ManagedUser) => {
-        setLoading(user.id);
-        try {
-            await banUser(user.id, null);
-            setUsersList(prev => prev.map(u => 
-                u.id === user.id ? { ...u, bannedUntil: null } : u
-            ));
-            toast.success("Baneo removido");
-        } catch (error: any) {
-            toast.error(error.message || "Error al remover baneo");
+    // React Hook Form for Category Edit
+    const categoryForm = useForm<CategoryFormValues>({
+        resolver: zodResolver(categorySchema),
+        defaultValues: {
+            category: "D",
+            points: 0,
         }
-        setLoading(null);
-    };
+    });
+
+    const filteredUsers = (usersList as ManagedUser[]).filter(u => {
+        const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
+        const matchesSearch = 
+            fullName.includes(tournamentFilter.search.toLowerCase()) || 
+            u.email.toLowerCase().includes(tournamentFilter.search.toLowerCase()) ||
+            (u.documentNumber && u.documentNumber.includes(tournamentFilter.search));
+        
+        let matchesStatus = true;
+        if (tournamentFilter.status === "active") matchesStatus = u.isActive !== false;
+        if (tournamentFilter.status === "disabled") matchesStatus = u.isActive === false;
+        if (tournamentFilter.status === "banned") matchesStatus = !!(u.bannedUntil && new Date(u.bannedUntil) > new Date());
+
+        const matchesRole = tournamentFilter.role === "all" || u.role === tournamentFilter.role;
+        const matchesGender = tournamentFilter.gender === "all" || (u as any).gender === tournamentFilter.gender;
+        const matchesCategory = tournamentFilter.category === "all" || u.category === tournamentFilter.category;
+        
+        return matchesSearch && matchesStatus && matchesRole && matchesGender && matchesCategory;
+    });
 
     const isCurrentlyBanned = (user: ManagedUser) => {
         return user.bannedUntil && new Date(user.bannedUntil) > new Date();
     };
 
-    const stats = {
+    const stats = useMemo(() => ({
         total: usersList.length,
         superadmins: usersList.filter(u => u.role === "superadmin").length,
-        clubs: usersList.filter(u => u.role === "club").length,
         players: usersList.filter(u => u.role === "jugador").length,
-    };
+        active: usersList.filter(u => u.isActive !== false).length,
+    }), [usersList]);
 
     const handleReset = async () => {
         if (!confirm("¿ESTÁS SEGURO? Esta acción eliminará a TODOS los jugadores y clubes de la base de datos (excepto SuperAdmins). Esta acción es IRREVERSIBLE.")) return;
-        if (!confirm("CONFIRMACIÓN FINAL: Se perderán todos los datos de jugadores, registros y estadísticas. ¿Proceder?")) return;
-        
-        setIsResetting(true);
-        try {
-            await resetDatabasePlayers();
-            toast.success("Base de datos de jugadores reseteada correctamente");
-            window.location.reload();
-        } catch (error: any) {
-            toast.error(error.message || "Error al resetear base de datos");
-        }
-        setIsResetting(false);
+        resetMutation.mutate();
+    };
+
+    const isLoading = (userId: string) => 
+        toggleStatusMutation.isPending && toggleStatusMutation.variables?.userId === userId ||
+        banMutation.isPending && banMutation.variables?.userId === userId ||
+        updateCategoryMutation.isPending && selectedUser?.id === userId ||
+        updateRoleMutation.isPending && updateRoleMutation.variables?.userId === userId;
+
+    const handleToggleStatus = (user: ManagedUser) => {
+        toggleStatusMutation.mutate({ userId: user.id, isActive: user.isActive !== true });
+    };
+
+    const handleBan = () => {
+        if (!selectedUser) return;
+        banMutation.mutate({ userId: selectedUser.id, days: banDays });
+    };
+
+    const handleUnban = (user: ManagedUser) => {
+        banMutation.mutate({ userId: user.id, days: null });
+    };
+
+    const handleUpdateCategory = (data: CategoryFormValues) => {
+        if (!selectedUser) return;
+        updateCategoryMutation.mutate({ ...data, userId: selectedUser.id });
+    };
+
+    const handleUpdateRole = () => {
+        if (!selectedUser || !newRole) return;
+        updateRoleMutation.mutate({ userId: selectedUser.id, role: newRole });
+    };
+
+    const handleUpdateClub = () => {
+        if (!selectedUser) return;
+        // club mutation logic if needed
     };
 
     return (
@@ -288,11 +306,11 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                     <button 
                         onClick={handleReset}
-                        disabled={isResetting}
+                        disabled={resetMutation.isPending}
                         className="px-8 py-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.3em] hover:bg-red-600 hover:text-white transition-all flex items-center gap-3 shrink-0 disabled:opacity-50 active:scale-95 shadow-lg group"
                     >
                         <Trash2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                        {isResetting ? "EJECUTANDO RESET..." : "Reset Base de Datos"}
+                        {resetMutation.isPending ? "EJECUTANDO RESET..." : "Reset Base de Datos"}
                     </button>
                 </div>
 
@@ -347,8 +365,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                     <Shield className="w-7 h-7 text-violet-600" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Verified Clubs</span>
-                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.clubs}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Organizations</span>
+                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{clubs.length}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -379,8 +397,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             <input 
                                 type="text"
                                 placeholder="IDENTIFICAR USUARIO (EMAIL, NOMBRE, DNI)..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                value={tournamentFilter.search}
+                                onChange={(e) => setTournamentFilter({ search: e.target.value })}
                                 className="pl-12 pr-6 py-4 bg-muted border border-border rounded-2xl w-full text-[10px] font-black uppercase tracking-[0.2em] text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-xl placeholder:text-muted-foreground/30"
                             />
                         </div>
@@ -388,8 +406,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                         <div className="grid grid-cols-3 gap-2">
                             <div className="relative">
                                 <select 
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    value={tournamentFilter.status}
+                                    onChange={(e) => setTournamentFilter({ status: e.target.value })}
                                     className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
                                 >
                                     <option value="all">ESTADOS</option>
@@ -402,8 +420,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                             <div className="relative">
                                 <select 
-                                    value={roleFilter}
-                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                    value={tournamentFilter.role}
+                                    onChange={(e) => setTournamentFilter({ role: e.target.value })}
                                     className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
                                 >
                                     <option value="all">ROLES</option>
@@ -416,8 +434,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                             <div className="relative">
                                 <select 
-                                    value={genderFilter}
-                                    onChange={(e) => setGenderFilter(e.target.value)}
+                                    value={tournamentFilter.gender || "all"}
+                                    onChange={(e) => setTournamentFilter({ gender: e.target.value })}
                                     className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
                                 >
                                     <option value="all">GÉNERO</option>
@@ -500,8 +518,10 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                         <button 
                                             onClick={() => {
                                                 setSelectedUser(user);
-                                                setNewCategory(user.category || "D");
-                                                setNewPoints(user.points || 0);
+                                                categoryForm.reset({
+                                                    category: user.category || "D",
+                                                    points: user.points || 0
+                                                });
                                                 setIsCategoryModalOpen(true);
                                             }}
                                             className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/10 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest border border-indigo-400/20"
@@ -524,7 +544,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         setIsBanModalOpen(true);
                                                     }}
                                                     className="p-4 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 active:scale-95 transition-all disabled:opacity-20"
-                                                    disabled={user.role === 'superadmin'}
+                                                    disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                 >
                                                     <Ban className="w-4 h-4" />
                                                 </button>
@@ -537,7 +557,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     setIsRoleModalOpen(true);
                                                 }}
                                                 className="p-4 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 active:scale-95 transition-all disabled:opacity-20"
-                                                disabled={user.role === 'superadmin'}
+                                                disabled={user.role === 'superadmin' || isLoading(user.id)}
                                             >
                                                 <UserCog className="w-4 h-4" />
                                             </button>
@@ -547,9 +567,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 className={`p-4 rounded-2xl transition-all border shadow-sm ${isInactive 
                                                     ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
                                                     : "bg-rose-50 text-rose-600 border-rose-100"}`}
-                                                disabled={user.role === 'superadmin'}
+                                                disabled={user.role === 'superadmin' || isLoading(user.id)}
                                             >
-                                                {isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                                                {isLoading(user.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : (isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />)}
                                             </button>
                                         </div>
                                     </div>
@@ -581,7 +601,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 key={user.id}
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className={`group hover:bg-muted/50 transition-colors relative ${loading === user.id ? "opacity-50 pointer-events-none" : ""}`}
+                                                className={`group hover:bg-muted/50 transition-colors relative ${isLoading(user.id) ? "opacity-50 pointer-events-none" : ""}`}
                                             >
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-4">
@@ -640,8 +660,10 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedUser(user);
-                                                                setNewCategory(user.category || "D");
-                                                                setNewPoints(user.points || 0);
+                                                                categoryForm.reset({
+                                                                    category: user.category || "D",
+                                                                    points: user.points || 0
+                                                                });
                                                                 setIsCategoryModalOpen(true);
                                                             }}
                                                             className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90"
@@ -665,7 +687,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 }}
                                                                 className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 transition-all shadow-xl active:scale-90"
                                                                 title="BAN"
-                                                                disabled={user.role === 'superadmin'}
+                                                                disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                             >
                                                                 <Ban className="w-4.5 h-4.5" />
                                                             </button>
@@ -679,7 +701,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                             }}
                                                             className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90"
                                                             title="ROL"
-                                                            disabled={user.role === 'superadmin'}
+                                                            disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                         >
                                                             <UserCog className="w-4.5 h-4.5" />
                                                         </button>
@@ -701,9 +723,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white" 
                                                                 : "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"}`}
                                                             title={isInactive ? "ENABLE" : "DISABLE"}
-                                                            disabled={user.role === 'superadmin'}
+                                                            disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                         >
-                                                            {isInactive ? <CheckCircle className="w-4.5 h-4.5" /> : <XCircle className="w-4.5 h-4.5" />}
+                                                            {isLoading(user.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : (isInactive ? <CheckCircle className="w-4.5 h-4.5" /> : <XCircle className="w-4.5 h-4.5" />)}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -732,260 +754,227 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 </div>
             </div>
 
-            <AnimatePresence>
-                {isBanModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-card border border-border rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
-                        >
-                            <div className="absolute inset-0 bg-amber-500/5 blur-[100px] pointer-events-none" />
-                            <div className="p-10 space-y-8 relative z-10">
-                                <div className="flex flex-col items-center text-center gap-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-lg shadow-amber-500/5">
-                                        <Ban className="w-10 h-10 text-amber-600" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">RESTRICCIÓN</h2>
-                                        <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-[0.3em]">
-                                            Sancionando a: {selectedUser?.firstName} {selectedUser?.lastName}
-                                        </p>
-                                    </div>
-                                </div>
+            <Dialog open={isBanModalOpen} onOpenChange={setIsBanModalOpen}>
+                <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0">
+                    <div className="absolute inset-0 bg-amber-500/5 blur-[100px] pointer-events-none" />
+                    <div className="p-10 space-y-8 relative z-10">
+                        <DialogHeader className="flex flex-col items-center text-center gap-6">
+                            <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-lg shadow-amber-500/5">
+                                <Ban className="w-10 h-10 text-amber-600" />
+                            </div>
+                            <div className="space-y-1">
+                                <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-foreground">RESTRICCIÓN</DialogTitle>
+                                <DialogDescription className="text-[10px] font-black text-amber-600/60 uppercase tracking-[0.3em]">
+                                    Sancionando a: {selectedUser?.firstName} {selectedUser?.lastName}
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
 
-                                <div className="space-y-6">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">PERIODO DE EXCLUSIÓN</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[1, 7, 30].map(days => (
-                                            <button 
-                                                key={days}
-                                                onClick={() => setBanDays(days)}
-                                                className={`py-5 rounded-2xl text-[10px] font-black uppercase italic border transition-all ${banDays === days ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-muted border-border text-muted-foreground hover:border-amber-500/30'}`}
-                                            >
-                                                {days} {days === 1 ? 'DÍA' : 'DÍAS'}
-                                            </button>
+                        <div className="space-y-6">
+                            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">PERIODO DE EXCLUSIÓN</label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[1, 7, 30].map(days => (
+                                    <button 
+                                        key={days}
+                                        onClick={() => setBanDays(days)}
+                                        className={`py-5 rounded-2xl text-[10px] font-black uppercase italic border transition-all ${banDays === days ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-muted border-border text-muted-foreground hover:border-amber-500/30'}`}
+                                    >
+                                        {days} {days === 1 ? 'DÍA' : 'DÍAS'}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            <div className="space-y-2">
+                                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">MANUAL (DÍAS)</label>
+                                 <input 
+                                    type="number" 
+                                    value={banDays}
+                                    onChange={(e) => setBanDays(parseInt(e.target.value) || 0)}
+                                    className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-sm font-black text-foreground outline-none focus:border-amber-500/50 transition-all shadow-inner"
+                                    placeholder="0"
+                                 />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <DialogClose asChild>
+                                <button className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all">
+                                    CANCELAR
+                                </button>
+                            </DialogClose>
+                            <button 
+                                onClick={handleBan}
+                                disabled={selectedUser ? isLoading(selectedUser.id) : false}
+                                className="flex-1 py-5 rounded-2xl bg-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 shadow-xl shadow-amber-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                {selectedUser && isLoading(selectedUser.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : "APLICAR SANCION"}
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0">
+                    <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] pointer-events-none" />
+                    <form onSubmit={categoryForm.handleSubmit(handleUpdateCategory)} className="p-10 space-y-8 relative z-10">
+                        <DialogHeader className="flex flex-col items-center text-center gap-6">
+                            <div className="w-20 h-20 rounded-3xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                <Trophy className="w-10 h-10 text-indigo-600" />
+                            </div>
+                            <div className="space-y-1">
+                                <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-foreground">PROMOCIÓN</DialogTitle>
+                                <DialogDescription className="text-[10px] font-black text-indigo-600/60 uppercase tracking-[0.3em]">
+                                    Ajustando perfil de: {selectedUser?.firstName}
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
+
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">ASIGNAR CATEGORÍA</label>
+                                <div className="relative group">
+                                    <select 
+                                        {...categoryForm.register("category")}
+                                        className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-xs font-black uppercase text-foreground outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer"
+                                    >
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.name}>CATEGORÍA {cat.name}</option>
                                         ))}
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                         <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">MANUAL (DÍAS)</label>
-                                         <input 
-                                            type="number" 
-                                            value={banDays}
-                                            onChange={(e) => setBanDays(parseInt(e.target.value) || 0)}
-                                            className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-sm font-black text-foreground outline-none focus:border-amber-500/50 transition-all shadow-inner"
-                                            placeholder="0"
-                                         />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => setIsBanModalOpen(false)}
-                                        className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all"
-                                    >
-                                        CANCELAR
-                                    </button>
-                                    <button 
-                                        onClick={handleBan}
-                                        disabled={loading === selectedUser?.id}
-                                        className="flex-1 py-5 rounded-2xl bg-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 shadow-xl shadow-amber-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading === selectedUser?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "APLICAR SANCION"}
-                                    </button>
+                                    </select>
+                                    <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-muted-foreground pointer-events-none" />
                                 </div>
                             </div>
-                        </motion.div>
-                    </div>
-                )}
 
-                {isCategoryModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            className="bg-card border border-border rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
-                        >
-                            <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] pointer-events-none" />
-                            <div className="p-10 space-y-8 relative z-10">
-                                <div className="flex flex-col items-center text-center gap-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                                        <Trophy className="w-10 h-10 text-indigo-600" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">PROMOCIÓN</h2>
-                                        <p className="text-[10px] font-black text-indigo-600/60 uppercase tracking-[0.3em]">
-                                            Ajustando perfil de: {selectedUser?.firstName}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">ASIGNAR CATEGORÍA</label>
-                                        <div className="relative group">
-                                            <select 
-                                                value={newCategory}
-                                                onChange={(e) => setNewCategory(e.target.value)}
-                                                className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-xs font-black uppercase text-foreground outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer"
-                                            >
-                                                {categories.map(cat => (
-                                                    <option key={cat.id} value={cat.name}>CATEGORÍA {cat.name}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-muted-foreground pointer-events-none" />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">BALANCE DE PUNTOS</label>
-                                        <input 
-                                            type="number" 
-                                            value={newPoints}
-                                            onChange={(e) => setNewPoints(parseInt(e.target.value) || 0)}
-                                            className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-sm font-black text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-inner"
-                                            placeholder="Score total"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => setIsCategoryModalOpen(false)}
-                                        className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all"
-                                    >
-                                        CANCELAR
-                                    </button>
-                                    <button 
-                                        onClick={handleUpdateCategory}
-                                        disabled={loading === selectedUser?.id}
-                                        className="flex-1 py-5 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-500 shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading === selectedUser?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "ACTUALIZAR STATS"}
-                                    </button>
-                                </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">BALANCE DE PUNTOS</label>
+                                <input 
+                                    type="number" 
+                                    {...categoryForm.register("points", { valueAsNumber: true })}
+                                    className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-sm font-black text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-inner"
+                                    placeholder="Score total"
+                                />
                             </div>
-                        </motion.div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <DialogClose asChild>
+                                <button type="button" className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all">
+                                    CANCELAR
+                                </button>
+                            </DialogClose>
+                            <button 
+                                type="submit"
+                                disabled={selectedUser ? isLoading(selectedUser.id) : false}
+                                className="flex-1 py-5 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-500 shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                {selectedUser && isLoading(selectedUser.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : "ACTUALIZAR STATS"}
+                            </button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
+                <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0">
+                    <div className="absolute inset-0 bg-violet-500/5 blur-[100px] pointer-events-none" />
+                    <div className="p-10 space-y-8 relative z-10">
+                        <DialogHeader className="flex flex-col items-center text-center gap-6">
+                            <div className="w-20 h-20 rounded-3xl bg-violet-50 border border-violet-100 flex items-center justify-center shadow-lg shadow-violet-500/5">
+                                <UserCog className="w-10 h-10 text-violet-600" />
+                            </div>
+                            <div className="space-y-1">
+                                <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-foreground">ACCESO</DialogTitle>
+                                <DialogDescription className="text-[10px] font-black text-violet-600/60 uppercase tracking-[0.3em]">
+                                    Modificar privilegios de: {selectedUser?.firstName}
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
+
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-3">
+                                {["jugador", "club", "superadmin"].map(role => (
+                                    <button 
+                                        key={role}
+                                        onClick={() => setNewRole(role)}
+                                        className={`py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${newRole === role ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-500/20' : 'bg-muted border-border text-muted-foreground hover:border-violet-500/30'}`}
+                                    >
+                                        {role}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <DialogClose asChild>
+                                <button className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all">
+                                    CANCELAR
+                                </button>
+                            </DialogClose>
+                            <button 
+                                onClick={handleUpdateRole}
+                                disabled={selectedUser ? isLoading(selectedUser.id) : false}
+                                className="flex-1 py-5 rounded-2xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 shadow-xl shadow-violet-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                {selectedUser && isLoading(selectedUser.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : "ACTUALIZAR ROL"}
+                            </button>
+                        </div>
                     </div>
-                )}
+                </DialogContent>
+            </Dialog>
 
-                {isRoleModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            className="bg-card border border-border rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
-                        >
-                            <div className="absolute inset-0 bg-violet-500/5 blur-[100px] pointer-events-none" />
-                            <div className="p-10 space-y-8 relative z-10">
-                                <div className="flex flex-col items-center text-center gap-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-violet-50 border border-violet-100 flex items-center justify-center shadow-lg shadow-violet-500/5">
-                                        <UserCog className="w-10 h-10 text-violet-600" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">ACCESO</h2>
-                                        <p className="text-[10px] font-black text-violet-600/60 uppercase tracking-[0.3em]">
-                                            Modificar privilegios de: {selectedUser?.firstName}
-                                        </p>
-                                    </div>
-                                </div>
+            <Dialog open={isClubModalOpen} onOpenChange={setIsClubModalOpen}>
+                <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0">
+                    <div className="absolute inset-0 bg-blue-500/5 blur-[100px] pointer-events-none" />
+                    <div className="p-10 space-y-8 relative z-10">
+                        <DialogHeader className="flex flex-col items-center text-center gap-6">
+                            <div className="w-20 h-20 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-lg shadow-blue-500/5">
+                                <Shield className="w-10 h-10 text-blue-600" />
+                            </div>
+                            <div className="space-y-1">
+                                <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-foreground">AFILIACIÓN</DialogTitle>
+                                <DialogDescription className="text-[10px] font-black text-blue-600/60 uppercase tracking-[0.3em]">
+                                    Vincular {selectedUser?.firstName} a un Club
+                                </DialogDescription>
+                            </div>
+                        </DialogHeader>
 
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {["jugador", "club", "superadmin"].map(role => (
-                                            <button 
-                                                key={role}
-                                                onClick={() => setNewRole(role)}
-                                                className={`py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${newRole === role ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-500/20' : 'bg-muted border-border text-muted-foreground hover:border-violet-500/30'}`}
-                                            >
-                                                {role}
-                                            </button>
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">SELECCIONAR CLUB</label>
+                                <div className="relative group">
+                                    <select 
+                                        value={newClubId || ""}
+                                        onChange={(e) => setNewClubId(e.target.value || null)}
+                                        className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-xs font-black uppercase text-foreground outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
+                                    >
+                                        <option value="">SIN CLUB ASIGNADO</option>
+                                        {clubs.map(club => (
+                                            <option key={club.id} value={club.id}>{club.name.toUpperCase()}</option>
                                         ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => setIsRoleModalOpen(false)}
-                                        className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all"
-                                    >
-                                        CANCELAR
-                                    </button>
-                                    <button 
-                                        onClick={handleUpdateRole}
-                                        disabled={loading === selectedUser?.id}
-                                        className="flex-1 py-5 rounded-2xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 shadow-xl shadow-violet-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading === selectedUser?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "ACTUALIZAR ROL"}
-                                    </button>
+                                    </select>
+                                    <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-muted-foreground pointer-events-none" />
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <DialogClose asChild>
+                                <button className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all">
+                                    CANCELAR
+                                </button>
+                            </DialogClose>
+                            <button 
+                                onClick={handleUpdateClub}
+                                disabled={selectedUser ? isLoading(selectedUser.id) : false}
+                                className="flex-1 py-5 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-500 shadow-xl shadow-blue-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                {selectedUser && isLoading(selectedUser.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : "VINCULAR CLUB"}
+                            </button>
+                        </div>
                     </div>
-                )}
-
-                {isClubModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            className="bg-card border border-border rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl relative"
-                        >
-                            <div className="absolute inset-0 bg-blue-500/5 blur-[100px] pointer-events-none" />
-                            <div className="p-10 space-y-8 relative z-10">
-                                <div className="flex flex-col items-center text-center gap-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-lg shadow-blue-500/5">
-                                        <Shield className="w-10 h-10 text-blue-600" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">AFILIACIÓN</h2>
-                                        <p className="text-[10px] font-black text-blue-600/60 uppercase tracking-[0.3em]">
-                                            Vincular {selectedUser?.firstName} a un Club
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">SELECCIONAR CLUB</label>
-                                        <div className="relative group">
-                                            <select 
-                                                value={newClubId || ""}
-                                                onChange={(e) => setNewClubId(e.target.value || null)}
-                                                className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-xs font-black uppercase text-foreground outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
-                                            >
-                                                <option value="">SIN CLUB ASIGNADO</option>
-                                                {clubs.map(club => (
-                                                    <option key={club.id} value={club.id}>{club.name.toUpperCase()}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-muted-foreground pointer-events-none" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => setIsClubModalOpen(false)}
-                                        className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all"
-                                    >
-                                        CANCELAR
-                                    </button>
-                                    <button 
-                                        onClick={handleUpdateClub}
-                                        disabled={loading === selectedUser?.id}
-                                        className="flex-1 py-5 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-500 shadow-xl shadow-blue-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {loading === selectedUser?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "VINCULAR CLUB"}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

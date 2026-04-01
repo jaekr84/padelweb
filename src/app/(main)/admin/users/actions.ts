@@ -97,3 +97,26 @@ export async function resetDatabasePlayers() {
     }
 }
 
+import { desc, sql } from "drizzle-orm";
+
+export async function getUsers() {
+    await checkSuperAdmin();
+
+    return await db.select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        isActive: users.isActive,
+        bannedUntil: users.bannedUntil,
+        points: users.points,
+        category: users.category,
+        gender: users.gender,
+        documentNumber: users.documentNumber,
+        createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
+    .orderBy(desc(users.createdAt));
+}

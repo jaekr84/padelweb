@@ -2,7 +2,6 @@
 import { db } from "../src/db";
 import { users } from "../src/db/schema";
 import bcrypt from "bcryptjs";
-import { v4 as uuidv4 } from "uuid";
 import { eq } from "drizzle-orm";
 
 async function main() {
