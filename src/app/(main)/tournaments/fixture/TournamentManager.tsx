@@ -5,7 +5,7 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check, X, RefreshCw, Dice5
+    BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -53,6 +53,42 @@ type BracketMatch = {
     winnerName?: string;
 };
 
+// ── Shared Helper Functions ──
+function getSeedingOrder(size: number) {
+    if (size <= 1) return [1];
+    let rounds = Math.log2(size);
+    let order = [1, 2];
+    for (let r = 1; r < rounds; r++) {
+        let nextOrder = [];
+        let sum = Math.pow(2, r + 1) + 1;
+        for (let i = 0; i < order.length; i++) {
+            // Fold odd positions differently to ensure standard tennis-style brackets
+            if (i % 2 === 0) {
+                nextOrder.push(order[i]);
+                nextOrder.push(sum - order[i]);
+            } else {
+                nextOrder.push(sum - order[i]);
+                nextOrder.push(order[i]);
+            }
+        }
+        order = nextOrder;
+    }
+    return order;
+}
+
+const MATCH_COLORS = [
+    { bg: "bg-blue-600/15", border: "border-blue-600", text: "text-blue-700" },
+    { bg: "bg-emerald-600/15", border: "border-emerald-600", text: "text-emerald-700" },
+    { bg: "bg-amber-600/20", border: "border-amber-600", text: "text-amber-700" },
+    { bg: "bg-rose-600/15", border: "border-rose-600", text: "text-rose-700" },
+    { bg: "bg-violet-600/15", border: "border-violet-600", text: "text-violet-700" },
+    { bg: "bg-orange-600/20", border: "border-orange-600", text: "text-orange-700" },
+    { bg: "bg-cyan-600/15", border: "border-cyan-600", text: "text-cyan-700" },
+    { bg: "bg-fuchsia-600/15", border: "border-fuchsia-600", text: "text-fuchsia-700" },
+    { bg: "bg-lime-600/20", border: "border-lime-600", text: "text-lime-700" },
+    { bg: "bg-indigo-600/15", border: "border-indigo-600", text: "text-indigo-700" },
+];
+
 export default function TournamentManager({
     tournamentId,
     tournamentName,
@@ -75,6 +111,21 @@ export default function TournamentManager({
     const [saving, setSaving] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [hoveredMatchIdx, setHoveredMatchIdx] = useState<number | null>(null);
+    const [qualifierOverrides, setQualifierOverrides] = useState<Record<number, Player | "BYE">>({});
+    const [isReplacingPlayer, setIsReplacingPlayer] = useState<number | null>(null);
+    const [playerSearchQuery, setPlayerSearchQuery] = useState("");
+
+    const selectedPlayer = useMemo(() => {
+        if (!selectedPlayerId) return null;
+        return groups.flatMap(g => g.players).find(p => p.id === selectedPlayerId);
+    }, [selectedPlayerId, groups]);
+
+    const playerGroupMatches = useMemo(() => {
+        if (!selectedPlayerId) return [];
+        return matches.filter(m => m.team1.id === selectedPlayerId || m.team2.id === selectedPlayerId);
+    }, [selectedPlayerId, matches]);
 
     // ─── Shared Logic ───
     const computeStandings = (groupId: string) => {
@@ -108,9 +159,8 @@ export default function TournamentManager({
             if (m.score1 === undefined || m.score2 === undefined || m.score1 === null || m.score2 === null) return;
             if (!m.team1 || !m.team2) return;
 
-            // Match by ID or Name to handle potential hydration mismatches
-            const p1 = standings.find((s: any) => s.playerId === m.team1.id || (m.team1.name && s.player.name === m.team1.name));
-            const p2 = standings.find((s: any) => s.playerId === m.team2.id || (m.team2.name && s.player.name === m.team2.name));
+            const p1 = standings.find((s: any) => s.playerId === m.team1.id);
+            const p2 = standings.find((s: any) => s.playerId === m.team2.id);
 
             if (p1 && p2) {
                 p1.matchesPlayed++;
@@ -132,36 +182,66 @@ export default function TournamentManager({
             }
         });
 
-        // Sort by priority:
-        // 1. Matches won
-        // 2. Head-to-head (if only 2 players are tied in wins)
-        // 3. Points balance (game difference)
-        // 4. Total games won
-        return standings.sort((a: any, b: any) => {
-            if (b.won !== a.won) return b.won - a.won;
+        const rankFIPGroup = (players: any[], matchesToAnalyze: any[], metricIndex: number = 0): any[] => {
+            if (players.length === 0) return [];
+            if (players.length === 1) return players;
 
-            // Tie-break: Head-to-head
-            const tiedOnWins = standings.filter((s: any) => s.won === a.won);
-            if (tiedOnWins.length === 2) {
-                const match = groupMatches.find(m =>
+            // FIP Rule: If exactly 2 players are tied, ALWAYS resolve by Head-to-Head first.
+            if (players.length === 2) {
+                const [a, b] = players;
+                const match = matchesToAnalyze.find(m =>
+                    m.team1 && m.team2 &&
                     ((m.team1.id === a.playerId && m.team2.id === b.playerId) ||
                         (m.team1.id === b.playerId && m.team2.id === a.playerId)) &&
                     m.confirmed
                 );
 
                 if (match) {
-                    const aIsTeam1 = match.team1.id === a.playerId;
+                    const aIsTeam1 = match.team1!.id === a.playerId;
                     const aScore = aIsTeam1 ? match.score1! : match.score2!;
                     const bScore = aIsTeam1 ? match.score2! : match.score1!;
                     if (aScore !== bScore) {
-                        return bScore - aScore;
+                        return aScore > bScore ? [a, b] : [b, a];
                     }
                 }
+                // If they tied their match (rare) or haven't played, fall back to the current metric
             }
 
-            if (b.points !== a.points) return b.points - a.points;
-            return b.gamesWon - a.gamesWon;
-        });
+            const metrics = [
+                (p: any) => p.won,
+                (p: any) => p.points,      // Game Difference
+                (p: any) => p.gamesWon,    // Ultimate fallback for Padel
+            ];
+
+            // If we ran out of metrics, keep them in arbitrary order
+            if (metricIndex >= metrics.length) return players;
+
+            const metricFn = metrics[metricIndex];
+
+            // Group players by current metric
+            const groupsByMetric = new Map<number, any[]>();
+            for (const p of players) {
+                const val = metricFn(p);
+                if (!groupsByMetric.has(val)) groupsByMetric.set(val, []);
+                groupsByMetric.get(val)!.push(p);
+            }
+
+            // Sort subgroup keys descending (higher is better)
+            const sortedVals = Array.from(groupsByMetric.keys()).sort((a, b) => b - a);
+
+            let result: any[] = [];
+            for (const val of sortedVals) {
+                const subGroup = groupsByMetric.get(val)!;
+                // Recursively rank this subgroup with the NEXT metric.
+                // If this subgroup drops to size 2, rankFIPGroup automatically catches it and applies Head-to-Head!
+                const rankedSubGroup = rankFIPGroup(subGroup, matchesToAnalyze, metricIndex + 1);
+                result = result.concat(rankedSubGroup);
+            }
+
+            return result;
+        };
+
+        return rankFIPGroup(standings, groupMatches);
     };
 
     // Sync state with props when initial data changes (e.g. after router.refresh())
@@ -205,7 +285,30 @@ export default function TournamentManager({
             (b.points - a.points) ||
             (b.gamesWon - a.gamesWon)
         );
-    }, [groups, matches, qualPerGroup]);
+    }, [groups, matches, qualPerGroup, computeStandings]);
+
+    const finalQualifiers = useMemo(() => {
+        return sortedQualifiers.map((q, idx) => {
+            const seed = idx + 1;
+            const override = qualifierOverrides[seed];
+            if (override === "BYE") {
+                return {
+                    ...q,
+                    isOverride: true,
+                    isByeOverride: true
+                };
+            }
+            if (override) {
+                return {
+                    ...q,
+                    player: override,
+                    playerId: override.id,
+                    isOverride: true
+                };
+            }
+            return q;
+        });
+    }, [sortedQualifiers, qualifierOverrides]);
 
     const handleSimulateResults = () => {
         const newMatches = matches.map(m => {
@@ -338,7 +441,7 @@ export default function TournamentManager({
 
         try {
             // Initialize empty bracket
-            const newBracket: BracketMatch[] = [];
+            let newBracket: BracketMatch[] = [];
             for (let r = 0; r < numRounds; r++) {
                 const matchesInRound = Math.pow(2, r);
                 for (let s = 0; s < matchesInRound; s++) {
@@ -353,22 +456,6 @@ export default function TournamentManager({
                 }
             }
 
-            // 4. Professional Seeding Order Logic
-            // Generates a sequence like [1, 8, 4, 5, 2, 7, 3, 6] for size 8
-            const getSeedingOrder = (size: number) => {
-                let order = [1];
-                while (order.length < size) {
-                    const nextOrder = [];
-                    const nextSum = order.length * 2 + 1;
-                    for (const s of order) {
-                        nextOrder.push(s);
-                        nextOrder.push(nextSum - s);
-                    }
-                    order = nextOrder;
-                }
-                return order;
-            };
-
             const seedPositions = getSeedingOrder(bracketSize);
             const pairings: { t1: BracketSlot, t2: BracketSlot }[] = [];
 
@@ -377,9 +464,21 @@ export default function TournamentManager({
                 const s1 = seedPositions[i];
                 const s2 = seedPositions[i + 1];
 
-                // If seed is > totalQuals, it's a BYE
-                const p1 = s1 <= totalQuals ? sortedSeeds[s1 - 1].player : "BYE";
-                const p2 = s2 <= totalQuals ? sortedSeeds[s2 - 1].player : "BYE";
+                const q1 = finalQualifiers[s1 - 1];
+                const q2 = finalQualifiers[s2 - 1];
+
+                let p1: BracketSlot = (q1 && s1 <= totalQuals) ? q1.player : "BYE";
+                let p2: BracketSlot = (q2 && s2 <= totalQuals) ? q2.player : "BYE";
+
+                // --- Administrative Overrides ---
+                // If either has a manual BYE override, the other one passes
+                if (q1?.isByeOverride) {
+                    p1 = q1.player;
+                    p2 = "BYE";
+                } else if (q2?.isByeOverride) {
+                    p1 = "BYE";
+                    p2 = q2.player;
+                }
 
                 pairings.push({ t1: p1, t2: p2 });
             }
@@ -405,7 +504,7 @@ export default function TournamentManager({
             });
 
             // Advance auto-winners to next rounds
-            advanceBracketWinners(newBracket, numRounds);
+            newBracket = computeAdvancedBracket(newBracket, numRounds);
 
             const res = await saveTournamentFixture({
                 tournamentId,
@@ -443,34 +542,48 @@ export default function TournamentManager({
         }));
     };
 
-    function advanceBracketWinners(currentBracket: BracketMatch[], totalRounds: number) {
-
+    function computeAdvancedBracket(currentBracket: BracketMatch[], totalRounds: number): BracketMatch[] {
+        // Explicitly deep clone everything to avoid any shared reference bugs
+        const safeBracket = currentBracket.map(m => ({ ...m }));
+        
         for (let r = totalRounds - 1; r > 0; r--) {
-            const roundMatches = currentBracket.filter(m => m.round === r);
+            const roundMatches = safeBracket.filter(m => m.round === r);
             roundMatches.forEach(m => {
-                if (m.confirmed && m.winnerId) {
-                    const nextRound = r - 1;
-                    const nextSlot = Math.floor(m.slot / 2);
-                    const isTeam2 = m.slot % 2 === 1;
-                    const nextMatch = currentBracket.find(nm => nm.round === nextRound && nm.slot === nextSlot);
-                    if (nextMatch) {
-                        const winner = [m.team1, m.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player).id === m.winnerId);
-                        if (isTeam2) nextMatch.team2 = winner as Player;
-                        else nextMatch.team1 = winner as Player;
+                const nextRound = r - 1;
+                const nextSlot = Math.floor(m.slot / 2);
+                const isTeam2 = m.slot % 2 === 1;
+                const nextMatch = safeBracket.find(nm => nm.round === nextRound && nm.slot === nextSlot);
+                
+                if (nextMatch) {
+                    if (m.confirmed && m.winnerId) {
+                        let winner = [m.team1, m.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player).id === m.winnerId);
+                        
+                        // Robust fallback in case m.winnerId isn't exactly matching identity:
+                        if (!winner && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) {
+                            winner = m.score1 > m.score2 ? m.team1 : m.team2;
+                        }
+
+                        if (isTeam2) nextMatch.team2 = winner as Player || null;
+                        else nextMatch.team1 = winner as Player || null;
 
                         // Recursive auto-advance if the newly filled match has a BYE
                         if (nextMatch.team1 && nextMatch.team2) {
                             if ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE") {
                                 nextMatch.confirmed = true;
-                                nextMatch.winnerId = (nextMatch.team1 as any) !== "BYE"
-                                    ? (nextMatch.team1 as Player).id
-                                    : (nextMatch.team2 as Player).id;
+                                const advancingTeam = (nextMatch.team1 as any) !== "BYE" ? nextMatch.team1 : nextMatch.team2;
+                                nextMatch.winnerId = (advancingTeam as Player)?.id || undefined;
+                                nextMatch.winnerName = (advancingTeam as Player)?.name || undefined;
                             }
                         }
+                    } else {
+                        // Clear the slot if not confirmed properly
+                        if (isTeam2) nextMatch.team2 = null;
+                        else nextMatch.team1 = null;
                     }
                 }
             });
         }
+        return safeBracket;
     }
 
 
@@ -484,7 +597,7 @@ export default function TournamentManager({
         }
 
         const updated = bracket.map(m => {
-            if (m.id !== matchId) return m;
+            if (m.id !== matchId) return { ...m };
             const winner = m.score1! > m.score2! ? m.team1 : m.team2;
             const winnerId = (winner as Player)?.id;
             const winnerName = (winner as Player)?.name;
@@ -500,9 +613,8 @@ export default function TournamentManager({
         });
 
         const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
-        advanceBracketWinners(updated, totalRounds);
+        const finalBracket = computeAdvancedBracket(updated, totalRounds);
 
-        const finalBracket = updated;
         setBracket(finalBracket);
 
         const loadingToast = toast.loading("Confirmando resultado...");
@@ -870,32 +982,73 @@ export default function TournamentManager({
 
                             {/* ActionBar / Tournament finalization action */}
                             {!readOnly && (
-                                <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-blue-500/5">
-                                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-                                        <div className="space-y-3">
-                                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">Fase de Grupos</h2>
-                                            <div className="flex items-center gap-3 justify-center md:justify-start">
-                                                <div className="px-4 py-2.5 bg-muted rounded-xl border border-border flex items-center gap-3">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clasifican:</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <button className="w-7 h-7 rounded-lg bg-card border border-border flex items-center justify-center text-sm text-foreground hover:bg-muted transition-colors" onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}>−</button>
-                                                        <span className="text-sm font-black text-foreground w-4 text-center">{qualPerGroup}</span>
-                                                        <button className="w-7 h-7 rounded-lg bg-card border border-border flex items-center justify-center text-sm text-foreground hover:bg-muted transition-colors" onClick={() => setQualPerGroup(q => Math.min(10, q + 1))}>+</button>
+                                <div className="p-10 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] w-full relative overflow-hidden shadow-2xl shadow-blue-500/5">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
+
+                                    <div className="flex flex-row items-center justify-between gap-12">
+                                        <div className="flex items-center gap-12">
+                                            <div className="space-y-1">
+                                                <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-foreground whitespace-nowrap leading-none">Fase de Grupos</h2>
+                                                <p className="text-[10px] font-black text-blue-500/60 uppercase tracking-widest pl-1">Configuración de avance</p>
+                                            </div>
+
+                                            <div className="h-12 w-px bg-border/50 hidden md:block" />
+
+                                            <div className="flex items-center gap-8">
+                                                <div className="px-6 py-4 bg-muted/40 rounded-3xl border border-border/50 flex items-center gap-8 shadow-inner">
+                                                    <div className="flex flex-col items-start leading-none gap-1">
+                                                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Clasifican</p>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-blue-500 italic">por grupo</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-5">
+                                                        <button
+                                                            className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-2xl text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
+                                                            onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}
+                                                            disabled={qualPerGroup <= 1}
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <span className="text-3xl font-black text-foreground w-10 text-center tabular-nums drop-shadow-sm">{qualPerGroup}</span>
+                                                        <button
+                                                            className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-2xl text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
+                                                            onClick={() => {
+                                                                const minGroupSize = groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4;
+                                                                setQualPerGroup(q => Math.min(minGroupSize, q + 1));
+                                                            }}
+                                                            disabled={qualPerGroup >= (groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4)}
+                                                        >
+                                                            +
+                                                        </button>
                                                     </div>
                                                 </div>
+
+                                                {groups.length > 0 && (
+                                                    <div className="hidden lg:flex flex-col items-start leading-tight border-l border-border/30 pl-8">
+                                                        <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 tracking-widest mb-1">Capacidad Máxima</span>
+                                                        <span className="text-sm font-black text-foreground uppercase tracking-tight italic">
+                                                            {Math.min(...groups.map(g => g.players.length))} POR GRUPO
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
                                         <button
                                             onClick={() => setStep("qual")}
                                             disabled={!isGroupStageFinished}
-                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
-                                                ? "bg-amber-500 hover:bg-amber-400 text-white"
-                                                : "bg-muted text-muted-foreground cursor-not-allowed border border-border"
+                                            className={`px-14 py-6 font-black uppercase tracking-widest italic rounded-2xl shadow-2xl transition-all hover:scale-[1.03] active:scale-95 text-xl whitespace-nowrap ${isGroupStageFinished
+                                                ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/30"
+                                                : "bg-muted text-muted-foreground cursor-not-allowed border border-border shadow-none"
                                                 }`}
                                         >
-                                            {isGroupStageFinished ? "Ver Clasificados →" : `Finalizá los grupos (${totalGroupMatches - confirmedGroupMatches} restantes)`}
+                                            {isGroupStageFinished ? (
+                                                <span className="flex items-center gap-3">
+                                                    Ver Clasificados
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </span>
+                                            ) : (
+                                                `Finalizar Grupos`
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -909,118 +1062,272 @@ export default function TournamentManager({
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-12 pb-20 px-4"
+                            className="space-y-12 pb-20 px-4 md:px-12"
                         >
-                            <div className="max-w-4xl mx-auto">
+                            <div className="w-full">
                                 <div className="text-center mb-10">
                                     <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Orden de Clasificados</h2>
-                                    <p className="text-muted-foreground text-sm font-medium">Clasificados ordenados por mérito para el cuadro final</p>
+                                    <p className="text-muted-foreground text-xs font-black uppercase tracking-widest opacity-60">Ranking de mérito técnico y emparejamientos calculados</p>
                                 </div>
+                                {(() => {
+                                    const totalQuals = sortedQualifiers.length;
+                                    const bracketSize = totalQuals > 0 ? Math.pow(2, Math.ceil(Math.log2(totalQuals))) : 0;
+                                    const numByes = bracketSize - totalQuals;
 
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                                    {(() => {
-                                        const totalQuals = sortedQualifiers.length;
-                                        const bracketSize = totalQuals > 0 ? Math.pow(2, Math.ceil(Math.log2(totalQuals))) : 0;
-                                        const numByes = bracketSize - totalQuals;
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-8">
+                                                {/* --- Rankings Tablas (Columna 1 y 2) --- */}
+                                                {Array.from({ length: Math.min(qualPerGroup, 2) }).map((_, rankIdx) => {
+                                                    const rank = rankIdx + 1;
+                                                    const playersInRank = finalQualifiers.filter(q => q.groupRank === rank);
+                                                    if (playersInRank.length === 0) return null;
 
-                                        return Array.from({ length: qualPerGroup }).map((_, rankIdx) => {
-                                            const rank = rankIdx + 1;
-                                            const playersInRank = sortedQualifiers.filter(q => q.groupRank === rank);
-                                            if (playersInRank.length === 0) return null;
+                                                    return (
+                                                        <div key={rank} className="space-y-4">
+                                                            <div className="flex items-center gap-3 px-2">
+                                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg ${rank === 1 ? "bg-amber-500 shadow-amber-500/20" :
+                                                                    "bg-slate-400 shadow-slate-400/20"
+                                                                    }`}>
+                                                                    {rank}º
+                                                                </div>
+                                                                <h3 className="text-xl font-black text-foreground tracking-tight uppercase italic">
+                                                                    {rank === 1 ? "Primeros de Grupo" : "Segundos de Grupo"}
+                                                                </h3>
+                                                            </div>
 
-                                            return (
-                                                <div key={rank} className="space-y-4">
-                                                    <div className="flex items-center gap-3 px-2">
-                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg ${rank === 1 ? "bg-amber-500 shadow-amber-500/20" :
-                                                            rank === 2 ? "bg-slate-400 shadow-slate-400/20" :
-                                                                "bg-emerald-500 shadow-emerald-500/20"
-                                                            }`}>
-                                                            {rank}º
+                                                            <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+                                                                <div className="overflow-x-auto">
+                                                                    <table className="w-full text-left border-collapse">
+                                                                        <thead>
+                                                                            <tr className="bg-muted/50 border-b border-border">
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Sem.</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">+/-</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none"></th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody className="divide-y divide-border/50">
+                                                                            {playersInRank.map((q) => {
+                                                                                const seed = finalQualifiers.indexOf(q) + 1;
+                                                                                const hasBye = seed <= numByes;
+
+                                                                                // Opponent coloring logic
+                                                                                const order = getSeedingOrder(bracketSize);
+                                                                                const posInOrder = order.indexOf(seed);
+                                                                                const matchIdx = Math.floor(posInOrder / 2);
+                                                                                const colorSet = MATCH_COLORS[matchIdx % MATCH_COLORS.length];
+                                                                                const isHovered = hoveredMatchIdx === matchIdx;
+
+                                                                                return (
+                                                                                    <tr
+                                                                                        key={q.playerId}
+                                                                                        onClick={() => setSelectedPlayerId(q.playerId)}
+                                                                                        onMouseEnter={() => setHoveredMatchIdx(matchIdx)}
+                                                                                        onMouseLeave={() => setHoveredMatchIdx(null)}
+                                                                                        className={`transition-all group cursor-pointer border-l-4 ${isHovered
+                                                                                                ? `${colorSet.border} ${colorSet.bg}`
+                                                                                                : "border-transparent hover:bg-accent/30"
+                                                                                            }`}
+                                                                                    >
+                                                                                        <td className="py-3 px-4">
+                                                                                            <div className={`w-8 h-8 mx-auto rounded-lg flex items-center justify-center shadow-sm border transition-all ${isHovered
+                                                                                                    ? `${colorSet.bg} ${colorSet.border}`
+                                                                                                    : "bg-primary/10 border-primary/20"
+                                                                                                }`}>
+                                                                                                <span className={`text-[10px] font-black ${isHovered ? colorSet.text : "text-primary"}`}>
+                                                                                                    #{seed}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                        <td className="py-3 px-4 text-center">
+                                                                                            <span className={`text-[10px] font-black ${q.points >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                                                                                                {q.points > 0 ? "+" : ""}{q.points}
+                                                                                            </span>
+                                                                                        </td>
+                                                                                        <td className="py-3 px-4">
+                                                                                            <div className="flex flex-col text-left">
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <span className={`text-sm font-black italic tracking-tighter uppercase leading-none ${q.isByeOverride ? "text-amber-600" : "text-foreground"}`}>
+                                                                                                        {q.player.name}
+                                                                                                    </span>
+                                                                                                    {q.isOverride && (
+                                                                                                        <span className={`text-[8px] font-black italic uppercase px-1.5 py-0.5 rounded-sm leading-none shrink-0 ${q.isByeOverride ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-primary/10 text-primary border border-primary/20"}`}>
+                                                                                                            {q.isByeOverride ? "BYE ASIGNADO" : "REEMPLAZO"}
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                <div className="flex items-center gap-1.5 mt-1.5">
+                                                                                                    <span className="text-[8px] font-black uppercase text-muted-foreground opacity-50">
+                                                                                                        {q.groupName}
+                                                                                                    </span>
+                                                                                                    {hasBye && !q.isByeOverride && (
+                                                                                                        <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm bg-amber-500/10 text-amber-600 border border-amber-500/20 leading-none">
+                                                                                                            BYE NATURAL
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                        <td className="py-2.5 px-4 text-right">
+                                                                                            <div className="flex items-center justify-end gap-1 opacity-100">
+                                                                                                <button
+                                                                                                    className="h-8 w-8 flex items-center justify-center text-primary hover:bg-primary/10 rounded-full transition-colors"
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        setIsReplacingPlayer(seed);
+                                                                                                    }}
+                                                                                                    title="Cambiar Jugador"
+                                                                                                >
+                                                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                                                </button>
+                                                                                                {qualifierOverrides[seed] && (
+                                                                                                    <button
+                                                                                                        className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:bg-muted/10 rounded-full transition-colors"
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            const newOverrides = { ...qualifierOverrides };
+                                                                                                            delete newOverrides[seed];
+                                                                                                            setQualifierOverrides(newOverrides);
+                                                                                                        }}
+                                                                                                        title="Restaurar Original"
+                                                                                                    >
+                                                                                                        <RotateCcw className="h-3.5 w-3.5" />
+                                                                                                    </button>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                );
+                                                                            })}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            {rank === 2 && numByes > 0 && (
+                                                                <div className="p-6 bg-muted/20 border border-border rounded-[2rem] backdrop-blur-sm shadow-inner group transition-all hover:bg-muted/30">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0 border border-amber-500/30">
+                                                                            <Info className="w-5 h-5 text-amber-500" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest italic mb-0.5">BYEs: {numByes}</h4>
+                                                                            <p className="text-[9px] text-muted-foreground font-medium leading-none">Las mejores semillas pasan directo.</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <h3 className="text-xl font-black text-foreground tracking-tight uppercase italic">
-                                                            {rank === 1 ? "Primeros de Grupo" : rank === 2 ? "Segundos de Grupo" : `${rank}os de Grupo`}
-                                                        </h3>
+                                                    );
+                                                })}
+
+                                            </div>
+
+                                            <div className="space-y-8 mt-16 pt-12 border-t border-dashed border-border/50 animate-in fade-in slide-in-from-bottom duration-1000">
+                                                <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
+                                                    <div className="w-16 h-16 rounded-[2rem] bg-primary/10 flex items-center justify-center border-2 border-primary/20 mb-6 shadow-xl shadow-primary/5">
+                                                        <Swords className="w-8 h-8 text-primary" />
                                                     </div>
+                                                    <h3 className="text-4xl font-black italic uppercase tracking-tighter text-foreground leading-none mb-3">Enfrentamientos Previstos</h3>
+                                                    <p className="text-xs font-black uppercase text-muted-foreground tracking-[0.35em] opacity-40">Proyección técnica de la llave de eliminación directa</p>
+                                                </div>
 
-                                                    <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
-                                                        <div className="overflow-x-auto">
-                                                            <table className="w-full text-left border-collapse">
-                                                                <thead>
-                                                                    <tr className="bg-muted/50 border-b border-border">
-                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Sem.</th>
-                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
-                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Grupo</th>
-                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">PG</th>
-                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">+/-</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody className="divide-y divide-border/50">
-                                                                    {playersInRank.map((q) => {
-                                                                        const globalIdx = sortedQualifiers.findIndex(sq => sq.playerId === q.playerId);
-                                                                        const hasBye = (globalIdx + 1) <= numByes;
+                                                <div className="bg-card border border-border rounded-[3.5rem] overflow-hidden shadow-2xl relative">
+                                                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-left border-collapse">
+                                                            <thead>
+                                                                <tr className="bg-muted/30 border-b border-border/50">
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-20 opacity-60">Cruse</th>
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">P1</th>
+                                                                    <th className="py-2.5 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-12"></th>
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-right">P2</th>
+                                                                    <th className="py-2.5 px-8 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-32 opacity-60">Estado</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-border/10">
+                                                                {(() => {
+                                                                    const order = getSeedingOrder(bracketSize);
+                                                                    const rows = [];
+                                                                    for (let i = 0; i < order.length; i += 2) {
+                                                                        const s1 = order[i];
+                                                                        const s2 = order[i + 1];
+                                                                        const p1 = finalQualifiers[s1 - 1];
+                                                                        const p2 = finalQualifiers[s2 - 1];
+                                                                        const matchIdx = i / 2;
+                                                                        const colorSet = MATCH_COLORS[matchIdx % MATCH_COLORS.length];
+                                                                        const isHovered = hoveredMatchIdx === matchIdx;
 
-                                                                            return (
-                                                                                <tr key={q.playerId} className="hover:bg-muted/30 transition-colors group">
-                                                                                    <td className="py-3 px-4">
-                                                                                        <div className="flex flex-col items-center justify-center gap-1.5 h-12">
-                                                                                            <span className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary">
-                                                                                                #{globalIdx + 1}
+                                                                        rows.push(
+                                                                            <tr
+                                                                                key={matchIdx}
+                                                                                onMouseEnter={() => setHoveredMatchIdx(matchIdx)}
+                                                                                onMouseLeave={() => setHoveredMatchIdx(null)}
+                                                                                className={`transition-all group cursor-pointer border-l-[6px] ${isHovered
+                                                                                        ? `${colorSet.border} ${colorSet.bg} shadow-md`
+                                                                                        : "border-transparent hover:bg-accent/30"
+                                                                                    }`}
+                                                                            >
+                                                                                <td className="py-2 px-6 text-center">
+                                                                                    <span className={`text-[10px] font-black italic tracking-widest ${isHovered ? colorSet.text : "text-muted-foreground/20"}`}>
+                                                                                        #{matchIdx + 1}
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td className="py-2 px-6">
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black shadow-sm transition-all ${isHovered ? "bg-white text-primary" : "bg-primary/5 text-primary border border-primary/10"}`}>
+                                                                                            #{s1}
+                                                                                        </div>
+                                                                                        <div className="flex flex-col text-left">
+                                                                                            <span className={`text-xs font-black italic uppercase tracking-tighter ${isHovered ? colorSet.text : "text-foreground"}`}>
+                                                                                                {p1 ? p1.player.name : "BYE"}
+                                                                                                {p1?.isByeOverride && <span className="ml-2 text-amber-500 font-bold tracking-widest">[BYE]</span>}
                                                                                             </span>
-                                                                                            <div className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
-                                                                                                hasBye 
-                                                                                                ? "text-amber-600 bg-amber-500/10 border-amber-500/20" 
-                                                                                                : "text-transparent bg-transparent border-transparent select-none"
-                                                                                            }`}>
-                                                                                                BYE
-                                                                                            </div>
+                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest opacity-40`}>{p1 ? p1.groupName : "-"}</span>
                                                                                         </div>
-                                                                                    </td>
-                                                                                    <td className="py-3 px-4">
-                                                                                        <div className="flex flex-col justify-center gap-1.5 h-12">
-                                                                                            <div className="font-bold text-foreground tracking-tight whitespace-nowrap text-xs truncate max-w-[120px]">
-                                                                                                {q.player.name}
-                                                                                            </div>
-                                                                                            <div className={`flex items-center gap-1 text-[9px] font-bold uppercase italic transition-all ${
-                                                                                                hasBye 
-                                                                                                ? "text-amber-500 opacity-100" 
-                                                                                                : "text-transparent opacity-0 select-none"
-                                                                                            }`}>
-                                                                                                <Trophy className="w-2.5 h-2.5" />
-                                                                                                Pasa Directo
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td className="py-3 px-4">
-                                                                                        <div className="flex items-center h-12">
-                                                                                            <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-                                                                                                {q.groupName}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="py-2 px-4 text-center">
+                                                                                    <span className="text-[9px] font-black text-muted-foreground/20 italic">VS</span>
+                                                                                </td>
+                                                                                <td className="py-2 px-6 text-right">
+                                                                                    <div className="flex items-center justify-end gap-3">
+                                                                                        <div className="flex flex-col items-end text-right">
+                                                                                            <span className={`text-xs font-black italic uppercase tracking-tighter ${isHovered ? colorSet.text : "text-foreground"}`}>
+                                                                                                {p2 ? p2.player.name : "BYE"}
+                                                                                                {p2?.isByeOverride && <span className="ml-2 text-amber-500 font-bold tracking-widest">[BYE]</span>}
                                                                                             </span>
+                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest opacity-40`}>{p2 ? p2.groupName : "-"}</span>
                                                                                         </div>
-                                                                                    </td>
-                                                                                    <td className="py-3 px-4 text-center font-bold text-emerald-500 text-xs">
-                                                                                        <div className="flex items-center justify-center h-12">
-                                                                                            {q.won}
+                                                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black shadow-sm transition-all ${isHovered ? "bg-white text-primary" : "bg-primary/5 text-primary border border-primary/10"}`}>
+                                                                                            #{s2}
                                                                                         </div>
-                                                                                    </td>
-                                                                                    <td className="py-3 px-4 text-center font-black text-primary text-xs">
-                                                                                        <div className="flex items-center justify-center h-12">
-                                                                                            {q.points > 0 ? `+${q.points}` : q.points}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                    })}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="py-2 px-8 text-center whitespace-nowrap">
+                                                                                    {(!p1 || !p2) ? (
+                                                                                        <span className="text-[8px] font-black uppercase text-amber-500 bg-amber-500/5 px-2 py-0.5 rounded-sm">
+                                                                                            BYE
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className={`text-[8px] font-black uppercase ${isHovered ? "text-emerald-700 bg-emerald-500/10" : "text-primary/20"} px-2 py-0.5 rounded-sm transition-all`}>
+                                                                                            LISTO
+                                                                                        </span>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    }
+                                                                    return rows;
+                                                                })()}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 </div>
-                                            );
-                                        });
-                                    })()}
-                                </div>
-
-                                {/* Call to action to generate bracket */}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                                 <div className="mt-20 flex flex-col items-center gap-6">
                                     <div className="bg-blue-600/10 border border-blue-600/20 p-8 rounded-[2rem] max-w-xl text-center backdrop-blur-sm">
                                         <Trophy className="w-10 h-10 text-blue-500 mx-auto mb-4" />
@@ -1175,7 +1482,7 @@ export default function TournamentManager({
                             {/* MOBILE: vertical stacked rounds */}
                             <div className="md:hidden space-y-8">
                                 {roundsArr.map((r, rIdx) => {
-                                    const roundMatches = bracket.filter(m => m.round === r);
+                                    const roundMatches = bracket.filter(m => m.round === r).sort((a, b) => a.slot - b.slot);
                                     return (
                                         <div key={r} className="space-y-3">
                                             {/* Round header */}
@@ -1267,7 +1574,7 @@ export default function TournamentManager({
                                                             {/* Team 2 row */}
                                                             <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : ""}`}>
                                                                 <span className={`text-sm font-black uppercase tracking-tight truncate ${isWinner2 ? "text-rose-700 font-black" : "text-rose-600"}`}>
-                                                                    {isBye ? "BYE — Pasa automático" : m.team2 ? slotName(m.team2) : "En espera..."}
+                                                                    {isBye ? "--- VACANTE ---" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                 </span>
                                                                 {m.confirmed && !isBye && (
                                                                     <span className={`text-lg font-black ml-3 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>
@@ -1297,7 +1604,7 @@ export default function TournamentManager({
                                             </div>
 
                                             <div className="flex-1 flex flex-col justify-around min-h-[600px] gap-8">
-                                                {bracket.filter(m => m.round === r).map((m) => {
+                                                {bracket.filter(m => m.round === r).sort((a, b) => a.slot - b.slot).map((m) => {
                                                     const isWinner1 = m.confirmed && m.winnerId === (m.team1 as any)?.id;
                                                     const isWinner2 = m.confirmed && m.winnerId === (m.team2 as any)?.id;
                                                     const isBye = m.team2 === "BYE";
@@ -1370,7 +1677,7 @@ export default function TournamentManager({
                                                             <div className={`px-4 py-3 flex items-center justify-between border-l-4 border-rose-500 ${isWinner2 ? "bg-rose-500/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
                                                                     <span className={`text-xs font-black truncate uppercase tracking-tight block ${isWinner2 ? "text-rose-700 font-black" : "text-rose-600"}`}>
-                                                                        {isBye ? "BYE (Pasa)" : m.team2 ? slotName(m.team2) : "En espera..."}
+                                                                        {isBye ? "--- VACANTE ---" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                     </span>
                                                                 </div>
                                                                 {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>}
@@ -1449,6 +1756,112 @@ export default function TournamentManager({
             </div>
 
             {/* Success Modal */}
+            {/* Player Details Modal */}
+            <AnimatePresence>
+                {selectedPlayerId && selectedPlayer && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedPlayerId(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-xl bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                            <Users2 className="w-7 h-7 text-blue-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest leading-none mb-1">Campaña Fase de Grupos</p>
+                                            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">{selectedPlayer.name}</h3>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedPlayerId(null)}
+                                        className="w-10 h-10 rounded-xl hover:bg-muted transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">Partidos Disputados</h4>
+                                    <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {playerGroupMatches.map(m => {
+                                            const isTeam1 = m.team1.id === selectedPlayerId;
+                                            const opponent = isTeam1 ? m.team2 : m.team1;
+                                            const myScore = isTeam1 ? m.score1 : m.score2;
+                                            const oppScore = isTeam1 ? m.score2 : m.score1;
+                                            const isWinner = m.confirmed && myScore! > oppScore!;
+
+                                            return (
+                                                <div
+                                                    key={m.id}
+                                                    className={`p-4 rounded-2xl border transition-all ${m.confirmed
+                                                            ? isWinner
+                                                                ? "bg-emerald-500/5 border-emerald-500/20"
+                                                                : "bg-rose-500/5 border-rose-500/20"
+                                                            : "bg-muted/10 border-border"
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-[8px] font-black uppercase text-muted-foreground">Oponente</span>
+                                                                {m.confirmed && (
+                                                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${isWinner ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                                                                        {isWinner ? "Victoria" : "Derrota"}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="font-bold text-foreground text-sm truncate uppercase italic tracking-tight">{opponent.name}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border ${isWinner ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' : 'bg-rose-500/10 border-rose-500/30 text-rose-600'}`}>
+                                                                {myScore ?? "-"}
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-muted-foreground uppercase">vs</span>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border bg-muted border-border text-muted-foreground`}>
+                                                                {oppScore ?? "-"}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {playerGroupMatches.length === 0 && (
+                                            <div className="py-12 text-center text-muted-foreground italic text-sm">
+                                                No se encontraron partidos para este jugador.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setSelectedPlayerId(null)}
+                                    className="w-full py-4 bg-muted hover:bg-accent text-foreground font-black uppercase tracking-widest italic rounded-2xl transition-all"
+                                >
+                                    Cerrar Detalles
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <AnimatePresence>
                 {showSuccessModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1495,6 +1908,152 @@ export default function TournamentManager({
                             >
                                 Entendido
                             </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ─── Player Replacement Modal ─── */}
+            <AnimatePresence>
+                {isReplacingPlayer !== null && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md" 
+                            onClick={() => setIsReplacingPlayer(null)}
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-card border border-border shadow-2xl rounded-[3rem] overflow-hidden flex flex-col max-h-[85vh]"
+                        >
+                            <div className="p-10 pb-6 shrink-0">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-foreground leading-none">Sustitución</h3>
+                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-3">Reemplazar Sembrado #{isReplacingPlayer}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsReplacingPlayer(null)}
+                                        className="rounded-full h-12 w-12 flex items-center justify-center hover:bg-muted text-foreground/50 hover:text-foreground transition-all"
+                                    >
+                                        <X className="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                {/* ─── Search Bar & Actions ─── */}
+                                <div className="mb-6 flex items-center gap-4">
+                                    <div className="relative flex-1 group">
+                                        <input 
+                                            type="text"
+                                            placeholder="BUSCAR JUGADOR POR NOMBRE..."
+                                            value={playerSearchQuery}
+                                            onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                                            className="w-full bg-muted/30 border-2 border-border/50 rounded-2xl h-14 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 focus:bg-card transition-all"
+                                        />
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary/50 transition-colors">
+                                            <Users2 className="h-5 w-5" />
+                                        </div>
+                                        {playerSearchQuery && (
+                                            <button 
+                                                onClick={() => setPlayerSearchQuery("")}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => {
+                                            setQualifierOverrides(prev => ({
+                                                ...prev,
+                                                [isReplacingPlayer!]: "BYE"
+                                            }));
+                                            setIsReplacingPlayer(null);
+                                            toast.success(`BYE asignado a la semilla #${isReplacingPlayer}`);
+                                        }}
+                                        className="h-14 px-8 bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-amber-500/20 active:scale-95 transition-all flex items-center gap-2 border-2 border-amber-400/20 whitespace-nowrap"
+                                    >
+                                        <X className="h-4 w-4" />
+                                        ASIGNAR BYE
+                                    </button>
+                                </div>
+
+                                <div className="overflow-y-auto pr-2 -mr-2 custom-scrollbar flex-1 min-h-[350px] max-h-[60vh]">
+                                    <div className="bg-muted/10 border border-border rounded-2xl overflow-hidden">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-muted/50 border-b border-border">
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Grupo</th>
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border/50">
+                                                {groups.flatMap(g => g.players)
+                                                    .filter(player => 
+                                                        player.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) || 
+                                                        (player as any).email?.toLowerCase().includes(playerSearchQuery.toLowerCase())
+                                                    )
+                                                    .sort((a,b) => a.name.localeCompare(b.name)).map(player => {
+                                                    const isAlreadyQual = finalQualifiers.some(q => q.playerId === player.id);
+                                                    const isBeingReplaced = finalQualifiers[isReplacingPlayer - 1]?.playerId === player.id;
+                                                    const group = groups.find(g => g.players.some(p => p.id === player.id));
+
+                                                    return (
+                                                        <tr 
+                                                            key={player.id}
+                                                            onClick={() => {
+                                                                setQualifierOverrides(prev => ({
+                                                                    ...prev,
+                                                                    [isReplacingPlayer]: player
+                                                                }));
+                                                                setIsReplacingPlayer(null);
+                                                                toast.success(`Jugador reemplazado por ${player.name}`);
+                                                            }}
+                                                            className={`group transition-all cursor-pointer ${
+                                                                isBeingReplaced 
+                                                                    ? "bg-primary/10" 
+                                                                    : "hover:bg-accent"
+                                                            }`}
+                                                        >
+                                                            <td className="py-1 px-4">
+                                                                <span className="font-bold text-[11px] uppercase italic tracking-tight text-foreground truncate max-w-[150px] inline-block">{player.name}</span>
+                                                            </td>
+                                                            <td className="py-1 px-4">
+                                                                <span className="text-[9px] font-black text-muted-foreground uppercase opacity-50 whitespace-nowrap">{group?.name || "-"}</span>
+                                                            </td>
+                                                            <td className="py-1 px-4 text-center">
+                                                                {isBeingReplaced ? (
+                                                                    <div className="flex justify-center">
+                                                                        <Check className="h-3.5 w-3.5 text-primary" />
+                                                                    </div>
+                                                                ) : isAlreadyQual ? (
+                                                                    <span className="text-[7px] font-black italic text-muted-foreground/30 uppercase tracking-widest">OK</span>
+                                                                ) : (
+                                                                    <span className="text-[7px] font-black italic text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100">SEL.</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-10 pt-4 shrink-0 bg-muted/20 border-t border-border">
+                                <button 
+                                    onClick={() => setIsReplacingPlayer(null)}
+                                    className="w-full h-16 rounded-[1.2rem] font-black uppercase tracking-[0.2em] text-[10px] border-2 border-border hover:bg-accent transition-all active:scale-95"
+                                >
+                                    Cancelar Cambios
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}
