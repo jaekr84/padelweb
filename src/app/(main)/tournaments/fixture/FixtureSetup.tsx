@@ -464,26 +464,33 @@ export default function FixtureSetup({
 
                     <div className="flex items-center gap-1 bg-card p-1 rounded-xl">
                         {[
-                            { id: "checkin", icon: UserCheck },
-                            { id: "config", icon: Settings },
-                            { id: "assign", icon: Users2 }
+                            { id: "checkin", icon: UserCheck, label: "Presentismo" },
+                            { id: "config", icon: Settings, label: "Estructura" },
+                            { id: "assign", icon: Users2, label: "Asignación" }
                         ].map((s, idx) => {
                             const Icon = s.icon;
                             const isActive = step === s.id;
                             const isPast = (step === "config" && idx === 0) || (step === "assign" && idx < 2);
 
                             return (
-                                <div
+                                <button
                                     key={s.id}
+                                    onClick={() => {
+                                        if (isActive) return;
+                                        if (window.confirm(`¿Volver al paso de ${s.label}?`)) {
+                                            setStep(s.id as any);
+                                        }
+                                    }}
                                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isActive
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-110"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-110 cursor-default"
                                         : isPast
-                                            ? "text-emerald-500"
-                                            : "text-muted-foreground/20"
+                                            ? "text-emerald-500 hover:bg-emerald-500/10"
+                                            : "text-muted-foreground/40 hover:bg-foreground/5"
                                         }`}
+                                    title={s.label}
                                 >
                                     <Icon className="w-4 h-4" />
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
@@ -601,7 +608,7 @@ export default function FixtureSetup({
                                                             onClick={() => togglePaid(p.id)}
                                                             className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
                                                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                                : "bg-card border border-border text-foreground/20 hover:border-foreground/40"
+                                                                : "bg-card border border-border text-foreground/60 hover:border-foreground/40"
                                                                 }`}
                                                         >
                                                             <CreditCard className="w-5 h-5" />
@@ -610,7 +617,7 @@ export default function FixtureSetup({
                                                             onClick={() => togglePresent(p.id)}
                                                             className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
                                                                 ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                                                                : "bg-card border border-border text-foreground/20 hover:border-foreground/40"
+                                                                : "bg-card border border-border  hover:border-foreground/40"
                                                                 }`}
                                                         >
                                                             <UserCheck className="w-5 h-5" />
@@ -799,7 +806,7 @@ export default function FixtureSetup({
                                     </AnimatePresence>
                                     {unassigned.length === 0 && (
                                         <div className="w-full py-4 text-center border border-dashed border-border rounded-2xl">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/20 italic">Todo listo</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60 italic">Todo listo</span>
                                         </div>
                                     )}
                                 </div>
@@ -837,7 +844,7 @@ export default function FixtureSetup({
                                                         }`}>{p.name}</span>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
-                                                            className="text-foreground/20 hover:text-red-500 transition-colors"
+                                                            className="text-foreground/40 hover:text-red-500 transition-colors"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
@@ -945,13 +952,13 @@ export default function FixtureSetup({
                                 <div className="px-8 py-8 border-b border-border bg-muted/40 relative">
                                     <button 
                                         onClick={() => setIsPlayerModalOpen(false)}
-                                        className="absolute top-6 right-6 p-2 rounded-xl text-foreground/20 hover:text-foreground hover:bg-foreground/5 transition-all"
+                                        className="absolute top-6 right-6 p-2 rounded-xl text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
 
                                     <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">Inscribir Jugador</h3>
-                                    <p className="text-foreground/60 text-[10px] font-black tracking-[0.2em] uppercase mt-2 mb-8">Elegí un jugador existente o registralo manualmente</p>
+                                    <p className="text-foreground/80 text-[10px] font-black tracking-[0.2em] uppercase mt-2 mb-8">Elegí un jugador existente o registralo manualmente</p>
                                     
                                     <div className="grid grid-cols-1 gap-4">
                                         {/* Manual Registration Form */}
@@ -965,7 +972,7 @@ export default function FixtureSetup({
                                                 placeholder="Nombre completo..."
                                                 value={manualName}
                                                 onChange={(e) => setManualName(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-foreground"
+                                                className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/50 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-foreground"
                                             />
                                             <div className="flex gap-2">
                                                 <div className="relative flex-1 group">
@@ -979,7 +986,7 @@ export default function FixtureSetup({
                                                             <option key={cat} value={cat}>{cat}</option>
                                                         ))}
                                                     </select>
-                                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                                 </div>
                                                 <button 
                                                     onClick={handleManualRegister}
@@ -1006,7 +1013,7 @@ export default function FixtureSetup({
                                                     placeholder="Cantidad..."
                                                     value={autoFillCount}
                                                     onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                                                    className="w-24 bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-foreground"
+                                                    className="w-24 bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/50 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-foreground"
                                                 />
                                                 <button 
                                                     onClick={handleAutoFill}
@@ -1028,13 +1035,13 @@ export default function FixtureSetup({
 
                                     <div className="flex items-center gap-4 my-8">
                                         <div className="h-px bg-border flex-1" />
-                                        <span className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.4em]">ó buscar en base</span>
+                                        <span className="text-[9px] font-black text-foreground/60 uppercase tracking-[0.4em]">ó buscar en base</span>
                                         <div className="h-px bg-border flex-1" />
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-blue-500 transition-colors">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2  group-focus-within:text-blue-500 transition-colors">
                                                 <Search className="w-4 h-4" />
                                             </div>
                                             <input 
@@ -1042,7 +1049,7 @@ export default function FixtureSetup({
                                                 placeholder="Nombre, ID o email..."
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all text-foreground shadow-sm"
+                                                className="w-full bg-card border border-border rounded-xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-foreground/50 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all text-foreground shadow-sm"
                                             />
                                         </div>
 
@@ -1059,7 +1066,7 @@ export default function FixtureSetup({
                                                     ))}
                                                     <option value="libre">Libre</option>
                                                 </select>
-                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5  group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                             </div>
 
                                             <div className="relative group">
@@ -1073,7 +1080,7 @@ export default function FixtureSetup({
                                                     <option value="femenino">Femenino</option>
                                                     <option value="mixto">Mixto</option>
                                                 </select>
-                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5  group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                             </div>
                                         </div>
                                     </div>

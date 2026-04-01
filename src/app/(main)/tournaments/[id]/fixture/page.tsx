@@ -50,18 +50,32 @@ export default async function TournamentFixturePage({ params }: Props) {
         .select({
             id: registrations.id,
             userId: registrations.userId,
+            partnerUserId: registrations.partnerUserId,
             partnerName: registrations.partnerName,
             category: registrations.category,
         })
         .from(registrations)
         .where(eq(registrations.tournamentId, id));
 
-    // Also fetch the names of the registrants to build the "Team Name"
-    const registrantIds = dbRegistrations.map(r => r.userId);
-    const dbUsers = await db
-        .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, gender: users.gender, clubId: users.clubId })
-        .from(users)
-        .where(inArray(users.id, registrantIds));
+    // Also fetch the names of the registrants and partners to build the "Team Name"
+    const allUserIds = [...new Set([
+        ...dbRegistrations.map(r => r.userId),
+        ...dbRegistrations.map(r => r.partnerUserId).filter(Boolean) as string[]
+    ])];
+
+    const dbUsers = allUserIds.length > 0 
+        ? await db
+            .select({ 
+                id: users.id, 
+                email: users.email, 
+                firstName: users.firstName, 
+                lastName: users.lastName, 
+                gender: users.gender, 
+                clubId: users.clubId 
+            })
+            .from(users)
+            .where(inArray(users.id, allUserIds))
+        : [];
 
     // Safely parse tournament modalidad
     let mod: any = tournament.modalidad;
@@ -92,7 +106,17 @@ export default async function TournamentFixturePage({ params }: Props) {
             };
         }
 
-        const namePart2 = reg.partnerName || "Invitado";
+        // For doubles, resolve partner name from DB or registrations field
+        let namePart2 = reg.partnerName;
+        if (reg.partnerUserId) {
+            const partnerUser = dbUsers.find(u => u.id === reg.partnerUserId);
+            if (partnerUser) {
+                namePart2 = [partnerUser.firstName, partnerUser.lastName].filter(Boolean).join(" ");
+            }
+        }
+        
+        if (!namePart2) namePart2 = "Invitado";
+
         return {
             id: reg.id,
             name: `${namePart1} / ${namePart2}`,

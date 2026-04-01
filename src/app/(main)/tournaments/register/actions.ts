@@ -3,7 +3,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { registrations, users, tournaments, categoriesTable } from "@/db/schema";
-import { eq, and, like, or, ne, sql } from "drizzle-orm";
+import { eq, and, like, or, ne, sql, notInArray } from "drizzle-orm";
 
 type RegisterInput = {
     tournamentId: string;
@@ -216,9 +216,10 @@ export async function searchPlayersForPartner(query: string) {
                 or(
                     like(users.firstName, `%${query}%`),
                     like(users.lastName, `%${query}%`),
-                    like(users.email, `%${query}%`)
+                    like(users.email, `%${query}%`),
+                    sql`CONCAT(${users.firstName}, ' ', ${users.lastName}) LIKE ${`%${query}%`}`
                 ),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
+                notInArray(users.email, ['dev@jae.com', 'jae@dev.com'])
             )
         )
         .limit(10);

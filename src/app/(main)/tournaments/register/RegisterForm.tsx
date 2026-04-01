@@ -389,7 +389,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
 
                         <div>
                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 2 • Compañero/a</p>
-                            <div className="bg-card border border-border rounded-2xl relative z-20 shadow-sm overflow-hidden">
+                            <div className="bg-card border border-border rounded-2xl relative z-20 shadow-sm">
                                 <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
                                     <button
                                         onClick={() => switchMode("search")}

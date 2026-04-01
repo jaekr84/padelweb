@@ -715,7 +715,7 @@ export default function TournamentManager({
                                         } else if (step === "qual") {
                                             setStep("done");
                                         } else {
-                                            router.push(`/tournaments/${tournamentId}/manage`);
+                                            router.push(`/tournaments/${tournamentId}/fixture`);
                                         }
                                     }}
                                     className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
