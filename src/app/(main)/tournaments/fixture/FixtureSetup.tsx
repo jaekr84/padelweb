@@ -5,7 +5,7 @@ import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, AlertTriangle
+    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap
 } from "lucide-react";
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
 import { useRouter } from "next/navigation";
@@ -942,118 +942,148 @@ export default function FixtureSetup({
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                                 className="relative w-full max-w-md bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl"
                             >
-                                <div className="px-6 py-6 border-b border-border bg-muted/30">
-                                    <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground">Inscribir Jugador</h3>
-                                    <p className="text-foreground/50 text-[10px] font-black tracking-widest uppercase mb-6">Elegí un jugador existente o creá uno nuevo</p>
+                                <div className="px-8 py-8 border-b border-border bg-muted/40 relative">
+                                    <button 
+                                        onClick={() => setIsPlayerModalOpen(false)}
+                                        className="absolute top-6 right-6 p-2 rounded-xl text-foreground/20 hover:text-foreground hover:bg-foreground/5 transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+
+                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">Inscribir Jugador</h3>
+                                    <p className="text-foreground/60 text-[10px] font-black tracking-[0.2em] uppercase mt-2 mb-8">Elegí un jugador existente o registralo manualmente</p>
                                     
-                                    {/* Manual Registration Form */}
-                                    <div className="mb-8 p-4 bg-blue-600/5 border border-blue-500/20 rounded-3xl space-y-3">
-                                        <div className="text-[10px] font-black uppercase text-blue-400 tracking-widest flex items-center gap-2 mb-2">
-                                            <Plus className="w-3 h-3" />
-                                            Registro Manual Rápido
-                                        </div>
-                                        <input 
-                                            type="text"
-                                            placeholder="Nombre completo..."
-                                            value={manualName}
-                                            onChange={(e) => setManualName(e.target.value)}
-                                            className="w-full bg-card border border-border rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-blue-500 transition-all text-foreground"
-                                        />
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <select 
-                                                value={manualCategory}
-                                                onChange={(e) => setManualCategory(e.target.value)}
-                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
-                                            >
-                                                <option value="">Categoría...</option>
-                                                {categories.map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
-                                                ))}
-                                            </select>
-                                            <button 
-                                                onClick={handleManualRegister}
-                                                disabled={isCreatingManual || !manualName.trim()}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic transition-all disabled:opacity-50"
-                                            >
-                                                {isCreatingManual ? "Creando..." : "Crear e Inscribir"}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Auto Fill Feature */}
-                                    <div className="mb-8 p-4 bg-emerald-600/5 border border-emerald-500/20 rounded-3xl space-y-3">
-                                        <div className="text-[10px] font-black uppercase text-emerald-400 tracking-widest flex items-center gap-2 mb-2">
-                                            <Dice5 className="w-3 h-3" />
-                                            Generar Jugadores (Auto-Fill)
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <input 
-                                                type="number"
-                                                min="1"
-                                                placeholder="Cantidad..."
-                                                value={autoFillCount}
-                                                onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                                                className="w-full bg-card border border-border rounded-2xl py-3 px-4 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-emerald-500 transition-all text-foreground"
-                                            />
-                                            <button 
-                                                onClick={handleAutoFill}
-                                                disabled={isAutoFilling || !autoFillCount}
-                                                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl py-3 px-4 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 flex items-center justify-center gap-1"
-                                            >
-                                                {isAutoFilling ? "Generando..." : "Generar Automático"}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="h-px bg-border mb-6" />
-
-                                    <div className="space-y-3">
-                                        <div className="text-[10px] font-black uppercase text-muted-foreground/30 tracking-widest flex items-center gap-2 mb-2">
-                                            <Users2 className="w-3 h-3" />
-                                            Buscar en la Base de Datos
-                                        </div>
-                                        <div className="relative">
-                                            < MonitorPlay  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {/* Manual Registration Form */}
+                                        <div className="p-5 bg-blue-600/5 border border-blue-500/20 rounded-[2rem] space-y-4">
+                                            <div className="text-[10px] font-black uppercase text-blue-500 tracking-[0.3em] flex items-center gap-2 mb-1">
+                                                <Plus className="w-3 h-3 stroke-[3]" />
+                                                Registro Rápido
+                                            </div>
                                             <input 
                                                 type="text"
-                                                placeholder="Buscar por nombre, ID o email..."
+                                                placeholder="Nombre completo..."
+                                                value={manualName}
+                                                onChange={(e) => setManualName(e.target.value)}
+                                                className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-foreground"
+                                            />
+                                            <div className="flex gap-2">
+                                                <div className="relative flex-1 group">
+                                                    <select 
+                                                        value={manualCategory}
+                                                        onChange={(e) => setManualCategory(e.target.value)}
+                                                        className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer text-foreground pr-10"
+                                                    >
+                                                        <option value="">Categoría...</option>
+                                                        {categories.map(cat => (
+                                                            <option key={cat} value={cat}>{cat}</option>
+                                                        ))}
+                                                    </select>
+                                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                                </div>
+                                                <button 
+                                                    onClick={handleManualRegister}
+                                                    disabled={isCreatingManual || !manualName.trim()}
+                                                    className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-3.5 px-6 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center min-w-[120px]"
+                                                >
+                                                    {isCreatingManual ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : "Inscribir"}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Auto Fill Feature */}
+                                        <div className="p-5 bg-emerald-600/5 border border-emerald-500/20 rounded-[2rem] space-y-4">
+                                            <div className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.3em] flex items-center gap-2 mb-1">
+                                                <Dice5 className="w-3 h-3 stroke-[3]" />
+                                                Generar Jugadores (Bot)
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="number"
+                                                    min="1"
+                                                    placeholder="Cantidad..."
+                                                    value={autoFillCount}
+                                                    onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
+                                                    className="w-24 bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-foreground"
+                                                />
+                                                <button 
+                                                    onClick={handleAutoFill}
+                                                    disabled={isAutoFilling || !autoFillCount}
+                                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-3.5 px-6 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 shadow-lg shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    {isAutoFilling ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Zap className="w-3.5 h-3.5 fill-current" />
+                                                            Carga Automática
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 my-8">
+                                        <div className="h-px bg-border flex-1" />
+                                        <span className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.4em]">ó buscar en base</span>
+                                        <div className="h-px bg-border flex-1" />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="relative group">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-blue-500 transition-colors">
+                                                <Search className="w-4 h-4" />
+                                            </div>
+                                            <input 
+                                                type="text"
+                                                placeholder="Nombre, ID o email..."
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-2xl py-3 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 outline-none focus:border-blue-500/50 transition-all text-foreground"
+                                                className="w-full bg-card border border-border rounded-xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all text-foreground shadow-sm"
                                             />
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-3">
-                                            <select 
-                                                value={categoryFilter}
-                                                onChange={(e) => setCategoryFilter(e.target.value)}
-                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
-                                            >
-                                                <option value="all">Todas las Categorías</option>
-                                                {categories.map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
-                                                ))}
-                                                <option value="libre">Libre</option>
-                                            </select>
+                                            <div className="relative group">
+                                                <select 
+                                                    value={categoryFilter}
+                                                    onChange={(e) => setCategoryFilter(e.target.value)}
+                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer text-foreground pr-10"
+                                                >
+                                                    <option value="all">Categorías (Todas)</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    ))}
+                                                    <option value="libre">Libre</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                            </div>
 
-                                            <select 
-                                                value={genderFilter}
-                                                onChange={(e) => setGenderFilter(e.target.value)}
-                                                className="bg-card border border-border rounded-2xl py-3 px-4 text-xs font-black uppercase italic outline-none focus:border-blue-500/50 appearance-none cursor-pointer text-foreground"
-                                            >
-                                                <option value="all">Todos los Géneros</option>
-                                                <option value="masculino">Masculino</option>
-                                                <option value="femenino">Femenino</option>
-                                                <option value="mixto">Mixto</option>
-                                            </select>
+                                            <div className="relative group">
+                                                <select 
+                                                    value={genderFilter}
+                                                    onChange={(e) => setGenderFilter(e.target.value)}
+                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer text-foreground pr-10"
+                                                >
+                                                    <option value="all">Género (Todos)</option>
+                                                    <option value="masculino">Masculino</option>
+                                                    <option value="femenino">Femenino</option>
+                                                    <option value="mixto">Mixto</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-4 max-h-[50vh] overflow-y-auto no-scrollbar space-y-2">
+                                <div className="p-4 max-h-[40vh] overflow-y-auto no-scrollbar space-y-2 bg-muted/10">
                                     {isLoadingAvailable ? (
-                                        <div className="py-12 text-center text-muted-foreground/30 animate-pulse font-black uppercase italic text-xs tracking-widest">
-                                            Buscando jugadores...
+                                        <div className="py-20 text-center flex flex-col items-center gap-4">
+                                            <div className="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 italic">Buscando jugadores...</span>
                                         </div>
                                     ) : (() => {
                                         const filtered = availablePlayers.filter(p => {
@@ -1070,8 +1100,9 @@ export default function FixtureSetup({
 
                                         if (filtered.length === 0) {
                                             return (
-                                                <div className="py-12 text-center text-muted-foreground/30 font-black uppercase italic text-xs tracking-widest">
-                                                    No se encontraron jugadores que coincidan
+                                                <div className="py-20 text-center flex flex-col items-center gap-4 bg-muted/20 rounded-[2rem] border border-dashed border-border/50">
+                                                    <Users2 className="w-8 h-8 text-foreground/10" />
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 italic">No se encontraron resultados</span>
                                                 </div>
                                             );
                                         }
@@ -1080,32 +1111,38 @@ export default function FixtureSetup({
                                             <button
                                                 key={p.id}
                                                 onClick={() => handleQuickInscribe(p.id)}
-                                                className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted border border-border rounded-2xl transition-all group"
+                                                className="w-full flex items-center justify-between p-4 bg-card hover:bg-blue-600 hover:text-white border border-border rounded-2xl transition-all group active:scale-[0.98] shadow-sm hover:shadow-blue-500/20"
                                             >
-                                                <div className="text-left">
-                                                    <div className="font-black uppercase italic tracking-tight group-hover:text-blue-600 transition-colors text-foreground">{p.name}</div>
-                                                    <div className="text-[10px] text-foreground/40 font-bold">{p.email}</div>
-                                                    {p.gender && (
-                                                        <div className="text-[8px] text-muted-foreground/30 font-black uppercase tracking-widest mt-1">
-                                                            {p.gender === 'masculino' ? '♂ Masculino' : p.gender === 'femenino' ? '♀ Femenino' : '⚤ Mixto'}
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-white/20 flex items-center justify-center text-xs font-black uppercase italic text-foreground/40 group-hover:text-white transition-colors shrink-0">
+                                                        {p.name.substring(0, 2)}
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="font-black uppercase italic tracking-tight group-hover:text-white transition-colors text-foreground">{p.name}</div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <div className="text-[9px] text-foreground/40 group-hover:text-white/60 font-black uppercase tracking-widest">{p.email.split('@')[0]}</div>
+                                                            {p.gender && (
+                                                                <>
+                                                                    <div className="w-1 h-1 rounded-full bg-border group-hover:bg-white/30" />
+                                                                    <div className="text-[8px] text-foreground/40 group-hover:text-white/60 font-black uppercase tracking-widest">
+                                                                        {p.gender === 'masculino' ? '♂' : p.gender === 'femenino' ? '♀' : '⚤'} {p.gender}
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                    </div>
                                                 </div>
-                                                <div className="px-2 py-1 bg-card rounded text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all border border-border">
-                                                    {p.category || "???"}
+                                                <div className="flex items-center gap-3">
+                                                    <div className="px-2 py-1 bg-muted group-hover:bg-white/20 rounded-lg text-[9px] font-black text-foreground group-hover:text-white transition-colors border border-border group-hover:border-white/10 uppercase">
+                                                        {p.category || "???"}
+                                                    </div>
+                                                    <div className="w-8 h-8 rounded-full border border-border group-hover:border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                                                        <ArrowRight className="w-4 h-4" />
+                                                    </div>
                                                 </div>
                                             </button>
                                         ));
                                     })()}
-                                </div>
-
-                                <div className="p-4 bg-card border-t border-border/50">
-                                    <button
-                                        onClick={() => setIsPlayerModalOpen(false)}
-                                        className="w-full py-4 bg-card hover:bg-white/10 border border-border rounded-2xl font-black uppercase italic text-xs tracking-widest transition-all"
-                                    >
-                                        Cerrar
-                                    </button>
                                 </div>
                             </motion.div>
                         </div>

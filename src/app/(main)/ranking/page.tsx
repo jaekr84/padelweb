@@ -35,8 +35,21 @@ export default async function RankingPage() {
         )
     );
 
-    // 2. Fetch all tournament registrations to count tournaments played per player
-    const allRegistrations = await db.select().from(registrations).where(eq(registrations.status, "confirmed"));
+    // 2. Fetch all tournament registrations to count UNIQUE tournaments played per player
+    // We only count registrations for tournaments that are NOT in draft status
+    const allRegistrationsJoined = await db.select({
+        userId: registrations.userId,
+        partnerUserId: registrations.partnerUserId,
+        tournamentId: registrations.tournamentId
+    })
+    .from(registrations)
+    .innerJoin(tournaments, eq(registrations.tournamentId, tournaments.id))
+    .where(
+        and(
+            eq(registrations.status, "confirmed"),
+            sql`${tournaments.status} != 'draft'`
+        )
+    );
 
     // 3. Fetch custom categories
     const customCategories = await db.select()
@@ -44,20 +57,27 @@ export default async function RankingPage() {
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
 
-    // 4. Map registrations to tournament counts
-    const tournamentCounts: Record<string, number> = {};
-    for (const reg of allRegistrations) {
-        if (!tournamentCounts[reg.userId]) {
-            tournamentCounts[reg.userId] = 0;
+    // 4. Map registrations to UNIQUE tournament counts
+    const userTournaments: Record<string, Set<string>> = {};
+    for (const reg of allRegistrationsJoined) {
+        if (!userTournaments[reg.userId]) {
+            userTournaments[reg.userId] = new Set();
         }
-        tournamentCounts[reg.userId]++;
+        userTournaments[reg.userId].add(reg.tournamentId);
+
         if (reg.partnerUserId) {
-            if (!tournamentCounts[reg.partnerUserId]) {
-                tournamentCounts[reg.partnerUserId] = 0;
+            if (!userTournaments[reg.partnerUserId]) {
+                userTournaments[reg.partnerUserId] = new Set();
             }
-            tournamentCounts[reg.partnerUserId]++;
+            userTournaments[reg.partnerUserId].add(reg.tournamentId);
         }
     }
+
+    const tournamentCounts: Record<string, number> = {};
+    for (const [userId, tIds] of Object.entries(userTournaments)) {
+        tournamentCounts[userId] = tIds.size;
+    }
+
     const currentYear = new Date().getFullYear();
     const allWins = await db
         .select({
@@ -116,5 +136,3 @@ export default async function RankingPage() {
         />
     );
 }
-
-

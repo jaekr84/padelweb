@@ -82,10 +82,12 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 
-        // Sequential deletes
-        await db.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
-        await db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
-        await db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
+        // 1. Initial cleanup (Parallelized)
+        await Promise.all([
+            db.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId)),
+            db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId)),
+            db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId))
+        ]);
 
         // 2. Insert groups
         const groupIdMap = new Map<string, string>();
@@ -427,54 +429,79 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             });
         }
 
-        // Final points update and promotion logic
-        for (const [uid, pts] of userPointsAddition.entries()) {
-            if (pts > 0) {
-                await db
-                    .update(users)
-                    .set({ points: sql`COALESCE(${users.points}, 0) + ${pts}` })
-                    .where(eq(users.id, uid));
+        // Final points update and promotion logic (OPTIMIZED: O(1) DB calls instead of O(N))
+        const involvedUserIds = Array.from(userPointsAddition.keys());
+        if (involvedUserIds.length === 0) return;
 
-                const updatedUser = await db.query.users.findFirst({ where: eq(users.id, uid) });
-                if (updatedUser) {
-                    const { getCategoryFromPoints, getCategoryByName, getAllActiveCategories, countUserWins } = await import("@/lib/categories");
-                    
-                    // Logic: Promote if points reach threshold OR if they win trophies
-                    const newCatByPoints = await getCategoryFromPoints(updatedUser.points ?? 0);
-                    const currentCatObj = await getCategoryByName(updatedUser.category || "D");
-                    
-                    if (newCatByPoints && currentCatObj && newCatByPoints.categoryOrder < currentCatObj.categoryOrder) {
-                        const currentYear = new Date().getFullYear();
-                        const titleWins = await countUserWins(uid, updatedUser.category || "D", currentYear);
+        console.log(`[awardTournamentPoints] Procesando ascensos para ${involvedUserIds.length} jugadores`);
+
+        // Fetch all needed data in bulk
+        const [involvedUsers, allCats] = await Promise.all([
+            db.select().from(users).where(inArray(users.id, involvedUserIds)),
+            import("@/lib/categories").then(m => m.getAllActiveCategories())
+        ]);
+
+        const { getCategoryFromPoints, getCategoryByName, countUserWins } = await import("@/lib/categories");
+        const currentYear = new Date().getFullYear();
+
+        // Perform updates in parallel or batch
+        await Promise.all(involvedUserIds.map(async (uid) => {
+            const pts = userPointsAddition.get(uid) || 0;
+            if (pts <= 0) return;
+
+            // 1. Update points (We do this first or calculate in memory for check)
+            const userObj = involvedUsers.find(u => u.id === uid);
+            if (!userObj) return;
+
+            const newTotalPoints = (userObj.points || 0) + pts;
+            
+            // Apply points update
+            await db.update(users)
+                .set({ points: newTotalPoints })
+                .where(eq(users.id, uid));
+
+            // 2. Promotion Check
+            const currentCatName = userObj.category || "D";
+            const currentCatObj = allCats.find(c => c.name === currentCatName);
+            
+            // Check if they reached a new category threshold by points
+            const nextCatByPoints = allCats.find(c => 
+                newTotalPoints >= c.minPoints && 
+                newTotalPoints <= c.maxPoints && 
+                c.categoryOrder < (currentCatObj?.categoryOrder ?? 10)
+            );
+
+            if (currentCatObj) {
+                // We only check for expensive win-based promotion if they are near the top or point-eligible
+                const pointsThreshold = currentCatObj.maxPoints * 1.15;
+                const pointsEligible = newTotalPoints >= pointsThreshold;
+                
+                // If they are eligible by points OR by reaching a new rank
+                if (pointsEligible || nextCatByPoints) {
+                    const titleWins = await countUserWins(uid, currentCatName, currentYear);
+                    const deservesPromotion = (titleWins >= 2) || pointsEligible;
+
+                    if (deservesPromotion) {
+                        const betterCats = allCats
+                            .filter(c => c.categoryOrder < currentCatObj.categoryOrder)
+                            .sort((a, b) => b.categoryOrder - a.categoryOrder);
                         
-                        // 1. If Wins >= 2 (Winning 2 titles is clear sign of superior level)
-                        // OR 2. Points exceed category MAX by 15% (Superior level by constant performance)
-                        const pointsThreshold = currentCatObj.maxPoints * 1.15;
-                        const deservesPromotion = (titleWins >= 2) || (updatedUser.points! >= pointsThreshold);
-
-                        if (deservesPromotion) {
-                            const allCats = await getAllActiveCategories();
-                            // Ascending means categoryOrder decreases (e.g. from 3 to 2)
-                            // We want the ONE category immediately better than currentCatObj
-                            const nextCat = allCats
-                                .filter(c => c.categoryOrder < currentCatObj.categoryOrder)
-                                .sort((a, b) => b.categoryOrder - a.categoryOrder)[0]; 
-                            
-                            if (nextCat) {
-                                console.log(`[ascentCheck] PROMOTING User ${uid} to ${nextCat.name} (deservesPromotion: ${deservesPromotion})`);
-                                await db.update(users)
-                                    .set({ 
-                                        category: nextCat.name,
-                                        points: nextCat.minPoints,
-                                        lastCategoryUpdate: new Date()
-                                    })
-                                    .where(eq(users.id, uid));
-                            }
+                        const nextCat = betterCats[0];
+                        
+                        if (nextCat) {
+                            console.log(`[awardTournamentPoints] PROMOCIÓN: ${userObj.firstName} -> ${nextCat.name}`);
+                            await db.update(users)
+                                .set({ 
+                                    category: nextCat.name,
+                                    points: nextCat.minPoints,
+                                    lastCategoryUpdate: new Date()
+                                })
+                                .where(eq(users.id, uid));
                         }
                     }
                 }
             }
-        }
+        }));
     } catch (err) {
         console.error("[awardTournamentPoints]", err);
     }
