@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getCurrentUser, checkSuperadmin } from "@/lib/auth";
-import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 
 import "./globals.css";
@@ -82,20 +81,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <head>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={true}
-          disableTransitionOnChange
-        >
           <script
             dangerouslySetInnerHTML={{
               __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
             }}
           />
           {children}
-          <Toaster position="bottom-right" theme="system" closeButton richColors />
-        </ThemeProvider>
+          <Toaster position="bottom-right" theme="light" closeButton richColors />
       </body>
     </html>
   );

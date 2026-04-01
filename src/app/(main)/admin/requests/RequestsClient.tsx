@@ -313,7 +313,7 @@ export default function RequestsClient() {
                                                 <div className="flex flex-col gap-2">
                                                     <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1">Link de Invitación Generado</label>
                                                     <div className="flex flex-col sm:flex-row gap-2">
-                                                        <div className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-indigo-600 dark:text-indigo-300">
+                                                        <div className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-indigo-600 ">
                                                             {generatedLinks[req.id]}
                                                         </div>
                                                         <div className="flex gap-2 shrink-0">

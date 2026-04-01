@@ -51,7 +51,7 @@ export default function DeleteTournamentButton({ tournamentId, tournamentName, c
             } ${
                 confirming 
                 ? "bg-red-600 text-white border-red-700 hover:bg-red-500 animate-pulse" 
-                : "bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/10 dark:hover:bg-rose-600/20 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400"
+                : "bg-rose-50 hover:bg-rose-100   border-rose-200  text-rose-600 "
             } disabled:opacity-50`}
         >
             {loading ? (

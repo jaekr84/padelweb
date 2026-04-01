@@ -144,7 +144,7 @@ export default function InvitationsClient() {
                 </div>
 
                 <div className="flex flex-col gap-6 relative z-10">
-                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-amber-600 dark:text-amber-500 flex items-start gap-4">
+                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-amber-600  flex items-start gap-4">
                         <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                         <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
                             El link será de uso único y tendrá una <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>. Luego deberá generarse uno nuevo.
@@ -159,7 +159,7 @@ export default function InvitationsClient() {
                         >
                             <label className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-500 ml-4 pt-2 relative z-10">Link Generado</label>
                             <div className="flex flex-col sm:flex-row gap-2 px-2 pb-2 relative z-10">
-                                <div className="flex-1 bg-muted border border-border rounded-2xl px-5 py-4 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 dark:text-emerald-400">
+                                <div className="flex-1 bg-muted border border-border rounded-2xl px-5 py-4 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 ">
                                     {generatedLink}
                                 </div>
                                 <div className="flex gap-2">

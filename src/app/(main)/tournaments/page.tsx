@@ -226,7 +226,7 @@ export default async function TournamentsPage({
                     {/* ── Stats pills ── */}
                     <div className="grid grid-cols-3 gap-3 mb-6">
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <Trophy className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                            <Trophy className="w-4 h-4 text-indigo-600 " />
                             <span className="text-xl font-black text-foreground">{totalC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
                         </div>
@@ -389,11 +389,11 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
-        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20 dark:bg-red-950 dark:border-red-900", pill: "bg-red-500", text: "text-red-600 dark:text-red-400" }
+        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20  ", pill: "bg-red-500", text: "text-red-600 " }
         : isOpen
-            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900", pill: "bg-emerald-600", text: "text-emerald-600 dark:text-emerald-400" }
+            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20  ", pill: "bg-emerald-600", text: "text-emerald-600 " }
             : isPreregistration
-                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20 dark:bg-blue-950 dark:border-blue-900", pill: "bg-blue-600", text: "text-blue-600 dark:text-blue-400" }
+                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20  ", pill: "bg-blue-600", text: "text-blue-600 " }
                 : isFinished
                     ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
                     : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
@@ -506,7 +506,7 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                     <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
                                         <Clock className="w-2.5 h-2.5 text-blue-500 shrink-0" />
                                         <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Club:</span>
-                                        <span className="text-blue-600/90 dark:text-blue-400/90">
+                                        <span className="text-blue-600/90 ">
                                             {formatDate(tournament.openDateClub)}
                                         </span>
                                     </div>
@@ -515,7 +515,7 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                     <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
                                         <Clock className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
                                         <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Gral:</span>
-                                        <span className="text-emerald-600/90 dark:text-emerald-400/90">
+                                        <span className="text-emerald-600/90 ">
                                             {formatDate(tournament.openDateGeneral)}
                                         </span>
                                     </div>
@@ -526,12 +526,12 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                 </div>
 
                 {/* CTA footer */}
-                <div className={`px-4 py-3 border-t flex items-center justify-between transition-colors ${isLive ? "border-red-500/20 bg-red-500/5 dark:bg-red-500/10" :
-                    isOpen ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10" :
-                        isPreregistration ? "border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/10" :
+                <div className={`px-4 py-3 border-t flex items-center justify-between transition-colors ${isLive ? "border-red-500/20 bg-red-500/5 " :
+                    isOpen ? "border-emerald-500/20 bg-emerald-500/5 " :
+                        isPreregistration ? "border-blue-500/20 bg-blue-500/5 " :
                             "border-border bg-muted/30"
                     }`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 dark:text-red-400" : isUserRegistered ? "text-blue-600 dark:text-blue-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isPreregistration ? "text-blue-600 dark:text-blue-400" : isFinished ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 " : isUserRegistered ? "text-blue-600 " : isOpen ? "text-emerald-600 " : isPreregistration ? "text-blue-600 " : isFinished ? "text-indigo-600 " : "text-muted-foreground"
                         }`}>
                         {isLive ? "Ver resultados en vivo" :
                             isUserRegistered ? "Ver mis inscripción / jugadores" :
@@ -539,9 +539,9 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                     isPreregistration ? (openDate ? `Inscripción abre el ${formatDate(openDate)}` : "Próximamente") :
                                         isFinished ? "Ver resultados finales" : "Ver detalles"}
                     </span>
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 dark:bg-red-500/20" : isOpen ? "bg-emerald-500/10 dark:bg-emerald-500/20" : isFinished ? "bg-indigo-500/10 dark:bg-indigo-500/20" : "bg-muted"
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 " : isOpen ? "bg-emerald-500/10 " : isFinished ? "bg-indigo-500/10 " : "bg-muted"
                         }`}>
-                        <Trophy className={`w-3.5 h-3.5 ${isLive ? "text-red-600 dark:text-red-400" : isOpen ? "text-emerald-600 dark:text-emerald-400" : isFinished ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"}`} />
+                        <Trophy className={`w-3.5 h-3.5 ${isLive ? "text-red-600 " : isOpen ? "text-emerald-600 " : isFinished ? "text-indigo-600 " : "text-muted-foreground"}`} />
                     </div>
                 </div>
             </div>

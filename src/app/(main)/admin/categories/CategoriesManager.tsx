@@ -20,8 +20,8 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editData, setEditData] = useState<Partial<Category>>({});
 
-    const highestMax = categories.length > 0 
-        ? Math.max(...categories.map(c => c.maxPoints)) 
+    const highestMax = categories.length > 0
+        ? Math.max(...categories.map(c => c.maxPoints))
         : -1;
 
     const [newCat, setNewCat] = useState({
@@ -42,7 +42,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
             // Although it reloads, we set it correctly for safety/non-reload behavior
             const nextMin = newCat.maxPoints + 1;
             setNewCat({ name: "", minPoints: nextMin, maxPoints: nextMin + 500 });
-            window.location.reload(); 
+            window.location.reload();
         } catch (e) {
             toast.error("Error al añadir");
         } finally {
@@ -90,35 +90,34 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
     };
 
     return (
-        <div className="min-h-screen bg-[#030712] text-slate-200 pb-20 pt-8 px-4 md:px-8 relative overflow-hidden">
+        <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8 relative overflow-hidden">
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-                <div className="absolute top-[-5%] right-[-5%] w-[35%] h-[35%] bg-emerald-500/10 rounded-full blur-[100px] animate-pulse" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse [animation-delay:3s]" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                <div className="absolute top-[-5%] right-[-5%] w-[35%] h-[35%] bg-emerald-500/5 rounded-full blur-[100px] animate-pulse" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[45%] h-[45%] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse [animation-delay:3s]" />
             </div>
 
             <div className="max-w-4xl mx-auto space-y-10 relative z-10">
                 {/* Header */}
                 <div className="flex flex-col gap-3">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-3 mb-1"
                     >
-                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/5">
                             <Shield className="w-5 h-5" />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400/80 italic">INFRAESTRUCTURA DE RANGOS</span>
                     </motion.div>
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white"
+                        className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-foreground"
                     >
-                        GESTIÓN DE <span className="bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent">CATEGORÍAS</span>
+                        GESTIÓN DE <span className="text-emerald-600">CATEGORÍAS</span>
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
@@ -129,34 +128,34 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                 </div>
 
                 {/* Add New Section */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 border border-white/5 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden group"
+                    className="bg-card border border-border backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden group"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
-                    
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-8 flex items-center gap-3 italic">
+
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-8 flex items-center gap-3 italic">
                         <Plus className="w-4 h-4" /> DESPLEGAR NUEVA CATEGORÍA
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-5 relative z-10">
                         <div className="md:col-span-1">
-                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 block ml-1">IDENTIFICADOR</label>
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block ml-1">IDENTIFICADOR</label>
                             <input
                                 type="text"
                                 placeholder="EJ: 5TA"
-                                className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-5 py-4 text-xs font-black uppercase outline-none focus:border-emerald-500/50 transition-all text-white placeholder:text-slate-700 shadow-inner"
+                                className="w-full bg-muted border border-border rounded-2xl px-5 py-4 text-xs font-black uppercase outline-none focus:border-emerald-600/50 transition-all text-foreground placeholder:text-muted-foreground/30 shadow-inner"
                                 value={newCat.name}
                                 onChange={e => setNewCat({ ...newCat, name: e.target.value.toUpperCase() })}
                             />
                         </div>
                         <div className="md:col-span-2 grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 block ml-1">PISO PUNTOS</label>
+                                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block ml-1">PISO PUNTOS</label>
                                 <input
                                     type="number"
                                     placeholder="MIN"
-                                    className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-5 py-4 text-xs font-black outline-none focus:border-emerald-500/50 transition-all text-white placeholder:text-slate-700 shadow-inner"
+                                    className="w-full bg-muted border border-border rounded-2xl px-5 py-4 text-xs font-black outline-none focus:border-emerald-600/50 transition-all text-foreground placeholder:text-muted-foreground/30 shadow-inner"
                                     value={newCat.minPoints === 0 && highestMax === -1 ? "" : newCat.minPoints}
                                     onChange={e => {
                                         const val = parseInt(e.target.value);
@@ -165,11 +164,11 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                 />
                             </div>
                             <div>
-                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 block ml-1">TECHO PUNTOS</label>
+                                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2 block ml-1">TECHO PUNTOS</label>
                                 <input
                                     type="number"
                                     placeholder="MAX"
-                                    className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-5 py-4 text-xs font-black outline-none focus:border-emerald-500/50 transition-all text-white placeholder:text-slate-700 shadow-inner"
+                                    className="w-full bg-muted border border-border rounded-2xl px-5 py-4 text-xs font-black outline-none focus:border-emerald-600/50 transition-all text-foreground placeholder:text-muted-foreground/30 shadow-inner"
                                     value={newCat.maxPoints === 0 ? "" : newCat.maxPoints}
                                     onChange={e => {
                                         const val = parseInt(e.target.value);
@@ -200,155 +199,155 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
 
                     <div className="space-y-4">
                         <AnimatePresence mode="popLayout">
-                        {categories.map((cat, idx) => {
-                            const isEditing = editingId === cat.id;
+                            {categories.map((cat, idx) => {
+                                const isEditing = editingId === cat.id;
 
-                            return (
-                                <motion.div 
-                                    layout
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    key={cat.id} 
-                                    className="bg-white/5 border border-white/5 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row items-center gap-6 group hover:border-white/10 transition-all duration-500 shadow-xl relative overflow-hidden"
-                                >
-                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-[60px] pointer-events-none group-hover:bg-white/10 transition-all" />
-                                    
-                                    {/* Order */}
-                                    <div className="shrink-0 relative z-10">
-                                        <div className="w-14 h-14 bg-slate-900/60 rounded-2xl flex items-center justify-center text-lg font-black italic text-emerald-400 border border-white/5 shadow-inner">
-                                            {idx + 1}
+                                return (
+                                    <motion.div
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        key={cat.id}
+                                        className="bg-card border border-border backdrop-blur-xl p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row items-center gap-6 group hover:border-indigo-500/30 transition-all duration-500 shadow-xl relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 w-48 h-48 bg-muted rounded-full blur-[60px] pointer-events-none group-hover:bg-indigo-500/5 transition-all" />
+
+                                        {/* Order */}
+                                        <div className="shrink-0 relative z-10">
+                                            <div className="w-14 h-14 bg-muted rounded-2xl flex items-center justify-center text-lg font-black italic text-emerald-600 border border-border shadow-inner">
+                                                {idx + 1}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Name */}
-                                    <div className="flex-1 min-w-0 relative z-10 w-full">
-                                        {isEditing ? (
-                                            <div className="space-y-2">
-                                                <label className="text-[8px] font-black uppercase tracking-widest text-emerald-400 ml-1">DENOMINACIÓN</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full bg-slate-900 border border-emerald-500/30 rounded-xl px-4 py-3 text-sm font-black uppercase outline-none focus:border-emerald-500 transition-all text-white"
-                                                    value={editData.name}
-                                                    onChange={e => setEditData({ ...editData, name: e.target.value.toUpperCase() })}
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col">
-                                                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-600 mb-1">CATEGORÍA</div>
-                                                <div className="text-3xl font-black uppercase italic tracking-tighter text-white group-hover:text-emerald-400 transition-colors">
-                                                    {cat.name}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Points Range */}
-                                    <div className="flex-1 w-full md:w-auto px-8 border-x border-white/5 relative z-10">
-                                        {isEditing ? (
-                                            <div className="grid grid-cols-2 gap-4">
+                                        {/* Name */}
+                                        <div className="flex-1 min-w-0 relative z-10 w-full">
+                                            {isEditing ? (
                                                 <div className="space-y-2">
-                                                    <label className="text-[8px] font-black uppercase tracking-widest text-emerald-400 ml-1">MIN</label>
+                                                    <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600 ml-1">DENOMINACIÓN</label>
                                                     <input
-                                                        type="number"
-                                                        className="w-full bg-slate-900 border border-emerald-500/30 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-500 transition-all text-white"
-                                                        value={isNaN(editData.minPoints ?? 0) ? "" : editData.minPoints}
-                                                        onChange={e => {
-                                                            const val = parseInt(e.target.value);
-                                                            setEditData({ ...editData, minPoints: isNaN(val) ? 0 : val });
-                                                        }}
+                                                        type="text"
+                                                        className="w-full bg-muted border border-emerald-500/30 rounded-xl px-4 py-3 text-sm font-black uppercase outline-none focus:border-emerald-600 transition-all text-foreground"
+                                                        value={editData.name}
+                                                        onChange={e => setEditData({ ...editData, name: e.target.value.toUpperCase() })}
                                                     />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[8px] font-black uppercase tracking-widest text-emerald-400 ml-1">MAX</label>
-                                                    <input
-                                                        type="number"
-                                                        className="w-full bg-slate-900 border border-emerald-500/30 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-500 transition-all text-white"
-                                                        value={isNaN(editData.maxPoints ?? 0) ? "" : editData.maxPoints}
-                                                        onChange={e => {
-                                                            const val = parseInt(e.target.value);
-                                                            setEditData({ ...editData, maxPoints: isNaN(val) ? 0 : val });
-                                                        }}
-                                                    />
+                                            ) : (
+                                                <div className="flex flex-col">
+                                                    <div className="text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-1">CATEGORÍA</div>
+                                                    <div className="text-3xl font-black uppercase italic tracking-tighter text-foreground group-hover:text-emerald-600 transition-colors">
+                                                        {cat.name}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col">
-                                                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-600 mb-2">ESPECTRO DE PUNTOS</div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-xl font-black italic text-white tracking-widest">{cat.minPoints}</span>
-                                                    <div className="h-0.5 w-6 bg-slate-800" />
-                                                    <span className="text-xl font-black italic text-white tracking-widest">{cat.maxPoints} <span className="text-[10px] text-slate-600 not-italic ml-1">PTS</span></span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                            )}
+                                        </div>
 
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-3 shrink-0 relative z-10 w-full md:w-auto justify-end mt-4 md:mt-0">
-                                        {isEditing ? (
+                                        {/* Points Range */}
+                                        <div className="flex-1 w-full md:w-auto px-8 border-x border-border relative z-10">
+                                            {isEditing ? (
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600 ml-1">MIN</label>
+                                                        <input
+                                                            type="number"
+                                                            className="w-full bg-muted border border-emerald-500/30 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-600 transition-all text-foreground"
+                                                            value={isNaN(editData.minPoints ?? 0) ? "" : editData.minPoints}
+                                                            onChange={e => {
+                                                                const val = parseInt(e.target.value);
+                                                                setEditData({ ...editData, minPoints: isNaN(val) ? 0 : val });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[8px] font-black uppercase tracking-widest text-emerald-600 ml-1">MAX</label>
+                                                        <input
+                                                            type="number"
+                                                            className="w-full bg-muted border border-emerald-500/30 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-600 transition-all text-foreground"
+                                                            value={isNaN(editData.maxPoints ?? 0) ? "" : editData.maxPoints}
+                                                            onChange={e => {
+                                                                const val = parseInt(e.target.value);
+                                                                setEditData({ ...editData, maxPoints: isNaN(val) ? 0 : val });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col">
+                                                    <div className="text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">ESPECTRO DE PUNTOS</div>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-xl font-black italic text-foreground tracking-widest">{cat.minPoints}</span>
+                                                        <div className="h-0.5 w-6 bg-muted" />
+                                                        <span className="text-xl font-black italic text-foreground tracking-widest">{cat.maxPoints} <span className="text-[10px] text-muted-foreground not-italic ml-1">PTS</span></span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-3 shrink-0 relative z-10 w-full md:w-auto justify-end mt-4 md:mt-0">
+                                            {isEditing ? (
                                             <>
                                                 <button
                                                     onClick={() => handleSave(cat.id)}
                                                     disabled={loading === cat.id}
-                                                    className="flex-1 md:flex-none p-4 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-2xl border border-emerald-500/20 transition-all active:scale-95 shadow-lg shadow-emerald-900/20"
+                                                    className="flex-1 md:flex-none p-4 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-2xl border border-emerald-500/20 transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
                                                 >
                                                     <Save className="w-5 h-5 mx-auto" />
                                                 </button>
                                                 <button
                                                     onClick={handleCancel}
-                                                    className="flex-1 md:flex-none p-4 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-2xl border border-white/10 transition-all active:scale-95"
+                                                    className="flex-1 md:flex-none p-4 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground rounded-2xl border border-border transition-all active:scale-95"
                                                 >
                                                     <X className="w-5 h-5 mx-auto" />
                                                 </button>
                                             </>
-                                        ) : (
-                                            <>
+                                            ) : (
+                                                <>
                                                 <button
                                                     onClick={() => handleEdit(cat)}
-                                                    className="flex-1 md:flex-none p-4 bg-white/5 text-slate-400 hover:bg-emerald-500 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl border border-white/5 transition-all duration-500 active:scale-95 shadow-xl"
+                                                    className="flex-1 md:flex-none p-4 bg-muted text-muted-foreground hover:bg-emerald-600 group-hover:bg-emerald-600 group-hover:text-white rounded-2xl border border-border transition-all duration-500 active:scale-95 shadow-sm"
                                                 >
                                                     <Pencil className="w-5 h-5 mx-auto" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(cat.id)}
                                                     disabled={loading === cat.id}
-                                                    className="flex-1 md:flex-none p-4 bg-red-500/5 text-red-500/40 hover:bg-red-500 hover:text-white rounded-2xl border border-red-500/10 transition-all active:scale-95 shadow-xl"
+                                                    className="flex-1 md:flex-none p-4 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl border border-red-500/10 transition-all active:scale-95 shadow-sm"
                                                 >
                                                     {loading === cat.id ? <Activity className="w-5 h-5 animate-spin mx-auto" /> : <Trash2 className="w-5 h-5 mx-auto" />}
                                                 </button>
-                                            </>
-                                        )}
+                                                </>
+                                            )}
                                     </div>
                                 </motion.div>
-                            );
+                        );
                         })}
-                        </AnimatePresence>
-                    </div>
-
-                    {categories.length === 0 && (
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-24 glass-card border-white/5 rounded-[3rem] mt-4 flex flex-col items-center gap-6 relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-emerald-500/5 blur-[80px]" />
-                            <Layers className="w-16 h-16 text-slate-700 relative z-10" />
-                            <div className="space-y-1 relative z-10">
-                                <p className="text-white text-xl font-black uppercase italic tracking-[0.2em]">SISTEMA SIN NIVELES</p>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">INICIA LA CONFIGURACIÓN DESPLEGANDO LA PRIMERA CATEGORÍA</p>
-                            </div>
-                        </motion.div>
-                    )}
+                    </AnimatePresence>
                 </div>
+            </div>
 
-                {/* Footer Info */}
-                <div className="px-10 py-6 glass-card border-white/5 rounded-[2rem] flex items-start gap-4">
-                    <Info className="w-5 h-5 text-slate-600 shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 italic leading-relaxed">
-                        IMPORTANTE: EL ORDEN DE LAS CATEGORÍAS ES AUTOMÁTICO BASADO EN LA CREACIÓN. LOS JUGADORES SERÁN ASIGNADOS SEGÚN EL RANGO DE PUNTOS DEFINIDO EN ESTA CONSOLA.
-                    </p>
-                </div>
+            {categories.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-24 bg-card border-border rounded-[3rem] mt-4 flex flex-col items-center gap-6 relative overflow-hidden shadow-xl"
+                    >
+                        <div className="absolute inset-0 bg-emerald-500/5 blur-[80px]" />
+                        <Layers className="w-16 h-16 text-muted-foreground/30 relative z-10" />
+                        <div className="space-y-1 relative z-10">
+                            <p className="text-foreground text-xl font-black uppercase italic tracking-[0.2em]">SISTEMA SIN NIVELES</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">INICIA LA CONFIGURACIÓN DESPLEGANDO LA PRIMERA CATEGORÍA</p>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+
+            {/* Footer Info */}
+            <div className="px-10 py-6 bg-card border border-border rounded-[2rem] flex items-start gap-4">
+                <Info className="w-5 h-5 text-muted-foreground/40 shrink-0 mt-0.5" />
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground italic leading-relaxed">
+                    IMPORTANTE: EL ORDEN DE LAS CATEGORÍAS ES AUTOMÁTICO BASADO EN LA CREACIÓN. LOS JUGADORES SERÁN ASIGNADOS SEGÚN EL RANGO DE PUNTOS DEFINIDO EN ESTA CONSOLA.
+                </p>
             </div>
         </div>
     );

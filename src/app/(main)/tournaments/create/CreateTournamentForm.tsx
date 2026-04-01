@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
 
 
 export type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
@@ -248,7 +248,6 @@ export default function CreateTournamentForm({
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <ThemeToggle />
                         <Trophy className="w-10 h-10 text-indigo-500 opacity-20 hidden md:block" />
                     </div>
                 </div>

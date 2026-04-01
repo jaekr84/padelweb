@@ -220,9 +220,9 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         const isDraft = tournament.status === "draft";
                         
                         const statusConfig = isLive
-                            ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20 dark:bg-red-950 dark:border-red-900", pill: "bg-red-500", text: "text-red-600 dark:text-red-400" }
+                            ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20  ", pill: "bg-red-500", text: "text-red-600 " }
                             : !isFinished && !isDraft
-                                ? { label: "Publicado", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-950 dark:border-emerald-900", pill: "bg-emerald-600", text: "text-emerald-600 dark:text-emerald-400" }
+                                ? { label: "Publicado", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20  ", pill: "bg-emerald-600", text: "text-emerald-600 " }
                                 : isDraft
                                     ? { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
                                     : { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" };

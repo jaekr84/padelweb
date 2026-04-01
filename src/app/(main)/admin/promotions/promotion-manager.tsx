@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { 
-    Trophy, 
-    Shield, 
-    Search, 
-    TrendingUp, 
-    Star, 
-    Medal, 
-    ArrowUpRight, 
-    Check, 
+import {
+    Trophy,
+    Shield,
+    Search,
+    TrendingUp,
+    Star,
+    Medal,
+    ArrowUpRight,
+    Check,
     Activity,
     Users,
     ChevronRight,
@@ -47,7 +47,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
         return players.map(p => {
             const currentCat = categories.find(c => c.name === p.category);
             const catMax = currentCat?.maxPoints || 0;
-            
+
             const pointsMet = p.points >= catMax;
             const pointsExceed = p.points >= catMax * 1.15;
             const titlesMet = p.titles >= 2;
@@ -99,8 +99,8 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
             const res = await promotePlayerManually(player.id, targetCategory);
             if (res.success) {
                 toast.success(`${player.name} ha sido promovido a ${targetCategory}`);
-                setPlayers(prev => prev.map(p => p.id === player.id ? { 
-                    ...p, 
+                setPlayers(prev => prev.map(p => p.id === player.id ? {
+                    ...p,
                     category: targetCategory,
                     titles: 0,
                     finals: 0
@@ -123,27 +123,27 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
             </div>
 
             <div className="max-w-5xl mx-auto space-y-10 relative z-10">
-                
+
                 {/* ── Header ── */}
                 <div className="flex flex-col gap-3">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-3 mb-1"
                     >
-                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
                             <TrendingUp className="w-5 h-5" />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400/80 italic">SISTEMA DE MÉRITO</span>
                     </motion.div>
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white lg:max-w-2xl"
                     >
                         PROMOCIÓN <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">TÁCTICA</span>
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
@@ -160,7 +160,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                         { icon: Trophy, color: 'emerald', label: 'LÍDERES PUNTOS', value: analyzedPlayers.filter(p => p.merits.pointsMet).length },
                         { icon: Medal, color: 'indigo', label: 'FINALISTAS+', value: analyzedPlayers.filter(p => p.merits.multipleFinals).length }
                     ].map((stat, i) => (
-                        <motion.div 
+                        <motion.div
                             key={i}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -179,7 +179,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                 </div>
 
                 {/* ── Logic Note ── */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="p-6 bg-indigo-500/5 border border-indigo-500/20 flex items-start gap-4 backdrop-blur-md rounded-[2.5rem]"
@@ -197,7 +197,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                 <div className="flex flex-col md:flex-row gap-5 relative z-10">
                     <div className="relative flex-1 group">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                        <input 
+                        <input
                             type="text"
                             placeholder="FILTRAR POR IDENTIDAD O EMAIL..."
                             value={search}
@@ -228,7 +228,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                     <AnimatePresence mode="popLayout">
                         {filteredPlayers.length > 0 ? (
                             filteredPlayers.map((p, idx) => {
-                                const nextCats = categories.filter(c => c.categoryOrder < p.catOrder).sort((a,b) => b.categoryOrder - a.categoryOrder);
+                                const nextCats = categories.filter(c => c.categoryOrder < p.catOrder).sort((a, b) => b.categoryOrder - a.categoryOrder);
                                 const selectedCat = selectedCategoryPerPlayer[p.id] || (nextCats[0]?.name || "");
 
                                 return (
@@ -241,7 +241,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                                         className="bg-white/5 border border-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:border-indigo-500/20 transition-all duration-500 shadow-2xl overflow-hidden relative"
                                     >
                                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-500/10 transition-all duration-700" />
-                                        
+
                                         <div className="flex items-center gap-6 flex-1 relative z-10 w-full">
                                             <div className="w-20 h-20 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-500">
                                                 <span className="text-[8px] font-black uppercase text-indigo-400/60 leading-none mb-1 tracking-widest">RANGO</span>
@@ -289,15 +289,15 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                                             <div className="flex flex-col flex-1 md:flex-none">
                                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-400/60 mb-2 ml-1">DESTINO</span>
                                                 <div className="relative group/sel">
-                                                    <select 
+                                                    <select
                                                         value={selectedCat}
                                                         onChange={(e) => setSelectedCategoryPerPlayer(prev => ({ ...prev, [p.id]: e.target.value }))}
                                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer md:min-w-[160px] pr-12 shadow-inner"
                                                     >
                                                         <option value="" disabled className="bg-slate-900">CATEGORÍA</option>
                                                         {categories.map(c => (
-                                                            <option 
-                                                                key={c.id} 
+                                                            <option
+                                                                key={c.id}
                                                                 value={c.name}
                                                                 disabled={c.name === p.category}
                                                                 className="bg-slate-900"
@@ -324,7 +324,7 @@ export default function PromotionManager({ initialPlayers, categories }: Promoti
                                 );
                             })
                         ) : (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 className="py-24 text-center bg-white/5 border border-white/5 backdrop-blur-xl rounded-[3rem] mt-10 relative overflow-hidden group"

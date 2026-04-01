@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import Link from "next/link";
 import { registerForTournament, searchPlayersForPartner } from "./actions";
+import Link from "next/link";
 import {
     Check, UserPlus, Users, Trophy, MapPin,
     Calendar, Info, Search, User, ArrowLeft, ChevronRight
@@ -113,7 +113,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
             const isMaleTournament = requiredGender.startsWith("hombre");
             const isFemaleTournament = requiredGender.startsWith("mujer");
             const isMalePlayer = playerGender === "masculino";
-            const isFemalePlayer = playerGender === "femenino" || playerGender === "femenino";
+            const isFemalePlayer = playerGender === "femenino";
 
             if (isMaleTournament && !isMalePlayer) return { ok: false, reason: "Género no permitido" };
             if (isFemaleTournament && !isFemalePlayer) return { ok: false, reason: "Género no permitido" };
@@ -192,13 +192,11 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
 
     const partnerDisplayName = partnerMode === "guest" ? guestName.trim() : partnerName.trim();
 
-    /* ────────────────────────────────────── */
-
     return (
-        <div className="min-h-screen bg-background overflow-x-hidden">
+        <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
 
             {/* ── Ambient glow ── */}
-            <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-blue-600/8 to-transparent pointer-events-none z-0" />
+            <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none z-0" />
 
             {/* ── Content ── */}
             <div className="relative z-10 max-w-lg mx-auto px-4 pt-5 pb-28">
@@ -207,12 +205,12 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 <div className="flex items-center justify-between mb-6">
                     <Link
                         href="/tournaments"
-                        className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors font-bold uppercase tracking-widest text-[10px]"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-black uppercase tracking-widest text-[10px]"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Volver
                     </Link>
-                    <div className="px-3 py-1 rounded-full bg-blue-950 border border-blue-800 text-blue-400 text-[10px] font-black uppercase tracking-widest">
+                    <div className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
                         Inscripción
                     </div>
                 </div>
@@ -220,11 +218,10 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 {/* ── Step bar (hidden on success) ── */}
                 {step !== "success" && (
                     <div className="mb-8">
-                        {/* Progress track */}
                         <div className="relative flex items-center justify-between">
                             <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-muted">
                                 <div
-                                    className="absolute top-0 bottom-0 left-0 bg-blue-600 transition-all duration-500"
+                                    className="absolute top-0 bottom-0 left-0 bg-indigo-600 transition-all duration-500"
                                     style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
                                 />
                             </div>
@@ -235,14 +232,14 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                 return (
                                     <div key={s.id} className="relative flex flex-col items-center gap-2">
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
-                                            ? "bg-blue-600 border-blue-600 text-white"
+                                            ? "bg-indigo-600 border-indigo-600 text-white"
                                             : active
-                                                ? "bg-slate-900 border-blue-500 text-blue-400"
-                                                : "bg-slate-900 border-slate-700 text-slate-600"
+                                                ? "bg-background border-indigo-600 text-indigo-600"
+                                                : "bg-background border-border text-muted-foreground"
                                             }`}>
                                             {done ? <Check className="w-3.5 h-3.5" /> : (realIdx + 1)}
                                         </div>
-                                        <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-slate-300" : "text-slate-600"
+                                        <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-foreground" : "text-muted-foreground"
                                             }`}>
                                             {s.label}
                                         </span>
@@ -258,23 +255,20 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 ───────────────────────────────────────── */}
                 {step === "info" && (
                     <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300">
-
-                        {/* Tournament card */}
-                        <div className="bg-slate-900 border border-border rounded-3xl overflow-hidden shadow-2xl mb-6">
-                            {/* Banner image */}
+                        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm mb-6">
                             <div className="relative h-44 w-full bg-muted flex items-end">
                                 {tournament.imageUrl ? (
                                     <>
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent z-10" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
                                         <img
                                             src={tournament.imageUrl}
                                             alt={tournament.name}
-                                            className="absolute inset-0 w-full h-full object-cover opacity-70"
+                                            className="absolute inset-0 w-full h-full object-cover"
                                         />
                                     </>
                                 ) : (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-slate-800 to-slate-900 flex items-center justify-center">
-                                        <Trophy className="w-16 h-16 text-slate-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center">
+                                        <Trophy className="w-16 h-16 text-indigo-100" />
                                     </div>
                                 )}
                                 <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-white px-5 pb-5 leading-tight">
@@ -282,46 +276,45 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                 </h1>
                             </div>
 
-                            {/* Info pills */}
                             <div className="p-4 space-y-3">
                                 {tournament.description && (
-                                    <p className="text-slate-400 text-sm leading-relaxed border-b border-border pb-3">
+                                    <p className="text-muted-foreground text-sm leading-relaxed border-b border-border pb-3 italic">
                                         {tournament.description}
                                     </p>
                                 )}
 
                                 <div className="grid grid-cols-2 gap-2">
                                     {tournament.startDate && (
-                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-blue-950 border border-blue-800 flex items-center justify-center shrink-0">
-                                                <Calendar className="w-4 h-4 text-blue-400" />
+                                        <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                                                <Calendar className="w-4 h-4 text-indigo-600" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Fecha</p>
-                                                <p className="text-xs font-bold text-slate-200 leading-tight">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</p>
+                                                <p className="text-xs font-bold text-foreground leading-tight">
                                                     {tournament.startDate}
                                                     {tournament.endDate && tournament.endDate !== tournament.startDate && ` → ${tournament.endDate}`}
                                                 </p>
                                             </div>
                                         </div>
                                     )}
-                                    <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-purple-950 border border-purple-800 flex items-center justify-center shrink-0">
-                                            {isIndividual ? <User className="w-4 h-4 text-purple-400" /> : <Users className="w-4 h-4 text-purple-400" />}
+                                    <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                                            {isIndividual ? <User className="w-4 h-4 text-purple-600" /> : <Users className="w-4 h-4 text-purple-600" />}
                                         </div>
                                         <div>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Modalidad</p>
-                                            <p className="text-xs font-bold text-slate-200">{isIndividual ? "Individual" : "En Pareja"}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</p>
+                                            <p className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</p>
                                         </div>
                                     </div>
                                     {mod?.genero && (
-                                        <div className="bg-muted border border-slate-700 rounded-2xl p-3 flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-amber-950 border border-amber-800 flex items-center justify-center shrink-0">
-                                                <Info className="w-4 h-4 text-amber-400" />
+                                        <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                                                <Info className="w-4 h-4 text-amber-600" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Género</p>
-                                                <p className="text-xs font-bold text-slate-200 capitalize">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Género</p>
+                                                <p className="text-xs font-bold text-foreground capitalize">
                                                     {mod.genero === "mixto" ? "Mixto" : mod.genero === "hombre" ? "Hombres" : "Mujeres"}
                                                 </p>
                                             </div>
@@ -331,18 +324,17 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                             </div>
                         </div>
 
-                        {/* Category selector */}
                         {hasCategories && (
-                            <div className="bg-slate-900 border border-border rounded-3xl p-4 mb-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Seleccioná tu categoría</p>
+                            <div className="bg-card border border-border rounded-3xl p-4 mb-4 shadow-sm">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Seleccioná tu categoría</p>
                                 <div className="grid grid-cols-3 gap-2">
                                     {cats.map((cat) => (
                                         <button
                                             key={cat}
                                             onClick={() => setCategory(cat)}
                                             className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
-                                                ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20"
-                                                : "bg-muted border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                                                ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20"
+                                                : "bg-muted border-border text-muted-foreground hover:border-indigo-500/50 hover:text-foreground"
                                                 }`}
                                         >
                                             {cat}
@@ -352,10 +344,9 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                             </div>
                         )}
 
-                        {/* CTA */}
                         <button
                             onClick={goNext}
-                            className="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2"
+                            className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2"
                         >
                             {isIndividual ? "Continuar" : "Elegir pareja"}
                             <ChevronRight className="w-4 h-4" />
@@ -364,61 +355,56 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 )}
 
                 {/* ─────────────────────────────────────────
-                    STEP: team (solo pareja)
+                    STEP: team
                 ───────────────────────────────────────── */}
                 {step === "team" && !isIndividual && (
                     <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
-
                         <div className="text-center mb-2">
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Tu pareja</h2>
-                            <p className="text-slate-500 text-xs mt-1">
-                                Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-blue-400">{category}</strong></> : ""}
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Tu pareja</h2>
+                            <p className="text-muted-foreground text-xs mt-1">
+                                Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-indigo-600">{category}</strong></> : ""}
                             </p>
                         </div>
 
-                        {/* Jugador 1 */}
                         <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2 pl-1">Jugador 1 · Vos</p>
-                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden">
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-2xl" />
-                                <div className="w-10 h-10 rounded-xl bg-blue-950 border border-blue-800 text-blue-300 font-black text-sm flex items-center justify-center shrink-0 ml-2">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 1 • Vos</p>
+                            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-l-2xl" />
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-sm flex items-center justify-center shrink-0 ml-2">
                                     <Initials name={currentUser.name} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-white text-sm truncate">{currentUser.name}</p>
-                                    <p className="text-slate-500 text-[10px] truncate">{currentUser.email}</p>
+                                    <p className="font-bold text-foreground text-sm truncate">{currentUser.name}</p>
+                                    <p className="text-muted-foreground text-[10px] truncate">{currentUser.email}</p>
                                 </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest bg-blue-950 border border-blue-800 text-blue-400 px-2 py-1 rounded-lg shrink-0">Tú</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2 py-1 rounded-lg shrink-0">Tú</span>
                             </div>
                         </div>
 
-                        {/* Divider */}
                         <div className="flex items-center justify-center">
-                            <div className="w-8 h-8 rounded-full bg-muted border border-slate-700 flex items-center justify-center">
-                                <UserPlus className="w-4 h-4 text-slate-500" />
+                            <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center">
+                                <UserPlus className="w-4 h-4 text-muted-foreground" />
                             </div>
                         </div>
 
-                        {/* Jugador 2 */}
                         <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2 pl-1">Jugador 2 · Compañero/a</p>
-                            <div className="bg-slate-900 border border-slate-700 rounded-2xl relative z-20">
-                                {/* Mode toggle */}
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 2 • Compañero/a</p>
+                            <div className="bg-card border border-border rounded-2xl relative z-20 shadow-sm overflow-hidden">
                                 <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
                                     <button
                                         onClick={() => switchMode("search")}
-                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
+                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         Buscar Jugador
                                     </button>
                                     <button
                                         onClick={() => switchMode("guest")}
-                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-white" : "text-slate-500 hover:text-slate-300"}`}
+                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
                                     >
                                         Invitado
                                     </button>
                                     <div
-                                        className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-slate-700 border border-slate-600 rounded-lg transition-all duration-300 z-0"
+                                        className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background border border-border rounded-lg transition-all duration-300 z-0"
                                         style={{ left: partnerMode === "search" ? "4px" : "calc(50%)" }}
                                     />
                                 </div>
@@ -427,24 +413,24 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                     {partnerMode === "guest" ? (
                                         <div className="animate-in fade-in duration-200">
                                             <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                                 <input
-                                                    className="w-full bg-muted border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                                                    className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
                                                     placeholder="Nombre del invitado..."
                                                     value={guestName}
                                                     onChange={(e) => setGuestName(e.target.value)}
                                                     autoFocus
                                                 />
                                             </div>
-                                            <p className="text-[10px] text-slate-600 mt-2 text-center px-2">
+                                            <p className="text-[10px] text-muted-foreground mt-2 text-center px-2 font-medium">
                                                 Aparecerá en el fixture con este nombre.
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="relative animate-in fade-in duration-200 text-left">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                             <input
-                                                className="w-full bg-muted border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                                                className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
                                                 placeholder="Buscar jugador registrado..."
                                                 value={search}
                                                 onChange={(e) => { setSearch(e.target.value); setPartnerName(""); }}
@@ -453,16 +439,16 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                             />
 
                                             {partnerName && (
-                                                <div className="mt-2 bg-blue-950 border border-blue-800 rounded-xl p-3 flex items-center justify-between">
+                                                <div className="mt-2 bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="w-8 h-8 rounded-lg bg-blue-900 border border-blue-700 text-blue-300 font-black text-[10px] flex items-center justify-center">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 border border-indigo-200 font-black text-[10px] flex items-center justify-center">
                                                             <Initials name={partnerName} />
                                                         </div>
-                                                        <span className="font-bold text-blue-100 text-sm">{partnerName}</span>
+                                                        <span className="font-bold text-indigo-600 text-sm">{partnerName}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => { setPartnerName(""); setSearch(""); setPartnerUserId(null); }}
-                                                        className="text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-white transition-colors"
+                                                        className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
                                                     >
                                                         Cambiar
                                                     </button>
@@ -470,7 +456,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                             )}
 
                                             {focused && !partnerName && search.trim().length >= 2 && (
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-2xl z-[100] max-h-60 overflow-y-auto">
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-xl p-2 shadow-xl z-[100] max-h-60 overflow-y-auto">
                                                     {searchResults.length > 0 ? (
                                                         searchResults.map(p => {
                                                             const { ok, reason } = checkPlayerEligibility(p);
@@ -479,7 +465,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                                                     key={p.id}
                                                                     disabled={!ok}
                                                                     className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${
-                                                                        ok ? "hover:bg-slate-700" : "opacity-50 cursor-not-allowed"
+                                                                        ok ? "hover:bg-muted" : "opacity-40 cursor-not-allowed"
                                                                     }`}
                                                                     onMouseDown={() => {
                                                                         if (!ok) return;
@@ -489,34 +475,34 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                                                         setSearchResults([]);
                                                                     }}
                                                                 >
-                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-xs flex items-center justify-center italic">
+                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs flex items-center justify-center italic">
                                                                         {(p.firstName || "U").charAt(0)}
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="flex items-center justify-between">
-                                                                            <p className="font-bold text-sm text-white truncate">{p.firstName} {p.lastName}</p>
+                                                                            <p className="font-bold text-sm text-foreground truncate">{p.firstName} {p.lastName}</p>
                                                                             {!ok && (
-                                                                                <span className="text-[8px] font-black uppercase tracking-tighter bg-red-950 text-red-400 px-1.5 py-0.5 rounded border border-red-900 ml-2 whitespace-nowrap">
+                                                                                <span className="text-[8px] font-black uppercase tracking-tighter bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 ml-2 whitespace-nowrap">
                                                                                     {reason}
                                                                                 </span>
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
+                                                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
                                                                     </div>
                                                                 </button>
                                                             );
                                                         })
                                                     ) : (
                                                         <div className="p-4 text-center">
-                                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">No se encontraron jugadores registrados</p>
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No se encontraron jugadores registrados</p>
                                                             <button
-                                                                className="mt-2 w-full text-left p-3 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center gap-3 transition-colors"
+                                                                className="mt-2 w-full text-left p-3 rounded-lg bg-muted hover:bg-muted/70 flex items-center gap-3 transition-colors border border-border"
                                                                 onMouseDown={() => { setPartnerName(search.trim()); setPartnerUserId(null); setSearch(""); }}
                                                             >
-                                                                <div className="w-8 h-8 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 font-black text-xs">?</div>
+                                                                <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground font-black text-xs">?</div>
                                                                 <div>
-                                                                    <p className="font-bold text-sm text-white">Usar "{search.trim()}"</p>
-                                                                    <p className="text-[10px] text-slate-500">Como nombre (no registrado)</p>
+                                                                    <p className="font-bold text-sm text-foreground">Usar "{search.trim()}"</p>
+                                                                    <p className="text-[10px] text-muted-foreground">Como nombre (no registrado)</p>
                                                                 </div>
                                                             </button>
                                                         </div>
@@ -529,18 +515,17 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                             </div>
                         </div>
 
-                        {/* Nav buttons */}
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-muted hover:text-white transition-all"
+                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
                             >
                                 Volver
                             </button>
                             <button
                                 onClick={goNext}
                                 disabled={!filledTeam}
-                                className="flex-[2] bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                className="flex-[2] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
                             >
                                 Siguiente <ChevronRight className="w-4 h-4" />
                             </button>
@@ -553,52 +538,47 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 ───────────────────────────────────────── */}
                 {step === "confirm" && (
                     <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
-
                         <div className="text-center">
-                            <div className="w-14 h-14 rounded-2xl bg-blue-950 border border-blue-800 flex items-center justify-center mx-auto mb-3">
-                                <Check className="w-7 h-7 text-blue-400" />
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                <Check className="w-7 h-7 text-indigo-600" />
                             </div>
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Confirmá tu inscripción</h2>
-                            <p className="text-slate-500 text-xs mt-1">Revisá los datos antes de confirmar.</p>
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Confirmá tu inscripción</h2>
+                            <p className="text-muted-foreground text-xs mt-1 font-medium">Revisá los datos antes de confirmar.</p>
                         </div>
 
-                        {/* Summary card */}
-                        <div className="bg-slate-900 border border-border rounded-3xl overflow-hidden">
-                            {/* Torneo header */}
-                            <div className="bg-muted border-b border-slate-700 px-4 py-3 flex items-center justify-between">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Torneo</p>
-                                <p className="text-sm font-black text-white">{tournament.name}</p>
+                        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+                            <div className="bg-muted border-b border-border px-4 py-3 flex items-center justify-between">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Torneo</p>
+                                <p className="text-sm font-black text-foreground italic">{tournament.name}</p>
                             </div>
 
                             <div className="p-4 space-y-2.5">
                                 {hasCategories && (
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Categoría</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest bg-blue-950 border border-blue-800 text-blue-400 px-2.5 py-1 rounded-lg">{category}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Categoría</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2.5 py-1 rounded-lg">{category}</span>
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modalidad</span>
-                                    <span className="text-xs font-bold text-slate-300">{isIndividual ? "Individual" : "En Pareja"}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</span>
+                                    <span className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</span>
                                 </div>
 
                                 <div className="border-t border-border pt-3 space-y-2">
-                                    {/* Player 1 */}
-                                    <div className="bg-muted border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
-                                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
-                                        <div className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-[10px] font-black text-slate-400 ml-1.5">1</div>
-                                        <span className="font-bold text-white text-sm truncate">{currentUser.name}</span>
+                                    <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
+                                        <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">1</div>
+                                        <span className="font-bold text-foreground text-sm truncate">{currentUser.name}</span>
                                     </div>
 
-                                    {/* Player 2 */}
                                     {!isIndividual && (
-                                        <div className="bg-muted border border-slate-700 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden">
-                                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-600" />
-                                            <div className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600 flex items-center justify-center text-[10px] font-black text-slate-400 ml-1.5">2</div>
-                                            <span className="font-bold text-white text-sm truncate flex items-center gap-2 flex-1 min-w-0">
+                                        <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
+                                            <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">2</div>
+                                            <span className="font-bold text-foreground text-sm truncate flex items-center gap-2 flex-1 min-w-0">
                                                 <span className="truncate">{partnerDisplayName}</span>
                                                 {partnerMode === "guest" && (
-                                                    <span className="bg-slate-700 border border-slate-600 text-slate-400 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shrink-0">Invitado</span>
+                                                    <span className="bg-background border border-border text-muted-foreground text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shrink-0">Invitado</span>
                                                 )}
                                             </span>
                                         </div>
@@ -607,37 +587,34 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                             </div>
                         </div>
 
-                        {/* Error */}
                         {regError && (
-                            <div className="p-4 rounded-2xl bg-red-950 border border-red-800 text-red-400 text-sm font-bold flex items-start gap-3">
+                            <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-start gap-3 shadow-sm italic">
                                 <span className="shrink-0">⚠️</span> {regError}
                             </div>
                         )}
 
-                        {/* Términos */}
-                        <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-900 border border-border cursor-pointer hover:border-slate-700 transition-colors">
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-blue-600 border-blue-600 text-white" : "border-slate-600 text-transparent"
+                        <label className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:border-indigo-500/30 transition-all shadow-sm">
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-indigo-600 border-indigo-600 text-white" : "border-border text-transparent"
                                 }`}>
                                 <Check className="w-3 h-3" strokeWidth={3} />
                             </div>
                             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="hidden" />
-                            <span className="text-xs font-medium text-slate-400 leading-relaxed">
+                            <span className="text-xs font-bold text-muted-foreground leading-relaxed italic">
                                 Confirmo que los datos son correctos y acepto el reglamento del torneo.
                             </span>
                         </label>
 
-                        {/* Nav buttons */}
                         <div className="flex gap-3">
                             <button
                                 onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 border border-slate-700 hover:bg-muted hover:text-white transition-all"
+                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
                             >
                                 Volver
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={!agreed || isPending}
-                                className="flex-[2] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-emerald-600/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                className="flex-[2] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
                             >
                                 {isPending ? (
                                     <>
@@ -660,29 +637,27 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                 ───────────────────────────────────────── */}
                 {step === "success" && (
                     <div className="mt-16 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
-                        {/* Icon */}
                         <div className="relative mb-6">
-                            <div className="w-20 h-20 rounded-3xl bg-emerald-950 border border-emerald-800 flex items-center justify-center shadow-2xl shadow-emerald-600/10">
-                                <Check className="w-10 h-10 text-emerald-400" strokeWidth={2.5} />
+                            <div className="w-20 h-20 rounded-3xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shadow-xl shadow-emerald-500/10">
+                                <Check className="w-10 h-10 text-emerald-600" strokeWidth={2.5} />
                             </div>
-                            <div className="absolute inset-0 rounded-3xl border border-emerald-500/30 animate-ping" />
+                            <div className="absolute inset-0 rounded-3xl border border-emerald-500/20 animate-ping" />
                         </div>
 
-                        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-2">
+                        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-foreground mb-2">
                             ¡Plaza confirmada!
                         </h2>
-                        <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mb-8 font-medium italic">
                             {isIndividual
-                                ? <>Tu participación en <strong className="text-white">{tournament.name}</strong> está asegurada.</>
-                                : <>El equipo de <strong className="text-white">{currentUser.name}</strong> y <strong className="text-white">{partnerDisplayName}</strong> están dentro del torneo.</>
+                                ? <>Tu participación en <strong className="text-indigo-600">{tournament.name}</strong> está asegurada.</>
+                                : <>El equipo de <strong className="text-indigo-600">{currentUser.name}</strong> y <strong className="text-indigo-600">{partnerDisplayName}</strong> están dentro del torneo.</>
                             }
-                            {hasCategories && <span className="block mt-1.5">Categoría: <strong className="text-blue-400">{category}</strong></span>}
+                            {hasCategories && <span className="block mt-1.5">Categoría: <strong className="text-indigo-600 underline decoration-2 underline-offset-4">{category}</strong></span>}
                         </p>
 
-                        {/* Next steps */}
-                        <div className="bg-slate-900 border border-border rounded-2xl p-4 w-full text-left mb-8">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2">Próximos pasos</p>
-                            <p className="text-sm text-slate-400 leading-relaxed">
+                        <div className="bg-card border border-border rounded-2xl p-4 w-full text-left mb-8 shadow-sm">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">Próximos pasos</p>
+                            <p className="text-sm text-foreground leading-relaxed font-bold italic">
                                 Asegurate de abonar la inscripción antes del cierre. Las llaves se generarán automáticamente.
                             </p>
                         </div>
@@ -690,13 +665,13 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                         <div className="flex flex-col gap-3 w-full">
                             <Link
                                 href="/tournaments"
-                                className="w-full py-4 rounded-2xl border border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-muted hover:text-white transition-all text-center"
+                                className="w-full py-4 rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all text-center"
                             >
                                 Ver otros torneos
                             </Link>
                             <Link
                                 href="/home"
-                                className="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 text-[10px] uppercase tracking-widest text-center"
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-[10px] uppercase tracking-widest text-center"
                             >
                                 Ir al inicio →
                             </Link>

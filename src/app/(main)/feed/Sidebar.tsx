@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
 
@@ -77,7 +76,6 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const router = useRouter();
 
     useEffect(() => {
-        // Only fetch sidebar details if we don't have the user name yet
         if (initialUser?.userId) {
             getSidebarUser().then(data => {
                 if (data) {
@@ -113,22 +111,21 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     return (
         <>
             {/* MOBILE TOP HEADER */}
-            <header className="md:hidden fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-5 h-16">
+            <header className="md:hidden fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-5 h-16">
                 <Link href="/home" className="flex items-center gap-2 group">
-                    <Image src="/img/stickers 1.jpg" alt="A.C.A.P." width={32} height={32} className="rounded-full border border-border" priority />
+                    <Image src="/img/stickers 1.jpg" alt="A.C.A.P." width={32} height={32} className="rounded-full border border-border shadow-sm" priority />
                     <span className="text-lg font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
-                    <ThemeToggle />
                     <button
                         onClick={handleLogout}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="p-2 rounded-full hover:bg-muted transition-colors"
                         title="Cerrar Sesión"
                     >
-                        <LogOut className="w-5 h-5 text-slate-500" />
+                        <LogOut className="w-5 h-5 text-muted-foreground" />
                     </button>
-                    <Link href={profileUrl} className="p-1 rounded-full border border-border bg-slate-100 dark:bg-slate-800">
-                        <User className="w-5 h-5 text-slate-500" />
+                    <Link href={profileUrl} className="p-1 rounded-full border border-border bg-muted">
+                        <User className="w-5 h-5 text-muted-foreground" />
                     </Link>
                 </div>
             </header>
@@ -138,16 +135,15 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 <div className="p-6 flex flex-col gap-6 border-b border-border">
                     <div className="flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-3 group">
-                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border" priority />
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border shadow-sm" priority />
                             <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">ACAP</span>
                         </Link>
-                        <ThemeToggle />
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-3 w-full group">
-                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-border flex items-center justify-center">
-                                <User className="w-5 h-5 text-slate-500" />
+                            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center">
+                                <User className="w-5 h-5 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col flex-1 min-w-0">
                                 {userData ? (
@@ -159,13 +155,13 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     </>
                                 ) : (
                                     <div className="flex flex-col gap-1.5 py-1">
-                                        <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-full" />
-                                        <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-900 animate-pulse rounded-full" />
+                                        <div className="h-3.5 w-24 bg-muted animate-pulse rounded-full" />
+                                        <div className="h-2.5 w-16 bg-muted/50 animate-pulse rounded-full" />
                                     </div>
                                 )}
                                 <button
                                     onClick={handleLogout}
-                                    className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-400 transition-colors text-left mt-0.5"
+                                    className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-400 transition-colors text-left mt-0.5"
                                 >
                                     Cerrar Sesión
                                 </button>
@@ -173,7 +169,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-card px-4 py-2.5 rounded-2xl border border-border text-sm focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-sm">
+                    <div className="flex items-center gap-3 bg-card px-4 py-2.5 rounded-2xl border border-border text-sm focus-within:border-indigo-500/50 transition-all shadow-sm">
                         <Search className="w-4 h-4 text-muted-foreground" />
                         <input type="text" placeholder="Buscar jugadores..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
                     </div>
@@ -184,9 +180,9 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+                            <Link key={item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
                                 <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
-                                <span>{item.label}</span>
+                                <span className="tracking-tight">{item.label}</span>
                             </Link>
                         );
                     })}

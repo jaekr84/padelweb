@@ -122,7 +122,7 @@ export default function ResetDatabaseButton({ compact }: { compact?: boolean }) 
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirm(false)}
-                                className="flex-1 bg-slate-200 dark:bg-slate-800 text-foreground px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest"
+                                className="flex-1 bg-slate-200  text-foreground px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                             >
                                 Cancelar
                             </button>
