@@ -718,7 +718,7 @@ export default function TournamentManager({
                                             router.push(`/tournaments/${tournamentId}/manage`);
                                         }
                                     }}
-                                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
+                                    className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                                 >
                                     <ArrowLeft className="w-4 h-4" />
                                     Volver
@@ -726,7 +726,7 @@ export default function TournamentManager({
                                 {!readOnly && (
                                     <Link
                                         href={`/tournaments/${tournamentId}/edit`}
-                                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
+                                        className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
                                     >
                                         <Settings className="w-4 h-4" />
                                         Editar Info
@@ -737,7 +737,7 @@ export default function TournamentManager({
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
-                                    className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-accent text-muted-foreground rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-border"
+                                    className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-accent text-foreground/60 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 border border-border"
                                 >
                                     <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-blue-500" : ""}`} />
                                     {isRefreshing ? "..." : "Actualizar"}
@@ -770,7 +770,7 @@ export default function TournamentManager({
                             onClick={() => setStep("done")}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                : "text-foreground/60 hover:text-foreground hover:bg-accent"
                                 }`}
                         >
                             <Users2 className="w-3.5 h-3.5" />
@@ -781,7 +781,7 @@ export default function TournamentManager({
                                 onClick={() => setStep("qual")}
                                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "qual"
                                     ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                    : "text-foreground/60 hover:text-foreground hover:bg-accent"
                                     }`}
                             >
                                 <BarChart3 className="w-3.5 h-3.5" />
@@ -793,7 +793,7 @@ export default function TournamentManager({
                                 onClick={() => setStep("elim")}
                                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "elim"
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                    : "text-foreground/60 hover:text-foreground hover:bg-accent"
                                     }`}
                             >
                                 <Trophy className="w-3.5 h-3.5" />
@@ -819,7 +819,7 @@ export default function TournamentManager({
                         >
                             {/* Progress Bar */}
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-foreground/60">
                                     <span>Progreso Fase de Grupos</span>
                                     <div className="flex items-center gap-3">
                                         {!readOnly && progressPercent < 100 && (
@@ -855,13 +855,13 @@ export default function TournamentManager({
                                             {/* Header + Standings table */}
                                             <div className="bg-muted px-6 py-5 border-b border-border flex items-center justify-between">
                                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-primary">{g.name}</h3>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Posiciones</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Posiciones</span>
                                             </div>
 
                                             <div className="p-4 border-b border-border/50 bg-card/50">
                                                 <table className="w-full text-left">
                                                     <thead>
-                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-muted-foreground border-b border-border">
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-foreground/40 border-b border-border">
                                                             <th className="pb-3 pr-3">#</th>
                                                             <th className="pb-3">Jugador</th>
                                                             <th className="pb-3 px-3 text-center">PJ</th>
@@ -872,11 +872,11 @@ export default function TournamentManager({
                                                     <tbody className="divide-y divide-border/50">
                                                         {standings.map((s: any, idx: number) => (
                                                             <tr key={s.playerId} className="hover:bg-muted/50 transition-colors">
-                                                                <td className="py-3 pr-3 text-xs font-black italic text-muted-foreground">#{idx + 1}</td>
+                                                                <td className="py-3 pr-3 text-xs font-black italic text-foreground/30">#{idx + 1}</td>
                                                                 <td className="py-3 font-bold text-sm tracking-tight text-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
-                                                                <td className="py-3 px-3 text-center text-xs font-bold text-muted-foreground">{s.matchesPlayed}</td>
-                                                                <td className="py-3 px-3 text-center text-xs font-bold text-emerald-500">{s.won}</td>
-                                                                <td className="py-3 px-3 text-center font-black text-primary">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-foreground/50">{s.matchesPlayed}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-emerald-600">{s.won}</td>
+                                                                <td className="py-3 px-3 text-center font-black text-blue-600">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -886,7 +886,7 @@ export default function TournamentManager({
                                             {/* Matches list within the same card */}
                                             <div className="flex-1 flex flex-col min-h-0">
                                                 <div className="px-6 py-3 bg-muted/30 border-b border-border/50">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Partidos · {g.name}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Partidos · {g.name}</p>
                                                 </div>
                                                 <div className="p-4 space-y-2">
                                                     {groupMatches.map(m => (
@@ -898,14 +898,14 @@ export default function TournamentManager({
                                                                 }`}
                                                         >
                                                             {/* Team 1 */}
-                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-blue-500 ${m.confirmed && m.score1! > m.score2! ? "bg-blue-500/10" : ""}`}>
+                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-blue-600 ${m.confirmed && m.score1! > m.score2! ? "bg-blue-600/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score1! > m.score2! ? "text-blue-600 font-black" : "text-blue-500"}`}>
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score1! > m.score2! ? "text-blue-700 font-black" : "text-blue-600"}`}>
                                                                         {m.team1.name}
                                                                     </span>
                                                                 </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score1! > m.score2! ? "text-blue-700" : "text-foreground/40"}`}>{m.score1}</span>
                                                                 )}
                                                             </div>
 
@@ -921,7 +921,7 @@ export default function TournamentManager({
                                                                             className="flex-1 min-w-0 h-8 bg-blue-500/10 text-blue-700 rounded-lg text-center font-black border border-blue-500/20 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-blue-400/50 text-sm"
                                                                             placeholder="0"
                                                                         />
-                                                                        <span className="text-muted-foreground font-bold text-[10px] shrink-0">vs</span>
+                                                                        <span className="text-foreground/60 font-bold text-[10px] shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
@@ -933,7 +933,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleConfirmScore(m.id)}
-                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played && m.score1 !== m.score2 ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 ${m.played && m.score1 !== m.score2 ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-foreground/60 cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
@@ -944,7 +944,7 @@ export default function TournamentManager({
                                                                         <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-muted/30 text-blue-600 rounded-lg font-black text-sm border border-blue-500/10">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-muted-foreground font-bold text-[10px] shrink-0">vs</span>
+                                                                        <span className="text-foreground/60 font-bold text-[10px] shrink-0">vs</span>
                                                                         <div className="flex-1 min-w-0 flex items-center justify-center h-8 bg-muted/30 text-rose-600 rounded-lg font-black text-sm border border-rose-500/10">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
@@ -961,14 +961,14 @@ export default function TournamentManager({
                                                             </div>
 
                                                             {/* Team 2 */}
-                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-rose-500 ${m.confirmed && m.score2! > m.score1! ? "bg-rose-500/10" : ""}`}>
+                                                            <div className={`px-3 py-2 flex items-center justify-between border-l-4 border-rose-600 ${m.confirmed && m.score2! > m.score1! ? "bg-rose-600/10" : ""}`}>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score2! > m.score1! ? "text-rose-600 font-black" : "text-rose-500"}`}>
+                                                                    <span className={`text-[11px] font-bold uppercase tracking-tight truncate block ${m.confirmed && m.score2! > m.score1! ? "text-rose-700 font-black" : "text-rose-600"}`}>
                                                                         {m.team2.name}
                                                                     </span>
                                                                 </div>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>
+                                                                    <span className={`text-sm font-black ml-2 shrink-0 ${m.score2! > m.score1! ? "text-rose-700" : "text-foreground/40"}`}>{m.score2}</span>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -989,7 +989,7 @@ export default function TournamentManager({
                                         <div className="flex items-center gap-12">
                                             <div className="space-y-1">
                                                 <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-foreground whitespace-nowrap leading-none">Fase de Grupos</h2>
-                                                <p className="text-[10px] font-black text-blue-500/60 uppercase tracking-widest pl-1">Configuración de avance</p>
+                                                <p className="text-[10px] font-black text-blue-600/80 uppercase tracking-widest pl-1">Configuración de avance</p>
                                             </div>
 
                                             <div className="h-12 w-px bg-border/50 hidden md:block" />
@@ -997,10 +997,10 @@ export default function TournamentManager({
                                             <div className="flex items-center gap-8">
                                                 <div className="px-6 py-4 bg-muted/40 rounded-3xl border border-border/50 flex items-center gap-8 shadow-inner">
                                                     <div className="flex flex-col items-start leading-none gap-1">
-                                                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Clasifican</p>
-                                                        <p className="text-[9px] font-black uppercase tracking-widest text-blue-500 italic">por grupo</p>
+                                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/40">Clasifican</p>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-blue-600 italic">por grupo</p>
                                                     </div>
-                                                    <div className="flex items-center gap-5">
+                                                      <div className="flex items-center gap-5">
                                                         <button
                                                             className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-2xl text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
                                                             onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}
@@ -1024,7 +1024,7 @@ export default function TournamentManager({
 
                                                 {groups.length > 0 && (
                                                     <div className="hidden lg:flex flex-col items-start leading-tight border-l border-border/30 pl-8">
-                                                        <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 tracking-widest mb-1">Capacidad Máxima</span>
+                                                        <span className="text-[10px] font-black text-foreground/60 uppercase opacity-60 tracking-widest mb-1">Capacidad Máxima</span>
                                                         <span className="text-sm font-black text-foreground uppercase tracking-tight italic">
                                                             {Math.min(...groups.map(g => g.players.length))} POR GRUPO
                                                         </span>
@@ -1038,7 +1038,7 @@ export default function TournamentManager({
                                             disabled={!isGroupStageFinished}
                                             className={`px-14 py-6 font-black uppercase tracking-widest italic rounded-2xl shadow-2xl transition-all hover:scale-[1.03] active:scale-95 text-xl whitespace-nowrap ${isGroupStageFinished
                                                 ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/30"
-                                                : "bg-muted text-muted-foreground cursor-not-allowed border border-border shadow-none"
+                                                : "bg-muted text-foreground/20 cursor-not-allowed border border-border shadow-none"
                                                 }`}
                                         >
                                             {isGroupStageFinished ? (
@@ -1067,7 +1067,7 @@ export default function TournamentManager({
                             <div className="w-full">
                                 <div className="text-center mb-10">
                                     <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Orden de Clasificados</h2>
-                                    <p className="text-muted-foreground text-xs font-black uppercase tracking-widest opacity-60">Ranking de mérito técnico y emparejamientos calculados</p>
+                                    <p className="text-foreground/40 text-xs font-black uppercase tracking-widest">Ranking de mérito técnico y emparejamientos calculados</p>
                                 </div>
                                 {(() => {
                                     const totalQuals = sortedQualifiers.length;
@@ -1098,13 +1098,13 @@ export default function TournamentManager({
 
                                                             <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
                                                                 <div className="overflow-x-auto">
-                                                                    <table className="w-full text-left border-collapse">
+                                                                                                    <table className="w-full text-left border-collapse">
                                                                         <thead>
                                                                             <tr className="bg-muted/50 border-b border-border">
-                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Sem.</th>
-                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">+/-</th>
-                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
-                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none"></th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/40 leading-none">Sem.</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/40 leading-none text-center">+/-</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/40 leading-none">Jugador</th>
+                                                                                <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/40 leading-none"></th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody className="divide-y divide-border/50">
@@ -1158,7 +1158,7 @@ export default function TournamentManager({
                                                                                                     )}
                                                                                                 </div>
                                                                                                 <div className="flex items-center gap-1.5 mt-1.5">
-                                                                                                    <span className="text-[8px] font-black uppercase text-muted-foreground opacity-50">
+                                                                                                    <span className="text-[8px] font-black uppercase text-foreground/40">
                                                                                                         {q.groupName}
                                                                                                     </span>
                                                                                                     {hasBye && !q.isByeOverride && (
@@ -1183,7 +1183,7 @@ export default function TournamentManager({
                                                                                                 </button>
                                                                                                 {qualifierOverrides[seed] && (
                                                                                                     <button
-                                                                                                        className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:bg-muted/10 rounded-full transition-colors"
+                                                                                                        className="h-8 w-8 flex items-center justify-center text-foreground/60 hover:bg-muted/10 rounded-full transition-colors"
                                                                                                         onClick={(e) => {
                                                                                                             e.stopPropagation();
                                                                                                             const newOverrides = { ...qualifierOverrides };
@@ -1212,7 +1212,7 @@ export default function TournamentManager({
                                                                         </div>
                                                                         <div>
                                                                             <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest italic mb-0.5">BYEs: {numByes}</h4>
-                                                                            <p className="text-[9px] text-muted-foreground font-medium leading-none">Las mejores semillas pasan directo.</p>
+                                                                            <p className="text-[9px] text-foreground/50 font-medium leading-none">Las mejores semillas pasan directo.</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1229,7 +1229,7 @@ export default function TournamentManager({
                                                         <Swords className="w-8 h-8 text-primary" />
                                                     </div>
                                                     <h3 className="text-4xl font-black italic uppercase tracking-tighter text-foreground leading-none mb-3">Enfrentamientos Previstos</h3>
-                                                    <p className="text-xs font-black uppercase text-muted-foreground tracking-[0.35em] opacity-40">Proyección técnica de la llave de eliminación directa</p>
+                                                    <p className="text-xs font-black uppercase text-foreground/30 tracking-[0.35em]">Proyección técnica de la llave de eliminación directa</p>
                                                 </div>
 
                                                 <div className="bg-card border border-border rounded-[3.5rem] overflow-hidden shadow-2xl relative">
@@ -1237,12 +1237,12 @@ export default function TournamentManager({
                                                     <div className="overflow-x-auto">
                                                         <table className="w-full text-left border-collapse">
                                                             <thead>
-                                                                <tr className="bg-muted/30 border-b border-border/50">
-                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-20 opacity-60">Cruse</th>
-                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">P1</th>
-                                                                    <th className="py-2.5 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-12"></th>
-                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-right">P2</th>
-                                                                    <th className="py-2.5 px-8 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center w-32 opacity-60">Estado</th>
+                                                                  <tr className="bg-muted/30 border-b border-border/50">
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/30 leading-none text-center w-20">Cruse</th>
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/30 leading-none">P1</th>
+                                                                    <th className="py-2.5 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/30 leading-none text-center w-12"></th>
+                                                                    <th className="py-2.5 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/30 leading-none text-right">P2</th>
+                                                                    <th className="py-2.5 px-8 text-[9px] uppercase font-black tracking-widest text-foreground/30 leading-none text-center w-32">Estado</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-border/10">
@@ -1269,7 +1269,7 @@ export default function TournamentManager({
                                                                                     }`}
                                                                             >
                                                                                 <td className="py-2 px-6 text-center">
-                                                                                    <span className={`text-[10px] font-black italic tracking-widest ${isHovered ? colorSet.text : "text-muted-foreground/20"}`}>
+                                                                                    <span className={`text-[10px] font-black italic tracking-widest ${isHovered ? colorSet.text : "text-foreground/60/20"}`}>
                                                                                         #{matchIdx + 1}
                                                                                     </span>
                                                                                 </td>
@@ -1283,12 +1283,12 @@ export default function TournamentManager({
                                                                                                 {p1 ? p1.player.name : "BYE"}
                                                                                                 {p1?.isByeOverride && <span className="ml-2 text-amber-500 font-bold tracking-widest">[BYE]</span>}
                                                                                             </span>
-                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest opacity-40`}>{p1 ? p1.groupName : "-"}</span>
+                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest text-foreground/30`}>{p1 ? p1.groupName : "-"}</span>
                                                                                         </div>
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="py-2 px-4 text-center">
-                                                                                    <span className="text-[9px] font-black text-muted-foreground/20 italic">VS</span>
+                                                                                    <span className="text-[9px] font-black text-foreground/60/20 italic">VS</span>
                                                                                 </td>
                                                                                 <td className="py-2 px-6 text-right">
                                                                                     <div className="flex items-center justify-end gap-3">
@@ -1297,7 +1297,7 @@ export default function TournamentManager({
                                                                                                 {p2 ? p2.player.name : "BYE"}
                                                                                                 {p2?.isByeOverride && <span className="ml-2 text-amber-500 font-bold tracking-widest">[BYE]</span>}
                                                                                             </span>
-                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest opacity-40`}>{p2 ? p2.groupName : "-"}</span>
+                                                                                            <span className={`text-[8px] font-black uppercase tracking-widest text-foreground/30`}>{p2 ? p2.groupName : "-"}</span>
                                                                                         </div>
                                                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black shadow-sm transition-all ${isHovered ? "bg-white text-primary" : "bg-primary/5 text-primary border border-primary/10"}`}>
                                                                                             #{s2}
@@ -1310,7 +1310,7 @@ export default function TournamentManager({
                                                                                             BYE
                                                                                         </span>
                                                                                     ) : (
-                                                                                        <span className={`text-[8px] font-black uppercase ${isHovered ? "text-emerald-700 bg-emerald-500/10" : "text-primary/20"} px-2 py-0.5 rounded-sm transition-all`}>
+                                                                                        <span className={`text-[8px] font-black uppercase ${isHovered ? "text-emerald-700 bg-emerald-500/10" : "text-blue-600/30"} px-2 py-0.5 rounded-sm transition-all`}>
                                                                                             LISTO
                                                                                         </span>
                                                                                     )}
@@ -1405,9 +1405,9 @@ export default function TournamentManager({
                                                         <Trophy className="w-9 h-9 drop-shadow-lg" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-[10px] font-black uppercase tracking-[0.25em] opacity-70">Campeón del Torneo</p>
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-900/60">Campeón del Torneo</p>
                                                         <h2 className="text-2xl font-black italic uppercase tracking-tight leading-tight truncate">{champName}</h2>
-                                                        <p className="text-[11px] font-bold opacity-60 mt-0.5">¡Felicidades!</p>
+                                                        <p className="text-[11px] font-bold text-slate-900/50 mt-0.5">¡Felicidades!</p>
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -1454,7 +1454,7 @@ export default function TournamentManager({
 
                                             {/* Torneo ya finalizado — estado de lectura */}
                                             {initialStatus === "finalizado" && (
-                                                <div className="w-full py-3 bg-muted border border-border rounded-2xl text-muted-foreground text-[10px] font-black uppercase tracking-widest text-center">
+                                                <div className="w-full py-3 bg-muted border border-border rounded-2xl text-foreground/40 text-[10px] font-black uppercase tracking-widest text-center">
                                                     Torneo Finalizado
                                                 </div>
                                             )}
@@ -1467,7 +1467,7 @@ export default function TournamentManager({
                                             <button
                                                 onClick={generateBracket}
                                                 disabled={saving || !isGroupStageFinished}
-                                                className="px-4 py-2 bg-muted hover:bg-accent text-muted-foreground hover:text-white border border-border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                                className="px-4 py-2 bg-muted hover:bg-accent text-foreground/60 hover:text-white border border-border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
                                             >
                                                 <RefreshCw className="w-3 h-3" />
                                                 Regenerar Playoffs
@@ -1494,7 +1494,7 @@ export default function TournamentManager({
                                                     {roundLabel(r)}
                                                 </h3>
                                                 <div className="flex-1 h-px bg-border" />
-                                                <span className="text-[10px] font-bold text-muted-foreground">{roundMatches.length} partido{roundMatches.length !== 1 ? "s" : ""}</span>
+                                                <span className="text-[10px] font-bold text-foreground/40">{roundMatches.length} partido{roundMatches.length !== 1 ? "s" : ""}</span>
                                             </div>
 
                                             {/* Matches */}
@@ -1516,7 +1516,7 @@ export default function TournamentManager({
                                                                     {m.team1 ? slotName(m.team1) : "En espera..."}
                                                                 </span>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner1 ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>
+                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner1 ? "text-blue-700" : "text-foreground/40"}`}>{m.score1}</span>
                                                                 )}
                                                             </div>
 
@@ -1532,7 +1532,7 @@ export default function TournamentManager({
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                         />
-                                                                        <div className="w-4 text-center text-muted-foreground font-black text-sm shrink-0">vs</div>
+                                                                        <div className="w-4 text-center text-foreground/30 font-black text-sm shrink-0">vs</div>
                                                                         <input
                                                                             type="number"
                                                                             inputMode="numeric"
@@ -1544,7 +1544,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
-                                                                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
+                                                                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-foreground/60 cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-4 h-4" />
                                                                             </button>
@@ -1555,8 +1555,8 @@ export default function TournamentManager({
                                                                         <div className="flex-1 min-w-0 h-10 bg-background/50 border border-blue-500/20 rounded-xl flex items-center justify-center text-base font-black text-blue-600">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <div className="w-4 text-center text-muted-foreground font-black text-sm shrink-0">vs</div>
-                                                                        <div className="flex-1 min-w-0 h-10 bg-background/50 border border-rose-500/20 rounded-xl flex items-center justify-center text-base font-black text-rose-600">
+                                                                        <div className="w-4 text-center text-foreground/30 font-black text-sm shrink-0">vs</div>
+                                                                        <div className="flex-1 min-w-0 h-10 bg-background/50 border border-rose-500/20 rounded-xl flex items-center justify-center text-base font-black text-rose-700">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
                                                                         {m.confirmed && !readOnly && !isBye && (
@@ -1577,7 +1577,7 @@ export default function TournamentManager({
                                                                     {isBye ? "--- VACANTE ---" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                 </span>
                                                                 {m.confirmed && !isBye && (
-                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>
+                                                                    <span className={`text-lg font-black ml-3 shrink-0 ${isWinner2 ? "text-rose-700" : "text-foreground/40"}`}>{m.score2}</span>
                                                                 )}
                                                             </div>
 
@@ -1619,7 +1619,7 @@ export default function TournamentManager({
                                                                         {m.team1 ? slotName(m.team1) : "En espera..."}
                                                                     </span>
                                                                 </div>
-                                                                {m.confirmed && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner1 ? "text-blue-600" : "text-muted-foreground"}`}>{m.score1}</span>}
+                                                                {m.confirmed && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner1 ? "text-blue-700" : "text-foreground/40"}`}>{m.score1}</span>}
                                                             </div>
 
                                                             {/* Score or divider */}
@@ -1633,7 +1633,7 @@ export default function TournamentManager({
                                                                             value={m.score1 ?? ""}
                                                                             onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                         />
-                                                                        <span className="text-muted-foreground text-[10px] font-bold shrink-0">vs</span>
+                                                                        <span className="text-foreground/60 text-[10px] font-bold shrink-0">vs</span>
                                                                         <input
                                                                             type="number"
                                                                             className="flex-1 min-w-0 h-8 bg-rose-500/10 border border-rose-500/20 text-rose-700 rounded-lg text-center text-sm font-black placeholder:text-rose-400/50 focus:ring-1 focus:ring-rose-500 outline-none"
@@ -1644,7 +1644,7 @@ export default function TournamentManager({
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
-                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
+                                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-muted text-foreground/60 cursor-not-allowed"}`}
                                                                             >
                                                                                 <Check className="w-3.5 h-3.5" />
                                                                             </button>
@@ -1655,7 +1655,7 @@ export default function TournamentManager({
                                                                         <div className="flex-1 min-w-0 h-8 bg-background/50 text-blue-600 rounded-lg flex items-center justify-center text-sm font-black border border-blue-500/20">
                                                                             {m.score1 !== undefined ? m.score1 : "-"}
                                                                         </div>
-                                                                        <span className="text-muted-foreground text-[10px] font-bold shrink-0">vs</span>
+                                                                        <span className="text-foreground/60 text-[10px] font-bold shrink-0">vs</span>
                                                                         <div className="flex-1 min-w-0 h-8 bg-background/50 text-rose-600 rounded-lg flex items-center justify-center text-sm font-black border border-rose-500/20">
                                                                             {m.score2 !== undefined ? m.score2 : "-"}
                                                                         </div>
@@ -1680,7 +1680,7 @@ export default function TournamentManager({
                                                                         {isBye ? "--- VACANTE ---" : m.team2 ? slotName(m.team2) : "En espera..."}
                                                                     </span>
                                                                 </div>
-                                                                {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-600" : "text-muted-foreground"}`}>{m.score2}</span>}
+                                                                {m.confirmed && !isBye && <span className={`text-sm font-black ml-2 shrink-0 ${isWinner2 ? "text-rose-700" : "text-foreground/40"}`}>{m.score2}</span>}
                                                             </div>
 
                                                         </div>
@@ -1791,14 +1791,14 @@ export default function TournamentManager({
                                     </div>
                                     <button
                                         onClick={() => setSelectedPlayerId(null)}
-                                        className="w-10 h-10 rounded-xl hover:bg-muted transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
+                                        className="w-10 h-10 rounded-xl hover:bg-muted transition-colors flex items-center justify-center text-foreground/60 hover:text-foreground"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">Partidos Disputados</h4>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/60 pl-1">Partidos Disputados</h4>
                                     <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                                         {playerGroupMatches.map(m => {
                                             const isTeam1 = m.team1.id === selectedPlayerId;
@@ -1820,7 +1820,7 @@ export default function TournamentManager({
                                                     <div className="flex items-center justify-between gap-4">
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-[8px] font-black uppercase text-muted-foreground">Oponente</span>
+                                                                <span className="text-[8px] font-black uppercase text-foreground/60">Oponente</span>
                                                                 {m.confirmed && (
                                                                     <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${isWinner ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
                                                                         {isWinner ? "Victoria" : "Derrota"}
@@ -1833,8 +1833,8 @@ export default function TournamentManager({
                                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border ${isWinner ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' : 'bg-rose-500/10 border-rose-500/30 text-rose-600'}`}>
                                                                 {myScore ?? "-"}
                                                             </div>
-                                                            <span className="text-[10px] font-black text-muted-foreground uppercase">vs</span>
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border bg-muted border-border text-muted-foreground`}>
+                                                            <span className="text-[10px] font-black text-foreground/60 uppercase">vs</span>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border bg-muted border-border text-foreground/60`}>
                                                                 {oppScore ?? "-"}
                                                             </div>
                                                         </div>
@@ -1843,7 +1843,7 @@ export default function TournamentManager({
                                             );
                                         })}
                                         {playerGroupMatches.length === 0 && (
-                                            <div className="py-12 text-center text-muted-foreground italic text-sm">
+                                            <div className="py-12 text-center text-foreground/60 italic text-sm">
                                                 No se encontraron partidos para este jugador.
                                             </div>
                                         )}
@@ -1898,7 +1898,7 @@ export default function TournamentManager({
                             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground mb-2">
                                 ¡Torneo Finalizado!
                             </h3>
-                            <p className="text-muted-foreground text-sm font-bold mb-8">
+                            <p className="text-foreground/60 text-sm font-bold mb-8">
                                 Los resultados han sido guardados y el campeón ha sido coronado con éxito.
                             </p>
 
@@ -1934,7 +1934,7 @@ export default function TournamentManager({
                                 <div className="flex items-center justify-between mb-8">
                                     <div>
                                         <h3 className="text-3xl font-black italic uppercase tracking-tighter text-foreground leading-none">Sustitución</h3>
-                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-3">Reemplazar Sembrado #{isReplacingPlayer}</p>
+                                        <p className="text-[10px] text-foreground/60 uppercase font-black tracking-[0.2em] mt-3">Reemplazar Sembrado #{isReplacingPlayer}</p>
                                     </div>
                                     <button 
                                         onClick={() => setIsReplacingPlayer(null)}
@@ -1952,15 +1952,15 @@ export default function TournamentManager({
                                             placeholder="BUSCAR JUGADOR POR NOMBRE..."
                                             value={playerSearchQuery}
                                             onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                                            className="w-full bg-muted/30 border-2 border-border/50 rounded-2xl h-14 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/50 focus:bg-card transition-all"
+                                            className="w-full bg-muted/30 border-2 border-border/50 rounded-2xl h-14 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest text-foreground placeholder:text-foreground/60/30 focus:outline-none focus:border-primary/50 focus:bg-card transition-all"
                                         />
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary/50 transition-colors">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/60/40 group-focus-within:text-primary/50 transition-colors">
                                             <Users2 className="h-5 w-5" />
                                         </div>
                                         {playerSearchQuery && (
                                             <button 
                                                 onClick={() => setPlayerSearchQuery("")}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/60/40 hover:text-foreground transition-colors"
                                             >
                                                 <X className="h-4 w-4" />
                                             </button>
@@ -1988,9 +1988,9 @@ export default function TournamentManager({
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-muted/50 border-b border-border">
-                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
-                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Grupo</th>
-                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">Estado</th>
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/60 leading-none">Jugador</th>
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/60 leading-none">Grupo</th>
+                                                    <th className="py-3 px-4 text-[9px] uppercase font-black tracking-widest text-foreground/60 leading-none text-center">Estado</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border/50">
@@ -2025,7 +2025,7 @@ export default function TournamentManager({
                                                                 <span className="font-bold text-[11px] uppercase italic tracking-tight text-foreground truncate max-w-[150px] inline-block">{player.name}</span>
                                                             </td>
                                                             <td className="py-1 px-4">
-                                                                <span className="text-[9px] font-black text-muted-foreground uppercase opacity-50 whitespace-nowrap">{group?.name || "-"}</span>
+                                                                <span className="text-[9px] font-black text-foreground/60 uppercase opacity-50 whitespace-nowrap">{group?.name || "-"}</span>
                                                             </td>
                                                             <td className="py-1 px-4 text-center">
                                                                 {isBeingReplaced ? (
@@ -2033,7 +2033,7 @@ export default function TournamentManager({
                                                                         <Check className="h-3.5 w-3.5 text-primary" />
                                                                     </div>
                                                                 ) : isAlreadyQual ? (
-                                                                    <span className="text-[7px] font-black italic text-muted-foreground/30 uppercase tracking-widest">OK</span>
+                                                                    <span className="text-[7px] font-black italic text-foreground/60/30 uppercase tracking-widest">OK</span>
                                                                 ) : (
                                                                     <span className="text-[7px] font-black italic text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100">SEL.</span>
                                                                 )}
