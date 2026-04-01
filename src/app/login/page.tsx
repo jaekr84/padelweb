@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { loginAction } from "./actions";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, ArrowLeft, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -27,8 +28,29 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 selection:bg-indigo-500/30">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent pointer-events-none" />
+
+            {/* Back Navigation */}
+            <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-md mb-8 flex justify-between items-center relative z-10 px-4"
+            >
+                <Link href="/" className="flex items-center gap-2 group">
+                    <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden group-hover:border-indigo-500/30 transition-colors">
+                        <Image src="/img/stickers 1.jpg" alt="Logo" width={32} height={32} className="object-cover" />
+                    </div>
+                    <span className="font-black italic tracking-tighter text-sm uppercase text-slate-400 group-hover:text-white transition-colors">A.C.A.P.</span>
+                </Link>
+                <Link 
+                    href="/" 
+                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all group"
+                >
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Volver a la Web
+                </Link>
+            </motion.div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

@@ -68,7 +68,7 @@ export default function TournamentManager({
     const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(initialMatches);
     const [bracket, setBracket] = useState<BracketMatch[]>(initialBracket);
-    const [step, setStep] = useState<"done" | "elim">(
+    const [step, setStep] = useState<"done" | "qual" | "elim">(
         (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done"
     );
     const [qualPerGroup, setQualPerGroup] = useState(2);
@@ -76,62 +76,18 @@ export default function TournamentManager({
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    // Sync state with props when initial data changes (e.g. after router.refresh())
-    useEffect(() => {
-        setGroups(initialGroups);
-        setMatches(initialMatches);
-        setBracket(initialBracket);
-    }, [initialGroups, initialMatches, initialBracket]);
-
-    // ─── Renderizado Condicional ───
-
-    // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
-    const isGroupStageFinished = useMemo(() => {
-        return matches.length > 0 && matches.every(m => m.confirmed);
-    }, [matches]);
-
-    const totalGroupMatches = matches.length;
-    const confirmedGroupMatches = matches.filter(m => m.confirmed).length;
-    const progressPercent = totalGroupMatches > 0
-        ? Math.round((confirmedGroupMatches / totalGroupMatches) * 100)
-        : 0;
-
-    const handleSimulateResults = () => {
-        const newMatches = matches.map(m => {
-            if (m.confirmed) return m;
-            // Generate random scores between 0 and 7
-            let s1 = Math.floor(Math.random() * 8); // 0-7
-            let s2 = Math.floor(Math.random() * 8); // 0-7
-            // Avoid draws (though in padel some formats might have tie-breaks, 
-            // for simple point calculation we just need a winner)
-            if (s1 === s2) {
-                if (s1 === 7) s2 = 6;
-                else s2 = s1 + 1;
-            }
-            return {
-                ...m,
-                score1: s1,
-                score2: s2,
-                played: true,
-                confirmed: true
-            };
-        });
-        setMatches(newMatches);
-        toast.success("Resultados simulados. ¡No olvides guardar!");
-    };
-
     // ─── Shared Logic ───
     const computeStandings = (groupId: string) => {
         const group = groups.find(g => g.id === groupId);
         if (!group) return [];
         const groupMatches = matches.filter(m => m.groupId === groupId && m.confirmed);
 
-        const parsedPlayers = Array.isArray(group.players) 
-            ? group.players 
-            : typeof group.players === 'string' 
+        const parsedPlayers = Array.isArray(group.players)
+            ? group.players
+            : typeof group.players === 'string'
                 ? (() => { try { return JSON.parse(group.players as string); } catch { return []; } })()
                 : [];
-        
+
         const playersArray = Array.isArray(parsedPlayers) ? parsedPlayers : [];
         if (playersArray.length === 0) {
             console.warn(`[computeStandings] No players found for group ${groupId}`, group.players);
@@ -151,18 +107,18 @@ export default function TournamentManager({
         groupMatches.forEach(m => {
             if (m.score1 === undefined || m.score2 === undefined || m.score1 === null || m.score2 === null) return;
             if (!m.team1 || !m.team2) return;
-            
+
             // Match by ID or Name to handle potential hydration mismatches
             const p1 = standings.find((s: any) => s.playerId === m.team1.id || (m.team1.name && s.player.name === m.team1.name));
             const p2 = standings.find((s: any) => s.playerId === m.team2.id || (m.team2.name && s.player.name === m.team2.name));
-            
+
             if (p1 && p2) {
                 p1.matchesPlayed++;
                 p2.matchesPlayed++;
-                
+
                 const s1 = Number(m.score1);
                 const s2 = Number(m.score2);
-                
+
                 p1.gamesWon += s1;
                 p1.gamesLost += s2;
                 p2.gamesWon += s2;
@@ -189,10 +145,10 @@ export default function TournamentManager({
             if (tiedOnWins.length === 2) {
                 const match = groupMatches.find(m =>
                     ((m.team1.id === a.playerId && m.team2.id === b.playerId) ||
-                    (m.team1.id === b.playerId && m.team2.id === a.playerId)) &&
+                        (m.team1.id === b.playerId && m.team2.id === a.playerId)) &&
                     m.confirmed
                 );
-                
+
                 if (match) {
                     const aIsTeam1 = match.team1.id === a.playerId;
                     const aScore = aIsTeam1 ? match.score1! : match.score2!;
@@ -207,6 +163,75 @@ export default function TournamentManager({
             return b.gamesWon - a.gamesWon;
         });
     };
+
+    // Sync state with props when initial data changes (e.g. after router.refresh())
+    useEffect(() => {
+        setGroups(initialGroups);
+        setMatches(initialMatches);
+        setBracket(initialBracket);
+    }, [initialGroups, initialMatches, initialBracket]);
+
+    // ─── Renderizado Condicional ───
+
+    // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
+    const isGroupStageFinished = useMemo(() => {
+        return matches.length > 0 && matches.every(m => m.confirmed);
+    }, [matches]);
+
+    const totalGroupMatches = matches.length;
+    const confirmedGroupMatches = matches.filter(m => m.confirmed).length;
+    const progressPercent = totalGroupMatches > 0
+        ? Math.round((confirmedGroupMatches / totalGroupMatches) * 100)
+        : 0;
+
+    const sortedQualifiers = useMemo(() => {
+        const quals: any[] = [];
+        groups.forEach(g => {
+            const groupStandings = computeStandings(g.id);
+            for (let i = 0; i < qualPerGroup; i++) {
+                if (groupStandings[i]) {
+                    quals.push({
+                        ...groupStandings[i],
+                        groupId: g.id,
+                        groupName: g.name,
+                        groupRank: i + 1
+                    });
+                }
+            }
+        });
+        return quals.sort((a, b) =>
+            (a.groupRank - b.groupRank) ||
+            (b.won - a.won) ||
+            (b.points - a.points) ||
+            (b.gamesWon - a.gamesWon)
+        );
+    }, [groups, matches, qualPerGroup]);
+
+    const handleSimulateResults = () => {
+        const newMatches = matches.map(m => {
+            if (m.confirmed) return m;
+            // Generate random scores between 0 and 7
+            let s1 = Math.floor(Math.random() * 8); // 0-7
+            let s2 = Math.floor(Math.random() * 8); // 0-7
+            // Avoid draws (though in padel some formats might have tie-breaks, 
+            // for simple point calculation we just need a winner)
+            if (s1 === s2) {
+                if (s1 === 7) s2 = 6;
+                else s2 = s1 + 1;
+            }
+            return {
+                ...m,
+                score1: s1,
+                score2: s2,
+                played: true,
+                confirmed: true
+            };
+        });
+        setMatches(newMatches);
+        toast.success("Resultados simulados. ¡No olvides guardar!");
+    };
+
+
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
         setMatches(prev => prev.map(m => {
@@ -240,7 +265,7 @@ export default function TournamentManager({
             if (m.id !== matchId) return m;
             return { ...m, confirmed: true };
         });
-        
+
         const loadingToast = toast.loading("Guardando resultado...");
         setSaving(true);
         try {
@@ -273,61 +298,47 @@ export default function TournamentManager({
 
     const generateBracket = async () => {
         console.log("[generateBracket] Iniciando proceso de generación profesional...");
-        
-        // 1. Pot winners and runners-up
-        const winners: any[] = [];
-        const runnersUp: any[] = [];
 
+        // 1. Collect all qualifiers based on the current qualPerGroup setting
+        const allQualifiers: any[] = [];
         groups.forEach(g => {
             const groupStandings = computeStandings(g.id);
-            if (groupStandings[0]) winners.push({ ...groupStandings[0], groupId: g.id });
-            if (groupStandings[1]) runnersUp.push({ ...groupStandings[1], groupId: g.id });
-        });
-
-        // Sort by merit (Wins > Game Diff > Games Won)
-        const sortedWinners = winners.sort((a, b) => (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon));
-        const sortedRunners = runnersUp.sort((a, b) => (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon));
-
-        const getRunnerFor = (winner: any, list: any[], usedIds: Set<string>) => {
-            let foundIndex = list.findIndex(r => !usedIds.has(r.playerId) && r.groupId !== winner.groupId);
-            if (foundIndex === -1) foundIndex = list.findIndex(r => !usedIds.has(r.playerId));
-            return foundIndex;
-        };
-
-        const usedRunners = new Set<string>();
-        const pairings: { t1: Player, t2: BracketSlot }[] = [];
-
-        // Professional Seeding Path (1st Half: Seed 1 & 4, 2nd Half: Seed 2 & 3)
-        // Match Layout: [Match 1, Match 2] (Top Half) vs [Match 3, Match 4] (Bottom Half)
-        const winnerOrder = [0, 3, 2, 1]; // Winner Seeds in bracket positions
-        const runnerPref = [3, 0, 1, 2]; // Preferred Runner merit for those winners (1v8, 4v5, 3v6, 2v7)
-
-        winnerOrder.forEach((winIdx, i) => {
-            const winner = sortedWinners[winIdx];
-            if (!winner) return;
-
-            let runIdx = runnerPref[i];
-            let runner = sortedRunners[runIdx];
-
-            if (!runner || usedRunners.has(runner.playerId) || runner.groupId === winner.groupId) {
-                runIdx = getRunnerFor(winner, sortedRunners, usedRunners);
-                runner = sortedRunners[runIdx];
+            for (let i = 0; i < qualPerGroup; i++) {
+                if (groupStandings[i]) {
+                    allQualifiers.push({
+                        ...groupStandings[i],
+                        groupId: g.id,
+                        groupRank: i + 1
+                    });
+                }
             }
-
-            pairings.push({ 
-                t1: winner.player, 
-                t2: runner ? runner.player : "BYE" 
-            });
-            if (runner) usedRunners.add(runner.playerId);
         });
 
-        const loadingToast = toast.loading("Generando llaves profesionales...");
+        if (allQualifiers.length < 2) {
+            toast.error("Se necesitan al menos 2 clasificados para generar playoffs");
+            return;
+        }
+
+        // 2. Sort by merit to assign Seeds
+        // Priority: Rank in group (1st, then 2nd...), then Wins, then Games Diff, then Games Won
+        const sortedSeeds = [...allQualifiers].sort((a, b) =>
+            (a.groupRank - b.groupRank) ||
+            (b.won - a.won) ||
+            (b.points - a.points) ||
+            (b.gamesWon - a.gamesWon)
+        );
+
+        // 3. Determine Bracket Size
+        const totalQuals = sortedSeeds.length;
+        const numRounds = Math.ceil(Math.log2(totalQuals));
+        const bracketSize = Math.pow(2, numRounds);
+
+        const loadingToast = toast.loading(`Generando cuadro de ${bracketSize} para ${totalQuals} jugadores...`);
         setSaving(true);
 
         try {
-            const numRounds = 3; // Quarters, Semis, Final
+            // Initialize empty bracket
             const newBracket: BracketMatch[] = [];
-
             for (let r = 0; r < numRounds; r++) {
                 const matchesInRound = Math.pow(2, r);
                 for (let s = 0; s < matchesInRound; s++) {
@@ -342,19 +353,58 @@ export default function TournamentManager({
                 }
             }
 
-            const qMatches = newBracket.filter(m => m.round === 2);
-            pairings.forEach((p, idx) => {
-                if (qMatches[idx]) {
-                    qMatches[idx].team1 = p.t1;
-                    qMatches[idx].team2 = p.t2;
-                    if (p.t2 === "BYE") {
-                        qMatches[idx].confirmed = true;
-                        qMatches[idx].winnerId = p.t1.id;
-                        qMatches[idx].winnerName = p.t1.name;
+            // 4. Professional Seeding Order Logic
+            // Generates a sequence like [1, 8, 4, 5, 2, 7, 3, 6] for size 8
+            const getSeedingOrder = (size: number) => {
+                let order = [1];
+                while (order.length < size) {
+                    const nextOrder = [];
+                    const nextSum = order.length * 2 + 1;
+                    for (const s of order) {
+                        nextOrder.push(s);
+                        nextOrder.push(nextSum - s);
+                    }
+                    order = nextOrder;
+                }
+                return order;
+            };
+
+            const seedPositions = getSeedingOrder(bracketSize);
+            const pairings: { t1: BracketSlot, t2: BracketSlot }[] = [];
+
+            // We pair them in order: (Seed at pos 0 vs Seed at pos 1), (Seed at pos 2 vs Seed at pos 3)...
+            for (let i = 0; i < seedPositions.length; i += 2) {
+                const s1 = seedPositions[i];
+                const s2 = seedPositions[i + 1];
+
+                // If seed is > totalQuals, it's a BYE
+                const p1 = s1 <= totalQuals ? sortedSeeds[s1 - 1].player : "BYE";
+                const p2 = s2 <= totalQuals ? sortedSeeds[s2 - 1].player : "BYE";
+
+                pairings.push({ t1: p1, t2: p2 });
+            }
+
+            // Fill the first round (Round = numRounds - 1)
+            const firstRoundIdx = numRounds - 1;
+            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+
+            firstRoundMatches.forEach((m, idx) => {
+                const pair = pairings[idx];
+                m.team1 = pair.t1;
+                m.team2 = pair.t2;
+
+                // Auto-confirm BYEs
+                if (m.team1 === "BYE" || m.team2 === "BYE") {
+                    m.confirmed = true;
+                    const winner = m.team1 === "BYE" ? m.team2 : m.team1;
+                    if (winner && winner !== "BYE") {
+                        m.winnerId = (winner as Player).id;
+                        m.winnerName = (winner as Player).name;
                     }
                 }
             });
 
+            // Advance auto-winners to next rounds
             advanceBracketWinners(newBracket, numRounds);
 
             const res = await saveTournamentFixture({
@@ -369,14 +419,14 @@ export default function TournamentManager({
             if (res.ok) {
                 setBracket(newBracket);
                 setStep("elim");
-                toast.success("Cuadro profesional generado. ¡Éxito en playoffs!");
+                toast.success(`Cuadro de ${totalQuals} jugadores generado con éxito`);
             } else {
                 toast.error("Error al guardar: " + res.error);
             }
         } catch (e) {
             toast.dismiss(loadingToast);
             console.error(e);
-            toast.error("Error al generar cuadro");
+            toast.error("Error al generar cuadro dinámico");
         } finally {
             setSaving(false);
         }
@@ -412,8 +462,8 @@ export default function TournamentManager({
                         if (nextMatch.team1 && nextMatch.team2) {
                             if ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE") {
                                 nextMatch.confirmed = true;
-                                nextMatch.winnerId = (nextMatch.team1 as any) !== "BYE" 
-                                    ? (nextMatch.team1 as Player).id 
+                                nextMatch.winnerId = (nextMatch.team1 as any) !== "BYE"
+                                    ? (nextMatch.team1 as Player).id
                                     : (nextMatch.team2 as Player).id;
                             }
                         }
@@ -438,7 +488,7 @@ export default function TournamentManager({
             const winner = m.score1! > m.score2! ? m.team1 : m.team2;
             const winnerId = (winner as Player)?.id;
             const winnerName = (winner as Player)?.name;
-            
+
             let finalWinnerName = winnerName;
             const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
             if (!finalWinnerName || isUUID(finalWinnerName)) {
@@ -451,7 +501,7 @@ export default function TournamentManager({
 
         const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
         advanceBracketWinners(updated, totalRounds);
-        
+
         const finalBracket = updated;
         setBracket(finalBracket);
 
@@ -459,8 +509,8 @@ export default function TournamentManager({
         setSaving(true);
         const match = finalBracket.find(m => m.id === matchId);
         const isFinal = match?.round === 0;
-        const championName = isFinal 
-            ? groups.flatMap(g => g.players).find(p => p.id === match?.winnerId)?.name 
+        const championName = isFinal
+            ? groups.flatMap(g => g.players).find(p => p.id === match?.winnerId)?.name
             : undefined;
 
         try {
@@ -542,16 +592,18 @@ export default function TournamentManager({
 
             {/* ── Sticky Header — full viewport width ── */}
             <header className={`sticky ${isLoggedIn ? 'top-0' : 'top-16'} bg-background/80 backdrop-blur-md border-b border-border z-[40]`}>
-                <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4">
+                <div className="w-full mx-auto px-4 md:px-8 py-3 md:py-4">
                     {isLoggedIn && (
                         <div className="flex items-center justify-between gap-3 mb-3">
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
                                         if (step === "elim") {
+                                            setStep("qual");
+                                        } else if (step === "qual") {
                                             setStep("done");
                                         } else {
-                                            router.push(`/tournaments/${tournamentId}/fixture`);
+                                            router.push(`/tournaments/${tournamentId}/manage`);
                                         }
                                     }}
                                     className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
@@ -587,12 +639,12 @@ export default function TournamentManager({
                     )}
 
                     {!isLoggedIn && (
-                         <div className="flex items-center justify-center mb-2">
+                        <div className="flex items-center justify-center mb-2">
                             <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shrink-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                 {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
                             </div>
-                         </div>
+                        </div>
                     )}
 
                     {/* Tournament name */}
@@ -601,7 +653,7 @@ export default function TournamentManager({
                     </h1>
 
                     {/* Tab Navigation */}
-                    <div className="flex p-1 bg-muted border border-border rounded-xl max-w-xs mx-auto">
+                    <div className="flex p-1 bg-muted border border-border rounded-xl max-w-sm mx-auto">
                         <button
                             onClick={() => setStep("done")}
                             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "done"
@@ -612,6 +664,18 @@ export default function TournamentManager({
                             <Users2 className="w-3.5 h-3.5" />
                             Grupos
                         </button>
+                        {isGroupStageFinished && (
+                            <button
+                                onClick={() => setStep("qual")}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${step === "qual"
+                                    ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                    }`}
+                            >
+                                <BarChart3 className="w-3.5 h-3.5" />
+                                Clasificados
+                            </button>
+                        )}
                         {(isGroupStageFinished || bracket.length > 0 || initialStatus === "finalizado") && (
                             <button
                                 onClick={() => setStep("elim")}
@@ -629,7 +693,7 @@ export default function TournamentManager({
             </header>
 
             {/* ── Page content ── */}
-            <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-32">
+            <div className="w-full mx-auto px-4 md:px-12 py-6 pb-32">
 
 
                 <AnimatePresence mode="wait">
@@ -647,7 +711,7 @@ export default function TournamentManager({
                                     <span>Progreso Fase de Grupos</span>
                                     <div className="flex items-center gap-3">
                                         {!readOnly && progressPercent < 100 && (
-                                            <button 
+                                            <button
                                                 onClick={handleSimulateResults}
                                                 className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
                                                 title="Simular resultados aleatorios para pruebas"
@@ -670,7 +734,7 @@ export default function TournamentManager({
                             </div>
 
                             {/* Groups Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
                                 {groups.map((g: any) => {
                                     const standings = computeStandings(g.id);
                                     const groupMatches = matches.filter(m => m.groupId === g.id);
@@ -689,7 +753,8 @@ export default function TournamentManager({
                                                             <th className="pb-3 pr-3">#</th>
                                                             <th className="pb-3">Jugador</th>
                                                             <th className="pb-3 px-3 text-center">PJ</th>
-                                                            <th className="pb-3 px-3 text-center">Pts</th>
+                                                            <th className="pb-3 px-3 text-center">PG</th>
+                                                            <th className="pb-3 px-3 text-center">+/-</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border/50">
@@ -698,6 +763,7 @@ export default function TournamentManager({
                                                                 <td className="py-3 pr-3 text-xs font-black italic text-muted-foreground">#{idx + 1}</td>
                                                                 <td className="py-3 font-bold text-sm tracking-tight text-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{s.player.name}</td>
                                                                 <td className="py-3 px-3 text-center text-xs font-bold text-muted-foreground">{s.matchesPlayed}</td>
+                                                                <td className="py-3 px-3 text-center text-xs font-bold text-emerald-500">{s.won}</td>
                                                                 <td className="py-3 px-3 text-center font-black text-primary">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                             </tr>
                                                         ))}
@@ -822,18 +888,168 @@ export default function TournamentManager({
                                         </div>
 
                                         <button
-                                            onClick={generateBracket}
-                                            disabled={!isGroupStageFinished || saving}
-                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished && !saving
-                                                ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                            onClick={() => setStep("qual")}
+                                            disabled={!isGroupStageFinished}
+                                            className={`w-full md:w-auto px-8 py-4 font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm ${isGroupStageFinished
+                                                ? "bg-amber-500 hover:bg-amber-400 text-white"
                                                 : "bg-muted text-muted-foreground cursor-not-allowed border border-border"
                                                 }`}
                                         >
-                                            {saving ? "Procesando..." : isGroupStageFinished ? "Generar Playoffs →" : `Finalizá los grupos (${totalGroupMatches - confirmedGroupMatches} restantes)`}
+                                            {isGroupStageFinished ? "Ver Clasificados →" : `Finalizá los grupos (${totalGroupMatches - confirmedGroupMatches} restantes)`}
                                         </button>
                                     </div>
                                 </div>
                             )}
+                        </motion.div>
+                    )}
+
+                    {step === "qual" && (
+                        <motion.div
+                            key="qual-stage"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-12 pb-20 px-4"
+                        >
+                            <div className="max-w-4xl mx-auto">
+                                <div className="text-center mb-10">
+                                    <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Orden de Clasificados</h2>
+                                    <p className="text-muted-foreground text-sm font-medium">Clasificados ordenados por mérito para el cuadro final</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                                    {(() => {
+                                        const totalQuals = sortedQualifiers.length;
+                                        const bracketSize = totalQuals > 0 ? Math.pow(2, Math.ceil(Math.log2(totalQuals))) : 0;
+                                        const numByes = bracketSize - totalQuals;
+
+                                        return Array.from({ length: qualPerGroup }).map((_, rankIdx) => {
+                                            const rank = rankIdx + 1;
+                                            const playersInRank = sortedQualifiers.filter(q => q.groupRank === rank);
+                                            if (playersInRank.length === 0) return null;
+
+                                            return (
+                                                <div key={rank} className="space-y-4">
+                                                    <div className="flex items-center gap-3 px-2">
+                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg ${rank === 1 ? "bg-amber-500 shadow-amber-500/20" :
+                                                            rank === 2 ? "bg-slate-400 shadow-slate-400/20" :
+                                                                "bg-emerald-500 shadow-emerald-500/20"
+                                                            }`}>
+                                                            {rank}º
+                                                        </div>
+                                                        <h3 className="text-xl font-black text-foreground tracking-tight uppercase italic">
+                                                            {rank === 1 ? "Primeros de Grupo" : rank === 2 ? "Segundos de Grupo" : `${rank}os de Grupo`}
+                                                        </h3>
+                                                    </div>
+
+                                                    <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+                                                        <div className="overflow-x-auto">
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead>
+                                                                    <tr className="bg-muted/50 border-b border-border">
+                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Sem.</th>
+                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Jugador</th>
+                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none">Grupo</th>
+                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">PG</th>
+                                                                        <th className="py-4 px-4 text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none text-center">+/-</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-border/50">
+                                                                    {playersInRank.map((q) => {
+                                                                        const globalIdx = sortedQualifiers.findIndex(sq => sq.playerId === q.playerId);
+                                                                        const hasBye = (globalIdx + 1) <= numByes;
+
+                                                                            return (
+                                                                                <tr key={q.playerId} className="hover:bg-muted/30 transition-colors group">
+                                                                                    <td className="py-3 px-4">
+                                                                                        <div className="flex flex-col items-center justify-center gap-1.5 h-12">
+                                                                                            <span className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary">
+                                                                                                #{globalIdx + 1}
+                                                                                            </span>
+                                                                                            <div className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
+                                                                                                hasBye 
+                                                                                                ? "text-amber-600 bg-amber-500/10 border-amber-500/20" 
+                                                                                                : "text-transparent bg-transparent border-transparent select-none"
+                                                                                            }`}>
+                                                                                                BYE
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-3 px-4">
+                                                                                        <div className="flex flex-col justify-center gap-1.5 h-12">
+                                                                                            <div className="font-bold text-foreground tracking-tight whitespace-nowrap text-xs truncate max-w-[120px]">
+                                                                                                {q.player.name}
+                                                                                            </div>
+                                                                                            <div className={`flex items-center gap-1 text-[9px] font-bold uppercase italic transition-all ${
+                                                                                                hasBye 
+                                                                                                ? "text-amber-500 opacity-100" 
+                                                                                                : "text-transparent opacity-0 select-none"
+                                                                                            }`}>
+                                                                                                <Trophy className="w-2.5 h-2.5" />
+                                                                                                Pasa Directo
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-3 px-4">
+                                                                                        <div className="flex items-center h-12">
+                                                                                            <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+                                                                                                {q.groupName}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-3 px-4 text-center font-bold text-emerald-500 text-xs">
+                                                                                        <div className="flex items-center justify-center h-12">
+                                                                                            {q.won}
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-3 px-4 text-center font-black text-primary text-xs">
+                                                                                        <div className="flex items-center justify-center h-12">
+                                                                                            {q.points > 0 ? `+${q.points}` : q.points}
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+
+                                {/* Call to action to generate bracket */}
+                                <div className="mt-20 flex flex-col items-center gap-6">
+                                    <div className="bg-blue-600/10 border border-blue-600/20 p-8 rounded-[2rem] max-w-xl text-center backdrop-blur-sm">
+                                        <Trophy className="w-10 h-10 text-blue-500 mx-auto mb-4" />
+                                        <h3 className="text-blue-500 font-black uppercase tracking-widest text-xs mb-3">Siguiente Fase: Eliminatorias</h3>
+                                        <p className="text-sm text-foreground/80 font-medium mb-0">
+                                            El sistema emparejará a los **mejores primeros** contra los **peores clasificados** para garantizar un torneo meritocrático.
+                                            Los BYEs (si existen) se asignarán automáticamente a las semillas más altas.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={generateBracket}
+                                        disabled={saving}
+                                        className="px-16 py-6 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest italic rounded-2xl shadow-2xl shadow-blue-600/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-4 disabled:opacity-50 text-base"
+                                    >
+                                        {saving ? (
+                                            <>
+                                                <RefreshCw className="w-5 h-5 animate-spin" />
+                                                Creando Llave...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Swords className="w-6 h-6" />
+                                                Generar Cuadro de Eliminación
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
 
@@ -850,10 +1066,10 @@ export default function TournamentManager({
                                 const finalMatch = bracket.find(m => m.round === 0);
                                 if (finalMatch?.confirmed && finalMatch.winnerId) {
                                     const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player;
-                                    
+
                                     // Robust check for champName: prefer winnerName IF it doesn't look like a UUID
                                     const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
-                                    
+
                                     let champName = finalMatch.winnerName;
                                     if (!champName || isUUID(champName)) {
                                         // Try to find the name from the winnerSlot
@@ -941,7 +1157,7 @@ export default function TournamentManager({
                                 return (
                                     <div className="flex items-center justify-center py-4">
                                         {!readOnly && (
-                                            <button 
+                                            <button
                                                 onClick={generateBracket}
                                                 disabled={saving || !isGroupStageFinished}
                                                 className="px-4 py-2 bg-muted hover:bg-accent text-muted-foreground hover:text-white border border-border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
@@ -1168,67 +1384,67 @@ export default function TournamentManager({
                                     ))}
                                 </div>
                             </div>
-                        
-                        {/* Finalize Tournament Action Bar (Bottom) */}
-                        {(() => {
-                            const finalMatch = bracket.find(m => m.round === 0);
-                            const winnerSlot = finalMatch ? [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player : null;
-                            const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
 
-                            let champName = finalMatch?.winnerName;
-                            if (!champName || isUUID(champName)) {
-                               const slotName = winnerSlot?.name;
-                               if (slotName && !isUUID(slotName)) {
-                                   champName = slotName;
-                               } else {
-                                   const foundPlayer = groups.flatMap(g => g.players).find(p => p.id === finalMatch?.winnerId);
-                                   champName = foundPlayer?.name || "Campeón";
-                               }
-                            }
-                            
-                            if (finalMatch?.confirmed && champName && initialStatus !== "finalizado" && !readOnly) {
-                                return (
-                                    <div className="mt-12 p-8 bg-emerald-600/5 border border-emerald-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
-                                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                                    <Trophy className="w-6 h-6 text-emerald-600" />
+                            {/* Finalize Tournament Action Bar (Bottom) */}
+                            {(() => {
+                                const finalMatch = bracket.find(m => m.round === 0);
+                                const winnerSlot = finalMatch ? [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player : null;
+                                const isUUID = (str: string | null | undefined) => str ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str) : false;
+
+                                let champName = finalMatch?.winnerName;
+                                if (!champName || isUUID(champName)) {
+                                    const slotName = winnerSlot?.name;
+                                    if (slotName && !isUUID(slotName)) {
+                                        champName = slotName;
+                                    } else {
+                                        const foundPlayer = groups.flatMap(g => g.players).find(p => p.id === finalMatch?.winnerId);
+                                        champName = foundPlayer?.name || "Campeón";
+                                    }
+                                }
+
+                                if (finalMatch?.confirmed && champName && initialStatus !== "finalizado" && !readOnly) {
+                                    return (
+                                        <div className="mt-12 p-8 bg-emerald-600/5 border border-emerald-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl shadow-emerald-500/5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+                                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                                        <Trophy className="w-6 h-6 text-emerald-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">¡Final de Torneo!</h2>
+                                                        <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champName}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">¡Final de Torneo!</h2>
-                                                    <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest mt-1">Campeón: {champName}</p>
-                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        setSaving(true);
+                                                        await saveTournamentFixture({
+                                                            tournamentId,
+                                                            phase: "finalizado",
+                                                            championName: champName,
+                                                            groups,
+                                                            matches,
+                                                            bracket,
+                                                        });
+                                                        setSaving(false);
+                                                        setShowSuccessModal(true);
+                                                        setTimeout(() => router.refresh(), 2000);
+                                                    }}
+                                                    disabled={saving}
+                                                    className="w-full md:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm flex items-center justify-center gap-2"
+                                                >
+                                                    {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trophy className="w-4 h-4" />}
+                                                    Finalizar Torneo
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={async () => {
-                                                    setSaving(true);
-                                                    await saveTournamentFixture({
-                                                        tournamentId,
-                                                        phase: "finalizado",
-                                                        championName: champName,
-                                                        groups,
-                                                        matches,
-                                                        bracket,
-                                                    });
-                                                    setSaving(false);
-                                                    setShowSuccessModal(true);
-                                                    setTimeout(() => router.refresh(), 2000);
-                                                }}
-                                                disabled={saving}
-                                                className="w-full md:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 text-sm flex items-center justify-center gap-2"
-                                            >
-                                                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trophy className="w-4 h-4" />}
-                                                Finalizar Torneo
-                                            </button>
                                         </div>
-                                    </div>
-                                );
-                            }
-                            return null;
-                        })()}
-                    </motion.div>
-                )}
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </div>
 
