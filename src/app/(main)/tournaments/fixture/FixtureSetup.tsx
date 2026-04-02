@@ -580,7 +580,12 @@ export default function FixtureSetup({
 
                             <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
                                 <div className="px-6 py-4 bg-card flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/50">Jugadores</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/50">Lista de Asistencia</span>
+                                        <span className="text-[10px] font-bold text-blue-500/60 uppercase tracking-widest mt-0.5">
+                                            {isIndividual ? `${players.length} Jugadores` : `${players.length} Parejas (${players.length * 2} Jugadores)`}
+                                        </span>
+                                    </div>
                                     <div className="flex gap-4">
                                         <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">Todo Pago</button>
                                         <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Todo Ok</button>
@@ -702,7 +707,9 @@ export default function FixtureSetup({
                                     : "bg-card text-foreground/20 cursor-not-allowed border border-border translate-y-2 opacity-60 shadow-none"
                                     }`}
                             >
-                                <span className={present.size > 0 ? "opacity-100" : "opacity-40"}>Continuar ({Math.floor(present.size / (isIndividual ? 1 : 2))})</span>
+                                <span className={present.size > 0 ? "opacity-100" : "opacity-40"}>
+                                    Continuar ({isIndividual ? `${present.size} jugadores` : `${present.size} jugadores / ${Math.floor(present.size / 2)} parejas`})
+                                </span>
                                 <ArrowRight className={`w-5 h-5 transition-transform duration-500 ${present.size > 0 ? "translate-x-0" : "-translate-x-4 opacity-0"}`} />
                             </button>
                         </motion.div>
@@ -769,7 +776,7 @@ export default function FixtureSetup({
 
                             <div className="grid grid-cols-2 gap-4">
                                 {[
-                                    { label: "Check-in", value: PRESENT_PLAYERS.length, color: "text-blue-500" },
+                                    { label: "Check-in", value: isIndividual ? present.size : `${present.size} (${PRESENT_PLAYERS.length} eq.)`, color: "text-blue-500" },
                                     { label: "Cupos", value: numGroups * playersPerGroup, color: "text-foreground/60" },
                                     {
                                         label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Sobran" : "Faltan",
@@ -966,32 +973,73 @@ export default function FixtureSetup({
                 </AnimatePresence>
 
                 {/* Drawing Overlay */}
+                {/* Drawing Overlay (Modern Strip Version) */}
                 <AnimatePresence>
                     {randomizing && drawingPlayer && (
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[110] flex flex-col items-center justify-center pointer-events-none"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-[110] h-48 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl border-y border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)]"
                         >
-                            <motion.div
-                                initial={{ scale: 0.5, y: 50, opacity: 0 }}
-                                animate={{ scale: 1.2, y: 0, opacity: 1 }}
-                                exit={{ scale: 0.8, y: -50, opacity: 0 }}
-                                transition={{ type: "spring", damping: 15, stiffness: 300 }}
-                                className="bg-blue-600 px-12 py-8 rounded-[3rem] shadow-[0_0_50px_rgba(37,99,235,0.5)] border-4 border-white/20 text-center"
-                            >
-                                <motion.div 
-                                    animate={{ rotate: [0, 10, -10, 0] }}
-                                    transition={{ repeat: Infinity, duration: 0.5 }}
-                                    className="mb-4 text-white/50 text-[10px] font-black uppercase tracking-[0.5em]"
+                            {/* Decorative internal lights for the strip */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                <div className="absolute top-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
+                                <div className="absolute bottom-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
+                            </div>
+
+                            <div className="relative flex flex-col items-center">
+                                {/* Label above the strip */}
+                                <motion.span 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="absolute -top-12 text-blue-400 text-[10px] font-black uppercase tracking-[0.5em] italic"
                                 >
-                                    Sorteando...
-                                </motion.div>
-                                <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">
-                                    {drawingPlayer.name}
-                                </h2>
-                            </motion.div>
+                                    Asignando Posición
+                                </motion.span>
+
+                                <div className="relative h-20 md:h-24 overflow-hidden flex items-center justify-center px-12">
+                                    {/* Minimalist selection arrows */}
+                                    <motion.div 
+                                        animate={{ x: [-5, 0, -5] }}
+                                        transition={{ repeat: Infinity, duration: 1 }}
+                                        className="absolute left-0 text-blue-500"
+                                    >
+                                        <ChevronRight className="w-8 h-8 stroke-[3]" />
+                                    </motion.div>
+                                    <motion.div 
+                                        animate={{ x: [5, 0, 5] }}
+                                        transition={{ repeat: Infinity, duration: 1 }}
+                                        className="absolute right-0 text-blue-500 rotate-180"
+                                    >
+                                        <ChevronRight className="w-8 h-8 stroke-[3]" />
+                                    </motion.div>
+
+                                    {/* Slot Machine Text Animation */}
+                                    <AnimatePresence mode="popLayout">
+                                        <motion.div
+                                            key={drawingPlayer.id}
+                                            initial={{ y: 40, opacity: 0, filter: "blur(10px)" }}
+                                            animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                                            exit={{ y: -40, opacity: 0, filter: "blur(10px)" }}
+                                            transition={{ duration: 0.1, ease: "easeOut" }}
+                                            className="text-4xl md:text-7xl font-black text-white italic uppercase tracking-tighter"
+                                        >
+                                            {drawingPlayer.name}
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
+
+                                {/* Subtle Loading Line */}
+                                <div className="absolute -bottom-8 w-48 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div 
+                                        initial={{ x: "-100%" }}
+                                        animate={{ x: "100%" }}
+                                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                                        className="h-full w-1/2 bg-blue-500 blur-[1px]"
+                                    />
+                                </div>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
