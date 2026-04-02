@@ -17,6 +17,7 @@ type Tournament = {
     categories: any;
     imageUrl: string | null;
     modalidad: any; // Can be object or string from DB
+    registrationFee: number | null;
 };
 
 type CurrentUser = { id: string; name: string; email: string; gender?: string | null };
@@ -320,6 +321,17 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                             </div>
                                         </div>
                                     )}
+                                    <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                            <Trophy className="w-4 h-4 text-emerald-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Inscripción</p>
+                                            <p className="text-xs font-bold text-foreground text-emerald-600">
+                                                {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -563,6 +575,12 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</span>
                                     <span className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</span>
                                 </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Total a pagar</span>
+                                    <span className="text-sm font-black text-emerald-600">
+                                        {tournament.registrationFee ? `$ ${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                                    </span>
+                                </div>
 
                                 <div className="border-t border-border pt-3 space-y-2">
                                     <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
@@ -658,7 +676,10 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                         <div className="bg-card border border-border rounded-2xl p-4 w-full text-left mb-8 shadow-sm">
                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">Próximos pasos</p>
                             <p className="text-sm text-foreground leading-relaxed font-bold italic">
-                                Asegurate de abonar la inscripción antes del cierre. Las llaves se generarán automáticamente.
+                                {tournament.registrationFee 
+                                    ? `Asegurá tu lugar abonando los $${tournament.registrationFee.toLocaleString('es-ES')} de inscripción antes del cierre del torneo.`
+                                    : "¡La inscripción es gratuita! Ya estás dentro del torneo."
+                                } Las llaves se generarán automáticamente.
                             </p>
                         </div>
 

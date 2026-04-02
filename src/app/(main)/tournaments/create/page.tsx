@@ -51,6 +51,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 imageUrl: t.imageUrl ?? null,
                 maxSlots: tModalidad?.maxSlots ?? 0,
                 modalidad: tModalidad,
+                registrationFee: t.registrationFee ?? null,
             };
         }
     }

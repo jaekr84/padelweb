@@ -41,6 +41,7 @@ export type InitialData = {
         participacion: "pareja" | "individual";
         genero: "hombre" | "mujer" | "mixto";
     } | null;
+    registrationFee: number | null;
 };
 
 
@@ -116,6 +117,7 @@ export default function CreateTournamentForm({
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
         maxSlots: String(initialData?.maxSlots ?? 0),
+        registrationFee: initialData?.registrationFee !== null && initialData?.registrationFee !== undefined ? String(initialData.registrationFee) : "",
     });
 
     const [modalidad, setModalidad] = useState({
@@ -209,7 +211,8 @@ export default function CreateTournamentForm({
                     mode: modalidad.mode,
                     participacion: modalidad.participacion,
                     genero: modalidad.genero,
-                }
+                },
+                registrationFee: info.registrationFee ? Number(info.registrationFee) : null,
             };
 
             if (isEditing && initialData) {
@@ -390,6 +393,26 @@ export default function CreateTournamentForm({
                                         </div>
                                         <div className="flex-1 text-[10px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60">
                                             Indica el número máximo de parejas o jugadores que pueden inscribirse.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* registrationFee input */}
+                                <div className="md:col-span-2 space-y-2 pt-4 border-t border-border/50">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Precio de Inscripción (Opcional)</label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative flex-1">
+                                            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
+                                            <input
+                                                type="number"
+                                                value={info.registrationFee}
+                                                onChange={e => setInfo({ ...info, registrationFee: e.target.value })}
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                                placeholder="Ej: 5000 (dejar vacío si es gratis)"
+                                            />
+                                        </div>
+                                        <div className="flex-1 text-[10px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60">
+                                            Define el costo por pareja o jugador. Se mostrará en la información del torneo.
                                         </div>
                                     </div>
                                 </div>

@@ -74,6 +74,7 @@ export const tournaments = mysqlTable("tournaments", {
     status: varchar("status", { length: 50 }).notNull().default("draft"),
     imageUrl: varchar("image_url", { length: 512 }),
     youtubeUrl: varchar("youtube_url", { length: 512 }),
+    registrationFee: int("registration_fee"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     createdByIdx: index("tournaments_created_by_idx").on(table.createdByUserId),
@@ -280,9 +281,17 @@ export const clubRequestsRelations = relations(clubRequests, ({ one }) => ({
     }),
 }));
 
+export const systemSettings = mysqlTable("system_settings", {
+    id: varchar("id", { length: 256 }).primaryKey(),
+    key: varchar("key", { length: 256 }).notNull().unique(),
+    value: text("value"),
+    updatedAt: timestamp("updated_at").onUpdateNow(),
+});
+
 import { type InferSelectModel } from "drizzle-orm";
 export type Club = InferSelectModel<typeof clubs>;
 export type Category = InferSelectModel<typeof categoriesTable>;
 export type User = InferSelectModel<typeof users>;
 export type Tournament = InferSelectModel<typeof tournaments>;
 export type Registration = InferSelectModel<typeof registrations>;
+export type SystemSetting = InferSelectModel<typeof systemSettings>;

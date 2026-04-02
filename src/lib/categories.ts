@@ -93,10 +93,10 @@ export async function checkAndApplyInactivityDowngrade(userId: string) {
     
     if (!currentCatObj) return null;
 
-    // Higher categoryOrder = Lower skill level (e.g. 1=A, 2=B, 3=C, 4=D)
+    // In this DB, HIGHER categoryOrder = Higher skill level (e.g. 0=D, 1=C, 2=B, 3=A, 4=A+)
     const nextLowerCat = allCats
-        .filter(c => c.categoryOrder > currentCatObj.categoryOrder)
-        .sort((a, b) => a.categoryOrder - b.categoryOrder)[0];
+        .filter(c => c.categoryOrder < currentCatObj.categoryOrder)
+        .sort((a, b) => b.categoryOrder - a.categoryOrder).reverse()[0]; // Highest or those lower than current
 
     if (!nextLowerCat) {
         // Already at the lowest category, update check date

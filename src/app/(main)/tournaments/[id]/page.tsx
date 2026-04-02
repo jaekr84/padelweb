@@ -135,9 +135,16 @@ export default async function TournamentDisplayPage({ params }: Props) {
                         <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
                             <div className="px-8 py-6 border-b border-border bg-muted/30 flex items-center justify-between">
                                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Jugadores Inscriptos</h2>
-                                <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                                    {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    {tournament.registrationFee !== null && (
+                                        <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                            $ {tournament.registrationFee.toLocaleString('es-ES')}
+                                        </span>
+                                    )}
+                                    <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
+                                        {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
+                                    </span>
+                                </div>
                             </div>
                             
                             {initialPlayers.length === 0 ? (

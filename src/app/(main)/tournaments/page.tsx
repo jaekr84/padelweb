@@ -77,6 +77,7 @@ export default async function TournamentsPage({
                     modalidad: tournaments.modalidad,
                     createdAt: tournaments.createdAt,
                     location: tournaments.surface, // Assuming location or surface field
+                    registrationFee: tournaments.registrationFee,
                 },
                 club: clubs,
             })
@@ -446,6 +447,12 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                         {statusConfig.label}
                                     </span>
                                 </div>
+                                {/* Registration Fee Badge */}
+                                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-sm border ${tournament.registrationFee ? 'bg-emerald-500 border-emerald-400' : 'bg-blue-600 border-blue-500'}`}>
+                                    <span className="text-[9px] font-black italic uppercase tracking-widest text-white leading-none">
+                                        {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -497,6 +504,7 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                 }
                                 return null;
                             })()}
+
                         </div>
 
                         {/* Registration Dates */}

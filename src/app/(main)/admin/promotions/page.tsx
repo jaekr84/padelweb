@@ -1,6 +1,6 @@
 
 import { db } from "@/db";
-import { users, registrations, categoriesTable, bracketMatches, tournaments } from "@/db/schema";
+import { users, registrations, categoriesTable, bracketMatches, tournaments, clubs } from "@/db/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
 import PromotionManager from "./promotion-manager";
 import { getSession } from "@/lib/auth-server";
@@ -14,8 +14,17 @@ export default async function PromotionsPage() {
 
     const currentYear = new Date().getFullYear();
 
-    // 1. Fetch all players
-    const players = await db.select().from(users).where(eq(users.role, "jugador"));
+    // 1. Fetch all players with club info
+    const playersData = await db.select({
+        user: users,
+        club: {
+            name: clubs.name,
+            logoUrl: clubs.logoUrl,
+        }
+    })
+    .from(users)
+    .leftJoin(clubs, eq(users.clubId, clubs.id))
+    .where(eq(users.role, "jugador"));
 
     // 2. Fetch categories
     const categories = await db.select()
@@ -78,8 +87,8 @@ export default async function PromotionsPage() {
             // Para cada finalista, solo sumar si la categorÃ­a de la final coincide con la categorÃ­a actual del usuario
             [t1, t2].filter(Boolean).forEach(team => {
                 team!.users.forEach(uid => {
-                    const user = players.find(p => p.id === uid);
-                    if (user && user.category === team!.category) {
+                    const user = playersData.find(p => p.user.id === uid);
+                    if (user && user.user.category === team!.category) {
                         if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
                         playerStats[uid].finals++;
                     }
@@ -89,8 +98,8 @@ export default async function PromotionsPage() {
             // Para cada ganador, solo sumar si coincide la categorÃ­a
             if (winnersData) {
                 winnersData.users.forEach(uid => {
-                    const user = players.find(p => p.id === uid);
-                    if (user && user.category === winnersData.category) {
+                    const user = playersData.find(p => p.user.id === uid);
+                    if (user && user.user.category === winnersData.category) {
                         if (!playerStats[uid]) playerStats[uid] = { titles: 0, finals: 0 };
                         playerStats[uid].titles++;
                     }
@@ -99,22 +108,30 @@ export default async function PromotionsPage() {
         });
     }
 
-
-
-    const candidatePlayers = players.map(u => ({
+    const candidatePlayers = playersData.map(({ user: u, club }) => ({
         id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
         name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email.split("@")[0],
         email: u.email,
         category: u.category || "D",
         points: u.points || 0,
+        imageUrl: u.imageUrl,
+        side: u.side,
+        gender: u.gender,
+        club: club?.name ? club : null,
         titles: playerStats[u.id]?.titles || 0,
         finals: playerStats[u.id]?.finals || 0,
     }));
+
+    const { getPromotionMode } = await import("@/lib/settings-actions");
+    const promotionMode = await getPromotionMode();
 
     return (
         <PromotionManager 
             initialPlayers={candidatePlayers}
             categories={categories}
+            initialMode={promotionMode}
         />
     );
 }

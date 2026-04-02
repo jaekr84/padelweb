@@ -89,9 +89,14 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         const pg = matches.filter(m => m.isWinner).length;
         const pp = pj - pg;
         const wr = pj > 0 ? Math.round((pg / pj) * 100) : 0;
-        const trofeos = matches.filter(m => m.type === 'Playoff' && m.round === 0 && m.isWinner).length;
-
-        return { pj, pg, pp, pe: 0, wr, trofeos };
+        
+        // Identificar finales: tipo Playoff y round 0
+        const finalMatches = matches.filter(m => (m.type === 'Playoff' || m.type === 'Eliminación') && Number(m.round) === 0);
+        
+        const trofeos = finalMatches.filter(m => m.isWinner).length;
+        const subcampeonatos = finalMatches.filter(m => !m.isWinner).length;
+        
+        return { pj, pg, pp, pe: 0, wr, trofeos, subcampeonatos };
     }, [selectedPlayer, matches]);
 
     const filteredPlayers = useMemo(() => {
@@ -394,6 +399,23 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                         }} 
                                                         stats={playerStats} 
                                                     />}
+
+                                                    {/* Legend for Acronyms */}
+                                                    <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3 px-6 py-5 bg-card/50 border border-border rounded-2xl">
+                                                        {[
+                                                            { s: 'PJ', d: 'Partidos Jugados' },
+                                                            { s: 'PG', d: 'Partidos Ganados' },
+                                                            { s: 'PP', d: 'Partidos Perdidos' },
+                                                            { s: 'WR', d: 'Win Rate (%)' },
+                                                            { s: 'SC', d: 'Subcampeonatos' },
+                                                            { s: 'PTS', d: 'Puntos de Ranking' },
+                                                        ].map(item => (
+                                                            <div key={item.s} className="flex items-center gap-2">
+                                                                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded min-w-[24px] text-center">{item.s}</span>
+                                                                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">{item.d}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -429,6 +451,10 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                 <tbody className="divide-y divide-border">
                                                                     {matches.slice(0, 50).map(m => {
                                                                         const rival = m.team1.includes(selectedPlayer.name) ? m.team2 : m.team1;
+                                                                        const isFinal = (m.type === 'Playoff' || m.type === 'Eliminación') && Number(m.round) === 0;
+                                                                        const isWinner = m.isWinner;
+                                                                        const isSC = isFinal && !isWinner;
+
                                                                         return (
                                                                             <tr key={m.id} className="hover:bg-emerald-50/30 transition-colors group">
                                                                                 <td className="py-5 px-8">
@@ -436,7 +462,12 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                                         <div className="text-[10px] font-black uppercase italic tracking-tighter text-foreground group-hover:text-emerald-600 transition-colors max-w-[200px] truncate">
                                                                                             {m.tournamentName}
                                                                                         </div>
-                                                                                        <span className="text-[8px] font-black uppercase text-muted-foreground/40 mt-1">Cat {m.category}</span>
+                                                                                        <div className="flex gap-1 mt-1">
+                                                                                            <span className="text-[8px] font-black uppercase text-muted-foreground/40">{m.type}</span>
+                                                                                            {isFinal && (
+                                                                                                <span className="text-[8px] font-black uppercase text-emerald-600 border border-emerald-500/20 bg-emerald-500/5 px-1 rounded-sm ml-2">FINAL</span>
+                                                                                            )}
+                                                                                        </div>
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="py-5 px-8">
@@ -446,14 +477,14 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                                 </td>
                                                                                 <td className="py-5 px-8 text-center bg-muted/10">
                                                                                     <div className="inline-flex items-center px-3 py-1 bg-white border border-border rounded-lg shadow-sm">
-                                                                                        <span className={`text-base font-black italic tracking-tighter whitespace-nowrap ${m.isWinner ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                                        <span className={`text-base font-black italic tracking-tighter whitespace-nowrap ${isWinner ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                                                             {m.score1} — {m.score2}
                                                                                         </span>
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="py-5 px-8 text-right">
-                                                                                    <div className={`text-[9px] font-black uppercase px-2 py-1 rounded-md inline-block ${m.isWinner ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                                                                                        {m.isWinner ? 'VICTORIA' : 'DERROTA'}
+                                                                                    <div className={`text-[9px] font-black uppercase px-2 py-1 rounded-md inline-block ${isWinner ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isSC ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                                                                                        {isWinner ? 'VICTORIA' : isSC ? 'SUBCAMPEÓN' : 'DERROTA'}
                                                                                     </div>
                                                                                 </td>
                                                                             </tr>

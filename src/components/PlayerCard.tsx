@@ -17,9 +17,10 @@ interface PlayerCardProps {
         pj: number;
         pg: number;
         pp: number;
-        pe: number;
+        pe?: number;
         wr: number;
         trofeos: number;
+        subcampeonatos?: number;
     };
 }
 
@@ -141,7 +142,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
                                     { label: 'PG', val: stats.pg },
                                     { label: 'WR', val: `${stats.wr}%` },
                                     { label: 'PP', val: stats.pp },
-                                    { label: 'PE', val: stats.pe || '-' },
+                                    { label: 'SC', val: stats.subcampeonatos || 0 },
                                     { label: 'PTS', val: player.points || 0 }
                                 ].map((stat, i) => (
                                     <div key={i} className="flex flex-col items-center bg-gradient-to-b from-white/10 to-transparent rounded-t-md py-1 border-t border-white/5">

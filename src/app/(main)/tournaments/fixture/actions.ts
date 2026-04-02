@@ -464,39 +464,49 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             const currentCatName = userObj.category || "D";
             const currentCatObj = allCats.find(c => c.name === currentCatName);
             
-            // Check if they reached a new category threshold by points
-            const nextCatByPoints = allCats.find(c => 
-                newTotalPoints >= c.minPoints && 
-                newTotalPoints <= c.maxPoints && 
-                c.categoryOrder < (currentCatObj?.categoryOrder ?? 10)
-            );
-
             if (currentCatObj) {
-                // We only check for expensive win-based promotion if they are near the top or point-eligible
-                const pointsThreshold = currentCatObj.maxPoints * 1.15;
-                const pointsEligible = newTotalPoints >= pointsThreshold;
+                // Fetch tournament wins for the current category in the current year
+                const titleWins = await countUserWins(uid, currentCatName, currentYear);
                 
-                // If they are eligible by points OR by reaching a new rank
-                if (pointsEligible || nextCatByPoints) {
-                    const titleWins = await countUserWins(uid, currentCatName, currentYear);
-                    const deservesPromotion = (titleWins >= 2) || pointsEligible;
+                // Promotion criteria: 
+                // A) Exceeded current category's max points (immediate promotion)
+                // B) Won 2 or more tournaments in the current category this year
+                const exceedsPoints = newTotalPoints > currentCatObj.maxPoints;
+                const deservesPromotion = (titleWins >= 2) || exceedsPoints;
 
-                    if (deservesPromotion) {
-                        const betterCats = allCats
-                            .filter(c => c.categoryOrder < currentCatObj.categoryOrder)
-                            .sort((a, b) => b.categoryOrder - a.categoryOrder);
-                        
-                        const nextCat = betterCats[0];
-                        
-                        if (nextCat) {
-                            console.log(`[awardTournamentPoints] PROMOCIÓN: ${userObj.firstName} -> ${nextCat.name}`);
+                if (deservesPromotion) {
+                    // Check if we should promote automatically or manually
+                    const { getPromotionMode } = await import("@/lib/settings-actions");
+                    const promoMode = await getPromotionMode();
+
+                    // Find the best superior categories. 
+                    // In this DB, HIGHER categoryOrder is better (D=0, C=1, B=2, A=3, A+=4)
+                    const betterCats = allCats
+                        .filter(c => c.categoryOrder > currentCatObj.categoryOrder)
+                        .sort((a, b) => a.categoryOrder - b.categoryOrder); 
+                    
+                    const catByPoints = allCats.find(c => newTotalPoints >= c.minPoints && newTotalPoints <= c.maxPoints);
+                    let nextCat = betterCats[0];
+
+                    if (catByPoints && catByPoints.categoryOrder > currentCatObj.categoryOrder) {
+                        nextCat = catByPoints;
+                    }
+
+                    if (nextCat) {
+                        const reason = titleWins >= 2 ? '2+ Victorias' : `Puntos (${newTotalPoints})`;
+                        console.log(`[awardTournamentPoints] PROPUESTA PROMOCIÓN: ${userObj.firstName} ${userObj.lastName} (ID: ${uid}) -> ${nextCat.name}. Razón: ${reason} [Modo: ${promoMode}]`);
+
+                        if (promoMode === "auto") {
                             await db.update(users)
                                 .set({ 
                                     category: nextCat.name,
-                                    points: nextCat.minPoints,
+                                    points: Math.max(newTotalPoints, nextCat.minPoints),
                                     lastCategoryUpdate: new Date()
                                 })
                                 .where(eq(users.id, uid));
+                            console.log(`[awardTournamentPoints] PROMOCIÓN AUTOMÁTICA COMPLETADA.`);
+                        } else {
+                            console.log(`[awardTournamentPoints] PROMOCIÓN PENDIENTE (MODO MANUAL).`);
                         }
                     }
                 }
