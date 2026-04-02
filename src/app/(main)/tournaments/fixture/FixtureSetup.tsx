@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import Link from "next/link";
 import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap
+    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap,
+    LayoutDashboard, Swords, BarChart3, Clock
 } from "lucide-react";
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
 import { useRouter } from "next/navigation";
@@ -21,7 +23,7 @@ export interface FixtureSetupProps {
     isIndividual?: boolean;
 }
 
-type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null };
+type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null; player1?: string | null; player2?: string | null };
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -99,7 +101,12 @@ export default function FixtureSetup({
         const res = await registerManualPlayer(tournamentId, manualName, manualCategory || "D", manualGender);
         if (res.ok && res.player) {
             setPlayers(prev => [...prev, res.player as Player]);
-            setPresent(prev => new Set([...prev, res.player!.id]));
+            if (isIndividual) {
+                setPresent(prev => new Set([...prev, res.player!.id]));
+            } else {
+                setPresent(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
+                setPaid(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
+            }
             setManualName("");
             toast.success("Jugador creado e inscripto correctamente");
         } else {
@@ -139,7 +146,10 @@ export default function FixtureSetup({
             }
             
             setPlayers(prev => [...prev, ...newPlayers]);
-            setPresent(prev => new Set([...prev, ...newIds]));
+            const idsToPresent = isIndividual 
+                ? newIds 
+                : newIds.flatMap(id => [`${id}_0`, `${id}_1`]);
+            setPresent(prev => new Set([...prev, ...idsToPresent]));
             toast.success(`Se generaron e inscribieron ${newPlayers.length} jugadores`, { id: 'autofill' });
             setAutoFillCount("");
         } catch (err) {
@@ -151,8 +161,13 @@ export default function FixtureSetup({
     };
 
     const PRESENT_PLAYERS = useMemo(() =>
-        players.filter(p => present.has(p.id)),
-        [players, present]);
+        players.filter(p => {
+            if (isIndividual) return present.has(p.id);
+            // Si es dobles, aceptamos si el ID base está presente (legacy/quick) 
+            // O si AMBOS IDs individuales están presentes
+            return present.has(p.id) || (present.has(`${p.id}_0`) && present.has(`${p.id}_1`));
+        }),
+        [players, present, isIndividual]);
 
     const totalSlots = numGroups * playersPerGroup;
     const assignedIds = new Set(groups.flatMap(g => g.players.map(p => p.id)));
@@ -176,13 +191,22 @@ export default function FixtureSetup({
     };
 
     const handleCheckAll = (type: 'paid' | 'present') => {
-        const allIds = players.map(p => p.id);
+        let allCheckinIds: string[] = [];
+        players.forEach(p => {
+            if (isIndividual) {
+                allCheckinIds.push(p.id);
+            } else {
+                allCheckinIds.push(`${p.id}_0`);
+                if (p.player2 || p.name.includes(" / ")) allCheckinIds.push(`${p.id}_1`);
+            }
+        });
+
         if (type === 'paid') {
-            const areAllPaid = allIds.every(id => paid.has(id));
-            setPaid(areAllPaid ? new Set() : new Set(allIds));
+            const areAllPaid = allCheckinIds.every(id => paid.has(id));
+            setPaid(areAllPaid ? new Set() : new Set(allCheckinIds));
         } else {
-            const areAllPresent = allIds.every(id => present.has(id));
-            setPresent(areAllPresent ? new Set() : new Set(allIds));
+            const areAllPresent = allCheckinIds.every(id => present.has(id));
+            setPresent(areAllPresent ? new Set() : new Set(allCheckinIds));
         }
     };
 
@@ -197,7 +221,11 @@ export default function FixtureSetup({
         const res = await quickInscribePlayer(tournamentId, userId);
         if (res.ok && res.player) {
             setPlayers(prev => [...prev, res.player as Player]);
-            setPresent(prev => new Set([...prev, res.player!.id]));
+            if (isIndividual) {
+                setPresent(prev => new Set([...prev, res.player!.id]));
+            } else {
+                setPresent(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
+            }
             setAvailablePlayers(prev => prev.filter(p => p.id !== userId));
             toast.success("Jugador inscripto");
         } else {
@@ -446,53 +474,52 @@ export default function FixtureSetup({
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.back()}
-                            className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-4 h-4" />
+                            Volver
                         </button>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Fixture</span>
-                                <div className="w-1 h-1 rounded-full bg-foreground/10" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 italic">Setup</span>
-                            </div>
-                            <h1 className="text-lg font-black uppercase italic tracking-tight leading-none truncate max-w-[180px]">
-                                {tournamentName}
-                            </h1>
+
+                        {/* Progressive Navbar / Stepper */}
+                        <div className="hidden md:flex items-center gap-1 bg-muted/50 p-1 rounded-xl border border-border/50">
+                            {[
+                                { id: "checkin", icon: UserCheck, label: "Asistencia", active: step === "checkin" },
+                                { id: "config", icon: LayoutDashboard, label: "Sorteo", active: step === "config" || step === "assign" },
+                                { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
+                                { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
+                            ].map((s, idx) => {
+                                const Icon = s.icon;
+                                return (
+                                    <div key={s.id} className="flex items-center">
+                                        <button 
+                                            onClick={() => {
+                                                if (s.disabled || s.active) return;
+                                                setStep(s.id as any);
+                                            }}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${s.active 
+                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                                                : s.disabled ? "text-foreground/20 cursor-not-allowed" : "text-foreground/40 hover:bg-white/5"}`}
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
+                                        </button>
+                                        {idx < 3 && (
+                                            <div className="px-1 text-foreground/10">
+                                                <ChevronRight className="w-3 h-3" />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-1 bg-card p-1 rounded-xl">
-                        {[
-                            { id: "checkin", icon: UserCheck, label: "Presentismo" },
-                            { id: "config", icon: Settings, label: "Estructura" },
-                            { id: "assign", icon: Users2, label: "Asignación" }
-                        ].map((s, idx) => {
-                            const Icon = s.icon;
-                            const isActive = step === s.id;
-                            const isPast = (step === "config" && idx === 0) || (step === "assign" && idx < 2);
-
-                            return (
-                                <button
-                                    key={s.id}
-                                    onClick={() => {
-                                        if (isActive) return;
-                                        if (window.confirm(`¿Volver al paso de ${s.label}?`)) {
-                                            setStep(s.id as any);
-                                        }
-                                    }}
-                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isActive
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-110 cursor-default"
-                                        : isPast
-                                            ? "text-emerald-500 hover:bg-emerald-500/10"
-                                            : "text-muted-foreground/40 hover:bg-foreground/5"
-                                        }`}
-                                    title={s.label}
-                                >
-                                    <Icon className="w-4 h-4" />
-                                </button>
-                            );
-                        })}
+                        <Link
+                            href={`/tournaments/${tournamentId}/edit`}
+                            className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
+                        >
+                            <Settings className="w-4 h-4" />
+                            Editar Info
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -562,65 +589,102 @@ export default function FixtureSetup({
 
                                 <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
                                     {(() => {
-                                        const filtered = players.filter(p => {
+                                        const flatPlayers: any[] = [];
+                                        players.forEach(p => {
                                             const matchesSearch = !searchQuery || 
                                                 p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                                 p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                                 p.id.toLowerCase().includes(searchQuery.toLowerCase());
                                             
                                             const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-                                            const matchesGender = genderFilter === "all" || p.gender === genderFilter;
                                             
-                                            return matchesSearch && matchesCategory && matchesGender;
+                                            if (matchesSearch && matchesCategory) {
+                                                if (isIndividual) {
+                                                    flatPlayers.push({ ...p, checkinId: p.id, displayName: p.name });
+                                                } else {
+                                                    // Separar en dos si es dobles
+                                                    const names = p.name.split(" / ");
+                                                    flatPlayers.push({ 
+                                                        ...p, 
+                                                        checkinId: `${p.id}_0`, 
+                                                        displayName: p.player1 || names[0] || "Jugador 1",
+                                                        pairName: p.name
+                                                    });
+                                                    flatPlayers.push({ 
+                                                        ...p, 
+                                                        checkinId: `${p.id}_1`, 
+                                                        displayName: p.player2 || names[1] || "Jugador 2",
+                                                        pairName: p.name,
+                                                        isSecond: true
+                                                    });
+                                                }
+                                            }
                                         });
 
-                                        if (filtered.length === 0) {
-                                            return (
-                                                <div className="py-12 text-center text-muted-foreground/20 font-black uppercase italic text-xs tracking-widest">
-                                                    No se encontraron jugadores
-                                                </div>
-                                            );
-                                        }
-
-                                        return filtered.map(p => {
-                                            const isPaid = paid.has(p.id);
-                                            const isPresent = present.has(p.id);
+                                        return flatPlayers.map(p => {
+                                            const isPaid = paid.has(p.checkinId);
+                                            const isPresent = present.has(p.checkinId);
 
                                             return (
                                                 <div
-                                                    key={p.id}
-                                                    className={`group flex items-center justify-between px-6 py-4 transition-all ${isPresent ? "bg-blue-600/10" : "bg-muted/30"
-                                                        }`}
+                                                    key={p.checkinId}
+                                                    className={`group flex items-center justify-between px-6 py-5 transition-all duration-300 ${isPresent 
+                                                        ? "bg-emerald-500/[0.03] border-l-4 border-l-emerald-500" 
+                                                        : "bg-card hover:bg-muted/30 border-l-4 border-l-transparent"
+                                                    } ${p.isSecond ? "mt-[-2px]" : ""}`}
                                                 >
-                                                    <div className="flex flex-col">
-                                                        <span className={`font-black uppercase italic tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/30"}`}>
-                                                            {p.name}
-                                                        </span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-sm font-black uppercase tracking-tight transition-all duration-300 ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
+                                                                {p.displayName}
+                                                            </span>
+                                                            {!isIndividual && (
+                                                                <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 mt-1">
+                                                                    Equipo: <span className="text-blue-500/60 ">{p.pairName}</span>
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div className="flex gap-2 mt-1">
-                                                            {isPaid && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">Pago</span>}
-                                                            {isPresent && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">Ok</span>}
-                                                            {p.category && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border">{p.category}</span>}
+                                                            {isPaid && (
+                                                                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-full border border-blue-500/20">
+                                                                    <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                                                    Pago
+                                                                </span>
+                                                            )}
+                                                            {isPresent && (
+                                                                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20">
+                                                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                                                    Presente
+                                                                </span>
+                                                            )}
+                                                            {p.category && !p.isSecond && (
+                                                                <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-muted text-foreground/40 rounded-full border border-border">
+                                                                    {p.category}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-3">
                                                         <button
-                                                            onClick={() => togglePaid(p.id)}
-                                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPaid
-                                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                                : "bg-card border border-border text-foreground/60 hover:border-foreground/40"
+                                                            onClick={() => togglePaid(p.checkinId)}
+                                                            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPaid
+                                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-2 ring-blue-600/20"
+                                                                : "bg-muted/50 border border-border text-foreground/20 hover:text-foreground/40 hover:border-foreground/20"
                                                                 }`}
+                                                            title="Confirmar Pago"
                                                         >
-                                                            <CreditCard className="w-5 h-5" />
+                                                            <CreditCard className="w-4 h-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => togglePresent(p.id)}
-                                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isPresent
-                                                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                                                                : "bg-card border border-border  hover:border-foreground/40"
+                                                            onClick={() => togglePresent(p.checkinId)}
+                                                            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPresent
+                                                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-emerald-600/20"
+                                                                : "bg-muted/50 border border-border text-foreground/20 hover:text-foreground/40 hover:border-foreground/20"
                                                                 }`}
+                                                            title="Confirmar Presentismo"
                                                         >
-                                                            <UserCheck className="w-5 h-5" />
+                                                            <UserCheck className="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -633,13 +697,13 @@ export default function FixtureSetup({
                             <button
                                 onClick={() => setStep("config")}
                                 disabled={present.size === 0}
-                                className={`w-full py-5 rounded-3xl font-black uppercase italic tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${present.size > 0
-                                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
-                                    : "bg-card text-muted-foreground/20 cursor-not-allowed border border-border"
+                                className={`w-full py-6 rounded-3xl font-black uppercase italic tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl ${present.size > 0
+                                    ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-900/40 translate-y-0"
+                                    : "bg-card text-foreground/20 cursor-not-allowed border border-border translate-y-2 opacity-60 shadow-none"
                                     }`}
                             >
-                                <span>Continuar ({present.size})</span>
-                                <ArrowRight className="w-5 h-5" />
+                                <span className={present.size > 0 ? "opacity-100" : "opacity-40"}>Continuar ({Math.floor(present.size / (isIndividual ? 1 : 2))})</span>
+                                <ArrowRight className={`w-5 h-5 transition-transform duration-500 ${present.size > 0 ? "translate-x-0" : "-translate-x-4 opacity-0"}`} />
                             </button>
                         </motion.div>
                     )}
@@ -703,19 +767,19 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 {[
                                     { label: "Check-in", value: PRESENT_PLAYERS.length, color: "text-blue-500" },
-                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-muted-foreground/40" },
+                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-foreground/60" },
                                     {
                                         label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Sobran" : "Faltan",
                                         value: Math.abs(PRESENT_PLAYERS.length - numGroups * playersPerGroup),
                                         color: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "text-emerald-500" : "text-amber-500"
                                     },
-                                    { label: "Min. Partido", value: "2", color: "text-muted-foreground/20" }
+                                    { label: "Min. Partido", value: "2", color: "text-foreground/50" }
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/40 block mb-1">{stat.label}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/60 block mb-1">{stat.label}</span>
                                         <span className={`text-xl font-black italic ${stat.color}`}>{stat.value}</span>
                                     </div>
                                 ))}

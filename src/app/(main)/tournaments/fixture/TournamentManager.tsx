@@ -5,7 +5,8 @@ import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
-    BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw
+    BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw,
+    UserCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture } from "./actions";
@@ -707,7 +708,7 @@ export default function TournamentManager({
                 <div className="w-full mx-auto px-4 md:px-8 py-3 md:py-4">
                     {isLoggedIn && (
                         <div className="flex items-center justify-between gap-3 mb-3">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                                 <button
                                     onClick={() => {
                                         if (step === "elim") {
@@ -723,10 +724,41 @@ export default function TournamentManager({
                                     <ArrowLeft className="w-4 h-4" />
                                     Volver
                                 </button>
+
+                                {/* Progressive Navbar / Stepper */}
+                                <div className="hidden md:flex items-center gap-1 bg-muted/50 p-1 rounded-xl border border-border/50">
+                                    {[
+                                        { id: "checkin", icon: UserCheck, label: "Asistencia", active: false, completed: true },
+                                        { id: "config", icon: LayoutDashboard, label: "Sorteo", active: false, completed: true },
+                                        { id: "matches", icon: Swords, label: "Partidos", active: step === "done" || step === "qual", completed: step === "elim" },
+                                        { id: "playoffs", icon: Trophy, label: "Playoffs", active: step === "elim", completed: initialStatus === "finalizado" }
+                                    ].map((s, idx) => {
+                                        const Icon = s.icon;
+                                        return (
+                                            <div key={s.id} className="flex items-center">
+                                                <div 
+                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${s.active 
+                                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                                                        : s.completed ? "text-emerald-500 bg-emerald-500/5 whitespace-nowrap" : "text-foreground/20 whitespace-nowrap"}`}
+                                                >
+                                                    <Icon className="w-3.5 h-3.5" />
+                                                    <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
+                                                    {s.completed && <Check className="w-2.5 h-2.5 ml-0.5" />}
+                                                </div>
+                                                {idx < 3 && (
+                                                    <div className="px-1 text-foreground/10">
+                                                        <ChevronRight className="w-3 h-3" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
                                 {!readOnly && (
                                     <Link
                                         href={`/tournaments/${tournamentId}/edit`}
-                                        className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
+                                        className="flex items-center gap-1.5 text-foreground/70 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0 border-l border-border pl-3"
                                     >
                                         <Settings className="w-4 h-4" />
                                         Editar Info
@@ -819,7 +851,7 @@ export default function TournamentManager({
                         >
                             {/* Progress Bar */}
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-foreground/70">
                                     <span>Progreso Fase de Grupos</span>
                                     <div className="flex items-center gap-3">
                                         {!readOnly && progressPercent < 100 && (
@@ -846,7 +878,7 @@ export default function TournamentManager({
                             </div>
 
                             {/* Groups Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {groups.map((g: any) => {
                                     const standings = computeStandings(g.id);
                                     const groupMatches = matches.filter(m => m.groupId === g.id);
@@ -854,14 +886,14 @@ export default function TournamentManager({
                                         <div key={g.id} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl flex flex-col h-fit">
                                             {/* Header + Standings table */}
                                             <div className="bg-muted px-6 py-5 border-b border-border flex items-center justify-between">
-                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-primary">{g.name}</h3>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Posiciones</span>
+                                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-blue-700">{g.name}</h3>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Posiciones</span>
                                             </div>
 
                                             <div className="p-4 border-b border-border/50 bg-card/50">
                                                 <table className="w-full text-left">
                                                     <thead>
-                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-foreground/40 border-b border-border">
+                                                        <tr className="text-[10px] uppercase font-black tracking-widest text-foreground/60 border-b border-border">
                                                             <th className="pb-3 pr-3">#</th>
                                                             <th className="pb-3">Jugador</th>
                                                             <th className="pb-3 px-3 text-center">PJ</th>
@@ -989,7 +1021,7 @@ export default function TournamentManager({
                                         <div className="flex items-center gap-12">
                                             <div className="space-y-1">
                                                 <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-foreground whitespace-nowrap leading-none">Fase de Grupos</h2>
-                                                <p className="text-[10px] font-black text-blue-600/80 uppercase tracking-widest pl-1">Configuración de avance</p>
+                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest pl-1">Configuración de avance</p>
                                             </div>
 
                                             <div className="h-12 w-px bg-border/50 hidden md:block" />

@@ -313,7 +313,8 @@ export default function CreateTournamentForm({
                                             type="date"
                                             value={info.startDate}
                                             onChange={e => setInfo({ ...info, startDate: e.target.value })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                                            onClick={(e) => e.currentTarget.showPicker?.()}
                                         />
                                     </div>
                                 </div>
@@ -326,7 +327,8 @@ export default function CreateTournamentForm({
                                             type="date"
                                             value={info.endDate}
                                             onChange={e => setInfo({ ...info, endDate: e.target.value })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                                            onClick={(e) => e.currentTarget.showPicker?.()}
                                         />
                                     </div>
                                 </div>
@@ -353,7 +355,8 @@ export default function CreateTournamentForm({
                                                     type="date"
                                                     value={info.openDateClub}
                                                     onChange={e => setInfo({ ...info, openDateClub: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                                                    onClick={(e) => e.currentTarget.showPicker?.()}
                                                 />
                                             </div>
                                         </div>
@@ -365,7 +368,8 @@ export default function CreateTournamentForm({
                                                     type="date"
                                                     value={info.openDateGeneral}
                                                     onChange={e => setInfo({ ...info, openDateGeneral: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                                                    onClick={(e) => e.currentTarget.showPicker?.()}
                                                 />
                                             </div>
                                         </div>

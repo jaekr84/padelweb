@@ -99,6 +99,8 @@ export default async function TournamentFixturePage({ params }: Props) {
             return {
                 id: reg.id,
                 name: namePart1,
+                player1: namePart1,
+                player2: null,
                 category: reg.category || undefined,
                 email: user?.email || undefined,
                 gender: user?.gender || undefined,
@@ -120,14 +122,14 @@ export default async function TournamentFixturePage({ params }: Props) {
         return {
             id: reg.id,
             name: `${namePart1} / ${namePart2}`,
+            player1: namePart1,
+            player2: namePart2,
             category: reg.category || undefined,
             email: user?.email || undefined,
             gender: user?.gender || undefined,
             clubId: user?.clubId || null,
         };
     });
-
-    // Removed redirect to allow accessing inscription list even if started
 
     // Fetch all available categories
     const allCategories = await db
