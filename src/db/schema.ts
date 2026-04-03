@@ -118,6 +118,8 @@ export const groupMatches = mysqlTable("group_matches", {
     score1: smallint("score1"),
     score2: smallint("score2"),
     confirmed: boolean("confirmed").notNull().default(false),
+    roundIndex: smallint("round_index"),
+    courtNumber: smallint("court_number"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     tournamentIdIdx: index("group_matches_tournament_id_idx").on(table.tournamentId),

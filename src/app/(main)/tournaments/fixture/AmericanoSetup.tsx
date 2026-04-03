@@ -33,6 +33,8 @@ type Match = {
     team2: Player;
     played: boolean;
     confirmed: boolean;
+    roundIndex?: number;
+    courtNumber?: number;
 };
 
 export default function AmericanoSetup({
@@ -49,6 +51,7 @@ export default function AmericanoSetup({
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [present, setPresent] = useState<Set<string>>(new Set());
 
+    const [numCourts, setNumCourts] = useState(2);
     const [matchesPerTeam, setMatchesPerTeam] = useState(2);
     const [groups, setGroups] = useState<Group[]>([]);
     const [generatedMatches, setGeneratedMatches] = useState<Match[]>([]);
@@ -211,46 +214,109 @@ export default function AmericanoSetup({
             toast.error("Se necesitan al menos 2 jugadores para iniciar");
             return;
         }
-        // Americano always uses 1 group
-        setGroups([{ id: 'g0', name: 'Grupo Unico', players: PRESENT_PLAYERS }]);
-        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam);
+        // Americano siempre usa 1 grupo único
+        setGroups([{ id: 'g0', name: 'Grupo Único', players: PRESENT_PLAYERS }]);
+        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam, numCourts);
         setGeneratedMatches(m);
         setStep("assign");
     };
 
-    const generateAmericanoMatches = (players: Player[], matchesPerPlayer: number): Match[] => {
-        const matches: Match[] = [];
+    const generateAmericanoMatches = (players: Player[], matchesPerPlayer: number, maxCourts: number): (Match & { roundIndex: number; courtNumber: number })[] => {
         const n = players.length;
         const playerMatchCount = new Map<string, number>();
         players.forEach(p => playerMatchCount.set(p.id, 0));
 
-        let pairs: [number, number][] = [];
+        // 1. Generar todos los pares posibles (todos contra todos)
+        let possiblePairs: [number, number][] = [];
         for (let i = 0; i < n; i++) {
             for (let j = i + 1; j < n; j++) {
-                pairs.push([i, j]);
+                possiblePairs.push([i, j]);
             }
         }
         
-        pairs = pairs.sort(() => Math.random() - 0.5);
+        // Mezclar pares inicialmente para aleatoriedad
+        possiblePairs = possiblePairs.sort(() => Math.random() - 0.5);
 
-        for (const [i, j] of pairs) {
+        // 2. Seleccionar los partidos necesarios respetando matchesPerPlayer
+        const selectedMatches: { team1: Player; team2: Player }[] = [];
+        for (const [i, j] of possiblePairs) {
             const p1 = players[i];
             const p2 = players[j];
             if (playerMatchCount.get(p1.id)! < matchesPerPlayer && playerMatchCount.get(p2.id)! < matchesPerPlayer) {
-                matches.push({
-                    id: `m_g0_${i}_${j}_${Date.now()}`,
-                    groupId: 'g0',
-                    team1: p1,
-                    team2: p2,
-                    played: false,
-                    confirmed: false,
-                });
+                selectedMatches.push({ team1: p1, team2: p2 });
                 playerMatchCount.set(p1.id, playerMatchCount.get(p1.id)! + 1);
                 playerMatchCount.set(p2.id, playerMatchCount.get(p2.id)! + 1);
             }
         }
 
-        return matches;
+        // 3. Programación Anti-Bottleneck (por Rondas y Canchas)
+        const scheduledMatches: (Match & { roundIndex: number; courtNumber: number })[] = [];
+        let remainingMatches = [...selectedMatches];
+        let currentRound = 0;
+        let lastRoundPlayers = new Set<string>();
+
+        while (remainingMatches.length > 0) {
+            const roundMatches: typeof selectedMatches = [];
+            const roundPlayers = new Set<string>();
+            
+            // Priorizar jugadores que NO jugaron en la ronda anterior (Regla de Descanso)
+            // Dividimos por prioridad
+            const priorityMatches = remainingMatches.filter(m => 
+                !lastRoundPlayers.has(m.team1.id) && !lastRoundPlayers.has(m.team2.id)
+            );
+            const others = remainingMatches.filter(m => 
+                lastRoundPlayers.has(m.team1.id) || lastRoundPlayers.has(m.team2.id)
+            );
+
+            const attemptAssignment = (pool: typeof selectedMatches) => {
+                for (let k = pool.length - 1; k >= 0; k--) {
+                    const m = pool[k];
+                    if (roundMatches.length < maxCourts && !roundPlayers.has(m.team1.id) && !roundPlayers.has(m.team2.id)) {
+                        roundMatches.push(m);
+                        roundPlayers.add(m.team1.id);
+                        roundPlayers.add(m.team2.id);
+                        // Remover de remainingMatches
+                        const idx = remainingMatches.findIndex(rm => rm === m);
+                        if (idx !== -1) remainingMatches.splice(idx, 1);
+                    }
+                }
+            };
+
+            attemptAssignment(priorityMatches);
+            attemptAssignment(others);
+
+            // Si en una ronda no pudimos meter a nadie (raro, pero posibe matemáticamente), 
+            // y quedan partidos, forzamos el cierre de esta ronda.
+            if (roundMatches.length === 0 && remainingMatches.length > 0) {
+                // Forzar un partido aunque repita descanso si es la única opción
+                const m = remainingMatches.shift()!;
+                roundMatches.push(m);
+                roundPlayers.add(m.team1.id);
+                roundPlayers.add(m.team2.id);
+            }
+
+            // Asignar Canchas y Ronda
+            roundMatches.forEach((m, idx) => {
+                scheduledMatches.push({
+                    id: `m_g0_${currentRound}_${idx}_${Date.now()}_${Math.random()}`,
+                    groupId: 'g0',
+                    team1: m.team1,
+                    team2: m.team2,
+                    played: false,
+                    confirmed: false,
+                    roundIndex: currentRound,
+                    courtNumber: idx + 1
+                } as any);
+            });
+
+            lastRoundPlayers = roundPlayers;
+            currentRound++;
+
+            // Seguridad por si el algoritmo entra en loop (no debería)
+            if (currentRound > 500) break; 
+        }
+
+        return scheduledMatches;
     };
 
     const handleConfirmGroups = async () => {
@@ -282,7 +348,7 @@ export default function AmericanoSetup({
     };
 
     const reshuffleMatches = () => {
-        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam);
+        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam, numCourts);
         setGeneratedMatches(m);
         toast.info("Partidos re-sorteados");
     };
@@ -407,7 +473,7 @@ export default function AmericanoSetup({
                                 <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Definí la cantidad de partidos por equipo</p>
                             </div>
 
-                            <div className="bg-card border border-border rounded-3xl p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-card border border-border rounded-3xl p-8 shadow-xl">
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-blue-500">
@@ -425,13 +491,35 @@ export default function AmericanoSetup({
                                         className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-600"
                                     />
                                     <p className="text-[10px] text-foreground/40 font-bold uppercase text-center">
-                                        Cada equipo jugará {matchesPerTeam} partidos en la fase de grupos.
+                                        Cada equipo jugará {matchesPerTeam} partidos.
                                     </p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-emerald-500">
+                                            <MonitorPlay className="w-5 h-5" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Canchas Disponibles</span>
+                                        </div>
+                                        <span className="text-3xl font-black italic">{numCourts}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="1" 
+                                        max="10" 
+                                        value={numCourts} 
+                                        onChange={(e) => setNumCourts(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                    />
+                                    <p className="text-[10px] text-foreground/40 font-bold uppercase text-center">
+                                        Se usarán hasta {numCourts} canchas en simultáneo.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border md:col-span-2">
                                     <div className="text-center">
                                         <p className="text-[8px] font-black uppercase text-foreground/40">Total Partidos</p>
-                                        <p className="text-xl font-black italic">{Math.ceil((PRESENT_PLAYERS.length * matchesPerTeam) / 2)}</p>
+                                        <p className="text-xl font-black italic">{generatedMatches.length || Math.ceil((PRESENT_PLAYERS.length * matchesPerTeam) / 2)}</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black uppercase text-foreground/40">Participantes</p>
@@ -492,15 +580,31 @@ export default function AmericanoSetup({
                                 </p>
                             </div>
 
-                            <div className="grid gap-3">
-                                {generatedMatches.map((m, idx) => (
-                                    <div key={idx} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all">
-                                        <div className="flex-1 text-right">
-                                            <span className="text-[10px] font-black uppercase italic">{m.team1.name}</span>
+                            <div className="space-y-12">
+                                {Array.from(new Set(generatedMatches.map(m => m.roundIndex))).sort((a, b) => (a || 0) - (b || 0)).map(roundIdx => (
+                                    <div key={roundIdx} className="space-y-4">
+                                        <div className="flex items-center gap-4 px-2">
+                                            <div className="h-px flex-1 bg-border/50" />
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/30">Ronda {(roundIdx || 0) + 1}</h4>
+                                            <div className="h-px flex-1 bg-border/50" />
                                         </div>
-                                        <div className="px-3 py-1 bg-muted rounded-lg text-[10px] font-black text-foreground/20">VS</div>
-                                        <div className="flex-1 text-left">
-                                            <span className="text-[10px] font-black uppercase italic">{m.team2.name}</span>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {generatedMatches.filter(m => m.roundIndex === roundIdx).map((m, idx) => (
+                                                <div key={idx} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all relative overflow-hidden group">
+                                                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-blue-600 opacity-20" />
+                                                    <div className="flex-1 text-right overflow-hidden break-words">
+                                                        <span className="text-[10px] font-black uppercase italic">{m.team1.name}</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-1 min-w-[60px]">
+                                                        <div className="px-3 py-1 bg-muted rounded-lg text-[10px] font-black text-foreground/20">VS</div>
+                                                        <span className="text-[8px] font-black uppercase text-blue-500/40 tracking-tighter">Cancha {m.courtNumber}</span>
+                                                    </div>
+                                                    <div className="flex-1 text-left overflow-hidden break-words">
+                                                        <span className="text-[10px] font-black uppercase italic">{m.team2.name}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 ))}

@@ -4,6 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../fixture/TournamentManager";
+import AmericanoManager from "../fixture/AmericanoManager";
 import { Trophy, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -225,6 +226,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
         score2: m.score2 ?? undefined,
         played: m.confirmed,
         confirmed: m.confirmed,
+        roundIndex: m.roundIndex ?? undefined,
+        courtNumber: m.courtNumber ?? undefined,
     }));
 
     const mappedBracket = dbBracket.map(bm => ({
@@ -239,6 +242,24 @@ export default async function TournamentDisplayPage({ params }: Props) {
         winnerId: bm.winnerId ?? undefined,
         winnerName: bm.winnerName ?? undefined,
     }));
+
+    if (tournament.type === 'americano') {
+        return (
+            <>
+                {publicHeader}
+                <AmericanoManager
+                    tournamentId={tournament.id}
+                    tournamentName={tournament.name}
+                    initialGroups={initialGroups}
+                    initialMatches={mappedMatches}
+                    initialBracket={mappedBracket}
+                    initialStatus={tournament.status}
+                    readOnly={!canManage}
+                    isLoggedIn={isLoggedIn}
+                />
+            </>
+        );
+    }
 
     return (
         <>

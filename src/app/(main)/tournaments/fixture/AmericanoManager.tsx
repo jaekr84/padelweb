@@ -37,6 +37,8 @@ type Match = {
     score2?: number;
     played: boolean;
     confirmed: boolean;
+    roundIndex?: number;
+    courtNumber?: number;
 };
 
 type BracketSlot = Player | "BYE" | null;
@@ -649,84 +651,127 @@ export default function AmericanoManager({
                                 </div>
                             </div>
 
-                            <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                                <table className="w-full text-left">
-                                    <thead className="bg-muted/50 text-[10px] font-black uppercase tracking-widest text-foreground/40 border-b border-border/50">
-                                        <tr>
-                                            <th className="px-8 py-6">#</th>
-                                            <th className="px-8 py-6">Jugador 1</th>
-                                            <th className="px-8 py-6 text-center">Resultado</th>
-                                            <th className="px-8 py-6">Jugador 2</th>
-                                            <th className="px-8 py-6 text-right">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {matches.map((m, idx) => (
-                                            <tr
-                                                key={m.id}
-                                                className={`group transition-all hover:bg-muted/30 ${m.confirmed ? "opacity-60 bg-emerald-500/[0.02]" : ""}`}
-                                            >
-                                                <td className="px-8 py-6 text-[10px] font-black text-foreground/20 italic">#{idx + 1}</td>
-                                                <td className="px-8 py-6">
-                                                    <span className={`font-black uppercase text-sm italic ${m.confirmed && m.score1! > m.score2! ? "text-blue-600" : ""}`}>
-                                                        {m.team1.name}
-                                                    </span>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center justify-center gap-3">
-                                                        <input
-                                                            type="number"
-                                                            value={m.score1 ?? ""}
-                                                            onChange={(e) => handleScoreChange(m.id, e.target.value, m.score2?.toString() || "")}
-                                                            disabled={m.confirmed || readOnly}
-                                                            className="w-12 h-12 bg-background border border-border rounded-xl text-center font-black text-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
-                                                            placeholder="0"
-                                                        />
-                                                        <span className="text-foreground/20 font-black">-</span>
-                                                        <input
-                                                            type="number"
-                                                            value={m.score2 ?? ""}
-                                                            onChange={(e) => handleScoreChange(m.id, m.score1?.toString() || "", e.target.value)}
-                                                            disabled={m.confirmed || readOnly}
-                                                            className="w-12 h-12 bg-background border border-border rounded-xl text-center font-black text-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
-                                                            placeholder="0"
-                                                        />
+                            <div className="space-y-16">
+                                {Array.from(new Set(matches.map(m => m.roundIndex ?? 0))).sort((a, b) => a - b).map(roundIdx => (
+                                    <div key={roundIdx} className="space-y-8">
+                                        <div className="flex items-center gap-6 px-2">
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                                            <div className="flex flex-col items-center">
+                                                <h3 className="text-xl font-black uppercase italic tracking-[0.2em] text-foreground/20">Ronda {roundIdx + 1}</h3>
+                                                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500/30">Bloque Horario</p>
+                                            </div>
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            {matches
+                                                .filter(m => (m.roundIndex ?? 0) === roundIdx)
+                                                .sort((a, b) => (a.courtNumber ?? 0) - (b.courtNumber ?? 0))
+                                                .map((match) => (
+                                                    <div key={match.id} className="relative group">
+                                                        <div className="absolute -top-3 left-8 px-4 py-1 bg-blue-600 text-white rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-lg shadow-blue-600/20">
+                                                            Cancha {match.courtNumber || "?"}
+                                                        </div>
+                                                        
+                                                        <div className={`p-8 bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] transition-all duration-500 flex flex-col gap-6 shadow-2xl relative overflow-hidden group-hover:scale-[1.02] ${match.confirmed ? "border-emerald-500/20 shadow-emerald-500/5" : "border-border/50 hover:border-blue-500/30"}`}>
+                                                            {match.confirmed && (
+                                                                <div className="absolute top-0 right-0 p-4">
+                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                                                </div>
+                                                            )}
+
+                                                            <div className="space-y-6">
+                                                                <div className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${match.score1! > match.score2! ? "bg-blue-500/10 border border-blue-500/20" : "bg-muted/30"}`}>
+                                                                    <span className={`text-sm font-black uppercase italic break-words flex-1 pr-4 ${match.score1! > match.score2! ? "text-blue-500" : "text-foreground/70"}`}>
+                                                                        {match.team1.name}
+                                                                    </span>
+                                                                    {match.confirmed ? (
+                                                                        <span className="text-2xl font-black italic">{match.score1}</span>
+                                                                    ) : (
+                                                                        <div className="flex items-center bg-muted/30 rounded-2xl border border-border/50 overflow-hidden h-11">
+                                                                            <button 
+                                                                                onClick={() => handleScoreChange(match.id, Math.max(0, (match.score1 || 0) - 1).toString(), (match.score2 || 0).toString())}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
+                                                                            >
+                                                                                <Minus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={match.score1 ?? ""}
+                                                                                onChange={(e) => handleScoreChange(match.id, e.target.value, (match.score2 || 0).toString())}
+                                                                                className="w-10 h-full bg-transparent text-center text-sm font-black outline-none"
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <button 
+                                                                                onClick={() => handleScoreChange(match.id, ((match.score1 || 0) + 1).toString(), (match.score2 || 0).toString())}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
+                                                                            >
+                                                                                <Plus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${match.score2! > match.score1! ? "bg-blue-500/10 border border-blue-500/20" : "bg-muted/30"}`}>
+                                                                    <span className={`text-sm font-black uppercase italic break-words flex-1 pr-4 ${match.score2! > match.score1! ? "text-blue-500" : "text-foreground/70"}`}>
+                                                                        {match.team2.name}
+                                                                    </span>
+                                                                    {match.confirmed ? (
+                                                                        <span className="text-2xl font-black italic">{match.score2}</span>
+                                                                    ) : (
+                                                                        <div className="flex items-center bg-muted/30 rounded-2xl border border-border/50 overflow-hidden h-11">
+                                                                            <button 
+                                                                                onClick={() => handleScoreChange(match.id, (match.score1 || 0).toString(), Math.max(0, (match.score2 || 0) - 1).toString())}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
+                                                                            >
+                                                                                <Minus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={match.score2 ?? ""}
+                                                                                onChange={(e) => handleScoreChange(match.id, (match.score1 || 0).toString(), e.target.value)}
+                                                                                className="w-10 h-full bg-transparent text-center text-sm font-black outline-none"
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <button 
+                                                                                onClick={() => handleScoreChange(match.id, (match.score1 || 0).toString(), ((match.score2 || 0) + 1).toString())}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
+                                                                            >
+                                                                                <Plus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {!readOnly && (
+                                                                <div className="pt-2">
+                                                                    {match.confirmed ? (
+                                                                        <button
+                                                                            onClick={() => handleEditScore(match.id)}
+                                                                            className="w-full py-4 rounded-2xl border-2 border-border/50 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-muted transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <Pencil className="w-3.5 h-3.5" />
+                                                                            Editar Resultado
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => handleConfirmScore(match.id)}
+                                                                            disabled={match.score1 === undefined || match.score2 === undefined || saving}
+                                                                            className="w-full py-4 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 hover:bg-blue-500 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <Check className="w-4 h-4" />
+                                                                            Confirmar Resultado
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <span className={`font-black uppercase text-sm italic ${m.confirmed && m.score2! > m.score1! ? "text-blue-600" : ""}`}>
-                                                        {m.team2.name}
-                                                    </span>
-                                                </td>
-                                                <td className="px-8 py-6 text-right">
-                                                    {!readOnly && (
-                                                        m.confirmed ? (
-                                                            <button
-                                                                onClick={() => handleEditScore(m.id)}
-                                                                className="inline-flex items-center gap-2 px-4 py-2 text-amber-600 hover:text-amber-500 bg-amber-500/10 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all border border-amber-500/20"
-                                                            >
-                                                                <Pencil className="w-3.5 h-3.5" />
-                                                                Editar
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleConfirmScore(m.id)}
-                                                                disabled={m.score1 === undefined || m.score2 === undefined || saving}
-                                                                className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${m.score1 !== undefined && m.score2 !== undefined
-                                                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95"
-                                                                    : "bg-muted text-foreground/20"
-                                                                    }`}
-                                                            >
-                                                                <Check className="w-4 h-4" />
-                                                                Confirmar
-                                                            </button>
-                                                        )
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                ))}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                             {/* Bottom Actions */}
@@ -958,7 +1003,7 @@ export default function AmericanoManager({
                                                                             <div key={idx} className="flex items-center justify-between gap-4">
                                                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                                                     <div className={`w-1.5 h-8 rounded-full ${m.winnerId === (team as Player)?.id ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-border/30"}`} />
-                                                                                    <span className={`text-xs font-black uppercase truncate ${m.winnerId === (team as Player)?.id ? "text-emerald-500" :
+                                                                                    <span className={`text-xs font-black uppercase break-words ${m.winnerId === (team as Player)?.id ? "text-emerald-500" :
                                                                                         team === "BYE" ? "text-foreground/20 italic" : "text-foreground/60"
                                                                                         }`}>
                                                                                         {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
@@ -1013,12 +1058,14 @@ export default function AmericanoManager({
 
                                                                     {m.confirmed && !readOnly && (
                                                                         <div className="absolute -right-3 -top-3 flex items-center gap-1.5">
-                                                                            <button
-                                                                                onClick={() => setBracket(bracket.map(bm => bm.id === m.id ? { ...bm, confirmed: false } : bm))}
-                                                                                className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
-                                                                            >
-                                                                                <Pencil className="w-4 h-4" />
-                                                                            </button>
+                                                                             {!(m.team1 === "BYE" || m.team2 === "BYE") && (
+                                                                                <button
+                                                                                    onClick={() => setBracket(bracket.map(bm => bm.id === m.id ? { ...bm, confirmed: false } : bm))}
+                                                                                    className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
+                                                                                >
+                                                                                    <Pencil className="w-4 h-4" />
+                                                                                </button>
+                                                                             )}
                                                                             <div className="bg-emerald-500 text-white p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 border border-emerald-400/50">
                                                                                 <Check className="w-4 h-4" />
                                                                             </div>

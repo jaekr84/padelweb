@@ -97,6 +97,8 @@ export default async function TournamentManagePage({ params }: Props) {
         score2: m.score2 ?? undefined,
         played: m.confirmed,
         confirmed: m.confirmed,
+        roundIndex: m.roundIndex ?? undefined,
+        courtNumber: m.courtNumber ?? undefined,
     }));
 
     const mappedBracket = dbBracket.map(bm => ({

@@ -27,6 +27,8 @@ export type SaveFixtureInput = {
         score1?: number;
         score2?: number;
         confirmed: boolean;
+        roundIndex?: number;
+        courtNumber?: number;
     }[];
     bracket: {
         id: string;
@@ -120,6 +122,8 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     score1: m.score1 ?? null,
                     score2: m.score2 ?? null,
                     confirmed: m.confirmed,
+                    roundIndex: m.roundIndex ?? null,
+                    courtNumber: m.courtNumber ?? null,
                 };
             });
             await db.insert(groupMatches).values(matchValues);
