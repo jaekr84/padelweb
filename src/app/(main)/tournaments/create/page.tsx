@@ -52,6 +52,7 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 maxSlots: tModalidad?.maxSlots ?? 0,
                 modalidad: tModalidad,
                 registrationFee: t.registrationFee ?? null,
+                type: t.type ?? "round_robin",
             };
         }
     }

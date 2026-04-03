@@ -42,6 +42,7 @@ export type InitialData = {
         genero: "hombre" | "mujer" | "mixto";
     } | null;
     registrationFee: number | null;
+    type?: string | null;
 };
 
 
@@ -108,6 +109,7 @@ export default function CreateTournamentForm({
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
     const [imageUploading, setImageUploading] = useState(false);
     const [compressedFile, setCompressedFile] = useState<File | null>(null);
+    const [tournamentType, setTournamentType] = useState<"round_robin" | "independent">((initialData as any)?.type ?? "round_robin");
 
     const [info, setInfo] = useState({
         name: initialData?.name ?? "",
@@ -213,6 +215,7 @@ export default function CreateTournamentForm({
                     genero: modalidad.genero,
                 },
                 registrationFee: info.registrationFee ? Number(info.registrationFee) : null,
+                type: tournamentType,
             };
 
             if (isEditing && initialData) {
@@ -256,6 +259,70 @@ export default function CreateTournamentForm({
                 </div>
 
                 <div className="grid grid-cols-1 gap-10">
+
+                    {/* SECCIÓN 0: TIPO DE TORNEO */}
+                    <div className="flex flex-col gap-6">
+                        <div className="flex items-center gap-3 px-2">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
+                                <Layers className="w-4 h-4 text-indigo-400" />
+                            </div>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Método de Competición</h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setTournamentType("round_robin")}
+                                className={`group relative p-6 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${tournamentType === "round_robin" ? "bg-indigo-600/10 border-indigo-500/50 shadow-2xl shadow-indigo-500/10 scale-[1.02]" : "bg-card/40 border-border/50 hover:border-indigo-500/30 grayscale opacity-60 hover:grayscale-0 hover:opacity-100"}`}
+                            >
+                                {tournamentType === "round_robin" && (
+                                    <div className="absolute top-0 right-0 p-4">
+                                        <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                                            <Check className="w-3.5 h-3.5 text-white" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex flex-col gap-4 relative z-10">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${tournamentType === "round_robin" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "bg-muted text-muted-foreground"}`}>
+                                        <Activity className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-lg font-black uppercase italic tracking-tight text-foreground transition-colors">Round Robin</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Formato clásico de zonas y eliminación directa</p>
+                                    </div>
+                                </div>
+                                {tournamentType === "round_robin" && (
+                                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl" />
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setTournamentType("independent")}
+                                className={`group relative p-6 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${tournamentType === "independent" ? "bg-indigo-600/10 border-indigo-500/50 shadow-2xl shadow-indigo-500/10 scale-[1.02]" : "bg-card/40 border-border/50 hover:border-indigo-500/30 grayscale opacity-40 hover:grayscale-0 hover:opacity-100"}`}
+                            >
+                                {tournamentType === "independent" && (
+                                    <div className="absolute top-0 right-0 p-4">
+                                        <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                                            <Check className="w-3.5 h-3.5 text-white" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex flex-col gap-4 relative z-10">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${tournamentType === "independent" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/40" : "bg-muted text-muted-foreground"}`}>
+                                        <Target className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-lg font-black uppercase italic tracking-tight text-foreground transition-colors">Nuevo Método</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Método totalmente independiente (Próximamente)</p>
+                                    </div>
+                                </div>
+                                {tournamentType === "independent" && (
+                                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl" />
+                                )}
+                            </button>
+                        </div>
+                    </div>
 
                     {/* SECCIÓN 1: IDENTIDAD VISUAL Y GENERAL */}
                     <div className="flex flex-col gap-6">

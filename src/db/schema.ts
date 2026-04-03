@@ -72,6 +72,7 @@ export const tournaments = mysqlTable("tournaments", {
     openDateClub: varchar("open_date_club", { length: 50 }),
     openDateGeneral: varchar("open_date_general", { length: 50 }),
     status: varchar("status", { length: 50 }).notNull().default("draft"),
+    type: varchar("type", { length: 50 }).notNull().default("round_robin"),
     imageUrl: varchar("image_url", { length: 512 }),
     youtubeUrl: varchar("youtube_url", { length: 512 }),
     registrationFee: int("registration_fee"),
