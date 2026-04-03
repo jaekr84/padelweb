@@ -595,3 +595,23 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
     }
 }
 
+export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+        
+        const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
+        if (!t) throw new Error("Torneo no encontrado");
+
+        await db.update(tournaments).set({ status: "pendiente" }).where(eq(tournaments.id, id));
+        revalidatePath(`/tournaments/${id}`);
+        revalidatePath(`/tournaments/${id}/fixture`);
+        revalidatePath(`/tournaments/${id}/manage`);
+        
+        return { ok: true };
+    } catch (err) {
+        console.error("[resetTournamentStatus]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+

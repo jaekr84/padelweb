@@ -1,0 +1,667 @@
+"use client";
+
+import { useState, useCallback, useMemo, useEffect } from "react";
+import Link from "next/link";
+import {
+    Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
+    Dice5, Check, Trash2, Settings, Plus, Minus,
+    CreditCard, UserCheck, AlertCircle, ChevronRight,
+    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap,
+    LayoutDashboard, Swords, BarChart3, Clock
+} from "lucide-react";
+import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+
+export interface AmericanoSetupProps {
+    tournamentId: string;
+    tournamentName: string;
+    initialStatus: string;
+    initialPlayers: Player[];
+    categories?: string[];
+    isIndividual?: boolean;
+}
+
+type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null; player1?: string | null; player2?: string | null };
+type Group = { id: string; name: string; players: Player[] };
+
+type Match = {
+    id: string;
+    groupId: string;
+    team1: Player;
+    team2: Player;
+    played: boolean;
+    confirmed: boolean;
+};
+
+export default function AmericanoSetup({
+    tournamentId,
+    tournamentName,
+    initialStatus,
+    initialPlayers,
+    categories = ["A+", "A", "B", "C", "D"],
+    isIndividual = false
+}: AmericanoSetupProps) {
+    const router = useRouter();
+    const [players, setPlayers] = useState<Player[]>(initialPlayers);
+    const [step, setStep] = useState<"checkin" | "config" | "assign">("checkin");
+    const [paid, setPaid] = useState<Set<string>>(new Set());
+    const [present, setPresent] = useState<Set<string>>(new Set());
+
+    const [matchesPerTeam, setMatchesPerTeam] = useState(2);
+    const [groups, setGroups] = useState<Group[]>([]);
+    const [generatedMatches, setGeneratedMatches] = useState<Match[]>([]);
+    const [randomizing, setRandomizing] = useState(false);
+    const [drawingPlayer, setDrawingPlayer] = useState<Player | null>(null);
+    const [ytUrl, setYtUrl] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
+    const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
+    const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [genderFilter, setGenderFilter] = useState("all");
+    const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
+
+    const [manualName, setManualName] = useState("");
+    const [manualCategory, setManualCategory] = useState("");
+    const [manualGender, setManualGender] = useState("masculino");
+    const [isCreatingManual, setIsCreatingManual] = useState(false);
+
+    const [autoFillCount, setAutoFillCount] = useState<number | "">("");
+    const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+    const handleManualRegister = async () => {
+        if (!manualName.trim()) {
+            toast.error("El nombre es obligatorio");
+            return;
+        }
+        setIsCreatingManual(true);
+        const res = await registerManualPlayer(tournamentId, manualName, manualCategory || "D", manualGender);
+        if (res.ok && 'player' in res && res.player) {
+            const newPlayer = res.player;
+            setPlayers(prev => [...prev, newPlayer as Player]);
+            if (isIndividual) {
+                setPresent(prev => new Set([...prev, newPlayer.id]));
+            } else {
+                setPresent(prev => new Set([...prev, `${newPlayer.id}_0`, `${newPlayer.id}_1`]));
+                setPaid(prev => new Set([...prev, `${newPlayer.id}_0`, `${newPlayer.id}_1`]));
+            }
+            setManualName("");
+            toast.success("Jugador creado e inscripto correctamente");
+        } else if (!res.ok && 'error' in res) {
+            toast.error("Error al crear jugador: " + res.error);
+        }
+        setIsCreatingManual(false);
+    };
+
+    const handleAutoFill = async () => {
+        let count = typeof autoFillCount === 'number' ? autoFillCount : parseInt(autoFillCount as string);
+        if (isNaN(count) || count <= 0) {
+            toast.error("Ingresá una cantidad válida");
+            return;
+        }
+        
+        setIsAutoFilling(true);
+        toast.loading(`Generando ${count} jugadores...`, { id: 'autofill' });
+        
+        const baseName = "Jugador Gen-" + Math.floor(Math.random() * 1000);
+        const cat = manualCategory || categories[0] || "D";
+        const promises = [];
+
+        for (let i = 1; i <= count; i++) {
+            promises.push(registerManualPlayer(tournamentId, `${baseName} #${i}`, cat, "masculino"));
+        }
+
+        try {
+            const results = await Promise.all(promises);
+            const newPlayers: Player[] = [];
+            const newIds: string[] = [];
+            
+            for (let r of results) {
+                if (r.ok && r.player) {
+                    newPlayers.push(r.player as Player);
+                    newIds.push(r.player.id);
+                }
+            }
+            
+            setPlayers(prev => [...prev, ...newPlayers]);
+            const idsToPresent = isIndividual 
+                ? newIds 
+                : newIds.flatMap(id => [`${id}_0`, `${id}_1`]);
+            setPresent(prev => new Set([...prev, ...idsToPresent]));
+            toast.success(`Se generaron e inscribieron ${newPlayers.length} jugadores`, { id: 'autofill' });
+            setAutoFillCount("");
+        } catch (err) {
+            console.error(err);
+            toast.error("Error en la generación automática", { id: 'autofill' });
+        }
+
+        setIsAutoFilling(false);
+    };
+
+    const PRESENT_PLAYERS = useMemo(() =>
+        players.filter(p => {
+            if (isIndividual) return present.has(p.id);
+            return present.has(p.id) || (present.has(`${p.id}_0`) && present.has(`${p.id}_1`));
+        }),
+        [players, present, isIndividual]);
+
+    const togglePaid = (id: string) => {
+        setPaid(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+    const togglePresent = (id: string) => {
+        setPresent(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const handleCheckAll = (type: 'paid' | 'present') => {
+        let allCheckinIds: string[] = [];
+        players.forEach(p => {
+            if (isIndividual) {
+                allCheckinIds.push(p.id);
+            } else {
+                allCheckinIds.push(`${p.id}_0`);
+                if (p.player2 || p.name.includes(" / ")) allCheckinIds.push(`${p.id}_1`);
+            }
+        });
+
+        if (type === 'paid') {
+            const areAllPaid = allCheckinIds.every(id => paid.has(id));
+            setPaid(areAllPaid ? new Set() : new Set(allCheckinIds));
+        } else {
+            const areAllPresent = allCheckinIds.every(id => present.has(id));
+            setPresent(areAllPresent ? new Set() : new Set(allCheckinIds));
+        }
+    };
+
+    const loadAvailablePlayers = async () => {
+        setIsLoadingAvailable(true);
+        const list = await getAvailablePlayers(tournamentId);
+        setAvailablePlayers(list);
+        setIsLoadingAvailable(false);
+    };
+
+    const handleQuickInscribe = async (userId: string) => {
+        const res = await quickInscribePlayer(tournamentId, userId);
+        if (res.ok && res.player) {
+            setPlayers(prev => [...prev, res.player as Player]);
+            if (isIndividual) {
+                setPresent(prev => new Set([...prev, res.player!.id]));
+            } else {
+                setPresent(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
+            }
+            setAvailablePlayers(prev => prev.filter(p => p.id !== userId));
+            toast.success("Jugador inscripto");
+        } else {
+            toast.error("Error: " + res.error);
+        }
+    };
+
+    const handleStart = () => {
+        if (PRESENT_PLAYERS.length < 2) {
+            toast.error("Se necesitan al menos 2 jugadores para iniciar");
+            return;
+        }
+        // Americano always uses 1 group
+        setGroups([{ id: 'g0', name: 'Grupo Unico', players: PRESENT_PLAYERS }]);
+        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam);
+        setGeneratedMatches(m);
+        setStep("assign");
+    };
+
+    const generateAmericanoMatches = (players: Player[], matchesPerPlayer: number): Match[] => {
+        const matches: Match[] = [];
+        const n = players.length;
+        const playerMatchCount = new Map<string, number>();
+        players.forEach(p => playerMatchCount.set(p.id, 0));
+
+        let pairs: [number, number][] = [];
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                pairs.push([i, j]);
+            }
+        }
+        
+        pairs = pairs.sort(() => Math.random() - 0.5);
+
+        for (const [i, j] of pairs) {
+            const p1 = players[i];
+            const p2 = players[j];
+            if (playerMatchCount.get(p1.id)! < matchesPerPlayer && playerMatchCount.get(p2.id)! < matchesPerPlayer) {
+                matches.push({
+                    id: `m_g0_${i}_${j}_${Date.now()}`,
+                    groupId: 'g0',
+                    team1: p1,
+                    team2: p2,
+                    played: false,
+                    confirmed: false,
+                });
+                playerMatchCount.set(p1.id, playerMatchCount.get(p1.id)! + 1);
+                playerMatchCount.set(p2.id, playerMatchCount.get(p2.id)! + 1);
+            }
+        }
+
+        return matches;
+    };
+
+    const handleConfirmGroups = async () => {
+        setSaving(true);
+        const group = groups[0];
+        if (!group) return;
+
+        if (generatedMatches.length === 0) {
+            toast.error("No hay partidos para guardar.");
+            setSaving(false);
+            return;
+        }
+
+        const res = await saveTournamentFixture({
+            tournamentId,
+            phase: "grupos",
+            youtubeUrl: ytUrl || undefined,
+            groups: [{ id: group.id, name: group.name, players: group.players }],
+            matches: generatedMatches,
+            bracket: [],
+        });
+
+        if (res.ok) {
+            router.push(`/tournaments/${tournamentId}/manage`);
+        } else {
+            toast.error("Error al iniciar el torneo: " + res.error);
+        }
+        setSaving(false);
+    };
+
+    const reshuffleMatches = () => {
+        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam);
+        setGeneratedMatches(m);
+        toast.info("Partidos re-sorteados");
+    };
+
+    return (
+        <div className="min-h-screen bg-background text-foreground">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-4">
+                <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => router.back()}
+                            className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors font-bold uppercase tracking-widest text-[10px] shrink-0"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Volver
+                        </button>
+
+                        <div className="hidden md:flex items-center gap-1 bg-muted/50 p-1 rounded-xl border border-border/50">
+                            {[
+                                { id: "checkin", icon: UserCheck, label: "Asistencia", active: step === "checkin" },
+                                { id: "config", icon: LayoutDashboard, label: "Estructura", active: step === "config" || step === "assign" },
+                                { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
+                                { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
+                            ].map((s, idx) => {
+                                const Icon = s.icon;
+                                return (
+                                    <div key={s.id} className="flex items-center">
+                                        <button 
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${s.active 
+                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                                                : "text-foreground/40"}`}
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
+                                        </button>
+                                        {idx < 3 && (
+                                            <div className="px-1 text-foreground/10">
+                                                <ChevronRight className="w-3 h-3" />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[8px] font-black uppercase tracking-widest">
+                        Método Americano
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
+                <AnimatePresence mode="wait">
+                    {step === "checkin" && (
+                        <motion.div key="checkin" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-6">
+                            <div className="flex items-center justify-between px-2">
+                                <div>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Asistencia</h2>
+                                    <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Confirmá quiénes están para jugar</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setIsPlayerModalOpen(true);
+                                            loadAvailablePlayers();
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        <Plus className="w-3 h-3" />
+                                        Inscribir
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
+                                <div className="px-6 py-4 flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/50">Lista de Jugadores</span>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-600">Todo Pago</button>
+                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Todo Ok</button>
+                                    </div>
+                                </div>
+                                <div className="max-h-[60vh] overflow-y-auto">
+                                    {players.map(p => {
+                                        const isPresent = present.has(p.id) || (present.has(`${p.id}_0`) && present.has(`${p.id}_1`));
+                                        const isPaid = paid.has(p.id) || (paid.has(`${p.id}_0`) && paid.has(`${p.id}_1`));
+                                        return (
+                                            <div key={p.id} className={`flex items-center justify-between px-6 py-4 ${isPresent ? "bg-emerald-500/5" : ""}`}>
+                                                <div>
+                                                    <p className="text-sm font-black uppercase italic">{p.name}</p>
+                                                    <p className="text-[9px] text-foreground/40 font-bold uppercase">{p.category || "Sin Cat."}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => togglePaid(isIndividual ? p.id : `${p.id}_0`)} className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isPaid ? "bg-blue-600 border-blue-600 text-white" : "border-border text-foreground/20"}`}>
+                                                        <CreditCard className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => togglePresent(isIndividual ? p.id : `${p.id}_0`)} className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isPresent ? "bg-emerald-600 border-emerald-600 text-white" : "border-border text-foreground/20"}`}>
+                                                        <UserCheck className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setStep("config")}
+                                disabled={PRESENT_PLAYERS.length < 2}
+                                className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                Continuar con {PRESENT_PLAYERS.length} participantes
+                                <ArrowRight className="w-5 h-5" />
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {step === "config" && (
+                        <motion.div key="config" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
+                            <div className="px-2">
+                                <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Configuración Americano</h2>
+                                <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Definí la cantidad de partidos por equipo</p>
+                            </div>
+
+                            <div className="bg-card border border-border rounded-3xl p-8 space-y-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-blue-500">
+                                            <Swords className="w-5 h-5" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Partidos por Equipo</span>
+                                        </div>
+                                        <span className="text-3xl font-black italic">{matchesPerTeam}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="1" 
+                                        max={Math.max(1, PRESENT_PLAYERS.length - 1)} 
+                                        value={matchesPerTeam} 
+                                        onChange={(e) => setMatchesPerTeam(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                    />
+                                    <p className="text-[10px] text-foreground/40 font-bold uppercase text-center">
+                                        Cada equipo jugará {matchesPerTeam} partidos en la fase de grupos.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                                    <div className="text-center">
+                                        <p className="text-[8px] font-black uppercase text-foreground/40">Total Partidos</p>
+                                        <p className="text-xl font-black italic">{Math.ceil((PRESENT_PLAYERS.length * matchesPerTeam) / 2)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] font-black uppercase text-foreground/40">Participantes</p>
+                                        <p className="text-xl font-black italic">{PRESENT_PLAYERS.length}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tabla de Jugadores Confirmados */}
+                            <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+                                <div className="p-4 bg-muted/50 border-b border-border flex items-center gap-2 text-foreground/40 uppercase font-black tracking-widest text-[10px]">
+                                    <Users2 className="w-4 h-4" />
+                                    <span>Jugadores Confirmados ({PRESENT_PLAYERS.length})</span>
+                                </div>
+                                <div>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-muted text-[8px] font-black uppercase tracking-widest text-foreground/20 sticky top-0 z-10 border-b border-border">
+                                            <tr>
+                                                <th className="px-6 py-3">#</th>
+                                                <th className="px-6 py-3">Nombre / Equipo</th>
+                                                <th className="px-6 py-3">Categoría</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/50">
+                                            {PRESENT_PLAYERS.map((p, idx) => (
+                                                <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                                                    <td className="px-6 py-4 text-[10px] font-black italic text-foreground/20">{idx + 1}</td>
+                                                    <td className="px-6 py-4 text-xs font-black uppercase italic">{p.name}</td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="px-2 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-lg text-[8px] font-black uppercase">{p.category || "D"}</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button onClick={() => setStep("checkin")} className="flex-1 py-5 bg-card border border-border rounded-3xl font-black uppercase italic tracking-widest">Atrás</button>
+                                <button onClick={handleStart} className="flex-[2] py-5 bg-blue-600 text-white rounded-3xl font-black uppercase italic tracking-widest shadow-lg shadow-blue-900/20">Iniciar Torneo</button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {step === "assign" && (
+                        <motion.div key="assign" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-6 pb-20">
+                            <div className="bg-blue-600/10 border border-blue-500/20 rounded-3xl p-8 text-center relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4">
+                                    <button onClick={reshuffleMatches} className="p-2 hover:bg-blue-600/20 rounded-full transition-colors group" title="Sorteo Random">
+                                        <Dice5 className="w-6 h-6 text-blue-500 animate-pulse group-hover:animate-spin" />
+                                    </button>
+                                </div>
+                                <h3 className="text-2xl font-black uppercase italic text-blue-500 mb-2">Partidos Generados</h3>
+                                <p className="text-sm text-foreground/60 max-w-md mx-auto">
+                                    Se armó un cuadro con <strong>{generatedMatches.length}</strong> partidos totales. 
+                                    Cada equipo juega exactamente <strong>{matchesPerTeam}</strong> partidos.
+                                </p>
+                            </div>
+
+                            <div className="grid gap-3">
+                                {generatedMatches.map((m, idx) => (
+                                    <div key={idx} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all">
+                                        <div className="flex-1 text-right">
+                                            <span className="text-[10px] font-black uppercase italic">{m.team1.name}</span>
+                                        </div>
+                                        <div className="px-3 py-1 bg-muted rounded-lg text-[10px] font-black text-foreground/20">VS</div>
+                                        <div className="flex-1 text-left">
+                                            <span className="text-[10px] font-black uppercase italic">{m.team2.name}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-4 sticky bottom-4">
+                                <button onClick={() => setStep("config")} className="flex-1 py-5 bg-card border border-border rounded-3xl font-black uppercase italic tracking-widest shadow-2xl backdrop-blur-xl bg-card/80">Atrás</button>
+                                <button
+                                    onClick={handleConfirmGroups}
+                                    disabled={saving}
+                                    className="flex-[2] py-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2"
+                                >
+                                    {saving ? "Generando..." : "Confirmar y Empezar"}
+                                    <Zap className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
+            
+            {/* Modal de Inscripción */}
+            <AnimatePresence>
+                {isPlayerModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsPlayerModalOpen(false)}
+                            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-2xl bg-card border border-border shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="p-8 border-b border-border flex items-center justify-between bg-muted/30">
+                                <div>
+                                    <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Participantes</h3>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Buscá jugadores o agregalos manualmente</p>
+                                </div>
+                                <button 
+                                    onClick={() => setIsPlayerModalOpen(false)}
+                                    className="w-10 h-10 rounded-full hover:bg-muted transition-colors flex items-center justify-center text-foreground/40 hover:text-foreground"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-8 overflow-y-auto space-y-8">
+                                {/* Búsqueda */}
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Buscar por nombre..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full bg-muted/50 border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
+                                        />
+                                    </div>
+                                    
+                                    <div className="max-h-48 overflow-y-auto space-y-2 rounded-2xl outline-none">
+                                        {isLoadingAvailable ? (
+                                            <div className="py-8 text-center text-[10px] font-black uppercase tracking-widest text-foreground/20 animate-pulse">Cargando base de datos...</div>
+                                        ) : (
+                                            availablePlayers
+                                                .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                                .slice(0, 10)
+                                                .map(p => (
+                                                    <div key={p.id} className="flex items-center justify-between p-4 bg-muted/30 border border-border/50 rounded-xl hover:border-blue-500/30 transition-all group">
+                                                        <div>
+                                                            <p className="text-xs font-black uppercase italic">{p.name}</p>
+                                                            <p className="text-[8px] font-bold uppercase text-foreground/40">{p.category || "D"} • {p.gender || "masculino"}</p>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleQuickInscribe(p.id)}
+                                                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-blue-900/20"
+                                                        >
+                                                            Inscribir
+                                                        </button>
+                                                    </div>
+                                                ))
+                                        )}
+                                        {!isLoadingAvailable && searchQuery && availablePlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                                            <div className="py-4 text-center text-[10px] font-black uppercase tracking-widest text-foreground/20 italic">No se encontraron resultados</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Manual */}
+                                <div className="pt-8 border-t border-border space-y-6">
+                                    <div className="flex items-center gap-2 text-indigo-500">
+                                        <Users2 className="w-4 h-4" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Anotar Manualmente</span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Nombre Completo</label>
+                                            <input 
+                                                value={manualName}
+                                                onChange={e => setManualName(e.target.value)}
+                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                                placeholder="Ej: Juan Pérez"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría</label>
+                                            <select 
+                                                value={manualCategory}
+                                                onChange={e => setManualCategory(e.target.value)}
+                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            >
+                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={handleManualRegister}
+                                        disabled={isCreatingManual || !manualName}
+                                        className="w-full py-4 bg-card border border-indigo-500/30 text-indigo-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-30 shadow-xl shadow-indigo-900/10"
+                                    >
+                                        {isCreatingManual ? "Agregando..." : "Agregar Jugador Manual"}
+                                    </button>
+                                </div>
+
+                                {/* Auto-fill para testing */}
+                                <div className="pt-8 border-t border-border space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-amber-500">
+                                            <Zap className="w-4 h-4" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Relleno Automático (Testing)</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="number"
+                                            value={autoFillCount}
+                                            onChange={e => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value))}
+                                            placeholder="N° Jugadores"
+                                            className="flex-1 bg-muted/50 border border-border rounded-xl px-4 text-xs font-bold outline-none"
+                                        />
+                                        <button 
+                                            onClick={handleAutoFill}
+                                            disabled={isAutoFilling}
+                                            className="px-6 py-3 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-900/20 active:scale-95 transition-all"
+                                        >
+                                            Generar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}

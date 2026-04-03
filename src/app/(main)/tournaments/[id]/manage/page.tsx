@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../../fixture/TournamentManager";
+import AmericanoManager from "../../fixture/AmericanoManager";
 
 
 interface Props {
@@ -16,7 +17,13 @@ export default async function TournamentManagePage({ params }: Props) {
     const { id } = await params;
 
     const [tournament] = await db
-        .select()
+        .select({
+            id: tournaments.id,
+            name: tournaments.name,
+            status: tournaments.status,
+            createdByUserId: tournaments.createdByUserId,
+            type: tournaments.type,
+        })
         .from(tournaments)
         .where(eq(tournaments.id, id))
         .limit(1);
@@ -104,6 +111,20 @@ export default async function TournamentManagePage({ params }: Props) {
         winnerId: bm.winnerId ?? undefined,
         winnerName: bm.winnerName ?? undefined,
     }));
+
+    if (tournament.type === 'americano') {
+        return (
+            <AmericanoManager
+                tournamentId={tournament.id}
+                tournamentName={tournament.name}
+                initialGroups={initialGroups}
+                initialMatches={mappedMatches}
+                initialBracket={mappedBracket}
+                initialStatus={tournament.status}
+                readOnly={tournament.status === "finalizado"}
+            />
+        );
+    }
 
     return (
         <TournamentManager

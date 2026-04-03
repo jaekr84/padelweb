@@ -4,6 +4,7 @@ import { eq, inArray, asc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
 import FixtureSetup from "../../fixture/FixtureSetup";
+import AmericanoSetup from "../../fixture/AmericanoSetup";
 
 
 interface Props {
@@ -22,6 +23,7 @@ export default async function TournamentFixturePage({ params }: Props) {
             status: tournaments.status,
             createdByUserId: tournaments.createdByUserId,
             modalidad: tournaments.modalidad,
+            type: tournaments.type,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
@@ -137,6 +139,19 @@ export default async function TournamentFixturePage({ params }: Props) {
         .from(categoriesTable)
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
+
+    if (tournament.type === 'americano') {
+        return (
+            <AmericanoSetup
+                tournamentId={tournament.id}
+                tournamentName={tournament.name}
+                initialStatus={tournament.status}
+                initialPlayers={initialPlayers}
+                categories={allCategories.map(c => c.name)}
+                isIndividual={isIndividual}
+            />
+        );
+    }
 
     return (
         <FixtureSetup
