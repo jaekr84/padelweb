@@ -45,4 +45,15 @@
     white-space: nowrap;
     border-width: 0;
   }
+
+  .no-spin-buttons::-webkit-inner-spin-button,
+  .no-spin-buttons::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .no-spin-buttons {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
 }
