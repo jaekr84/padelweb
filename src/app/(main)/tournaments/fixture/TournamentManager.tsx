@@ -1567,12 +1567,14 @@ export default function TournamentManager({
 
                                                                     {m.confirmed && !readOnly && (
                                                                         <div className="absolute -right-3 -top-3 flex items-center gap-1.5">
-                                                                            <button
-                                                                                onClick={() => handleBracketEdit(m.id)}
-                                                                                className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
-                                                                            >
-                                                                                <Pencil className="w-4 h-4" />
-                                                                            </button>
+                                                                            {!(m.team1 === "BYE" || m.team2 === "BYE") && (
+                                                                                <button
+                                                                                    onClick={() => handleBracketEdit(m.id)}
+                                                                                    className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
+                                                                                >
+                                                                                    <Pencil className="w-4 h-4" />
+                                                                                </button>
+                                                                            )}
                                                                             <div className="bg-emerald-500 text-white p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 border border-emerald-400/50">
                                                                                 <Check className="w-4 h-4" />
                                                                             </div>
