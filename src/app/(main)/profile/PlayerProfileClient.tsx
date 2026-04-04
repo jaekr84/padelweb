@@ -279,7 +279,7 @@ export default function PlayerProfileClient({
                                         <div className="absolute -inset-1.5 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity" />
                                         <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-background overflow-hidden bg-muted shadow-xl relative flex items-center justify-center">
                                             {dbUser.imageUrl ? (
-                                                <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority unoptimized />
+                                                <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority unoptimized sizes="(max-width: 768px) 96px, 160px" />
                                             ) : (
                                                 <User className="w-12 h-12 text-muted-foreground/30" />
                                             )}
@@ -310,7 +310,7 @@ export default function PlayerProfileClient({
                                             <div className="flex justify-center md:justify-start items-center gap-2.5 mb-4 px-4 py-2 bg-muted rounded-2xl w-fit border border-border mx-auto md:mx-0">
                                                 <div className="w-6 h-6 rounded-lg bg-background relative overflow-hidden border border-border">
                                                     {memberClub.logoUrl ? (
-                                                        <Image src={memberClub.logoUrl} alt="" fill className="object-cover" />
+                                                        <Image src={memberClub.logoUrl} alt="" fill className="object-cover" sizes="24px" />
                                                     ) : (
                                                         <ShieldCheck className="w-3 h-3 m-auto text-indigo-600" />
                                                     )}
@@ -623,7 +623,7 @@ export default function PlayerProfileClient({
                                             <div className="flex flex-col sm:flex-row items-center gap-6">
                                                 <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shrink-0">
                                                     {imagePreview ? (
-                                                        <Image src={imagePreview} alt="Profile preview" fill className="object-cover" unoptimized />
+                                                        <Image src={imagePreview} alt="Profile preview" fill className="object-cover" unoptimized sizes="96px" />
                                                     ) : (
                                                         <User className="w-10 h-10 text-muted-foreground/20" />
                                                     )}

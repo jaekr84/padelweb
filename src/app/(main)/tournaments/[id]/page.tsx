@@ -38,7 +38,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
-                        <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" />
+                        <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" sizes="32px" />
                     </div>
                     <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                 </Link>

@@ -327,7 +327,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                     <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2 group">
                             <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
-                                <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" />
+                                <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" sizes="32px" />
                             </div>
                             <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                         </Link>
@@ -442,6 +442,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             fill 
                                             unoptimized={true}
                                             className="object-cover group-hover:scale-110 transition-transform duration-1000" 
+                                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                         />
                                         <div className="absolute top-4 left-4 bg-emerald-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl backdrop-blur-md">
                                             ${item.price.toLocaleString()}
@@ -516,6 +517,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                         fill 
                                         unoptimized={true}
                                         className="object-cover" 
+                                        sizes="(max-width: 768px) 100vw, 512px"
                                     />
                                     {getAllImages(selectedItem).length > 1 && (
                                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">

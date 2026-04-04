@@ -214,7 +214,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                         <div className="flex gap-3 mb-3">
                             <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
                                 {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority />
+                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="40px" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
                                         {currentUser.name?.charAt(0) || "U"}
@@ -232,7 +232,7 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                         {/* Image Preview */}
                         {imagePreview && (
                             <div className="relative mb-3 mr-2 bg-muted/50 rounded-2xl overflow-hidden group aspect-video">
-                                <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized />
+                                <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized sizes="(max-width: 768px) 100vw, 672px" />
                                 <button
                                     onClick={() => { setImagePreview(null); setCompressedFile(null); }}
                                     className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-all"
@@ -354,7 +354,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                         {post.user.imageUrl ? (
-                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" />
+                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="40px" />
                         ) : (
                             <span className="text-sm font-bold text-muted-foreground uppercase">{userInitials}</span>
                         )}
@@ -483,7 +483,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                         <form onSubmit={handleComment} className="flex gap-3 items-center">
                             <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0 relative">
                                 {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" />
+                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="32px" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase">
                                         {currentUser.name?.charAt(0) || "U"}
@@ -556,7 +556,7 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
         <div className="flex gap-3 group/comment">
             <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0 relative">
                 {comment.user.imageUrl ? (
-                    <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" />
+                    <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="32px" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase">
                         {comment.user.name?.charAt(0) || "U"}

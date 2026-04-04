@@ -166,9 +166,9 @@ export default function ClubProfileClient({
                                 <div className="absolute -inset-1.5 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity" />
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-card overflow-hidden bg-muted shadow-xl relative flex items-center justify-center transition-colors">
                                     {club?.logoUrl ? (
-                                        <Image src={club.logoUrl} alt="Club logo" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority />
+                                        <Image src={club.logoUrl} alt="Club logo" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
                                     ) : user?.imageUrl ? (
-                                        <Image src={user.imageUrl} alt="Club avatar" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority />
+                                        <Image src={user.imageUrl} alt="Club avatar" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
                                     ) : (
                                         <Building2 className="h-10 w-10 text-muted-foreground/30" />
                                     )}
@@ -335,7 +335,7 @@ export default function ClubProfileClient({
                                                                         <div className="flex items-center gap-4">
                                                                             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted shrink-0 border border-border">
                                                                                 {member.imageUrl ? (
-                                                                                    <Image src={member.imageUrl} alt={member.name || ""} fill className="object-cover" />
+                                                                                    <Image src={member.imageUrl} alt={member.name || ""} fill className="object-cover" sizes="40px" />
                                                                                 ) : (
                                                                                     <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/30" /></div>
                                                                                 )}
@@ -477,7 +477,7 @@ export default function ClubProfileClient({
                                                     <div key={player.id} className="p-4 border-b border-border flex items-center justify-between gap-4 last:border-0 hover:bg-muted/50 transition-colors">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-muted shrink-0 relative overflow-hidden border border-border">
-                                                                {player.imageUrl && <Image src={player.imageUrl} alt="" fill className="object-cover" />}
+                                                                {player.imageUrl && <Image src={player.imageUrl} alt="" fill className="object-cover" sizes="40px" />}
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="text-xs font-black uppercase italic text-foreground">{player.firstName} {player.lastName}</span>
@@ -599,7 +599,7 @@ export default function ClubProfileClient({
                             <div className="flex flex-col sm:flex-row items-center gap-10">
                                 <div className="w-40 h-40 rounded-[2.5rem] bg-muted/30 border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shadow-sm">
                                     {logoPreview ? (
-                                        <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized />
+                                        <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized sizes="160px" />
                                     ) : (
                                         <Building2 className="w-12 h-12 text-muted-foreground/20" />
                                     )}

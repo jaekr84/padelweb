@@ -92,7 +92,7 @@ export default function LandingPage({
                 >
                     <div className="flex items-center gap-3 flex-1">
                         <div className="relative w-10 h-10 border border-emerald-500/30 rounded-full overflow-hidden shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                            <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" priority />
+                            <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" priority sizes="40px" />
                         </div>
                         <span className="font-black text-xl italic tracking-tighter text-white">A.C.A.P</span>
                     </div>
@@ -144,7 +144,7 @@ export default function LandingPage({
 
                         {/* Avatar */}
                         <div className="relative flex items-center justify-center bg-black rounded-full p-2 border border-slate-800 overflow-hidden shrink-0 aspect-square mx-auto w-[180px] h-[180px] md:w-[280px] md:h-[280px] shadow-2xl">
-                            <Image src="/img/stickers 1.jpg" alt="A.C.A.P." fill className="object-cover rounded-full" priority />
+                            <Image src="/img/stickers 1.jpg" alt="A.C.A.P." fill className="object-cover rounded-full" priority sizes="(max-width: 768px) 180px, 280px" />
                         </div>
                     </motion.div>
 

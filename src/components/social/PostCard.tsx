@@ -28,7 +28,7 @@ export default function PostCard({ author, content, timeAgo, likes, comments }: 
     return (
         <article className={styles.postCard}>
             <div className={`${styles.avatar} relative overflow-hidden flex items-center justify-center`}>
-                {author.avatar ? <Image src={author.avatar} alt={author.name} fill className="object-cover rounded-full" /> : getRoleIcon(author.role)}
+                {author.avatar ? <Image src={author.avatar} alt={author.name} fill className="object-cover rounded-full" sizes="40px" /> : getRoleIcon(author.role)}
             </div>
             <div className={styles.postContent}>
                 <div className={styles.postHeader}>
