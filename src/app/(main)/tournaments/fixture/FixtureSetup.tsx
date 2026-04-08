@@ -85,6 +85,9 @@ export default function FixtureSetup({
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
 
     const [manualName, setManualName] = useState("");
+    const [manualName2, setManualName2] = useState("");
+    const [selectedPlayer1, setSelectedPlayer1] = useState<any | null>(null);
+    const [selectedPlayer2, setSelectedPlayer2] = useState<any | null>(null);
     const [manualCategory, setManualCategory] = useState("");
     const [manualGender, setManualGender] = useState("masculino");
     const [isCreatingManual, setIsCreatingManual] = useState(false);
@@ -93,12 +96,29 @@ export default function FixtureSetup({
     const [isAutoFilling, setIsAutoFilling] = useState(false);
 
     const handleManualRegister = async () => {
-        if (!manualName.trim()) {
-            toast.error("El nombre es obligatorio");
+        if (!manualName.trim() && !selectedPlayer1) {
+            toast.error("El nombre del primer jugador es obligatorio");
             return;
         }
+        if (!isIndividual && !manualName2.trim() && !selectedPlayer2) {
+            toast.error("El nombre del segundo jugador es obligatorio");
+            return;
+        }
+
         setIsCreatingManual(true);
-        const res = await registerManualPlayer(tournamentId, manualName, manualCategory || "D", manualGender);
+        
+        const p1Data = selectedPlayer1 
+            ? { userId: selectedPlayer1.id }
+            : { name: manualName, category: manualCategory || "D", gender: manualGender };
+        
+        const p2Data = !isIndividual 
+            ? (selectedPlayer2 
+                ? { userId: selectedPlayer2.id }
+                : { name: manualName2, category: manualCategory || "D", gender: manualGender })
+            : undefined;
+
+        const res = await registerManualPlayer(tournamentId, p1Data, p2Data);
+        
         if (res.ok && res.player) {
             setPlayers(prev => [...prev, res.player as Player]);
             if (isIndividual) {
@@ -108,9 +128,12 @@ export default function FixtureSetup({
                 setPaid(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
             }
             setManualName("");
-            toast.success("Jugador creado e inscripto correctamente");
+            setManualName2("");
+            setSelectedPlayer1(null);
+            setSelectedPlayer2(null);
+            toast.success("Inscripción realizada correctamente");
         } else {
-            toast.error("Error al crear jugador: " + res.error);
+            toast.error("Error: " + res.error);
         }
         setIsCreatingManual(false);
     };
@@ -130,7 +153,7 @@ export default function FixtureSetup({
         const promises = [];
 
         for (let i = 1; i <= count; i++) {
-            promises.push(registerManualPlayer(tournamentId, `${baseName} #${i}`, cat, "masculino"));
+            promises.push(registerManualPlayer(tournamentId, { name: `${baseName} #${i}`, category: cat, gender: "masculino" }));
         }
 
         try {
@@ -1138,21 +1161,75 @@ export default function FixtureSetup({
                                         <div className="p-5 bg-blue-600/5 border border-blue-500/20 rounded-[2rem] space-y-4">
                                             <div className="text-[10px] font-black uppercase text-blue-500 tracking-[0.3em] flex items-center gap-2 mb-1">
                                                 <Plus className="w-3 h-3 stroke-[3]" />
-                                                Registro Rápido
+                                                Armado de Pareja Manual
                                             </div>
-                                            <input 
-                                                type="text"
-                                                placeholder="Nombre completo..."
-                                                value={manualName}
-                                                onChange={(e) => setManualName(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/50 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-foreground"
-                                            />
+                                            
+                                            {/* Player 1 Input */}
+                                            <div className="relative">
+                                                <div className="text-[8px] font-black uppercase text-foreground/40 mb-1 ml-1">Jugador 1</div>
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Nombre o buscar..."
+                                                    value={selectedPlayer1 ? selectedPlayer1.name : manualName}
+                                                    onChange={(e) => {
+                                                        setSelectedPlayer1(null);
+                                                        setManualName(e.target.value);
+                                                    }}
+                                                    className="w-full bg-card border border-border rounded-xl py-3 px-5 text-sm font-bold placeholder:text-foreground/30 outline-none focus:border-blue-500 transition-all text-foreground"
+                                                />
+                                                {manualName.length > 1 && !selectedPlayer1 && (
+                                                    <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden">
+                                                        {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
+                                                            .slice(0, 5).map(p => (
+                                                            <button 
+                                                                key={p.id}
+                                                                onClick={() => { setSelectedPlayer1(p); setManualName(p.name); }}
+                                                                className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
+                                                            >
+                                                                {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Player 2 Input (if doubles) */}
+                                            {!isIndividual && (
+                                                <div className="relative">
+                                                    <div className="text-[8px] font-black uppercase text-foreground/40 mb-1 ml-1">Jugador 2</div>
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="Nombre o buscar..."
+                                                        value={selectedPlayer2 ? selectedPlayer2.name : manualName2}
+                                                        onChange={(e) => {
+                                                            setSelectedPlayer2(null);
+                                                            setManualName2(e.target.value);
+                                                        }}
+                                                        className="w-full bg-card border border-border rounded-xl py-3 px-5 text-sm font-bold placeholder:text-foreground/30 outline-none focus:border-blue-500 transition-all text-foreground"
+                                                    />
+                                                    {manualName2.length > 1 && !selectedPlayer2 && (
+                                                        <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden">
+                                                            {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
+                                                                .slice(0, 5).map(p => (
+                                                                <button 
+                                                                    key={p.id}
+                                                                    onClick={() => { setSelectedPlayer2(p); setManualName2(p.name); }}
+                                                                    className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
+                                                                >
+                                                                    {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             <div className="flex gap-2">
                                                 <div className="relative flex-1 group">
                                                     <select 
                                                         value={manualCategory}
                                                         onChange={(e) => setManualCategory(e.target.value)}
-                                                        className="w-full bg-card border border-border rounded-xl py-3.5 px-5 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer text-foreground pr-10"
+                                                        className="w-full bg-card border border-border rounded-xl py-3 px-5 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer text-foreground pr-10"
                                                     >
                                                         <option value="">Categoría...</option>
                                                         {categories.map(cat => (
@@ -1163,12 +1240,12 @@ export default function FixtureSetup({
                                                 </div>
                                                 <button 
                                                     onClick={handleManualRegister}
-                                                    disabled={isCreatingManual || !manualName.trim()}
-                                                    className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-3.5 px-6 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center min-w-[120px]"
+                                                    disabled={isCreatingManual || (!manualName.trim() && !selectedPlayer1)}
+                                                    className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-3 px-6 text-[10px] font-black uppercase italic transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20 active:scale-95 flex items-center justify-center min-w-[120px]"
                                                 >
                                                     {isCreatingManual ? (
                                                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    ) : "Inscribir"}
+                                                    ) : "Centrar Pareja"}
                                                 </button>
                                             </div>
                                         </div>

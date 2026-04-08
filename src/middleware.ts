@@ -11,7 +11,7 @@ const PUBLIC_ROUTES = [
     "/profiles/centro",
 ];
 
-export async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Check if it's a public route
@@ -36,11 +36,6 @@ export async function proxy(req: NextRequest) {
         } catch (e) {
             console.error("Session verification failed", e);
         }
-    }
-
-    // Redirect authenticated users away from login/register
-    if (session && (pathname === "/login" || pathname === "/register")) {
-        return NextResponse.redirect(new URL("/home", req.url));
     }
 
     // Protect private routes

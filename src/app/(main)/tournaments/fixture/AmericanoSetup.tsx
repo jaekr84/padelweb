@@ -68,6 +68,9 @@ export default function AmericanoSetup({
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
 
     const [manualName, setManualName] = useState("");
+    const [manualName2, setManualName2] = useState("");
+    const [selectedPlayer1, setSelectedPlayer1] = useState<any | null>(null);
+    const [selectedPlayer2, setSelectedPlayer2] = useState<any | null>(null);
     const [manualCategory, setManualCategory] = useState("");
     const [manualGender, setManualGender] = useState("masculino");
     const [isCreatingManual, setIsCreatingManual] = useState(false);
@@ -76,13 +79,30 @@ export default function AmericanoSetup({
     const [isAutoFilling, setIsAutoFilling] = useState(false);
 
     const handleManualRegister = async () => {
-        if (!manualName.trim()) {
-            toast.error("El nombre es obligatorio");
+        if (!manualName.trim() && !selectedPlayer1) {
+            toast.error("El nombre del primer jugador es obligatorio");
             return;
         }
+        if (!isIndividual && !manualName2.trim() && !selectedPlayer2) {
+            toast.error("El nombre del segundo jugador es obligatorio");
+            return;
+        }
+
         setIsCreatingManual(true);
-        const res = await registerManualPlayer(tournamentId, manualName, manualCategory || "D", manualGender);
-        if (res.ok && 'player' in res && res.player) {
+        
+        const p1Data = selectedPlayer1 
+            ? { userId: selectedPlayer1.id }
+            : { name: manualName, category: manualCategory || "D", gender: manualGender };
+        
+        const p2Data = !isIndividual 
+            ? (selectedPlayer2 
+                ? { userId: selectedPlayer2.id }
+                : { name: manualName2, category: manualCategory || "D", gender: manualGender })
+            : undefined;
+
+        const res = await registerManualPlayer(tournamentId, p1Data, p2Data);
+        
+        if (res.ok && res.player) {
             const newPlayer = res.player;
             setPlayers(prev => [...prev, newPlayer as Player]);
             if (isIndividual) {
@@ -92,9 +112,12 @@ export default function AmericanoSetup({
                 setPaid(prev => new Set([...prev, `${newPlayer.id}_0`, `${newPlayer.id}_1`]));
             }
             setManualName("");
-            toast.success("Jugador creado e inscripto correctamente");
-        } else if (!res.ok && 'error' in res) {
-            toast.error("Error al crear jugador: " + res.error);
+            setManualName2("");
+            setSelectedPlayer1(null);
+            setSelectedPlayer2(null);
+            toast.success("Inscripción realizada correctamente");
+        } else {
+            toast.error("Error: " + res.error);
         }
         setIsCreatingManual(false);
     };
@@ -114,7 +137,9 @@ export default function AmericanoSetup({
         const promises = [];
 
         for (let i = 1; i <= count; i++) {
-            promises.push(registerManualPlayer(tournamentId, `${baseName} #${i}`, cat, "masculino"));
+            const p1Data = { name: `${baseName} #${i}-A`, category: cat, gender: "masculino" };
+            const p2Data = !isIndividual ? { name: `${baseName} #${i}-B`, category: cat, gender: "masculino" } : undefined;
+            promises.push(registerManualPlayer(tournamentId, p1Data, p2Data));
         }
 
         try {
@@ -810,41 +835,112 @@ export default function AmericanoSetup({
                                     </div>
                                 </div>
 
-                                {/* Manual */}
+                                {/* Manual Registration Form */}
                                 <div className="pt-8 border-t border-border space-y-6">
                                     <div className="flex items-center gap-2 text-indigo-500">
                                         <Users2 className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Anotar Manualmente</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Armado de Pareja Manual</span>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Nombre Completo</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Player 1 Input */}
+                                        <div className="relative space-y-2">
+                                            <div className="text-[9px] font-black uppercase text-foreground/40 ml-2">Jugador 1</div>
                                             <input 
-                                                value={manualName}
-                                                onChange={e => setManualName(e.target.value)}
-                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all"
-                                                placeholder="Ej: Juan Pérez"
+                                                type="text"
+                                                placeholder="Nombre o buscar..."
+                                                value={selectedPlayer1 ? selectedPlayer1.name : manualName}
+                                                onChange={(e) => {
+                                                    setSelectedPlayer1(null);
+                                                    setManualName(e.target.value);
+                                                }}
+                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all text-foreground"
                                             />
+                                            {manualName.length > 1 && !selectedPlayer1 && (
+                                                <div className="absolute top-full left-0 right-0 z-[110] mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto">
+                                                    {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
+                                                        .slice(0, 5).map(p => (
+                                                        <button 
+                                                            key={p.id}
+                                                            onClick={() => { setSelectedPlayer1(p); setManualName(p.name); }}
+                                                            className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
+                                                        >
+                                                            {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
+
+                                        {/* Player 2 Input (if doubles) */}
+                                        {!isIndividual ? (
+                                            <div className="relative space-y-2">
+                                                <div className="text-[9px] font-black uppercase text-foreground/40 ml-2">Jugador 2</div>
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Nombre o buscar..."
+                                                    value={selectedPlayer2 ? selectedPlayer2.name : manualName2}
+                                                    onChange={(e) => {
+                                                        setSelectedPlayer2(null);
+                                                        setManualName2(e.target.value);
+                                                    }}
+                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all text-foreground"
+                                                />
+                                                {manualName2.length > 1 && !selectedPlayer2 && (
+                                                    <div className="absolute top-full left-0 right-0 z-[110] mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto">
+                                                        {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
+                                                            .slice(0, 5).map(p => (
+                                                            <button 
+                                                                key={p.id}
+                                                                onClick={() => { setSelectedPlayer2(p); setManualName2(p.name); }}
+                                                                className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
+                                                            >
+                                                                {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría</label>
+                                                <select 
+                                                    value={manualCategory}
+                                                    onChange={e => setManualCategory(e.target.value)}
+                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
+                                                >
+                                                    <option value="">Categoría...</option>
+                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {!isIndividual && (
                                         <div className="space-y-2">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría</label>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría del Equipo</label>
                                             <select 
                                                 value={manualCategory}
                                                 onChange={e => setManualCategory(e.target.value)}
                                                 className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
                                             >
+                                                <option value="">Categoría...</option>
                                                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                             </select>
                                         </div>
-                                    </div>
+                                    )}
                                     
                                     <button 
                                         onClick={handleManualRegister}
-                                        disabled={isCreatingManual || !manualName}
-                                        className="w-full py-4 bg-card border border-indigo-500/30 text-indigo-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-30 shadow-xl shadow-indigo-900/10"
+                                        disabled={isCreatingManual || (!manualName.trim() && !selectedPlayer1)}
+                                        className="w-full py-4 bg-indigo-600 border border-indigo-500/30 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all disabled:opacity-30 shadow-xl shadow-indigo-900/20 active:scale-[0.98]"
                                     >
-                                        {isCreatingManual ? "Agregando..." : "Agregar Jugador Manual"}
+                                        {isCreatingManual ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Inscribiendo...
+                                            </div>
+                                        ) : "Confirmar e Inscribir Pareja"}
                                     </button>
                                 </div>
 

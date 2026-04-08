@@ -521,7 +521,18 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
     }
 }
 
-export async function registerManualPlayer(tournamentId: string, name: string, category: string, gender: string = "masculino") {
+export type ManualPlayerData = {
+    userId?: string;
+    name?: string;
+    category?: string;
+    gender?: string;
+}
+
+export async function registerManualPlayer(
+    tournamentId: string, 
+    player1: ManualPlayerData, 
+    player2?: ManualPlayerData
+) {
     try {
         const session = await getSession();
         if (!session?.userId) throw new Error("No autorizado");
@@ -557,29 +568,44 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             }
         }
 
-        const fakeUserId = `manual_${crypto.randomUUID()}`;
+        const getOrCreateUser = async (data: ManualPlayerData) => {
+            if (data.userId) {
+                const [existing] = await db.select().from(users).where(eq(users.id, data.userId)).limit(1);
+                if (!existing) throw new Error(`User ${data.userId} not found`);
+                const name = [existing.firstName, existing.lastName].filter(Boolean).join(" ") || existing.email.split("@")[0];
+                return { id: existing.id, name };
+            }
+            if (!data.name) throw new Error("Nombre es obligatorio para registro manual");
+            
+            const fakeUserId = `manual_${crypto.randomUUID()}`;
+            await db.insert(users).values({
+                id: fakeUserId,
+                email: `${fakeUserId}@manual.test`,
+                firstName: data.name.split(" ")[0],
+                lastName: data.name.split(" ").slice(1).join(" ") || " ",
+                role: "jugador",
+                category: data.category || "D",
+                gender: data.gender || "masculino",
+                isActive: true
+            });
+            return { id: fakeUserId, name: data.name };
+        };
+
+        const u1 = await getOrCreateUser(player1);
+        const u2 = player2 ? await getOrCreateUser(player2) : null;
+
         const registrationId = crypto.randomUUID();
-
-        await db.insert(users).values({
-            id: fakeUserId,
-            email: `${fakeUserId}@manual.test`,
-            firstName: name.split(" ")[0],
-            lastName: name.split(" ").slice(1).join(" ") || " ",
-            role: "jugador",
-            category: category,
-            gender: gender,
-            isActive: true
-        });
-
         await db.insert(registrations).values({
             id: registrationId,
             tournamentId,
-            userId: fakeUserId,
-            category: category,
+            userId: u1.id,
+            partnerUserId: u2?.id || null,
+            category: player1.category || "D",
             status: "confirmed"
         });
 
         const isIndividual = mod?.participacion === "individual";
+        const displayName = u2 ? `${u1.name} / ${u2.name}` : (isIndividual ? u1.name : `${u1.name} / Invitado`);
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
         revalidatePath("/ranking");
@@ -588,9 +614,11 @@ export async function registerManualPlayer(tournamentId: string, name: string, c
             ok: true, 
             player: {
                 id: registrationId,
-                name: isIndividual ? name : `${name} / Invitado`,
-                category: category,
-                clubId: null
+                name: displayName,
+                category: player1.category || "D",
+                clubId: null,
+                player1: u1.name,
+                player2: u2?.name || (isIndividual ? null : "Invitado")
             }
         };
     } catch (err) {

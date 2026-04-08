@@ -100,7 +100,11 @@ export default function AmericanoManager({
     );
     const [qualCount, setQualCount] = useState(4); // Default manually adjustable advancement
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-    const [present, setPresent] = useState<Set<string>>(new Set((initialGroups[0]?.players || []).map((p: Player) => p.id)));
+    const [present, setPresent] = useState<Set<string>>(() => {
+        const players = initialGroups[0]?.players;
+        const playersArray = Array.isArray(players) ? players : [];
+        return new Set(playersArray.map((p: Player) => p.id));
+    });
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -516,7 +520,9 @@ export default function AmericanoManager({
                                     <div className="flex items-center gap-3 w-full md:w-auto">
                                         <button
                                             onClick={() => {
-                                                const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
+                                                const players = initialGroups[0]?.players;
+                                                const playersArray = Array.isArray(players) ? players : [];
+                                                const allIds = playersArray.map((p: Player) => p.id);
                                                 setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                             }}
                                             className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
@@ -525,7 +531,9 @@ export default function AmericanoManager({
                                         </button>
                                         <button
                                             onClick={() => {
-                                                const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
+                                                const players = initialGroups[0]?.players;
+                                                const playersArray = Array.isArray(players) ? players : [];
+                                                const allIds = playersArray.map((p: Player) => p.id);
                                                 setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                             }}
                                             className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all"
@@ -545,10 +553,13 @@ export default function AmericanoManager({
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border/50">
-                                                {(initialGroups[0]?.players || []).filter((p: Player) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p: Player) => {
-                                                    const isPresent = present.has(p.id);
-                                                    const isPaid = paid.has(p.id);
-                                                    return (
+                                                {(() => {
+                                                    const players = initialGroups[0]?.players;
+                                                    const playersArray = Array.isArray(players) ? players : [];
+                                                    return playersArray.filter((p: Player) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p: Player) => {
+                                                        const isPresent = present.has(p.id);
+                                                        const isPaid = paid.has(p.id);
+                                                        return (
                                                         <tr
                                                             key={p.id}
                                                             className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-emerald-500/[0.02]" : ""}`}
@@ -595,8 +606,9 @@ export default function AmericanoManager({
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                    );
-                                                })}
+                                                        );
+                                                    });
+                                                })()}
                                             </tbody>
                                         </table>
                                     </div>

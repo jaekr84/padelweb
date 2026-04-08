@@ -192,6 +192,51 @@ export async function registerForTournament(input: RegisterInput) {
     return registrationData;
 }
 
+export async function cancelRegistration(tournamentId: string) {
+    const session = await getSession() as { userId: string, role: string, email: string } | null;
+    if (!session?.userId) throw new Error("No autenticado");
+    const userId = session.userId;
+
+    // Find the registration where the user is either the main player or the partner
+    const [registration] = await db
+        .select({ id: registrations.id })
+        .from(registrations)
+        .where(
+            and(
+                eq(registrations.tournamentId, tournamentId),
+                or(
+                    eq(registrations.userId, userId),
+                    eq(registrations.partnerUserId, userId)
+                ),
+                eq(registrations.status, "confirmed")
+            )
+        )
+        .limit(1);
+
+    if (!registration) {
+        throw new Error("No se encontró una inscripción activa para este torneo.");
+    }
+
+    // Verify tournament status - can only unregister if still in registration phase
+    const [tournament] = await db
+        .select({ status: tournaments.status })
+        .from(tournaments)
+        .where(eq(tournaments.id, tournamentId))
+        .limit(1);
+
+    if (!tournament) throw new Error("Torneo no encontrado");
+    
+    // Usually only allow cancellation if tournament is still in draft or published (registration open)
+    if (tournament.status !== "published" && tournament.status !== "draft") {
+        throw new Error("No puedes desincribirte una vez que el torneo ha comenzado o finalizado.");
+    }
+
+    // Delete the registration
+    await db.delete(registrations).where(eq(registrations.id, registration.id));
+
+    return { success: true };
+}
+
 export async function searchPlayersForPartner(query: string) {
     const session = await getSession() as { userId: string, role: string, email: string } | null;
     if (!session?.userId) throw new Error("No autenticado");

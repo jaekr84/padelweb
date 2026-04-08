@@ -8,6 +8,7 @@ import AmericanoManager from "../fixture/AmericanoManager";
 import { Trophy, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import UnregisterButton from "./UnregisterButton";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -120,6 +121,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
             };
         });
 
+        const isUserRegistered = dbRegistrations.some(r => r.userId === session?.userId || r.partnerUserId === session?.userId);
+
         return (
             <>
                 {publicHeader}
@@ -172,6 +175,13 @@ export default async function TournamentDisplayPage({ params }: Props) {
                             )}
                         </div>
 
+                        {isUserRegistered && (
+                            <UnregisterButton 
+                                tournamentId={id} 
+                                tournamentName={tournament.name} 
+                            />
+                        )}
+
                         <div className="mt-8 text-center">
                             <Link 
                                 href="/tournaments" 
@@ -192,11 +202,23 @@ export default async function TournamentDisplayPage({ params }: Props) {
     const dbMatches = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id));
     const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id));
 
-    const initialGroups = dbGroups.map(g => ({
-        id: g.id,
-        name: g.name,
-        players: (g.players as { id: string, name: string }[]) || [],
-    }));
+    const initialGroups = dbGroups.map(g => {
+        let players = [];
+        if (typeof g.players === 'string') {
+            try {
+                players = JSON.parse(g.players);
+            } catch {
+                players = [];
+            }
+        } else if (Array.isArray(g.players)) {
+            players = g.players;
+        }
+        return {
+            id: g.id,
+            name: g.name,
+            players: (players as { id: string, name: string }[]) || [],
+        };
+    });
 
     // Mapping for match teams
     const allPlayers = initialGroups.flatMap(g => g.players);
