@@ -6,7 +6,7 @@ import { tournaments, registrations, users, clubs } from "@/db/schema";
 import Link from "next/link";
 import {
     Plus, Calendar, MapPin, Trophy, Activity,
-    Zap, CheckCircle, Clock, LayoutGrid, User, Users2
+    Zap, CheckCircle, Clock, LayoutGrid, User, Users2, DollarSign
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -167,7 +167,7 @@ export default async function TournamentsPage({
                     cats = JSON.parse(t.categories);
                 }
             } catch (e) { cats = []; }
-            
+
             // Check if selectedCategory matches any category in the tournament (case insensitive and trimmed)
             return cats.some(c => c.trim().toLowerCase() === selectedCategory.trim().toLowerCase() || c.trim().toLowerCase() === "libre");
         });
@@ -210,7 +210,7 @@ export default async function TournamentsPage({
                     </div>
                 )}
 
-                <div className={`relative z-10 max-w-3xl mx-auto px-4 ${!userId ? "pt-6" : "pt-6"}`}>
+                <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${!userId ? "pt-6" : "pt-6"}`}>
 
                     {/* ── Header ── */}
                     <div className="flex items-center justify-between mb-6">
@@ -267,13 +267,13 @@ export default async function TournamentsPage({
 
                     {/* ── Category filters ── */}
                     <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
-                        <Link 
-                            href={`/tournaments?filter=${currentFilter}&category=todas`} 
-                            scroll={false} 
+                        <Link
+                            href={`/tournaments?filter=${currentFilter}&category=todas`}
+                            scroll={false}
                             className="shrink-0"
                         >
-                            <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedCategory === "todas" 
-                                ? "bg-blue-500/10 border-blue-500 text-blue-500" 
+                            <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedCategory === "todas"
+                                ? "bg-blue-500/10 border-blue-500 text-blue-500"
                                 : "bg-card border-border text-muted-foreground"}`}>
                                 Todas las Categorías
                             </button>
@@ -281,14 +281,14 @@ export default async function TournamentsPage({
                         {availableCategories.map(cat => {
                             const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
                             return (
-                                <Link 
-                                    key={cat.id} 
-                                    href={`/tournaments?filter=${currentFilter}&category=${cat.name}`} 
-                                    scroll={false} 
+                                <Link
+                                    key={cat.id}
+                                    href={`/tournaments?filter=${currentFilter}&category=${cat.name}`}
+                                    scroll={false}
                                     className="shrink-0"
                                 >
-                                    <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${isActive 
-                                        ? "bg-blue-500/10 border-blue-500 text-blue-500" 
+                                    <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${isActive
+                                        ? "bg-blue-500/10 border-blue-500 text-blue-500"
                                         : "bg-card border-border text-muted-foreground"}`}>
                                         {cat.name}
                                     </button>
@@ -319,11 +319,11 @@ export default async function TournamentsPage({
                                     if (date && typeof t.startDate === 'string' && t.startDate.length === 10) {
                                         date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
                                     }
-                                    
-                                    const monthKey = date 
-                                        ? date.toLocaleString('es-ES', { month: 'long', year: 'numeric' }) 
+
+                                    const monthKey = date
+                                        ? date.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
                                         : "Próximamente / Fecha a definir";
-                                    
+
                                     if (!groups[monthKey]) groups[monthKey] = [];
                                     groups[monthKey].push(t);
                                 });
@@ -346,7 +346,7 @@ export default async function TournamentsPage({
                                             </h2>
                                             <div className="h-px flex-1 bg-border" />
                                         </div>
-                                        <div className="flex flex-col gap-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             {groups[month].map((t) => (
                                                 <TournamentCard key={t.id} tournament={t} userClubId={dbUser?.clubId} isUserRegistered={t.isRegistered} />
                                             ))}
@@ -368,8 +368,13 @@ export default async function TournamentsPage({
 
 // ─── Tournament Card ────────────────────────────────────────────────────────
 function TournamentCard({ tournament, userClubId, isUserRegistered }: { tournament: any, userClubId?: string | null, isUserRegistered?: boolean }) {
-    const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
+    // Safe parse modalidad and categories because MySQL JSON can come as string
+    let mod = tournament.modalidad as any;
+    if (typeof mod === 'string') {
+        try { mod = JSON.parse(mod); } catch (e) { mod = null; }
+    }
 
+    const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
     const today = new Date().toISOString().split("T")[0];
     const hasClub = !!userClubId;
 
@@ -390,14 +395,14 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
-        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20  ", pill: "bg-red-500", text: "text-red-600 " }
+        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20", pill: "bg-red-500", text: "text-red-500" }
         : isOpen
-            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20  ", pill: "bg-emerald-600", text: "text-emerald-600 " }
+            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20", pill: "bg-emerald-500", text: "text-emerald-500" }
             : isPreregistration
-                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20  ", pill: "bg-blue-600", text: "text-blue-600 " }
+                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20", pill: "bg-blue-500", text: "text-blue-500" }
                 : isFinished
-                    ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" }
-                    : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/10", text: "text-muted-foreground" };
+                    ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/40", text: "text-muted-foreground" }
+                    : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
 
     const href = isUserRegistered || isLive || isFinished
         ? `/tournaments/${tournament.id}`
@@ -407,167 +412,165 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
 
     return (
         <Link href={href} className="group block">
-            <div className="bg-card border border-border rounded-3xl overflow-hidden transition-all duration-200 hover:border-indigo-500/30 active:scale-[0.99] shadow-sm">
-                <div className="p-4 flex items-start gap-4">
+            <div className="bg-card border border-border/50 rounded-[2.5rem] overflow-hidden transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col relative">
 
-                    {/* Icon / Image */}
-                    <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 overflow-hidden ${statusConfig.bg}`}>
-                        {tournament.imageUrl ? (
-                            <img src={tournament.imageUrl} className="w-full h-full object-cover" alt="" />
-                        ) : (
-                            <Trophy className={`w-6 h-6 ${statusConfig.text}`} />
-                        )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <div className="flex flex-col">
-                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-tight line-clamp-2 group-hover:text-indigo-500 transition-colors">
-                                    {tournament.name}
-                                </h3>
-                                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
-                                    CLUB ORGANIZADOR: {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
-                                </div>
-                            </div>
-
-                            {/* Status pill */}
-                            <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                {isUserRegistered && (
-                                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-sm">
-                                        <CheckCircle className="w-2.5 h-2.5 text-blue-500" />
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-blue-500">Inscripto</span>
-                                    </div>
-                                )}
-                                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full ${statusConfig.pill} shadow-sm shadow-black/10`}>
-                                    {statusConfig.dot && (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                    )}
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-white">
-                                        {statusConfig.label}
-                                    </span>
-                                </div>
-                                {/* Registration Fee Badge */}
-                                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-sm border ${tournament.registrationFee ? 'bg-emerald-500 border-emerald-400' : 'bg-blue-600 border-blue-500'}`}>
-                                    <span className="text-[9px] font-black italic uppercase tracking-widest text-white leading-none">
-                                        {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
-                                    </span>
-                                </div>
+                {/* Header / Image Area */}
+                <div className="relative aspect-[16/9] w-full overflow-hidden">
+                    {tournament.imageUrl ? (
+                        <img src={tournament.imageUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={tournament.name} />
+                    ) : (
+                        <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-emerald-500/20 transition-all duration-500 group-hover:opacity-80`}>
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-white/20 blur-xl rounded-full scale-150 animate-pulse" />
+                                <Trophy className={`w-12 h-12 ${statusConfig.text} relative z-10 drop-shadow-lg opacity-40`} />
                             </div>
                         </div>
+                    )}
 
-                        {/* Meta */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-                            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
-                                <Calendar className="w-3 h-3 text-blue-500 shrink-0" />
-                                <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Fecha:</span>
-                                {formatDate(tournament.startDate)}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold min-w-0">
-                                <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
-                                <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Lugar:</span>
-                                <span className="truncate">{tournament.location || "Por definir"}</span>
-                            </div>
-
-                            {/* Modality (Individual/Pairs) */}
-                            {(() => {
-                                const mod = tournament.modalidad as { tipo?: string, genero?: string } | null;
-                                const isIndividual = mod?.tipo === 'individual';
-                                
-                                return (
-                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
-                                        {isIndividual ? (
-                                            <User className="w-3 h-3 text-emerald-500 shrink-0" />
-                                        ) : (
-                                            <Users2 className="w-3 h-3 text-blue-500 shrink-0" />
-                                        )}
-                                        <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Tipo:</span>
-                                        <span className="capitalize">{isIndividual ? "Individual" : "En Parejas"}</span>
-                                    </div>
-                                );
-                            })()}
-                            {/* Category and Gender Info */}
-                            {(() => {
-                                let cats = tournament.categories;
-                                if (typeof cats === 'string') {
-                                    try { cats = JSON.parse(cats); } catch (e) { cats = null; }
-                                }
-
-                                if (Array.isArray(cats) && cats.length > 0) {
-                                    return (
-                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
-                                            <Activity className="w-3 h-3 text-purple-500 shrink-0" />
-                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Categoría:</span>
-                                            {cats[0] === "libre" ? "Libre" : cats.join(", ")}
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
-
-                            {(() => {
-                                let mod = tournament.modalidad;
-                                if (typeof mod === 'string') {
-                                    try { mod = JSON.parse(mod); } catch (e) { mod = null; }
-                                }
-
-                                if (mod?.genero) {
-                                    return (
-                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold text-nowrap">
-                                            <Zap className="w-3 h-3 text-amber-500 shrink-0" />
-                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Género:</span>
-                                            <span className="capitalize">{mod.genero === 'hombre' ? 'Masculino' : mod.genero === 'mujer' ? 'Femenino' : 'Mixto'}</span>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
-
+                    {/* Status Badge Overlays */}
+                    <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                        <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full ${statusConfig.pill} backdrop-blur-md shadow-lg border border-white/20`}>
+                            {statusConfig.dot && (
+                                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                            )}
+                            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white">
+                                {statusConfig.label}
+                            </span>
                         </div>
-
-                        {/* Registration Dates */}
-                        {(tournament.openDateClub || tournament.openDateGeneral) && (
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 pt-2 border-t border-border/40">
-                                {tournament.openDateClub && (
-                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
-                                        <Clock className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Club:</span>
-                                        <span className="text-blue-600/90 ">
-                                            {formatDate(tournament.openDateClub)}
-                                        </span>
-                                    </div>
-                                )}
-                                {tournament.openDateGeneral && (
-                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
-                                        <Clock className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
-                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Gral:</span>
-                                        <span className="text-emerald-600/90 ">
-                                            {formatDate(tournament.openDateGeneral)}
-                                        </span>
-                                    </div>
-                                )}
+                        {isUserRegistered && (
+                            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md shadow-lg border border-indigo-500/20 self-start">
+                                <CheckCircle className="w-3 h-3 text-indigo-600" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-indigo-600">Inscripto</span>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* CTA footer */}
-                <div className={`px-4 py-3 border-t flex items-center justify-between transition-colors ${isLive ? "border-red-500/20 bg-red-500/5 " :
-                    isOpen ? "border-emerald-500/20 bg-emerald-500/5 " :
-                        isPreregistration ? "border-blue-500/20 bg-blue-500/5 " :
-                            "border-border bg-muted/30"
-                    }`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isLive ? "text-red-600 " : isUserRegistered ? "text-blue-600 " : isOpen ? "text-emerald-600 " : isPreregistration ? "text-blue-600 " : isFinished ? "text-indigo-600 " : "text-muted-foreground"
-                        }`}>
-                        {isLive ? "Ver resultados en vivo" :
-                            isUserRegistered ? "Ver mis inscripción / jugadores" :
-                                isOpen ? "Inscribirse ahora" :
-                                    isPreregistration ? (openDate ? `Inscripción abre el ${formatDate(openDate)}` : "Próximamente") :
-                                        isFinished ? "Ver resultados finales" : "Ver detalles"}
-                    </span>
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:translate-x-0.5 ${isLive ? "bg-red-500/10 " : isOpen ? "bg-emerald-500/10 " : isFinished ? "bg-indigo-500/10 " : "bg-muted"
-                        }`}>
-                        <Trophy className={`w-3.5 h-3.5 ${isLive ? "text-red-600 " : isOpen ? "text-emerald-600 " : isFinished ? "text-indigo-600 " : "text-muted-foreground"}`} />
+                <div className="p-7 flex flex-col relative z-10">
+
+                    {/* Highlight glow */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                    {/* Title Section */}
+                    <div className="mb-6">
+                        <div className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60 mb-2">
+                            {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
+                        </div>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-tight transition-colors group-hover:text-indigo-600">
+                            {tournament.name}
+                        </h3>
+                    </div>
+
+                    {/* Metadata Grid */}
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-4 mb-8">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Fecha Inicio</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 pl-5.5">
+                                {formatDate(tournament.startDate)}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <MapPin className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Ubicación</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 truncate pl-5.5">
+                                {tournament.location || "Por confirmar"}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <Activity className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Categorías</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 truncate pl-5.5">
+                                {(() => {
+                                    let cats = tournament.categories;
+                                    if (typeof cats === 'string') {
+                                        try { cats = JSON.parse(cats); } catch (e) { cats = []; }
+                                    }
+                                    return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "A definir";
+                                })()}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <Zap className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Género</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 pl-5.5 capitalize">
+                                {mod?.genero === 'hombre' ? 'Masculino' : mod?.genero === 'mujer' ? 'Femenino' : 'Mixto'}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                {mod?.participacion === 'individual' ? <User className="w-3.5 h-3.5" /> : <Users2 className="w-3.5 h-3.5" />}
+                                <span className="text-[10px] font-black uppercase tracking-widest">Modalidad</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 pl-5.5">
+                                {mod?.participacion === 'individual' ? "Individual" : "En Parejas"}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <DollarSign className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Inscripción</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 pl-5.5">
+                                {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Registration Dates (Styled Box) */}
+                    {(tournament.openDateClub || tournament.openDateGeneral) && (
+                        <div className="bg-muted/30 rounded-3xl p-5 border border-border/40 mb-8">
+                            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 mb-4 text-center">Fases de Inscripción</div>
+                            <div className="grid grid-cols-2 divide-x divide-border/50">
+                                {tournament.openDateClub && (
+                                    <div className="flex flex-col items-center px-2">
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 mb-1.5">Habilitados Club</span>
+                                        <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateClub)}</span>
+                                    </div>
+                                )}
+                                {tournament.openDateGeneral && (
+                                    <div className="flex flex-col items-center px-2">
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Inscripción General</span>
+                                        <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateGeneral)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* CTA Button */}
+                    <div className="mt-auto">
+                        <div className={`w-full py-4 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 font-black uppercase tracking-[0.15em] text-[11px] shadow-lg active:scale-95 ${isLive ? "bg-red-500 text-white shadow-red-500/20" :
+                                isUserRegistered ? "bg-indigo-600 text-white shadow-indigo-600/20" :
+                                    isOpen ? "bg-emerald-600 text-white shadow-emerald-600/20" :
+                                        isPreregistration ? "bg-blue-600 text-white shadow-blue-600/20" :
+                                            "bg-muted text-muted-foreground shadow-none"
+                            }`}>
+                            {isLive ? <Zap className="w-4 h-4 animate-pulse" /> :
+                                isUserRegistered ? <CheckCircle className="w-4 h-4" /> :
+                                    isOpen ? <Plus className="w-4 h-4" /> :
+                                        isPreregistration ? <Clock className="w-4 h-4" /> :
+                                            <Trophy className="w-4 h-4" />}
+
+                            {isLive ? "Ver resultados en vivo" :
+                                isUserRegistered ? "Ver mi inscripción" :
+                                    isOpen ? "Inscribirse ahora" :
+                                        isPreregistration ? (openDate ? `Abre el ${formatDate(openDate)}` : "Próximamente") :
+                                            isFinished ? "Ver resultados finales" : "Ver detalles"}
+                        </div>
                     </div>
                 </div>
             </div>

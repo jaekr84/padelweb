@@ -560,52 +560,52 @@ export default function AmericanoManager({
                                                         const isPresent = present.has(p.id);
                                                         const isPaid = paid.has(p.id);
                                                         return (
-                                                        <tr
-                                                            key={p.id}
-                                                            className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-emerald-500/[0.02]" : ""}`}
-                                                        >
-                                                            <td className="px-8 py-5">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-emerald-500 text-white" : "bg-muted text-foreground/20"}`}>
-                                                                        <Users2 className="w-4 h-4" />
+                                                            <tr
+                                                                key={p.id}
+                                                                className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-emerald-500/[0.02]" : ""}`}
+                                                            >
+                                                                <td className="px-8 py-5">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-emerald-500 text-white" : "bg-muted text-foreground/20"}`}>
+                                                                            <Users2 className="w-4 h-4" />
+                                                                        </div>
+                                                                        <span className="font-black uppercase italic text-sm">{p.name}</span>
                                                                     </div>
-                                                                    <span className="font-black uppercase italic text-sm">{p.name}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-5">
-                                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-center">
-                                                                <button
-                                                                    onClick={() => setPaid(prev => {
-                                                                        const next = new Set(prev);
-                                                                        if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                                        return next;
-                                                                    })}
-                                                                    className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
-                                                                        ? "bg-blue-600 border-blue-500 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
-                                                                        }`}
-                                                                >
-                                                                    <CreditCard className="w-4 h-4" />
-                                                                </button>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-center">
-                                                                <button
-                                                                    onClick={() => setPresent(prev => {
-                                                                        const next = new Set(prev);
-                                                                        if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                                        return next;
-                                                                    })}
-                                                                    className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
-                                                                        ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
-                                                                        }`}
-                                                                >
-                                                                    <UserCheck className="w-4 h-4" />
-                                                                </button>
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                                <td className="px-8 py-5">
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
+                                                                </td>
+                                                                <td className="px-8 py-5 text-center">
+                                                                    <button
+                                                                        onClick={() => setPaid(prev => {
+                                                                            const next = new Set(prev);
+                                                                            if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                                                            return next;
+                                                                        })}
+                                                                        className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
+                                                                            ? "bg-blue-600 border-blue-500 text-white shadow-lg"
+                                                                            : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
+                                                                            }`}
+                                                                    >
+                                                                        <CreditCard className="w-4 h-4" />
+                                                                    </button>
+                                                                </td>
+                                                                <td className="px-8 py-5 text-center">
+                                                                    <button
+                                                                        onClick={() => setPresent(prev => {
+                                                                            const next = new Set(prev);
+                                                                            if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                                                            return next;
+                                                                        })}
+                                                                        className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
+                                                                            ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
+                                                                            : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
+                                                                            }`}
+                                                                    >
+                                                                        <UserCheck className="w-4 h-4" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
                                                         );
                                                     });
                                                 })()}
@@ -684,7 +684,7 @@ export default function AmericanoManager({
                                                         <div className="absolute -top-3 left-8 px-4 py-1 bg-blue-600 text-white rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-lg shadow-blue-600/20">
                                                             Cancha {match.courtNumber || "?"}
                                                         </div>
-                                                        
+
                                                         <div className={`p-8 bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] transition-all duration-500 flex flex-col gap-6 shadow-2xl relative overflow-hidden group-hover:scale-[1.02] ${match.confirmed ? "border-emerald-500/20 shadow-emerald-500/5" : "border-border/50 hover:border-blue-500/30"}`}>
                                                             {match.confirmed && (
                                                                 <div className="absolute top-0 right-0 p-4">
@@ -701,7 +701,7 @@ export default function AmericanoManager({
                                                                         <span className="text-2xl font-black italic">{match.score1}</span>
                                                                     ) : (
                                                                         <div className="flex items-center bg-muted/30 rounded-2xl border border-border/50 overflow-hidden h-11">
-                                                                            <button 
+                                                                            <button
                                                                                 onClick={() => handleScoreChange(match.id, Math.max(0, (match.score1 || 0) - 1).toString(), (match.score2 || 0).toString())}
                                                                                 className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
                                                                             >
@@ -714,7 +714,7 @@ export default function AmericanoManager({
                                                                                 className="w-10 h-full bg-transparent text-center text-sm font-black outline-none"
                                                                                 placeholder="0"
                                                                             />
-                                                                            <button 
+                                                                            <button
                                                                                 onClick={() => handleScoreChange(match.id, ((match.score1 || 0) + 1).toString(), (match.score2 || 0).toString())}
                                                                                 className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
                                                                             >
@@ -732,7 +732,7 @@ export default function AmericanoManager({
                                                                         <span className="text-2xl font-black italic">{match.score2}</span>
                                                                     ) : (
                                                                         <div className="flex items-center bg-muted/30 rounded-2xl border border-border/50 overflow-hidden h-11">
-                                                                            <button 
+                                                                            <button
                                                                                 onClick={() => handleScoreChange(match.id, (match.score1 || 0).toString(), Math.max(0, (match.score2 || 0) - 1).toString())}
                                                                                 className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
                                                                             >
@@ -745,7 +745,7 @@ export default function AmericanoManager({
                                                                                 className="w-10 h-full bg-transparent text-center text-sm font-black outline-none"
                                                                                 placeholder="0"
                                                                             />
-                                                                            <button 
+                                                                            <button
                                                                                 onClick={() => handleScoreChange(match.id, (match.score1 || 0).toString(), ((match.score2 || 0) + 1).toString())}
                                                                                 className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40"
                                                                             >
@@ -1058,10 +1058,10 @@ export default function AmericanoManager({
                                                                                         }}
                                                                                         disabled={m.confirmed || readOnly || team === "BYE"}
                                                                                         className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40 hover:text-foreground disabled:opacity-0"
-                                                                                      >
-                                                                                          <Plus className="w-3.5 h-3.5" />
-                                                                                      </button>
-                                                                                  </div>
+                                                                                    >
+                                                                                        <Plus className="w-3.5 h-3.5" />
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -1081,14 +1081,14 @@ export default function AmericanoManager({
 
                                                                     {m.confirmed && !readOnly && (
                                                                         <div className="absolute -right-3 -top-3 flex items-center gap-1.5">
-                                                                             {!(m.team1 === "BYE" || m.team2 === "BYE") && (
+                                                                            {!(m.team1 === "BYE" || m.team2 === "BYE") && (
                                                                                 <button
                                                                                     onClick={() => setBracket(bracket.map(bm => bm.id === m.id ? { ...bm, confirmed: false } : bm))}
                                                                                     className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
                                                                                 >
                                                                                     <Pencil className="w-4 h-4" />
                                                                                 </button>
-                                                                             )}
+                                                                            )}
                                                                             <div className="bg-emerald-500 text-white p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 border border-emerald-400/50">
                                                                                 <Check className="w-4 h-4" />
                                                                             </div>
