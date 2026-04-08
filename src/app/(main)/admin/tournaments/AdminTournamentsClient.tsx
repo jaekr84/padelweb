@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon, Lock, Search, ChevronDown, MoreVertical, MapPin, Plus } from "lucide-react";
+import { Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon, Lock, Search, ChevronDown, MoreVertical, MapPin, Plus, Activity, Zap, Clock, CheckCircle, User, Users2 } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
 import FinalizeTournamentButton from "./FinalizeTournamentButton";
 import { tournaments, clubs } from "@/db/schema";
@@ -15,6 +15,16 @@ type TournamentWithClub = {
 
 interface Props {
     initialTournaments: TournamentWithClub[];
+}
+
+function formatDate(dateStr: string | null) {
+    if (!dateStr) return "Por confirmar";
+    const d = new Date(dateStr);
+    // Adjust for timezone if string is YYYY-MM-DD
+    if (typeof dateStr === 'string' && dateStr.length === 10) {
+        d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+    }
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export default function AdminTournamentsClient({ initialTournaments }: Props) {
@@ -278,14 +288,93 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                                             <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
                                                 <CalendarIcon className="w-3 h-3 text-blue-500 shrink-0" />
                                                 <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Fecha:</span>
-                                                {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString("es-ES", { day: "numeric", month: "short" }) : "Por confirmar"}
+                                                {formatDate(tournament.startDate)}
                                             </div>
                                             <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold min-w-0">
                                                 <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
                                                 <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Lugar:</span>
                                                 <span className="truncate">{club?.name || "Por definir"}</span>
                                             </div>
+
+                                            {/* Modality (Individual/Pairs) */}
+                                            {(() => {
+                                                const mod = tournament.modalidad as { tipo?: string, genero?: string } | null;
+                                                const isIndividual = mod?.tipo === 'individual';
+                                                
+                                                return (
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                                        {isIndividual ? (
+                                                            <User className="w-3 h-3 text-emerald-500 shrink-0" />
+                                                        ) : (
+                                                            <Users2 className="w-3 h-3 text-blue-500 shrink-0" />
+                                                        )}
+                                                        <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Tipo:</span>
+                                                        <span className="capitalize">{isIndividual ? "Individual" : "En Parejas"}</span>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Category Info */}
+                                            {(() => {
+                                                let cats = tournament.categories;
+                                                if (typeof cats === 'string') {
+                                                    try { cats = JSON.parse(cats); } catch (e) { cats = null; }
+                                                }
+
+                                                if (Array.isArray(cats) && cats.length > 0) {
+                                                    return (
+                                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                                            <Activity className="w-3 h-3 text-purple-500 shrink-0" />
+                                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Categoría:</span>
+                                                            <span className="truncate max-w-[120px]">
+                                                                {cats[0] === "libre" ? "Libre" : cats.join(", ")}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+
+                                            {/* Gender Info */}
+                                            {(() => {
+                                                const mod = tournament.modalidad as { genero?: string } | null;
+
+                                                if (mod?.genero) {
+                                                    return (
+                                                        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold text-nowrap">
+                                                            <Zap className="w-3 h-3 text-amber-500 shrink-0" />
+                                                            <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Género:</span>
+                                                            <span className="capitalize">{mod.genero === 'hombre' ? 'Masculino' : mod.genero === 'mujer' ? 'Femenino' : 'Mixto'}</span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
                                         </div>
+
+                                        {/* Registration Dates */}
+                                        {(tournament.openDateClub || tournament.openDateGeneral) && (
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 pt-2 border-t border-border/40">
+                                                {tournament.openDateClub && (
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
+                                                        <Clock className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Club:</span>
+                                                        <span className="text-blue-600/90 ">
+                                                            {formatDate(tournament.openDateClub)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {tournament.openDateGeneral && (
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold">
+                                                        <Clock className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                                                        <span className="opacity-60 font-black uppercase text-[7px] tracking-widest mr-0.5">Apertura Gral:</span>
+                                                        <span className="text-emerald-600/90 ">
+                                                            {formatDate(tournament.openDateGeneral)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

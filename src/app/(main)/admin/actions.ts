@@ -46,7 +46,7 @@ export async function resetDatabaseAction() {
         await db.delete(users).where(
             and(
                 not(eq(users.role, "superadmin")),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com')`
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'dkdunko@gmail.com')`
             )
         );
         

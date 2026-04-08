@@ -31,7 +31,7 @@ export default async function RankingPage() {
     .where(
         and(
             eq(users.role, "jugador"),
-            sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
+            sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
         )
     );
 

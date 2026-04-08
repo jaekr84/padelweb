@@ -89,7 +89,7 @@ export async function resetDatabasePlayers() {
         await db.delete(users).where(
             and(
                 ne(users.role, "superadmin"),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'admin@admin.com')`
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'admin@admin.com', 'dkdunko@gmail.com')`
             )
         );
 
@@ -122,6 +122,6 @@ export async function getUsers() {
         createdAt: users.createdAt,
     })
         .from(users)
-        .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
+        .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`)
         .orderBy(desc(users.createdAt));
 }

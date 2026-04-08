@@ -110,7 +110,7 @@ export default async function ClubProfilePage({
         .where(
             and(
                 eq(users.clubId, club.id),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
             )
         )
         .orderBy(desc(users.points));

@@ -28,7 +28,7 @@ export default async function UserManagementPage() {
         createdAt: users.createdAt,
     })
     .from(users)
-    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
+    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`)
     .orderBy(desc(users.createdAt));
 
     const allCategories = await db

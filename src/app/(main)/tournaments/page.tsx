@@ -6,7 +6,7 @@ import { tournaments, registrations, users, clubs } from "@/db/schema";
 import Link from "next/link";
 import {
     Plus, Calendar, MapPin, Trophy, Activity,
-    Zap, CheckCircle, Clock, LayoutGrid
+    Zap, CheckCircle, Clock, LayoutGrid, User, Users2
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ function formatDate(dateStr: string | null) {
     if (typeof dateStr === 'string' && dateStr.length === 10) {
         d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
     }
-    return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function getDaysUntil(dateStr: string | null): number | null {
@@ -468,6 +468,24 @@ function TournamentCard({ tournament, userClubId, isUserRegistered }: { tourname
                                 <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Lugar:</span>
                                 <span className="truncate">{tournament.location || "Por definir"}</span>
                             </div>
+
+                            {/* Modality (Individual/Pairs) */}
+                            {(() => {
+                                const mod = tournament.modalidad as { tipo?: string, genero?: string } | null;
+                                const isIndividual = mod?.tipo === 'individual';
+                                
+                                return (
+                                    <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-bold">
+                                        {isIndividual ? (
+                                            <User className="w-3 h-3 text-emerald-500 shrink-0" />
+                                        ) : (
+                                            <Users2 className="w-3 h-3 text-blue-500 shrink-0" />
+                                        )}
+                                        <span className="opacity-60 font-black uppercase text-[8px] tracking-widest mr-0.5">Tipo:</span>
+                                        <span className="capitalize">{isIndividual ? "Individual" : "En Parejas"}</span>
+                                    </div>
+                                );
+                            })()}
                             {/* Category and Gender Info */}
                             {(() => {
                                 let cats = tournament.categories;

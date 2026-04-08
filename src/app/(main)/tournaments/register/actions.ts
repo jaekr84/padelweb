@@ -252,7 +252,7 @@ export async function searchPlayersForPartner(query: string) {
                     like(users.email, `%${query}%`),
                     sql`CONCAT(${users.firstName}, ' ', ${users.lastName}) LIKE ${`%${query}%`}`
                 ),
-                notInArray(users.email, ['dev@jae.com', 'jae@dev.com'])
+                notInArray(users.email, ['dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com'])
             )
         )
         .limit(10);
