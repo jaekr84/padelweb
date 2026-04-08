@@ -123,18 +123,11 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
         // 2. Category check
         if (!category || category.toLowerCase() === "libre") return { ok: true };
 
-        const targetCat = allCategories.find(c => c.name.toLowerCase() === category.toLowerCase());
-        const playerCatData = allCategories.find(c => c.name.trim().toLowerCase() === player.category?.trim().toLowerCase());
+        const playerCat = player.category?.trim().toLowerCase();
+        const selectedCat = category.trim().toLowerCase();
 
-        if (targetCat && playerCatData) {
-            if (playerCatData.categoryOrder < targetCat.categoryOrder) {
-                return { ok: false, reason: "Nivel Superior" };
-            }
-        }
-        
-        // 3. Points check
-        if (targetCat && (player.points || 0) > targetCat.maxPoints) {
-            return { ok: false, reason: "Exceso de Puntos" };
+        if (playerCat !== selectedCat) {
+            return { ok: false, reason: "Categoría Distinta" };
         }
 
         return { ok: true };

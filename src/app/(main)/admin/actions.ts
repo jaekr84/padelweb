@@ -16,7 +16,7 @@ import {
     clubRequests,
     categoriesTable
 } from "@/db/schema";
-import { eq, not } from "drizzle-orm";
+import { eq, not, and, sql } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 
@@ -43,7 +43,12 @@ export async function resetDatabaseAction() {
         await db.delete(clubs);
         
         // Eliminar todos los usuarios que NO sean superadmin
-        await db.delete(users).where(not(eq(users.role, "superadmin")));
+        await db.delete(users).where(
+            and(
+                not(eq(users.role, "superadmin")),
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com')`
+            )
+        );
         
         // También blanqueamos categorías por si mueren con el resto de la data de prueba
         await db.delete(categoriesTable);

@@ -84,23 +84,10 @@ export async function registerForTournament(input: RegisterInput) {
         // --- B. VALIDACIÓN DE CATEGORÍA ---
         if (input.category?.toLowerCase() === "libre") return;
 
-        // Buscamos la categoría del usuario en la tabla maestra (flexibilidad con espacios y mayúsculas)
-        const userCatData = allCategories.find(c => 
-            c.name.trim().toLowerCase() === u.category?.trim().toLowerCase()
-        );
-
-        // B.1 Jerarquía (categoryOrder: 1=Top, 10=Bottom)
-        if (userCatData && userCatData.categoryOrder < targetCat.categoryOrder) {
+        // Validar que el usuario tenga la categoría exacta en la que se inscribe
+        if (!u.category || u.category.trim().toLowerCase() !== input.category?.trim().toLowerCase()) {
             throw new Error(
-                `El jugador ${userName} tiene categoría ${u.category}, que es superior a la permitida (${targetCat.name}).`
-            );
-        }
-
-        // B.2 Puntos (Backup)
-        const points = u.points || 0;
-        if (points > targetCat.maxPoints) {
-            throw new Error(
-                `El puntaje de ${userName} (${points} pts) supera el límite máximo de la categoría ${targetCat.name} (${targetCat.maxPoints} pts).`
+                `El jugador ${userName} tiene categoría ${u.category || "no definida"}, por lo que no puede inscribirse en la categoría ${input.category}.`
             );
         }
     };
@@ -109,7 +96,8 @@ export async function registerForTournament(input: RegisterInput) {
     const [tournament] = await db.select({ 
         id: tournaments.id, 
         status: tournaments.status, 
-        modalidad: tournaments.modalidad
+        modalidad: tournaments.modalidad,
+        categories: tournaments.categories
     }).from(tournaments).where(eq(tournaments.id, input.tournamentId)).limit(1);
     
     if (!tournament) throw new Error("Torneo no encontrado");

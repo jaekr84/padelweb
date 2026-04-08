@@ -283,7 +283,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
             </div>
 
-            <div className="max-w-6xl mx-auto space-y-8 relative z-10">
+            <div className="w-full space-y-8 relative z-10">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                     <div className="flex flex-col gap-2">
@@ -314,136 +314,134 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     </button>
                 </div>
 
+                {/* KPI Section */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
+                                <Users className="w-7 h-7 text-indigo-600" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Total Personnel</span>
+                                <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.total}</span>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
+                                <Shield className="w-7 h-7 text-indigo-600" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Tier 1 Admin</span>
+                                <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.superadmins}</span>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-violet-500/30 transition-all relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-violet-500/5">
+                                <Shield className="w-7 h-7 text-violet-600" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Organizations</span>
+                                <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{clubs.length}</span>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-emerald-500/30 transition-all relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/5">
+                                <Trophy className="w-7 h-7 text-emerald-600" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Active Units</span>
+                                <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.players}</span>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+
                 {/* Dashboard Controls Row */}
-                <div className="flex flex-col xl:flex-row gap-6 items-start">
-                    {/* KPI Section */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-4 w-full">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-5 relative z-10">
-                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
-                                    <Users className="w-7 h-7 text-indigo-600" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Total Personnel</span>
-                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.total}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-indigo-500/30 transition-all relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-5 relative z-10">
-                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
-                                    <Shield className="w-7 h-7 text-indigo-600" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Tier 1 Admin</span>
-                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.superadmins}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-violet-500/30 transition-all relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-5 relative z-10">
-                                <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-violet-500/5">
-                                    <Shield className="w-7 h-7 text-violet-600" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Organizations</span>
-                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{clubs.length}</span>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="bg-card border border-border rounded-[2rem] p-6 shadow-xl group hover:border-emerald-500/30 transition-all relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-5 relative z-10">
-                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/5">
-                                    <Trophy className="w-7 h-7 text-emerald-600" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Active Units</span>
-                                    <span className="text-3xl font-black italic leading-none text-foreground tracking-tighter">{stats.players}</span>
-                                </div>
-                            </div>
-                        </motion.div>
+                <div className="flex flex-col md:flex-row gap-6 items-center bg-card/30 backdrop-blur-md border border-border p-4 rounded-3xl shadow-lg">
+                    {/* Filters Section */}
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
+                        <input 
+                            type="text"
+                            placeholder="IDENTIFICAR USUARIO (EMAIL, NOMBRE, DNI)..."
+                            value={tournamentFilter.search}
+                            onChange={(e) => setTournamentFilter({ search: e.target.value })}
+                            className="pl-12 pr-6 py-4 bg-muted/50 border border-border rounded-2xl w-full text-[10px] font-black uppercase tracking-[0.2em] text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-inner placeholder:text-muted-foreground/30"
+                        />
                     </div>
 
-                    {/* Filters Section */}
-                    <div className="w-full xl:w-[450px] space-y-4">
-                        <div className="relative group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
-                            <input 
-                                type="text"
-                                placeholder="IDENTIFICAR USUARIO (EMAIL, NOMBRE, DNI)..."
-                                value={tournamentFilter.search}
-                                onChange={(e) => setTournamentFilter({ search: e.target.value })}
-                                className="pl-12 pr-6 py-4 bg-muted border border-border rounded-2xl w-full text-[10px] font-black uppercase tracking-[0.2em] text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-xl placeholder:text-muted-foreground/30"
-                            />
+                    <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                        <div className="relative min-w-[120px]">
+                            <select 
+                                value={tournamentFilter.status}
+                                onChange={(e) => setTournamentFilter({ status: e.target.value })}
+                                className="px-4 py-3 bg-muted/50 border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-inner w-full text-foreground"
+                            >
+                                <option value="all">ESTADOS</option>
+                                <option value="active">ACTIVOS</option>
+                                <option value="disabled">INACTIVOS</option>
+                                <option value="banned">BANEADOS</option>
+                            </select>
+                            <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2">
-                            <div className="relative">
-                                <select 
-                                    value={tournamentFilter.status}
-                                    onChange={(e) => setTournamentFilter({ status: e.target.value })}
-                                    className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
-                                >
-                                    <option value="all">ESTADOS</option>
-                                    <option value="active">ACTIVOS</option>
-                                    <option value="disabled">INACTIVOS</option>
-                                    <option value="banned">BANEADOS</option>
-                                </select>
-                                <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-                            </div>
+                        <div className="relative min-w-[120px]">
+                            <select 
+                                value={tournamentFilter.role}
+                                onChange={(e) => setTournamentFilter({ role: e.target.value })}
+                                className="px-4 py-3 bg-muted/50 border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-inner w-full text-foreground"
+                            >
+                                <option value="all">ROLES</option>
+                                <option value="jugador">JUGADOR</option>
+                                <option value="club">CLUB</option>
+                                <option value="superadmin">ADMIN</option>
+                            </select>
+                            <UserCog className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                        </div>
 
-                            <div className="relative">
-                                <select 
-                                    value={tournamentFilter.role}
-                                    onChange={(e) => setTournamentFilter({ role: e.target.value })}
-                                    className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
-                                >
-                                    <option value="all">ROLES</option>
-                                    <option value="jugador">JUGADOR</option>
-                                    <option value="club">CLUB</option>
-                                    <option value="superadmin">ADMIN</option>
-                                </select>
-                                <UserCog className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-                            </div>
-
-                            <div className="relative">
-                                <select 
-                                    value={tournamentFilter.gender || "all"}
-                                    onChange={(e) => setTournamentFilter({ gender: e.target.value })}
-                                    className="px-4 py-4 bg-muted border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-xl w-full text-foreground"
-                                >
-                                    <option value="all">GÉNERO</option>
-                                    <option value="masculino">MASC.</option>
-                                    <option value="femenino">FEM.</option>
-                                </select>
-                                <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-                            </div>
+                        <div className="relative min-w-[120px]">
+                            <select 
+                                value={tournamentFilter.gender || "all"}
+                                onChange={(e) => setTournamentFilter({ gender: e.target.value })}
+                                className="px-4 py-3 bg-muted/50 border border-border rounded-xl text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all shadow-inner w-full text-foreground"
+                            >
+                                <option value="all">GÉNERO</option>
+                                <option value="masculino">MASC.</option>
+                                <option value="femenino">FEM.</option>
+                            </select>
+                            <Users className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
                         </div>
                     </div>
                 </div>
@@ -529,13 +527,14 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                             <Trophy className="w-4 h-4" /> STATS
                                         </button>
                                         
-                                        <div className="flex gap-2.5">
+                                        <div className="grid grid-cols-2 gap-2.5 flex-1">
                                             {banned ? (
                                                 <button 
                                                     onClick={() => handleUnban(user)}
-                                                    className="p-4 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 active:scale-95 transition-all"
+                                                    className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 active:scale-95 transition-all"
                                                 >
-                                                    <UserCheck className="w-4 h-4" />
+                                                    <UserCheck className="w-3.5 h-3.5" />
+                                                    <span className="text-[8px] font-black uppercase">HABILITAR</span>
                                                 </button>
                                             ) : (
                                                 <button 
@@ -543,10 +542,11 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         setSelectedUser(user);
                                                         setIsBanModalOpen(true);
                                                     }}
-                                                    className="p-4 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 active:scale-95 transition-all disabled:opacity-20"
+                                                    className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-amber-50 hover:text-amber-600 active:scale-95 transition-all disabled:opacity-20"
                                                     disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                 >
-                                                    <Ban className="w-4 h-4" />
+                                                    <Ban className="w-3.5 h-3.5" />
+                                                    <span className="text-[8px] font-black uppercase">BAN</span>
                                                 </button>
                                             )}
 
@@ -556,20 +556,28 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     setNewRole(user.role);
                                                     setIsRoleModalOpen(true);
                                                 }}
-                                                className="p-4 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 active:scale-95 transition-all disabled:opacity-20"
+                                                className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 transition-all disabled:opacity-20"
                                                 disabled={user.role === 'superadmin' || isLoading(user.id)}
                                             >
-                                                <UserCog className="w-4 h-4" />
+                                                <UserCog className="w-3.5 h-3.5" />
+                                                <span className="text-[8px] font-black uppercase">ROL</span>
                                             </button>
 
                                             <button 
                                                 onClick={() => handleToggleStatus(user)}
-                                                className={`p-4 rounded-2xl transition-all border shadow-sm ${isInactive 
+                                                className={`flex items-center justify-center gap-2 p-3 rounded-2xl transition-all border shadow-sm ${isInactive 
                                                     ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
                                                     : "bg-rose-50 text-rose-600 border-rose-100"}`}
                                                 disabled={user.role === 'superadmin' || isLoading(user.id)}
                                             >
-                                                {isLoading(user.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : (isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />)}
+                                                {isLoading(user.id) ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        {isInactive ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                                        <span className="text-[8px] font-black uppercase">{isInactive ? "ACTIVAR" : "DESACTIVAR"}</span>
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -666,18 +674,20 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 });
                                                                 setIsCategoryModalOpen(true);
                                                             }}
-                                                            className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90"
+                                                            className="px-4 py-2.5 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90 flex items-center gap-2"
                                                             title="STATS"
                                                         >
-                                                            <Trophy className="w-4.5 h-4.5" />
+                                                            <Trophy className="w-4 h-4" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">STATS</span>
                                                         </button>
                                                         {banned ? (
                                                             <button 
                                                                 onClick={() => handleUnban(user)}
-                                                                className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all shadow-xl active:scale-90"
-                                                                title="UNBAN"
+                                                                className="px-4 py-2.5 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all shadow-xl active:scale-90 flex items-center gap-2"
+                                                                title="HABILITAR"
                                                             >
-                                                                <UserCheck className="w-4.5 h-4.5" />
+                                                                <UserCheck className="w-4 h-4" />
+                                                                <span className="text-[9px] font-black uppercase tracking-widest">HABILITAR</span>
                                                             </button>
                                                         ) : (
                                                             <button 
@@ -685,11 +695,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                     setSelectedUser(user);
                                                                     setIsBanModalOpen(true);
                                                                 }}
-                                                                className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 transition-all shadow-xl active:scale-90"
+                                                                className="px-4 py-2.5 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 transition-all shadow-xl active:scale-90 flex items-center gap-2 disabled:opacity-20"
                                                                 title="BAN"
                                                                 disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                             >
-                                                                <Ban className="w-4.5 h-4.5" />
+                                                                <Ban className="w-4 h-4" />
+                                                                <span className="text-[9px] font-black uppercase tracking-widest">BAN</span>
                                                             </button>
                                                         )}
 
@@ -699,11 +710,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewRole(user.role);
                                                                 setIsRoleModalOpen(true);
                                                             }}
-                                                            className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90"
+                                                            className="px-4 py-2.5 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-xl active:scale-90 flex items-center gap-2 disabled:opacity-20"
                                                             title="ROL"
                                                             disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                         >
-                                                            <UserCog className="w-4.5 h-4.5" />
+                                                            <UserCog className="w-4 h-4" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">ROL</span>
                                                         </button>
 
                                                         <button 
@@ -711,21 +723,29 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setSelectedUser(user);
                                                                 setIsClubModalOpen(true);
                                                             }}
-                                                            className="p-3 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-violet-50 hover:text-violet-600 hover:border-violet-100 transition-all shadow-xl active:scale-90"
+                                                            className="px-4 py-2.5 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-violet-50 hover:text-violet-600 hover:border-violet-100 transition-all shadow-xl active:scale-90 flex items-center gap-2"
                                                             title="CLUB"
                                                         >
-                                                            <Shield className="w-4.5 h-4.5" />
+                                                            <Shield className="w-4 h-4" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">CLUB</span>
                                                         </button>
 
                                                         <button 
                                                             onClick={() => handleToggleStatus(user)}
-                                                            className={`p-3 rounded-2xl transition-all shadow-xl active:scale-90 border ${isInactive 
+                                                            className={`px-4 py-2.5 rounded-2xl transition-all shadow-xl active:scale-90 border flex items-center gap-2 ${isInactive 
                                                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white" 
                                                                 : "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"}`}
-                                                            title={isInactive ? "ENABLE" : "DISABLE"}
+                                                            title={isInactive ? "ACTIVAR" : "DESACTIVAR"}
                                                             disabled={user.role === 'superadmin' || isLoading(user.id)}
                                                         >
-                                                            {isLoading(user.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : (isInactive ? <CheckCircle className="w-4.5 h-4.5" /> : <XCircle className="w-4.5 h-4.5" />)}
+                                                            {isLoading(user.id) ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <>
+                                                                    {isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                                                                    <span className="text-[9px] font-black uppercase tracking-widest">{isInactive ? "ACTIVAR" : "DESACTIVAR"}</span>
+                                                                </>
+                                                            )}
                                                         </button>
                                                     </div>
                                                 </td>

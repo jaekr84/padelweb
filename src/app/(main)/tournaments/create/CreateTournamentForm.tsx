@@ -557,7 +557,11 @@ export default function CreateTournamentForm({
                                                 <button
                                                     key={`${cat}-${idx}`}
                                                     onClick={() => {
-                                                        setModalidad({ ...modalidad, selectedCats: [cat] });
+                                                        const current = modalidad.selectedCats;
+                                                        const next = current.includes(cat)
+                                                            ? current.filter(c => c !== cat)
+                                                            : [...current, cat];
+                                                        setModalidad({ ...modalidad, selectedCats: next });
                                                     }}
                                                     className={`py-3.5 rounded-xl border transition-all text-[11px] font-bold uppercase ${isSelected ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-900/40" : "bg-muted/30 border-border text-muted-foreground hover:border-accent hover:text-foreground"}`}
                                                 >

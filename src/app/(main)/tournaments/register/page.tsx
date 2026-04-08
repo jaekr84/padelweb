@@ -153,27 +153,24 @@ export default async function RegisterPage({ searchParams }: Props) {
     const { categoriesTable } = require("@/db/schema");
     const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
 
-    // 2. Check Category (Hierarchical)
     const tCats: string[] = Array.isArray(tournament.categories) 
         ? tournament.categories 
         : (typeof tournament.categories === 'string' ? JSON.parse(tournament.categories) : []);
-    
-    if (tCats.length > 0 && !tCats.includes("libre")) {
-        const userCatData = allCats.find(c => c.name.trim().toLowerCase() === dbUser.category?.trim().toLowerCase());
-        const tournamentCatsData = allCats.filter(c => tCats.some(tc => tc.toLowerCase() === c.name.toLowerCase()));
-        
-        const highestTournamentOrder = Math.min(...tournamentCatsData.map(c => c.categoryOrder));
 
-        if (userCatData && userCatData.categoryOrder < highestTournamentOrder) {
+    if (tCats.length > 0 && !tCats.includes("libre")) {
+        const userCat = dbUser.category?.trim().toLowerCase();
+        const isEligible = tCats.some(tc => tc.trim().toLowerCase() === userCat);
+
+        if (!isEligible) {
             return (
                 <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                     <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                         <div className="w-20 h-20 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <Trophy className="w-10 h-10 text-indigo-600" />
                         </div>
-                        <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Categoría Superior</h2>
+                        <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Categoría No Permitida</h2>
                         <p className="text-muted-foreground text-sm mb-8 font-medium italic leading-relaxed">
-                            Tu categoría ({dbUser.category}) es superior a las permitidas en este torneo. Solo jugadores de categorías acordes o inferiores pueden participar.
+                            Tu categoría ({dbUser.category || "no definida"}) no está permitida para este torneo. Categorías habilitadas: {tCats.join(", ")}.
                         </p>
                         <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
                             ← Volver

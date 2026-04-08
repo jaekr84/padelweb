@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
-import { eq } from "drizzle-orm";
+import { eq, ne, and, desc, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 async function checkSuperAdmin() {
@@ -56,7 +56,7 @@ export async function updateUserCategory(userId: string, category: string, point
     await checkSuperAdmin();
 
     await db.update(users)
-        .set({ 
+        .set({
             category,
             ...(points !== undefined ? { points } : {})
         })
@@ -78,7 +78,7 @@ export async function updateUserClub(userId: string, clubId: string | null) {
     return { success: true };
 }
 
-import { ne } from "drizzle-orm";
+
 export async function resetDatabasePlayers() {
     await checkSuperAdmin();
 
@@ -86,8 +86,13 @@ export async function resetDatabasePlayers() {
         // Delete non-superadmin users
         // Note: This might require deleting related records first if there are FK constraints
         // For now, we try to delete them. If it fails due to FK, we'd need a more complex cleanup.
-        await db.delete(users).where(ne(users.role, "superadmin"));
-        
+        await db.delete(users).where(
+            and(
+                ne(users.role, "superadmin"),
+                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'admin@admin.com')`
+            )
+        );
+
         revalidatePath("/admin/users");
         revalidatePath("/ranking");
         return { success: true };
@@ -97,7 +102,7 @@ export async function resetDatabasePlayers() {
     }
 }
 
-import { desc, sql } from "drizzle-orm";
+
 
 export async function getUsers() {
     await checkSuperAdmin();
@@ -116,7 +121,7 @@ export async function getUsers() {
         documentNumber: users.documentNumber,
         createdAt: users.createdAt,
     })
-    .from(users)
-    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
-    .orderBy(desc(users.createdAt));
+        .from(users)
+        .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com')`)
+        .orderBy(desc(users.createdAt));
 }
