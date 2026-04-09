@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
-import { eq, ne, and, desc, sql } from "drizzle-orm";
+import { eq, ne, and, desc, sql, notLike } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 async function checkSuperAdmin() {
@@ -88,7 +88,7 @@ export async function resetDatabasePlayers() {
         // For now, we try to delete them. If it fails due to FK, we'd need a more complex cleanup.
         await db.delete(users).where(
             and(
-                ne(users.role, "superadmin"),
+                notLike(users.role, "%superadmin%"),
                 sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'admin@admin.com', 'dkdunko@gmail.com')`
             )
         );

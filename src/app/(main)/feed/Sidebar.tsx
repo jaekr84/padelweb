@@ -118,6 +118,29 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     <span className="text-lg font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
+                    {userData && userData.dbRole.includes(",") && (
+                        <div className="relative">
+                            <select
+                                value={userData.role}
+                                onChange={async (e) => {
+                                    const newRole = e.target.value;
+                                    await switchActiveRole(newRole);
+                                    window.location.href = "/home";
+                                }}
+                                className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-[9px] font-black uppercase tracking-widest px-2 py-1.5 rounded-lg appearance-none cursor-pointer outline-none"
+                            >
+                                {["superadmin", "club", "jugador"].filter(r => {
+                                    const userRoles = userData.dbRole.split(',').map(ur => ur.trim());
+                                    if (userRoles.includes('superadmin')) return true;
+                                    return userRoles.includes(r);
+                                }).map(r => (
+                                    <option key={r} value={r}>
+                                        {r === "superadmin" ? "🛡️ ADMIN" : r === "club" ? "🏟️ CLUB" : "🎾 JUGADOR"}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <button
                         onClick={handleLogout}
                         className="p-2 rounded-full hover:bg-muted transition-colors"
@@ -194,10 +217,10 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     </div>
 
                     {/* ROLE SIMULATOR BLOCK */}
-                    {userData && (userData.dbRole === "superadmin" || userData.dbRole === "club") && (
+                    {userData && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
                         <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex flex-col gap-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600/60">Simular Rol</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600/60">Cambiar Vista</span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                             </div>
                             <div className="relative group">
@@ -210,24 +233,20 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     }}
                                     className="w-full bg-background border border-indigo-500/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-indigo-500/40 transition-all outline-none"
                                 >
-                                    {userData.dbRole === "superadmin" && (
-                                        <>
-                                            <option value="superadmin">🛡️ Administrador</option>
-                                            <option value="club">🏟️ Modo Club</option>
-                                            <option value="jugador">🎾 Modo Jugador</option>
-                                        </>
-                                    )}
-                                    {userData.dbRole === "club" && (
-                                        <>
-                                            <option value="club">🏟️ Modo Club</option>
-                                            <option value="jugador">🎾 Modo Jugador</option>
-                                        </>
-                                    )}
+                                    {["superadmin", "club", "jugador"].filter(r => {
+                                        const userRoles = userData.dbRole.split(',').map(ur => ur.trim());
+                                        if (userRoles.includes('superadmin')) return true;
+                                        return userRoles.includes(r);
+                                    }).map(r => (
+                                        <option key={r} value={r}>
+                                            {r === "superadmin" ? "🛡️ Administrador" : r === "club" ? "🏟️ Modo Club" : "🎾 Modo Jugador"}
+                                        </option>
+                                    ))}
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-indigo-600 pointer-events-none opacity-50" />
                             </div>
                             <p className="text-[8px] text-muted-foreground/60 font-medium uppercase tracking-tight text-center italic">
-                                Cambia de vista sin cerrar sesión
+                                Tienes múltiples roles activos
                             </p>
                         </div>
                     )}

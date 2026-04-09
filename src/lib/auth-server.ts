@@ -63,11 +63,15 @@ export async function getSession(): Promise<Session | null> {
     const requestedRole = cookieStore.get("active_role")?.value;
     
     if (requestedRole) {
-        if (user.role === 'superadmin') {
+        const userRoles = user.role.split(',');
+        if (userRoles.includes('superadmin')) {
             // Superadmin can switch to any role
             activeRole = requestedRole;
-        } else if (user.role === 'club' && requestedRole === 'jugador') {
-            // Club users can only switch to jugador
+        } else if (userRoles.includes(requestedRole)) {
+            // Can switch to any role you actually have
+            activeRole = requestedRole;
+        } else if (userRoles.includes('club') && requestedRole === 'jugador') {
+            // Club users can also see player view
             activeRole = requestedRole;
         }
     }
