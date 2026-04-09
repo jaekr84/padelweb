@@ -397,12 +397,26 @@ export default function AmericanoManager({
                 <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between gap-8">
                     <div className="flex items-center gap-8">
                         <button
-                            onClick={() => router.back()}
+                            onClick={() => {
+                                if (step === "elim") setStep("qual");
+                                else if (step === "qual") setStep("done");
+                                else if (step === "done") setStep("setup");
+                                else router.push("/admin/tournaments");
+                            }}
                             className="group flex items-center gap-3 text-foreground/40 hover:text-foreground transition-all px-4 py-2 hover:bg-muted rounded-2xl"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">Volver</span>
                         </button>
+
+                        <div className="h-10 w-px bg-border/30 hidden md:block" />
+
+                        <div className="hidden md:flex flex-col">
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                            <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
+                                {tournamentName}
+                            </span>
+                        </div>
 
                         <div className="h-10 w-px bg-border/30 hidden md:block" />
 

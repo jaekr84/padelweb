@@ -721,13 +721,23 @@ export default function TournamentManager({
                             onClick={() => {
                                 if (step === "elim") setStep("qual");
                                 else if (step === "qual") setStep("done");
-                                else router.push("/tournaments");
+                                else if (step === "done") setStep("setup");
+                                else router.push("/admin/tournaments");
                             }}
                             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground transition-all group"
                         >
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Volver
                         </button>
+
+                        <div className="h-8 w-[1px] bg-border/50 hidden md:block" />
+
+                        <div className="hidden md:flex flex-col">
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                            <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
+                                {tournamentName}
+                            </span>
+                        </div>
 
                         <div className="h-8 w-[1px] bg-border/50 hidden md:block" />
 

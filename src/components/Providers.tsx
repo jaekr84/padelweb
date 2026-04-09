@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
+import { MasterDataProvider } from "./MasterDataProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Use state to ensure a single instance per component tree life cycle
@@ -21,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        {children}
+        <MasterDataProvider>
+          {children}
+        </MasterDataProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

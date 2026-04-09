@@ -136,7 +136,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 let winnerName = bm.winnerId
                     ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
                     : null;
-                
+
                 if (!winnerName && bm.winnerId && (bm as any).winnerName) {
                     winnerName = (bm as any).winnerName;
                 }
@@ -227,8 +227,16 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
 export async function getAvailablePlayers(tournamentId: string) {
     try {
         const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
-        const existingRegs = await db.select({ userId: registrations.userId }).from(registrations).where(eq(registrations.tournamentId, tournamentId));
-        const registeredIds = new Set(existingRegs.map(r => r.userId));
+        const existingRegs = await db.select({ 
+            u1: registrations.userId, 
+            u2: registrations.partnerUserId 
+        }).from(registrations).where(eq(registrations.tournamentId, tournamentId));
+        
+        const registeredIds = new Set();
+        existingRegs.forEach(r => {
+            if (r.u1) registeredIds.add(r.u1);
+            if (r.u2) registeredIds.add(r.u2);
+        });
         return allUsers.filter(u => !registeredIds.has(u.id)).map(u => ({
             id: u.id,
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
@@ -254,7 +262,7 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
         let mod: any = tournament?.modalidad;
         try {
             if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
-        } catch (e) {}
+        } catch (e) { }
 
         const maxSlots = mod?.maxSlots;
         if (maxSlots && maxSlots > 0) {
@@ -289,14 +297,14 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
         const playerName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0];
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
-        return { 
-            ok: true, 
-            player: { 
-                id: newId, 
-                name: isIndividual ? playerName : `${playerName} / Invitado`, 
+        return {
+            ok: true,
+            player: {
+                id: newId,
+                name: isIndividual ? playerName : `${playerName}`,
                 category: category || user.category || "D",
                 clubId: user.clubId
-            } 
+            }
         };
     } catch (err) {
         console.error("[quickInscribePlayer]", err);
@@ -349,7 +357,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
         console.log(`[awardTournamentPoints] Encontradas ${regs.length} inscripciones`);
         const groups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, tournamentId));
         const groupMatchesList = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, tournamentId));
-        
+
         let bracketToProcess = providedBracket;
         if (!bracketToProcess) {
             const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, tournamentId));
@@ -364,7 +372,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
         const addPoints = (playerId: string | null | undefined, pts: number | string) => {
             if (!playerId || playerId === "BYE") return;
-            
+
             const pointsToAdd = Number(pts) || 0;
             if (pointsToAdd === 0) return;
 
@@ -410,7 +418,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                 const t1Id = (bm.team1 as any)?.id?.toString();
                 const t2Id = (bm.team2 as any)?.id?.toString();
                 const wId = bm.winnerId?.toString();
-                
+
                 if (bm.round === 0) { // Final
                     if (wId === t1Id) {
                         addPoints(t1Id, points.winner || 0);
@@ -426,7 +434,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                         if (bm.round === 1) pts = points.semi || 0;
                         else if (bm.round === 2) pts = points.quarter || 0;
                         else if (bm.round === 3) pts = points.octavos || points.roundOf16 || 0;
-                        
+
                         if (pts > 0) addPoints(loserId, pts);
                     }
                 }
@@ -458,7 +466,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             if (!userObj) return;
 
             const newTotalPoints = (userObj.points || 0) + pts;
-            
+
             // Apply points update
             await db.update(users)
                 .set({ points: newTotalPoints })
@@ -467,11 +475,11 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             // 2. Promotion Check
             const currentCatName = userObj.category || "D";
             const currentCatObj = allCats.find(c => c.name === currentCatName);
-            
+
             if (currentCatObj) {
                 // Fetch tournament wins for the current category in the current year
                 const titleWins = await countUserWins(uid, currentCatName, currentYear);
-                
+
                 // Promotion criteria: 
                 // A) Exceeded current category's max points (immediate promotion)
                 // B) Won 2 or more tournaments in the current category this year
@@ -487,8 +495,8 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
                     // In this DB, HIGHER categoryOrder is better (D=0, C=1, B=2, A=3, A+=4)
                     const betterCats = allCats
                         .filter(c => c.categoryOrder > currentCatObj.categoryOrder)
-                        .sort((a, b) => a.categoryOrder - b.categoryOrder); 
-                    
+                        .sort((a, b) => a.categoryOrder - b.categoryOrder);
+
                     const catByPoints = allCats.find(c => newTotalPoints >= c.minPoints && newTotalPoints <= c.maxPoints);
                     let nextCat = betterCats[0];
 
@@ -502,7 +510,7 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
 
                         if (promoMode === "auto") {
                             await db.update(users)
-                                .set({ 
+                                .set({
                                     category: nextCat.name,
                                     points: Math.max(newTotalPoints, nextCat.minPoints),
                                     lastCategoryUpdate: new Date()
@@ -529,8 +537,8 @@ export type ManualPlayerData = {
 }
 
 export async function registerManualPlayer(
-    tournamentId: string, 
-    player1: ManualPlayerData, 
+    tournamentId: string,
+    player1: ManualPlayerData,
     player2?: ManualPlayerData
 ) {
     try {
@@ -550,7 +558,7 @@ export async function registerManualPlayer(
         let mod: any = t.modalidad;
         try {
             if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
-        } catch (e) {}
+        } catch (e) { }
 
         const maxSlots = mod?.maxSlots;
         if (maxSlots && maxSlots > 0) {
@@ -568,6 +576,10 @@ export async function registerManualPlayer(
             }
         }
 
+        if (player2 && ((player1.userId && player1.userId === player2.userId) || (player1.name && player1.name === player2.name))) {
+            throw new Error("La pareja no puede estar integrada por la misma persona");
+        }
+
         const getOrCreateUser = async (data: ManualPlayerData) => {
             if (data.userId) {
                 const [existing] = await db.select().from(users).where(eq(users.id, data.userId)).limit(1);
@@ -576,7 +588,7 @@ export async function registerManualPlayer(
                 return { id: existing.id, name };
             }
             if (!data.name) throw new Error("Nombre es obligatorio para registro manual");
-            
+
             const fakeUserId = `manual_${crypto.randomUUID()}`;
             await db.insert(users).values({
                 id: fakeUserId,
@@ -605,13 +617,13 @@ export async function registerManualPlayer(
         });
 
         const isIndividual = mod?.participacion === "individual";
-        const displayName = u2 ? `${u1.name} / ${u2.name}` : (isIndividual ? u1.name : `${u1.name} / Invitado`);
+        const displayName = u2 ? `${u1.name} / ${u2.name}` : (isIndividual ? u1.name : `${u1.name}`);
 
         revalidatePath(`/tournaments/${tournamentId}/fixture`);
         revalidatePath("/ranking");
 
-        return { 
-            ok: true, 
+        return {
+            ok: true,
             player: {
                 id: registrationId,
                 name: displayName,
@@ -631,7 +643,7 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
     try {
         const session = await getSession();
         if (!session?.userId) throw new Error("No autorizado");
-        
+
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
 
@@ -639,7 +651,7 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
         revalidatePath(`/tournaments/${id}`);
         revalidatePath(`/tournaments/${id}/fixture`);
         revalidatePath(`/tournaments/${id}/manage`);
-        
+
         return { ok: true };
     } catch (err) {
         console.error("[resetTournamentStatus]", err);

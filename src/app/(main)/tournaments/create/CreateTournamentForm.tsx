@@ -241,14 +241,14 @@ export default function CreateTournamentForm({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <button
-                            onClick={() => router.back()}
+                            onClick={() => router.push("/admin/tournaments")}
                             className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-accent transition-all active:scale-95"
                         >
                             <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
                         </button>
                         <div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">
-                                {isEditing ? "Editar Torneo" : "Nuevo Torneo"}
+                                {isEditing ? `Editar: ${initialData?.name}` : "Nuevo Torneo"}
                             </h1>
                             <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-500/60 transition-colors">Gestión de Competición ACAP</p>
                         </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { registerForTournament, searchPlayersForPartner } from "./actions";
+import { registerForTournament } from "./actions";
+import { usePlayers } from "@/hooks/use-players";
 import Link from "next/link";
 import {
     Check, UserPlus, Users, Trophy, MapPin,
@@ -83,6 +84,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
     const [focused, setFocused] = useState(false);
     const [partnerUserId, setPartnerUserId] = useState<string | null>(null);
     const [searchResults, setSearchResults] = useState<any[]>([]);
+    const { players: allPlayers } = usePlayers();
 
     useEffect(() => {
         if (partnerMode !== "search" || search.length < 2 || partnerName) {
@@ -90,17 +92,17 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
             return;
         }
 
-        const timeout = setTimeout(async () => {
-            try {
-                const results = await searchPlayersForPartner(search);
-                setSearchResults(results);
-            } catch (e) {
-                console.error(e);
-            }
-        }, 300);
-
-        return () => clearTimeout(timeout);
-    }, [search, partnerMode, partnerName]);
+        const query = search.toLowerCase();
+        const results = allPlayers
+            .filter(u => 
+                u.id !== currentUser.id && 
+                (u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)) &&
+                !['dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com'].includes(u.email)
+            )
+            .slice(0, 10);
+        
+        setSearchResults(results);
+    }, [search, partnerMode, partnerName, allPlayers, currentUser.id]);
 
     // --- Helper for Eligibility ---
     const checkPlayerEligibility = (player: any) => {

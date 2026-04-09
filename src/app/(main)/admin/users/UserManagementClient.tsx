@@ -303,15 +303,6 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                              <Layers className="w-3 h-3" /> Promoción de categorías, asignación de puntos y control de acceso neural
                         </p>
                     </div>
-
-                    <button 
-                        onClick={handleReset}
-                        disabled={resetMutation.isPending}
-                        className="px-8 py-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.3em] hover:bg-red-600 hover:text-white transition-all flex items-center gap-3 shrink-0 disabled:opacity-50 active:scale-95 shadow-lg group"
-                    >
-                        <Trash2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                        {resetMutation.isPending ? "EJECUTANDO RESET..." : "Reset Base de Datos"}
-                    </button>
                 </div>
 
                 {/* KPI Section */}

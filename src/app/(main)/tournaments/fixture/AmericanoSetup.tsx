@@ -13,6 +13,7 @@ import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, regist
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import ManualRegistrationModal from "./ManualRegistrationModal";
 
 export interface AmericanoSetupProps {
     tournamentId: string;
@@ -60,113 +61,15 @@ export default function AmericanoSetup({
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
-    const [availablePlayers, setAvailablePlayers] = useState<any[]>([]);
-    const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [categoryFilter, setCategoryFilter] = useState("all");
-    const [genderFilter, setGenderFilter] = useState("all");
-    const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
 
-    const [manualName, setManualName] = useState("");
-    const [manualName2, setManualName2] = useState("");
-    const [selectedPlayer1, setSelectedPlayer1] = useState<any | null>(null);
-    const [selectedPlayer2, setSelectedPlayer2] = useState<any | null>(null);
-    const [manualCategory, setManualCategory] = useState("");
-    const [manualGender, setManualGender] = useState("masculino");
-    const [isCreatingManual, setIsCreatingManual] = useState(false);
-
-    const [autoFillCount, setAutoFillCount] = useState<number | "">("");
-    const [isAutoFilling, setIsAutoFilling] = useState(false);
-
-    const handleManualRegister = async () => {
-        if (!manualName.trim() && !selectedPlayer1) {
-            toast.error("El nombre del primer jugador es obligatorio");
-            return;
-        }
-        if (!isIndividual && !manualName2.trim() && !selectedPlayer2) {
-            toast.error("El nombre del segundo jugador es obligatorio");
-            return;
-        }
-
-        setIsCreatingManual(true);
-        
-        const p1Data = selectedPlayer1 
-            ? { userId: selectedPlayer1.id }
-            : { name: manualName, category: manualCategory || "D", gender: manualGender };
-        
-        const p2Data = !isIndividual 
-            ? (selectedPlayer2 
-                ? { userId: selectedPlayer2.id }
-                : { name: manualName2, category: manualCategory || "D", gender: manualGender })
-            : undefined;
-
-        const res = await registerManualPlayer(tournamentId, p1Data, p2Data);
-        
-        if (res.ok && res.player) {
-            const newPlayer = res.player;
-            setPlayers(prev => [...prev, newPlayer as Player]);
-            if (isIndividual) {
-                setPresent(prev => new Set([...prev, newPlayer.id]));
-            } else {
-                setPresent(prev => new Set([...prev, `${newPlayer.id}_0`, `${newPlayer.id}_1`]));
-                setPaid(prev => new Set([...prev, `${newPlayer.id}_0`, `${newPlayer.id}_1`]));
-            }
-            setManualName("");
-            setManualName2("");
-            setSelectedPlayer1(null);
-            setSelectedPlayer2(null);
-            toast.success("Inscripción realizada correctamente");
+    const onPlayerAdded = (player: any) => {
+        setPlayers(prev => [...prev, player as Player]);
+        if (isIndividual) {
+            setPresent(prev => new Set([...prev, player.id]));
         } else {
-            toast.error("Error: " + res.error);
+            setPresent(prev => new Set([...prev, `${player.id}_0`, `${player.id}_1`]));
+            setPaid(prev => new Set([...prev, `${player.id}_0`, `${player.id}_1`]));
         }
-        setIsCreatingManual(false);
-    };
-
-    const handleAutoFill = async () => {
-        let count = typeof autoFillCount === 'number' ? autoFillCount : parseInt(autoFillCount as string);
-        if (isNaN(count) || count <= 0) {
-            toast.error("Ingresá una cantidad válida");
-            return;
-        }
-        
-        setIsAutoFilling(true);
-        toast.loading(`Generando ${count} jugadores...`, { id: 'autofill' });
-        
-        const baseName = "Jugador Gen-" + Math.floor(Math.random() * 1000);
-        const cat = manualCategory || categories[0] || "D";
-        const promises = [];
-
-        for (let i = 1; i <= count; i++) {
-            const p1Data = { name: `${baseName} #${i}-A`, category: cat, gender: "masculino" };
-            const p2Data = !isIndividual ? { name: `${baseName} #${i}-B`, category: cat, gender: "masculino" } : undefined;
-            promises.push(registerManualPlayer(tournamentId, p1Data, p2Data));
-        }
-
-        try {
-            const results = await Promise.all(promises);
-            const newPlayers: Player[] = [];
-            const newIds: string[] = [];
-            
-            for (let r of results) {
-                if (r.ok && r.player) {
-                    newPlayers.push(r.player as Player);
-                    newIds.push(r.player.id);
-                }
-            }
-            
-            setPlayers(prev => [...prev, ...newPlayers]);
-            const idsToPresent = isIndividual 
-                ? newIds 
-                : newIds.flatMap(id => [`${id}_0`, `${id}_1`]);
-            setPresent(prev => new Set([...prev, ...idsToPresent]));
-            toast.success(`Se generaron e inscribieron ${newPlayers.length} jugadores`, { id: 'autofill' });
-            setAutoFillCount("");
-        } catch (err) {
-            console.error(err);
-            toast.error("Error en la generación automática", { id: 'autofill' });
-        }
-
-        setIsAutoFilling(false);
     };
 
     const PRESENT_PLAYERS = useMemo(() =>
@@ -211,28 +114,7 @@ export default function AmericanoSetup({
         }
     };
 
-    const loadAvailablePlayers = async () => {
-        setIsLoadingAvailable(true);
-        const list = await getAvailablePlayers(tournamentId);
-        setAvailablePlayers(list);
-        setIsLoadingAvailable(false);
-    };
 
-    const handleQuickInscribe = async (userId: string) => {
-        const res = await quickInscribePlayer(tournamentId, userId);
-        if (res.ok && res.player) {
-            setPlayers(prev => [...prev, res.player as Player]);
-            if (isIndividual) {
-                setPresent(prev => new Set([...prev, res.player!.id]));
-            } else {
-                setPresent(prev => new Set([...prev, `${res.player!.id}_0`, `${res.player!.id}_1`]));
-            }
-            setAvailablePlayers(prev => prev.filter(p => p.id !== userId));
-            toast.success("Jugador inscripto");
-        } else {
-            toast.error("Error: " + res.error);
-        }
-    };
 
     const handleStart = () => {
         if (PRESENT_PLAYERS.length < 2) {
@@ -378,6 +260,9 @@ export default function AmericanoSetup({
         toast.info("Partidos re-sorteados");
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
@@ -385,7 +270,11 @@ export default function AmericanoSetup({
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-6">
                             <button
-                                onClick={() => router.back()}
+                                onClick={() => {
+                                    if (step === "assign") setStep("config");
+                                    else if (step === "config") setStep("checkin");
+                                    else router.push(`/tournaments/${tournamentId}/manage`);
+                                }}
                                 className="group flex items-center gap-2 text-foreground/40 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
                             >
                                 <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
@@ -393,6 +282,15 @@ export default function AmericanoSetup({
                             </button>
 
                             <div className="h-6 w-px bg-border/50 hidden md:block" />
+
+                            <div className="hidden md:flex flex-col">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                                <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
+                                    {tournamentName}
+                                </span>
+                            </div>
+
+                            <div className="h-6 w-[1px] bg-border/50 hidden md:block" />
 
                             <div className="hidden md:flex items-center gap-1">
                                 {[
@@ -499,20 +397,37 @@ export default function AmericanoSetup({
                                     <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Confirmá quiénes están para jugar</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            setIsPlayerModalOpen(true);
-                                            loadAvailablePlayers();
-                                        }}
-                                        className="px-3 py-1.5 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
-                                    >
-                                        <Plus className="w-3 h-3" />
-                                        Inscribir
-                                    </button>
+                                        <button
+                                            onClick={() => setIsPlayerModalOpen(true)}
+                                            className="px-3 py-1.5 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                            Inscribir
+                                        </button>
                                 </div>
                             </div>
 
                             <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
+                                <div className="px-6 py-4 border-b border-border/50 flex flex-col md:flex-row gap-4 bg-muted/20">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Filtrar por nombre..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all"
+                                        />
+                                    </div>
+                                    <select 
+                                        value={categoryFilter}
+                                        onChange={(e) => setCategoryFilter(e.target.value)}
+                                        className="bg-background border border-border rounded-xl px-4 py-2 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                                    >
+                                        <option value="all">Categoría (Todas)</option>
+                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
+                                </div>
                                 <div className="px-6 py-4 flex items-center justify-between">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/50">Lista de Jugadores</span>
                                     <div className="flex gap-4">
@@ -524,14 +439,14 @@ export default function AmericanoSetup({
                                     {(() => {
                                         const flatPlayers: any[] = [];
                                         players.forEach(p => {
-                                            const matchesSearch = !searchQuery || 
+                                            const matchesSearchFilter = !searchQuery || 
                                                 p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                                 (p.email?.toLowerCase().includes(searchQuery.toLowerCase())) ||
                                                 p.id.toLowerCase().includes(searchQuery.toLowerCase());
                                             
-                                            const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+                                            const matchesCategoryFilter = categoryFilter === "all" || p.category === categoryFilter;
                                             
-                                            if (matchesSearch && matchesCategory) {
+                                            if (matchesSearchFilter && matchesCategoryFilter) {
                                                 if (isIndividual) {
                                                     flatPlayers.push({ ...p, checkinId: p.id, displayName: p.name });
                                                 } else {
@@ -763,217 +678,15 @@ export default function AmericanoSetup({
                 </AnimatePresence>
             </main>
             
-            {/* Modal de Inscripción */}
-            <AnimatePresence>
-                {isPlayerModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsPlayerModalOpen(false)}
-                            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-                        />
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-2xl bg-card border border-border shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh]"
-                        >
-                            <div className="p-8 border-b border-border flex items-center justify-between bg-muted/30">
-                                <div>
-                                    <h3 className="text-xl font-black uppercase italic tracking-tight">Inscribir Participantes</h3>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Buscá jugadores o agregalos manualmente</p>
-                                </div>
-                                <button 
-                                    onClick={() => setIsPlayerModalOpen(false)}
-                                    className="w-10 h-10 rounded-full hover:bg-muted transition-colors flex items-center justify-center text-foreground/40 hover:text-foreground"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="p-8 overflow-y-auto space-y-8">
-                                {/* Búsqueda */}
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
-                                        <input 
-                                            type="text" 
-                                            placeholder="Buscar por nombre..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-muted/50 border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
-                                        />
-                                    </div>
-                                    
-                                    <div className="max-h-48 overflow-y-auto space-y-2 rounded-2xl outline-none">
-                                        {isLoadingAvailable ? (
-                                            <div className="py-8 text-center text-[10px] font-black uppercase tracking-widest text-foreground/20 animate-pulse">Cargando base de datos...</div>
-                                        ) : (
-                                            availablePlayers
-                                                .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                                                .slice(0, 10)
-                                                .map(p => (
-                                                    <div key={p.id} className="flex items-center justify-between p-4 bg-muted/30 border border-border/50 rounded-xl hover:border-blue-500/30 transition-all group">
-                                                        <div>
-                                                            <p className="text-xs font-black uppercase italic">{p.name}</p>
-                                                            <p className="text-[8px] font-bold uppercase text-foreground/40">{p.category || "D"} • {p.gender || "masculino"}</p>
-                                                        </div>
-                                                        <button 
-                                                            onClick={() => handleQuickInscribe(p.id)}
-                                                            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-blue-900/20"
-                                                        >
-                                                            Inscribir
-                                                        </button>
-                                                    </div>
-                                                ))
-                                        )}
-                                        {!isLoadingAvailable && searchQuery && availablePlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                                            <div className="py-4 text-center text-[10px] font-black uppercase tracking-widest text-foreground/20 italic">No se encontraron resultados</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Manual Registration Form */}
-                                <div className="pt-8 border-t border-border space-y-6">
-                                    <div className="flex items-center gap-2 text-indigo-500">
-                                        <Users2 className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Armado de Pareja Manual</span>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Player 1 Input */}
-                                        <div className="relative space-y-2">
-                                            <div className="text-[9px] font-black uppercase text-foreground/40 ml-2">Jugador 1</div>
-                                            <input 
-                                                type="text"
-                                                placeholder="Nombre o buscar..."
-                                                value={selectedPlayer1 ? selectedPlayer1.name : manualName}
-                                                onChange={(e) => {
-                                                    setSelectedPlayer1(null);
-                                                    setManualName(e.target.value);
-                                                }}
-                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all text-foreground"
-                                            />
-                                            {manualName.length > 1 && !selectedPlayer1 && (
-                                                <div className="absolute top-full left-0 right-0 z-[110] mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto">
-                                                    {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
-                                                        .slice(0, 5).map(p => (
-                                                        <button 
-                                                            key={p.id}
-                                                            onClick={() => { setSelectedPlayer1(p); setManualName(p.name); }}
-                                                            className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
-                                                        >
-                                                            {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Player 2 Input (if doubles) */}
-                                        {!isIndividual ? (
-                                            <div className="relative space-y-2">
-                                                <div className="text-[9px] font-black uppercase text-foreground/40 ml-2">Jugador 2</div>
-                                                <input 
-                                                    type="text"
-                                                    placeholder="Nombre o buscar..."
-                                                    value={selectedPlayer2 ? selectedPlayer2.name : manualName2}
-                                                    onChange={(e) => {
-                                                        setSelectedPlayer2(null);
-                                                        setManualName2(e.target.value);
-                                                    }}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all text-foreground"
-                                                />
-                                                {manualName2.length > 1 && !selectedPlayer2 && (
-                                                    <div className="absolute top-full left-0 right-0 z-[110] mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto">
-                                                        {availablePlayers.filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
-                                                            .slice(0, 5).map(p => (
-                                                            <button 
-                                                                key={p.id}
-                                                                onClick={() => { setSelectedPlayer2(p); setManualName2(p.name); }}
-                                                                className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors border-b border-border/50 last:border-0"
-                                                            >
-                                                                {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría</label>
-                                                <select 
-                                                    value={manualCategory}
-                                                    onChange={e => setManualCategory(e.target.value)}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
-                                                >
-                                                    <option value="">Categoría...</option>
-                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    {!isIndividual && (
-                                        <div className="space-y-2">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-2">Categoría del Equipo</label>
-                                            <select 
-                                                value={manualCategory}
-                                                onChange={e => setManualCategory(e.target.value)}
-                                                className="w-full bg-muted/50 border border-border rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-indigo-500 transition-all appearance-none"
-                                            >
-                                                <option value="">Categoría...</option>
-                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    )}
-                                    
-                                    <button 
-                                        onClick={handleManualRegister}
-                                        disabled={isCreatingManual || (!manualName.trim() && !selectedPlayer1)}
-                                        className="w-full py-4 bg-indigo-600 border border-indigo-500/30 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all disabled:opacity-30 shadow-xl shadow-indigo-900/20 active:scale-[0.98]"
-                                    >
-                                        {isCreatingManual ? (
-                                            <div className="flex items-center justify-center gap-2">
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Inscribiendo...
-                                            </div>
-                                        ) : "Confirmar e Inscribir Pareja"}
-                                    </button>
-                                </div>
-
-                                {/* Auto-fill para testing */}
-                                <div className="pt-8 border-t border-border space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-amber-500">
-                                            <Zap className="w-4 h-4" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Relleno Automático (Testing)</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="number"
-                                            value={autoFillCount}
-                                            onChange={e => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value))}
-                                            placeholder="N° Jugadores"
-                                            className="flex-1 bg-muted/50 border border-border rounded-xl px-4 text-xs font-bold outline-none"
-                                        />
-                                        <button 
-                                            onClick={handleAutoFill}
-                                            disabled={isAutoFilling}
-                                            className="px-6 py-3 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-900/20 active:scale-95 transition-all"
-                                        >
-                                            Generar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            <ManualRegistrationModal 
+                isOpen={isPlayerModalOpen}
+                onClose={() => setIsPlayerModalOpen(false)}
+                tournamentId={tournamentId}
+                categories={categories}
+                isIndividual={isIndividual}
+                onSuccess={onPlayerAdded}
+                existingPlayerIds={new Set(players.map(p => p.id))}
+            />
         </div>
     );
 }
