@@ -4,21 +4,20 @@ import { sql, eq, inArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import ResetDatabaseButton from "./ResetDatabaseButton";
 
-import { 
-    Home, 
-    Trophy, 
-    ShoppingBag, 
-    MessageSquare, 
-    UserPlus, 
-    Users, 
-    TrendingUp, 
-    Settings, 
-    Star, 
-    BookOpen, 
-    User, 
-    FolderOpen, 
+import {
+    Home,
+    Trophy,
+    ShoppingBag,
+    MessageSquare,
+    UserPlus,
+    Users,
+    TrendingUp,
+    Settings,
+    Star,
+    BookOpen,
+    User,
+    FolderOpen,
     PlusCircle,
     LayoutDashboard,
     MapPin,
@@ -55,20 +54,18 @@ export default async function AdminDashboardPage() {
         { label: 'Clubes', href: '/directory', icon: MapPin, color: 'text-indigo-500' },
         { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'text-sky-500' },
         { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'text-violet-500' },
-        
+
         // Competencia
         { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'text-amber-500' },
         { label: 'Nuevo Evento', href: '/tournaments/create', icon: PlusCircle, color: 'text-emerald-500' },
         { label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'text-slate-500' },
         { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' },
-        
+
         // Sistema
         { label: 'Ranking', href: '/ranking', icon: Star, color: 'text-yellow-500' },
         { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'text-teal-500' },
         { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'text-orange-500' },
         { label: 'Mi Perfil', href: '/profile', icon: User, color: 'text-slate-400' },
-
-        { label: 'Reset', href: '#', icon: Settings, color: 'text-red-500', isReset: true },
     ];
 
     return (
@@ -120,7 +117,7 @@ export default async function AdminDashboardPage() {
                     animation: fade-slide-up 0.6s ease-out forwards;
                 }
             `}</style>
-            
+
             {/* Ambient glow */}
             <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
                 <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
@@ -129,7 +126,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16 space-y-16">
-                
+
                 {/* Header */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/40 pb-12 animate-fade-in">
                     <div className="space-y-1">
@@ -181,48 +178,42 @@ export default async function AdminDashboardPage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
                         {allItems.map((item, idx) => (
-                            item.isReset ? (
-                                <div key="reset-button" className="glass-card rounded-2xl aspect-square flex items-center justify-center p-2 group hover:shadow-emerald-500/10 transition-all duration-300">
-                                    <ResetDatabaseButton compact={true} />
+                            <Link
+                                key={item.label + idx}
+                                href={item.href}
+                                className="group glass-card rounded-2xl aspect-square flex flex-col items-center justify-center transition-all duration-300 active:scale-95 shadow-sm hover:shadow-emerald-500/10 relative overflow-hidden"
+                            >
+                                <div className="absolute top-[-20%] right-[-20%] w-16 h-16 bg-blue-500/10 rounded-full blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                <div className={`relative z-10 w-12 h-12 rounded-2xl bg-muted/30 ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform mb-3`}>
+                                    <item.icon className="w-5 h-5" />
                                 </div>
-                            ) : (
-                                <Link
-                                    key={item.label + idx}
-                                    href={item.href}
-                                    className="group glass-card rounded-2xl aspect-square flex flex-col items-center justify-center transition-all duration-300 active:scale-95 shadow-sm hover:shadow-emerald-500/10 relative overflow-hidden"
-                                >
-                                    <div className="absolute top-[-20%] right-[-20%] w-16 h-16 bg-blue-500/10 rounded-full blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                    <div className={`relative z-10 w-12 h-12 rounded-2xl bg-muted/30 ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform mb-3`}>
-                                        <item.icon className="w-5 h-5" />
-                                    </div>
-                                    <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.15em] text-foreground text-center px-2 line-clamp-2">
-                                        {item.label}
-                                    </span>
-                                </Link>
-                            )
+                                <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.15em] text-foreground text-center px-2 line-clamp-2">
+                                    {item.label}
+                                </span>
+                            </Link>
                         ))}
                     </div>
                 </section>
 
-                {/* Notifications / Critical Actions Callout */}
-                <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
-                    <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-14 h-14 bg-foreground border border-border text-background rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                            <MessageSquare className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
-                            <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
-                        </div>
-                    </div>
-                    <Link 
-                        href="/admin/requests" 
-                        className="glow-button relative z-10 w-full md:w-auto px-10 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
-                    >
-                        Revisar Ahora
-                    </Link>
-                </section>
+                {/* Notifications / Critical Actions Callout */ }
+    <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+        <div className="flex items-center gap-6 relative z-10">
+            <div className="w-14 h-14 bg-foreground border border-border text-background rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <MessageSquare className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+                <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
+                <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
+            </div>
+        </div>
+        <Link
+            href="/admin/requests"
+            className="glow-button relative z-10 w-full md:w-auto px-10 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
+        >
+            Revisar Ahora
+        </Link>
+    </section>
             </div>
         </div>
     );
