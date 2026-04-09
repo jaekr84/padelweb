@@ -31,7 +31,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
     const session = await getSession();
     const isSuperAdmin = session?.role === 'superadmin';
     const isOwner = tournament.createdByUserId === session?.userId;
-    const canManage = isSuperAdmin || isOwner;
+    const isActivePlayer = session?.role === 'jugador';
+    const canManage = (isSuperAdmin || isOwner) && !isActivePlayer;
     const isLoggedIn = !!session?.userId;
 
     const publicHeader = !isLoggedIn && (

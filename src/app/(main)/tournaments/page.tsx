@@ -52,9 +52,10 @@ export default async function TournamentsPage({
     let dbUser: any = null;
     let allTournaments: any[] = [];
     let availableCategories: any[] = [];
+    let session: any = null;
 
     try {
-        const session = await getSession() as { userId: string, role: string, email: string } | null;
+        session = await getSession();
         userId = session?.userId || null;
 
         // Fetch categories for filtering
@@ -354,6 +355,7 @@ export default async function TournamentsPage({
                                                     key={t.id} 
                                                     tournament={t} 
                                                     userClubId={dbUser?.clubId} 
+                                                    userDbRole={session?.role}
                                                     isUserRegistered={t.isRegistered} 
                                                 />
                                             ))}

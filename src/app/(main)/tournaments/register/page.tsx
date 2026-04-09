@@ -26,7 +26,7 @@ export default async function RegisterPage({ searchParams }: Props) {
     const [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
     // Block clubs / centros
-    if (!dbUser || !ALLOWED_ROLES.includes(dbUser.role)) {
+    if (!session || !ALLOWED_ROLES.includes(session.role)) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">

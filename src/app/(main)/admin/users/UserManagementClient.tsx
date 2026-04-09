@@ -75,6 +75,7 @@ interface ManagedUser {
     category: string | null;
     gender: string | null;
     documentNumber: string | null;
+    clubId: string | null;
     createdAt: Date;
 }
 
@@ -152,6 +153,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         },
         onError: (error: any) => toast.error(error.message || "Error al actualizar rol"),
     });
+    
+    const updateClubMutation = useMutation({
+        mutationFn: ({ userId, clubId }: { userId: string; clubId: string | null }) => updateUserClub(userId, clubId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            setIsClubModalOpen(false);
+            toast.success("Club vinculado correctamente");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al vincular club"),
+    });
 
     const resetMutation = useMutation({
         mutationFn: resetDatabasePlayers,
@@ -210,7 +221,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         toggleStatusMutation.isPending && toggleStatusMutation.variables?.userId === userId ||
         banMutation.isPending && banMutation.variables?.userId === userId ||
         updateCategoryMutation.isPending && selectedUser?.id === userId ||
-        updateRoleMutation.isPending && updateRoleMutation.variables?.userId === userId;
+        updateRoleMutation.isPending && updateRoleMutation.variables?.userId === userId ||
+        updateClubMutation.isPending && updateClubMutation.variables?.userId === userId;
 
     const handleToggleStatus = (user: ManagedUser) => {
         toggleStatusMutation.mutate({ userId: user.id, isActive: user.isActive !== true });
@@ -237,7 +249,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
     const handleUpdateClub = () => {
         if (!selectedUser) return;
-        // club mutation logic if needed
+        updateClubMutation.mutate({ userId: selectedUser.id, clubId: newClubId });
     };
 
     return (
@@ -555,6 +567,18 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                             </button>
 
                                             <button 
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setNewClubId(user.clubId);
+                                                    setIsClubModalOpen(true);
+                                                }}
+                                                className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-violet-50 hover:text-violet-600 active:scale-95 transition-all"
+                                            >
+                                                <Shield className="w-3.5 h-3.5" />
+                                                <span className="text-[8px] font-black uppercase">CLUB</span>
+                                            </button>
+
+                                            <button 
                                                 onClick={() => handleToggleStatus(user)}
                                                 className={`flex items-center justify-center gap-2 p-3 rounded-2xl transition-all border shadow-sm ${isInactive 
                                                     ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
@@ -712,6 +736,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedUser(user);
+                                                                setNewClubId(user.clubId);
                                                                 setIsClubModalOpen(true);
                                                             }}
                                                             className="px-4 py-2.5 rounded-2xl bg-muted text-muted-foreground border border-border hover:bg-violet-50 hover:text-violet-600 hover:border-violet-100 transition-all shadow-xl active:scale-90 flex items-center gap-2"

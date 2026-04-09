@@ -25,7 +25,7 @@ export async function registerForTournament(input: RegisterInput) {
     }).from(users).where(eq(users.id, userId)).limit(1);
     
     if (!dbUser) throw new Error("Usuario no encontrado");
-    if (dbUser.role !== "jugador") {
+    if (session.role !== "jugador") {
         throw new Error("Solo jugadores pueden inscribirse");
     }
 

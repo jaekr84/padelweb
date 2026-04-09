@@ -25,6 +25,7 @@ export default async function UserManagementPage() {
         category: users.category,
         gender: users.gender,
         documentNumber: users.documentNumber,
+        clubId: users.clubId,
         createdAt: users.createdAt,
     })
     .from(users)

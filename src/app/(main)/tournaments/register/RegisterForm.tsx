@@ -482,18 +482,18 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                                                     }}
                                                                 >
                                                                     <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs flex items-center justify-center italic">
-                                                                        {(p.firstName || "U").charAt(0)}
+                                                                        {(p.name || "U").charAt(0)}
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="flex items-center justify-between">
-                                                                            <p className="font-bold text-sm text-foreground truncate">{p.firstName} {p.lastName}</p>
+                                                                            <p className="font-bold text-sm text-foreground truncate">{p.name}</p>
                                                                             {!ok && (
                                                                                 <span className="text-[8px] font-black uppercase tracking-tighter bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 ml-2 whitespace-nowrap">
                                                                                     {reason}
                                                                                 </span>
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{p.category || "D"} • {p.points || 0} pts</p>
+                                                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Categoría: {p.category || "D"} • {p.points || 0} pts</p>
                                                                     </div>
                                                                 </button>
                                                             );

@@ -61,7 +61,7 @@ export default function ClubProfileClient({
     const router = useRouter();
 
     const [formData, setFormData] = useState({
-        name: club?.name || user?.fullName || "",
+        name: club?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : "") || "",
         bio: club?.bio || "",
         location: club?.location || "",
         phone: club?.phone || "",
@@ -79,7 +79,7 @@ export default function ClubProfileClient({
     const [invitingId, setInvitingId] = useState<string | null>(null);
     const [isRegenerating, setIsRegenerating] = useState(false);
 
-    const clubName = club?.name || user?.fullName || "Mi Club";
+    const clubName = club?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : "") || "Mi Club";
     const clubBio =
         club?.bio ||
         "Completá la biografía de tu club para que más jugadores te encuentren.";
@@ -335,13 +335,15 @@ export default function ClubProfileClient({
                                                                         <div className="flex items-center gap-4">
                                                                             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted shrink-0 border border-border">
                                                                                 {member.imageUrl ? (
-                                                                                    <Image src={member.imageUrl} alt={member.name || ""} fill className="object-cover" sizes="40px" />
+                                                                                    <Image src={member.imageUrl} alt={member.firstName || "Miembro"} fill className="object-cover" sizes="40px" />
                                                                                 ) : (
                                                                                     <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/30" /></div>
                                                                                 )}
                                                                             </div>
                                                                             <div className="flex flex-col">
-                                                                                <span className="text-sm font-bold tracking-tight group-hover:text-indigo-600 transition-colors uppercase italic text-foreground">{member.name || member.fullName || "Jugador"}</span>
+                                                                                <span className="text-sm font-bold tracking-tight group-hover:text-indigo-600 transition-colors uppercase italic text-foreground">
+                                                                                    {member.firstName || member.lastName ? `${member.firstName || ''} ${member.lastName || ''}`.trim() : "Jugador"}
+                                                                                </span>
                                                                                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{member.side === 'reves' ? 'Revés' : member.side === 'drive' ? 'Drive' : 'Polivalente'}</span>
                                                                             </div>
                                                                         </div>

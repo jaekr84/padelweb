@@ -122,6 +122,8 @@ export default async function ClubProfilePage({
             user={session ? { 
                 id: session.userId, 
                 email: session.email, 
+                firstName: owner?.firstName,
+                lastName: owner?.lastName,
                 publicMetadata: { role: session.role },
                 imageUrl: owner?.imageUrl // Fallback to owner's photo
             } : null}

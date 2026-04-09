@@ -10,8 +10,11 @@ export async function getAllPlayers() {
         return allUsers.map(u => ({
             id: u.id,
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
+            firstName: u.firstName,
+            lastName: u.lastName,
             email: u.email,
             category: u.category,
+            points: u.points,
             gender: u.gender,
             clubId: u.clubId
         }));
