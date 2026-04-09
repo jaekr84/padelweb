@@ -52,14 +52,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
-        ? { label: "En Vivo", dot: true, bg: "bg-red-500/10 border-red-500/20", pill: "bg-red-500", text: "text-red-500" }
+        ? { label: "En Vivo", dot: true, pill: "bg-red-500", text: "text-red-500" }
         : isOpen
-            ? { label: "Abierto", dot: false, bg: "bg-emerald-500/10 border-emerald-500/20", pill: "bg-emerald-600", text: "text-emerald-600" }
+            ? { label: "Abierto", dot: false, pill: "bg-emerald-600", text: "text-emerald-600" }
             : isPreregistration
-                ? { label: "Próximamente", dot: false, bg: "bg-blue-500/10 border-blue-500/20", pill: "bg-blue-500", text: "text-blue-500" }
+                ? { label: "Próximamente", dot: false, pill: "bg-blue-500", text: "text-blue-500" }
                 : isFinished
-                    ? { label: "Finalizado", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/40", text: "text-muted-foreground" }
-                    : { label: "Borrador", dot: false, bg: "bg-muted border-border", pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
+                    ? { label: "Finalizado", dot: false, pill: "bg-muted-foreground/40", text: "text-muted-foreground" }
+                    : { label: "Borrador", dot: false, pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
 
     const isClubUser = userDbRole === "club" || userDbRole === "superadmin";
     const canDoMassInsc = isOpen && isClubUser && !isFinished && !isLive;
@@ -85,7 +85,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         <>
             <Link 
                 href={canDoMassInsc ? "#" : href} 
-                className="group block h-full"
+                className="group block h-full focus:outline-none"
                 onClick={(e) => {
                    if (canDoMassInsc) {
                        e.preventDefault();
@@ -93,136 +93,101 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                    }
                 }}
             >
-                <div className="bg-card border border-border/50 rounded-[2.5rem] overflow-hidden transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col relative h-full">
-
-                    {/* Header / Image Area */}
-                    <div className="relative aspect-[16/9] w-full overflow-hidden">
+                <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-indigo-500/20 flex flex-col h-full relative group/card">
+                    {/* Compact Image Area */}
+                    <div className="relative h-32 w-full overflow-hidden bg-muted/20">
                         {!showFallback ? (
                             <img
                                 src={tournament.imageUrl}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105"
                                 alt={tournament.name}
                                 onError={() => setImageError(true)}
                             />
                         ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-600/20 via-blue-600/10 to-emerald-600/20 transition-all duration-500 group-hover:opacity-90`}>
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full scale-150 animate-pulse" />
-                                    <Trophy className={`w-14 h-14 ${statusConfig.text} relative z-10 drop-shadow-xl filter brightness-110`} />
-                                </div>
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50/50 to-indigo-100/50">
+                                <Trophy className={`w-8 h-8 ${statusConfig.text} opacity-20`} />
                             </div>
                         )}
-
-                        {/* Status Badge Overlays */}
-                        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                            <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full ${statusConfig.pill} backdrop-blur-md shadow-lg border border-white/20`}>
-                                {statusConfig.dot && (
-                                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                                )}
-                                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white">
-                                    {statusConfig.label}
-                                </span>
-                            </div>
+                        
+                        {/* Compact Badges */}
+                        <div className="absolute top-3 left-3 flex gap-2">
+                            <span className={`px-2 py-0.5 rounded-md ${statusConfig.pill} text-white font-black text-[9px] uppercase tracking-wider shadow-sm`}>
+                                {statusConfig.label}
+                            </span>
                             {isUserRegistered && (
-                                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md shadow-lg border border-indigo-500/20 self-start">
-                                    <CheckCircle className="w-3 h-3 text-indigo-600" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-indigo-600">Inscripto</span>
-                                </div>
+                                <span className="px-2 py-0.5 rounded-md bg-white border border-indigo-100 text-indigo-600 font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                    <CheckCircle className="w-2.5 h-2.5" /> Inscripto
+                                </span>
                             )}
                         </div>
                     </div>
 
-                    <div className="p-7 flex flex-col flex-1 relative z-10">
-
-                        {/* Highlight glow */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                        {/* Title Section */}
-                        <div className="mb-6">
-                            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60 mb-2">
-                                {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
+                    <div className="p-5 flex flex-col flex-1">
+                        {/* Header StatsRow */}
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 mb-1 truncate">
+                                    {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
+                                </p>
+                                <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-indigo-600 transition-colors truncate">
+                                    {tournament.name}
+                                </h3>
                             </div>
-                            <h3 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-tight transition-colors group-hover:text-indigo-600">
-                                {tournament.name}
-                            </h3>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Fecha</span>
+                                <span className="text-xs font-bold text-foreground/80">{formatDate(tournament.startDate)}</span>
+                            </div>
                         </div>
 
-                        {/* Metadata Grid */}
-                        <div className="grid grid-cols-2 gap-y-5 gap-x-4 mb-8">
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <Calendar className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Fecha Inicio</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5">
-                                    {formatDate(tournament.startDate)}
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <LayoutGrid className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Tipo</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5">
-                                    {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <Trophy className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Categorías</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 truncate pl-5.5">
+                        {/* Compact Metadata Grid (3 columns for seriousness) */}
+                        <div className="grid grid-cols-3 gap-3 mb-5 border-y border-border/40 py-4 bg-muted/5 -mx-5 px-5">
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Categorías</span>
+                                <span className="text-[11px] font-bold text-foreground/90 truncate">
                                     {(() => {
                                         let cats = tournament.categories;
                                         if (typeof cats === 'string') {
                                             try { cats = JSON.parse(cats); } catch (e) { cats = []; }
                                         }
-                                        return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "A definir";
+                                        return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "N/A";
                                     })()}
-                                </div>
+                                </span>
                             </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <Zap className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Género</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5 capitalize">
-                                    {mod?.genero === 'hombre' ? 'Masculino' : mod?.genero === 'mujer' ? 'Femenino' : 'Mixto'}
-                                </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Género</span>
+                                <span className="text-[11px] font-bold text-foreground/90 capitalize">
+                                    {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : 'Mixto'}
+                                </span>
                             </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    {mod?.participacion === 'individual' ? <User className="w-3.5 h-3.5" /> : <Users2 className="w-3.5 h-3.5" />}
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Modalidad</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5">
-                                    {mod?.participacion === 'individual' ? "Individual" : "En Parejas"}
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <DollarSign className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Inscripción</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5">
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Inscripción</span>
+                                <span className="text-[11px] font-bold text-foreground/90">
                                     {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
-                                </div>
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Modalidad</span>
+                                <span className="text-[11px] font-bold text-foreground/90">
+                                    {mod?.participacion === 'individual' ? "Individual" : "En Parejas"}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Tipo</span>
+                                <span className="text-[11px] font-bold text-foreground/90">
+                                    {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Cupos</span>
+                                <span className="text-[11px] font-bold text-foreground/90">{tournament.maxSlots || "Sin límite"}</span>
                             </div>
                         </div>
 
-                        {/* Full Width Location Block */}
-                        <div className="space-y-1.5 mb-8">
-                            <div className="flex items-center gap-2 opacity-40">
-                                <MapPin className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Ubicación</span>
-                            </div>
-                            <div className="text-base font-bold text-foreground/90 pl-5.5">
+                        {/* Location Block - More Pro List Style */}
+                        <div className="mb-5 flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/50" />
+                            <div className="flex-1">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 block mb-0.5">Ubicación</span>
                                 {tournament.location ? (
                                     <span 
                                         onClick={(e) => {
@@ -230,95 +195,67 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                             e.stopPropagation();
                                             window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location)}`, "_blank");
                                         }}
-                                        className="hover:text-indigo-600 hover:underline transition-colors flex items-center gap-1 group/loc cursor-pointer"
+                                        className="text-xs font-bold text-foreground/80 hover:text-indigo-600 underline decoration-indigo-500/20 underline-offset-4 cursor-pointer"
                                     >
                                         {tournament.location}
                                     </span>
-                                ) : "Por confirmar"}
+                                ) : (
+                                    <span className="text-xs font-bold text-muted-foreground/40 italic">Por confirmar</span>
+                                )}
                             </div>
                         </div>
 
-                        {/* Map Section - Reserved Space for Symmetry */}
-                        <div className="mb-6 w-full h-40 rounded-[2rem] overflow-hidden border border-border/50 bg-muted/20 relative group/map animate-in fade-in duration-700">
+                        {/* Ultra Compact Map */}
+                        <div className="mb-6 w-full h-24 rounded-xl overflow-hidden border border-border/50 bg-muted/10 relative">
                             {tournament.location ? (
-                                <>
-                                    <iframe 
-                                        width="100%" 
-                                        height="100%" 
-                                        style={{ border: 0, opacity: 0.8 }} 
-                                        loading="lazy" 
-                                        allowFullScreen 
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                                    ></iframe>
-                                    <div className="absolute inset-0 bg-transparent cursor-pointer" onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location!)}`, "_blank");
-                                    }} />
-                                </>
+                                <iframe 
+                                    width="100%" 
+                                    height="100%" 
+                                    style={{ border: 0, opacity: 0.6, filter: 'grayscale(0.2)' }} 
+                                    loading="lazy" 
+                                    allowFullScreen 
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                ></iframe>
                             ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center gap-2 opacity-30">
-                                    <MapPin className="w-6 h-6 text-muted-foreground" />
-                                    <span className="text-[8px] font-black uppercase tracking-widest">Ubicación a confirmar</span>
+                                <div className="w-full h-full flex items-center justify-center opacity-20">
+                                    <MapPin className="w-4 h-4 mr-2" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Sin mapa disponible</span>
                                 </div>
                             )}
                         </div>
 
-                        {/* Registration Dates (Reserved Box) */}
-                        <div className="bg-muted/30 rounded-3xl p-5 border border-border/40 mb-8 mt-auto min-h-[110px] flex flex-col justify-center">
-                            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 mb-4 text-center">Fases de Inscripción</div>
-                            {(tournament.openDateClub || tournament.openDateGeneral) ? (
-                                <div className="grid grid-cols-2 divide-x divide-border/50">
-                                    {tournament.openDateClub ? (
-                                        <div className="flex flex-col items-center px-2">
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 mb-1.5">Habilitados Club</span>
-                                            <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateClub)}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center px-2 opacity-20">
-                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1.5 border-b border-transparent">No disp.</span>
-                                            <span className="text-sm font-black text-foreground">--/--/--</span>
-                                        </div>
-                                    )}
-                                    {tournament.openDateGeneral ? (
-                                        <div className="flex flex-col items-center px-2">
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Inscripción General</span>
-                                            <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateGeneral)}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center px-2 opacity-20">
-                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1.5 border-b border-transparent">No disp.</span>
-                                            <span className="text-sm font-black text-foreground">--/--/--</span>
-                                        </div>
-                                    )}
+                        {/* Enrollment Section - Minimalist */}
+                        <div className="mt-auto pt-4 border-t border-border/40">
+                            <div className="flex items-center justify-between mb-4 px-1">
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50">Club</span>
+                                    <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateClub)}</span>
                                 </div>
-                            ) : (
-                                <div className="text-center py-2 opacity-40">
-                                    <Clock className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Próximamente</span>
+                                <div className="w-px h-6 bg-border/40" />
+                                <div className="flex flex-col text-right">
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50">General</span>
+                                    <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateGeneral)}</span>
                                 </div>
-                            )}
-                        </div>
+                            </div>
 
-                        {/* CTA Button */}
-                        <div className="mt-auto">
-                            <div className={`w-full py-4 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all duration-300 font-black uppercase tracking-[0.15em] text-[11px] shadow-lg active:scale-95 ${isLive ? "bg-red-500 text-white shadow-red-500/20" :
-                                isUserRegistered ? "bg-indigo-600 text-white shadow-indigo-600/20" :
-                                    isOpen ? "bg-emerald-600 text-white shadow-emerald-600/20" :
-                                        isPreregistration ? "bg-blue-600 text-white shadow-blue-600/20" :
-                                            "bg-muted text-muted-foreground shadow-none"
-                                }`}>
-                                {isLive ? <Zap className="w-4 h-4 animate-pulse" /> :
-                                    isUserRegistered ? <CheckCircle className="w-4 h-4" /> :
-                                        isOpen ? <Plus className="w-4 h-4" /> :
-                                            isPreregistration ? <Clock className="w-4 h-4" /> :
-                                                <Trophy className="w-4 h-4" />}
-
-                                {isLive ? "Ver resultados en vivo" :
-                                    isUserRegistered ? "Ver mi inscripción" :
-                                        canDoMassInsc ? "Inscribir mi equipo" :
-                                            isOpen ? "Inscribirse ahora" :
-                                                isPreregistration ? (openDate ? `Abre el ${formatDate(openDate)}` : "Próximamente") :
-                                                    isFinished ? "Ver resultados finales" : "Ver detalles"}
+                            <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${
+                                isLive ? "bg-red-500 text-white shadow-lg shadow-red-500/20" :
+                                isUserRegistered ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" :
+                                isOpen ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" :
+                                isPreregistration ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" :
+                                "bg-muted text-muted-foreground shadow-none"
+                            }`}>
+                                {isLive ? <Zap className="w-3.5 h-3.5" /> :
+                                    isUserRegistered ? <CheckCircle className="w-3.5 h-3.5" /> :
+                                        isOpen ? <Plus className="w-3.5 h-3.5" /> :
+                                            isPreregistration ? <Clock className="w-3.5 h-3.5" /> :
+                                                <Trophy className="w-3.5 h-3.5" />}
+                                
+                                {isLive ? "En Vivo" :
+                                    isUserRegistered ? "Mi Inscripción" :
+                                        canDoMassInsc ? "Inscripción Masiva" :
+                                            isOpen ? "Inscribirse" :
+                                                isPreregistration ? "Muy Pronto" : "Próximamente"}
                             </div>
                         </div>
                     </div>

@@ -9,9 +9,10 @@ interface Props {
     tournamentId: string;
     tournamentName: string;
     compact?: boolean;
+    showLabel?: boolean;
 }
 
-export default function DeleteTournamentButton({ tournamentId, tournamentName, compact }: Props) {
+export default function DeleteTournamentButton({ tournamentId, tournamentName, compact, showLabel }: Props) {
     const [loading, setLoading] = useState(false);
     const [confirming, setConfirming] = useState(false);
 
@@ -46,22 +47,20 @@ export default function DeleteTournamentButton({ tournamentId, tournamentName, c
             onClick={handleDelete}
             disabled={loading}
             title={confirming ? "Hacé clic de nuevo para confirmar eliminación" : "Eliminar Torneo"}
-            className={`flex items-center justify-center gap-1.5 font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 border ${
-                compact ? "p-2 rounded-lg" : "py-3 px-5 rounded-xl"
-            } ${
+            className={`flex items-center justify-center gap-1.5 font-black uppercase tracking-widest text-[8px] transition-all active:scale-95 border w-full h-8 ${
                 confirming 
                 ? "bg-red-600 text-white border-red-700 hover:bg-red-500 animate-pulse" 
-                : "bg-rose-50 hover:bg-rose-100   border-rose-200  text-rose-600 "
-            } disabled:opacity-50`}
+                : "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600"
+            } disabled:opacity-50 rounded-lg`}
         >
             {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : confirming ? (
-                compact ? <Trash2 className="w-4 h-4 text-white" /> : "¿Seguro?"
+                <span>{showLabel || !compact ? "¿Seguro?" : <Trash2 className="w-4 h-4 text-white" />}</span>
             ) : (
                 <>
-                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    {!compact && "Eliminar"}
+                    <Trash2 className="w-3 h-3" />
+                    {(showLabel || !compact) && <span className="leading-none">Eliminar</span>}
                 </>
             )}
         </button>
