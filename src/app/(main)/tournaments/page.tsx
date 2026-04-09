@@ -15,11 +15,12 @@ export const dynamic = "force-dynamic";
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function formatDate(dateStr: string | null) {
     if (!dateStr) return "Por confirmar";
-    const d = new Date(dateStr);
-    // Adjust for timezone if string is YYYY-MM-DD
-    if (typeof dateStr === 'string' && dateStr.length === 10) {
-        d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+    if (typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
+    const d = new Date(dateStr);
     return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
@@ -316,15 +317,14 @@ export default async function TournamentsPage({
                                 // Group by month logic
                                 const groups: { [key: string]: any[] } = {};
                                 filteredTournaments.forEach(t => {
-                                    const date = t.startDate ? new Date(t.startDate) : null;
-                                    // Adjust for timezone to avoid "December" when it should be "January"
-                                    if (date && typeof t.startDate === 'string' && t.startDate.length === 10) {
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                    const dateStr = t.startDate;
+                                    let monthKey = "Próximamente / Fecha a definir";
+                                    
+                                    if (dateStr && typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
+                                        const [year, month, day] = dateStr.split("-").map(Number);
+                                        const d = new Date(year, month - 1, day);
+                                        monthKey = d.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
                                     }
-
-                                    const monthKey = date
-                                        ? date.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
-                                        : "Próximamente / Fecha a definir";
 
                                     if (!groups[monthKey]) groups[monthKey] = [];
                                     groups[monthKey].push(t);

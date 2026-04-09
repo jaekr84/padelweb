@@ -66,10 +66,12 @@ export default function PublicTournamentCard({ tournament, userClubId, isUserReg
 
     function formatDate(dateStr: string | null) {
         if (!dateStr) return "Por confirmar";
-        const d = new Date(dateStr);
-        if (typeof dateStr === 'string' && dateStr.length === 10) {
-            d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+        if (typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
+            const [year, month, day] = dateStr.split("-").map(Number);
+            const d = new Date(year, month - 1, day);
+            return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
         }
+        const d = new Date(dateStr);
         return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
 

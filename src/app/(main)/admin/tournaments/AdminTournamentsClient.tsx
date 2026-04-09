@@ -19,11 +19,13 @@ interface Props {
 
 function formatDate(dateStr: string | null) {
     if (!dateStr) return "Por confirmar";
-    const d = new Date(dateStr);
-    // Adjust for timezone if string is YYYY-MM-DD
-    if (typeof dateStr === 'string' && dateStr.length === 10) {
-        d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+    // Si ya viene formateada o no es el formato YYYY-MM-DD
+    if (typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
+    const d = new Date(dateStr);
     return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
@@ -47,9 +49,8 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
     }, [initialTournaments]);
 
     const formatMonth = (yearMonth: string) => {
-        const [year, month] = yearMonth.split("-");
-        const date = new Date(parseInt(year), parseInt(month) - 1);
-        // "es-ES" capitalizes the first letter nicely when used carefully, but let's manually ensure it looks clean
+        const [year, month] = yearMonth.split("-").map(Number);
+        const date = new Date(year, month - 1, 1);
         const formatted = date.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
         return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     };
