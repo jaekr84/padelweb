@@ -107,6 +107,8 @@ export default async function TournamentFixturePage({ params }: Props) {
                 email: user?.email || undefined,
                 gender: user?.gender || undefined,
                 clubId: user?.clubId || null,
+                userId: reg.userId,
+                partnerUserId: null,
             };
         }
 

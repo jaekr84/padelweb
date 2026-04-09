@@ -253,32 +253,32 @@ export async function getAvailablePlayers(tournamentId: string) {
 
 export async function quickInscribePlayer(tournamentId: string, userId: string, category?: string) {
     try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
         const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (!user) throw new Error("User not found");
 
-        const [tournament] = await db.select({ modalidad: tournaments.modalidad }).from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        const [tournament] = await db.select({ 
+            modalidad: tournaments.modalidad, 
+            createdByUserId: tournaments.createdByUserId 
+        }).from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+        
         if (!tournament) throw new Error("Torneo no encontrado");
+
+        const currentUser = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
+        const isSuperAdmin = currentUser?.role === 'superadmin';
+
+        if (tournament.createdByUserId !== session.userId && !isSuperAdmin) {
+            throw new Error("No tenés permiso para gestionar este torneo");
+        }
 
         let mod: any = tournament?.modalidad;
         try {
             if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
         } catch (e) { }
 
-        const maxSlots = mod?.maxSlots;
-        if (maxSlots && maxSlots > 0) {
-            const [regCount] = await db
-                .select({ count: sql<number>`count(*)` })
-                .from(registrations)
-                .where(
-                    and(
-                        eq(registrations.tournamentId, tournamentId),
-                        eq(registrations.status, "confirmed")
-                    )
-                );
-            if (Number((regCount as any).count || 0) >= maxSlots) {
-                throw new Error(`Este torneo ha alcanzado su límite máximo de ${maxSlots} inscriptos.`);
-            }
-        }
+        // Admin bypass
 
         const newId = crypto.randomUUID();
         await db.insert(registrations).values({
@@ -303,7 +303,9 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
                 id: newId,
                 name: isIndividual ? playerName : `${playerName}`,
                 category: category || user.category || "D",
-                clubId: user.clubId
+                clubId: user.clubId,
+                userId: userId,
+                partnerUserId: null
             }
         };
     } catch (err) {
@@ -560,21 +562,7 @@ export async function registerManualPlayer(
             if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
         } catch (e) { }
 
-        const maxSlots = mod?.maxSlots;
-        if (maxSlots && maxSlots > 0) {
-            const [regCount] = await db
-                .select({ count: sql<number>`count(*)` })
-                .from(registrations)
-                .where(
-                    and(
-                        eq(registrations.tournamentId, tournamentId),
-                        eq(registrations.status, "confirmed")
-                    )
-                );
-            if (Number((regCount as any).count || 0) >= maxSlots) {
-                throw new Error(`Este torneo ha alcanzado su límite máximo de ${maxSlots} inscriptos.`);
-            }
-        }
+        // Admin bypass
 
         if (player2 && ((player1.userId && player1.userId === player2.userId) || (player1.name && player1.name === player2.name))) {
             throw new Error("La pareja no puede estar integrada por la misma persona");
@@ -630,7 +618,9 @@ export async function registerManualPlayer(
                 category: player1.category || "D",
                 clubId: null,
                 player1: u1.name,
-                player2: u2?.name || (isIndividual ? null : "Invitado")
+                player2: u2?.name || (isIndividual ? null : "Invitado"),
+                userId: u1.id,
+                partnerUserId: u2?.id || null
             }
         };
     } catch (err) {

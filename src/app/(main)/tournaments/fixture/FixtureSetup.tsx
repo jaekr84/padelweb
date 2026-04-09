@@ -24,7 +24,18 @@ export interface FixtureSetupProps {
     isIndividual?: boolean;
 }
 
-type Player = { id: string; name: string; category?: string; email?: string; gender?: string; clubId?: string | null; player1?: string | null; player2?: string | null };
+type Player = { 
+    id: string; 
+    name: string; 
+    category?: string; 
+    email?: string; 
+    gender?: string; 
+    clubId?: string | null; 
+    player1?: string | null; 
+    player2?: string | null;
+    userId?: string;
+    partnerUserId?: string | null;
+};
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -1033,7 +1044,7 @@ export default function FixtureSetup({
                     categories={categories}
                     isIndividual={isIndividual}
                     onSuccess={onPlayerAdded}
-                    existingPlayerIds={new Set(players.map(p => p.id))}
+                    existingPlayerIds={new Set(players.flatMap(p => [p.userId, p.partnerUserId]).filter(Boolean) as string[])}
                 />
             </main>
         </div>
