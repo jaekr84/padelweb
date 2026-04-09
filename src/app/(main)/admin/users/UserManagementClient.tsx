@@ -13,6 +13,7 @@ import {
     X, 
     Trophy,
     Shield,
+    ShieldCheck,
     Search,
     Ban,
     CheckCircle,
@@ -24,7 +25,11 @@ import {
     UserX,
     Users,
     ChevronRight,
-    Loader2
+    Loader2,
+    Key,
+    Copy,
+    Share,
+    MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -35,7 +40,8 @@ import {
     updateUserCategory, 
     updateUserClub, 
     resetDatabasePlayers,
-    getUsers
+    getUsers,
+    resetUserPassword
 } from "./actions";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,6 +118,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     const [banDays, setBanDays] = useState(7);
     const [newRoles, setNewRoles] = useState<string[]>([]);
     const [newClubId, setNewClubId] = useState<string | null>(null);
+    const [generatedTempPassword, setGeneratedTempPassword] = useState("");
+    const [resetModal, setResetModal] = useState<{ isOpen: boolean, step: 'confirm' | 'result', userName?: string, userId?: string }>({ isOpen: false, step: 'confirm' });
 
     // Mutations for actions
     const toggleStatusMutation = useMutation({
@@ -173,6 +181,16 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         onError: (error: any) => toast.error(error.message || "Error al resetear"),
     });
 
+    const resetPasswordMutation = useMutation({
+        mutationFn: (userId: string) => resetUserPassword(userId),
+        onSuccess: (data) => {
+            setGeneratedTempPassword(data.tempPassword);
+            setResetModal(prev => ({ ...prev, step: 'result' }));
+            toast.success("Contraseña restablecida");
+        },
+        onError: (error: any) => toast.error(error.message || "Error al restablecer contraseña"),
+    });
+
     // React Hook Form for Category Edit
     const categoryForm = useForm<CategoryFormValues>({
         resolver: zodResolver(categorySchema),
@@ -222,7 +240,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         banMutation.isPending && banMutation.variables?.userId === userId ||
         updateCategoryMutation.isPending && selectedUser?.id === userId ||
         updateRoleMutation.isPending && updateRoleMutation.variables?.userId === userId ||
-        updateClubMutation.isPending && updateClubMutation.variables?.userId === userId;
+        updateClubMutation.isPending && updateClubMutation.variables?.userId === userId ||
+        resetPasswordMutation.isPending && resetPasswordMutation.variables === userId;
 
     const handleToggleStatus = (user: ManagedUser) => {
         toggleStatusMutation.mutate({ userId: user.id, isActive: user.isActive !== true });
@@ -250,6 +269,30 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     const handleUpdateClub = () => {
         if (!selectedUser) return;
         updateClubMutation.mutate({ userId: selectedUser.id, clubId: newClubId });
+    };
+
+    const handleSharePassword = async () => {
+        if (!generatedTempPassword) return toast.error("No hay contraseña para compartir");
+
+        const text = `Se ha restablecido tu contraseña en A.C.A.P.\n\n👤 Usuario: ${selectedUser?.email || 'Tu mail'}\n🔑 Clave Temporal: ${generatedTempPassword}\n\nActualizala desde tu perfil al ingresar.`;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Acceso A.C.A.P.',
+                    text: text,
+                });
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                    toast.error("No se pudo abrir el menú de compartir");
+                }
+            }
+        } else {
+            // Plan B only if there's no native share system (mostly desktop)
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
     };
 
     return (
@@ -446,9 +489,6 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     </span>
                                                 ))}
                                             </div>
-                                            <div className="text-[10px] font-black uppercase italic text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 shadow-lg shadow-indigo-500/5 mt-1.5 w-fit ml-auto">
-                                                {user.category || "D"} <span className="text-muted-foreground/30 px-1">/</span> {user.points || 0} pts
-                                            </div>
                                         </div>
                                     </div>
 
@@ -474,19 +514,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-3 pt-1 relative z-10">
-                                        <button 
-                                            onClick={() => {
-                                                setSelectedUser(user);
-                                                categoryForm.reset({
-                                                    category: user.category || "D",
-                                                    points: user.points || 0
-                                                });
-                                                setIsCategoryModalOpen(true);
-                                            }}
-                                            className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/10 active:scale-95 transition-all text-[9px] font-black uppercase tracking-widest border border-indigo-400/20"
-                                        >
-                                            <Trophy className="w-4 h-4" /> STATS
-                                        </button>
+
                                         
                                         <div className="grid grid-cols-2 gap-2.5 flex-1">
                                             {banned ? (
@@ -510,6 +538,18 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     <span className="text-[8px] font-black uppercase">BAN</span>
                                                 </button>
                                             )}
+
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setResetModal({ isOpen: true, step: 'confirm', userName: user.firstName || user.email, userId: user.id });
+                                                }}
+                                                className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-muted border border-border text-muted-foreground hover:bg-rose-50 hover:text-rose-600 active:scale-95 transition-all disabled:opacity-20"
+                                                disabled={isLoading(user.id)}
+                                            >
+                                                <Key className="w-3.5 h-3.5" />
+                                                <span className="text-[8px] font-black uppercase">RESET</span>
+                                            </button>
 
                                             <button 
                                                 onClick={() => {
@@ -565,10 +605,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                 <thead>
                                     <tr className="bg-muted/50 border-b border-border">
                                         <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                                        <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-32">Nivel / Puntos</th>
                                         <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Roles / Acceso</th>
                                         <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-40">Estado</th>
-                                        <th className="px-5 py-4 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">Operaciones</th>
+                                        <th className="px-5 py-4 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground w-64">Operaciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
@@ -605,19 +644,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="px-1.5 py-0.5 bg-indigo-600 text-white rounded text-[10px] font-black italic">
-                                                            {user.category || "D"}
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-black italic text-foreground leading-none">
-                                                                {user.points || 0}
-                                                            </span>
-                                                            <span className="text-[7px] font-black uppercase tracking-tighter text-muted-foreground">PTS</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
+
                                                 <td className="px-5 py-3">
                                                     <div className="flex flex-wrap gap-1">
                                                         {user.role.split(',').map(r => (
@@ -646,27 +673,15 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 </td>
                                                 <td className="px-5 py-3 text-right">
                                                     <div className="flex items-center justify-end gap-1.5">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setSelectedUser(user);
-                                                                categoryForm.reset({
-                                                                    category: user.category || "D",
-                                                                    points: user.points || 0
-                                                                });
-                                                                setIsCategoryModalOpen(true);
-                                                            }}
-                                                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center"
-                                                            title="STATS"
-                                                        >
-                                                            <Trophy className="w-4 h-4" />
-                                                        </button>
+
                                                         {banned ? (
                                                             <button 
                                                                 onClick={() => handleUnban(user)}
-                                                                className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center"
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-95"
                                                                 title="HABILITAR"
                                                             >
-                                                                <UserCheck className="w-4 h-4" />
+                                                                <UserCheck className="w-3.5 h-3.5" />
+                                                                <span className="text-[8px] font-black uppercase">HABILITAR</span>
                                                             </button>
                                                         ) : (
                                                             <button 
@@ -674,13 +689,27 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                     setSelectedUser(user);
                                                                     setIsBanModalOpen(true);
                                                                 }}
-                                                                className="w-8 h-8 rounded-lg bg-muted text-muted-foreground border border-border hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 transition-all flex items-center justify-center disabled:opacity-20"
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-border hover:bg-amber-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
                                                                 title="BAN"
                                                                 disabled={isLoading(user.id)}
                                                             >
-                                                                <Ban className="w-4 h-4" />
+                                                                <Ban className="w-3.5 h-3.5" />
+                                                                <span className="text-[8px] font-black uppercase">BAN</span>
                                                             </button>
                                                         )}
+
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedUser(user);
+                                                                setResetModal({ isOpen: true, step: 'confirm', userName: user.firstName || user.email, userId: user.id });
+                                                            }}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
+                                                            disabled={isLoading(user.id)}
+                                                            title="Restablecer Contraseña"
+                                                        >
+                                                            <Key className="w-3.5 h-3.5" />
+                                                            <span className="text-[8px] font-black uppercase">RESET</span>
+                                                        </button>
 
                                                         <button 
                                                             onClick={() => {
@@ -688,11 +717,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewRoles(user.role.split(',').map(r => r.trim().toLowerCase()));
                                                                 setIsRoleModalOpen(true);
                                                             }}
-                                                            className="w-8 h-8 rounded-lg bg-muted text-muted-foreground border border-border hover:bg-violet-50 hover:text-violet-600 hover:border-violet-100 transition-all flex items-center justify-center disabled:opacity-20"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
                                                             title="ROLES"
                                                             disabled={isLoading(user.id)}
                                                         >
-                                                            <UserCog className="w-4 h-4" />
+                                                            <UserCog className="w-3.5 h-3.5" />
+                                                            <span className="text-[8px] font-black uppercase">ROLES</span>
                                                         </button>
 
                                                         <button 
@@ -701,24 +731,28 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewClubId(user.clubId);
                                                                 setIsClubModalOpen(true);
                                                             }}
-                                                            className="w-8 h-8 rounded-lg bg-muted text-muted-foreground border border-border hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all flex items-center justify-center"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95"
                                                             title="CLUB"
                                                         >
-                                                            <Shield className="w-4 h-4" />
+                                                            <Shield className="w-3.5 h-3.5" />
+                                                            <span className="text-[8px] font-black uppercase">CLUB</span>
                                                         </button>
 
                                                         <button 
                                                             onClick={() => handleToggleStatus(user)}
-                                                            className={`w-8 h-8 rounded-lg transition-all border flex items-center justify-center ${isInactive 
+                                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all border shadow-sm active:scale-95 ${isInactive 
                                                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white" 
                                                                 : "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"}`}
                                                             title={isInactive ? "ACTIVAR" : "DESACTIVAR"}
                                                             disabled={isLoading(user.id)}
                                                         >
                                                             {isLoading(user.id) ? (
-                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                             ) : (
-                                                                isInactive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />
+                                                                <>
+                                                                    {isInactive ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                                                    <span className="text-[8px] font-black uppercase">{isInactive ? "ACTIVAR" : "DESACTIVAR"}</span>
+                                                                </>
                                                             )}
                                                         </button>
                                                     </div>
@@ -808,66 +842,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
-                <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0">
-                    <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] pointer-events-none" />
-                    <form onSubmit={categoryForm.handleSubmit(handleUpdateCategory)} className="p-10 space-y-8 relative z-10">
-                        <DialogHeader className="flex flex-col items-center text-center gap-6">
-                            <div className="w-20 h-20 rounded-3xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                                <Trophy className="w-10 h-10 text-indigo-600" />
-                            </div>
-                            <div className="space-y-1">
-                                <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter text-foreground">PROMOCIÓN</DialogTitle>
-                                <DialogDescription className="text-[10px] font-black text-indigo-600/60 uppercase tracking-[0.3em]">
-                                    Ajustando perfil de: {selectedUser?.firstName}
-                                </DialogDescription>
-                            </div>
-                        </DialogHeader>
 
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">ASIGNAR CATEGORÍA</label>
-                                <div className="relative group">
-                                    <select 
-                                        {...categoryForm.register("category")}
-                                        className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-xs font-black uppercase text-foreground outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer"
-                                    >
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.name}>CATEGORÍA {cat.name}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-muted-foreground pointer-events-none" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">BALANCE DE PUNTOS</label>
-                                <input 
-                                    type="number" 
-                                    {...categoryForm.register("points", { valueAsNumber: true })}
-                                    className="w-full bg-muted border border-border rounded-2xl px-6 py-5 text-sm font-black text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-inner"
-                                    placeholder="Score total"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <DialogClose asChild>
-                                <button type="button" className="flex-1 py-5 rounded-2xl border border-border text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:bg-muted transition-all">
-                                    CANCELAR
-                                </button>
-                            </DialogClose>
-                            <button 
-                                type="submit"
-                                disabled={selectedUser ? isLoading(selectedUser.id) : false}
-                                className="flex-1 py-5 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-500 shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                {selectedUser && isLoading(selectedUser.id) ? <Loader2 className="w-4 h-4 animate-spin" /> : "ACTUALIZAR STATS"}
-                            </button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
 
             <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
                 <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0 [&>button:last-child]:hidden">
@@ -984,6 +959,126 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             </button>
                         </div>
                     </div>
+                </DialogContent>
+            </Dialog>
+            {/* Integrated Reset Password Flow Modal */}
+            <Dialog open={resetModal.isOpen} onOpenChange={(open) => setResetModal(prev => ({ ...prev, isOpen: open }))}>
+                <DialogContent className="max-w-md bg-card border border-border p-8 rounded-[2.5rem] shadow-2xl [&>button:last-child]:hidden">
+                    <AnimatePresence mode="wait">
+                        {resetModal.step === 'confirm' ? (
+                            <motion.div
+                                key="confirm-step"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="space-y-6"
+                            >
+                                <DialogHeader className="space-y-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-rose-500/10 flex items-center justify-center mx-auto border border-rose-500/20">
+                                        <Key className="w-8 h-8 text-rose-600" />
+                                    </div>
+                                    <DialogTitle className="text-xl font-black uppercase italic tracking-tight text-center leading-tight">
+                                        ¿Restablecer contraseña de <span className="text-rose-600">{resetModal.userName}</span>?
+                                    </DialogTitle>
+                                    <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-center">
+                                        Esta acción invalidará la clave actual y generará una nueva clave temporal.
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="flex flex-col gap-3">
+                                    <button
+                                        onClick={() => {
+                                            if (resetModal.userId) {
+                                                resetPasswordMutation.mutate(resetModal.userId);
+                                            }
+                                        }}
+                                        disabled={resetPasswordMutation.isPending}
+                                        className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all active:scale-95 shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {resetPasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "SÍ, RESTABLECER"}
+                                    </button>
+                                    <button
+                                        onClick={() => setResetModal({ isOpen: false, step: 'confirm' })}
+                                        className="w-full py-4 bg-muted text-muted-foreground rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-muted/80 transition-all active:scale-95 border border-border"
+                                    >
+                                        CANCELAR
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="result-step"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="space-y-6"
+                            >
+                                <DialogHeader className="space-y-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto border border-indigo-500/20">
+                                        <Key className="w-8 h-8 text-indigo-600" />
+                                    </div>
+                                    <DialogTitle className="text-2xl font-black uppercase italic tracking-tight text-center">Contraseña Lista</DialogTitle>
+                                    <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">
+                                        Se ha generado una clave temporal para la unidad
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="my-8 p-6 bg-muted rounded-3xl border border-border relative group overflow-hidden">
+                                    <div className="absolute inset-0 bg-indigo-500/5 blur-3xl" />
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3 text-center relative z-10">Nueva Clave Temporal</p>
+                                    <div className="flex items-center justify-center gap-4 relative z-10">
+                                        <span className="text-4xl font-black tracking-tighter text-indigo-600 font-mono">
+                                            {generatedTempPassword}
+                                        </span>
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    if (navigator.clipboard && window.isSecureContext) {
+                                                        await navigator.clipboard.writeText(generatedTempPassword);
+                                                        toast.success("Copiado al portapapeles");
+                                                    } else {
+                                                        const textArea = document.createElement("textarea");
+                                                        textArea.value = generatedTempPassword;
+                                                        document.body.appendChild(textArea);
+                                                        textArea.select();
+                                                        document.execCommand('copy');
+                                                        document.body.removeChild(textArea);
+                                                        toast.success("Copiado al portapapeles");
+                                                    }
+                                                } catch (err) {
+                                                    toast.error("Error al copiar");
+                                                }
+                                            }}
+                                            className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 active:scale-90 transition-all shadow-lg"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            onClick={handleSharePassword}
+                                            className="p-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 active:scale-90 transition-all shadow-lg"
+                                        >
+                                            <Share className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-4">
+                                    <div className="p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10 flex items-start gap-4">
+                                        <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase tracking-wide">
+                                            Copiá esta clave y enviala manualmente al usuario por seguridad.
+                                        </p>
+                                    </div>
+                                    
+                                    <button
+                                        onClick={() => setResetModal({ isOpen: false, step: 'confirm' })}
+                                        className="w-full py-4 bg-foreground text-background rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-95"
+                                    >
+                                        ENTENDIDO
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </DialogContent>
             </Dialog>
         </div>

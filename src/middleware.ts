@@ -47,7 +47,11 @@ export default async function middleware(req: NextRequest) {
 
     // Admin route protection
     if (pathname.startsWith("/admin")) {
-        if (!session || session.role !== "superadmin") {
+        // Check both the JWT role AND the active_role cookie override
+        const activeRoleCookie = req.cookies.get("active_role")?.value;
+        const effectiveRole = activeRoleCookie || session?.role;
+
+        if (!session || effectiveRole !== "superadmin") {
             return NextResponse.redirect(new URL("/home", req.url));
         }
     }

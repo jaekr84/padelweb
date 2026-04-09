@@ -53,7 +53,6 @@ export default async function AdminDashboardPage() {
         { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'text-blue-500' },
         { label: 'Clubes', href: '/directory', icon: MapPin, color: 'text-indigo-500' },
         { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'text-sky-500' },
-        { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'text-violet-500' },
 
         // Competencia
         { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'text-amber-500' },

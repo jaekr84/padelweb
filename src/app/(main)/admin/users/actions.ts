@@ -5,6 +5,7 @@ import { users } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { eq, ne, and, desc, sql, notLike } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { hashPassword } from "@/lib/auth-server";
 
 async function checkSuperAdmin() {
     const session = await getSession() as { userId: string, role: string } | null;
@@ -125,4 +126,22 @@ export async function getUsers() {
         .from(users)
         .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`)
         .orderBy(desc(users.createdAt));
+}
+
+export async function resetUserPassword(userId: string) {
+    await checkSuperAdmin();
+
+    // Generate a human-readable temp password
+    const tempPassword = `ACAP${Math.floor(1000 + Math.random() * 9000)}`;
+    const hashedPassword = await hashPassword(tempPassword);
+
+    await db.update(users)
+        .set({ 
+            passwordHash: hashedPassword,
+            // Force session refresh for the user
+            sessionVersion: sql`session_version + 1`
+        })
+        .where(eq(users.id, userId));
+
+    return { success: true, tempPassword };
 }

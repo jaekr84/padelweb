@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { updatePlayerProfile } from "./actions";
+import { updatePlayerProfile, updatePasswordAction } from "./actions";
 import { logoutAction } from "@/app/login/actions";
 import { useRouter } from "next/navigation";
 import { acceptClubInviteAction, rejectClubInviteAction } from "../profiles/club/actions";
@@ -31,7 +31,8 @@ import {
     User,
     Phone,
     Users,
-    Zap
+    Zap,
+    Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -89,6 +90,8 @@ export default function PlayerProfileClient({
 
     const [imagePreview, setImagePreview] = useState<string | null>(dbUser?.imageUrl || null);
     const [isUploading, setIsUploading] = useState(false);
+    const [passwords, setPasswords] = useState({ currentPass: "", newPass: "", confirmPass: "" });
+    const [isChangingPass, setIsChangingPass] = useState(false);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -570,8 +573,8 @@ export default function PlayerProfileClient({
                                 )}
 
                                 {activeTab === "account" && (
-                                    <div className="max-w-md mx-auto w-full">
-                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
+                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6 h-fit">
                                             <div className="flex flex-col items-center gap-4 text-center">
                                                 <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
                                                     <User className="h-10 w-10 text-muted-foreground/30" />
@@ -608,6 +611,88 @@ export default function PlayerProfileClient({
                                             >
                                                 <LogOut className="h-4 w-4" /> Cerrar Sesión
                                             </button>
+                                        </div>
+
+                                        {/* Change Password Section */}
+                                        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground flex items-center gap-2">
+                                                    <Lock className="h-5 w-5 text-indigo-600" /> Seguridad
+                                                </h3>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Actualiza tu contraseña de acceso</p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Contraseña Actual</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.currentPass}
+                                                        onChange={e => setPasswords({ ...passwords, currentPass: e.target.value })}
+                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                                        placeholder="••••••••"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Nueva Contraseña</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.newPass}
+                                                        onChange={e => setPasswords({ ...passwords, newPass: e.target.value })}
+                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                                        placeholder="Mínimo 6 caracteres"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Confirmar Nueva Contraseña</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.confirmPass}
+                                                        onChange={e => setPasswords({ ...passwords, confirmPass: e.target.value })}
+                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                                        placeholder="Repetí la contraseña"
+                                                    />
+                                                </div>
+
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!passwords.currentPass || !passwords.newPass || !passwords.confirmPass) {
+                                                            return toast.error("Completa todos los campos");
+                                                        }
+                                                        if (passwords.newPass !== passwords.confirmPass) {
+                                                            return toast.error("Las contraseñas no coinciden");
+                                                        }
+                                                        if (passwords.newPass.length < 6) {
+                                                            return toast.error("La contraseña debe tener al menos 6 caracteres");
+                                                        }
+
+                                                        setIsChangingPass(true);
+                                                        try {
+                                                            const res = await updatePasswordAction({
+                                                                currentPass: passwords.currentPass,
+                                                                newPass: passwords.newPass
+                                                            });
+                                                            if (res.success) {
+                                                                toast.success("Contraseña actualizada. Por favor, volvé a ingresar.");
+                                                                setPasswords({ currentPass: "", newPass: "", confirmPass: "" });
+                                                                // Logout automatically so they have to use the new one
+                                                                await logoutAction();
+                                                            }
+                                                        } catch (err: any) {
+                                                            toast.error(err.message || "Error al actualizar contraseña");
+                                                        } finally {
+                                                            setIsChangingPass(false);
+                                                        }
+                                                    }}
+                                                    disabled={isChangingPass}
+                                                    className="w-full bg-foreground text-background py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                >
+                                                    {isChangingPass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+                                                    Actualizar Contraseña
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

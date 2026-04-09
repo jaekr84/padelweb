@@ -31,19 +31,18 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     superadmin: [
-        { href: "/home", icon: Home, label: "Inicio" },
+        { href: "/home", icon: Home, label: "Feed" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
-        { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
+        { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },
+        { href: "/admin/categories", icon: Settings, label: "Categorías" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
-        { href: "/admin/users", icon: Users, label: "Usuarios" },
-        { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },
-        { href: "/admin/categories", icon: Settings, label: "Categorías" },
     ],
 };
 
@@ -118,7 +117,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     <span className="text-lg font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-3">
-                    {userData && userData.dbRole.includes(",") && (
+                    {userData?.dbRole?.includes(",") && (
                         <div className="relative">
                             <select
                                 value={userData.role}
@@ -130,7 +129,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-[9px] font-black uppercase tracking-widest px-2 py-1.5 rounded-lg appearance-none cursor-pointer outline-none"
                             >
                                 {["superadmin", "club", "jugador"].filter(r => {
-                                    const userRoles = userData.dbRole.split(',').map(ur => ur.trim());
+                                    const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
                                     if (userRoles.includes('superadmin')) return true;
                                     return userRoles.includes(r);
                                 }).map(r => (
@@ -217,7 +216,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     </div>
 
                     {/* ROLE SIMULATOR BLOCK */}
-                    {userData && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
+                    {userData?.dbRole && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
                         <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex flex-col gap-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600/60">Cambiar Vista</span>
@@ -234,7 +233,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     className="w-full bg-background border border-indigo-500/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-indigo-500/40 transition-all outline-none"
                                 >
                                     {["superadmin", "club", "jugador"].filter(r => {
-                                        const userRoles = userData.dbRole.split(',').map(ur => ur.trim());
+                                        const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
                                         if (userRoles.includes('superadmin')) return true;
                                         return userRoles.includes(r);
                                     }).map(r => (
@@ -262,9 +261,9 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-                                <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
-                                <span className="tracking-tight">{item.label}</span>
+                            <Link key={item.href + item.label} href={item.href} className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+                                <Icon className={`w-5 h-5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                <span className="tracking-tight pointer-events-none">{item.label}</span>
                             </Link>
                         );
                     })}
