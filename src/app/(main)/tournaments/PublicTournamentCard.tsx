@@ -161,11 +161,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-2 opacity-40">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Ubicación</span>
+                                    <LayoutGrid className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Tipo</span>
                                 </div>
-                                <div className="text-base font-bold text-foreground/90 truncate pl-5.5">
-                                    {tournament.location || "Por confirmar"}
+                                <div className="text-base font-bold text-foreground/90 pl-5.5">
+                                    {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
                                 </div>
                             </div>
 
@@ -215,37 +215,89 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 opacity-40">
-                                    <LayoutGrid className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Tipo</span>
-                                </div>
-                                <div className="text-base font-bold text-foreground/90 pl-5.5">
-                                    {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
-                                </div>
+                            </div>
+
+                        {/* Full Width Location Block */}
+                        <div className="space-y-1.5 mb-8">
+                            <div className="flex items-center gap-2 opacity-40">
+                                <MapPin className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Ubicación</span>
+                            </div>
+                            <div className="text-base font-bold text-foreground/90 pl-5.5">
+                                {tournament.location ? (
+                                    <a 
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:text-indigo-600 hover:underline transition-colors flex items-center gap-1 group/loc"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {tournament.location}
+                                    </a>
+                                ) : "Por confirmar"}
                             </div>
                         </div>
 
-                        {/* Registration Dates (Styled Box) */}
-                        {(tournament.openDateClub || tournament.openDateGeneral) && (
-                            <div className="bg-muted/30 rounded-3xl p-5 border border-border/40 mb-8 mt-auto">
-                                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 mb-4 text-center">Fases de Inscripción</div>
+                        {/* Map Section - Reserved Space for Symmetry */}
+                        <div className="mb-6 w-full h-40 rounded-[2rem] overflow-hidden border border-border/50 bg-muted/20 relative group/map animate-in fade-in duration-700">
+                            {tournament.location ? (
+                                <>
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        style={{ border: 0, opacity: 0.8 }} 
+                                        loading="lazy" 
+                                        allowFullScreen 
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                    ></iframe>
+                                    <div className="absolute inset-0 bg-transparent cursor-pointer" onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location!)}`, "_blank");
+                                    }} />
+                                </>
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center gap-2 opacity-30">
+                                    <MapPin className="w-6 h-6 text-muted-foreground" />
+                                    <span className="text-[8px] font-black uppercase tracking-widest">Ubicación a confirmar</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Registration Dates (Reserved Box) */}
+                        <div className="bg-muted/30 rounded-3xl p-5 border border-border/40 mb-8 mt-auto min-h-[110px] flex flex-col justify-center">
+                            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 mb-4 text-center">Fases de Inscripción</div>
+                            {(tournament.openDateClub || tournament.openDateGeneral) ? (
                                 <div className="grid grid-cols-2 divide-x divide-border/50">
-                                    {tournament.openDateClub && (
+                                    {tournament.openDateClub ? (
                                         <div className="flex flex-col items-center px-2">
                                             <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 mb-1.5">Habilitados Club</span>
                                             <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateClub)}</span>
                                         </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center px-2 opacity-20">
+                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1.5 border-b border-transparent">No disp.</span>
+                                            <span className="text-sm font-black text-foreground">--/--/--</span>
+                                        </div>
                                     )}
-                                    {tournament.openDateGeneral && (
+                                    {tournament.openDateGeneral ? (
                                         <div className="flex flex-col items-center px-2">
                                             <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Inscripción General</span>
                                             <span className="text-sm font-black text-foreground">{formatDate(tournament.openDateGeneral)}</span>
                                         </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center px-2 opacity-20">
+                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1.5 border-b border-transparent">No disp.</span>
+                                            <span className="text-sm font-black text-foreground">--/--/--</span>
+                                        </div>
                                     )}
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="text-center py-2 opacity-40">
+                                    <Clock className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Próximamente</span>
+                                </div>
+                            )}
+                        </div>
 
                         {/* CTA Button */}
                         <div className="mt-auto">

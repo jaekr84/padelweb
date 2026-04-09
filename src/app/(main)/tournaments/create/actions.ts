@@ -32,6 +32,7 @@ type TournamentInput = {
     } | null;
     registrationFee?: number | null;
     type?: string;
+    surface?: string | null;
 };
 
 export async function createTournament(data: TournamentInput) {
@@ -68,6 +69,7 @@ export async function createTournament(data: TournamentInput) {
             status: "published",
             type: data.type || "round_robin",
             registrationFee: data.registrationFee || null,
+            surface: data.surface || null,
         });
 
     revalidatePath("/tournaments");
@@ -110,6 +112,7 @@ export async function updateTournament(id: string, data: TournamentInput) {
             modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
             registrationFee: data.registrationFee || null,
             type: data.type || "round_robin",
+            surface: data.surface || null,
         })
         .where(eq(tournaments.id, id));
 

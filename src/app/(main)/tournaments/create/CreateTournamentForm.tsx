@@ -14,7 +14,8 @@ import {
     Target,
     Activity,
     Layers,
-    Star
+    Star,
+    MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -120,6 +121,7 @@ export default function CreateTournamentForm({
         description: initialData?.description ?? "",
         maxSlots: String(initialData?.maxSlots ?? 0),
         registrationFee: initialData?.registrationFee !== null && initialData?.registrationFee !== undefined ? String(initialData.registrationFee) : "",
+        surface: initialData?.surface ?? "",
     });
 
     const [modalidad, setModalidad] = useState({
@@ -215,6 +217,7 @@ export default function CreateTournamentForm({
                     genero: modalidad.genero,
                 },
                 registrationFee: info.registrationFee ? Number(info.registrationFee) : null,
+                surface: info.surface,
                 type: tournamentType,
             };
 
@@ -401,6 +404,34 @@ export default function CreateTournamentForm({
                                             onClick={(e) => e.currentTarget.showPicker?.()}
                                         />
                                     </div>
+                                </div>
+
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Ubicación / Dirección (Google Maps)</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            value={info.surface}
+                                            onChange={e => setInfo({ ...info, surface: e.target.value })}
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                            placeholder="Ej: Av. Principal 123, Ciudad (o nombre del club)"
+                                        />
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground ml-2 italic">Esto habilitará el botón de GPS para los jugadores.</p>
+                                    
+                                    {info.surface && info.surface.length > 3 && (
+                                        <div className="mt-4 w-full h-48 rounded-3xl overflow-hidden border border-border/50 bg-muted/20 relative group/map animate-in fade-in zoom-in duration-500">
+                                            <iframe 
+                                                width="100%" 
+                                                height="100%" 
+                                                style={{ border: 0, opacity: 0.8 }} 
+                                                loading="lazy" 
+                                                allowFullScreen 
+                                                src={`https://maps.google.com/maps?q=${encodeURIComponent(info.surface)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                            ></iframe>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2">
