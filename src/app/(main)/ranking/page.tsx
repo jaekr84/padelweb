@@ -29,10 +29,7 @@ export default async function RankingPage() {
     .from(users)
     .leftJoin(clubs, eq(users.clubId, clubs.id))
     .where(
-        and(
-            eq(users.role, "jugador"),
-            sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
-        )
+        sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
     );
 
     // 2. Fetch all tournament registrations to count UNIQUE tournaments played per player
@@ -133,6 +130,7 @@ export default async function RankingPage() {
             tournamentCounts={tournamentCounts} 
             availableCategories={customCategories}
             isLoggedIn={isLoggedIn}
+            currentUserId={session?.userId}
         />
     );
 }

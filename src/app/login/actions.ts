@@ -113,6 +113,7 @@ export async function getSidebarUser() {
 
     return {
         name: displayName,
-        role: user.role
+        role: session.role as string,
+        dbRole: (session as any).dbRole as string || user.role
     };
 }

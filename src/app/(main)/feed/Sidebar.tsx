@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, Search, Plus, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
+import { switchActiveRole } from "@/app/actions/role";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -69,8 +70,8 @@ function getCookieRole(): string {
 
 export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const [role, setRole] = useState(initialUser?.role || "jugador");
-    const [userData, setUserData] = useState<{ name: string; role: string } | null>(
-        initialUser?.userId ? { name: "", role: initialUser.role } : null
+    const [userData, setUserData] = useState<{ name: string; role: string; dbRole: string } | null>(
+        initialUser?.userId ? { name: "", role: initialUser.role, dbRole: initialUser.dbRole } : null
     );
     const pathname = usePathname();
     const router = useRouter();
@@ -132,6 +133,27 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
             {/* DESKTOP SIDEBAR */}
             <aside className="hidden md:flex w-64 border-r border-border bg-background flex-col h-screen sticky top-0 z-50">
+                <style>{`
+                    .sidebar-scroll::-webkit-scrollbar {
+                        width: 5px;
+                    }
+                    .sidebar-scroll::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    .sidebar-scroll::-webkit-scrollbar-thumb {
+                        background: rgba(0, 0, 0, 0.05);
+                        border-radius: 10px;
+                    }
+                    .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+                        background: rgba(99, 102, 241, 0.2);
+                    }
+                    .dark .sidebar-scroll::-webkit-scrollbar-thumb {
+                        background: rgba(255, 255, 255, 0.05);
+                    }
+                    .dark .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+                        background: rgba(99, 102, 241, 0.3);
+                    }
+                `}</style>
                 <div className="p-6 flex flex-col gap-6 border-b border-border">
                     <div className="flex items-center justify-between">
                         <Link href="/home" className="flex items-center gap-3 group">
@@ -149,9 +171,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 {userData ? (
                                     <>
                                         <span className="text-sm font-bold truncate text-foreground">{userData.name}</span>
-                                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">
-                                            {ROLE_LABELS[userData.role] || userData.role}
-                                        </span>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                                                {ROLE_LABELS[userData.role] || userData.role}
+                                            </span>
+                                        </div>
                                     </>
                                 ) : (
                                     <div className="flex flex-col gap-1.5 py-1">
@@ -169,13 +193,52 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         </div>
                     </div>
 
+                    {/* ROLE SIMULATOR BLOCK */}
+                    {userData && (userData.dbRole === "superadmin" || userData.dbRole === "club") && (
+                        <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600/60">Simular Rol</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            </div>
+                            <div className="relative group">
+                                <select
+                                    value={userData.role}
+                                    onChange={async (e) => {
+                                        const newRole = e.target.value;
+                                        await switchActiveRole(newRole);
+                                        window.location.href = "/home";
+                                    }}
+                                    className="w-full bg-background border border-indigo-500/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-indigo-500/40 transition-all outline-none"
+                                >
+                                    {userData.dbRole === "superadmin" && (
+                                        <>
+                                            <option value="superadmin">🛡️ Administrador</option>
+                                            <option value="club">🏟️ Modo Club</option>
+                                            <option value="jugador">🎾 Modo Jugador</option>
+                                        </>
+                                    )}
+                                    {userData.dbRole === "club" && (
+                                        <>
+                                            <option value="club">🏟️ Modo Club</option>
+                                            <option value="jugador">🎾 Modo Jugador</option>
+                                        </>
+                                    )}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-indigo-600 pointer-events-none opacity-50" />
+                            </div>
+                            <p className="text-[8px] text-muted-foreground/60 font-medium uppercase tracking-tight text-center italic">
+                                Cambia de vista sin cerrar sesión
+                            </p>
+                        </div>
+                    )}
+
                     <div className="flex items-center gap-3 bg-card px-4 py-2.5 rounded-2xl border border-border text-sm focus-within:border-indigo-500/50 transition-all shadow-sm">
                         <Search className="w-4 h-4 text-muted-foreground" />
                         <input type="text" placeholder="Buscar jugadores..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
                     </div>
                 </div>
 
-                <nav className="flex-1 flex flex-col gap-1.5 p-4 overflow-y-auto">
+                <nav className="flex-1 flex flex-col gap-1.5 p-4 overflow-y-auto sidebar-scroll">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;

@@ -226,7 +226,7 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
 
 export async function getAvailablePlayers(tournamentId: string) {
     try {
-        const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
+        const allUsers = await db.select().from(users);
         const existingRegs = await db.select({ 
             u1: registrations.userId, 
             u2: registrations.partnerUserId 

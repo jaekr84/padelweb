@@ -244,7 +244,6 @@ export async function searchPlayersForPartner(query: string) {
         .from(users)
         .where(
             and(
-                eq(users.role, "jugador"),
                 ne(users.id, session.userId),
                 or(
                     like(users.firstName, `%${query}%`),

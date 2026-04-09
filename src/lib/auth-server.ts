@@ -32,7 +32,14 @@ export async function verifyJWT(token: string) {
     }
 }
 
-export async function getSession() {
+export interface Session {
+    userId: string;
+    email: string;
+    role: string;
+    dbRole: string;
+}
+
+export async function getSession(): Promise<Session | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get("session")?.value;
     if (!token) return null;
@@ -42,7 +49,7 @@ export async function getSession() {
 
     // Verificar contra la base de datos para asegurar login único
     const [user] = await db
-        .select({ sessionVersion: users.sessionVersion })
+        .select({ sessionVersion: users.sessionVersion, role: users.role })
         .from(users)
         .where(eq(users.id, payload.userId as string))
         .limit(1);
@@ -51,7 +58,27 @@ export async function getSession() {
         return null;
     }
 
-    return payload;
+    // Role override logic
+    let activeRole = payload.role as string;
+    const requestedRole = cookieStore.get("active_role")?.value;
+    
+    if (requestedRole) {
+        if (user.role === 'superadmin') {
+            // Superadmin can switch to any role
+            activeRole = requestedRole;
+        } else if (user.role === 'club' && requestedRole === 'jugador') {
+            // Club users can only switch to jugador
+            activeRole = requestedRole;
+        }
+    }
+
+    // Return extended session with both the active simulated role and the real DB role
+    return { 
+        userId: payload.userId as string,
+        email: payload.email as string,
+        role: activeRole,
+        dbRole: user.role
+    };
 }
 
 export async function setSession(userId: string, email: string, role: string) {

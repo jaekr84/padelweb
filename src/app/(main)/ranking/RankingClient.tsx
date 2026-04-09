@@ -3,9 +3,9 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-    Trophy, Medal, Crown, Shield, User, Users, X, Activity, 
-    Calendar as CalendarIcon, Hash, ChevronRight, Search, 
+import {
+    Trophy, Medal, Crown, Shield, User, Users, X, Activity,
+    Calendar as CalendarIcon, Hash, ChevronRight, Search,
     Filter, Star, TrendingUp, Zap, Loader2
 } from "lucide-react";
 import { type Category } from "@/db/schema";
@@ -40,6 +40,7 @@ interface RankingClientProps {
     tournamentCounts: TournamentCounts;
     availableCategories?: Category[];
     isLoggedIn?: boolean;
+    currentUserId?: string;
 }
 
 function getUserHandle(email: string) {
@@ -47,7 +48,7 @@ function getUserHandle(email: string) {
     return email.split("@")[0].toLowerCase();
 }
 
-export default function RankingClient({ users, tournamentCounts, availableCategories, isLoggedIn }: RankingClientProps) {
+export default function RankingClient({ users, tournamentCounts, availableCategories, isLoggedIn, currentUserId }: RankingClientProps) {
     const [genderFilter, setGenderFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -89,13 +90,13 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         const pg = matches.filter(m => m.isWinner).length;
         const pp = pj - pg;
         const wr = pj > 0 ? Math.round((pg / pj) * 100) : 0;
-        
+
         // Identificar finales: tipo Playoff y round 0
         const finalMatches = matches.filter(m => (m.type === 'Playoff' || m.type === 'Eliminación') && Number(m.round) === 0);
-        
+
         const trofeos = finalMatches.filter(m => m.isWinner).length;
         const subcampeonatos = finalMatches.filter(m => !m.isWinner).length;
-        
+
         return { pj, pg, pp, pe: 0, wr, trofeos, subcampeonatos };
     }, [selectedPlayer, matches]);
 
@@ -120,12 +121,12 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         // Finally filter by search query (preserving pre-calculated _rank)
         if (searchQuery.trim() !== "") {
             const query = searchQuery.toLowerCase();
-            return rankedList.filter(u => 
-                (u.name || "").toLowerCase().includes(query) || 
+            return rankedList.filter(u =>
+                (u.name || "").toLowerCase().includes(query) ||
                 u.email.toLowerCase().includes(query)
             );
         }
-        
+
         return rankedList;
     }, [users, genderFilter, categoryFilter, searchQuery]);
 
@@ -152,7 +153,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
-            
+
             {/* Background */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[150px]" />
@@ -184,7 +185,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-600 mb-2 px-1">Clasificación Oficial</p>
                         <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
-                            <span className="text-gradient-animate">Ranking</span><br/>
+                            <span className="text-gradient-animate">Ranking</span><br />
                             <span className="text-foreground/90 font-black">General</span>
                         </h1>
                     </motion.div>
@@ -284,48 +285,74 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         onClick={() => handlePlayerClick(player)}
-                                        className="group relative bg-card border border-border rounded-[2.5rem] overflow-hidden cursor-pointer transition-all duration-500 hover:translate-x-1 shadow-sm hover:shadow-md"
+                                        className={`group relative border rounded-[2.5rem] overflow-hidden cursor-pointer transition-all duration-500 hover:translate-x-1 shadow-sm hover:shadow-md 
+                                            ${player.id === currentUserId ? 'bg-emerald-500/10 border-emerald-500/30 ring-1 ring-emerald-500/20' : 'bg-card border-border'}
+                                        `}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        
+
+                                        {player.id === currentUserId && (
+                                            <div className="absolute top-0 right-12 bg-emerald-600 text-[8px] font-black uppercase tracking-widest text-white px-3 py-1 rounded-b-xl shadow-lg z-20">
+                                                Vos
+                                            </div>
+                                        )}
+
                                         <div className="p-5 md:p-6 flex items-center gap-6 relative z-10">
                                             {/* Rank */}
                                             <div className="w-16 flex flex-col items-center justify-center shrink-0 border-r border-border pr-4">
-                                                {player._rank === 1 ? <Crown className="w-6 h-6 text-yellow-500 mb-1" /> : 
-                                                 player._rank === 2 ? <Medal className="w-6 h-6 text-slate-400 mb-1" /> :
-                                                 player._rank === 3 ? <Medal className="w-6 h-6 text-orange-500 mb-1" /> : null}
+                                                {player._rank === 1 ? <Crown className="w-6 h-6 text-yellow-500 mb-1" /> :
+                                                    player._rank === 2 ? <Medal className="w-6 h-6 text-slate-400 mb-1" /> :
+                                                        player._rank === 3 ? <Medal className="w-6 h-6 text-orange-500 mb-1" /> : null}
                                                 <span className={`text-xl font-black italic tracking-tighter ${player._rank <= 3 ? "text-foreground" : "text-muted-foreground/30"}`}>
                                                     #{player._rank}
                                                 </span>
                                             </div>
 
-                                            {/* Category Avatar */}
-                                            <div className="w-16 h-16 shrink-0 bg-muted border border-border rounded-[1.25rem] flex flex-col items-center justify-center shadow-inner group-hover:border-emerald-500/30 transition-colors">
-                                                <span className="text-[9px] font-black uppercase text-emerald-600 mb-0.5">Cat</span>
-                                                <span className="text-xl font-black tracking-tighter leading-none italic">{player.category || "-"}</span>
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <h3 className="text-lg font-black uppercase italic tracking-tighter truncate group-hover:text-emerald-600 transition-colors">
-                                                        {player.name || "Jugador"}
-                                                    </h3>
-                                                    {player.club && (
-                                                        <span className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black uppercase tracking-widest text-emerald-600">
-                                                            <Shield className="w-2.5 h-2.5" /> {player.club.name}
-                                                        </span>
+                                            {/* Profile Image / Avatar */}
+                                            <div className="w-12 h-12 shrink-0 relative">
+                                                <div className="w-full h-full rounded-full border border-border overflow-hidden bg-muted group-hover:border-emerald-500/30 transition-all shadow-inner flex items-center justify-center relative">
+                                                    {player.imageUrl ? (
+                                                        <Image
+                                                            src={player.imageUrl}
+                                                            alt={player.name || "Jugador"}
+                                                            fill
+                                                            className="object-cover rounded-full"
+                                                        />
+                                                    ) : (
+                                                        <User className="w-5 h-5 text-muted-foreground/40" />
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                                                    <span>@{getUserHandle(player.email)}</span>
-                                                    <span className="w-1 h-1 bg-border rounded-full" />
-                                                    <span className="text-emerald-600/80">{tournamentCounts[player.id] || 0} TORNEOS</span>
+                                            </div>
+
+                                            {/* Info - Combined Row */}
+                                            <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3">
+                                                <h3 className="text-lg font-black uppercase italic tracking-tighter truncate group-hover:text-emerald-600 transition-colors">
+                                                    {player.name || "Jugador"}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 shrink-0">
+                                                    <span className="text-muted-foreground/60">@{getUserHandle(player.email)}</span>
+                                                    <span className="w-0.5 h-0.5 bg-border rounded-full" />
+                                                    <span className="text-emerald-600/60">{tournamentCounts[player.id] || 0} TORNEOS</span>
+                                                    {player.club && (
+                                                        <>
+                                                            <span className="w-0.5 h-0.5 bg-border rounded-full" />
+                                                            <div className="flex items-center gap-1 text-indigo-600/60">
+                                                                <Shield className="w-2.5 h-2.5" />
+                                                                {player.club.name}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
+                                            </div>
+
+                                            {/* Category Column */}
+                                            <div className="hidden sm:flex flex-col items-center justify-center shrink-0 w-20 border-l border-border px-4">
+                                                <span className="text-xl font-black italic tracking-tighter text-foreground leading-none">{player.category || "-"}</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Cat</span>
                                             </div>
 
                                             {/* Points */}
-                                            <div className="text-right shrink-0 border-l border-border pl-6">
+                                            <div className="text-right shrink-0 border-l border-border pl-6 pr-2">
                                                 <div className={`text-2xl font-black tracking-tighter italic ${isTop3 ? "text-foreground" : "text-muted-foreground/60"}`}>
                                                     {points.toLocaleString()}
                                                 </div>
@@ -350,17 +377,26 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 {selectedPlayer && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-6 overflow-hidden">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedPlayer(null)} className="absolute inset-0 bg-background/60 backdrop-blur-xl" />
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            exit={{ scale: 0.95, opacity: 0 }} 
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
                             className="relative w-full max-w-7xl h-full md:h-[90vh] bg-card border border-border rounded-none md:rounded-[3rem] overflow-hidden flex flex-col shadow-2xl"
                         >
                             {/* Modal Header */}
                             <div className="p-8 border-b border-border flex items-center justify-between shrink-0 bg-card/50 backdrop-blur-md z-20">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
-                                        <User className="w-7 h-7" />
+                                    <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 overflow-hidden relative">
+                                        {selectedPlayer.imageUrl ? (
+                                            <Image
+                                                src={selectedPlayer.imageUrl}
+                                                alt={selectedPlayer.name || "Jugador"}
+                                                fill
+                                                className="object-cover rounded-full"
+                                            />
+                                        ) : (
+                                            <User className="w-7 h-7" />
+                                        )}
                                     </div>
                                     <div>
                                         <h2 className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">{selectedPlayer.name}</h2>
@@ -377,18 +413,18 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             <div className="flex-1 overflow-hidden">
                                 <AnimatePresence mode="wait">
                                     {activeTab === 'perfil' ? (
-                                        <motion.div 
-                                            key="p" 
-                                            initial={{ opacity: 0 }} 
-                                            animate={{ opacity: 1 }} 
-                                            exit={{ opacity: 0 }} 
+                                        <motion.div
+                                            key="p"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
                                             className="flex flex-col md:flex-row h-full"
                                         >
                                             {/* Fixed Sidebar for Player Card */}
                                             <div className="w-full md:w-[420px] p-8 border-b md:border-b-0 md:border-r border-border bg-muted/30 flex items-start justify-center overflow-hidden">
                                                 <div className="scale-[0.85] md:scale-[0.85] origin-top md:-mt-8">
-                                                    {playerStats && <PlayerCard 
-                                                        player={{ 
+                                                    {playerStats && <PlayerCard
+                                                        player={{
                                                             firstName: selectedPlayer.firstName || selectedPlayer.name?.split(' ')[0] || "",
                                                             lastName: selectedPlayer.lastName || selectedPlayer.name?.split(' ').slice(1).join(' ') || "",
                                                             imageUrl: selectedPlayer.imageUrl,
@@ -396,8 +432,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                             side: selectedPlayer.side || "ambos",
                                                             points: selectedPlayer.points || 0,
                                                             clubName: selectedPlayer.club?.name
-                                                        }} 
-                                                        stats={playerStats} 
+                                                        }}
+                                                        stats={playerStats}
                                                     />}
 
                                                     {/* Legend for Acronyms */}
@@ -424,7 +460,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 <div className="max-w-4xl mx-auto space-y-10">
                                                     <div className="flex items-center justify-between">
                                                         <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3 text-foreground">
-                                                            <Activity className="w-6 h-6 text-emerald-600" /> 
+                                                            <Activity className="w-6 h-6 text-emerald-600" />
                                                             Historial de Competencia
                                                         </h3>
                                                         <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
@@ -505,10 +541,10 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                             </div>
                                         </motion.div>
                                     ) : (
-                                        <motion.div 
-                                            key="m" 
-                                            initial={{ opacity: 0 }} 
-                                            animate={{ opacity: 1 }} 
+                                        <motion.div
+                                            key="m"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             className="h-full overflow-y-auto p-12 no-scrollbar"
                                         >

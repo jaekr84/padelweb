@@ -94,13 +94,13 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
 
         const query = search.toLowerCase();
         const results = allPlayers
-            .filter(u => 
-                u.id !== currentUser.id && 
+            .filter(u =>
+                u.id !== currentUser.id &&
                 (u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)) &&
                 !['dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com'].includes(u.email)
             )
             .slice(0, 10);
-        
+
         setSearchResults(results);
     }, [search, partnerMode, partnerName, allPlayers, currentUser.id]);
 
@@ -384,7 +384,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                     <p className="font-bold text-foreground text-sm truncate">{currentUser.name}</p>
                                     <p className="text-muted-foreground text-[10px] truncate">{currentUser.email}</p>
                                 </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2 py-1 rounded-lg shrink-0">Tú</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2 py-1 rounded-lg shrink-0">Vos</span>
                             </div>
                         </div>
 
@@ -471,9 +471,8 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                                                                 <button
                                                                     key={p.id}
                                                                     disabled={!ok}
-                                                                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${
-                                                                        ok ? "hover:bg-muted" : "opacity-40 cursor-not-allowed"
-                                                                    }`}
+                                                                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${ok ? "hover:bg-muted" : "opacity-40 cursor-not-allowed"
+                                                                        }`}
                                                                     onMouseDown={() => {
                                                                         if (!ok) return;
                                                                         setPartnerName(`${p.firstName} ${p.lastName || ""}`);
@@ -671,7 +670,7 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                         <div className="bg-card border border-border rounded-2xl p-4 w-full text-left mb-8 shadow-sm">
                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">Próximos pasos</p>
                             <p className="text-sm text-foreground leading-relaxed font-bold italic">
-                                {tournament.registrationFee 
+                                {tournament.registrationFee
                                     ? `Asegurá tu lugar abonando los $${tournament.registrationFee.toLocaleString('es-ES')} de inscripción antes del cierre del torneo.`
                                     : "¡La inscripción es gratuita! Ya estás dentro del torneo."
                                 } Las llaves se generarán automáticamente.
