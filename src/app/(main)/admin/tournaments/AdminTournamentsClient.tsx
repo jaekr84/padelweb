@@ -334,11 +334,11 @@ function TournamentCard({ tournament, club }: {
 
                     <div className="space-y-1">
                         <div className="flex items-center gap-1.5 opacity-40">
-                            <MapPin className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Ubicación</span>
+                            <LayoutDashboard className="w-3 h-3" />
+                            <span className="text-[9px] font-black uppercase tracking-widest">Tipo</span>
                         </div>
-                        <div className="text-sm font-bold text-foreground/90 truncate pl-4.5">
-                            {club?.name || "Por definir"}
+                        <div className="text-sm font-bold text-foreground/90 pl-4.5">
+                            {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
                         </div>
                     </div>
 
@@ -390,11 +390,11 @@ function TournamentCard({ tournament, club }: {
 
                     <div className="space-y-1">
                         <div className="flex items-center gap-1.5 opacity-40">
-                            <LayoutDashboard className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Tipo</span>
+                            <MapPin className="w-3 h-3" />
+                            <span className="text-[9px] font-black uppercase tracking-widest">Ubicación</span>
                         </div>
-                        <div className="text-sm font-bold text-foreground/90 pl-4.5">
-                            {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
+                        <div className="text-sm font-bold text-foreground/90 pl-4.5 truncate">
+                            {tournament.surface || club?.name || "Por definir"}
                         </div>
                     </div>
                 </div>

@@ -214,8 +214,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
                                 </div>
                             </div>
-
-                            </div>
+                        </div>
 
                         {/* Full Width Location Block */}
                         <div className="space-y-1.5 mb-8">
@@ -225,15 +224,16 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </div>
                             <div className="text-base font-bold text-foreground/90 pl-5.5">
                                 {tournament.location ? (
-                                    <a 
-                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="hover:text-indigo-600 hover:underline transition-colors flex items-center gap-1 group/loc"
-                                        onClick={(e) => e.stopPropagation()}
+                                    <span 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location)}`, "_blank");
+                                        }}
+                                        className="hover:text-indigo-600 hover:underline transition-colors flex items-center gap-1 group/loc cursor-pointer"
                                     >
                                         {tournament.location}
-                                    </a>
+                                    </span>
                                 ) : "Por confirmar"}
                             </div>
                         </div>
