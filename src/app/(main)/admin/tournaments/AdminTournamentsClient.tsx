@@ -9,13 +9,15 @@ import {
     Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag
 } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
-import FinalizeTournamentButton from "./FinalizeTournamentButton";
 import { tournaments, clubs } from "@/db/schema";
 
-type TournamentWithClub = {
-    tournament: typeof tournaments.$inferSelect;
-    club: typeof clubs.$inferSelect | null;
-};
+type Tournament = typeof tournaments.$inferSelect;
+type Club = typeof clubs.$inferSelect;
+
+export interface TournamentWithClub {
+    tournament: Tournament;
+    club: Club | null;
+}
 
 interface Props {
     initialTournaments: TournamentWithClub[];
@@ -74,7 +76,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         <Settings className="w-6 h-6 text-emerald-600" />
                         Gestión de Torneos
                     </h1>
-                    <p className="text-xs font-medium text-muted-foreground mt-1">
+                    <p className="text-xs font-medium text-muted-foreground mt-1 text-balance">
                         Control centralizado de competiciones y fixtures.
                     </p>
                 </div>
@@ -98,14 +100,15 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         className="w-full bg-transparent border-none py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-0"
                     />
                 </div>
-
+                
                 <div className="flex bg-muted/50 p-1 rounded-xl">
                     {["all", "open", "closed"].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s as any)}
-                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${statusFilter === s ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                                }`}
+                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                                statusFilter === s ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                            }`}
                         >
                             {s === "all" ? "Todos" : s === "open" ? "Abiertos" : "Cerrados"}
                         </button>
@@ -125,7 +128,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
             {/* List View - Optimized for Admin - Responsive High Density */}
             <div className="bg-card/40 border border-border/50 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+                    <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr className="bg-muted/30 border-b border-border/50 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
                                 <th className="px-6 py-4 w-[100px]">Estado</th>
@@ -160,12 +163,12 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
     const isDraft = tournament.status === "draft";
 
-    const statusStyle = isLive
-        ? "text-red-500 bg-red-500/10 border-red-500/20"
-        : isFinished
-            ? "text-muted-foreground bg-muted/10 border-border"
-            : isDraft
-                ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
+    const statusStyle = isLive 
+        ? "text-red-500 bg-red-500/10 border-red-500/20" 
+        : isFinished 
+            ? "text-muted-foreground bg-muted/10 border-border" 
+            : isDraft 
+                ? "text-amber-500 bg-amber-500/10 border-amber-500/20" 
                 : "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
 
     const statusLabel = isLive ? "En Vivo" : isFinished ? "Cerrado" : isDraft ? "Borrador" : "Abierto";
