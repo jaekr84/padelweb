@@ -143,8 +143,8 @@ export default function LandingPage({
                 >
                     <div className="flex items-center gap-3 flex-1">
                         <div className="relative w-10 h-10 flex items-center justify-center">
-                            <Image src="/img/acap logo svg blanco.svg" alt="Logo" fill className="object-contain" priority sizes="40px" />
-                            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ WebkitMaskImage: 'url("/img/acap logo svg blanco.svg")', maskImage: 'url("/img/acap logo svg blanco.svg")', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }}>
+                            <Image src="/img/acap logo svg blanco sombra.svg" alt="Logo" fill className="object-contain" priority sizes="40px" />
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ WebkitMaskImage: 'url("/img/acap logo svg blanco sombra.svg")', maskImage: 'url("/img/acap logo svg blanco sombra.svg")', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }}>
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent w-[200%] h-[200%] animate-shine-multi" />
                             </div>
                         </div>
@@ -192,14 +192,14 @@ export default function LandingPage({
                             }}
                         >
                             {/* Logo Base */}
-                            <Image src="/img/acap logo svg blanco.svg" alt="A.C.A.P." fill className="object-contain" priority sizes="(max-width: 768px) 350px, 650px" />
+                            <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" priority sizes="(max-width: 768px) 350px, 650px" />
 
                             {/* Capa de Brillo Enmascarada */}
                             <div
                                 className="absolute inset-0 pointer-events-none overflow-hidden"
                                 style={{
-                                    WebkitMaskImage: 'url("/img/acap logo svg blanco.svg")',
-                                    maskImage: 'url("/img/acap logo svg blanco.svg")',
+                                    WebkitMaskImage: 'url("/img/acap logo svg blanco sombra.svg")',
+                                    maskImage: 'url("/img/acap logo svg blanco sombra.svg")',
                                     WebkitMaskSize: 'contain',
                                     maskSize: 'contain',
                                     WebkitMaskRepeat: 'no-repeat',
@@ -225,7 +225,7 @@ export default function LandingPage({
                                 filter: "blur(4px)"
                             }}
                         >
-                            <Image src="/img/acap logo svg blanco.svg" alt="" fill className="object-contain opacity-50" />
+                            <Image src="/img/acap logo svg blanco sombra.svg" alt="" fill className="object-contain opacity-50" />
                         </div>
 
                         {/* Brillo Horizontal en el Punto de Contacto del Reflejo */}
@@ -410,7 +410,7 @@ export default function LandingPage({
                 <div className="max-w-6xl mx-auto mt-32 px-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-slate-900 pt-8">
                     <div className="flex items-center gap-3">
                         <div className="relative w-8 h-8">
-                            <Image src="/img/acap logo svg blanco.svg" alt="A.C.A.P." fill className="object-contain" />
+                            <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" />
                         </div>
                         <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">© 2026 Asociación Coreana Argentina de Pádel</span>
                     </div>
