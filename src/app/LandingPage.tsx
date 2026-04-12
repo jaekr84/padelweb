@@ -88,24 +88,25 @@ export default function LandingPage({
                 }
                 @keyframes shine-multi {
                     /* Barrido 1: Izquierda a Derecha */
-                    0% { transform: translate(-150%, -50%) rotate(25deg); }
-                    15% { transform: translate(250%, -50%) rotate(25deg); }
+                    0% { transform: translate(-150%, -50%) rotate(25deg); opacity: 0; }
+                    2% { opacity: 1; }
+                    31% { transform: translate(250%, -50%) rotate(25deg); opacity: 1; }
+                    32% { opacity: 0; }
                     
-                    /* Preparar Barrido 2: Derecha a Izquierda */
-                    16% { transform: translate(250%, -50%) rotate(-25deg); }
-                    20% { transform: translate(250%, -50%) rotate(-25deg); }
-                    35% { transform: translate(-150%, -50%) rotate(-25deg); }
+                    /* Barrido 2: Derecha a Izquierda */
+                    33% { transform: translate(250%, -50%) rotate(-25deg); opacity: 0; }
+                    35% { opacity: 1; }
+                    64% { transform: translate(-150%, -50%) rotate(-25deg); opacity: 1; }
+                    65% { opacity: 0; }
                     
-                    /* Preparar Barrido 3: Diagonal Superior */
-                    36% { transform: translate(-50%, -150%) rotate(75deg); }
-                    40% { transform: translate(-50%, -150%) rotate(75deg); }
-                    55% { transform: translate(-50%, 250%) rotate(75deg); }
-                    
-                    /* Pausa Final */
-                    100% { transform: translate(-50%, 250%) rotate(75deg); }
+                    /* Barrido 3: Arriba a Abajo (Diagonal Profunda) */
+                    66% { transform: translate(-50%, -200%) rotate(60deg); opacity: 0; }
+                    68% { opacity: 1; }
+                    98% { transform: translate(-50%, 300%) rotate(60deg); opacity: 1; }
+                    100% { transform: translate(-50%, 300%) rotate(60deg); opacity: 0; }
                 }
                 .animate-shine-multi {
-                    animation: shine-multi 12s ease-in-out infinite;
+                    animation: shine-multi 6s linear infinite;
                 }
                 .text-korea-gradient {
                     display: inline-block;
@@ -207,7 +208,7 @@ export default function LandingPage({
                                     maskPosition: 'center'
                                 }}
                             >
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/60 via-white/20 to-transparent h-[300%] w-[300%] animate-shine-multi opacity-80" />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/60 via-white/20 to-transparent h-[400%] w-[400%] animate-shine-multi opacity-80" />
                             </div>
                         </div>
                         <motion.h1 variants={fadeUp} className="text-xl md:text-2xl lg:text-[2rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-8 text-white">
