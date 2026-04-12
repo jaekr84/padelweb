@@ -15,8 +15,21 @@ const staggerContainer: Variants = {
 };
 
 const fadeUp: Variants = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } }
+    hidden: { opacity: 0, y: 30, filter: "blur(10px)" },
+    show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } }
+};
+
+const logoEntrance: Variants = {
+    hidden: { opacity: 0, filter: "blur(40px)", scale: 1.1 },
+    show: {
+        opacity: 1,
+        filter: "blur(0px)",
+        scale: 1,
+        transition: {
+            duration: 2.5,
+            ease: [0.16, 1, 0.3, 1]
+        }
+    }
 };
 
 export default function LandingPage({
@@ -73,6 +86,43 @@ export default function LandingPage({
                 .glass-card:hover {
                     border-color: rgba(16, 185, 129, 0.5);
                 }
+                @keyframes shine-multi {
+                    /* Barrido 1: Izquierda a Derecha */
+                    0% { transform: translate(-150%, -50%) rotate(25deg); }
+                    15% { transform: translate(250%, -50%) rotate(25deg); }
+                    
+                    /* Preparar Barrido 2: Derecha a Izquierda */
+                    16% { transform: translate(250%, -50%) rotate(-25deg); }
+                    20% { transform: translate(250%, -50%) rotate(-25deg); }
+                    35% { transform: translate(-150%, -50%) rotate(-25deg); }
+                    
+                    /* Preparar Barrido 3: Diagonal Superior */
+                    36% { transform: translate(-50%, -150%) rotate(75deg); }
+                    40% { transform: translate(-50%, -150%) rotate(75deg); }
+                    55% { transform: translate(-50%, 250%) rotate(75deg); }
+                    
+                    /* Pausa Final */
+                    100% { transform: translate(-50%, 250%) rotate(75deg); }
+                }
+                .animate-shine-multi {
+                    animation: shine-multi 12s ease-in-out infinite;
+                }
+                .text-korea-gradient {
+                    display: inline-block;
+                    background: linear-gradient(165deg, #CD2E3A 35%, #ffffff 38%, #ffffff 62%, #0047A0 65%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    filter: drop-shadow(0 0 15px rgba(205, 46, 58, 0.4)) drop-shadow(0 0 15px rgba(0, 71, 160, 0.4));
+                    position: relative;
+                }
+                .text-argentina-gradient {
+                    display: inline-block;
+                    background: linear-gradient(165deg, #74ACDF 30%, #ffffff 35%, #ffffff 65%, #74ACDF 70%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    filter: drop-shadow(0 0 15px rgba(116, 172, 223, 0.4));
+                    position: relative;
+                }
             `}</style>
 
             {/* ── FONDO DINÁMICO (Parallax Mesh Glows) ── */}
@@ -91,8 +141,11 @@ export default function LandingPage({
                     className="flex justify-between items-center w-full max-w-7xl glass-card rounded-[2rem] px-6 py-3 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
                 >
                     <div className="flex items-center gap-3 flex-1">
-                        <div className="relative w-10 h-10 border border-emerald-500/30 rounded-full overflow-hidden shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                            <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" priority sizes="40px" />
+                        <div className="relative w-10 h-10 flex items-center justify-center">
+                            <Image src="/img/acap logo svg blanco.svg" alt="Logo" fill className="object-contain" priority sizes="40px" />
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ WebkitMaskImage: 'url("/img/acap logo svg blanco.svg")', maskImage: 'url("/img/acap logo svg blanco.svg")', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }}>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent w-[200%] h-[200%] animate-shine-multi" />
+                            </div>
                         </div>
                         <span className="font-black text-xl italic tracking-tighter text-white">A.C.A.P</span>
                     </div>
@@ -120,37 +173,69 @@ export default function LandingPage({
             </nav>
 
             {/* ── HERO SECTION ── */}
-            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-48 lg:pt-56 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-24 lg:pt-32 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
                 <motion.div initial="hidden" animate="show" variants={staggerContainer} className="max-w-4xl w-full flex flex-col items-center">
 
-                    {/* ── Logo Central con Mesh Glow ── */}
-                    <motion.div variants={fadeUp} className="relative group mb-12 z-0 flex items-center justify-center">
-                        <style>{`
-                            @keyframes spin-gradient {
-                                0% { transform: rotate(0deg); }
-                                100% { transform: rotate(360deg); }
-                            }
-                            .animated-conic-glow {
-                                background: conic-gradient(
-                                    from 0deg, 
-                                    #ef4444, #ffffff, #1d4ed8, #ffffff, #38bdf8, #ffffff, #ef4444
-                                );
-                                animation: spin-gradient 8s linear infinite;
-                                border-radius: 50%;
-                            }
-                        `}</style>
-                        {/* Glow circular unificado en todo el borde */}
-                        <div className="absolute -inset-4 md:-inset-6 opacity-60 group-hover:opacity-100 blur-[20px] md:blur-[30px] transition-opacity duration-1000 -z-10 animated-conic-glow"></div>
+                    {/* ── Logo Central con Brillo y Reflejo Espejo (Estático) ── */}
+                    <motion.div
+                        initial="hidden"
+                        animate="show"
+                        variants={logoEntrance}
+                        className="relative group mb-8 z-0 flex flex-col items-center justify-center [perspective:1200px]"
+                    >
+                        {/* Logo Principal */}
+                        <div
+                            className="relative flex items-center justify-center shrink-0 mx-auto w-[350px] h-[240px] md:w-[650px] md:h-[450px] z-10"
+                            style={{
+                                filter: "drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.1))"
+                            }}
+                        >
+                            {/* Logo Base */}
+                            <Image src="/img/acap logo svg blanco.svg" alt="A.C.A.P." fill className="object-contain" priority sizes="(max-width: 768px) 350px, 650px" />
 
-                        {/* Avatar */}
-                        <div className="relative flex items-center justify-center bg-black rounded-full p-2 border border-slate-800 overflow-hidden shrink-0 aspect-square mx-auto w-[180px] h-[180px] md:w-[280px] md:h-[280px] shadow-2xl">
-                            <Image src="/img/stickers 1.jpg" alt="A.C.A.P." fill className="object-cover rounded-full" priority sizes="(max-width: 768px) 180px, 280px" />
+                            {/* Capa de Brillo Enmascarada */}
+                            <div
+                                className="absolute inset-0 pointer-events-none overflow-hidden"
+                                style={{
+                                    WebkitMaskImage: 'url("/img/acap logo svg blanco.svg")',
+                                    maskImage: 'url("/img/acap logo svg blanco.svg")',
+                                    WebkitMaskSize: 'contain',
+                                    maskSize: 'contain',
+                                    WebkitMaskRepeat: 'no-repeat',
+                                    maskRepeat: 'no-repeat',
+                                    WebkitMaskPosition: 'center',
+                                    maskPosition: 'center'
+                                }}
+                            >
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/60 via-white/20 to-transparent h-[300%] w-[300%] animate-shine-multi opacity-80" />
+                            </div>
+                        </div>
+                        <motion.h1 variants={fadeUp} className="text-xl md:text-2xl lg:text-[2rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-8 text-white">
+                            ASOCIACIÓN <span className="text-korea-gradient">COREANA</span> DE PÁDEL EN <span className="text-argentina-gradient">ARGENTINA</span>
+                        </motion.h1>
+
+                        {/* Reflejo de Suelo (Tipo Espejo de Cristal - Estático) */}
+                        <div
+                            className="absolute -bottom-[60%] flex items-center justify-center shrink-0 w-[350px] h-[240px] md:w-[650px] md:h-[450px] pointer-events-none select-none -z-10 opacity-30"
+                            style={{
+                                transform: "scaleY(-1)",
+                                maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)",
+                                WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)",
+                                filter: "blur(4px)"
+                            }}
+                        >
+                            <Image src="/img/acap logo svg blanco.svg" alt="" fill className="object-contain opacity-50" />
+                        </div>
+
+                        {/* Brillo Horizontal en el Punto de Contacto del Reflejo */}
+                        <div className="absolute -bottom-8 w-[200px] md:w-[400px] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent blur-[1px]" />
+
+                        {/* Sutil resplandor de fondo (Auroras) */}
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 -z-20 flex justify-center opacity-30">
+                            <div className="w-[300px] h-[200px] md:w-[600px] md:h-[400px] bg-emerald-500/10 blur-[130px] rounded-full" />
                         </div>
                     </motion.div>
 
-                    <motion.div variants={fadeUp} className="inline-block mb-6 border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 rounded-full backdrop-blur-md">
-                        <span className="text-xs font-bold text-blue-400 tracking-widest uppercase">La Nueva Era del Deporte</span>
-                    </motion.div>
 
                     <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl lg:text-[7rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-8 text-white">
                         Domina La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(16,185,129,0.3)]">Cancha</span>
@@ -323,7 +408,9 @@ export default function LandingPage({
 
                 <div className="max-w-6xl mx-auto mt-32 px-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-slate-900 pt-8">
                     <div className="flex items-center gap-3">
-                        <Image src="/img/stickers 1.jpg" alt="A.C.A.P." width={32} height={32} className="rounded-full grayscale border border-slate-800" />
+                        <div className="relative w-8 h-8">
+                            <Image src="/img/acap logo svg blanco.svg" alt="A.C.A.P." fill className="object-contain" />
+                        </div>
                         <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">© 2026 Asociación Coreana Argentina de Pádel</span>
                     </div>
                     <div>

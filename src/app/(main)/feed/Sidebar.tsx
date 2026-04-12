@@ -156,7 +156,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </header>
 
             {/* MOBILE OVERLAY MENU (DRAWER) */}
-            <div 
+            <div
                 className={`md:hidden fixed inset-0 z-[60] bg-background/95 backdrop-blur-md transition-all duration-300 ${isCollapsed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <div className="flex flex-col h-full p-6">
@@ -165,7 +165,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             <Image src="/img/stickers 1.jpg" alt="A.C.A.P." width={40} height={40} className="rounded-full border border-border shadow-sm" priority />
                             <span className="text-xl font-extrabold tracking-tight text-foreground">A.C.A.P.</span>
                         </div>
-                        <button 
+                        <button
                             onClick={() => setIsCollapsed(false)}
                             className="p-2 rounded-xl border border-border bg-background shadow-sm hover:bg-muted text-foreground"
                         >
@@ -178,9 +178,9 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             const Icon = item.icon;
                             const isActive = pathname === item.href;
                             return (
-                                <Link 
-                                    key={item.href + item.label} 
-                                    href={item.href} 
+                                <Link
+                                    key={item.href + item.label}
+                                    href={item.href}
                                     onClick={() => setIsCollapsed(false)}
                                     className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-bold text-lg ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                                 >
@@ -193,7 +193,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
                     <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
                         <div className="flex items-center gap-4 px-2">
-                             <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
                                 <User className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col min-w-0">
@@ -244,7 +244,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">ACAP</span>}
                         </Link>
                         {!isCollapsed && (
-                            <button 
+                            <button
                                 onClick={() => setIsCollapsed(true)}
                                 className="p-2 rounded-xl text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 transition-all"
                             >
@@ -254,7 +254,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     </div>
 
                     {isCollapsed && (
-                        <button 
+                        <button
                             onClick={() => setIsCollapsed(false)}
                             className="p-2 -mt-4 rounded-xl text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 transition-all"
                         >
@@ -340,9 +340,9 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         return (
-                            <Link 
-                                key={item.href + item.label} 
-                                href={item.href} 
+                            <Link
+                                key={item.href + item.label}
+                                href={item.href}
                                 className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
@@ -360,7 +360,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 <User className="w-5 h-5" />
                             </div>
                         </Link>
-                        <button 
+                        <button
                             onClick={handleLogout}
                             className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
                             title="Cerrar Sesión"

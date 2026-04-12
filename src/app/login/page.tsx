@@ -32,7 +32,7 @@ export default function LoginPage() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent pointer-events-none" />
 
             {/* Back Navigation */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md mb-8 flex justify-between items-center relative z-10 px-4"
@@ -43,8 +43,8 @@ export default function LoginPage() {
                     </div>
                     <span className="font-black italic tracking-tighter text-sm uppercase text-slate-400 group-hover:text-white transition-colors">A.C.A.P.</span>
                 </Link>
-                <Link 
-                    href="/" 
+                <Link
+                    href="/"
                     className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all group"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

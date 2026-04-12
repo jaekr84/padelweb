@@ -11,7 +11,7 @@ const PUBLIC_ROUTES = [
     "/profiles/centro",
 ];
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Check if it's a public route

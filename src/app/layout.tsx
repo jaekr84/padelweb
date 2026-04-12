@@ -83,15 +83,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <head>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
-            }}
-          />
-          <Providers>
-            {children}
-            <Toaster position="bottom-right" closeButton richColors />
-          </Providers>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,
+          }}
+        />
+        <Providers>
+          {children}
+          <Toaster position="bottom-right" closeButton richColors />
+        </Providers>
       </body>
     </html>
   );

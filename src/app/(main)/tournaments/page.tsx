@@ -320,7 +320,7 @@ export default async function TournamentsPage({
                                 filteredTournaments.forEach(t => {
                                     const dateStr = t.startDate;
                                     let monthKey = "Próximamente / Fecha a definir";
-                                    
+
                                     if (dateStr && typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
                                         const [year, month, day] = dateStr.split("-").map(Number);
                                         const d = new Date(year, month - 1, day);
@@ -351,12 +351,12 @@ export default async function TournamentsPage({
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                             {groups[month].map((t) => (
-                                                <PublicTournamentCard 
-                                                    key={t.id} 
-                                                    tournament={t} 
-                                                    userClubId={dbUser?.clubId} 
+                                                <PublicTournamentCard
+                                                    key={t.id}
+                                                    tournament={t}
+                                                    userClubId={dbUser?.clubId}
                                                     userDbRole={session?.role}
-                                                    isUserRegistered={t.isRegistered} 
+                                                    isUserRegistered={t.isRegistered}
                                                 />
                                             ))}
                                         </div>
