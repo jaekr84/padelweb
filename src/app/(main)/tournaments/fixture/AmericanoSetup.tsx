@@ -59,7 +59,7 @@ export default function AmericanoSetup({
 }: AmericanoSetupProps) {
     const router = useRouter();
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin" | "config" | "assign">("checkin");
+    const [step, setStep] = useState<"checkin" | "config">("checkin");
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [present, setPresent] = useState<Set<string>>(new Set());
 
@@ -127,17 +127,7 @@ export default function AmericanoSetup({
 
 
 
-    const handleStart = () => {
-        if (PRESENT_PLAYERS.length < 2) {
-            toast.error("Se necesitan al menos 2 jugadores para iniciar");
-            return;
-        }
-        // Americano siempre usa 1 grupo único
-        setGroups([{ id: 'g0', name: 'Grupo Único', players: PRESENT_PLAYERS }]);
-        const m = generateAmericanoMatches(PRESENT_PLAYERS, matchesPerTeam, numCourts);
-        setGeneratedMatches(m);
-        setStep("assign");
-    };
+
 
     const generateAmericanoMatches = (players: Player[], matchesPerPlayer: number, maxCourts: number): (Match & { roundIndex: number; courtNumber: number })[] => {
         const n = players.length;
@@ -237,30 +227,36 @@ export default function AmericanoSetup({
         return scheduledMatches;
     };
 
-    const handleConfirmGroups = async () => {
-        setSaving(true);
-        const group = groups[0];
-        if (!group) return;
-
-        if (generatedMatches.length === 0) {
-            toast.error("No hay partidos para guardar.");
-            setSaving(false);
+    const handleStart = async () => {
+        if (PRESENT_PLAYERS.length < 2) {
+            toast.error("Se necesitan al menos 2 jugadores para iniciar");
             return;
         }
+        setSaving(true);
+        const group: Group = {
+            id: crypto.randomUUID(),
+            name: "Americano",
+            players: PRESENT_PLAYERS
+        };
 
         const res = await saveTournamentFixture({
             tournamentId,
             phase: "grupos",
             youtubeUrl: ytUrl || undefined,
-            groups: [{ id: group.id, name: group.name, players: group.players }],
-            matches: generatedMatches,
+            groups: [group],
+            matches: [], // Dynamically generated matches start empty
             bracket: [],
+            modalidad: {
+                numCourts,
+                matchesPerTeam,
+                isIndividual
+            }
         });
 
         if (res.ok) {
             router.push(`/tournaments/${tournamentId}/manage`);
         } else {
-            toast.error("Error al iniciar el torneo: " + res.error);
+            toast.error("Error al iniciar torneo: " + res.error);
         }
         setSaving(false);
     };
@@ -282,8 +278,7 @@ export default function AmericanoSetup({
                         <div className="flex items-center gap-6">
                             <button
                                 onClick={() => {
-                                    if (step === "assign") setStep("config");
-                                    else if (step === "config") setStep("checkin");
+                                    if (step === "config") setStep("checkin");
                                     else router.push(`/tournaments/${tournamentId}/manage`);
                                 }}
                                 className="group flex items-center gap-2 text-foreground/40 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
@@ -316,12 +311,8 @@ export default function AmericanoSetup({
                                         id: "estructura", 
                                         icon: LayoutDashboard, 
                                         label: "Estructura", 
-                                        active: step === "config" || step === "assign",
-                                        completed: false,
-                                        subSteps: [
-                                            { id: "config", label: "Ajustes", active: step === "config" },
-                                            { id: "assign", label: "Cuadro", active: step === "assign" }
-                                        ]
+                                        active: step === "config",
+                                        completed: false
                                     },
                                     { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
                                     { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
@@ -368,33 +359,6 @@ export default function AmericanoSetup({
                         </div>
                     </div>
 
-                    {/* Secondary Navigation (Index) for sub-steps */}
-                    <AnimatePresence>
-                        {(step === "config" || step === "assign") && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="flex items-center justify-center gap-6 py-2 border-t border-border/30"
-                            >
-                                {[
-                                    { id: "config", label: "1. Ajustes del Formato" },
-                                    { id: "assign", label: "2. Generación del Cuadro" }
-                                ].map((ss) => (
-                                    <button
-                                        key={ss.id}
-                                        onClick={() => setStep(ss.id as any)}
-                                        className={`group flex items-center gap-2 transition-all ${step === ss.id 
-                                            ? "text-blue-500 font-black" 
-                                            : "text-foreground/30 hover:text-foreground/50 font-bold"}`}
-                                    >
-                                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${step === ss.id ? "bg-blue-500 scale-150" : "bg-foreground/20 group-hover:bg-foreground/40"}`} />
-                                        <span className="text-[9px] uppercase tracking-widest">{ss.label}</span>
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </div>
             </header>
 
@@ -628,64 +592,7 @@ export default function AmericanoSetup({
                         </motion.div>
                     )}
 
-                    {step === "assign" && (
-                        <motion.div key="assign" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-6 pb-20">
-                            <div className="bg-blue-600/10 border border-blue-500/20 rounded-3xl p-8 text-center relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4">
-                                    <button onClick={reshuffleMatches} className="p-2 hover:bg-blue-600/20 rounded-full transition-colors group" title="Sorteo Random">
-                                        <Dice5 className="w-6 h-6 text-blue-500 animate-pulse group-hover:animate-spin" />
-                                    </button>
-                                </div>
-                                <h3 className="text-2xl font-black uppercase italic text-blue-500 mb-2">Partidos Generados</h3>
-                                <p className="text-sm text-foreground/60 max-w-md mx-auto">
-                                    Se armó un cuadro con <strong>{generatedMatches.length}</strong> partidos totales. 
-                                    Cada equipo juega exactamente <strong>{matchesPerTeam}</strong> partidos.
-                                </p>
-                            </div>
 
-                            <div className="space-y-12">
-                                {Array.from(new Set(generatedMatches.map(m => m.roundIndex))).sort((a, b) => (a || 0) - (b || 0)).map(roundIdx => (
-                                    <div key={roundIdx} className="space-y-4">
-                                        <div className="flex items-center gap-4 px-2">
-                                            <div className="h-px flex-1 bg-border/50" />
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/30">Ronda {(roundIdx || 0) + 1}</h4>
-                                            <div className="h-px flex-1 bg-border/50" />
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {generatedMatches.filter(m => m.roundIndex === roundIdx).map((m, idx) => (
-                                                <div key={idx} className="bg-card border border-border/50 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all relative overflow-hidden group">
-                                                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-blue-600 opacity-20" />
-                                                    <div className="flex-1 text-right overflow-hidden break-words">
-                                                        <span className="text-[10px] font-black uppercase italic">{m.team1.name}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-center gap-1 min-w-[60px]">
-                                                        <div className="px-3 py-1 bg-muted rounded-lg text-[10px] font-black text-foreground/20">VS</div>
-                                                        <span className="text-[8px] font-black uppercase text-blue-500/40 tracking-tighter">Cancha {m.courtNumber}</span>
-                                                    </div>
-                                                    <div className="flex-1 text-left overflow-hidden break-words">
-                                                        <span className="text-[10px] font-black uppercase italic">{m.team2.name}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex gap-4 sticky bottom-4">
-                                <button onClick={() => setStep("config")} className="flex-1 py-5 bg-card border border-border rounded-3xl font-black uppercase italic tracking-widest shadow-2xl backdrop-blur-xl bg-card/80">Atrás</button>
-                                <button
-                                    onClick={handleConfirmGroups}
-                                    disabled={saving}
-                                    className="flex-[2] py-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2"
-                                >
-                                    {saving ? "Generando..." : "Confirmar y Empezar"}
-                                    <Zap className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
             </main>
             

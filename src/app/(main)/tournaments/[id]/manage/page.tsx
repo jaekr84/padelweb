@@ -23,6 +23,7 @@ export default async function TournamentManagePage({ params }: Props) {
             status: tournaments.status,
             createdByUserId: tournaments.createdByUserId,
             type: tournaments.type,
+            modalidad: tournaments.modalidad,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
@@ -125,6 +126,7 @@ export default async function TournamentManagePage({ params }: Props) {
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
                 readOnly={tournament.status === "finalizado"}
+                modality={tournament.modalidad as any}
             />
         );
     }

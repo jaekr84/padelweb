@@ -715,7 +715,7 @@ export default function TournamentManager({
         <div className="min-h-screen bg-background pb-20">
             {/* UNIFIED HEADER */}
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 transition-all">
-                <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+                <div className="w-full px-4 md:px-8 lg:px-12 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => {

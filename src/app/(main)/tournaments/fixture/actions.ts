@@ -42,11 +42,12 @@ export type SaveFixtureInput = {
         winnerId?: string;
     }[];
     championName?: string;
+    modalidad?: any;
 };
 function slotName(t: BracketSlot): string | null {
-    if (t === null) return null;
+    if (!t) return null;
     if (t === "BYE") return "BYE";
-    return (t as PlayerLike).name;
+    return (t as PlayerLike).name || null;
 }
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -180,6 +181,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
             .set({
                 status: newStatus,
                 ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
+                ...(input.modalidad ? { modalidad: input.modalidad } : {}),
             })
             .where(eq(tournaments.id, input.tournamentId));
 
