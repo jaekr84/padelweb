@@ -10,6 +10,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://acap.ar"),
   title: {
     default: "A.C.A.P. | Asociación Coreana Argentina de Pádel",
     template: "%s | A.C.A.P."

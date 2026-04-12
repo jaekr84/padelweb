@@ -257,12 +257,6 @@ export default function TournamentManager({
     };
 
     // Sync state with props when initial data changes (e.g. after router.refresh())
-    useEffect(() => {
-        setGroups(initialGroups);
-        setMatches(initialMatches);
-        setBracket(initialBracket);
-    }, [initialGroups, initialMatches, initialBracket]);
-
     // ─── Renderizado Condicional ───
 
     // Golden Rule: Detect if all matches are confirmed to enable Eliminatorias
@@ -321,6 +315,101 @@ export default function TournamentManager({
             return q;
         });
     }, [sortedQualifiers, qualifierOverrides]);
+
+    useEffect(() => {
+        setGroups(initialGroups);
+        setMatches(initialMatches);
+        setBracket(initialBracket);
+    }, [initialGroups, initialMatches, initialBracket]);
+
+    // ─── AUTO-SYNC BRACKET EFFECT ───
+    useEffect(() => {
+        if (readOnly || step === "setup") return;
+        if (finalQualifiers.length < 2) return;
+
+        // Logic: If any "real" match is confirmed in the bracket, we stop auto-sync
+        const bracketHasStarted = bracket.some(m => m.confirmed && m.team1 !== "BYE" && m.team2 !== "BYE");
+        if (bracketHasStarted) return;
+
+        // We want to update the bracket names based on current finalQualifiers
+        const totalQuals = finalQualifiers.length;
+        const numRounds = Math.ceil(Math.log2(totalQuals));
+        const bracketSize = Math.pow(2, numRounds);
+
+        setBracket(prev => {
+            // If the bracket size changed, or if it's empty, we create a new one
+            let newBracket: BracketMatch[] = [];
+            const existingRounds = new Set(prev.map(m => m.round));
+            const needsRecreation = prev.length === 0 || (existingRounds.size > 0 && existingRounds.size !== numRounds);
+
+            if (needsRecreation) {
+                for (let r = 0; r < numRounds; r++) {
+                    const matchesInRound = Math.pow(2, r);
+                    for (let s = 0; s < matchesInRound; s++) {
+                        newBracket.push({
+                            id: `b_${r}_${s}`,
+                            round: r,
+                            slot: s,
+                            team1: null,
+                            team2: null,
+                            confirmed: false,
+                        });
+                    }
+                }
+            } else {
+                newBracket = prev.map(m => ({ ...m }));
+            }
+
+            const seedPositions = getSeedingOrder(bracketSize);
+            const firstRoundIdx = numRounds - 1;
+            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+
+            let changed = false;
+            for (let i = 0; i < seedPositions.length; i += 2) {
+                const mIdx = i / 2;
+                const s1 = seedPositions[i];
+                const s2 = seedPositions[i + 1];
+
+                const q1 = finalQualifiers[s1 - 1];
+                const q2 = finalQualifiers[s2 - 1];
+
+                const t1 = (q1 && s1 <= totalQuals) ? q1.player : "BYE";
+                const t2 = (q2 && s2 <= totalQuals) ? q2.player : "BYE";
+
+                const match = firstRoundMatches.find(m => m.slot === mIdx);
+                if (match) {
+                    if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
+                        match.team1 = t1 as BracketSlot;
+                        match.team2 = t2 as BracketSlot;
+                        
+                        // Auto-confirm BYEs
+                        if (match.team1 === "BYE" || match.team2 === "BYE") {
+                            match.confirmed = true;
+                            const winner = match.team1 === "BYE" ? match.team2 : match.team1;
+                            if (winner && winner !== "BYE") {
+                                match.winnerId = (winner as Player).id;
+                                match.winnerName = (winner as Player).name;
+                            }
+                        } else {
+                            match.confirmed = false; // Reset if it was a BYE before
+                            match.winnerId = undefined;
+                            match.winnerName = undefined;
+                        }
+                        changed = true;
+                    }
+                }
+            }
+
+            // Always re-run computation for auto-advances of BYEs
+            const finalProcessed = computeAdvancedBracket(newBracket, numRounds);
+            
+            // Compare finalProcessed with prev to avoid loops if nothing changed
+            if (JSON.stringify(finalProcessed) !== JSON.stringify(prev)) {
+                return finalProcessed;
+            }
+            return prev;
+        });
+    }, [finalQualifiers, readOnly, step]);
 
     const handleSimulateResults = () => {
         const newMatches = matches.map(m => {
@@ -544,6 +633,9 @@ export default function TournamentManager({
     };
 
     const handleBracketScore = (matchId: string, s1: string, s2: string) => {
+        const match = bracket.find(m => m.id === matchId);
+        if (match?.confirmed || readOnly) return;
+
         setBracket(prev => prev.map(m => {
             if (m.id !== matchId) return m;
             return {
@@ -663,8 +755,27 @@ export default function TournamentManager({
     };
 
     const handleBracketEdit = async (matchId: string) => {
-        const updatedBracket = bracket.map(m => m.id === matchId ? { ...m, confirmed: false } : m);
-        setBracket(updatedBracket);
+        const target = bracket.find(m => m.id === matchId);
+        if (!target || !target.confirmed || readOnly) return;
+
+        // Check if next round is already confirmed
+        const nextMatch = bracket.find(nm => nm.round === target.round - 1 && nm.slot === Math.floor(target.slot / 2));
+        if (nextMatch?.confirmed) {
+            toast.error("No se puede editar: el ganador ya jugó la siguiente ronda.");
+            return;
+        }
+
+        const updated = bracket.map(m => {
+            if (m.id === matchId) {
+                return { ...m, confirmed: false, winnerId: undefined, winnerName: undefined };
+            }
+            // Clear advanced winner in next round
+            if (m.round === target.round - 1 && m.slot === Math.floor(target.slot / 2)) {
+                if (target.slot % 2 === 0) return { ...m, team1: null };
+                else return { ...m, team2: null };
+            }
+            return m;
+        });
 
         setSaving(true);
         try {
@@ -673,9 +784,10 @@ export default function TournamentManager({
                 phase: "eliminatorias",
                 groups,
                 matches,
-                bracket: updatedBracket,
+                bracket: updated,
             });
-            toast.success("Partido habilitado para edición");
+            setBracket(updated);
+            toast.success("Partido reabierto para edición");
         } catch (err) {
             console.error(err);
             toast.error("Error al actualizar estado del partido");
@@ -741,32 +853,30 @@ export default function TournamentManager({
 
                         <div className="h-8 w-[1px] bg-border/50 hidden md:block" />
 
-                        {/* Navigation Stepper */}
+                        {/* Navigation Stepper (Simplified) */}
                         <div className="hidden md:flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
                             {(() => {
                                 const steps = [
                                     { id: "setup", label: "Participantes", icon: Users2, active: step === "setup", completed: step !== "setup" },
-                                    { id: "done", label: "Partidos", icon: Swords, active: step === "done", completed: step === "qual" || step === "elim" },
-                                    { id: "qual", label: "Ranking", icon: BarChart3, active: step === "qual", completed: step === "elim" },
-                                    { id: "elim", label: "Playoffs", icon: Trophy, active: step === "elim", completed: initialStatus === "finalizado" },
+                                    { id: "done", label: "Torneo en Curso", icon: Swords, active: step === "done" || step === "qual" || step === "elim", completed: initialStatus === "finalizado" },
                                 ];
 
                                 return steps.map((s, idx) => {
                                     const Icon = s.icon;
-                                    const isAccessible = s.id === "setup" || s.id === "done" || (s.id === "qual" && isGroupStageFinished) || (s.id === "elim" && (isGroupStageFinished || bracket.length > 0));
+                                    const isAccessible = s.id === "setup" || s.id === "done";
 
                                     return (
                                         <div key={s.id} className="flex items-center">
                                             <button
                                                 onClick={() => isAccessible && setStep(s.id as any)}
                                                 disabled={!isAccessible}
-                                                className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl transition-all ${s.active
+                                                className={`flex items-center gap-2 px-6 py-2 rounded-xl transition-all ${s.active
                                                         ? "bg-foreground text-background shadow-lg shadow-foreground/10"
                                                         : s.completed
                                                             ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
                                                             : isAccessible
-                                                                ? "text-foreground/60 hover:bg-muted/80"
-                                                                : "opacity-30 cursor-not-allowed"
+                                                                 ? "text-foreground/60 hover:bg-muted/80"
+                                                                 : "opacity-30 cursor-not-allowed"
                                                     }`}
                                             >
                                                 <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${s.active ? "animate-pulse" : ""}`} />
@@ -775,7 +885,7 @@ export default function TournamentManager({
                                                 </span>
                                                 {s.completed && <Check className="w-2.5 h-2.5 lg:w-3 lg:h-3 ml-1" />}
                                             </button>
-                                            {idx < 3 && <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 mx-0.5 lg:mx-1 text-border/40" />}
+                                            {idx < steps.length - 1 && <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 mx-1 text-border/40" />}
                                         </div>
                                     );
                                 });
@@ -952,755 +1062,363 @@ export default function TournamentManager({
                         </motion.div>
                     )}
 
-                    {step === "done" && (
+                    {(step === "done" || step === "qual" || step === "elim") && (
                         <motion.div
-                            key="groups-stage"
+                            key="tournament-flow"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="space-y-12"
+                            className="space-y-20 pb-40"
                         >
-                            {/* Progress Bar */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-foreground/70">
-                                    <span>Progreso Fase de Grupos</span>
-                                    <div className="flex items-center gap-3">
-                                        {!readOnly && progressPercent < 100 && (
-                                            <button
-                                                onClick={handleSimulateResults}
-                                                className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
-                                                title="Simular resultados aleatorios para pruebas"
-                                            >
-                                                <Dice5 className="w-3 h-3 group-hover:rotate-12 transition-transform" />
-                                                Simular Todo
-                                            </button>
-                                        )}
-                                        <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
+                            {/* --- FASE DE GRUPOS --- */}
+                            <section className="space-y-12">
+                                <div className="text-center">
+                                    <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Fase de Grupos</h2>
+                                    <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="space-y-4 max-w-4xl mx-auto">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-foreground/70">
+                                        <span>Estado de la Fase</span>
+                                        <div className="flex items-center gap-3">
+                                            {!readOnly && progressPercent < 100 && (
+                                                <button
+                                                    onClick={handleSimulateResults}
+                                                    className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
+                                                >
+                                                    <Dice5 className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                                    Simular Restante
+                                                </button>
+                                            )}
+                                            <span>{confirmedGroupMatches} / {totalGroupMatches} Partidos</span>
+                                        </div>
+                                    </div>
+                                    <div className="h-2 bg-muted rounded-full overflow-hidden border border-border">
+                                        <motion.div
+                                            className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${progressPercent}%` }}
+                                        />
                                     </div>
                                 </div>
-                                <div className="h-2 bg-muted rounded-full overflow-hidden border border-border">
-                                    <motion.div
-                                        className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${progressPercent}%` }}
-                                        transition={{ duration: 1, ease: "easeOut" }}
-                                    />
-                                </div>
-                            </div>
 
-                            {/* Groups Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                {groups.map((g: any) => {
-                                    const standings = computeStandings(g.id);
-                                    const groupMatches = matches.filter(m => m.groupId === g.id);
-                                    return (
-                                        <motion.div
-                                            key={g.id}
-                                            className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-fit transition-all hover:shadow-blue-500/5 group"
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                        >
-                                            {/* Header + Standings table */}
-                                            <div className="bg-muted px-8 py-6 border-b border-border/50 flex items-center justify-between">
-                                                <div className="flex flex-col">
-                                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-blue-700 leading-none">{g.name}</h3>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mt-1">Clasificación en tiempo real</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    {groups.map((g: any) => {
+                                        const standings = computeStandings(g.id);
+                                        const groupMatches = matches.filter(m => m.groupId === g.id);
+                                        return (
+                                            <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-fit group">
+                                                <div className="bg-muted px-8 py-6 border-b border-border/50 flex items-center justify-between">
+                                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-blue-700">{g.name}</h3>
+                                                    <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-blue-600/20" />
                                                 </div>
-                                                <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-blue-600/20 transition-colors" />
-                                            </div>
-
-                                            <div className="px-6 py-4 border-b border-border/30 bg-card/20">
-                                                <table className="w-full text-left">
-                                                    <thead>
-                                                        <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/40 border-b border-border/50">
-                                                            <th className="pb-3 pr-3 italic">Pos</th>
-                                                            <th className="pb-3 px-2">Jugador / Pareja</th>
-                                                            <th className="pb-3 px-2 text-center">PJ</th>
-                                                            <th className="pb-3 px-2 text-center">PG</th>
-                                                            <th className="pb-3 px-2 text-center">+/-</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-border/20">
-                                                        {standings.map((s: any, idx: number) => (
-                                                            <tr key={s.playerId} className="hover:bg-blue-600/5 transition-colors group/row">
-                                                                <td className="py-4 pr-3 text-xs font-black italic text-foreground/20 group-hover/row:text-blue-600/50">#{idx + 1}</td>
-                                                                <td className="py-4 px-2 font-black text-sm tracking-tight text-foreground uppercase truncate max-w-[140px] italic">{s.player.name}</td>
-                                                                <td className="py-4 px-2 text-center text-[10px] font-black tabular-nums text-foreground/40">{s.matchesPlayed}</td>
-                                                                <td className="py-4 px-2 text-center text-sm font-black tabular-nums text-emerald-500">{s.won}</td>
-                                                                <td className="py-4 px-2 text-center text-sm font-black tabular-nums text-blue-600 font-mono">{s.points > 0 ? `+${s.points}` : s.points}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            {/* Matches list */}
-                                            <div className="flex-1 flex flex-col min-h-0 bg-muted/10">
-                                                <div className="px-8 py-3 bg-muted/30 border-b border-border/10 flex items-center justify-between">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Programación de Encuentros</p>
-                                                    <div className="flex gap-1.5">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600/30" />
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-600/30" />
-                                                    </div>
-                                                </div>
-                                                <div className="p-4 overflow-x-auto">
+                                                <div className="px-6 py-4 border-b border-border/30 bg-card/20">
                                                     <table className="w-full text-left">
+                                                        <thead>
+                                                            <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/40 border-b border-border/50">
+                                                                <th className="pb-3 pr-3 italic">Pos</th>
+                                                                <th className="pb-3 px-2">Jugador</th>
+                                                                <th className="pb-3 px-2 text-center text-emerald-500">PG</th>
+                                                                <th className="pb-3 px-2 text-center text-blue-600">+/-</th>
+                                                            </tr>
+                                                        </thead>
                                                         <tbody className="divide-y divide-border/20">
+                                                            {standings.map((s: any, idx: number) => (
+                                                                <tr key={s.playerId} className="hover:bg-blue-600/5 transition-colors">
+                                                                    <td className="py-4 pr-3 text-xs font-black italic text-foreground/20">#{idx + 1}</td>
+                                                                    <td className="py-4 px-2 font-black text-sm text-foreground uppercase truncate italic">{s.player.name}</td>
+                                                                    <td className="py-4 px-2 text-center text-sm font-black text-emerald-500">{s.won}</td>
+                                                                    <td className="py-4 px-2 text-center text-sm font-black text-blue-600">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div className="p-4 bg-muted/10">
+                                                    <table className="w-full">
+                                                        <tbody className="divide-y divide-border/10">
                                                             {groupMatches.map(m => (
-                                                                <tr
-                                                                    key={m.id}
-                                                                    className={`group/row transition-all ${m.confirmed ? "opacity-60 bg-emerald-500/[0.01]" : ""}`}
-                                                                >
+                                                                <tr key={m.id} className={`${m.confirmed ? "bg-emerald-500/5" : ""}`}>
+                                                                    <td className="py-4 px-4 text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">{m.team1.name}</td>
                                                                     <td className="py-4 px-2">
-                                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${m.confirmed && m.score1! > m.score2! ? "text-blue-600" : "text-foreground/60"}`}>
-                                                                            {m.team1.name}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="py-4 px-2">
-                                                                        <div className="flex items-center justify-center gap-2">
+                                                                        <div className="flex flex-col items-center gap-2">
                                                                             {!m.confirmed && !readOnly ? (
-                                                                                <div className="flex items-center gap-1.5">
-                                                                                    <input
-                                                                                        type="number"
-                                                                                        value={m.score1 ?? ""}
-                                                                                        onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                                        className="w-10 h-8 bg-background border border-border rounded-lg text-center font-black text-xs outline-none focus:border-blue-500"
-                                                                                        placeholder="0"
-                                                                                    />
-                                                                                    <span className="text-[10px] font-black text-foreground/20 italic">VS</span>
-                                                                                    <input
-                                                                                        type="number"
-                                                                                        value={m.score2 ?? ""}
-                                                                                        onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                                        className="w-10 h-8 bg-background border border-border rounded-lg text-center font-black text-xs outline-none focus:border-blue-500"
-                                                                                        placeholder="0"
-                                                                                    />
+                                                                                <div className="flex items-center gap-3">
+                                                                                    {/* Score 1 Stepper */}
+                                                                                    <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
+                                                                                        <button 
+                                                                                            onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), (m.score2 || 0).toString())}
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                        >
+                                                                                            <Minus className="w-3 h-3" />
+                                                                                        </button>
+                                                                                        <input 
+                                                                                            type="number" 
+                                                                                            value={m.score1 ?? ""} 
+                                                                                            onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} 
+                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons" 
+                                                                                            placeholder="0"
+                                                                                        />
+                                                                                        <button 
+                                                                                            onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), (m.score2 || 0).toString())}
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                        >
+                                                                                            <Plus className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    </div>
+
+                                                                                    <button 
+                                                                                        onClick={() => handleConfirmScore(m.id)} 
+                                                                                        disabled={m.score1 === undefined || m.score2 === undefined || saving}
+                                                                                        className="w-8 h-8 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale"
+                                                                                    >
+                                                                                        <Check className="w-4 h-4" />
+                                                                                    </button>
+
+                                                                                    {/* Score 2 Stepper */}
+                                                                                    <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
+                                                                                        <button 
+                                                                                            onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), Math.max(0, (m.score2 || 0) - 1).toString())}
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                        >
+                                                                                            <Minus className="w-3 h-3" />
+                                                                                        </button>
+                                                                                        <input 
+                                                                                            type="number" 
+                                                                                            value={m.score2 ?? ""} 
+                                                                                            onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} 
+                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons" 
+                                                                                            placeholder="0"
+                                                                                        />
+                                                                                        <button 
+                                                                                            onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), ((m.score2 || 0) + 1).toString())}
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                        >
+                                                                                            <Plus className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </div>
                                                                             ) : (
-                                                                                <div className="flex items-center gap-2 font-black text-xs tabular-nums italic">
-                                                                                    <span className={m.score1! > m.score2! ? "text-blue-600" : ""}>{m.score1}</span>
-                                                                                    <span className="text-foreground/20">-</span>
-                                                                                    <span className={m.score2! > m.score1! ? "text-blue-600" : ""}>{m.score2}</span>
+                                                                                <div className="flex items-center gap-4">
+                                                                                    <div className="font-black text-lg italic tracking-tighter flex items-center gap-3">
+                                                                                        <span className={m.score1! > m.score2! ? "text-blue-600" : "text-foreground/40"}>{m.score1}</span>
+                                                                                        <span className="text-foreground/10">-</span>
+                                                                                        <span className={m.score2! > m.score1! ? "text-blue-600" : "text-foreground/40"}>{m.score2}</span>
+                                                                                    </div>
+                                                                                    {!readOnly && m.confirmed && (
+                                                                                        <button 
+                                                                                            onClick={() => handleEditScore(m.id)}
+                                                                                            className="p-1.5 rounded-md hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 transition-all border border-transparent hover:border-amber-500/20"
+                                                                                            title="Editar Resultado"
+                                                                                        >
+                                                                                            <Pencil className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    )}
                                                                                 </div>
                                                                             )}
                                                                         </div>
                                                                     </td>
-                                                                    <td className="py-4 px-2">
-                                                                        <span className={`text-[11px] font-black uppercase italic transition-colors text-right block ${m.confirmed && m.score2! > m.score1! ? "text-blue-600" : "text-foreground/60"}`}>
-                                                                            {m.team2.name}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="py-4 px-2 text-right">
-                                                                        {!readOnly && (
-                                                                            m.confirmed ? (
-                                                                                <button
-                                                                                    onClick={() => handleEditScore(m.id)}
-                                                                                    className="p-2 text-foreground/20 hover:text-amber-500 transition-colors"
-                                                                                >
-                                                                                    <Pencil className="w-3.5 h-3.5" />
-                                                                                </button>
-                                                                            ) : (
-                                                                                <button
-                                                                                    onClick={() => handleConfirmScore(m.id)}
-                                                                                    disabled={m.score1 === undefined || m.score2 === undefined || m.score1 === m.score2 || saving}
-                                                                                    className={`p-2 rounded-lg transition-all ${m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2 ? "text-blue-600 hover:bg-blue-600 hover:text-white" : "text-foreground/10"}`}
-                                                                                >
-                                                                                    <Check className="w-4 h-4" />
-                                                                                </button>
-                                                                            )
-                                                                        )}
-                                                                    </td>
+                                                                    <td className="py-4 px-4 text-right text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">{m.team2.name}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
                                                     </table>
                                                 </div>
                                             </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
 
-                            {/* ActionBar / Tournament finalization action */}
-                            {!readOnly && (
-                                <div className="p-6 md:p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] w-full relative overflow-hidden shadow-2xl shadow-blue-500/5 mt-12">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
-
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8">
-                                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                                            <div className="space-y-1">
-                                                <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-foreground whitespace-nowrap leading-none text-left">Fase de Grupos</h2>
-                                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest pl-1 text-left">Configuración de avance</p>
-                                            </div>
-
-                                            <div className="h-10 w-px bg-border/50 hidden sm:block" />
-
-                                            <div className="flex items-center gap-4">
-                                                <div className="px-4 py-2 md:px-5 md:py-3 bg-muted/40 rounded-3xl border border-border/50 flex items-center gap-4 md:gap-6 shadow-inner">
-                                                    <div className="flex flex-col items-start leading-none gap-0.5">
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 text-left">Clasifican</p>
-                                                        <p className="text-[8px] font-black uppercase tracking-widest text-blue-600 italic">por grupo</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 md:gap-4">
-                                                        <button
-                                                            className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-card border border-border flex items-center justify-center text-lg text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
-                                                            onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}
-                                                            disabled={qualPerGroup <= 1}
-                                                        >
-                                                            −
-                                                        </button>
-                                                        <span className="text-xl md:text-2xl font-black text-foreground w-6 md:w-8 text-center tabular-nums drop-shadow-sm">{qualPerGroup}</span>
-                                                        <button
-                                                            className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-card border border-border flex items-center justify-center text-lg text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
-                                                            onClick={() => {
-                                                                const minGroupSize = groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4;
-                                                                setQualPerGroup(q => Math.min(minGroupSize, q + 1));
-                                                            }}
-                                                            disabled={qualPerGroup >= (groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4)}
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {groups.length > 0 && (
-                                                    <div className="hidden lg:flex flex-col items-start leading-tight border-l border-border/30 pl-4 md:pl-6">
-                                                        <span className="text-[9px] font-black text-foreground/60 uppercase opacity-60 tracking-widest mb-0.5">Máx. Cupo</span>
-                                                        <span className="text-xs font-black text-foreground uppercase tracking-tight italic">
-                                                            {Math.min(...groups.map(g => g.players.length))} / GRUPO
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => setStep("qual")}
-                                            disabled={!isGroupStageFinished}
-                                            className={`w-full md:w-auto px-8 py-4 lg:px-12 lg:py-5 font-black uppercase tracking-widest italic rounded-2xl shadow-2xl transition-all hover:scale-[1.03] active:scale-95 text-base lg:text-lg whitespace-nowrap ${isGroupStageFinished
-                                                ? "bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/30"
-                                                : "bg-muted text-foreground/20 cursor-not-allowed border border-border shadow-none"
-                                                }`}
-                                        >
-                                            {isGroupStageFinished ? (
-                                                <span className="flex items-center justify-center gap-3">
-                                                    Ver Clasificados
-                                                    <ChevronRight className="w-5 h-5" />
-                                                </span>
-                                            ) : (
-                                                `Finalizar Grupos`
-                                            )}
-                                        </button>
+                            {/* --- SEPARADOR DINÁMICO --- */}
+                            {(bracket.length > 0 || isGroupStageFinished) && (
+                                <div className="relative py-12">
+                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                        <div className="w-full border-t border-border/50"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <span className="bg-background px-8 text-sm font-black italic uppercase tracking-[0.4em] text-foreground/20">Llaves de Eliminación</span>
                                     </div>
                                 </div>
                             )}
-                        </motion.div>
-                    )}
-                    {step === "qual" && (
-                        <motion.div
-                            key="qual-stage"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-12 pb-20"
-                        >
-                            <div className="w-full">
-                                <div className="text-center mb-16">
-                                    <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic mb-3">Ranking de Clasificados</h2>
-                                    <p className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Cálculo de Mérito Técnico y Sembrado</p>
-                                </div>
 
-                                {/* Unified Action Bar (Config + Generate) */}
-                                <div className="mb-12 p-6 md:p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-8 backdrop-blur-xl shadow-2xl shadow-blue-500/5 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
-
-                                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-xl shadow-blue-600/20">
-                                                <Settings2 className="w-7 h-7" />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40 leading-none mb-1">Configuración de Avance</span>
-                                                <h3 className="text-xl font-black italic uppercase tracking-tight text-foreground">Clasificados por Grupo</h3>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-6 bg-card border border-border/50 p-2 rounded-3xl shadow-inner">
-                                            <button
-                                                className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center text-2xl text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
-                                                onClick={() => setQualPerGroup(q => Math.max(1, q - 1))}
-                                                disabled={qualPerGroup <= 1}
-                                            >
-                                                −
-                                            </button>
-                                            <span className="text-3xl font-black text-foreground min-w-[3rem] text-center tabular-nums italic drop-shadow-sm">{qualPerGroup}</span>
-                                            <button
-                                                className="w-10 h-10 rounded-xl bg-muted/50 border border-border flex items-center justify-center text-2xl text-foreground hover:bg-muted transition-all active:scale-90 disabled:opacity-20 shadow-sm"
-                                                onClick={() => {
-                                                    const minGroupSize = groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4;
-                                                    setQualPerGroup(q => Math.min(minGroupSize, q + 1));
-                                                }}
-                                                disabled={qualPerGroup >= (groups.length > 0 ? Math.min(...groups.map(g => g.players.length)) : 4)}
-                                            >
-                                                +
-                                            </button>
-                                        </div>
+                            {/* --- ELIMINATORIAS (BRACKET) --- */}
+                            {bracket.length > 0 ? (
+                                <section className="space-y-16">
+                                    <div className="text-center">
+                                        <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Cuadro del Torneo</h2>
+                                        <p className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em]">Playoffs Dinámicos</p>
                                     </div>
 
-                                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 lg:ml-auto">
-                                        {!isGroupStageFinished && (
-                                            <div className="bg-amber-500/10 border border-amber-500/20 px-6 py-3 rounded-2xl flex items-center gap-3">
-                                                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                                                <p className="text-[10px] font-black uppercase text-amber-600 leading-tight">Falta cargar resultados<br />en la fase de grupos</p>
-                                            </div>
-                                        )}
+                                    <div className="overflow-x-auto pb-20 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
+                                        <div className="min-w-max flex items-stretch justify-center h-[2200px] gap-12">
+                                            {roundsArr.map((round, rIdx) => {
+                                                const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
+                                                const maxRounds = roundsArr.length;
+                                                const totalRows = Math.pow(2, maxRounds);
+                                                const rowSpan = Math.pow(2, maxRounds - round - 1) * 2;
+                                                
+                                                return (
+                                                    <div key={round} className="w-[300px] flex flex-col pt-12">
+                                                        <div className="flex-none flex flex-col items-center mb-8">
+                                                            <span className="px-6 py-2 bg-muted border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest text-foreground/40 shadow-sm">
+                                                                {roundLabel(round)}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <div className={`flex-1 grid h-full gap-y-12`} style={{ gridTemplateRows: `repeat(${totalRows}, 1fr)` }}>
+                                                            {Array.from({ length: totalRows / rowSpan }).map((_, slotIdx) => {
+                                                                const m = matchesInRound.find(m => m.slot === slotIdx);
+                                                                if (!m) return <div key={slotIdx} style={{ gridRow: `span ${rowSpan}` }} />;
 
-                                        <button
-                                            onClick={generateBracket}
-                                            disabled={saving || !isGroupStageFinished}
-                                            className={`flex-1 md:flex-none px-10 py-5 font-black uppercase tracking-widest italic rounded-2xl shadow-2xl transition-all hover:scale-[1.03] active:scale-95 text-lg whitespace-nowrap flex items-center justify-center gap-4 ${isGroupStageFinished
-                                                ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/30"
-                                                : "bg-muted text-foreground/20 cursor-not-allowed border border-border shadow-none"
-                                                }`}
-                                        >
-                                            {saving ? (
-                                                <>
-                                                    <RefreshCw className="w-6 h-6 animate-spin" />
-                                                    CONFIGURANDO...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Swords className="w-6 h-6" />
-                                                    GENERAR ELIMINATORIAS
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {(() => {
-                                    const totalQuals = sortedQualifiers.length;
-                                    const bracketSize = totalQuals > 0 ? Math.pow(2, Math.ceil(Math.log2(totalQuals))) : 0;
-                                    const numByes = bracketSize - totalQuals;
-
-                                    return (
-                                        <div className="space-y-16">
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                                                {/* --- Rankings Tablas (Columna 1 y 2) --- */}
-                                                <div className="space-y-8">
-                                                    {Array.from({ length: Math.min(qualPerGroup, 2) }).map((_, rankIdx) => {
-                                                        const rank = rankIdx + 1;
-                                                        const playersInRank = finalQualifiers.filter(q => q.groupRank === rank);
-                                                        if (playersInRank.length === 0) return null;
-
-                                                        return (
-                                                            <div key={rank} className="space-y-4">
-                                                                <div className="flex items-center gap-4 px-2">
-                                                                    <div className={`px-4 py-1.5 rounded-full flex items-center justify-center text-white text-[10px] font-black italic tracking-widest shadow-lg ${rank === 1 ? "bg-amber-500 shadow-amber-500/20" : "bg-slate-500 shadow-slate-500/20"}`}>
-                                                                        {rank === 1 ? "PRIMEROS" : "SEGUNDOS"}
-                                                                    </div>
-                                                                    <div className="h-px flex-1 bg-border/50" />
-                                                                </div>
-
-                                                                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] overflow-hidden shadow-2xl">
-                                                                    <div className="overflow-x-auto">
-                                                                        <table className="w-full text-left border-collapse">
-                                                                            <thead>
-                                                                                <tr className="bg-muted/30 border-b border-border/50">
-                                                                                    <th className="py-4 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/40">Seed</th>
-                                                                                    <th className="py-4 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/40">Pts</th>
-                                                                                    <th className="py-4 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/40">Jugador / Pareja</th>
-                                                                                    <th className="py-4 px-6 text-[9px] uppercase font-black tracking-widest text-foreground/40 text-right">Origen</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody className="divide-y divide-border/20">
-                                                                                {playersInRank.map((q) => {
-                                                                                    const seed = finalQualifiers.indexOf(q) + 1;
-                                                                                    const hasBye = seed <= numByes;
-                                                                                    const order = getSeedingOrder(bracketSize);
-                                                                                    const posInOrder = order.indexOf(seed);
-                                                                                    const matchIdx = Math.floor(posInOrder / 2);
-                                                                                    const colorSet = MATCH_COLORS[matchIdx % MATCH_COLORS.length];
-                                                                                    const isHovered = hoveredMatchIdx === matchIdx;
-
-                                                                                    return (
-                                                                                        <tr
-                                                                                            key={q.playerId}
-                                                                                            onClick={() => setSelectedPlayerId(q.playerId)}
-                                                                                            onMouseEnter={() => setHoveredMatchIdx(matchIdx)}
-                                                                                            onMouseLeave={() => setHoveredMatchIdx(null)}
-                                                                                            className={`transition-all group cursor-pointer border-l-[6px] ${isHovered
-                                                                                                ? `${colorSet.border} ${colorSet.bg}`
-                                                                                                : "border-transparent hover:bg-blue-600/5"
-                                                                                                }`}
-                                                                                        >
-                                                                                            <td className="py-4 px-6">
-                                                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black tabular-nums transition-all ${isHovered ? "bg-white text-blue-600 shadow-lg" : "bg-blue-600/10 text-blue-600"}`}>
-                                                                                                    #{seed}
-                                                                                                </div>
-                                                                                            </td>
-                                                                                            <td className="py-4 px-6">
-                                                                                                <span className={`text-sm font-black italic tracking-tighter ${q.points >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                                                                                                    {q.points > 0 ? "+" : ""}{q.points}
+                                                                return (
+                                                                    <div 
+                                                                        key={m.id} 
+                                                                        className="flex flex-col justify-center px-2"
+                                                                        style={{ 
+                                                                            gridRowStart: slotIdx * rowSpan + 1,
+                                                                            gridRowEnd: `span ${rowSpan}` 
+                                                                        }}
+                                                                    >
+                                                                        <div className="relative group/match">
+                                                                            <div className={`w-full p-6 bg-card/60 backdrop-blur-xl border-2 rounded-[2.5rem] shadow-2xl transition-all relative z-10 ${m.confirmed ? (m.round === 0 ? "border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.3)] bg-amber-500/5 ring-4 ring-amber-500/10" : "border-emerald-500/30 ring-4 ring-emerald-500/5") : "border-border/50 hover:border-blue-500/30"}`}>
+                                                                                <div className="space-y-6">
+                                                                                    {m.round === 0 && m.confirmed && (
+                                                                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white p-2 rounded-full shadow-lg">
+                                                                                            <Trophy className="w-4 h-4" />
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {[m.team1, m.team2].map((team, tIdx) => (
+                                                                                        <div key={tIdx} className="flex items-center justify-between gap-4">
+                                                                                            <div className="flex-1 min-w-0">
+                                                                                                <span className={`font-black uppercase italic truncate block transition-all ${m.winnerId === (team as Player)?.id ? (m.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-[11px]") : team === "BYE" ? "text-foreground/20 text-[11px]" : "text-foreground/60 text-[11px]"}`}>
+                                                                                                    {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "A definir..."}
                                                                                                 </span>
-                                                                                            </td>
-                                                                                            <td className="py-4 px-6">
-                                                                                                <div className="flex flex-col">
-                                                                                                    <span className={`text-sm font-black italic uppercase tracking-tight ${q.isByeOverride ? "text-amber-600" : "text-foreground"}`}>
-                                                                                                        {q.player.name}
-                                                                                                    </span>
-                                                                                                    <div className="flex gap-2 mt-1">
-                                                                                                        {q.isOverride && (
-                                                                                                            <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">REACCIÓN</span>
-                                                                                                        )}
-                                                                                                        {hasBye && !q.isByeOverride && (
-                                                                                                            <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20">Pass Directo</span>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                            <td className="py-4 px-6 text-right">
-                                                                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/30 italic">{q.groupName}</span>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    );
-                                                                                })}
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-
-                                                {/* --- Seed Preview Bracket (Columna 2) --- */}
-                                                <div className="sticky top-12 space-y-8">
-                                                    <div className="flex items-center gap-4 px-2">
-                                                        <div className="px-4 py-1.5 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-black italic tracking-widest shadow-lg shadow-blue-600/20">
-                                                            PREVISIÓN DE CRUCES
-                                                        </div>
-                                                        <div className="h-px flex-1 bg-border/50" />
-                                                    </div>
-
-                                                    <div className="bg-card/60 backdrop-blur-2xl border border-border/50 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
-                                                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                            <Trophy className="w-32 h-32 text-foreground" />
-                                                        </div>
-
-                                                        <div className="relative overflow-x-auto">
-                                                            <table className="w-full text-left">
-                                                                <tbody className="divide-y divide-border/20">
-                                                                    {(() => {
-                                                                        const order = getSeedingOrder(bracketSize);
-                                                                        const rows = [];
-                                                                        for (let i = 0; i < order.length; i += 2) {
-                                                                            const s1 = order[i];
-                                                                            const s2 = order[i + 1];
-                                                                            const p1 = finalQualifiers[s1 - 1];
-                                                                            const p2 = finalQualifiers[s2 - 1];
-                                                                            const matchIdx = i / 2;
-                                                                            const colorSet = MATCH_COLORS[matchIdx % MATCH_COLORS.length];
-                                                                            const isHovered = hoveredMatchIdx === matchIdx;
-
-                                                                            rows.push(
-                                                                                <tr
-                                                                                    key={matchIdx}
-                                                                                    onMouseEnter={() => setHoveredMatchIdx(matchIdx)}
-                                                                                    onMouseLeave={() => setHoveredMatchIdx(null)}
-                                                                                    className={`transition-all group/match cursor-pointer border-l-8 ${isHovered
-                                                                                        ? `${colorSet.border} ${colorSet.bg} shadow-lg scale-[1.02] z-10 relative`
-                                                                                        : "border-transparent hover:bg-blue-600/5"
-                                                                                        }`}
-                                                                                >
-                                                                                    <td className="py-6 px-4">
-                                                                                        <div className="flex items-center gap-1.5 opacity-40">
-                                                                                            <span className="text-[10px] font-black uppercase italic tracking-tighter">M</span>
-                                                                                            <span className="text-sm font-black italic tabular-nums">#{matchIdx + 1}</span>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td className="py-6 px-4">
-                                                                                        <div className="flex items-center gap-4">
-                                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${isHovered ? "bg-white text-blue-600 shadow-md" : "bg-blue-600/10 text-blue-600"}`}>
-                                                                                                #{s1}
                                                                                             </div>
-                                                                                            <span className={`text-xs font-black italic uppercase tracking-tighter truncate ${isHovered ? "text-foreground" : "text-foreground/60"}`}>
-                                                                                                {p1 ? p1.player.name : "BYE"}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td className="py-6 px-2 text-center">
-                                                                                        <span className="text-[10px] font-black text-foreground/20 italic">VS</span>
-                                                                                    </td>
-                                                                                    <td className="py-6 px-4">
-                                                                                        <div className="flex items-center justify-end gap-4">
-                                                                                            <span className={`text-xs font-black italic uppercase tracking-tighter truncate text-right ${isHovered ? "text-foreground" : "text-foreground/60"}`}>
-                                                                                                {p2 ? p2.player.name : "BYE"}
-                                                                                            </span>
-                                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${isHovered ? "bg-white text-blue-600 shadow-md" : "bg-blue-600/10 text-blue-600"}`}>
-                                                                                                #{s2}
+                                                                                            <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${m.confirmed ? "pointer-events-none opacity-50" : ""}`}>
+                                                                                                <button 
+                                                                                                    onClick={() => {
+                                                                                                        const curScore = tIdx === 0 ? (m.score1 || 0) : (m.score2 || 0);
+                                                                                                        const s1 = tIdx === 0 ? Math.max(0, curScore - 1).toString() : (m.score1 || 0).toString();
+                                                                                                        const s2 = tIdx === 1 ? Math.max(0, curScore - 1).toString() : (m.score2 || 0).toString();
+                                                                                                        handleBracketScore(m.id, s1, s2);
+                                                                                                    }}
+                                                                                                    disabled={m.confirmed || team === "BYE" || !team || readOnly}
+                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30 disabled:opacity-0"
+                                                                                                >
+                                                                                                    <Minus className="w-3.5 h-3.5" />
+                                                                                                </button>
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    value={tIdx === 0 ? (m.score1 ?? "") : (m.score2 ?? "")}
+                                                                                                    onChange={e => handleBracketScore(m.id, tIdx === 0 ? e.target.value : (m.score1?.toString() || ""), tIdx === 1 ? e.target.value : (m.score2?.toString() || ""))}
+                                                                                                    disabled={m.confirmed || team === "BYE" || !team || readOnly}
+                                                                                                    className="w-10 h-full bg-transparent text-center font-black text-sm outline-none placeholder:text-foreground/5 no-spin-buttons"
+                                                                                                placeholder="0"
+                                                                                                />
+                                                                                                <button 
+                                                                                                    onClick={() => {
+                                                                                                        const curScore = tIdx === 0 ? (m.score1 || 0) : (m.score2 || 0);
+                                                                                                        const s1 = tIdx === 0 ? (curScore + 1).toString() : (m.score1 || 0).toString();
+                                                                                                        const s2 = tIdx === 1 ? (curScore + 1).toString() : (m.score2 || 0).toString();
+                                                                                                        handleBracketScore(m.id, s1, s2);
+                                                                                                    }}
+                                                                                                    disabled={m.confirmed || team === "BYE" || !team || readOnly}
+                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30 disabled:opacity-0"
+                                                                                                >
+                                                                                                    <Plus className="w-3.5 h-3.5" />
+                                                                                                </button>
                                                                                             </div>
                                                                                         </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        }
-                                                                        return rows;
-                                                                    })()}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {step === "elim" && (
-                        <motion.div
-                            key="elim-stage"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="space-y-12 pb-32"
-                        >
-                            {bracket.length === 0 ? (
-                                <div className="text-center py-40 rounded-[3rem] border-4 border-dashed border-border/30 bg-muted/20 flex flex-col items-center gap-6">
-                                    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-                                        <Trophy className="w-12 h-12 text-foreground/10" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <p className="text-xl font-black uppercase italic text-foreground/40">El cuadro no ha sido generado</p>
-                                        <p className="text-sm font-medium text-foreground/20">Finalizá la fase de grupos para comenzar las eliminatorias</p>
-                                    </div>
-                                    {!readOnly && (
-                                        <button onClick={() => setStep("qual")} className="px-8 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                            Volver al Ranking
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="relative">
-                                    {/* Scroll Hint */}
-                                    <div className="flex items-center gap-3 mb-8 text-[10px] font-black uppercase tracking-[0.3em] text-foreground/30 overflow-hidden">
-                                        <Share2 className="w-4 h-4 translate-y-px" />
-                                        <span>Deslizá horizontalmente para ver el cuadro completo</span>
-                                        <div className="h-px flex-1 bg-border/30" />
-                                    </div>
-
-                                    {/* BRACKET VIEWPORT */}
-                                    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-x-auto pb-20 no-scrollbar cursor-grab active:cursor-grabbing">
-                                        <div className="min-w-max px-[max(1rem,calc((100vw-1200px)/2))] flex gap-16 items-center">
-                                            {roundsArr.map((round, rIdx) => (
-                                                <div key={round} className="flex flex-col gap-12">
-                                                    <div className="flex flex-col items-center gap-4">
-                                                        <span className="px-6 py-2 bg-blue-500/10 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-blue-500/20">
-                                                            {round === 0 ? "🏆 Gran Final" : round === 1 ? "Semifinales" : `Ronda ${roundsArr.length - rIdx}`}
-                                                        </span>
-                                                        <div className="w-px h-8 bg-gradient-to-b from-blue-500/50 to-transparent" />
-                                                    </div>
-
-                                                    <div className="flex flex-col justify-around gap-12 min-h-[600px]">
-                                                        {bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot).map(m => (
-                                                            <motion.div
-                                                                key={m.id}
-                                                                initial={{ opacity: 0, x: -20 }}
-                                                                animate={{ opacity: 1, x: 0 }}
-                                                                className={`relative group ${m.confirmed ? "opacity-80" : ""}`}
-                                                            >
-                                                                <div className={`w-[380px] bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] p-8 transition-all duration-500 ${m.confirmed ? "border-emerald-500/30" : "border-border/50 hover:border-blue-500/30 hover:translate-x-2"
-                                                                    }`}>
-                                                                    <div className="space-y-6">
-                                                                        {[m.team1, m.team2].map((team, idx) => {
-                                                                            const isW = (m.confirmed && m.winnerId && team && team !== "BYE" && (team as Player).id === m.winnerId);
-                                                                            return (
-                                                                                <div key={idx} className="flex items-center justify-between gap-4">
-                                                                                    <div className="flex items-center gap-3 overflow-hidden">
-                                                                                        <div className={`w-1.5 h-8 rounded-full ${isW ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-border/30"}`} />
-                                                                                        <span className={`text-xs font-black uppercase truncate ${isW ? "text-emerald-500" :
-                                                                                            team === "BYE" ? "text-foreground/20 italic" : "text-foreground/60"
-                                                                                            }`}>
-                                                                                            {slotName(team)}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center bg-muted/30 rounded-2xl border border-border/50 overflow-hidden h-11">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const current = idx === 0 ? (m.score1 ?? 0) : (m.score2 ?? 0);
-                                                                                                handleBracketScore(m.id, idx === 0 ? Math.max(0, current - 1).toString() : (m.score1?.toString() || "0"), idx === 1 ? Math.max(0, current - 1).toString() : (m.score2?.toString() || "0"));
-                                                                                            }}
-                                                                                            disabled={m.confirmed || readOnly || team === "BYE"}
-                                                                                            className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40 hover:text-foreground disabled:opacity-0"
-                                                                                        >
-                                                                                            <Minus className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                        <input
-                                                                                            type="number"
-                                                                                            value={idx === 0 ? (m.score1 ?? "") : (m.score2 ?? "")}
-                                                                                            onChange={(e) => handleBracketScore(m.id, idx === 0 ? e.target.value : (m.score1?.toString() || ""), idx === 1 ? e.target.value : (m.score2?.toString() || ""))}
-                                                                                            disabled={m.confirmed || team === "BYE" || !team || readOnly}
-                                                                                            className="w-10 h-full bg-transparent text-center font-black text-sm focus:outline-none no-spin-buttons placeholder:text-foreground/10"
-                                                                                            placeholder="0"
-                                                                                        />
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const current = idx === 0 ? (m.score1 ?? 0) : (m.score2 ?? 0);
-                                                                                                handleBracketScore(m.id, idx === 0 ? (current + 1).toString() : (m.score1?.toString() || "0"), idx === 1 ? (current + 1).toString() : (m.score2?.toString() || "0"));
-                                                                                            }}
-                                                                                            disabled={m.confirmed || readOnly || team === "BYE"}
-                                                                                            className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/40 hover:text-foreground disabled:opacity-0"
-                                                                                        >
-                                                                                            <Plus className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                    </div>
+                                                                                    ))}
                                                                                 </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
 
-                                                                    {!m.confirmed && m.team1 && m.team2 && m.team1 !== "BYE" && m.team2 !== "BYE" && !readOnly && (
-                                                                        <button
-                                                                            onClick={() => handleBracketConfirm(m.id)}
-                                                                            disabled={m.score1 === undefined || m.score2 === undefined || m.score1 === m.score2}
-                                                                            className={`w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all ${(m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2)
-                                                                                    ? "bg-blue-600 text-white shadow-blue-500/20 hover:bg-blue-500"
-                                                                                    : "bg-muted text-foreground/20 cursor-not-allowed border border-border/50"
-                                                                                }`}
-                                                                        >
-                                                                            Confirmar Resultado
-                                                                        </button>
-                                                                    )}
-
-                                                                    {m.confirmed && !readOnly && (
-                                                                        <div className="absolute -right-3 -top-3 flex items-center gap-1.5">
-                                                                            {!(m.team1 === "BYE" || m.team2 === "BYE") && (
-                                                                                <button
-                                                                                    onClick={() => handleBracketEdit(m.id)}
-                                                                                    className="bg-card border border-border/50 p-2.5 rounded-2xl text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-xl"
-                                                                                >
-                                                                                    <Pencil className="w-4 h-4" />
-                                                                                </button>
-                                                                            )}
-                                                                            <div className="bg-emerald-500 text-white p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 border border-emerald-400/50">
-                                                                                <Check className="w-4 h-4" />
+                                                                                <div className="mt-8">
+                                                                                    {(() => {
+                                                                                        const isBye = m.team1 === "BYE" || m.team2 === "BYE";
+                                                                                        const isPending = !m.confirmed && !isBye && m.team1 && m.team2 && !readOnly;
+                                                                                        const canEdit = m.confirmed && !isBye && !readOnly;
+                                                                                        return (
+                                                                                            <button
+                                                                                                onClick={() => isPending ? handleBracketConfirm(m.id) : canEdit && handleBracketEdit(m.id)}
+                                                                                                disabled={!isPending && !canEdit}
+                                                                                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${
+                                                                                                    isPending ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20" :
+                                                                                                    canEdit ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50" :
+                                                                                                    "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none font-bold"
+                                                                                                }`}
+                                                                                            >
+                                                                                                <span className={canEdit ? "group-hover/btn:hidden" : ""}>{m.confirmed ? "CONFIRMADO" : isBye ? "PASO DIRECTO" : "FINALIZAR PARTIDO"}</span>
+                                                                                                {canEdit && <span className="hidden group-hover/btn:flex items-center justify-center gap-3"><Pencil className="w-3.5 h-3.5" /> EDITAR RESULTADO</span>}
+                                                                                            </button>
+                                                                                        );
+                                                                                    })()}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                            </motion.div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-
-                                            {/* Final Champion Display */}
-                                            <div className="flex flex-col items-center gap-12 ml-8">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <span className="px-6 py-2 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-amber-500/20">
-                                                        🏆 CAMPEÓN
-                                                    </span>
-                                                    <div className="w-px h-8 bg-gradient-to-b from-amber-500/50 to-transparent" />
-                                                </div>
-                                                <div className="w-[380px] h-[520px] rounded-[4rem] bg-gradient-to-br from-amber-500/20 to-amber-500/5 border-4 border-amber-500/30 flex flex-col items-center justify-center text-center p-12 relative overflow-hidden group shadow-2xl">
-                                                    <motion.div
-                                                        animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-                                                        transition={{ duration: 5, repeat: Infinity }}
-                                                        className="mb-12 p-8 bg-amber-500 text-white rounded-full shadow-2xl shadow-amber-500/40"
-                                                    >
-                                                        <Trophy className="w-20 h-20" />
-                                                    </motion.div>
-
-                                                    {(() => {
-                                                        const finalMatch = bracket.find(m => m.round === 0);
-                                                        if (finalMatch?.confirmed && finalMatch.winnerId) {
-                                                            const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player;
-                                                            return (
-                                                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 relative z-10">
-                                                                    <p className="text-[11px] font-black uppercase tracking-[0.5em] text-amber-500">Victoria Final</p>
-                                                                    <h3 className="text-4xl font-black text-foreground uppercase italic tracking-tighter leading-tight">
-                                                                        {winnerSlot?.name || finalMatch.winnerName}
-                                                                    </h3>
-                                                                    <div className="flex items-center justify-center gap-2 pt-6">
-                                                                        <div className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase">Fase Finalizada</div>
                                                                     </div>
-                                                                </motion.div>
-                                                            );
-                                                        }
-                                                        return <p className="text-xs font-black uppercase tracking-widest text-foreground/20 italic">En Competencia</p>;
-                                                    })()}
-                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-amber-500/10 blur-[100px] rounded-full -z-10 group-hover:bg-amber-500/20 transition-all duration-1000" />
-                                                </div>
-                                            </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-
-                                    {!readOnly && (
-                                        <div className="fixed bottom-10 right-10 flex items-center gap-4 z-[100]">
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm("¿Desactivar eliminatorias y volver a ajustar el ranking?")) {
-                                                        setStep("qual");
-                                                    }
-                                                }}
-                                                className="px-6 py-4 bg-muted border border-border/50 text-foreground/60 hover:text-foreground rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl backdrop-blur-xl"
-                                            >
-                                                <RotateCcw className="w-4 h-4 inline-block mr-2" />
-                                                Regenerar Cuadro
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Finalize Tournament Action Bar (Bottom) */}
-                                    {(() => {
-                                        const finalMatch = bracket.find(m => m.round === 0);
-                                        if (finalMatch?.confirmed && initialStatus !== "finalizado" && !readOnly) {
-                                            const winnerSlot = [finalMatch.team1, finalMatch.team2].find(t => t && t !== "BYE" && (t as Player).id === finalMatch.winnerId) as Player;
-                                            const champName = winnerSlot?.name || finalMatch.winnerName || "Campeón";
-                                            return (
-                                                <div className="mt-12 p-8 bg-emerald-600/5 border border-emerald-600/20 rounded-3xl max-w-4xl mx-auto relative overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                                                <Trophy className="w-6 h-6 text-emerald-600" />
-                                                            </div>
-                                                            <div>
-                                                                <h2 className="text-xl font-black uppercase italic tracking-tighter text-foreground">¡Torneo Finalizado!</h2>
-                                                                <p className="text-emerald-700/60 text-[10px] font-black uppercase tracking-widest mt-1">Ya puedes guardar los resultados oficiales</p>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={async () => {
-                                                                setSaving(true);
-                                                                await saveTournamentFixture({
-                                                                    tournamentId,
-                                                                    phase: "finalizado",
-                                                                    groups,
-                                                                    matches,
-                                                                    bracket,
-                                                                    championName: champName
-                                                                });
-                                                                setSaving(false);
-                                                                setShowSuccessModal(true);
-                                                                setTimeout(() => router.refresh(), 2000);
-                                                            }}
-                                                            disabled={saving}
-                                                            className="w-full md:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest italic rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
-                                                        >
-                                                            {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trophy className="w-4 h-4" />}
-                                                            Finalizar Torneo
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
+                                </section>
+                            ) : isGroupStageFinished && (
+                                <div className="max-w-xl mx-auto p-12 bg-blue-600/5 border-2 border-dashed border-blue-600/30 rounded-[3rem] text-center space-y-8">
+                                    <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                                        <Trophy className="w-8 h-8 text-blue-600" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">Ranking de Fase Grupos Listo</h3>
+                                        <p className="text-xs font-bold text-foreground/60 max-w-[250px] mx-auto">La fase de grupos ha terminado. Genera las eliminatorias para ver los enfrentamientos.</p>
+                                    </div>
+                                    <button
+                                        onClick={generateBracket}
+                                        disabled={saving}
+                                        className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest italic shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                    >
+                                        <Swords className="w-5 h-5" />
+                                        Comenzar Eliminatorias
+                                    </button>
                                 </div>
                             )}
+
+                            {/* Champions Notification Bar */}
+                            {(() => {
+                                const finalMatch = bracket.find(m => m.round === 0);
+                                if (finalMatch?.confirmed && initialStatus !== "finalizado" && !readOnly) {
+                                    return (
+                                        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-6">
+                                            <div className="p-6 bg-emerald-600 text-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(16,185,129,0.4)] flex items-center justify-between border-4 border-emerald-400">
+                                                <div className="flex items-center gap-4">
+                                                    <Trophy className="w-8 h-8" />
+                                                    <div className="text-left">
+                                                        <h4 className="text-sm font-black uppercase tracking-tighter leading-none mb-1">¡Rey de la Pista Coronadod!</h4>
+                                                        <p className="text-[10px] opacity-80 uppercase tracking-widest font-bold">Campeón: {finalMatch.winnerName}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        setSaving(true);
+                                                        const res = await saveTournamentFixture({
+                                                            tournamentId, phase: "finalizado", groups, matches, bracket, championName: finalMatch.winnerName
+                                                        });
+                                                        setSaving(false);
+                                                        if (res.ok) setShowSuccessModal(true);
+                                                    }}
+                                                    className="px-6 py-3 bg-white text-emerald-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 transition-all font-bold"
+                                                >
+                                                    Cerrar Torneo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </motion.div>
                     )}
                 </AnimatePresence>

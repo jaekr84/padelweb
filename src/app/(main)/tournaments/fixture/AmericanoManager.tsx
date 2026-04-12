@@ -1291,11 +1291,16 @@ export default function AmericanoManager({
                                                                                 className="flex flex-col justify-center px-2"
                                                                             >
                                                                                 {match ? (
-                                                                                    <div className={`bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] p-5 transition-all duration-300 relative group shadow-lg ${match.confirmed ? "border-emerald-500/30" : "border-border/50 hover:border-blue-500/30"}`}>
+                                                                                    <div className={`backdrop-blur-xl border-2 rounded-[2.5rem] p-5 transition-all duration-300 relative group shadow-lg ${match.confirmed ? (match.round === 0 ? "border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.3)] bg-amber-500/5 ring-4 ring-amber-500/10" : "border-emerald-500/30 bg-card/40") : "border-border/50 bg-card/40 hover:border-blue-500/30"}`}>
                                                                                         <div className="space-y-6">
+                                                                                            {match.round === 0 && match.confirmed && (
+                                                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white p-2 rounded-full shadow-lg z-30">
+                                                                                                    <Trophy className="w-4 h-4" />
+                                                                                                </div>
+                                                                                            )}
                                                                                             {[match.team1, match.team2].map((team, tIdx) => (
                                                                                                 <div key={tIdx} className="flex items-center justify-between gap-4">
-                                                                                                    <span className={`text-xs font-black uppercase truncate max-w-[150px] ${match.winnerId === (team as Player)?.id ? "text-emerald-500" : team === "BYE" ? "text-foreground/20 italic" : "text-foreground/60"}`}>
+                                                                                                    <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
                                                                                                         {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
                                                                                                     </span>
                                                                                                     <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${match.confirmed ? "pointer-events-none opacity-50" : ""}`}>
