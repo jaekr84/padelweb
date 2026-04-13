@@ -30,7 +30,7 @@ export interface AmericanoManagerProps {
     };
 }
 
-type Player = { id: string; name: string; category?: string };
+type Player = { id: string; name: string; category?: string; clubId?: string | null };
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -128,6 +128,7 @@ export default function AmericanoManager({
 
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [noPlayersData, setNoPlayersData] = useState<{ finished: number, playing: number, waiting: number } | null>(null);
     const [step, setStep] = useState<"setup" | "active">(
         initialStatus === "setup" ? "setup" : "active"
     );
@@ -212,22 +213,49 @@ export default function AmericanoManager({
         const available = players.filter(p => !currentlyPlaying.has(p.id) && (playerMatchCounts.get(p.id) || 0) < matchesPerTeam);
 
         if (available.length < 2) {
-            toast.error("No hay suficientes jugadores disponibles para armar un partido");
+            const finishedCount = players.filter(p => (playerMatchCounts.get(p.id) || 0) >= matchesPerTeam).length;
+            const playingCount = currentlyPlaying.size;
+            const waitingCount = available.length;
+            
+            setNoPlayersData({ finished: finishedCount, playing: playingCount, waiting: waitingCount });
             return;
         }
 
-        // 4. Algorithm: Pick the two players with the fewest matches played
-        // and preferably who haven't played against each other much.
+        // 4. Algorithm: Pick the two players with the fewest matches played,
+        // prioritizing those from different clubs and who haven't played against each other.
         const sortedAvailable = [...available].sort((a, b) =>
             (playerMatchCounts.get(a.id) || 0) - (playerMatchCounts.get(b.id) || 0)
         );
 
         const p1 = sortedAvailable[0]!;
-        // Find best p2 (who hasn't played with p1 or has the fewest matches)
-        let bestP2 = sortedAvailable[1]!;
+        const candidateP2s = sortedAvailable.slice(1);
 
-        // Simple heuristic: just take the next one for now, or could improve later
-        const p2 = bestP2;
+        // Track who p1 has already played against
+        const playedAgainstP1 = new Set(
+            matches
+                .filter(m => (m.team1.id === p1.id || m.team2.id === p1.id))
+                .map(m => m.team1.id === p1.id ? m.team2.id : m.team1.id)
+        );
+
+        // Pick best p2 based on multiple criteria
+        const p2 = candidateP2s.sort((a, b) => {
+            // Priority 1: Fewer matches played (stick to the main sorting)
+            const countA = playerMatchCounts.get(a.id) || 0;
+            const countB = playerMatchCounts.get(b.id) || 0;
+            if (countA !== countB) return countA - countB;
+
+            // Priority 2: Different Club (Avoid same-club matchups)
+            const sameClubA = a.clubId && p1.clubId && a.clubId === p1.clubId;
+            const sameClubB = b.clubId && p1.clubId && b.clubId === p1.clubId;
+            if (sameClubA !== sameClubB) return sameClubA ? 1 : -1;
+
+            // Priority 3: Haven't played against each other yet
+            const playedA = playedAgainstP1.has(a.id);
+            const playedB = playedAgainstP1.has(b.id);
+            if (playedA !== playedB) return playedA ? 1 : -1;
+
+            return 0;
+        })[0]!;
 
         const newMatch: Match = {
             id: `dym_${Date.now()}_${courtNum}`,
@@ -348,10 +376,15 @@ export default function AmericanoManager({
                         if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
                             match.team1 = t1;
                             match.team2 = t2 as BracketSlot;
+                            
+                            // Essential fix: If it's not a BYE anymore, it shouldn't be confirmed
+                            match.confirmed = t2 === "BYE";
                             if (t2 === "BYE") {
-                                match.confirmed = true;
                                 match.winnerId = t1.id;
                                 match.winnerName = t1.name;
+                            } else {
+                                match.winnerId = undefined;
+                                match.winnerName = undefined;
                             }
                             changed = true;
                         }
@@ -381,13 +414,28 @@ export default function AmericanoManager({
                     const s1 = seedPositions[i];
                     const s2 = seedPositions[i + 1];
                     const match = firstRoundMatches[mIdx];
-                    if (match && !match.confirmed) {
+                    
+                    // Essential fix: Allow update if it's unconfirmed OR if it's a BYE (to handle transition to real match)
+                    if (match && (!match.confirmed || match.team1 === "BYE" || match.team2 === "BYE")) {
                         const t1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
                         const t2 = (topPlayers[s2 - 1]?.player || "BYE") as BracketSlot;
 
                         if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
                             match.team1 = t1;
                             match.team2 = t2;
+                            
+                            // Reset confirmation if no longer a BYE
+                            match.confirmed = (t1 === "BYE" || t2 === "BYE");
+                            if (match.confirmed) {
+                                const winner = t1 === "BYE" ? t2 : t1;
+                                if (winner && winner !== "BYE") {
+                                    match.winnerId = (winner as Player).id;
+                                    match.winnerName = (winner as Player).name;
+                                }
+                            } else {
+                                match.winnerId = undefined;
+                                match.winnerName = undefined;
+                            }
                             changed = true;
                         }
                     }
@@ -510,7 +558,7 @@ export default function AmericanoManager({
                 const t1 = topPlayers[p.s1].player;
                 const t2 = p.s2 === -1 ? "BYE" : topPlayers[p.s2].player;
                 const isBye = t2 === "BYE";
-                
+
                 newBracket.push({
                     id: `b_3_${i}`,
                     round: 3,
@@ -1009,7 +1057,43 @@ export default function AmericanoManager({
                                 <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic">Control de Canchas En Vivo</h2>
                                 <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em]">Gestión de Partidos en Tiempo Real</p>
 
-                                <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                                {/* Progress Tracker */}
+                                {(() => {
+                                    const totalPossibleMatches = Math.ceil(((groups[0]?.players?.length || 0) * matchesPerTeam) / 2);
+                                    const completedMatches = matches.filter(m => m.confirmed).length;
+                                    const progress = totalPossibleMatches > 0 ? (completedMatches / totalPossibleMatches) * 100 : 0;
+
+                                    return (
+                                        <div className="max-w-4xl mx-auto mt-10 space-y-4">
+                                            <div className="flex items-end justify-between px-2">
+                                                <div className="flex flex-col text-left">
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-foreground/20 leading-none mb-2">Progreso General Fase de Grupos</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-2xl font-black italic text-foreground/80">{completedMatches}</span>
+                                                        <span className="text-xs font-black uppercase text-foreground/20 italic">de</span>
+                                                        <span className="text-2xl font-black italic text-foreground/80">{totalPossibleMatches}</span>
+                                                        <span className="text-xs font-black uppercase text-foreground/20 italic ml-2 tracking-widest">Partidos Finalizados</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-4xl font-black italic text-blue-600 leading-none">{Math.round(progress)}<span className="text-lg ml-0.5">%</span></span>
+                                                </div>
+                                            </div>
+                                            <div className="h-4 w-full bg-muted/30 rounded-full overflow-hidden border border-border/40 p-[3px] shadow-inner">
+                                                <motion.div 
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${progress}%` }}
+                                                    transition={{ duration: 1.5, ease: "circOut" }}
+                                                    className="h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 shadow-[0_0_25px_rgba(37,99,235,0.5)] relative"
+                                                >
+                                                    <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]" />
+                                                </motion.div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
                                     <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
                                         <div className="flex flex-col text-left">
                                             <span className="text-[8px] font-black uppercase tracking-widest text-foreground/40 leading-none">Canchas</span>
@@ -1268,7 +1352,7 @@ export default function AmericanoManager({
                                                         const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
                                                         // For a 4-round bracket (up to 16 players), base grid is 16 units
                                                         const rowSpan = Math.pow(2, 4 - round - 1) * 2; // R3: 2, R2: 4, R1: 8, R0: 16
-                                                        
+
                                                         return (
                                                             <div key={round} className="w-[300px] flex flex-col pt-12">
                                                                 <div className="flex-none flex flex-col items-center gap-4 mb-8">
@@ -1282,12 +1366,12 @@ export default function AmericanoManager({
                                                                         const match = matchesInRound.find(m => m.slot === slotIdx);
 
                                                                         return (
-                                                                            <div 
-                                                                                key={slotIdx} 
-                                                                                style={{ 
+                                                                            <div
+                                                                                key={slotIdx}
+                                                                                style={{
                                                                                     gridRowStart: slotIdx * rowSpan + 1,
-                                                                                    gridRowEnd: `span ${rowSpan}` 
-                                                                                }} 
+                                                                                    gridRowEnd: `span ${rowSpan}`
+                                                                                }}
                                                                                 className="flex flex-col justify-center px-2"
                                                                             >
                                                                                 {match ? (
@@ -1304,7 +1388,7 @@ export default function AmericanoManager({
                                                                                                         {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
                                                                                                     </span>
                                                                                                     <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${match.confirmed ? "pointer-events-none opacity-50" : ""}`}>
-                                                                                                        <button 
+                                                                                                        <button
                                                                                                             onClick={() => {
                                                                                                                 const s1 = tIdx === 0 ? Math.max(0, (match.score1 || 0) - 1).toString() : (match.score1 || 0).toString();
                                                                                                                 const s2 = tIdx === 1 ? Math.max(0, (match.score2 || 0) - 1).toString() : (match.score2 || 0).toString();
@@ -1323,7 +1407,7 @@ export default function AmericanoManager({
                                                                                                             className="w-10 h-full bg-transparent text-center font-black text-sm focus:outline-none no-spin-buttons placeholder:text-foreground/10"
                                                                                                             placeholder="0"
                                                                                                         />
-                                                                                                        <button 
+                                                                                                        <button
                                                                                                             onClick={() => {
                                                                                                                 const s1 = tIdx === 0 ? ((match.score1 || 0) + 1).toString() : (match.score1 || 0).toString();
                                                                                                                 const s2 = tIdx === 1 ? ((match.score2 || 0) + 1).toString() : (match.score2 || 0).toString();
@@ -1344,7 +1428,7 @@ export default function AmericanoManager({
                                                                                                 const isPending = !match.confirmed && !isBye && match.team1 && match.team2 && !readOnly;
                                                                                                 const canEdit = match.confirmed && !isBye && !readOnly;
                                                                                                 const btnText = match.confirmed ? "FINALIZADO" : isBye ? "PASO DIRECTO" : "CONFIRMAR";
-                                                                                                
+
                                                                                                 return (
                                                                                                     <button
                                                                                                         onClick={() => {
@@ -1352,13 +1436,12 @@ export default function AmericanoManager({
                                                                                                             if (canEdit) handleBracketEdit(match.id);
                                                                                                         }}
                                                                                                         disabled={!isPending && !canEdit}
-                                                                                                        className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${
-                                                                                                            isPending 
-                                                                                                            ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20" 
-                                                                                                            : canEdit
-                                                                                                            ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50"
-                                                                                                            : "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none"
-                                                                                                        }`}
+                                                                                                        className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending
+                                                                                                                ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20"
+                                                                                                                : canEdit
+                                                                                                                    ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50"
+                                                                                                                    : "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none"
+                                                                                                            }`}
                                                                                                     >
                                                                                                         <span className={canEdit ? "group-hover/btn:hidden" : ""}>{btnText}</span>
                                                                                                         {canEdit && <span className="hidden group-hover/btn:flex items-center justify-center gap-3"><Pencil className="w-3.5 h-3.5" /> CORREGIR RESULTADO</span>}
@@ -1394,6 +1477,57 @@ export default function AmericanoManager({
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* No Players Modal */}
+            <AnimatePresence>
+                {noPlayersData && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setNoPlayersData(null)} className="absolute inset-0 bg-background/80 backdrop-blur-xl" />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-md bg-card border-2 border-border/50 rounded-[3rem] p-10 shadow-2xl overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500/0 via-orange-500 to-orange-500/0" />
+                            
+                            <div className="flex flex-col items-center text-center space-y-8">
+                                <div className="w-24 h-24 rounded-full bg-orange-500/10 flex items-center justify-center relative">
+                                    <div className="absolute inset-0 rounded-full bg-orange-500/5 animate-ping" />
+                                    <Users2 className="w-10 h-10 text-orange-500" />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h3 className="text-3xl font-black uppercase italic tracking-tighter">Sin Jugadores Disponibles</h3>
+                                    <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest leading-relaxed"> No hay suficientes jugadores libres en este momento para iniciar un nuevo encuentro.</p>
+                                </div>
+
+                                <div className="w-full grid grid-cols-3 gap-4 p-6 bg-muted/30 rounded-[2rem] border border-border/50">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-xl font-black italic text-blue-500">{noPlayersData.playing}</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-foreground/30">Jugando</span>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-1 border-x border-border/50">
+                                        <span className="text-xl font-black italic text-emerald-500">{noPlayersData.finished}</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-foreground/30">Completos</span>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-xl font-black italic text-orange-500">{noPlayersData.waiting}</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-foreground/30">Esperando</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setNoPlayersData(null)}
+                                    className="w-full py-5 bg-foreground text-background rounded-2xl font-black uppercase italic tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+                                >
+                                    Entendido
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Success Modal */}
             <AnimatePresence>

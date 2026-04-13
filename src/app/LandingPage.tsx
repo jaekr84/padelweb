@@ -167,14 +167,13 @@ export default function LandingPage({
                     </div>
 
                     <div className="flex gap-4 items-center justify-end flex-1">
-                        <Link href="/login" className="hidden sm:block text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-white transition-colors uppercase">Login</Link>
-                        <Link href="/register" className="glow-button bg-slate-900 border border-slate-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Entrar</Link>
+                        <Link href="/login" className="glow-button bg-slate-900 border border-slate-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Entrar</Link>
                     </div>
                 </motion.div>
             </nav>
 
             {/* ── HERO SECTION ── */}
-            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-24 lg:pt-32 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-20 lg:pt-24 pb-16 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
                 <motion.div initial="hidden" animate="show" variants={staggerContainer} className="max-w-4xl w-full flex flex-col items-center">
 
                     {/* ── Logo Central con Brillo y Reflejo Espejo (Estático) ── */}
@@ -186,13 +185,13 @@ export default function LandingPage({
                     >
                         {/* Logo Principal */}
                         <div
-                            className="relative flex items-center justify-center shrink-0 mx-auto w-[350px] h-[240px] md:w-[650px] md:h-[450px] z-10"
+                            className="relative flex items-center justify-center shrink-0 mx-auto w-[280px] h-[180px] md:w-[450px] md:h-[300px] z-10"
                             style={{
                                 filter: "drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.1))"
                             }}
                         >
                             {/* Logo Base */}
-                            <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" priority sizes="(max-width: 768px) 350px, 650px" />
+                            <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" priority sizes="(max-width: 768px) 280px, 450px" />
 
                             {/* Capa de Brillo Enmascarada */}
                             <div
@@ -211,13 +210,13 @@ export default function LandingPage({
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/60 via-white/20 to-transparent h-[400%] w-[400%] animate-shine-multi opacity-80" />
                             </div>
                         </div>
-                        <motion.h1 variants={fadeUp} className="text-xl md:text-2xl lg:text-[2rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-8 text-white">
+                        <motion.h1 variants={fadeUp} className="text-lg md:text-xl lg:text-[1.5rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-4 text-white">
                             ASOCIACIÓN <span className="text-korea-gradient">COREANA</span> DE PÁDEL EN <span className="text-argentina-gradient">ARGENTINA</span>
                         </motion.h1>
 
                         {/* Reflejo de Suelo (Tipo Espejo de Cristal - Estático) */}
                         <div
-                            className="absolute -bottom-[60%] flex items-center justify-center shrink-0 w-[350px] h-[240px] md:w-[650px] md:h-[450px] pointer-events-none select-none -z-10 opacity-30"
+                            className="absolute -bottom-[60%] flex items-center justify-center shrink-0 w-[280px] h-[180px] md:w-[450px] md:h-[300px] pointer-events-none select-none -z-10 opacity-30"
                             style={{
                                 transform: "scaleY(-1)",
                                 maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)",
@@ -238,11 +237,11 @@ export default function LandingPage({
                     </motion.div>
 
 
-                    <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl lg:text-[7rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-8 text-white">
+                    <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[5.5rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-6 text-white">
                         Domina La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(16,185,129,0.3)]">Cancha</span>
                     </motion.h1>
 
-                    <motion.p variants={fadeUp} className="text-lg md:text-xl text-slate-400 font-medium mb-12 max-w-2xl mx-auto leading-relaxed">
+                    <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-400 font-medium mb-8 max-w-2xl mx-auto leading-relaxed">
                         A.C.A.P. forma parte de la mejor red social de padel
                     </motion.p>
 
@@ -261,7 +260,7 @@ export default function LandingPage({
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.8, type: "spring" }}
-                    className="grid grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 mt-28 w-full border-t border-slate-800 pt-16"
+                    className="grid grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 mt-16 w-full border-t border-slate-800 pt-12"
                 >
                     {[
                         { label: "Torneos Activos", value: "+" + tournamentCount, color: "text-emerald-400" },
@@ -277,13 +276,13 @@ export default function LandingPage({
             </motion.section>
 
             {/* ── BENTO GRID FEATURES ── */}
-            <section className="relative z-10 py-24 px-6 max-w-7xl mx-auto">
+            <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">
                 <motion.div
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, margin: "-100px" }}
                     variants={staggerContainer}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]"
+                    className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[220px] md:auto-rows-[250px]"
                 >
                     {/* Tarjeta 1: Comunidad */}
                     <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 md:col-span-2 flex flex-col justify-end relative overflow-hidden group">
@@ -336,8 +335,8 @@ export default function LandingPage({
                         <motion.div variants={fadeUp} whileHover={{ scale: 1.01 }} className="glass-card rounded-[2rem] p-8 h-full flex items-center justify-between relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent pointer-events-none" />
                             <div className="relative z-10 flex items-center gap-8">
-                                <div className="w-20 h-20 bg-cyan-500/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <ShoppingBag className="w-10 h-10 text-cyan-400" />
+                                <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <ShoppingBag className="w-8 h-8 text-cyan-400" />
                                 </div>
                                 <div>
                                     <h3 className="text-3xl font-black italic uppercase text-white mb-1">Marketplace ACAP</h3>

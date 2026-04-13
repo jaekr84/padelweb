@@ -67,7 +67,7 @@ export default async function TournamentManagePage({ params }: Props) {
     const initialGroups = dbGroups.map(g => ({
         id: g.id,
         name: g.name,
-        players: parsePlayers(g.players) as { id: string, name: string }[],
+        players: parsePlayers(g.players) as { id: string, name: string, clubId?: string | null }[],
     }));
 
     // Mapping for match teams

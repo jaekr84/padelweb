@@ -59,7 +59,7 @@ export default function AmericanoSetup({
 }: AmericanoSetupProps) {
     const router = useRouter();
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin" | "config">("checkin");
+    const [step, setStep] = useState<"checkin">("checkin");
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [present, setPresent] = useState<Set<string>>(new Set());
 
@@ -147,15 +147,33 @@ export default function AmericanoSetup({
 
         // 2. Seleccionar los partidos necesarios respetando matchesPerPlayer
         const selectedMatches: { team1: Player; team2: Player }[] = [];
-        for (const [i, j] of possiblePairs) {
+        
+        // Priorizar pares de clubes distintos
+        const differentClubPairs = possiblePairs.filter(([i, j]) => {
             const p1 = players[i];
             const p2 = players[j];
-            if (playerMatchCount.get(p1.id)! < matchesPerPlayer && playerMatchCount.get(p2.id)! < matchesPerPlayer) {
-                selectedMatches.push({ team1: p1, team2: p2 });
-                playerMatchCount.set(p1.id, playerMatchCount.get(p1.id)! + 1);
-                playerMatchCount.set(p2.id, playerMatchCount.get(p2.id)! + 1);
+            return !p1.clubId || !p2.clubId || p1.clubId !== p2.clubId;
+        });
+        const sameClubPairs = possiblePairs.filter(([i, j]) => {
+            const p1 = players[i];
+            const p2 = players[j];
+            return p1.clubId && p2.clubId && p1.clubId === p2.clubId;
+        });
+
+        const tryPick = (pairList: [number, number][]) => {
+            for (const [i, j] of pairList) {
+                const p1 = players[i];
+                const p2 = players[j];
+                if (playerMatchCount.get(p1.id)! < matchesPerPlayer && playerMatchCount.get(p2.id)! < matchesPerPlayer) {
+                    selectedMatches.push({ team1: p1, team2: p2 });
+                    playerMatchCount.set(p1.id, playerMatchCount.get(p1.id)! + 1);
+                    playerMatchCount.set(p2.id, playerMatchCount.get(p2.id)! + 1);
+                }
             }
-        }
+        };
+
+        tryPick(differentClubPairs);
+        tryPick(sameClubPairs);
 
         // 3. Programación Anti-Bottleneck (por Rondas y Canchas)
         const scheduledMatches: (Match & { roundIndex: number; courtNumber: number })[] = [];
@@ -305,13 +323,6 @@ export default function AmericanoSetup({
                                         icon: UserCheck, 
                                         label: "Asistencia", 
                                         active: step === "checkin",
-                                        completed: step !== "checkin"
-                                    },
-                                    { 
-                                        id: "estructura", 
-                                        icon: LayoutDashboard, 
-                                        label: "Estructura", 
-                                        active: step === "config",
                                         completed: false
                                     },
                                     { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
@@ -483,114 +494,23 @@ export default function AmericanoSetup({
                             </div>
 
                             <button
-                                onClick={() => setStep("config")}
-                                disabled={PRESENT_PLAYERS.length < 2}
+                                onClick={handleStart}
+                                disabled={PRESENT_PLAYERS.length < 2 || saving}
                                 className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                Continuar con {present.size} participantes
-                                <ArrowRight className="w-5 h-5" />
+                                {saving ? (
+                                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        Iniciar Torneo con {present.size} participantes
+                                        <ArrowRight className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
                         </motion.div>
                     )}
 
-                    {step === "config" && (
-                        <motion.div key="config" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
-                            <div className="px-2">
-                                <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Configuración Americano</h2>
-                                <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Definí la cantidad de partidos por equipo</p>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-card border border-border rounded-3xl p-8 shadow-xl">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-blue-500">
-                                            <Swords className="w-5 h-5" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Partidos por Equipo</span>
-                                        </div>
-                                        <span className="text-3xl font-black italic">{matchesPerTeam}</span>
-                                    </div>
-                                    <input 
-                                        type="range" 
-                                        min="1" 
-                                        max={Math.max(1, PRESENT_PLAYERS.length - 1)} 
-                                        value={matchesPerTeam} 
-                                        onChange={(e) => setMatchesPerTeam(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                    />
-                                    <p className="text-[10px] text-foreground/40 font-bold uppercase text-center">
-                                        Cada equipo jugará {matchesPerTeam} partidos.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-emerald-500">
-                                            <MonitorPlay className="w-5 h-5" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Canchas Disponibles</span>
-                                        </div>
-                                        <span className="text-3xl font-black italic">{numCourts}</span>
-                                    </div>
-                                    <input 
-                                        type="range" 
-                                        min="1" 
-                                        max="10" 
-                                        value={numCourts} 
-                                        onChange={(e) => setNumCourts(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                                    />
-                                    <p className="text-[10px] text-foreground/40 font-bold uppercase text-center">
-                                        Se usarán hasta {numCourts} canchas en simultáneo.
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border md:col-span-2">
-                                    <div className="text-center">
-                                        <p className="text-[8px] font-black uppercase text-foreground/40">Total Partidos</p>
-                                        <p className="text-xl font-black italic">{generatedMatches.length || Math.ceil((PRESENT_PLAYERS.length * matchesPerTeam) / 2)}</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-[8px] font-black uppercase text-foreground/40">Participantes</p>
-                                        <p className="text-xl font-black italic">{PRESENT_PLAYERS.length}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tabla de Jugadores Confirmados */}
-                            <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
-                                <div className="p-4 bg-muted/50 border-b border-border flex items-center gap-2 text-foreground/40 uppercase font-black tracking-widest text-[10px]">
-                                    <Users2 className="w-4 h-4" />
-                                    <span>Jugadores Confirmados ({PRESENT_PLAYERS.length})</span>
-                                </div>
-                                <div>
-                                    <table className="w-full text-left">
-                                        <thead className="bg-muted text-[8px] font-black uppercase tracking-widest text-foreground/20 sticky top-0 z-10 border-b border-border">
-                                            <tr>
-                                                <th className="px-6 py-3">#</th>
-                                                <th className="px-6 py-3">Nombre / Equipo</th>
-                                                <th className="px-6 py-3">Categoría</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-border/50">
-                                            {PRESENT_PLAYERS.map((p, idx) => (
-                                                <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                                                    <td className="px-6 py-4 text-[10px] font-black italic text-foreground/20">{idx + 1}</td>
-                                                    <td className="px-6 py-4 text-xs font-black uppercase italic">{p.name}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="px-2 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-lg text-[8px] font-black uppercase">{p.category || "D"}</span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <button onClick={() => setStep("checkin")} className="flex-1 py-5 bg-card border border-border rounded-3xl font-black uppercase italic tracking-widest">Atrás</button>
-                                <button onClick={handleStart} className="flex-[2] py-5 bg-blue-600 text-white rounded-3xl font-black uppercase italic tracking-widest shadow-lg shadow-blue-900/20">Iniciar Torneo</button>
-                            </div>
-                        </motion.div>
-                    )}
 
 
                 </AnimatePresence>

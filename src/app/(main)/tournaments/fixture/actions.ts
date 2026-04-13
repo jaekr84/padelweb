@@ -6,7 +6,7 @@ import { eq, sql, inArray, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth-server";
 
-type PlayerLike = { id: string; name: string };
+type PlayerLike = { id: string; name: string; clubId?: string | null };
 type BracketSlot = PlayerLike | "BYE" | null;
 
 export type SaveFixtureInput = {
@@ -575,7 +575,7 @@ export async function registerManualPlayer(
                 const [existing] = await db.select().from(users).where(eq(users.id, data.userId)).limit(1);
                 if (!existing) throw new Error(`User ${data.userId} not found`);
                 const name = [existing.firstName, existing.lastName].filter(Boolean).join(" ") || existing.email.split("@")[0];
-                return { id: existing.id, name };
+                return { id: existing.id, name, clubId: existing.clubId };
             }
             if (!data.name) throw new Error("Nombre es obligatorio para registro manual");
 
@@ -618,7 +618,7 @@ export async function registerManualPlayer(
                 id: registrationId,
                 name: displayName,
                 category: player1.category || "D",
-                clubId: null,
+                clubId: u1.clubId || null,
                 player1: u1.name,
                 player2: u2?.name || (isIndividual ? null : "Invitado"),
                 userId: u1.id,
