@@ -238,11 +238,11 @@ export default function LandingPage({
 
 
                     <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[5.5rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-6 text-white">
-                        Domina La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(16,185,129,0.3)]">Cancha</span>
+                        Dominá La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(16,185,129,0.3)]">Cancha</span>
                     </motion.h1>
 
                     <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-400 font-medium mb-8 max-w-2xl mx-auto leading-relaxed">
-                        A.C.A.P. forma parte de la mejor red social de padel
+                        A.C.A.P. forma parte de la mejor red social de pádel
                     </motion.p>
 
                     <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5 justify-center">
@@ -288,8 +288,8 @@ export default function LandingPage({
                     <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 md:col-span-2 flex flex-col justify-end relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] group-hover:bg-blue-500/30 transition-colors" />
                         <Users className="w-12 h-12 text-blue-400 mb-6 relative z-10" />
-                        <h3 className="text-3xl font-black italic uppercase text-white mb-2 relative z-10">Conecta y Juega</h3>
-                        <p className="text-sm text-slate-400 max-w-sm relative z-10">Arma parejas, encuentra rivales de tu nivel y sumérgete en el feed social del deporte más emocionante.</p>
+                        <h3 className="text-3xl font-black italic uppercase text-white mb-2 relative z-10">Conectá y Jugá</h3>
+                        <p className="text-sm text-slate-400 max-w-sm relative z-10">Armá parejas, encontrá rivales de tu nivel y sumergite en el feed social del deporte más emocionante.</p>
                     </motion.div>
 
                     {/* Tarjeta 2: Torneos */}
@@ -400,9 +400,9 @@ export default function LandingPage({
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-50" />
 
                 <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-5xl md:text-7xl font-black italic uppercase text-white mb-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">Entra a jugar</h2>
+                    <h2 className="text-5xl md:text-7xl font-black italic uppercase text-white mb-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">Entrá a jugar</h2>
                     <Link href="/register" className="glow-button inline-block bg-white text-black px-16 py-5 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] shadow-xl hover:scale-110 active:scale-95 transition-all">
-                        Unirse a la Comunidad
+                        Unite a la Comunidad
                     </Link>
                 </div>
 
