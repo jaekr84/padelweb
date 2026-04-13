@@ -8,13 +8,13 @@ import { Send, Loader2, User, Building2, ShieldCheck, Mail, Link as LinkIcon, Co
 
 export default function InvitationsClient() {
     const [isPending, startTransition] = useTransition();
-    const [selectedRole, setSelectedRole] = useState("club");
+    const [selectedRole] = useState("jugador");
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
 
     const handleSubmit = (formData: FormData) => {
-        formData.append("role", selectedRole);
+        formData.append("role", "jugador");
         formData.append("type", "link");
 
         startTransition(async () => {
@@ -95,51 +95,33 @@ export default function InvitationsClient() {
                     <div className="flex items-center gap-5">
                         <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
                             <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
-                            <ShieldCheck className="relative z-10 w-6 h-6" />
+                            <User className="relative z-10 w-6 h-6" />
                         </div>
                         <div>
                             <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-1">Accesos al sistema</p>
                             <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tight leading-none text-foreground">
-                                Gestión de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Invitaciones</span>
+                                Invitación de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Jugadores</span>
                             </h1>
                         </div>
                     </div>
                 <p className="text-muted-foreground/80 text-sm font-medium leading-relaxed pl-[76px]">
-                    Genera links de invitación exclusivos para nuevos clubes o jugadores. Los links tienen una validez de 24 horas.
+                    Genera links de invitación exclusivos para nuevos jugadores. Los links tienen una validez de 24 horas y permiten el acceso directo al registro.
                 </p>
                 </motion.header>
 
                 <form ref={formRef} action={handleSubmit} className="glass-card p-6 md:p-10 rounded-[2.5rem] flex flex-col gap-8 relative overflow-hidden shadow-2xl transition-all group">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                    {/* Role Selection */}
                     <div className="flex flex-col gap-4 relative z-10">
-                    <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Tipo de Cuenta</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {[
-                            { id: "club", label: "Nuevo Club", desc: "Permisos administrativos", icon: Building2 },
-                            { id: "jugador", label: "Jugador Libre", desc: "Sin club asignado", icon: User }
-                        ].map((role) => (
-                            <button
-                                key={role.id}
-                                type="button"
-                                onClick={() => { setSelectedRole(role.id); setGeneratedLink(null); }}
-                                className={`flex flex-col gap-3 p-6 rounded-[2rem] border transition-all text-left relative overflow-hidden group ${
-                                    selectedRole === role.id 
-                                        ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.2)] ring-1 ring-emerald-500/10' 
-                                        : 'bg-muted/30 border-border/50 hover:bg-muted hover:border-border'
-                                }`}
-                            >
-                                <div className="flex items-center justify-between relative z-10">
-                                    <role.icon className={`w-6 h-6 transition-colors ${selectedRole === role.id ? 'text-emerald-500' : 'text-muted-foreground/60 group-hover:text-muted-foreground'}`} />
-                                    {selectedRole === role.id && <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />}
-                                </div>
-                                <div className="flex flex-col mt-2 relative z-10">
-                                    <span className={`text-[12px] font-black uppercase tracking-wider transition-colors ${selectedRole === role.id ? 'text-foreground' : 'text-muted-foreground'}`}>{role.label}</span>
-                                    <span className="text-[9px] font-bold text-muted-foreground opacity-70 leading-tight mt-0.5">{role.desc}</span>
-                                </div>
-                            </button>
-                        ))}
+                    <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Configuración del Link</label>
+                    <div className="bg-muted/30 border border-border/50 p-6 rounded-[2rem] flex items-center gap-6">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <User className="w-6 h-6" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[12px] font-black uppercase tracking-wider text-foreground">Rol: Jugador Libre</span>
+                            <span className="text-[9px] font-bold text-muted-foreground opacity-70 leading-tight mt-0.5">Acceso estándar al feed y torneos públicos</span>
+                        </div>
                     </div>
                 </div>
 

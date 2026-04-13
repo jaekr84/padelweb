@@ -438,7 +438,7 @@ export default function ClubProfileClient({
                                     </div>
 
                                     <p className="text-muted-foreground text-[10px] font-bold mb-6 leading-relaxed uppercase tracking-widest">
-                                        Si el jugador ya tiene una cuenta, podés buscarlo por <span className="text-foreground">Nombre, Email o DNI</span> para enviarle una invitación.
+                                        Si el jugador ya tiene una cuenta, podés buscarlo por <span className="text-foreground">Nombre o Email</span> para enviarle una invitación.
                                     </p>
 
                                     <div className="flex flex-col gap-4">

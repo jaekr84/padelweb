@@ -1,34 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { registerAction, requestRegistrationAction, verifyTokenAction } from "./actions";
 import { User, Mail, Lock, Phone, CreditCard, Calendar, Users, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, MessageSquare, Send, ChevronDown, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-
-const ROLES = [
-    {
-        id: "jugador",
-        label: "Jugador",
-        icon: User,
-        description: "Encontrá partidos, torneos y medí tu nivel.",
-        color: "from-blue-500/20 to-blue-600/5",
-        active: "bg-blue-600 border-blue-400 shadow-[0_0_30px_-5px_#3b82f6]",
-        iconColor: "text-blue-400"
-    },
-    {
-        id: "club",
-        label: "Club / Equipo",
-        icon: Users,
-        description: "Creá tu equipo, organizá torneos y circuitos.",
-        color: "from-purple-500/20 to-purple-600/5",
-        active: "bg-purple-600 border-purple-400 shadow-[0_0_30px_-5px_#a855f7]",
-        iconColor: "text-purple-400"
-    }
-];
 
 export default function RegisterPage() {
     const searchParams = useSearchParams();
@@ -38,12 +17,11 @@ export default function RegisterPage() {
     const [isPending, startTransition] = useTransition();
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedRole, setSelectedRole] = useState("jugador");
     const [isVerified, setIsVerified] = useState<boolean | null>(null);
     const [requestSuccess, setRequestSuccess] = useState(false);
 
     // Verify token on mount if present
-    useState(() => {
+    useEffect(() => {
         if (invitationToken) {
             verifyTokenAction(invitationToken).then(res => {
                 setIsVerified(res.valid);
@@ -51,13 +29,13 @@ export default function RegisterPage() {
         } else {
             setIsVerified(false);
         }
-    });
+    }, [invitationToken]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         const formData = new FormData(e.currentTarget);
-        formData.set("role", selectedRole);
+        formData.set("role", "jugador");
 
         startTransition(async () => {
             const res = await registerAction(formData);
@@ -120,11 +98,11 @@ export default function RegisterPage() {
 
                 <div className="text-center mb-10 relative">
                     <h1 className="text-4xl font-black italic tracking-tight text-white mb-2 uppercase">
-                        {isVerified ? "Únete a ACAP" : "Solicitar Registro"}
+                        {isVerified ? "Registro de Jugador" : "Solicitar Registro"}
                     </h1>
                     <p className="text-slate-400 font-medium">
                         {isVerified
-                            ? "Crea tu cuenta personalizada para empezar a competir."
+                            ? "Completá tus datos para registrarte."
                             : "El registro es por invitación. Completa tus datos para solicitar acceso."}
                     </p>
                 </div>
@@ -171,7 +149,7 @@ export default function RegisterPage() {
                                             name="whatsapp"
                                             type="tel"
                                             required
-                                            placeholder="+54 9 11 ..."
+                                            placeholder="11 4444 5555"
                                             className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
                                         />
                                     </div>
@@ -218,54 +196,16 @@ export default function RegisterPage() {
                         <input type="hidden" name="invitationToken" value={invitationToken || ""} />
                         <input type="hidden" name="inviteClubId" value={inviteClubId || ""} />
 
-                        {/* Role Selection Section */}
-                        <div className="space-y-4 mb-8">
-                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-4">Selecciona tu Rol</label>
-
-                            <AnimatePresence>
-                                {invitationToken && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: "auto" }}
-                                        className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-4 rounded-2xl text-[12px] font-bold text-center flex items-center justify-center gap-3 mb-4"
-                                    >
-                                        <ShieldCheck className="w-5 h-5 shrink-0" />
-                                        Invitación verificada. Tu rol será asignado por administración.
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${invitationToken ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                                {ROLES.map((r) => {
-                                    const isSelected = selectedRole === r.id;
-                                    const Icon = r.icon;
-                                    return (
-                                        <button
-                                            key={r.id}
-                                            type="button"
-                                            onClick={() => setSelectedRole(r.id)}
-                                            className={`group relative flex flex-col items-start p-5 rounded-3xl text-left transition-all duration-300 ${isSelected
-                                                ? r.active
-                                                : `bg-slate-950/50 border border-white/5 hover:bg-white/5`
-                                                }`}
-                                        >
-                                            <div className={`p-2.5 rounded-xl mb-3 transition-colors ${isSelected
-                                                ? "bg-white/20 text-white"
-                                                : `bg-slate-900 ${r.iconColor} group-hover:scale-110 transition-transform`
-                                                }`}>
-                                                <Icon className="w-5 h-5" />
-                                            </div>
-                                            <h3 className={`text-[15px] font-black uppercase tracking-wider mb-1 ${isSelected ? "text-white" : "text-white/80"}`}>
-                                                {r.label}
-                                            </h3>
-                                            <p className={`text-[11px] font-medium leading-relaxed ${isSelected ? "text-white/80" : "text-white/40"}`}>
-                                                {r.description}
-                                            </p>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        {invitationToken && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-6 py-4 rounded-3xl text-[12px] font-bold text-center flex items-center justify-center gap-3 mb-8"
+                            >
+                                <ShieldCheck className="w-5 h-5 shrink-0" />
+                                Invitación de jugador verificada correctamente.
+                            </motion.div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* First Name */}
@@ -297,34 +237,18 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Email */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-4">Mail (Usuario)</label>
-                                <div className="group relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        required
-                                        placeholder="juan@perez.com"
-                                        className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Document */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-4">N° Documento</label>
-                                <div className="group relative">
-                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                                    <input
-                                        name="documentNumber"
-                                        required
-                                        placeholder="DNI o CUIT"
-                                        className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
-                                    />
-                                </div>
+                        {/* Email */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-4">Mail (Usuario)</label>
+                            <div className="group relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <input
+                                    name="email"
+                                    type="email"
+                                    required
+                                    placeholder="juan@perez.com"
+                                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
+                                />
                             </div>
                         </div>
 
@@ -338,7 +262,7 @@ export default function RegisterPage() {
                                         name="phone"
                                         type="tel"
                                         required
-                                        placeholder="+54 9..."
+                                        placeholder="11 4444 5555"
                                         className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-sans"
                                     />
                                 </div>

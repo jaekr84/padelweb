@@ -49,13 +49,13 @@ export async function registerAction(formData: FormData) {
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
     const phone = formData.get("phone") as string;
-    const documentNumber = formData.get("documentNumber") as string;
+    const documentNumber = (formData.get("documentNumber") as string) || null;
     const birthDate = formData.get("birthDate") as string;
     const gender = formData.get("gender") as string;
     const invitationToken = formData.get("invitationToken") as string;
     const inviteClubId = formData.get("inviteClubId") as string;
 
-    if (!email || !password || !firstName || !lastName || !phone || !documentNumber || !birthDate || !gender) {
+    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender) {
         return { error: "Faltan campos obligatorios" };
     }
 

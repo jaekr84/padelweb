@@ -295,10 +295,7 @@ export default function AmericanoSetup({
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-6">
                             <button
-                                onClick={() => {
-                                    if (step === "config") setStep("checkin");
-                                    else router.push(`/tournaments/${tournamentId}/manage`);
-                                }}
+                                onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
                                 className="group flex items-center gap-2 text-foreground/40 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
                             >
                                 <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
@@ -335,7 +332,6 @@ export default function AmericanoSetup({
                                                 onClick={() => {
                                                     if (s.disabled) return;
                                                     if (s.id === "checkin") setStep("checkin");
-                                                    if (s.id === "estructura") setStep("config");
                                                 }}
                                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${s.active 
                                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
