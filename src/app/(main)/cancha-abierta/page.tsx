@@ -1,13 +1,13 @@
 import { db } from "@/db";
 import { openCourtEvents, clubs, openCourtRegistrations } from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import OpenCourtPublicClient from "@/app/(main)/cancha-abierta/OpenCourtPublicClient";
 import { getSession } from "@/lib/auth-server";
 
 export default async function CanchaAbiertaPublicPage() {
     const session = await getSession();
 
-    // Fetch active events from the database
+    // Fetch active and completed events from the database
     // We join with clubs to get club info and use a subquery/count for registrations
     const eventsData = await db
         .select({
@@ -18,7 +18,7 @@ export default async function CanchaAbiertaPublicPage() {
         })
         .from(openCourtEvents)
         .leftJoin(clubs, eq(openCourtEvents.clubId, clubs.id))
-        .where(eq(openCourtEvents.status, "active"))
+        .where(inArray(openCourtEvents.status, ["active", "completed"]))
         .orderBy(desc(openCourtEvents.createdAt));
 
     // Map to a cleaner structure

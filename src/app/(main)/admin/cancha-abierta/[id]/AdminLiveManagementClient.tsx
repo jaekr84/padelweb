@@ -6,7 +6,7 @@ import {
     Plus, Minus, RefreshCw, Trophy, Activity,
     Calendar, DollarSign, UserCheck, ShieldCheck,
     ChevronRight, ArrowLeft, LayoutGrid, ListFilter,
-    Trash2
+    Trash2, Flag
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,9 +22,10 @@ import {
     bulkMarkAllAsPaidAction,
     bulkMarkAllAsPresentAction,
     removeCourtAction,
-    createOpenCourtMatchAction,
     finishOpenCourtMatchAction,
-    startOpenCourtMatchAction
+    startOpenCourtMatchAction,
+    createOpenCourtMatchAction,
+    finishOpenCourtEventAction
 } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -484,6 +485,20 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         setIsGenerating(false);
     }, [availablePlayers, registrations, event.matches, matchesPlayedCount, event.id, draftMatches]);
 
+    const handleFinishEvent = async () => {
+        if (!confirm("¿Estás seguro de que deseas finalizar este evento? Se cerrarán todos los partidos en curso y el evento pasará a estar completado.")) return;
+        
+        setIsGenerating(true);
+        const res = await finishOpenCourtEventAction(event.id);
+        if (res.success) {
+            toast.success("Evento finalizado correctamente");
+            router.push("/admin/cancha-abierta");
+        } else {
+            toast.error("Error al finalizar evento: " + res.error);
+        }
+        setIsGenerating(false);
+    };
+
     const confirmDraftAndStart = async (courtId: string) => {
         const draft = draftMatches[courtId];
         if (!draft) return;
@@ -704,7 +719,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-6">
                     <div className="bg-card/40 border border-border/50 px-6 py-3 rounded-2xl flex items-center gap-4">
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Disponibles</span>
@@ -713,9 +728,18 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         <div className="w-px h-8 bg-border/40" />
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">En Juego</span>
-                            <span className="text-xl font-black italic leading-none text-blue-500">{playingPlayersIds.size}</span>
+                            <span className="text-xl font-black italic leading-none text-orange-500">{event.matches.filter(m => m.status === 'in_progress').length}</span>
                         </div>
                     </div>
+
+                    <button 
+                        onClick={handleFinishEvent}
+                        disabled={isGenerating}
+                        className="px-6 py-4 bg-red-500 hover:bg-red-600 active:scale-95 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-red-500/10 flex items-center gap-2"
+                    >
+                        <Flag className="w-4 h-4 fill-current" />
+                        Finalizar Evento
+                    </button>
                 </div>
             </div>
 

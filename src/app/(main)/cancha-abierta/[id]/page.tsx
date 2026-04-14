@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { openCourtEvents, clubs, openCourtRegistrations, users } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { notFound } from "next/navigation";
 import EventJoinClient from "@/app/(main)/cancha-abierta/[id]/EventJoinClient";
@@ -38,7 +38,13 @@ export default async function EventJoinPage({ params }: { params: Promise<{ id: 
         .where(eq(openCourtRegistrations.eventId, eventId))
         .leftJoin(users, eq(openCourtRegistrations.userId, users.id));
 
-    // 3. User setup & Profile Side Preference
+    // 3. Fetch all matches for history
+    const matches = await db.query.openCourtMatches.findMany({
+        where: (m, { eq }) => eq(m.eventId, eventId),
+        orderBy: (m, { desc }) => [desc(m.startedAt)]
+    });
+
+    // 4. User setup & Profile Side Preference
     const userReg = registrations.find(r => r.reg.userId === session?.userId);
     
     let userSidePreference = "ambos";
@@ -68,6 +74,7 @@ export default async function EventJoinPage({ params }: { params: Promise<{ id: 
                 currentUserId={session?.userId}
                 userRegistration={userReg?.reg || null}
                 defaultSidePreference={userSidePreference}
+                matches={matches}
             />
         </div>
     );

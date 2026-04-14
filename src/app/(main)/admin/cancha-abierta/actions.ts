@@ -15,6 +15,38 @@ import { revalidatePath } from "next/cache";
 
 import { initializeOpenCourtTables } from "./init-db";
 
+export async function finishOpenCourtEventAction(eventId: string) {
+    const session = await getSession();
+    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+        throw new Error("No autorizado");
+    }
+
+    try {
+        // 1. Marcar el evento como completado
+        await db.update(openCourtEvents)
+            .set({ status: "completed" })
+            .where(eq(openCourtEvents.id, eventId));
+
+        // 2. Finalizar todos los partidos que aún estén en curso
+        await db.update(openCourtMatches)
+            .set({ 
+                status: "finished",
+                finishedAt: new Date()
+            })
+            .where(and(
+                eq(openCourtMatches.eventId, eventId),
+                eq(openCourtMatches.status, "in_progress")
+            ));
+
+        revalidatePath("/admin/cancha-abierta");
+        revalidatePath(`/admin/cancha-abierta/${eventId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error finishing event:", error);
+        return { success: false, error: String(error) };
+    }
+}
+
 export async function createOpenCourtMatchAction(data: {
     eventId: string;
     courtId: string;
