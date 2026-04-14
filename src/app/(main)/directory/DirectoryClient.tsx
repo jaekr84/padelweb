@@ -196,7 +196,7 @@ export default function DirectoryClient({
                     <input
                         type="text"
                         inputMode="search"
-                        className="w-full pl-14 pr-12 py-5 glass-card rounded-[2rem] text-sm font-bold uppercase italic tracking-tight text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-2xl"
+                        className="w-full pl-14 pr-12 py-5 glass-card rounded-[2rem] text-sm font-bold uppercase italic tracking-tight text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-2xl"
                         placeholder="Buscar por nombre, barrio o ciudad..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}

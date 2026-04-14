@@ -134,7 +134,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 </h3>
                             </div>
                             <div className="flex flex-col items-end text-right">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Fecha</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha</span>
                                 <span className="text-xs font-bold text-foreground/80">{formatDate(tournament.startDate)}</span>
                             </div>
                         </div>
@@ -142,7 +142,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         {/* Compact Metadata Grid (3 columns for seriousness) */}
                         <div className="grid grid-cols-3 gap-3 mb-5 border-y border-border/40 py-4 bg-muted/5 -mx-5 px-5">
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Categorías</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Categorías</span>
                                 <span className="text-[11px] font-bold text-foreground/90 truncate">
                                     {(() => {
                                         let cats = tournament.categories;
@@ -154,40 +154,40 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Género</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Género</span>
                                 <span className="text-[11px] font-bold text-foreground/90 capitalize">
                                     {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : 'Mixto'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Inscripción</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Inscripción</span>
                                 <span className="text-[11px] font-bold text-foreground/90">
                                     {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Modalidad</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Modalidad</span>
                                 <span className="text-[11px] font-bold text-foreground/90">
                                     {mod?.participacion === 'individual' ? "Individual" : "En Parejas"}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Tipo</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Tipo</span>
                                 <span className="text-[11px] font-bold text-foreground/90">
                                     {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Cupos</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Cupos</span>
                                 <span className="text-[11px] font-bold text-foreground/90">{tournament.maxSlots || "Sin límite"}</span>
                             </div>
                         </div>
 
                         {/* Location Block - More Pro List Style */}
                         <div className="mb-5 flex items-start gap-2">
-                            <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/50" />
+                            <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/70" />
                             <div className="flex-1">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 block mb-0.5">Ubicación</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación</span>
                                 {tournament.location ? (
                                     <span 
                                         onClick={(e) => {
@@ -200,7 +200,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                         {tournament.location}
                                     </span>
                                 ) : (
-                                    <span className="text-xs font-bold text-muted-foreground/40 italic">Por confirmar</span>
+                                    <span className="text-xs font-bold text-muted-foreground/70 italic">Por confirmar</span>
                                 )}
                             </div>
                         </div>
@@ -228,12 +228,12 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         <div className="mt-auto pt-4 border-t border-border/40">
                             <div className="flex items-center justify-between mb-4 px-1">
                                 <div className="flex flex-col">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50">Club</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Club</span>
                                     <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateClub)}</span>
                                 </div>
                                 <div className="w-px h-6 bg-border/40" />
                                 <div className="flex flex-col text-right">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/50">General</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">General</span>
                                     <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateGeneral)}</span>
                                 </div>
                             </div>

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 
@@ -105,6 +106,7 @@ export default function CreateTournamentForm({
     const cats = initialData?.categories ?? [];
     const isCatMode = cats.length === 0 || cats[0] !== "libre";
     const pc = initialData?.pointsConfig ?? null;
+    const [showReview, setShowReview] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
@@ -269,7 +271,7 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Layers className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Método de Competición</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Método de Competición</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,7 +335,7 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Sparkles className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Información Principal</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Información Principal</h2>
                         </div>
 
                         <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
@@ -368,7 +370,7 @@ export default function CreateTournamentForm({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Nombre del Evento</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Nombre del Evento</label>
                                     <input
                                         type="text"
                                         value={info.name}
@@ -379,7 +381,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Fecha de Inicio</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Fecha de Inicio</label>
                                     <div className="relative">
                                         <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
@@ -393,7 +395,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Fecha de Finalización</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Fecha de Finalización</label>
                                     <div className="relative">
                                         <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
@@ -407,7 +409,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Ubicación / Dirección (Google Maps)</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Ubicación / Dirección (Google Maps)</label>
                                     <div className="relative">
                                         <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
@@ -435,7 +437,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Descripción y Premios</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Descripción y Premios</label>
                                     <textarea
                                         value={info.description}
                                         onChange={e => setInfo({ ...info, description: e.target.value })}
@@ -449,7 +451,7 @@ export default function CreateTournamentForm({
                                     <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2 mb-2">Apertura de Inscripciones (Personalizable)</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Jugadores con Club</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Jugadores con Club</label>
                                             <div className="relative">
                                                 <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                                 <input
@@ -462,7 +464,7 @@ export default function CreateTournamentForm({
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Público General</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Público General</label>
                                             <div className="relative">
                                                 <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                                 <input
@@ -524,7 +526,7 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Target className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Modalidad de Juego</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Modalidad de Juego</h2>
                         </div>
 
                         <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
@@ -532,7 +534,7 @@ export default function CreateTournamentForm({
                             {/* Género y Participación */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground">
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Género</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Género</label>
                                     <select
                                         value={modalidad.genero}
                                         onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
@@ -545,7 +547,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Participación</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Participación</label>
                                     <select
                                         value={modalidad.participacion}
                                         onChange={e => setModalidad({ ...modalidad, participacion: e.target.value as any })}
@@ -559,7 +561,7 @@ export default function CreateTournamentForm({
 
                             {/* Toggle Modo */}
                             <div className="space-y-4 pt-4 border-t border-border">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-2">Formato de Categorización</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Formato de Categorización</label>
                                 <div className="bg-muted/30 p-2 rounded-2xl border border-border flex gap-2">
                                     <button
                                         onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
@@ -612,7 +614,7 @@ export default function CreateTournamentForm({
                             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
                                 <Star className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/50 italic">Sistema de Puntos (Ranking)</h2>
+                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Sistema de Puntos (Ranking)</h2>
                         </div>
 
                         <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-6 sm:space-y-8 transition-colors">
@@ -650,20 +652,155 @@ export default function CreateTournamentForm({
                 {/* Botón de Acción Final */}
                 <div className="w-full pt-10 border-t border-border/50">
                     <button
-                        onClick={handleSubmit}
+                        onClick={() => setShowReview(true)}
                         disabled={isLoading}
                         className="w-full shadow-2xl shadow-indigo-900/20 bg-indigo-600 hover:bg-indigo-500 text-white py-5 sm:py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-indigo-400/20"
                     >
                         {isLoading ? (
                             <Activity className="h-6 w-6 animate-spin" />
                         ) : (
-                            <CheckCircle2 className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                            <Sparkles className="h-6 w-6 group-hover:scale-110 transition-transform text-amber-400" />
                         )}
                         <span className="text-lg">
-                            {isEditing ? "Guardar Cambios del Torneo" : "Publicar Torneo Oficial"}
+                            {isEditing ? "Revisar y Guardar" : "Revisar y Publicar"}
                         </span>
                     </button>
-                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-10">
+
+                    <AnimatePresence>
+                        {showReview && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowReview(false)}
+                                    className="absolute inset-0 bg-background/80 backdrop-blur-xl"
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    className="relative w-full max-w-lg bg-card border border-border rounded-[3rem] shadow-2xl overflow-hidden"
+                                >
+                                    {/* Modal Header */}
+                                    <div className="p-8 pb-4 flex items-center justify-between border-b border-border/50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                                                <Target className="w-5 h-5 text-indigo-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase italic italic tracking-tight">Revisión Final</h3>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Verifica los datos antes de publicar</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setShowReview(false)} className="p-2 hover:bg-muted rounded-xl transition-colors">
+                                            <ChevronLeft className="w-5 h-5 rotate-180" />
+                                        </button>
+                                    </div>
+
+                                    {/* Modal Content - Resume Card */}
+                                    <div className="p-8 space-y-8">
+                                        {/* Name & Type */}
+                                        <div className="space-y-4">
+                                            <p className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">{info.name}</p>
+                                        </div>
+
+                                        {/* Key Info Grid */}
+                                        <div className="grid grid-cols-2 gap-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Tipo de Torneo</p>
+                                                <p className="text-sm font-black italic uppercase tracking-widest text-indigo-500">
+                                                    {tournamentType === 'round_robin' ? 'Round Robin' : 'Americano'}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inicio</p>
+                                                <p className="text-sm font-black italic">{info.startDate || "No definida"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Participación</p>
+                                                <p className="text-sm font-black italic uppercase tracking-widest text-indigo-500">{modalidad.participacion === 'pareja' ? 'Parejas' : 'Individual'}</p>
+                                            </div>
+                                            <div className="col-span-2 space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Ubicación</p>
+                                                <p className="text-[10px] font-black italic truncate">{info.surface || "No definida"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Categorías</p>
+                                                <p className="text-[10px] font-black italic uppercase tracking-widest">
+                                                    {modalidad.mode === 'libre' ? 'Libre' : modalidad.selectedCats.join(', ') || 'Sin seleccionar'}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inscripción</p>
+                                                <p className="text-sm font-black italic">{info.registrationFee ? `$${info.registrationFee}` : "Gratis"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Cupos Máx.</p>
+                                                <p className="text-sm font-black italic">{info.maxSlots && info.maxSlots !== "0" ? info.maxSlots : "Ilimitados"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Apertura Club</p>
+                                                <p className="text-[10px] font-black italic">{info.openDateClub || "No definida"}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Apertura Gral.</p>
+                                                <p className="text-[10px] font-black italic">{info.openDateGeneral || "No definida"}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Points Config Summary */}
+                                        <div className="space-y-3">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Sistema de Puntos</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {[
+                                                    { label: "Camp.", val: customPoints.winner },
+                                                    { label: "Fin.", val: customPoints.finalist },
+                                                    { label: "Sem.", val: customPoints.semi },
+                                                    { label: "Cuart.", val: customPoints.quarter },
+                                                    { label: "Oct.", val: customPoints.octavos },
+                                                    { label: "V. Zona", val: customPoints.groupMatchWin },
+                                                    { label: "Asist.", val: customPoints.participation },
+                                                ].map(p => (
+                                                    <div key={p.label} className="bg-muted/40 px-3 py-1.5 rounded-lg border border-border/50 flex items-center gap-2">
+                                                        <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60">{p.label}</span>
+                                                        <span className="text-[9px] font-black italic text-indigo-500">{p.val}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Description & Prizes Section */}
+                                        <div className="space-y-3 bg-indigo-500/5 p-6 rounded-[2rem] border border-indigo-500/10">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-indigo-500/60">Descripción y Premios</p>
+                                            <p className="text-[10px] font-medium text-foreground/70 leading-relaxed line-clamp-3 italic">
+                                                {info.description || "Sin descripción proporcionada."}
+                                            </p>
+                                        </div>
+
+                                        {/* Action */}
+                                        <div className="flex flex-col gap-4">
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={isLoading}
+                                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-16 rounded-2xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-emerald-500/20"
+                                            >
+                                                {isLoading ? <Activity className="w-6 h-6 animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                                                {isEditing ? "Confirmar Cambios" : "Confirmar y Publicar"}
+                                            </button>
+                                            <button
+                                                onClick={() => setShowReview(false)}
+                                                className="w-full text-muted-foreground hover:text-foreground text-[10px] font-black uppercase tracking-[0.3em] py-2 transition-colors"
+                                            >
+                                                Volver a Corregir
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 mb-10">
                         Al publicar, el torneo será visible para todos los jugadores de la plataforma.
                     </p>
                 </div>

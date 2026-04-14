@@ -398,7 +398,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             placeholder="BUSCAR USUARIO (EMAIL, NOMBRE)..."
                             value={tournamentFilter.search}
                             onChange={(e) => setTournamentFilter({ search: e.target.value })}
-                            className="pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl w-full text-[9px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all placeholder:text-muted-foreground/30"
+                            className="pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl w-full text-[9px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all placeholder:text-muted-foreground/60"
                         />
                     </div>
 
@@ -770,7 +770,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             <div className="absolute inset-0 bg-indigo-500/5 blur-[100px]" />
                             <div className="flex flex-col items-center gap-6 relative z-10">
                                 <div className="w-20 h-20 rounded-full bg-muted border border-border flex items-center justify-center animate-pulse">
-                                    <Search className="w-8 h-8 text-muted-foreground/30" />
+                                    <Search className="w-8 h-8 text-muted-foreground/60" />
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-foreground text-lg font-black uppercase italic tracking-[0.2em]">Cero Coincidencias</p>

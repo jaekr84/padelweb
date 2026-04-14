@@ -284,7 +284,7 @@ export default function PlayerProfileClient({
                                             {dbUser.imageUrl ? (
                                                 <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority unoptimized sizes="(max-width: 768px) 96px, 160px" />
                                             ) : (
-                                                <User className="w-12 h-12 text-muted-foreground/30" />
+                                                <User className="w-12 h-12 text-muted-foreground/60" />
                                             )}
                                         </div>
                                         {isOwnProfile && (
@@ -489,7 +489,7 @@ export default function PlayerProfileClient({
                                         ) : (
                                             <div className="p-20 text-center flex flex-col items-center gap-6 bg-muted/10">
                                                 <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border">
-                                                    <Activity className="h-8 w-8 text-muted-foreground/30" />
+                                                    <Activity className="h-8 w-8 text-muted-foreground/60" />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-foreground text-sm font-black uppercase tracking-widest italic">Awaiting Telemetry</p>
@@ -577,7 +577,7 @@ export default function PlayerProfileClient({
                                         <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6 h-fit">
                                             <div className="flex flex-col items-center gap-4 text-center">
                                                 <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                                                    <User className="h-10 w-10 text-muted-foreground/30" />
+                                                    <User className="h-10 w-10 text-muted-foreground/60" />
                                                 </div>
                                                 <div>
                                                     <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground">{dbUser.firstName} {dbUser.lastName}</h3>
@@ -601,7 +601,7 @@ export default function PlayerProfileClient({
                                                         <UserCircle className="h-4 w-4 text-indigo-600" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ID de Usuario</span>
                                                     </div>
-                                                    <span className="text-[9px] font-mono text-muted-foreground/40">{dbUser.id.slice(0, 12)}...</span>
+                                                    <span className="text-[9px] font-mono text-muted-foreground/70">{dbUser.id.slice(0, 12)}...</span>
                                                 </div>
                                             </div>
 

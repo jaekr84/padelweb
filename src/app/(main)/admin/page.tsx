@@ -173,7 +173,7 @@ export default async function AdminDashboardPage() {
                 <section className="space-y-8 animate-fade-in" style={{ animationDelay: '0.2s', opacity: 0 }}>
                     <div className="border-l-2 border-emerald-500/40 pl-6 space-y-1">
                         <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Accesos Rápidos</h2>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Panel administrativo</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Panel administrativo</p>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">

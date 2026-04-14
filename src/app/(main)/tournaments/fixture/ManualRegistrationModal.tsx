@@ -199,13 +199,13 @@ export default function ManualRegistrationModal({
                             <Plus className="w-6 h-6 text-blue-500" />
                             Inscribir Participantes
                         </h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mt-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70 mt-1">
                             Buscá en la base de datos o agregalos de forma manual
                         </p>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="w-12 h-12 rounded-2xl hover:bg-muted transition-all flex items-center justify-center text-foreground/40 hover:text-foreground border border-transparent hover:border-border active:scale-95"
+                        className="w-12 h-12 rounded-2xl hover:bg-muted transition-all flex items-center justify-center text-foreground/70 hover:text-foreground border border-transparent hover:border-border active:scale-95"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -223,7 +223,7 @@ export default function ManualRegistrationModal({
                             <div className="space-y-4">
                                 {/* Player 1 Input */}
                                 <div className="relative">
-                                    <div className="text-[8px] font-black uppercase text-foreground/40 mb-1 ml-1">
+                                    <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">
                                         {isIndividual ? "Jugador" : "Jugador 1"}
                                     </div>
                                     <input 
@@ -258,7 +258,7 @@ export default function ManualRegistrationModal({
                                 {/* Player 2 Input (if doubles) */}
                                 {!isIndividual && (
                                     <div className="relative">
-                                        <div className="text-[8px] font-black uppercase text-foreground/40 mb-1 ml-1">Jugador 2</div>
+                                        <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">Jugador 2</div>
                                         <input 
                                             type="text"
                                             placeholder="Nombre o buscar..."
@@ -301,7 +301,7 @@ export default function ManualRegistrationModal({
                                                 <option key={cat} value={cat}>{cat}</option>
                                             ))}
                                         </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/70 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                     </div>
                                     <button 
                                         onClick={handleManualRegister}
@@ -329,7 +329,7 @@ export default function ManualRegistrationModal({
                                     placeholder="Cantidad..."
                                     value={autoFillCount}
                                     onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                                    className="w-24 bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/30 outline-none focus:border-emerald-500 transition-all text-foreground"
+                                    className="w-24 bg-card border border-border rounded-xl py-3.5 px-5 text-sm font-bold placeholder:text-foreground/60 outline-none focus:border-emerald-500 transition-all text-foreground"
                                 />
                                 <button 
                                     onClick={handleAutoFill}
@@ -352,7 +352,7 @@ export default function ManualRegistrationModal({
                     {/* Right Column: Search Section */}
                     <div className="md:col-span-7 bg-muted/10 p-6 md:p-8 flex flex-col space-y-6">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-foreground/40">
+                            <div className="flex items-center gap-2 text-foreground/70">
                                 <Search className="w-4 h-4 stroke-[3]" />
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Base de Datos de Usuarios</span>
                             </div>
@@ -373,13 +373,13 @@ export default function ManualRegistrationModal({
 
                         <div className="space-y-4">
                             <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 group-focus-within:text-blue-500 transition-colors" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/70 group-focus-within:text-blue-500 transition-colors" />
                                 <input 
                                     type="text"
                                     placeholder="Nombre, ID o email..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-foreground/30 outline-none focus:border-blue-500/50 transition-all text-foreground shadow-sm"
+                                    className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-foreground/60 outline-none focus:border-blue-500/50 transition-all text-foreground shadow-sm"
                                 />
                             </div>
 
@@ -395,7 +395,7 @@ export default function ManualRegistrationModal({
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/70 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                 </div>
 
                                 <div className="relative group">
@@ -408,7 +408,7 @@ export default function ManualRegistrationModal({
                                         <option value="masculino">Masculino</option>
                                         <option value="femenino">Femenino</option>
                                     </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/70 group-focus-within:text-blue-500 pointer-events-none transition-colors" />
                                 </div>
                             </div>
                         </div>
@@ -418,12 +418,12 @@ export default function ManualRegistrationModal({
                             {isLoadingAvailable ? (
                                 <div className="py-20 text-center flex flex-col items-center gap-4">
                                     <div className="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30 italic">Consultando base de datos...</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60 italic">Consultando base de datos...</span>
                                 </div>
                             ) : filteredAvailable.length === 0 ? (
                                 <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-border/50 rounded-[2.5rem]">
                                     <Users2 className="w-10 h-10 text-foreground/10" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30 italic">No se encontraron resultados</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60 italic">No se encontraron resultados</span>
                                 </div>
                             ) : (
                                 filteredAvailable.map(p => (
@@ -434,10 +434,10 @@ export default function ManualRegistrationModal({
                                         <div className="flex flex-col">
                                             <span className="text-xs font-black uppercase italic tracking-tight">{p.name}</span>
                                             <div className="flex gap-2 mt-1">
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/30 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
+                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/60 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
                                                     {p.category || "D"}
                                                 </span>
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/30 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
+                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/60 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
                                                     {p.gender || "masculino"}
                                                 </span>
                                             </div>

@@ -412,7 +412,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 placeholder="Buscar equipamiento..." 
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full glass-card rounded-2xl py-4 px-12 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all placeholder:text-muted-foreground/40 placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em]"
+                                className="w-full glass-card rounded-2xl py-4 px-12 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all placeholder:text-muted-foreground/70 placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em]"
                             />
                         </div>
                     </div>

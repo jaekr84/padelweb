@@ -281,7 +281,7 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                                     {m.imageUrl ? (
                                                                         <Image src={m.imageUrl} alt={m.displayName} fill className="object-cover" />
                                                                     ) : (
-                                                                        <div className={`w-full h-full flex items-center justify-center font-black text-xs uppercase italic ${isPending ? "text-white/60" : "text-muted-foreground/40"}`}>
+                                                                        <div className={`w-full h-full flex items-center justify-center font-black text-xs uppercase italic ${isPending ? "text-white/60" : "text-muted-foreground/70"}`}>
                                                                             {m.displayName.charAt(0)}
                                                                         </div>
                                                                     )}

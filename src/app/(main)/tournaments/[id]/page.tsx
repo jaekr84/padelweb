@@ -134,7 +134,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                                 <Trophy className="w-10 h-10 text-blue-500" />
                             </div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground mb-2">{tournament.name}</h1>
-                            <p className="text-foreground/50 font-bold uppercase tracking-widest text-[10px]">Las llaves se generarán cuando cierren las inscripciones</p>
+                            <p className="text-foreground/70 font-bold uppercase tracking-widest text-[10px]">Las llaves se generarán cuando cierren las inscripciones</p>
                         </div>
 
                         <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl">

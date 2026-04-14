@@ -199,7 +199,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             placeholder="BUSCAR JUGADOR..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-emerald-500/30 transition-all uppercase italic tracking-tight shadow-sm"
+                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/60 focus:outline-none focus:border-emerald-500/30 transition-all uppercase italic tracking-tight shadow-sm"
                         />
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
                     </div>
@@ -303,7 +303,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 {player._rank === 1 ? <Crown className="w-6 h-6 text-yellow-500 mb-1" /> :
                                                     player._rank === 2 ? <Medal className="w-6 h-6 text-slate-400 mb-1" /> :
                                                         player._rank === 3 ? <Medal className="w-6 h-6 text-orange-500 mb-1" /> : null}
-                                                <span className={`text-xl font-black italic tracking-tighter ${player._rank <= 3 ? "text-foreground" : "text-muted-foreground/30"}`}>
+                                                <span className={`text-xl font-black italic tracking-tighter ${player._rank <= 3 ? "text-foreground" : "text-muted-foreground/60"}`}>
                                                     #{player._rank}
                                                 </span>
                                             </div>
@@ -319,7 +319,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                             className="object-cover rounded-full"
                                                         />
                                                     ) : (
-                                                        <User className="w-5 h-5 text-muted-foreground/40" />
+                                                        <User className="w-5 h-5 text-muted-foreground/70" />
                                                     )}
                                                 </div>
                                             </div>
@@ -329,7 +329,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 <h3 className="text-lg font-black uppercase italic tracking-tighter truncate group-hover:text-emerald-600 transition-colors">
                                                     {player.name || "Jugador"}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 shrink-0">
+                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 shrink-0">
                                                     <span className="text-muted-foreground/60">@{getUserHandle(player.email)}</span>
                                                     <span className="w-0.5 h-0.5 bg-border rounded-full" />
                                                     <span className="text-emerald-600/60">{tournamentCounts[player.id] || 0} TORNEOS</span>
@@ -348,7 +348,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                             {/* Category Column */}
                                             <div className="hidden sm:flex flex-col items-center justify-center shrink-0 w-20 border-l border-border px-4">
                                                 <span className="text-xl font-black italic tracking-tighter text-foreground leading-none">{player.category || "-"}</span>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Cat</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mt-1">Cat</span>
                                             </div>
 
                                             {/* Points */}
@@ -499,7 +499,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                                             {m.tournamentName}
                                                                                         </div>
                                                                                         <div className="flex gap-1 mt-1">
-                                                                                            <span className="text-[8px] font-black uppercase text-muted-foreground/40">{m.type}</span>
+                                                                                            <span className="text-[8px] font-black uppercase text-muted-foreground/70">{m.type}</span>
                                                                                             {isFinal && (
                                                                                                 <span className="text-[8px] font-black uppercase text-emerald-600 border border-emerald-500/20 bg-emerald-500/5 px-1 rounded-sm ml-2">FINAL</span>
                                                                                             )}

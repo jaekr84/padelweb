@@ -305,7 +305,7 @@ export default async function TournamentsPage({
                     {filteredTournaments.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-24 text-center">
                             <div className="w-16 h-16 bg-card border border-border rounded-3xl flex items-center justify-center mb-5">
-                                <Trophy className="w-8 h-8 text-muted-foreground/30" />
+                                <Trophy className="w-8 h-8 text-muted-foreground/60" />
                             </div>
                             <h3 className="text-lg font-black uppercase italic text-muted-foreground mb-2">Sin torneos</h3>
                             <p className="text-slate-600 text-sm max-w-[220px] leading-relaxed">

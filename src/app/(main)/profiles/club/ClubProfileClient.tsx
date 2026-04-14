@@ -170,7 +170,7 @@ export default function ClubProfileClient({
                                     ) : user?.imageUrl ? (
                                         <Image src={user.imageUrl} alt="Club avatar" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
                                     ) : (
-                                        <Building2 className="h-10 w-10 text-muted-foreground/30" />
+                                        <Building2 className="h-10 w-10 text-muted-foreground/60" />
                                     )}
                                 </div>
                             </div>
@@ -337,7 +337,7 @@ export default function ClubProfileClient({
                                                                                 {member.imageUrl ? (
                                                                                     <Image src={member.imageUrl} alt={member.firstName || "Miembro"} fill className="object-cover" sizes="40px" />
                                                                                 ) : (
-                                                                                    <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/30" /></div>
+                                                                                    <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/60" /></div>
                                                                                 )}
                                                                             </div>
                                                                             <div className="flex flex-col">
@@ -368,7 +368,7 @@ export default function ClubProfileClient({
                                     ) : (
                                         <div className="p-16 text-center flex flex-col items-center gap-6">
                                             <div className="w-16 h-16 rounded-[2rem] bg-muted flex items-center justify-center">
-                                                <Users className="h-8 w-8 text-muted-foreground/30" />
+                                                <Users className="h-8 w-8 text-muted-foreground/60" />
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <p className="text-muted-foreground text-sm font-medium italic">Aún no hay miembros registrados en este club.</p>
@@ -391,7 +391,7 @@ export default function ClubProfileClient({
                                 <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
                                     <div className="flex flex-col items-center gap-4 text-center">
                                         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                                            <Settings className="h-10 w-10 text-muted-foreground/30" />
+                                            <Settings className="h-10 w-10 text-muted-foreground/60" />
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground">{clubName}</h3>

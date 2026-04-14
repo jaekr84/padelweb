@@ -193,12 +193,12 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                     </span>
                     <div className="flex items-center gap-2.5 mt-1.5 font-bold uppercase tracking-widest">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-muted-foreground/50">Club:</span>
+                            <span className="text-[8px] text-muted-foreground/70">Club:</span>
                             <span className="text-[10px] text-muted-foreground/80">{club?.name || "Acap"}</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground/30">•</span>
+                        <span className="text-[10px] text-muted-foreground/60">•</span>
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-muted-foreground/50">Inicio:</span>
+                            <span className="text-[8px] text-muted-foreground/70">Inicio:</span>
                             <span className="text-[10px] text-emerald-600/80">{formatDate(tournament.startDate)}</span>
                         </div>
                     </div>
@@ -207,19 +207,19 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
             <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-3">
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1">Tipo</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Tipo</span>
                         <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted/60 text-[9px] font-black uppercase tracking-widest text-foreground/80">
                             {tournament.type === 'americano' ? 'Americano' : 'R. Robin'}
                         </span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1">Género</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Género</span>
                         <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted/60 text-[9px] font-black uppercase tracking-widest text-foreground/80 capitalize">
                             {mod?.genero === 'mujer' ? 'Fem' : mod?.genero === 'hombre' ? 'Masc' : 'Mix'}
                         </span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1">Mod</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Mod</span>
                         <span className="inline-flex items-center px-2 py-0.5 rounded bg-muted/60 text-[9px] font-black uppercase tracking-widest text-foreground/80">
                             {mod?.participacion === 'individual' ? "Indiv" : "Parejas"}
                         </span>
@@ -229,11 +229,11 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
             <td className="px-4 py-4">
                 <div className="flex items-center gap-6">
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1">Club</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Club</span>
                         <span className="text-[11px] font-black text-foreground/80">{formatDate(tournament.openDateClub)}</span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1">Gral</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Gral</span>
                         <span className="text-[11px] font-black text-foreground/80">{formatDate(tournament.openDateGeneral)}</span>
                     </div>
                 </div>

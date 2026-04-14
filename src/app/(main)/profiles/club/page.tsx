@@ -81,7 +81,7 @@ export default async function ClubProfilePage({
 
     if (!club) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-foreground/40 gap-4 p-8 text-center max-w-md mx-auto">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-foreground/70 gap-4 p-8 text-center max-w-md mx-auto">
                 <div className="w-20 h-20 rounded-[2.5rem] bg-muted flex items-center justify-center border-2 border-border/50">
                     <Shield className="w-10 h-10" />
                 </div>

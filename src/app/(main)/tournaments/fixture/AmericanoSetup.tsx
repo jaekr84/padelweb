@@ -296,7 +296,7 @@ export default function AmericanoSetup({
                         <div className="flex items-center gap-6">
                             <button
                                 onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
-                                className="group flex items-center gap-2 text-foreground/40 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
+                                className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
                             >
                                 <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                                 Volver
@@ -337,7 +337,7 @@ export default function AmericanoSetup({
                                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
                                                     : s.completed 
                                                         ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
-                                                        : "text-foreground/40 hover:bg-white/5"}`}
+                                                        : "text-foreground/70 hover:bg-white/5"}`}
                                             >
                                                 <Icon className="w-3.5 h-3.5" />
                                                 <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
@@ -411,7 +411,7 @@ export default function AmericanoSetup({
                                     </select>
                                 </div>
                                 <div className="px-6 py-4 flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/50">Lista de Jugadores</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Jugadores</span>
                                     <div className="flex gap-4">
                                         <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-600">Todo Pago</button>
                                         <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Todo Ok</button>
@@ -461,7 +461,7 @@ export default function AmericanoSetup({
                                                             {p.displayName}
                                                         </p>
                                                         {!isIndividual && (
-                                                            <p className="text-[9px] text-foreground/30 font-bold uppercase tracking-widest">
+                                                            <p className="text-[9px] text-foreground/60 font-bold uppercase tracking-widest">
                                                                 Equipo: <span className="text-blue-500/60">{p.pairName}</span>
                                                             </p>
                                                         )}
@@ -469,14 +469,14 @@ export default function AmericanoSetup({
                                                     <div className="flex gap-2">
                                                         <button 
                                                             onClick={() => togglePaid(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPaid ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20" : "border-border text-foreground/20 hover:text-foreground/40"}`}
+                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPaid ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Pago"
                                                         >
                                                             <CreditCard className="w-4 h-4" />
                                                         </button>
                                                         <button 
                                                             onClick={() => togglePresent(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPresent ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20" : "border-border text-foreground/20 hover:text-foreground/40"}`}
+                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPresent ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Presencia"
                                                         >
                                                             <UserCheck className="w-4 h-4" />

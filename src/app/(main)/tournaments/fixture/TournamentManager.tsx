@@ -1034,7 +1034,7 @@ export default function TournamentManager({
                                 else if (step === "done") setStep("setup");
                                 else router.push("/admin/tournaments");
                             }}
-                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground transition-all group"
+                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 hover:text-foreground transition-all group"
                         >
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Volver
@@ -1124,7 +1124,7 @@ export default function TournamentManager({
                     <h1 className="text-4xl md:text-6xl font-black text-foreground tracking-[-0.05em] italic uppercase leading-[0.9]">
                         {tournamentName}
                     </h1>
-                    <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-foreground/40">
+                    <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-foreground/70">
                         Gestión de Torneo Round Robin
                     </p>
                 </div>
@@ -1181,7 +1181,7 @@ export default function TournamentManager({
                                 {/* Players Table */}
                                 <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
                                     <table className="w-full text-left">
-                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/40 border-b border-border/50">
+                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/70 border-b border-border/50">
                                             <tr>
                                                 <th className="px-8 py-6">Jugador</th>
                                                 <th className="px-8 py-6">Categoría</th>
@@ -1207,7 +1207,7 @@ export default function TournamentManager({
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-5">
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">{p.category || "D"}</span>
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
                                                             <button
@@ -1330,7 +1330,7 @@ export default function TournamentManager({
                                                 <div className="px-6 py-4 border-b border-border/30 bg-card/20">
                                                     <table className="w-full text-left">
                                                         <thead>
-                                                            <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/40 border-b border-border/50">
+                                                            <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/70 border-b border-border/50">
                                                                 <th className="pb-3 pr-3 italic">Pos</th>
                                                                 <th className="pb-3 px-2">Jugador</th>
                                                                 <th className="pb-3 px-2 text-center text-emerald-500">PG</th>
@@ -1387,7 +1387,7 @@ export default function TournamentManager({
                                                                                     <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
                                                                                         <button
                                                                                             onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), (m.score2 || 0).toString())}
-                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60"
                                                                                         >
                                                                                             <Minus className="w-3 h-3" />
                                                                                         </button>
@@ -1400,7 +1400,7 @@ export default function TournamentManager({
                                                                                         />
                                                                                         <button
                                                                                             onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), (m.score2 || 0).toString())}
-                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60"
                                                                                         >
                                                                                             <Plus className="w-3 h-3" />
                                                                                         </button>
@@ -1418,7 +1418,7 @@ export default function TournamentManager({
                                                                                     <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
                                                                                         <button
                                                                                             onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), Math.max(0, (m.score2 || 0) - 1).toString())}
-                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60"
                                                                                         >
                                                                                             <Minus className="w-3 h-3" />
                                                                                         </button>
@@ -1431,7 +1431,7 @@ export default function TournamentManager({
                                                                                         />
                                                                                         <button
                                                                                             onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), ((m.score2 || 0) + 1).toString())}
-                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
+                                                                                            className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60"
                                                                                         >
                                                                                             <Plus className="w-3 h-3" />
                                                                                         </button>
@@ -1440,9 +1440,9 @@ export default function TournamentManager({
                                                                             ) : (
                                                                                 <div className="flex items-center gap-4">
                                                                                     <div className="font-black text-lg italic tracking-tighter flex items-center gap-3">
-                                                                                        <span className={m.score1! > m.score2! ? "text-blue-600" : "text-foreground/40"}>{m.score1}</span>
+                                                                                        <span className={m.score1! > m.score2! ? "text-blue-600" : "text-foreground/70"}>{m.score1}</span>
                                                                                         <span className="text-foreground/10">-</span>
-                                                                                        <span className={m.score2! > m.score1! ? "text-blue-600" : "text-foreground/40"}>{m.score2}</span>
+                                                                                        <span className={m.score2! > m.score1! ? "text-blue-600" : "text-foreground/70"}>{m.score2}</span>
                                                                                     </div>
                                                                                     {!readOnly && m.confirmed && (
                                                                                         <button
@@ -1513,7 +1513,7 @@ export default function TournamentManager({
                                                 return (
                                                     <div key={round} className="w-[300px] flex flex-col pt-12">
                                                         <div className="flex-none flex flex-col items-center mb-8">
-                                                            <span className="px-6 py-2 bg-muted border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest text-foreground/40 shadow-sm">
+                                                            <span className="px-6 py-2 bg-muted border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest text-foreground/70 shadow-sm">
                                                                 {roundLabel(round)}
                                                             </span>
                                                         </div>
@@ -1565,7 +1565,7 @@ export default function TournamentManager({
                                                                                                         handleBracketScore(m.id, s1, s2);
                                                                                                     }}
                                                                                                     disabled={m.confirmed || team === "BYE" || !team || readOnly}
-                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30 disabled:opacity-0"
+                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60 disabled:opacity-0"
                                                                                                 >
                                                                                                     <Minus className="w-3.5 h-3.5" />
                                                                                                 </button>
@@ -1585,7 +1585,7 @@ export default function TournamentManager({
                                                                                                         handleBracketScore(m.id, s1, s2);
                                                                                                     }}
                                                                                                     disabled={m.confirmed || team === "BYE" || !team || readOnly}
-                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30 disabled:opacity-0"
+                                                                                                    className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/60 disabled:opacity-0"
                                                                                                 >
                                                                                                     <Plus className="w-3.5 h-3.5" />
                                                                                                 </button>
@@ -1867,7 +1867,7 @@ export default function TournamentManager({
                                     </div>
                                     <button
                                         onClick={() => setIsReplacingPlayer(null)}
-                                        className="rounded-full h-12 w-12 flex items-center justify-center hover:bg-muted text-foreground/50 hover:text-foreground transition-all"
+                                        className="rounded-full h-12 w-12 flex items-center justify-center hover:bg-muted text-foreground/70 hover:text-foreground transition-all"
                                     >
                                         <X className="h-6 w-6" />
                                     </button>
@@ -1883,13 +1883,13 @@ export default function TournamentManager({
                                             onChange={(e) => setPlayerSearchQuery(e.target.value)}
                                             className="w-full bg-muted/30 border-2 border-border/50 rounded-2xl h-14 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest text-foreground placeholder:text-foreground/60/30 focus:outline-none focus:border-primary/50 focus:bg-card transition-all"
                                         />
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40 group-focus-within:text-primary transition-colors">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/70 group-focus-within:text-primary transition-colors">
                                             <Users2 className="h-5 w-5" />
                                         </div>
                                         {playerSearchQuery && (
                                             <button
                                                 onClick={() => setPlayerSearchQuery("")}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground transition-colors"
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/70 hover:text-foreground transition-colors"
                                             >
                                                 <X className="h-4 w-4" />
                                             </button>
@@ -1961,7 +1961,7 @@ export default function TournamentManager({
                                                                             <Check className="h-3.5 w-3.5 text-primary" />
                                                                         </div>
                                                                     ) : isAlreadyQual ? (
-                                                                        <span className="text-[7px] font-black italic text-foreground/30 uppercase tracking-widest">OK</span>
+                                                                        <span className="text-[7px] font-black italic text-foreground/60 uppercase tracking-widest">OK</span>
                                                                     ) : (
                                                                         <span className="text-[7px] font-black italic text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100">SEL.</span>
                                                                     )}
@@ -2003,13 +2003,13 @@ export default function TournamentManager({
                         <div className="flex p-1 bg-muted rounded-2xl border border-border/50">
                             <button
                                 onClick={() => setReplaceSlot(1)}
-                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-foreground/70 hover:text-foreground/60"}`}
                             >
                                 Reemplazar Jugador 1
                             </button>
                             <button
                                 onClick={() => setReplaceSlot(2)}
-                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-foreground/70 hover:text-foreground/60"}`}
                             >
                                 Reemplazar Jugador 2
                             </button>
@@ -2020,10 +2020,10 @@ export default function TournamentManager({
                         {/* Invitado */}
                         <div className="p-6 bg-muted/30 rounded-3xl border border-border/50 space-y-6">
                             <div className="space-y-1">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40 block">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">
                                     {isIndividual ? "Opción 1: Persona Externa / Invitado" : `Opción 1: Reemplazar por Persona Externa`}
                                 </span>
-                                <p className="text-[9px] font-medium text-foreground/30 uppercase tracking-tighter">
+                                <p className="text-[9px] font-medium text-foreground/60 uppercase tracking-tighter">
                                     Usá esta opción si el jugador no está registrado en el club o sistema.
                                 </p>
                             </div>
@@ -2055,7 +2055,7 @@ export default function TournamentManager({
                         {/* Registrados */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Opción 2: Jugador Registrado</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Opción 2: Jugador Registrado</span>
                             </div>
 
                             <div className="relative">
@@ -2071,7 +2071,7 @@ export default function TournamentManager({
 
                             <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                                 {isFetchLoading ? (
-                                    <div className="py-8 text-center animate-pulse text-xs font-black uppercase tracking-widest text-foreground/40">
+                                    <div className="py-8 text-center animate-pulse text-xs font-black uppercase tracking-widest text-foreground/70">
                                         Cargando jugadores...
                                     </div>
                                 ) : allPotentialPlayers
@@ -2125,7 +2125,7 @@ export default function TournamentManager({
                                 {(!isFetchLoading && playerSearchQuery.length >= 2 && allPotentialPlayers.filter(p => p.name.toLowerCase().includes(playerSearchQuery.toLowerCase())).length === 0) && (
                                     <div className="py-8 px-6 text-center space-y-2 bg-amber-500/5 rounded-2xl border border-amber-500/10">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">No se encontraron registros</p>
-                                        <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-tight">
+                                        <p className="text-[9px] font-bold text-foreground/70 uppercase tracking-tight">
                                             Si el jugador no está en la base de datos, usá la <span className="text-foreground">Opción 1</span> de arriba para agregarlo como externo.
                                         </p>
                                     </div>
