@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -14,6 +14,7 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -23,6 +24,7 @@ const NAV: Record<string, NavItem[]> = {
 
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
+        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
@@ -32,6 +34,7 @@ const NAV: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: "/home", icon: Home, label: "Feed" },
+        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },

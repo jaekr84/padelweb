@@ -298,3 +298,98 @@ export type User = InferSelectModel<typeof users>;
 export type Tournament = InferSelectModel<typeof tournaments>;
 export type Registration = InferSelectModel<typeof registrations>;
 export type SystemSetting = InferSelectModel<typeof systemSettings>;
+
+export const openCourtEvents = mysqlTable("open_court_events", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    clubId: varchar("club_id", { length: 256 }).notNull(),
+    name: varchar("name", { length: 256 }).notNull(),
+    date: varchar("date", { length: 255 }).notNull(),
+    time: varchar("time", { length: 255 }).notNull(),
+    address: varchar("address", { length: 255 }).notNull(),
+    city: varchar("city", { length: 255 }).notNull(),
+    registrationFee: int("registration_fee").notNull().default(0),
+    totalSlots: int("total_slots").default(0),
+    categories: json("categories"), // Array of category IDs or "libre"
+    status: varchar("status", { length: 50 }).notNull().default("active"), // active | completed | cancelled
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    clubIdIdx: index("open_court_events_club_id_idx").on(table.clubId),
+}));
+
+export const openCourtRegistrations = mysqlTable("open_court_registrations", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    eventId: varchar("event_id", { length: 36 }).notNull(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    sidePreference: varchar("side_preference", { length: 50 }), // drive | reves | ambos
+    hasPaid: boolean("has_paid").notNull().default(false),
+    status: varchar("status", { length: 50 }).notNull().default("waiting"), // waiting | playing | finished | absent
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    eventIdIdx: index("oc_reg_event_id_idx").on(table.eventId),
+    userIdIdx: index("oc_reg_user_id_idx").on(table.userId),
+}));
+
+export const openCourtCourts = mysqlTable("open_court_courts", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    eventId: varchar("event_id", { length: 36 }).notNull(),
+    courtNumber: int("court_number").notNull(),
+    isActive: boolean("is_active").default(true),
+    status: varchar("status", { length: 50 }).notNull().default("available"), // available | occupied
+}, (table) => ({
+    eventIdIdx: index("oc_courts_event_id_idx").on(table.eventId),
+}));
+
+export const openCourtMatches = mysqlTable("open_court_matches", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    eventId: varchar("event_id", { length: 36 }).notNull(),
+    courtId: varchar("court_id", { length: 36 }),
+    team1Player1Id: varchar("t1_p1_id", { length: 256 }).notNull(),
+    team1Player2Id: varchar("t1_p2_id", { length: 256 }).notNull(),
+    team2Player1Id: varchar("t2_p1_id", { length: 256 }).notNull(),
+    team2Player2Id: varchar("t2_p2_id", { length: 256 }).notNull(),
+    score1: smallint("score1"),
+    score2: smallint("score2"),
+    status: varchar("status", { length: 50 }).notNull().default("in_progress"), // in_progress | completed
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+}, (table) => ({
+    eventIdIdx: index("oc_matches_event_id_idx").on(table.eventId),
+}));
+
+// Relations
+export const openCourtEventsRelations = relations(openCourtEvents, ({ one, many }) => ({
+    club: one(clubs, {
+        fields: [openCourtEvents.clubId],
+        references: [clubs.id],
+    }),
+    registrations: many(openCourtRegistrations),
+    courts: many(openCourtCourts),
+    matches: many(openCourtMatches),
+}));
+
+export const openCourtRegistrationsRelations = relations(openCourtRegistrations, ({ one }) => ({
+    event: one(openCourtEvents, {
+        fields: [openCourtRegistrations.eventId],
+        references: [openCourtEvents.id],
+    }),
+    user: one(users, {
+        fields: [openCourtRegistrations.userId],
+        references: [users.id],
+    }),
+}));
+
+export const openCourtMatchesRelations = relations(openCourtMatches, ({ one }) => ({
+    event: one(openCourtEvents, {
+        fields: [openCourtMatches.eventId],
+        references: [openCourtEvents.id],
+    }),
+    t1p1: one(users, { fields: [openCourtMatches.team1Player1Id], references: [users.id] }),
+    t1p2: one(users, { fields: [openCourtMatches.team1Player2Id], references: [users.id] }),
+    t2p1: one(users, { fields: [openCourtMatches.team2Player1Id], references: [users.id] }),
+    t2p2: one(users, { fields: [openCourtMatches.team2Player2Id], references: [users.id] }),
+}));
+
+export type OpenCourtEvent = InferSelectModel<typeof openCourtEvents>;
+export type OpenCourtRegistration = InferSelectModel<typeof openCourtRegistrations>;
+export type OpenCourtMatch = InferSelectModel<typeof openCourtMatches>;
+export type OpenCourtCourt = InferSelectModel<typeof openCourtCourts>;
