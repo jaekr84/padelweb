@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
     Trophy, Users2, Swords, Calendar, Clock,
     CheckCircle2, AlertCircle, ChevronRight,
-    ArrowLeft, LayoutDashboard, Settings, Settings2,
+    ArrowLeft, LayoutDashboard, Settings, Trash2,
     BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw,
     UserCheck, CreditCard, Search, Plus, Share2, Minus
 } from "lucide-react";
@@ -13,6 +13,15 @@ import { saveTournamentFixture } from "./actions";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { getAllPlayers } from "@/app/actions/players";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/Dialog";
+
 
 export interface TournamentManagerProps {
     tournamentId: string;
@@ -23,9 +32,10 @@ export interface TournamentManagerProps {
     initialStatus: string;
     readOnly?: boolean;
     isLoggedIn?: boolean;
+    modality?: any;
 }
 
-type Player = { id: string; name: string; category?: string; club?: string; ranking?: number };
+type Player = { id: string; name: string; category?: string | null; club?: string | null; ranking?: number | null; player1?: string; player2?: string };
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -98,8 +108,10 @@ export default function TournamentManager({
     initialBracket,
     initialStatus,
     readOnly = false,
-    isLoggedIn = true
+    isLoggedIn = true,
+    modality
 }: TournamentManagerProps) {
+    const isIndividual = modality?.participacion === "individual" || modality?.isIndividual || false;
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
     const [groups, setGroups] = useState<Group[]>(initialGroups);
@@ -119,7 +131,23 @@ export default function TournamentManager({
     const [isReplacingPlayer, setIsReplacingPlayer] = useState<number | null>(null);
     const [playerSearchQuery, setPlayerSearchQuery] = useState("");
 
-    const allPlayers = useMemo(() => initialGroups.flatMap(g => g.players), [initialGroups]);
+    // Player replacement/deletion state
+    const [replacingPlayer, setReplacingPlayer] = useState<Player | null>(null);
+    const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+    const [allPotentialPlayers, setAllPotentialPlayers] = useState<Player[]>([]);
+
+    const [isFetchLoading, setIsFetchLoading] = useState(false);
+    const [guestName, setGuestName] = useState("");
+    const [guestName2, setGuestName2] = useState("");
+    const [replaceSlot, setReplaceSlot] = useState<1 | 2>(1);
+
+
+    const allPlayers = useMemo(() => groups.flatMap(g => g.players), [groups]);
+    const registeredPlayerNames = useMemo(() => {
+        return allPlayers.flatMap(p => p.name.split(/[\/\+]/).map(n => n.trim().toLowerCase()));
+    }, [allPlayers]);
+    const registeredPlayerIds = useMemo(() => new Set(allPlayers.map(p => p.id)), [allPlayers]);
+
     const [present, setPresent] = useState<Set<string>>(new Set(allPlayers.map(p => p.id)));
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
@@ -133,6 +161,176 @@ export default function TournamentManager({
         if (!selectedPlayerId) return [];
         return matches.filter(m => m.team1.id === selectedPlayerId || m.team2.id === selectedPlayerId);
     }, [selectedPlayerId, matches]);
+
+    const fetchPlayers = useCallback(async () => {
+        setIsFetchLoading(true);
+        const players = await getAllPlayers();
+        setAllPotentialPlayers(players);
+        setIsFetchLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if (replacingPlayer) {
+            fetchPlayers();
+            // Sync guest names with current pair members
+            const names = replacingPlayer.name.split("/").map(n => n.trim());
+            setGuestName(names[0] || "");
+            setGuestName2(names[1] || "");
+            setPlayerSearchQuery("");
+        }
+    }, [replacingPlayer, fetchPlayers]);
+
+    const handleReplacePlayer = async (oldPlayerId: string, newPlayer: Player) => {
+        const updatedGroups = groups.map(group => ({
+            ...group,
+            players: group.players.map(p => p.id === oldPlayerId ? { ...newPlayer } : p)
+        }));
+
+        const updatedMatches = matches.map(m => ({
+            ...m,
+            team1: m.team1.id === oldPlayerId ? { ...newPlayer } : m.team1,
+            team2: m.team2.id === oldPlayerId ? { ...newPlayer } : m.team2,
+        }));
+
+        const updatedBracket = bracket.map(bm => ({
+            ...bm,
+            team1: (bm.team1 && typeof bm.team1 !== "string" && (bm.team1 as Player).id === oldPlayerId) ? { ...newPlayer } as BracketSlot : bm.team1,
+            team2: (bm.team2 && typeof bm.team2 !== "string" && (bm.team2 as Player).id === oldPlayerId) ? { ...newPlayer } as BracketSlot : bm.team2,
+        }));
+
+        setGroups(updatedGroups);
+        setMatches(updatedMatches);
+        setBracket(updatedBracket);
+
+        // Update attendance/paid sets
+        setPresent(prev => {
+            const next = new Set(prev);
+            if (next.has(oldPlayerId)) {
+                next.delete(oldPlayerId);
+                next.add(newPlayer.id);
+            }
+            return next;
+        });
+        setPaid(prev => {
+            const next = new Set(prev);
+            if (next.has(oldPlayerId)) {
+                next.delete(oldPlayerId);
+                next.add(newPlayer.id);
+            }
+            return next;
+        });
+
+        setReplacingPlayer(null);
+        setGuestName("");
+        setGuestName2("");
+        setReplaceSlot(1);
+
+        // Auto-save if we are already in the tournament flow
+        if (step !== "setup") {
+            const loadingToast = toast.loading("Actualizando participantes...");
+            try {
+                const res = await saveTournamentFixture({
+                    tournamentId,
+                    phase: step === "elim" ? "eliminatorias" : "grupos",
+                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                    matches: updatedMatches,
+                    bracket: updatedBracket,
+                });
+                toast.dismiss(loadingToast);
+                if (res.ok) {
+                    toast.success("Participante reemplazado y cambios guardados");
+                } else {
+                    toast.error("Error al guardar cambios: " + res.error);
+                }
+            } catch (err) {
+                toast.dismiss(loadingToast);
+                console.error(err);
+                toast.error("Error al guardar cambios en el servidor");
+            }
+        } else {
+            toast.success("Participante reemplazado");
+        }
+    };
+
+    const handleReplaceOneInPair = async (oldPlayer: Player, newPlayerName: string, slot: 1 | 2) => {
+        const names = oldPlayer.name.split("/").map(n => n.trim());
+        let p1 = names[0] || oldPlayer.player1 || "Jugador 1";
+        let p2 = names[1] || oldPlayer.player2 || "Jugador 2";
+
+        if (slot === 1) p1 = newPlayerName;
+        else p2 = newPlayerName;
+
+        const updatedPlayer: Player = {
+            ...oldPlayer,
+            name: `${p1} / ${p2}`,
+            player1: p1,
+            player2: p2,
+        };
+
+        await handleReplacePlayer(oldPlayer.id, updatedPlayer);
+    };
+
+    const handleReplaceWithGuest = async (oldPlayerId: string) => {
+        if (!isIndividual) {
+            const oldPlayer = groups.flatMap(g => g.players).find(p => p.id === oldPlayerId);
+            if (!oldPlayer) return;
+
+            const names = oldPlayer.name.split("/").map(n => n.trim());
+            let g1 = guestName.trim() || names[0] || "Jugador 1";
+            let g2 = guestName2.trim() || names[1] || "Jugador 2";
+
+            const guestPlayer: Player = {
+                id: oldPlayerId, // Keep same ID for the registration entry
+                name: `${g1} / ${g2}`,
+                player1: g1,
+                player2: g2,
+                category: oldPlayer.category
+            };
+            await handleReplacePlayer(oldPlayerId, guestPlayer);
+            return;
+        }
+
+        if (!guestName.trim()) {
+            toast.error("Ingresá un nombre para el invitado");
+            return;
+        }
+        const guestPlayer: Player = {
+            id: `guest_${crypto.randomUUID()}`,
+            name: guestName.trim() + " (Inv)",
+            category: "D"
+        };
+        await handleReplacePlayer(oldPlayerId, guestPlayer);
+    };
+
+    const handleDeletePlayer = (playerId: string) => {
+        setGroups(prevGroups => prevGroups.map(group => ({
+            ...group,
+            players: group.players.filter(p => p.id !== playerId)
+        })));
+
+        // Remove from matches too
+        setMatches(prevMatches => prevMatches.filter(m =>
+            m.team1.id !== playerId && m.team2.id !== playerId
+        ));
+
+        // Cleanup attendance/paid sets
+        setPresent(prev => {
+            const next = new Set(prev);
+            next.delete(playerId);
+            return next;
+        });
+        setPaid(prev => {
+            const next = new Set(prev);
+            next.delete(playerId);
+            return next;
+        });
+
+        setPlayerToDelete(null);
+        toast.success("Participante eliminado");
+    };
+
+
+
 
     // ─── Shared Logic ───
     const computeStandings = (groupId: string) => {
@@ -381,7 +579,7 @@ export default function TournamentManager({
                     if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
                         match.team1 = t1 as BracketSlot;
                         match.team2 = t2 as BracketSlot;
-                        
+
                         // Auto-confirm BYEs
                         if (match.team1 === "BYE" || match.team2 === "BYE") {
                             match.confirmed = true;
@@ -402,7 +600,7 @@ export default function TournamentManager({
 
             // Always re-run computation for auto-advances of BYEs
             const finalProcessed = computeAdvancedBracket(newBracket, numRounds);
-            
+
             // Compare finalProcessed with prev to avoid loops if nothing changed
             if (JSON.stringify(finalProcessed) !== JSON.stringify(prev)) {
                 return finalProcessed;
@@ -871,12 +1069,12 @@ export default function TournamentManager({
                                                 onClick={() => isAccessible && setStep(s.id as any)}
                                                 disabled={!isAccessible}
                                                 className={`flex items-center gap-2 px-6 py-2 rounded-xl transition-all ${s.active
-                                                        ? "bg-foreground text-background shadow-lg shadow-foreground/10"
-                                                        : s.completed
-                                                            ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
-                                                            : isAccessible
-                                                                 ? "text-foreground/60 hover:bg-muted/80"
-                                                                 : "opacity-30 cursor-not-allowed"
+                                                    ? "bg-foreground text-background shadow-lg shadow-foreground/10"
+                                                    : s.completed
+                                                        ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
+                                                        : isAccessible
+                                                            ? "text-foreground/60 hover:bg-muted/80"
+                                                            : "opacity-30 cursor-not-allowed"
                                                     }`}
                                             >
                                                 <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${s.active ? "animate-pulse" : ""}`} />
@@ -1019,8 +1217,8 @@ export default function TournamentManager({
                                                                     return next;
                                                                 })}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
-                                                                        ? "bg-blue-600 border-blue-500 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
+                                                                    ? "bg-blue-600 border-blue-500 text-white shadow-lg"
+                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
                                                                     }`}
                                                             >
                                                                 <CreditCard className="w-4 h-4" />
@@ -1028,18 +1226,35 @@ export default function TournamentManager({
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
                                                             <button
+                                                                onClick={() => setPlayerToDelete(p)}
+                                                                className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                title="Eliminar Participante"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => setReplacingPlayer(p)}
+                                                                className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all"
+                                                                title="Reemplazar Jugador"
+                                                            >
+                                                                <RotateCcw className="w-4 h-4" />
+                                                            </button>
+
+                                                            <button
                                                                 onClick={() => setPresent(prev => {
                                                                     const next = new Set(prev);
                                                                     if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                                                                     return next;
                                                                 })}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
-                                                                        ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
+                                                                    ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
+                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
                                                                     }`}
                                                             >
                                                                 <UserCheck className="w-4 h-4" />
                                                             </button>
+
                                                         </td>
                                                     </tr>
                                                 );
@@ -1124,9 +1339,20 @@ export default function TournamentManager({
                                                         </thead>
                                                         <tbody className="divide-y divide-border/20">
                                                             {standings.map((s: any, idx: number) => (
-                                                                <tr key={s.playerId} className="hover:bg-blue-600/5 transition-colors">
+                                                                <tr key={s.playerId} className="hover:bg-blue-600/5 transition-colors group/row">
                                                                     <td className="py-4 pr-3 text-xs font-black italic text-foreground/20">#{idx + 1}</td>
-                                                                    <td className="py-4 px-2 font-black text-sm text-foreground uppercase truncate italic">{s.player.name}</td>
+                                                                    <td className="py-4 px-2 font-black text-sm text-foreground uppercase truncate italic flex items-center gap-2">
+                                                                        {s.player.name}
+                                                                        {!readOnly && (
+                                                                            <button
+                                                                                onClick={() => setReplacingPlayer(s.player)}
+                                                                                className="opacity-0 group-hover/row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                title="Reemplazar Jugador"
+                                                                            >
+                                                                                <RotateCcw className="w-3 h-3" />
+                                                                            </button>
+                                                                        )}
+                                                                    </td>
                                                                     <td className="py-4 px-2 text-center text-sm font-black text-emerald-500">{s.won}</td>
                                                                     <td className="py-4 px-2 text-center text-sm font-black text-blue-600">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                                 </tr>
@@ -1138,28 +1364,41 @@ export default function TournamentManager({
                                                     <table className="w-full">
                                                         <tbody className="divide-y divide-border/10">
                                                             {groupMatches.map(m => (
-                                                                <tr key={m.id} className={`${m.confirmed ? "bg-emerald-500/5" : ""}`}>
-                                                                    <td className="py-4 px-4 text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">{m.team1.name}</td>
+                                                                <tr key={m.id} className={`${m.confirmed ? "bg-emerald-500/5" : ""} group/match-row`}>
+                                                                    <td className="py-4 px-4 text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">
+                                                                        <div className="flex items-center gap-2">
+                                                                            {m.team1.name}
+                                                                            {!readOnly && (
+                                                                                <button
+                                                                                    onClick={() => setReplacingPlayer(m.team1)}
+                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                    title="Reemplazar"
+                                                                                >
+                                                                                    <RotateCcw className="w-2.5 h-2.5" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
                                                                     <td className="py-4 px-2">
                                                                         <div className="flex flex-col items-center gap-2">
                                                                             {!m.confirmed && !readOnly ? (
                                                                                 <div className="flex items-center gap-3">
                                                                                     {/* Score 1 Stepper */}
                                                                                     <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
-                                                                                        <button 
+                                                                                        <button
                                                                                             onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), (m.score2 || 0).toString())}
                                                                                             className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
                                                                                         >
                                                                                             <Minus className="w-3 h-3" />
                                                                                         </button>
-                                                                                        <input 
-                                                                                            type="number" 
-                                                                                            value={m.score1 ?? ""} 
-                                                                                            onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} 
-                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons" 
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={m.score1 ?? ""}
+                                                                                            onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
+                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons"
                                                                                             placeholder="0"
                                                                                         />
-                                                                                        <button 
+                                                                                        <button
                                                                                             onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), (m.score2 || 0).toString())}
                                                                                             className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
                                                                                         >
@@ -1167,8 +1406,8 @@ export default function TournamentManager({
                                                                                         </button>
                                                                                     </div>
 
-                                                                                    <button 
-                                                                                        onClick={() => handleConfirmScore(m.id)} 
+                                                                                    <button
+                                                                                        onClick={() => handleConfirmScore(m.id)}
                                                                                         disabled={m.score1 === undefined || m.score2 === undefined || saving}
                                                                                         className="w-8 h-8 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale"
                                                                                     >
@@ -1177,20 +1416,20 @@ export default function TournamentManager({
 
                                                                                     {/* Score 2 Stepper */}
                                                                                     <div className="flex items-center bg-muted/50 rounded-xl border border-border/50 overflow-hidden h-8">
-                                                                                        <button 
+                                                                                        <button
                                                                                             onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), Math.max(0, (m.score2 || 0) - 1).toString())}
                                                                                             className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
                                                                                         >
                                                                                             <Minus className="w-3 h-3" />
                                                                                         </button>
-                                                                                        <input 
-                                                                                            type="number" 
-                                                                                            value={m.score2 ?? ""} 
-                                                                                            onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} 
-                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons" 
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={m.score2 ?? ""}
+                                                                                            onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
+                                                                                            className="w-7 h-full bg-transparent text-center font-black text-[10px] outline-none no-spin-buttons"
                                                                                             placeholder="0"
                                                                                         />
-                                                                                        <button 
+                                                                                        <button
                                                                                             onClick={() => handleScoreChange(m.id, (m.score1 || 0).toString(), ((m.score2 || 0) + 1).toString())}
                                                                                             className="w-7 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/30"
                                                                                         >
@@ -1206,7 +1445,7 @@ export default function TournamentManager({
                                                                                         <span className={m.score2! > m.score1! ? "text-blue-600" : "text-foreground/40"}>{m.score2}</span>
                                                                                     </div>
                                                                                     {!readOnly && m.confirmed && (
-                                                                                        <button 
+                                                                                        <button
                                                                                             onClick={() => handleEditScore(m.id)}
                                                                                             className="p-1.5 rounded-md hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 transition-all border border-transparent hover:border-amber-500/20"
                                                                                             title="Editar Resultado"
@@ -1218,7 +1457,20 @@ export default function TournamentManager({
                                                                             )}
                                                                         </div>
                                                                     </td>
-                                                                    <td className="py-4 px-4 text-right text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">{m.team2.name}</td>
+                                                                    <td className="py-4 px-4 text-right text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            {!readOnly && (
+                                                                                <button
+                                                                                    onClick={() => setReplacingPlayer(m.team2)}
+                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                    title="Reemplazar"
+                                                                                >
+                                                                                    <RotateCcw className="w-2.5 h-2.5" />
+                                                                                </button>
+                                                                            )}
+                                                                            {m.team2.name}
+                                                                        </div>
+                                                                    </td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -1257,7 +1509,7 @@ export default function TournamentManager({
                                                 const maxRounds = roundsArr.length;
                                                 const totalRows = Math.pow(2, maxRounds);
                                                 const rowSpan = Math.pow(2, maxRounds - round - 1) * 2;
-                                                
+
                                                 return (
                                                     <div key={round} className="w-[300px] flex flex-col pt-12">
                                                         <div className="flex-none flex flex-col items-center mb-8">
@@ -1265,19 +1517,19 @@ export default function TournamentManager({
                                                                 {roundLabel(round)}
                                                             </span>
                                                         </div>
-                                                        
+
                                                         <div className={`flex-1 grid h-full gap-y-12`} style={{ gridTemplateRows: `repeat(${totalRows}, 1fr)` }}>
                                                             {Array.from({ length: totalRows / rowSpan }).map((_, slotIdx) => {
                                                                 const m = matchesInRound.find(m => m.slot === slotIdx);
                                                                 if (!m) return <div key={slotIdx} style={{ gridRow: `span ${rowSpan}` }} />;
 
                                                                 return (
-                                                                    <div 
-                                                                        key={m.id} 
+                                                                    <div
+                                                                        key={m.id}
                                                                         className="flex flex-col justify-center px-2"
-                                                                        style={{ 
+                                                                        style={{
                                                                             gridRowStart: slotIdx * rowSpan + 1,
-                                                                            gridRowEnd: `span ${rowSpan}` 
+                                                                            gridRowEnd: `span ${rowSpan}`
                                                                         }}
                                                                     >
                                                                         <div className="relative group/match">
@@ -1290,13 +1542,22 @@ export default function TournamentManager({
                                                                                     )}
                                                                                     {[m.team1, m.team2].map((team, tIdx) => (
                                                                                         <div key={tIdx} className="flex items-center justify-between gap-4">
-                                                                                            <div className="flex-1 min-w-0">
+                                                                                                                            <div className="flex-1 min-w-0 flex items-center gap-2">
                                                                                                 <span className={`font-black uppercase italic truncate block transition-all ${m.winnerId === (team as Player)?.id ? (m.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-[11px]") : team === "BYE" ? "text-foreground/20 text-[11px]" : "text-foreground/60 text-[11px]"}`}>
                                                                                                     {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "A definir..."}
                                                                                                 </span>
+                                                                                                {!readOnly && team && team !== "BYE" && !m.confirmed && (
+                                                                                                    <button
+                                                                                                        onClick={() => setReplacingPlayer(team as Player)}
+                                                                                                        className="shrink-0 opacity-0 group-hover/match:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                                        title="Reemplazar"
+                                                                                                    >
+                                                                                                        <RotateCcw className="w-2.5 h-2.5" />
+                                                                                                    </button>
+                                                                                                )}
                                                                                             </div>
                                                                                             <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${m.confirmed ? "pointer-events-none opacity-50" : ""}`}>
-                                                                                                <button 
+                                                                                                <button
                                                                                                     onClick={() => {
                                                                                                         const curScore = tIdx === 0 ? (m.score1 || 0) : (m.score2 || 0);
                                                                                                         const s1 = tIdx === 0 ? Math.max(0, curScore - 1).toString() : (m.score1 || 0).toString();
@@ -1314,9 +1575,9 @@ export default function TournamentManager({
                                                                                                     onChange={e => handleBracketScore(m.id, tIdx === 0 ? e.target.value : (m.score1?.toString() || ""), tIdx === 1 ? e.target.value : (m.score2?.toString() || ""))}
                                                                                                     disabled={m.confirmed || team === "BYE" || !team || readOnly}
                                                                                                     className="w-10 h-full bg-transparent text-center font-black text-sm outline-none placeholder:text-foreground/5 no-spin-buttons"
-                                                                                                placeholder="0"
+                                                                                                    placeholder="0"
                                                                                                 />
-                                                                                                <button 
+                                                                                                <button
                                                                                                     onClick={() => {
                                                                                                         const curScore = tIdx === 0 ? (m.score1 || 0) : (m.score2 || 0);
                                                                                                         const s1 = tIdx === 0 ? (curScore + 1).toString() : (m.score1 || 0).toString();
@@ -1342,11 +1603,10 @@ export default function TournamentManager({
                                                                                             <button
                                                                                                 onClick={() => isPending ? handleBracketConfirm(m.id) : canEdit && handleBracketEdit(m.id)}
                                                                                                 disabled={!isPending && !canEdit}
-                                                                                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${
-                                                                                                    isPending ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20" :
+                                                                                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20" :
                                                                                                     canEdit ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50" :
-                                                                                                    "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none font-bold"
-                                                                                                }`}
+                                                                                                        "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none font-bold"
+                                                                                                    }`}
                                                                                             >
                                                                                                 <span className={canEdit ? "group-hover/btn:hidden" : ""}>{m.confirmed ? "CONFIRMADO" : isBye ? "PASO DIRECTO" : "FINALIZAR PARTIDO"}</span>
                                                                                                 {canEdit && <span className="hidden group-hover/btn:flex items-center justify-center gap-3"><Pencil className="w-3.5 h-3.5" /> EDITAR RESULTADO</span>}
@@ -1685,8 +1945,8 @@ export default function TournamentManager({
                                                                     toast.success(`Jugador reemplazado por ${player.name}`);
                                                                 }}
                                                                 className={`group transition-all cursor-pointer ${isBeingReplaced
-                                                                        ? "bg-primary/10"
-                                                                        : "hover:bg-accent"
+                                                                    ? "bg-primary/10"
+                                                                    : "hover:bg-accent"
                                                                     }`}
                                                             >
                                                                 <td className="py-1 px-4">
@@ -1726,6 +1986,184 @@ export default function TournamentManager({
                     </div>
                 )}
             </AnimatePresence>
+            {/* MODAL REEMPLAZO DE JUGADOR */}
+            <Dialog open={!!replacingPlayer} onOpenChange={(open) => !open && setReplacingPlayer(null)}>
+                <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Cambiar Participante</DialogTitle>
+                        <DialogDescription>
+                            {isIndividual 
+                                ? <>Reemplazar a <span className="text-foreground">{replacingPlayer?.name}</span> por otro jugador.</>
+                                : <>Modificar la pareja <span className="text-foreground">{replacingPlayer?.name}</span>.</>
+                            }
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {!isIndividual && (
+                        <div className="flex p-1 bg-muted rounded-2xl border border-border/50">
+                            <button
+                                onClick={() => setReplaceSlot(1)}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                            >
+                                Reemplazar Jugador 1
+                            </button>
+                            <button
+                                onClick={() => setReplaceSlot(2)}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                            >
+                                Reemplazar Jugador 2
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="space-y-6 py-4">
+                        {/* Invitado */}
+                        <div className="p-6 bg-muted/30 rounded-3xl border border-border/50 space-y-6">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40 block">
+                                    {isIndividual ? "Opción 1: Persona Externa / Invitado" : `Opción 1: Reemplazar por Persona Externa`}
+                                </span>
+                                <p className="text-[9px] font-medium text-foreground/30 uppercase tracking-tighter">
+                                    Usá esta opción si el jugador no está registrado en el club o sistema.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex-1 relative mt-2">
+                                    <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-blue-500 uppercase tracking-widest z-10 rounded-full border border-border/10">
+                                        {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split("/")[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
+                                        value={replaceSlot === 1 ? guestName : guestName2}
+                                        onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
+                                        className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-sm"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => replacingPlayer && handleReplaceWithGuest(replacingPlayer.id)}
+                                    className="w-full py-4 bg-foreground text-background rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-2"
+                                >
+                                    <UserCheck className="w-4 h-4" />
+                                    {isIndividual ? "Confirmar como Invitado" : `Confirmar Persona Externa (Slot ${replaceSlot})`}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Registrados */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Opción 2: Jugador Registrado</span>
+                            </div>
+
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre..."
+                                    value={playerSearchQuery}
+                                    onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                                {isFetchLoading ? (
+                                    <div className="py-8 text-center animate-pulse text-xs font-black uppercase tracking-widest text-foreground/40">
+                                        Cargando jugadores...
+                                    </div>
+                                ) : allPotentialPlayers
+                                    .filter(p => {
+                                        const query = isIndividual 
+                                            ? (guestName || playerSearchQuery) 
+                                            : (replaceSlot === 1 ? guestName : guestName2) || playerSearchQuery;
+                                        
+                                        if (!query || query.length < 2) return false;
+                                        return p.name.toLowerCase().includes(query.toLowerCase());
+                                    })
+                                    .filter(p => !registeredPlayerIds.has(p.id) && !registeredPlayerNames.includes(p.name.toLowerCase()))
+                                    .slice(0, 10).map((p) => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => {
+                                                if (replacingPlayer) {
+                                                    if (isIndividual) {
+                                                        handleReplacePlayer(replacingPlayer.id, p);
+                                                    } else {
+                                                        handleReplaceOneInPair(replacingPlayer, p.name, replaceSlot);
+                                                    }
+                                                }
+                                            }}
+                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-blue-600 hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                    <Users2 className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-sm font-black uppercase italic">{p.name}</p>
+                                                    <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">Cat: {p.category || "D"}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[7px] font-black uppercase tracking-tighter opacity-0 group-hover/p:opacity-100 bg-white/10 px-2 py-1 rounded-md">
+                                                    Elegir para Jugador {replaceSlot}
+                                                </span>
+                                                <Plus className="w-4 h-4 opacity-0 group-hover/p:opacity-100 transition-opacity" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                {(!isFetchLoading && allPotentialPlayers.length > 0 && 
+                                  (!((isIndividual ? (guestName || playerSearchQuery) : (replaceSlot === 1 ? guestName : guestName2) || playerSearchQuery)) || 
+                                   ((isIndividual ? (guestName || playerSearchQuery) : (replaceSlot === 1 ? guestName : guestName2) || playerSearchQuery)).length < 2)) && (
+                                    <div className="py-8 text-center text-[10px] font-black uppercase tracking-widest text-foreground/20 italic">
+                                        Escribí para buscar jugadores del club...
+                                    </div>
+                                )}
+                                {(!isFetchLoading && playerSearchQuery.length >= 2 && allPotentialPlayers.filter(p => p.name.toLowerCase().includes(playerSearchQuery.toLowerCase())).length === 0) && (
+                                    <div className="py-8 px-6 text-center space-y-2 bg-amber-500/5 rounded-2xl border border-amber-500/10">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">No se encontraron registros</p>
+                                        <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-tight">
+                                            Si el jugador no está en la base de datos, usá la <span className="text-foreground">Opción 1</span> de arriba para agregarlo como externo.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODAL CONFIRMACION ELIMINAR */}
+            <Dialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-500">¿Eliminar Participante?</DialogTitle>
+                        <DialogDescription>
+                            Estás por quitar a <span className="text-foreground font-black">{playerToDelete?.name}</span> de la lista del torneo. Esta acción no se puede deshacer.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex gap-4 mt-4">
+                        <button
+                            onClick={() => setPlayerToDelete(null)}
+                            className="flex-1 px-4 py-3 bg-muted hover:bg-muted/80 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={() => playerToDelete && handleDeletePlayer(playerToDelete.id)}
+                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-900/20"
+                        >
+                            Sí, Eliminar
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+
+

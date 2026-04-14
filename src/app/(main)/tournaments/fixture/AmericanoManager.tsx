@@ -13,6 +13,15 @@ import { saveTournamentFixture, resetTournamentStatus } from "./actions";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { getAllPlayers } from "@/app/actions/players";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/Dialog";
+
 
 export interface AmericanoManagerProps {
     tournamentId: string;
@@ -30,7 +39,8 @@ export interface AmericanoManagerProps {
     };
 }
 
-type Player = { id: string; name: string; category?: string; clubId?: string | null };
+type Player = { id: string; name: string; category?: string | null; clubId?: string | null };
+
 type Group = { id: string; name: string; players: Player[] };
 
 type Match = {
@@ -138,10 +148,201 @@ export default function AmericanoManager({
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
 
+    const allRegisteredPlayers = useMemo(() => groups.flatMap(g => g.players), [groups]);
+    const registeredPlayerNames = useMemo(() => {
+        return allRegisteredPlayers.flatMap(p => p.name.split(/[\/\+]/).map(n => n.trim().toLowerCase()));
+    }, [allRegisteredPlayers]);
+    const registeredPlayerIds = useMemo(() => new Set(allRegisteredPlayers.map(p => p.id)), [allRegisteredPlayers]);
+
     const totalExpectedMatches = Math.ceil(((groups[0]?.players.length || 0) * matchesPerTeam) / 2);
     const confirmedGroupMatches = matches.filter(m => m.confirmed).length;
     const isGroupStageFinished = confirmedGroupMatches >= totalExpectedMatches && matches.every(m => m.confirmed);
     const progressPercent = totalExpectedMatches > 0 ? (confirmedGroupMatches / totalExpectedMatches) * 100 : 0;
+
+    // Player replacement/deletion state
+    const [replacingPlayer, setReplacingPlayer] = useState<Player | null>(null);
+    const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+    const [allPotentialPlayers, setAllPotentialPlayers] = useState<Player[]>([]);
+    const [isFetchLoading, setIsFetchLoading] = useState(false);
+    const [guestName, setGuestName] = useState("");
+    const [guestName2, setGuestName2] = useState("");
+    const [playerSearchQuery, setPlayerSearchQuery] = useState("");
+    const [replaceSlot, setReplaceSlot] = useState<1 | 2>(1);
+
+    const fetchPlayers = useCallback(async () => {
+        setIsFetchLoading(true);
+        const players = await getAllPlayers();
+        setAllPotentialPlayers(players);
+        setIsFetchLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if (replacingPlayer) {
+            fetchPlayers();
+            // Sync guest names with current pair members if not individual
+            if (!isIndividual) {
+                const names = replacingPlayer.name.split(/[\/\+]/).map(n => n.trim());
+                setGuestName(names[0] || "");
+                setGuestName2(names[1] || "");
+            } else {
+                setGuestName(replacingPlayer.name);
+                setGuestName2("");
+            }
+            setPlayerSearchQuery("");
+        }
+    }, [replacingPlayer, fetchPlayers, isIndividual]);
+
+    const handleReplacePlayer = async (oldPlayerId: string, newPlayer: Player) => {
+        const updatedGroups = groups.map(group => ({
+            ...group,
+            players: group.players.map(p => p.id === oldPlayerId ? { ...newPlayer } : p)
+        }));
+
+        const updatedMatches = matches.map(m => ({
+            ...m,
+            team1: m.team1.id === oldPlayerId ? { ...newPlayer } : m.team1,
+            team2: m.team2.id === oldPlayerId ? { ...newPlayer } : m.team2,
+        }));
+
+        const updatedBracket = bracket.map(bm => ({
+            ...bm,
+            team1: (bm.team1 && typeof bm.team1 !== "string" && (bm.team1 as Player).id === oldPlayerId) ? { ...newPlayer } as any : bm.team1,
+            team2: (bm.team2 && typeof bm.team2 !== "string" && (bm.team2 as Player).id === oldPlayerId) ? { ...newPlayer } as any : bm.team2,
+        }));
+
+        setGroups(updatedGroups);
+        setMatches(updatedMatches);
+        setBracket(updatedBracket);
+
+        // Update attendance/paid sets
+        setPresent(prev => {
+            const next = new Set(prev);
+            if (next.has(oldPlayerId)) {
+                next.delete(oldPlayerId);
+                next.add(newPlayer.id);
+            }
+            return next;
+        });
+        setPaid(prev => {
+            const next = new Set(prev);
+            if (next.has(oldPlayerId)) {
+                next.delete(oldPlayerId);
+                next.add(newPlayer.id);
+            }
+            return next;
+        });
+
+        setReplacingPlayer(null);
+        setGuestName("");
+        setGuestName2("");
+        setReplaceSlot(1);
+
+        // Auto-save if we are already in the tournament flow
+        if (step !== "setup") {
+            const loadingToast = toast.loading("Actualizando participantes...");
+            try {
+                // Determine current phase based on if we are in playoffs or grupos
+                const hasBracket = updatedBracket.length > 0;
+                const currentPhase = hasBracket ? "eliminatorias" : "grupos";
+
+                const res = await saveTournamentFixture({
+                    tournamentId,
+                    phase: currentPhase,
+                    groups: updatedGroups,
+                    matches: updatedMatches,
+                    bracket: updatedBracket,
+                });
+                toast.dismiss(loadingToast);
+                if (res.ok) {
+                    toast.success("Participante reemplazado y cambios guardados");
+                } else {
+                    toast.error("Error al guardar cambios: " + res.error);
+                }
+            } catch (err) {
+                toast.dismiss(loadingToast);
+                console.error(err);
+                toast.error("Error al guardar cambios en el servidor");
+            }
+        } else {
+            toast.success("Participante reemplazado");
+        }
+    };
+
+    const handleReplaceOneInPair = async (oldPlayer: Player, newPlayerName: string, slot: 1 | 2) => {
+        const names = oldPlayer.name.split(/[\/\+]/).map(n => n.trim());
+        let p1 = names[0] || "Jugador 1";
+        let p2 = names[1] || "Jugador 2";
+
+        if (slot === 1) p1 = newPlayerName;
+        else p2 = newPlayerName;
+
+        const updatedPlayer: Player = {
+            ...oldPlayer,
+            name: `${p1} / ${p2}`
+        };
+
+        await handleReplacePlayer(oldPlayer.id, updatedPlayer);
+    };
+
+    const handleReplaceWithGuest = async (oldPlayerId: string) => {
+        if (!isIndividual) {
+            const oldPlayer = groups.flatMap(g => g.players).find(p => p.id === oldPlayerId);
+            if (!oldPlayer) return;
+
+            const names = oldPlayer.name.split(/[\/\+]/).map(n => n.trim());
+            let g1 = guestName.trim() || names[0] || "Jugador 1";
+            let g2 = guestName2.trim() || names[1] || "Jugador 2";
+
+            const guestPlayer: Player = {
+                id: oldPlayerId, 
+                name: `${g1} / ${g2}`,
+                category: oldPlayer.category
+            };
+            await handleReplacePlayer(oldPlayerId, guestPlayer);
+            return;
+        }
+
+        if (!guestName.trim()) {
+            toast.error("Ingresá un nombre para el invitado");
+            return;
+        }
+        const guestPlayer: Player = {
+            id: `guest_${crypto.randomUUID()}`,
+            name: guestName.trim() + " (Inv)",
+            category: "D"
+        };
+        await handleReplacePlayer(oldPlayerId, guestPlayer);
+    };
+
+    const handleDeletePlayer = (playerId: string) => {
+        setGroups(prevGroups => prevGroups.map(group => ({
+            ...group,
+            players: group.players.filter(p => p.id !== playerId)
+        })));
+
+        // Remove from matches if they were generated
+        setMatches(prevMatches => prevMatches.filter(m => 
+            m.team1.id !== playerId && m.team2.id !== playerId
+        ));
+
+        // Update counts
+        setPresent(prev => {
+            const next = new Set(prev);
+            next.delete(playerId);
+            return next;
+        });
+        setPaid(prev => {
+            const next = new Set(prev);
+            next.delete(playerId);
+            return next;
+        });
+
+        setPlayerToDelete(null);
+        toast.success("Participante eliminado");
+    };
+
+
+
 
     const computeStandings = useCallback(() => {
         const group = groups[0]; // Single group for Americano
@@ -962,10 +1163,12 @@ export default function AmericanoManager({
                                             Todo Ok
                                         </button>
                                     </div>
-                                    {/* Players Table */}
-                                    <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/40 border-b border-border/50">
+                                </div>
+
+                                {/* Players Table */}
+                                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/40 border-b border-border/50">
                                                 <tr>
                                                     <th className="px-8 py-6">Jugador</th>
                                                     <th className="px-8 py-6">Categoría</th>
@@ -1010,6 +1213,22 @@ export default function AmericanoManager({
                                                             </td>
                                                             <td className="px-8 py-5 text-center">
                                                                 <button
+                                                                    onClick={() => setPlayerToDelete(p)}
+                                                                    className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                    title="Eliminar Participante"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => setReplacingPlayer(p)}
+                                                                    className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all"
+                                                                    title="Reemplazar Jugador"
+                                                                >
+                                                                    <RotateCcw className="w-4 h-4" />
+                                                                </button>
+
+                                                                <button
                                                                     onClick={() => setPresent(prev => {
                                                                         const next = new Set(prev);
                                                                         if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
@@ -1022,13 +1241,13 @@ export default function AmericanoManager({
                                                                 >
                                                                     <UserCheck className="w-4 h-4" />
                                                                 </button>
+
                                                             </td>
                                                         </tr>
                                                     );
                                                 })}
                                             </tbody>
                                         </table>
-                                    </div>
                                 </div>
 
                                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
@@ -1289,9 +1508,18 @@ export default function AmericanoManager({
                                                             </span>
                                                         </td>
                                                         <td className="px-8 py-5">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-black uppercase italic text-foreground/80">{s.player.name}</span>
-                                                                {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-black uppercase italic text-foreground/80">{s.player.name}</span>
+                                                                    {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setReplacingPlayer(s.player)}
+                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all group/repl"
+                                                                    title="Reemplazar"
+                                                                >
+                                                                    <RotateCcw className="w-3.5 h-3.5 group-hover/repl:rotate-180 transition-transform duration-500" />
+                                                                </button>
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
@@ -1383,10 +1611,24 @@ export default function AmericanoManager({
                                                                                                 </div>
                                                                                             )}
                                                                                             {[match.team1, match.team2].map((team, tIdx) => (
-                                                                                                <div key={tIdx} className="flex items-center justify-between gap-4">
+                                                                                                <div key={tIdx} className="flex items-center justify-between gap-4 group/team">
+                                                                        <div className="flex items-center gap-2 overflow-hidden">
                                                                                                     <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
                                                                                                         {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
                                                                                                     </span>
+                                                                            {team && team !== "BYE" && !match.confirmed && !readOnly && (
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        setReplacingPlayer(team as Player);
+                                                                                    }}
+                                                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 opacity-0 group-hover/team:opacity-100 transition-all hover:bg-amber-500 hover:text-white shrink-0 shadow-lg shadow-amber-500/5"
+                                                                                    title="Reemplazar"
+                                                                                >
+                                                                                    <RotateCcw className="w-3 h-3" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
                                                                                                     <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${match.confirmed ? "pointer-events-none opacity-50" : ""}`}>
                                                                                                         <button
                                                                                                             onClick={() => {
@@ -1555,6 +1797,169 @@ export default function AmericanoManager({
                     </div>
                 )}
             </AnimatePresence>
+            {/* MODAL REEMPLAZO DE JUGADOR */}
+            <Dialog open={!!replacingPlayer} onOpenChange={(open) => !open && setReplacingPlayer(null)}>
+                <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Cambiar Participante</DialogTitle>
+                        <DialogDescription>
+                            {isIndividual 
+                                ? <>Reemplazar a <span className="text-foreground">{replacingPlayer?.name}</span> por otro jugador.</>
+                                : <>Modificar la pareja <span className="text-foreground">{replacingPlayer?.name}</span>.</>
+                            }
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {!isIndividual && (
+                        <div className="flex p-1 bg-muted rounded-2xl border border-border/50">
+                            <button
+                                onClick={() => setReplaceSlot(1)}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                            >
+                                Reemplazar Jugador 1
+                            </button>
+                            <button
+                                onClick={() => setReplaceSlot(2)}
+                                className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-foreground/40 hover:text-foreground/60"}`}
+                            >
+                                Reemplazar Jugador 2
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="space-y-6 py-4">
+                        {/* Invitado */}
+                        <div className="p-6 bg-muted/30 rounded-3xl border border-border/50 space-y-6">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40 block">
+                                    {isIndividual ? "Opción 1: Persona Externa / Invitado" : `Opción 1: Reemplazar por Persona Externa`}
+                                </span>
+                                <p className="text-[9px] font-medium text-foreground/30 uppercase tracking-tighter">
+                                    Usá esta opción si el jugador no está registrado en el club o sistema.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex-1 relative mt-2">
+                                    <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-blue-500 uppercase tracking-widest z-10 rounded-full border border-border/10">
+                                        {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split(/[\/\+]/)[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
+                                        value={replaceSlot === 1 ? guestName : guestName2}
+                                        onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
+                                        className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-sm"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => replacingPlayer && handleReplaceWithGuest(replacingPlayer.id)}
+                                    className="w-full py-4 bg-foreground text-background rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-2"
+                                >
+                                    <UserCheck className="w-4 h-4" />
+                                    {isIndividual ? "Confirmar como Invitado" : `Confirmar Persona Externa (Slot ${replaceSlot})`}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Registrados */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Opción 2: Jugador Registrado</span>
+                            </div>
+
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre..."
+                                    value={playerSearchQuery}
+                                    onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                                {isFetchLoading ? (
+                                    <div className="py-8 text-center animate-pulse text-xs font-black uppercase tracking-widest text-foreground/40">
+                                        Cargando jugadores...
+                                    </div>
+                                ) : allPotentialPlayers
+                                    .filter(p => {
+                                        const query = isIndividual 
+                                            ? (guestName || playerSearchQuery) 
+                                            : (replaceSlot === 1 ? guestName : guestName2) || playerSearchQuery;
+                                        
+                                        if (!query || query.length < 2) return false;
+                                        return p.name.toLowerCase().includes(query.toLowerCase());
+                                    })
+                                    .filter(p => !registeredPlayerIds.has(p.id) && !registeredPlayerNames.includes(p.name.toLowerCase()))
+                                    .slice(0, 10).map((p) => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => {
+                                                if (replacingPlayer) {
+                                                    if (isIndividual) {
+                                                        handleReplacePlayer(replacingPlayer.id, p);
+                                                    } else {
+                                                        handleReplaceOneInPair(replacingPlayer, p.name, replaceSlot);
+                                                    }
+                                                }
+                                            }}
+                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-blue-600 hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                    <Users2 className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-sm font-black uppercase italic">{p.name}</p>
+                                                    <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">Cat: {p.category || "D"}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[7px] font-black uppercase tracking-tighter opacity-0 group-hover/p:opacity-100 bg-white/10 px-2 py-1 rounded-md">
+                                                    Elegir para Jugador {replaceSlot}
+                                                </span>
+                                                <Plus className="w-4 h-4 opacity-0 group-hover/p:opacity-100 transition-opacity" />
+                                            </div>
+                                        </button>
+                                    ))}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODAL CONFIRMACION ELIMINAR */}
+            <Dialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-500">¿Eliminar Participante?</DialogTitle>
+                        <DialogDescription>
+                            Estás por quitar a <span className="text-foreground font-black">{playerToDelete?.name}</span> de la lista del torneo. Esta acción no se puede deshacer.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex gap-4 mt-4">
+                        <button
+                            onClick={() => setPlayerToDelete(null)}
+                            className="flex-1 px-4 py-3 bg-muted hover:bg-muted/80 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={() => playerToDelete && handleDeletePlayer(playerToDelete.id)}
+                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-900/20"
+                        >
+                            Sí, Eliminar
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+
+

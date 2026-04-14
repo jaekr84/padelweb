@@ -140,6 +140,7 @@ export default async function TournamentManagePage({ params }: Props) {
             initialBracket={mappedBracket}
             initialStatus={tournament.status}
             readOnly={tournament.status === "finalizado"}
+            modality={tournament.modalidad}
         />
     );
 }

@@ -7,8 +7,17 @@ import {
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
     Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap,
-    LayoutDashboard, Swords, BarChart3, Clock
+    LayoutDashboard, Swords, BarChart3, Clock, RotateCcw
 } from "lucide-react";
+import { getAllPlayers } from "@/app/actions/players";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/Dialog";
+
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +36,7 @@ export interface FixtureSetupProps {
 type Player = { 
     id: string; 
     name: string; 
-    category?: string; 
+    category?: string | null; 
     email?: string; 
     gender?: string; 
     clubId?: string | null; 
@@ -92,6 +101,103 @@ export default function FixtureSetup({
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
+
+    // Replacement/Deletion state
+    const [replacingParticipant, setReplacingParticipant] = useState<{ checkinId: string, displayName: string, pairId: string } | null>(null);
+    const [participantToDelete, setParticipantToDelete] = useState<{ id: string, name: string } | null>(null);
+    const [allPotentialPlayers, setAllPotentialPlayers] = useState<any[]>([]);
+
+    const [isFetchLoading, setIsFetchLoading] = useState(false);
+    const [guestName, setGuestName] = useState("");
+    const [playerSearchQuery, setPlayerSearchQuery] = useState("");
+
+    const fetchPotentialPlayers = useCallback(async () => {
+        setIsFetchLoading(true);
+        const p = await getAllPlayers();
+        setAllPotentialPlayers(p);
+        setIsFetchLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if (replacingParticipant) {
+            fetchPotentialPlayers();
+        }
+    }, [replacingParticipant, fetchPotentialPlayers]);
+
+    const handleReplaceParticipant = (newPlayer: any) => {
+        if (!replacingParticipant) return;
+        const { pairId, checkinId } = replacingParticipant;
+        const isSecond = checkinId.endsWith("_1");
+
+        setPlayers(prev => prev.map(p => {
+            if (p.id !== pairId) return p;
+            
+            const registrationName = p.name;
+            const names = registrationName.split(" / ");
+            let newRegistrationName = "";
+            
+            if (isIndividual) {
+                newRegistrationName = newPlayer.name;
+            } else {
+                if (isSecond) {
+                    newRegistrationName = `${p.player1 || names[0]} / ${newPlayer.name}`;
+                } else {
+                    newRegistrationName = `${newPlayer.name} / ${p.player2 || names[1]}`;
+                }
+            }
+
+            return {
+                ...p,
+                name: newRegistrationName,
+                [isSecond ? "player2" : "player1"]: newPlayer.name,
+                [isSecond ? "partnerUserId" : "userId"]: newPlayer.id,
+                category: newPlayer.category || p.category
+            };
+        }));
+
+        setReplacingParticipant(null);
+        setGuestName("");
+        setPlayerSearchQuery("");
+        toast.success("Participante reemplazado");
+    };
+
+    const handleReplaceWithGuest = () => {
+        if (!guestName.trim()) {
+            toast.error("Ingresá un nombre");
+            return;
+        }
+        handleReplaceParticipant({
+            id: `guest_${Date.now()}`,
+            name: guestName.trim() + " (Inv)",
+            category: "D"
+        });
+    };
+
+    const handleDeleteRegistration = (registrationId: string) => {
+        setPlayers(prev => prev.filter(p => p.id !== registrationId));
+        
+        // Cleanup attendance/paid states
+        setPresent(prev => {
+            const next = new Set(prev);
+            next.delete(registrationId);
+            next.delete(`${registrationId}_0`);
+            next.delete(`${registrationId}_1`);
+            return next;
+        });
+        setPaid(prev => {
+            const next = new Set(prev);
+            next.delete(registrationId);
+            next.delete(`${registrationId}_0`);
+            next.delete(`${registrationId}_1`);
+            return next;
+        });
+        
+        setParticipantToDelete(null);
+        toast.success("Participante eliminado de la lista");
+    };
+
+
+
 
     const onPlayerAdded = (player: any) => {
         setPlayers(prev => [...prev, player as Player]);
@@ -664,6 +770,22 @@ export default function FixtureSetup({
 
                                                     <div className="flex items-center gap-3">
                                                         <button
+                                                            onClick={() => setParticipantToDelete({ id: p.id, name: p.displayName })}
+                                                            className="w-11 h-11 rounded-xl flex items-center justify-center bg-muted/50 border border-border text-foreground/20 hover:text-red-500 hover:border-red-500/50 transition-all transform active:scale-90"
+                                                            title="Eliminar Participante"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => setReplacingParticipant({ checkinId: p.checkinId, displayName: p.displayName, pairId: p.id })}
+                                                            className="w-11 h-11 rounded-xl flex items-center justify-center bg-muted/50 border border-border text-foreground/20 hover:text-amber-500 hover:border-amber-500/50 transition-all transform active:scale-90"
+                                                            title="Reemplazar Participante"
+                                                        >
+                                                            <RotateCcw className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
                                                             onClick={() => togglePaid(p.checkinId)}
                                                             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPaid
                                                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-2 ring-blue-600/20"
@@ -683,6 +805,7 @@ export default function FixtureSetup({
                                                         >
                                                             <UserCheck className="w-4 h-4" />
                                                         </button>
+
                                                     </div>
                                                 </div>
                                             );
@@ -1046,7 +1169,115 @@ export default function FixtureSetup({
                     onSuccess={onPlayerAdded}
                     existingPlayerIds={new Set(players.flatMap(p => [p.userId, p.partnerUserId]).filter(Boolean) as string[])}
                 />
+
+                {/* MODAL REEMPLAZO DE PARTICIPANTE */}
+                <Dialog open={!!replacingParticipant} onOpenChange={(open) => !open && setReplacingParticipant(null)}>
+                    <DialogContent className="max-w-xl">
+                        <DialogHeader>
+                            <DialogTitle>Cambiar Participante</DialogTitle>
+                            <DialogDescription>
+                                Reemplazar a <span className="text-foreground">{replacingParticipant?.displayName}</span> por otro jugador o invitado.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-6 py-4">
+                            {/* Invitado */}
+                            <div className="p-6 bg-muted/30 rounded-3xl border border-border/50 space-y-4">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Opción 1: Invitado Manual</span>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre del invitado..."
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
+                                        className="flex-1 bg-background border border-border/50 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500"
+                                    />
+                                    <button
+                                        onClick={handleReplaceWithGuest}
+                                        className="px-6 py-3 bg-foreground text-background rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                                    >
+                                        Usar
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Registrados */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Opción 2: Jugador Registrado</span>
+                                </div>
+                                
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nombre..."
+                                        value={playerSearchQuery}
+                                        onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500"
+                                    />
+                                </div>
+
+                                <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                                    {isFetchLoading ? (
+                                        <div className="py-8 text-center animate-pulse text-xs font-black uppercase tracking-widest text-foreground/40">
+                                            Cargando jugadores...
+                                        </div>
+                                    ) : allPotentialPlayers
+                                        .filter(p => !playerSearchQuery || p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()))
+                                        .slice(0, 10).map((p) => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => handleReplaceParticipant(p)}
+                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-blue-600 hover:text-white rounded-2xl border border-border/50 transition-all group/p"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                    <Users2 className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-sm font-black uppercase italic">{p.name}</p>
+                                                    <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">Cat: {p.category || "D"}</p>
+                                                </div>
+                                            </div>
+                                            <Plus className="w-4 h-4 opacity-0 group-hover/p:opacity-100 transition-opacity" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* MODAL CONFIRMACION ELIMINAR */}
+                <Dialog open={!!participantToDelete} onOpenChange={(open) => !open && setParticipantToDelete(null)}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-red-500">¿Eliminar Participante?</DialogTitle>
+                            <DialogDescription>
+                                Estás por quitar a <span className="text-foreground font-black">{participantToDelete?.name}</span> de la lista del torneo. Esta acción no se puede deshacer.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="flex gap-4 mt-4">
+                            <button
+                                onClick={() => setParticipantToDelete(null)}
+                                className="flex-1 px-4 py-3 bg-muted hover:bg-muted/80 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => participantToDelete && handleDeleteRegistration(participantToDelete.id)}
+                                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-900/20"
+                            >
+                                Sí, Eliminar
+                            </button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </main>
         </div>
     );
 }
+
+
