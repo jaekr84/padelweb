@@ -64,6 +64,7 @@ export default async function AdminDashboardPage() {
         { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' },
 
         // Sistema
+        { label: 'Sponsors', href: '/admin/sponsors', icon: Star, color: 'text-yellow-500' },
         { label: 'Ranking', href: '/ranking', icon: Star, color: 'text-yellow-500' },
         { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'text-teal-500' },
         { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'text-orange-500' },

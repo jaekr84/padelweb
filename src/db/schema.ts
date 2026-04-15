@@ -446,3 +446,15 @@ export const publicMatchRegistrationsRelations = relations(publicMatchRegistrati
 
 export type PublicMatch = InferSelectModel<typeof publicMatches>;
 export type PublicMatchRegistration = InferSelectModel<typeof publicMatchRegistrations>;
+
+// Sponsors Table
+export const sponsors = mysqlTable("sponsors", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    imageUrl: text("image_url").notNull(),
+    link: text("link"),
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Sponsor = InferSelectModel<typeof sponsors>;

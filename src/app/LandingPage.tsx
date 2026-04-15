@@ -32,14 +32,45 @@ const logoEntrance: Variants = {
     }
 };
 
+const SponsorItem = ({ s }: { s: any }) => (
+    <div className="mx-12 shrink-0">
+        {s.link ? (
+            <Link
+                href={s.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative h-16 w-40 md:h-24 md:w-72 flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+            >
+                <Image
+                    src={s.imageUrl}
+                    alt={s.name}
+                    fill
+                    className="object-contain filter grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+                />
+            </Link>
+        ) : (
+            <div className="relative h-16 w-40 md:h-24 md:w-72 flex items-center justify-center">
+                <Image
+                    src={s.imageUrl}
+                    alt={s.name}
+                    fill
+                    className="object-contain filter grayscale opacity-40"
+                />
+            </div>
+        )}
+    </div>
+);
+
 export default function LandingPage({
     tournamentCount = 50,
     playerCount = 300,
-    clubCount = 15
+    clubCount = 15,
+    sponsors = []
 }: {
     tournamentCount?: number;
     playerCount?: number;
     clubCount?: number;
+    sponsors?: any[];
 }) {
     const { scrollYProgress } = useScroll();
     const yHero = useTransform(scrollYProgress, [0, 1], [0, 400]);
@@ -167,13 +198,14 @@ export default function LandingPage({
                     </div>
 
                     <div className="flex gap-4 items-center justify-end flex-1">
-                        <Link href="/login" className="glow-button bg-slate-900 border border-slate-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Entrar</Link>
+                        <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all mr-2">Entrar</Link>
+                        <Link href="/register" className="glow-button bg-white text-black px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Unite a ACAP</Link>
                     </div>
                 </motion.div>
             </nav>
 
             {/* ── HERO SECTION ── */}
-            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-20 lg:pt-24 pb-16 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+            <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-20 lg:pt-24 pb-2 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
                 <motion.div initial="hidden" animate="show" variants={staggerContainer} className="max-w-4xl w-full flex flex-col items-center">
 
                     {/* ── Logo Central con Brillo y Reflejo Espejo (Estático) ── */}
@@ -245,17 +277,37 @@ export default function LandingPage({
                         A.C.A.P. forma parte de la mejor red social de pádel
                     </motion.p>
 
-                    <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5 justify-center">
-                        <Link href="/ranking" className="glow-button bg-slate-900 border border-slate-700 text-white px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                            <Trophy className="w-5 h-5 text-yellow-500" /> Ver Ranking
-                        </Link>
-                        <Link href="/register" className="glow-button bg-white text-black px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                            Unirse <ArrowRight className="w-5 h-5" />
-                        </Link>
-                    </motion.div>
+                    {/* Deleted old buttons here */}
                 </motion.div>
+            </motion.section>
 
-                {/* KPI STATS */}
+            {/* ── SPONSOR MARQUEE ── */}
+            {sponsors && sponsors.length > 0 && (
+                <div className="relative z-10 w-full overflow-hidden bg-white/[0.02] border-y border-white/5 pt-1 pb-10 mb-16 flex flex-col items-center">
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-6 italic"
+                    >
+                        Nuestros Sponsors
+                    </motion.p>
+                    <div className="flex w-full overflow-hidden relative">
+                        <div className="flex animate-marquee whitespace-nowrap">
+                            {/* Renderizamos 4 veces para asegurar que cubra toda la pantalla sin gaps */}
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex">
+                                    {sponsors.map((s, idx) => (
+                                        <SponsorItem key={`${i}-${s.id}-${idx}`} s={s} />
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* KPI STATS */}
+            <div className="max-w-7xl mx-auto px-6 relative z-10 mb-20">
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -273,7 +325,7 @@ export default function LandingPage({
                         </div>
                     ))}
                 </motion.div>
-            </motion.section>
+            </div>
 
             {/* ── BENTO GRID FEATURES ── */}
             <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto">

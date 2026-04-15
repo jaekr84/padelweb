@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { users, tournaments } from "@/db/schema";
 import { sql, eq, inArray } from "drizzle-orm";
 
+import { getSponsors } from "@/app/actions/sponsors";
+
 export default async function Home() {
   const user = await getCurrentUser();
   if (user) {
@@ -15,11 +17,13 @@ export default async function Home() {
   let tournamentCount = 0;
   let playerCount = 0;
   let clubCount = 0;
+  let sponsorsData: any[] = [];
 
   try {
     const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
     const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
     const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
+    sponsorsData = await getSponsors();
 
     // Use DB data directly
     tournamentCount = tCount;
@@ -35,6 +39,7 @@ export default async function Home() {
       tournamentCount={tournamentCount}
       playerCount={playerCount}
       clubCount={clubCount}
+      sponsors={JSON.parse(JSON.stringify(sponsorsData))}
     />
   );
 }

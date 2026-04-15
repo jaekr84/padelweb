@@ -156,3 +156,22 @@ export async function cancelPublicMatch(matchId: string) {
     revalidatePath(`/partidos/${matchId}`);
     return { success: true };
 }
+
+export async function completePublicMatch(matchId: string) {
+    const session = await getSession();
+    if (!session) throw new Error("No autenticado");
+
+    const [match] = await db.select().from(publicMatches).where(eq(publicMatches.id, matchId)).limit(1);
+    if (!match) throw new Error("Partido no encontrado");
+
+    if (match.creatorId !== session.userId && session.role !== "superadmin") {
+        throw new Error("No tienes permiso para completar este partido");
+    }
+
+    await db.update(publicMatches).set({ status: "completed" }).where(eq(publicMatches.id, matchId));
+
+    revalidatePath("/partidos");
+    revalidatePath(`/partidos/${matchId}`);
+    revalidatePath("/profile");
+    return { success: true };
+}

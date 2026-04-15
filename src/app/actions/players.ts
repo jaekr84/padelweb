@@ -216,7 +216,7 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
         });
 
         // --- PROCESS PUBLIC MATCHES ---
-        pMatches.forEach(m => {
+        pMatches.filter(m => m.match.status === 'completed').forEach(m => {
             // These don't usually have scores, but we count them as "Played"
             pj++;
             history.push({

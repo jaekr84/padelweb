@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { joinPublicMatch, leavePublicMatch, cancelPublicMatch } from "../actions";
+import { joinPublicMatch, leavePublicMatch, cancelPublicMatch, completePublicMatch } from "../actions";
 
 type MatchWithData = {
     id: string;
@@ -87,6 +87,20 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
         try {
             await cancelPublicMatch(match.id);
             router.push("/partidos");
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleComplete = async () => {
+        if (!confirm("¿Estás seguro de que querés finalizar este partido? Será guardado en tu historial.")) return;
+
+        setLoading(true);
+        try {
+            await completePublicMatch(match.id);
+            router.refresh();
         } catch (error: any) {
             alert(error.message);
         } finally {
@@ -283,35 +297,66 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                         <MessageCircle className="w-6 h-6" />
                     </button>
                     {isCreator ? (
-                        <button disabled className="flex-1 h-16 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-                            <Trophy className="w-4 h-4" />
-                            Esperando Jugadores
-                        </button>
+                        match.status === 'completed' ? (
+                            <div className="flex-1 h-16 bg-emerald-50 text-emerald-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-emerald-100">
+                                <Trophy className="w-4 h-4" />
+                                PARTIDO FINALIZADO
+                            </div>
+                        ) : match.status === 'cancelled' ? (
+                            <div className="flex-1 h-16 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-rose-100">
+                                <X className="w-4 h-4" />
+                                PARTIDO CANCELADO
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleComplete}
+                                disabled={loading}
+                                className="flex-1 h-16 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {loading ? "PROCESANDO..." : (
+                                    <>
+                                        <Trophy className="w-4 h-4" />
+                                        FINALIZAR PARTIDO
+                                    </>
+                                )}
+                            </button>
+                        )
                     ) : (
-                        <button
-                            onClick={handleAction}
-                            disabled={loading || (remaining === 0 && !isJoined)}
-                            className={`flex-1 h-16 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${isJoined
-                                ? 'bg-red-50 text-red-600 shadow-red-500/10 hover:bg-red-100'
-                                : remaining === 0
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-slate-900 text-white shadow-slate-900/20 hover:bg-blue-600'
-                                }`}
-                        >
-                            {loading ? "PROCESANDO..." : isJoined ? (
-                                <>
-                                    <X className="w-4 h-4" />
-                                    ABANDONAR PARTIDO
-                                </>
-                            ) : remaining === 0 ? (
-                                "PARTIDO LLENO"
-                            ) : (
-                                <>
-                                    <Check className="w-4 h-4" />
-                                    UNIRME A JUGARHORA
-                                </>
-                            )}
-                        </button>
+                        match.status === 'completed' ? (
+                            <div className="flex-1 h-16 bg-emerald-50 text-emerald-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-emerald-100">
+                                <Trophy className="w-4 h-4" />
+                                PARTIDO FINALIZADO
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleAction}
+                                disabled={loading || (remaining === 0 && !isJoined) || match.status === 'cancelled'}
+                                className={`flex-1 h-16 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${isJoined
+                                    ? 'bg-red-50 text-red-600 shadow-red-500/10 hover:bg-red-100'
+                                    : remaining === 0
+                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                        : match.status === 'cancelled'
+                                            ? 'bg-rose-50 text-rose-400 cursor-not-allowed'
+                                            : 'bg-slate-900 text-white shadow-slate-900/20 hover:bg-blue-600'
+                                    }`}
+                            >
+                                {loading ? "PROCESANDO..." : isJoined ? (
+                                    <>
+                                        <X className="w-4 h-4" />
+                                        ABANDONAR PARTIDO
+                                    </>
+                                ) : remaining === 0 ? (
+                                    "PARTIDO LLENO"
+                                ) : match.status === 'cancelled' ? (
+                                    "CANCELADO"
+                                ) : (
+                                    <>
+                                        <Check className="w-4 h-4" />
+                                        UNIRME A JUGAR
+                                    </>
+                                )}
+                            </button>
+                        )
                     )}
                 </div>
             </div>
