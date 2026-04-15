@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 export default async function CreateOpenCourtPage() {
     const session = await getSession();
 
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         redirect("/home");
     }
 

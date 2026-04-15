@@ -17,7 +17,7 @@ import { initializeOpenCourtTables } from "./init-db";
 
 export async function finishOpenCourtEventAction(eventId: string) {
     const session = await getSession();
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         throw new Error("No autorizado");
     }
 
@@ -92,7 +92,7 @@ export async function createOpenCourtEventAction(data: {
     clubId: string;
 }) {
     const session = await getSession();
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         throw new Error("No autorizado");
     }
 
@@ -125,7 +125,7 @@ export async function createOpenCourtEventAction(data: {
 
 export async function deleteOpenCourtEventAction(id: string) {
     const session = await getSession();
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         throw new Error("No autorizado");
     }
 

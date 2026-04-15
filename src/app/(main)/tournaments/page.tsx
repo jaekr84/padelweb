@@ -9,6 +9,7 @@ import {
     Zap, CheckCircle, Clock, LayoutGrid, User, Users2, DollarSign
 } from "lucide-react";
 import PublicTournamentCard from "./PublicTournamentCard";
+import TournamentFiltersClient from "./TournamentFiltersClient";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +48,13 @@ export default async function TournamentsPage({
     const sp = await searchParams;
     const currentFilter = typeof sp.filter === "string" ? sp.filter : "todos";
     const selectedCategory = typeof sp.category === "string" ? sp.category : "todas";
+    const selectedLocation = typeof sp.location === "string" ? sp.location : "todas";
 
     let userId: string | null = null;
     let dbUser: any = null;
     let allTournaments: any[] = [];
     let availableCategories: any[] = [];
+    let availableLocations: string[] = [];
     let session: any = null;
 
     try {
@@ -101,9 +104,23 @@ export default async function TournamentsPage({
             isRegistered: registeredSet.has(r.tournament.id),
         }));
 
+        const locationMap = new Map<string, string>();
+        allTournaments.forEach(t => {
+            if (typeof t.location === 'string') {
+                const normalized = t.location.trim();
+                const key = normalized.toLowerCase();
+                if (normalized && !locationMap.has(key)) {
+                    locationMap.set(key, normalized);
+                }
+            }
+        });
+
+        availableLocations = Array.from(locationMap.values()).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
         if (userId) {
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         }
+
     } catch (e) {
         console.error("Fetch error:", e);
     }
@@ -181,6 +198,13 @@ export default async function TournamentsPage({
         filteredTournaments = baseFiltered;
     }
 
+    // 3. Location Filter
+    if (selectedLocation && selectedLocation !== "todas") {
+        filteredTournaments = filteredTournaments.filter(t => {
+            return typeof t.location === 'string' && t.location.trim().toLowerCase() === selectedLocation.trim().toLowerCase();
+        });
+    }
+
     const statusFilters = [
         { key: "todos", label: "Activos", count: totalActiveC },
         { key: "abiertas", label: "Inscripción", count: openC },
@@ -249,59 +273,14 @@ export default async function TournamentsPage({
                         </div>
                     </div>
 
-                    {/* ── Status filters ── */}
-                    <div className="flex gap-2 overflow-x-auto pb-1 mb-3 no-scrollbar">
-                        {statusFilters.map(f => {
-                            const isActive = currentFilter === f.key;
-                            return (
-                                <Link key={f.key} href={`/tournaments?filter=${f.key}&category=${selectedCategory}`} scroll={false} className="shrink-0">
-                                    <button className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${isActive
-                                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                                        : "bg-card border border-border text-muted-foreground hover:border-indigo-500/30 hover:text-foreground"
-                                        }`}>
-                                        {f.label}
-                                        {f.count !== null && (
-                                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/20" : "bg-muted"}`}>
-                                                {f.count}
-                                            </span>
-                                        )}
-                                    </button>
-                                </Link>
-                            );
-                        })}
-                    </div>
-
-                    {/* ── Category filters ── */}
-                    <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
-                        <Link
-                            href={`/tournaments?filter=${currentFilter}&category=todas`}
-                            scroll={false}
-                            className="shrink-0"
-                        >
-                            <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedCategory === "todas"
-                                ? "bg-blue-500/10 border-blue-500 text-blue-500"
-                                : "bg-card border-border text-muted-foreground"}`}>
-                                Todas las Categorías
-                            </button>
-                        </Link>
-                        {availableCategories.map(cat => {
-                            const isActive = selectedCategory.toLowerCase() === cat.name.toLowerCase();
-                            return (
-                                <Link
-                                    key={cat.id}
-                                    href={`/tournaments?filter=${currentFilter}&category=${cat.name}`}
-                                    scroll={false}
-                                    className="shrink-0"
-                                >
-                                    <button className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${isActive
-                                        ? "bg-blue-500/10 border-blue-500 text-blue-500"
-                                        : "bg-card border-border text-muted-foreground"}`}>
-                                        {cat.name}
-                                    </button>
-                                </Link>
-                            );
-                        })}
-                    </div>
+                    {/* ── Filters ── */}
+                    <TournamentFiltersClient
+                        currentFilter={currentFilter}
+                        selectedCategory={selectedCategory}
+                        selectedLocation={selectedLocation}
+                        availableCategories={availableCategories}
+                        availableLocations={availableLocations}
+                    />
 
                     {/* ── Tournament list grouped by month ── */}
                     {filteredTournaments.length === 0 ? (

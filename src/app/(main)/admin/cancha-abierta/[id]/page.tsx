@@ -11,7 +11,7 @@ export default async function AdminLiveManagementPage(props: { params: Promise<{
     const params = await props.params;
     const session = await getSession();
 
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         redirect("/home");
     }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, MapPin, Calendar, Clock, Users, Zap, Trophy, ChevronRight, LayoutGrid } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, Users, Zap, Trophy, ChevronRight, LayoutGrid, Check } from "lucide-react";
+import * as Select from "@radix-ui/react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -34,10 +35,24 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
+    const dropdownTriggerStyles = "w-full rounded-3xl border border-background/20 bg-background/10 py-6 pl-14 pr-10 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50 backdrop-blur-xl transition-all flex items-center justify-between gap-2";
+    const dropdownContentStyles = "z-50 overflow-hidden rounded-3xl border border-background/20 bg-foreground shadow-2xl";
+    const dropdownViewportStyles = "p-1";
+    const dropdownItemStyles = "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm font-bold tracking-tight uppercase text-background outline-none transition-colors data-[highlighted]:bg-emerald-500/10 data-[highlighted]:text-background data-[state=checked]:bg-emerald-500 data-[state=checked]:text-background";
+
+    const searchOptions = useMemo(() => {
+        const values = new Set<string>();
+
+        initialEvents.forEach((event) => {
+            if (event.city) values.add(event.city);
+        });
+
+        return Array.from(values).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+    }, [initialEvents]);
+
     const filteredEvents = useMemo(() => {
         return initialEvents.filter(e => {
-            const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                e.club.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            const matchesSearch = !searchQuery ||
                 e.city.toLowerCase().includes(searchQuery.toLowerCase());
 
             const matchesTab = e.status === activeTab;
@@ -45,6 +60,12 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
             return matchesSearch && matchesTab;
         });
     }, [searchQuery, initialEvents, activeTab]);
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return dateString;
+        return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
@@ -72,16 +93,37 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     </p>
                 </motion.div>
 
-                {/* Search Bar */}
+                {/* Search Dropdown */}
                 <div className="relative w-full max-w-lg z-10 pt-4">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-background/30" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por club, ciudad o evento..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-background/10 border border-background/20 rounded-3xl py-6 pl-14 pr-6 text-sm font-bold placeholder:text-background/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 backdrop-blur-xl transition-all"
-                    />
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
+                    <Select.Root value={searchQuery} onValueChange={(value) => setSearchQuery(value === "__empty__" ? "" : value)}>
+                        <Select.Trigger className={dropdownTriggerStyles} aria-label="Seleccionar localidad">
+                            <Select.Value placeholder="Buscar por localidad..." />
+                            <Select.Icon>
+                                <ChevronRight className="w-5 h-5 text-white/70 rotate-90" />
+                            </Select.Icon>
+                        </Select.Trigger>
+                        <Select.Portal>
+                            <Select.Content className={dropdownContentStyles} position="popper" sideOffset={8} style={{ width: "var(--radix-select-trigger-width)" }}>
+                                <Select.Viewport className={dropdownViewportStyles}>
+                                    <Select.Item value="__empty__" className={dropdownItemStyles}>
+                                        <Select.ItemText>Buscar por localidad...</Select.ItemText>
+                                        <Select.ItemIndicator className="absolute right-4 inline-flex items-center text-emerald-500">
+                                            <Check className="w-4 h-4" />
+                                        </Select.ItemIndicator>
+                                    </Select.Item>
+                                    {searchOptions.map((option) => (
+                                        <Select.Item key={option} value={option} className={dropdownItemStyles}>
+                                            <Select.ItemText>{option}</Select.ItemText>
+                                            <Select.ItemIndicator className="absolute right-4 inline-flex items-center text-emerald-500">
+                                                <Check className="w-4 h-4" />
+                                            </Select.ItemIndicator>
+                                        </Select.Item>
+                                    ))}
+                                </Select.Viewport>
+                            </Select.Content>
+                        </Select.Portal>
+                    </Select.Root>
                 </div>
             </div>
 
@@ -129,108 +171,127 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                             const percent = event.totalSlots ? (event.registrationCount / event.totalSlots) * 100 : 0;
                             const isFull = event.totalSlots && event.registrationCount >= event.totalSlots;
 
+                            const statusLabel = event.status === 'completed' ? 'FINALIZADO' : 'ABIERTO';
+                            const statusColor = event.status === 'completed' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700';
+                            const registeredLabel = isRegistered ? 'YA INSCRIPTO' : null;
+
                             return (
                                 <motion.div
                                     layout
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.2 }}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.3 }}
                                     key={event.id}
-                                    className="group bg-card border border-border/50 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:border-emerald-500/30 transition-all duration-500 flex flex-col"
+                                    className="group relative bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 flex flex-col h-full"
                                 >
-                                    {/* Card Header: Club Info */}
-                                    <div className="p-8 pb-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-muted overflow-hidden relative border border-border/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                                {event.club.image ? (
-                                                    <Image src={event.club.image} alt={event.club.name || ""} fill className="object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-xs font-black text-muted-foreground/30">
-                                                        {event.club.name?.charAt(0)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500">{event.club.name}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/50 flex items-center gap-1 uppercase">
-                                                    <MapPin className="w-2.5 h-2.5" />
-                                                    {event.city}
-                                                </p>
-                                            </div>
+                                    {/* Header con Badges Flotantes */}
+                                    <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">
+                                        <div className="flex gap-2">
+                                            <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase backdrop-blur-md bg-opacity-90">
+                                                MI CLUB
+                                            </span>
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase ${statusLabel === 'ABIERTO' ? 'bg-green-100 text-green-700' : 'bg-secondary-container text-on-secondary-container'
+                                                }`}>
+                                                {statusLabel}
+                                            </span>
                                         </div>
-                                        {isRegistered && (
-                                            <div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">
-                                                Ya Inscripto
+                                        {registeredLabel && (
+                                            <div className="bg-primary text-white p-2 rounded-full shadow-lg animate-in zoom-in duration-300">
+                                                <Check className="w-4 h-4" strokeWidth={3} />
                                             </div>
                                         )}
-                                        {/* Event Body */}
-                                        <div className="px-8 py-4 space-y-2 flex-1">
-                                            <h3 className="text-xl font-black uppercase italic tracking-tighter leading-tight group-hover:text-emerald-500 transition-colors">
-                                                {event.name}
-                                            </h3>
-                                            <div className="flex items-center gap-4 text-[10px] font-black text-muted-foreground/60 uppercase">
-                                                <div className="flex items-center gap-1.5 focus:outline-none">
-                                                    <Calendar className="w-3 h-3 text-emerald-500/60" />
-                                                    {event.date}
+                                    </div>
+
+                                    {/* Contenido Principal */}
+                                    <div className="p-8 pt-20 flex-grow">
+                                        <h3 className="text-on-surface text-3xl font-black tracking-tight leading-[1.1] mb-6 group-hover:text-primary transition-colors">
+                                            {event.name}
+                                        </h3>
+
+                                        {/* Grid de Logística: Más limpio y directo */}
+                                        <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 p-2 bg-slate-50 rounded-xl text-primary">
+                                                    <Calendar className="w-4 h-4" />
                                                 </div>
-                                                <div className="flex items-center gap-1.5 focus:outline-none">
-                                                    <Clock className="w-3 h-3 text-emerald-500/60" />
-                                                    {event.time}
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest">Fecha</p>
+                                                    <p className="text-sm font-bold text-on-surface leading-tight">{formatDate(event.date)}</p>
                                                 </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 p-2 bg-slate-50 rounded-xl text-primary">
+                                                    <Clock className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest">Hora</p>
+                                                    <p className="text-sm font-bold text-on-surface leading-tight">{event.time}</p>
+                                                </div>
+                                            </div>
+                                            <div className="col-span-2 flex items-start gap-4 p-4 bg-slate-50/50 rounded-[1.5rem] border border-slate-100/50">
+                                                <div className="p-3 bg-white shadow-sm rounded-xl text-primary flex-shrink-0">
+                                                    <MapPin className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex flex-col min-w-0"> {/* min-w-0 evita que el texto rompa el layout */}
+                                                    <p className="text-[10px] font-black text-outline uppercase tracking-[0.15em] mb-1">
+                                                        Ubicación
+                                                    </p>
+                                                    <p className="text-sm font-bold text-on-surface leading-tight truncate">
+                                                        {event.address || 'Sin dirección'}
+                                                    </p>
+                                                    <p className="text-xs text-outline-variant font-medium mt-0.5">
+                                                        {event.city}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Status de Cupos: Diseño tipo Dashboard */}
+                                        <div className="bg-slate-50/80 rounded-[2rem] p-6 border border-slate-100">
+                                            <div className="flex justify-between items-end mb-3">
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Disponibilidad</p>
+                                                    <p className="text-lg font-black text-on-surface">
+                                                        {event.registrationCount} <span className="text-outline font-medium text-sm">/ {event.totalSlots || '∞'}</span>
+                                                    </p>
+                                                </div>
+                                                <span className={`text-[10px] font-black px-2 py-1 rounded ${isFull ? 'text-red-500' : 'text-primary'}`}>
+                                                    {isFull ? 'AGOTADO' : `${Math.max(0, (event.totalSlots || 0) - event.registrationCount)} LIBRES`}
+                                                </span>
+                                            </div>
+
+                                            <div className="relative h-3 w-full bg-slate-200 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.min(percent, 100)}%` }}
+                                                    transition={{ duration: 1, ease: "easeOut" }}
+                                                    className={`h-full rounded-full ${percent > 80 ? 'bg-orange-400' : 'bg-primary'}`}
+                                                />
                                             </div>
                                         </div>
                                     </div>
 
-
-                                    {/* Action Area */}
-                                    <div className="p-8 pt-4 border-t border-border/40 mt-auto">
-                                        {event.status === 'completed' ? (
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">EVENTO FINALIZADO</span>
-                                                    <Trophy className="w-4 h-4 text-orange-500" />
-                                                </div>
-                                                <Link
-                                                    href={`/cancha-abierta/${event.id}`}
-                                                    className="w-full bg-foreground/5 hover:bg-foreground/10 text-foreground font-black uppercase tracking-widest text-[9px] py-4 rounded-2xl transition-all flex items-center justify-center gap-2 group-hover:bg-orange-500 group-hover:text-white"
-                                                >
-                                                    VER RESULTADOS
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </Link>
+                                    {/* Footer: Acción y Precio */}
+                                    <div className="px-8 pb-8 pt-2">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Inversión</span>
+                                                <span className="text-3xl font-black text-on-surface">${event.registrationFee}</span>
                                             </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
-                                                        <span>Cupos Disponibles</span>
-                                                        <span>{event.registrationCount} / {event.totalSlots || "?"}</span>
-                                                    </div>
-                                                    <div className="h-2 bg-muted rounded-full overflow-hidden p-0.5 border border-border/20">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: `${Math.min(percent, 100)}%` }}
-                                                            className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between pt-2">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Inscripción</span>
-                                                        <span className="text-lg font-black italic tracking-tight">${event.registrationFee}</span>
-                                                    </div>
-                                                    <Link
-                                                        href={`/cancha-abierta/${event.id}`}
-                                                        className="flex items-center gap-3 px-8 py-4 bg-foreground text-background rounded-2xl hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-foreground/10"
-                                                    >
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">
-                                                            {isFull ? "Lista Espera" : "Inscribirme"}
-                                                        </span>
-                                                        <ChevronRight className="w-4 h-4" />
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        )}
+                                            <Link
+                                                href={`/cancha-abierta/${event.id}`}
+                                                className={`
+                    flex-grow flex justify-center items-center h-16 rounded-[1.25rem] font-black tracking-widest text-xs transition-all duration-300
+                    ${isRegistered
+                                                        ? 'bg-slate-100 text-on-surface hover:bg-slate-200'
+                                                        : 'signature-gradient text-white shadow-[0_10px_20px_-5px_rgba(var(--primary-rgb),0.4)] hover:shadow-2xl hover:scale-[1.02] active:scale-95'
+                                                    }
+                `}
+                                            >
+                                                {isRegistered ? 'DETALLES' : 'INSCRIBIRME'}
+                                            </Link>
+                                        </div>
                                     </div>
                                 </motion.div>
                             );

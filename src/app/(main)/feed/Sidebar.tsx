@@ -24,7 +24,8 @@ const NAV: Record<string, NavItem[]> = {
 
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
-        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta Club" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
@@ -245,7 +246,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <Link href="/home" className="flex items-center gap-3 group">
                             <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border shadow-sm" priority />
-                            {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">ACAP</span>}
+                            {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button

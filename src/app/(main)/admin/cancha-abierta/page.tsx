@@ -9,7 +9,7 @@ import { initializeOpenCourtTables } from "./init-db";
 export default async function AdminOpenCourtPage() {
     const session = await getSession();
 
-    if (!session || (session.role !== "admin" && session.role !== "superadmin")) {
+    if (!session || (session.role !== "admin" && session.role !== "superadmin" && session.role !== "club")) {
         redirect("/home");
     }
 
