@@ -66,6 +66,8 @@ export const tournaments = mysqlTable("tournaments", {
     surface: varchar("surface", { length: 100 }),
     startDate: varchar("start_date", { length: 50 }),
     endDate: varchar("end_date", { length: 50 }),
+    time: varchar("time", { length: 50 }),
+    location: varchar("location", { length: 256 }),
     categories: json("categories"), // MySQL uses JSON
     pointsConfig: json("points_config"),
     modalidad: json("modalidad"),

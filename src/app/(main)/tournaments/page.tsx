@@ -79,7 +79,9 @@ export default async function TournamentsPage({
                     categories: tournaments.categories,
                     modalidad: tournaments.modalidad,
                     createdAt: tournaments.createdAt,
-                    location: tournaments.surface, // Assuming location or surface field
+                    surface: tournaments.surface,
+                    location: tournaments.location,
+                    time: tournaments.time,
                     registrationFee: tournaments.registrationFee,
                     type: tournaments.type,
                 },

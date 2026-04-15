@@ -15,6 +15,7 @@ import {
     Activity,
     Layers,
     Star,
+    Clock,
     MapPin
 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,6 +32,8 @@ export type InitialData = {
     description: string | null;
     startDate: string | null;
     endDate: string | null;
+    time: string | null;
+    location: string | null;
     openDateClub: string | null;
     openDateGeneral: string | null;
     categories: string[] | null;
@@ -118,6 +121,8 @@ export default function CreateTournamentForm({
         name: initialData?.name ?? "",
         startDate: initialData?.startDate ?? "",
         endDate: initialData?.endDate ?? "",
+        time: initialData?.time ?? "",
+        location: initialData?.location ?? "",
         openDateClub: initialData?.openDateClub ?? "",
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
@@ -207,6 +212,8 @@ export default function CreateTournamentForm({
                 description: info.description,
                 startDate: info.startDate,
                 endDate: info.endDate,
+                time: info.time,
+                location: info.location,
                 openDateClub: info.openDateClub,
                 openDateGeneral: info.openDateGeneral,
                 categories: finalCategories,
@@ -368,8 +375,8 @@ export default function CreateTournamentForm({
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
-                                <div className="md:col-span-2 space-y-2">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-foreground">
+                                <div className="md:col-span-3 space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Nombre del Evento</label>
                                     <input
                                         type="text"
@@ -408,8 +415,23 @@ export default function CreateTournamentForm({
                                     </div>
                                 </div>
 
-                                <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Ubicación / Dirección (Google Maps)</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Hora de Inicio</label>
+                                    <div className="relative">
+                                        <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input
+                                            type="time"
+                                            value={info.time}
+                                            onChange={e => setInfo({ ...info, time: e.target.value })}
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                                            onClick={(e) => e.currentTarget.showPicker?.()}
+                                        />
+                                    </div>
+                                </div>
+
+
+                                <div className="md:col-span-3 space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Ubicación Exacta / Google Maps</label>
                                     <div className="relative">
                                         <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
@@ -417,26 +439,39 @@ export default function CreateTournamentForm({
                                             value={info.surface}
                                             onChange={e => setInfo({ ...info, surface: e.target.value })}
                                             className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
-                                            placeholder="Ej: Av. Principal 123, Ciudad (o nombre del club)"
+                                            placeholder="Ej: Av. Principal 123 (o nombre del club)"
                                         />
                                     </div>
                                     <p className="text-[9px] text-muted-foreground ml-2 italic">Esto habilitará el botón de GPS para los jugadores.</p>
-                                    
+
                                     {info.surface && info.surface.length > 3 && (
                                         <div className="mt-4 w-full h-48 rounded-3xl overflow-hidden border border-border/50 bg-muted/20 relative group/map animate-in fade-in zoom-in duration-500">
-                                            <iframe 
-                                                width="100%" 
-                                                height="100%" 
-                                                style={{ border: 0, opacity: 0.8 }} 
-                                                loading="lazy" 
-                                                allowFullScreen 
+                                            <iframe
+                                                width="100%"
+                                                height="100%"
+                                                style={{ border: 0, opacity: 0.8 }}
+                                                loading="lazy"
+                                                allowFullScreen
                                                 src={`https://maps.google.com/maps?q=${encodeURIComponent(info.surface)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                                             ></iframe>
                                         </div>
                                     )}
                                 </div>
+                                <div className="md:col-span-3 space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Localidad / Ciudad</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            value={info.location}
+                                            onChange={e => setInfo({ ...info, location: e.target.value })}
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                            placeholder="Ej: Córdoba, Argentina"
+                                        />
+                                    </div>
+                                </div>
 
-                                <div className="md:col-span-2 space-y-2">
+                                <div className="md:col-span-3 space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Descripción y Premios</label>
                                     <textarea
                                         value={info.description}
@@ -447,7 +482,7 @@ export default function CreateTournamentForm({
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-3 pt-4 border-t border-border/50 md:col-span-2">
+                                <div className="flex flex-col gap-3 pt-4 border-t border-border/50 md:col-span-3">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2 mb-2">Apertura de Inscripciones (Personalizable)</p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
@@ -479,7 +514,7 @@ export default function CreateTournamentForm({
                                     </div>
                                 </div>
 
-                                <div className="md:col-span-2 space-y-2 pt-4 border-t border-border/50">
+                                <div className="md:col-span-3 space-y-2 pt-4 border-t border-border/50">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Cupos / Slots Máximos</label>
                                     <div className="flex items-center gap-4">
                                         <div className="relative flex-1">
@@ -498,7 +533,7 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 {/* registrationFee input */}
-                                <div className="md:col-span-2 space-y-2 pt-4 border-t border-border/50">
+                                <div className="md:col-span-3 space-y-2 pt-4 border-t border-border/50">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Precio de Inscripción (Opcional)</label>
                                     <div className="flex items-center gap-4">
                                         <div className="relative flex-1">
@@ -715,14 +750,18 @@ export default function CreateTournamentForm({
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inicio</p>
-                                                <p className="text-sm font-black italic">{info.startDate || "No definida"}</p>
+                                                <p className="text-sm font-black italic">{info.startDate || "No definida"} {info.time ? `- ${info.time}` : ""}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Participación</p>
                                                 <p className="text-sm font-black italic uppercase tracking-widest text-indigo-500">{modalidad.participacion === 'pareja' ? 'Parejas' : 'Individual'}</p>
                                             </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Localidad</p>
+                                                <p className="text-sm font-black italic truncate">{info.location || "No definida"}</p>
+                                            </div>
                                             <div className="col-span-2 space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Ubicación</p>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Ubicación Google Maps</p>
                                                 <p className="text-[10px] font-black italic truncate">{info.surface || "No definida"}</p>
                                             </div>
                                             <div className="space-y-1">

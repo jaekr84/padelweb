@@ -100,15 +100,14 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         className="w-full bg-transparent border-none py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-0"
                     />
                 </div>
-                
+
                 <div className="flex bg-muted/50 p-1 rounded-xl">
                     {["all", "open", "closed"].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s as any)}
-                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                                statusFilter === s ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${statusFilter === s ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                }`}
                         >
                             {s === "all" ? "Todos" : s === "open" ? "Abiertos" : "Cerrados"}
                         </button>
@@ -163,12 +162,12 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
     const isDraft = tournament.status === "draft";
 
-    const statusStyle = isLive 
-        ? "text-red-500 bg-red-500/10 border-red-500/20" 
-        : isFinished 
-            ? "text-muted-foreground bg-muted/10 border-border" 
-            : isDraft 
-                ? "text-amber-500 bg-amber-500/10 border-amber-500/20" 
+    const statusStyle = isLive
+        ? "text-red-500 bg-red-500/10 border-red-500/20"
+        : isFinished
+            ? "text-muted-foreground bg-muted/10 border-border"
+            : isDraft
+                ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
                 : "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
 
     const statusLabel = isLive ? "En Vivo" : isFinished ? "Cerrado" : isDraft ? "Borrador" : "Abierto";

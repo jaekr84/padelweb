@@ -132,10 +132,20 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-indigo-600 transition-colors truncate">
                                     {tournament.name}
                                 </h3>
+                                {tournament.location && (
+                                    <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" /> {tournament.location}
+                                    </p>
+                                )}
                             </div>
                             <div className="flex flex-col items-end text-right">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha / Hora</span>
                                 <span className="text-xs font-bold text-foreground/80">{formatDate(tournament.startDate)}</span>
+                                {tournament.time && (
+                                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter flex items-center gap-1 mt-0.5">
+                                        <Clock className="w-2.5 h-2.5" /> {tournament.time}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -183,21 +193,20 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </div>
                         </div>
 
-                        {/* Location Block - More Pro List Style */}
                         <div className="mb-5 flex items-start gap-2">
                             <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/70" />
                             <div className="flex-1">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación</span>
-                                {tournament.location ? (
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación Exacta (Google Maps)</span>
+                                {tournament.surface ? (
                                     <span 
                                         onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.location)}`, "_blank");
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.surface)}`, "_blank");
                                         }}
                                         className="text-xs font-bold text-foreground/80 hover:text-indigo-600 underline decoration-indigo-500/20 underline-offset-4 cursor-pointer"
                                     >
-                                        {tournament.location}
+                                        {tournament.surface}
                                     </span>
                                 ) : (
                                     <span className="text-xs font-bold text-muted-foreground/70 italic">Por confirmar</span>
@@ -207,14 +216,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                         {/* Ultra Compact Map */}
                         <div className="mb-6 w-full h-24 rounded-xl overflow-hidden border border-border/50 bg-muted/10 relative">
-                            {tournament.location ? (
+                            {tournament.surface ? (
                                 <iframe 
                                     width="100%" 
                                     height="100%" 
                                     style={{ border: 0, opacity: 0.6, filter: 'grayscale(0.2)' }} 
                                     loading="lazy" 
                                     allowFullScreen 
-                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.surface)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                                 ></iframe>
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center opacity-20">

@@ -17,6 +17,7 @@ type TournamentInput = {
     name: string;
     startDate?: string | null;
     endDate?: string | null;
+    time?: string | null;
     description?: string | null;
     categories: string[];
     pointsConfig: PointsConfig;
@@ -33,6 +34,7 @@ type TournamentInput = {
     registrationFee?: number | null;
     type?: string;
     surface?: string | null;
+    location?: string | null;
 };
 
 export async function createTournament(data: TournamentInput) {
@@ -60,6 +62,8 @@ export async function createTournament(data: TournamentInput) {
             description: data.description || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
+            time: data.time || null,
+            location: data.location || null,
             openDateClub: data.openDateClub || null,
             openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
@@ -104,6 +108,8 @@ export async function updateTournament(id: string, data: TournamentInput) {
             description: data.description || null,
             startDate: data.startDate || null,
             endDate: data.endDate || null,
+            time: data.time || null,
+            location: data.location || null,
             openDateClub: data.openDateClub || null,
             openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
