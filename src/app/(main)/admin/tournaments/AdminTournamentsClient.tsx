@@ -247,12 +247,20 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                             </button>
                         </Link>
                     )}
-                    <Link href={`/tournaments/${tournament.id}/edit`} className={isFinished ? "col-span-2" : "w-full"}>
+                    <Link href={`/tournaments/${tournament.id}/edit`} className={isFinished ? "w-full" : "w-full"}>
                         <button className="w-full h-8 flex items-center justify-center gap-1 px-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-600/20 rounded-lg transition-all active:scale-95 group/btn">
                             <Edit className="w-3 h-3" />
                             <span className="text-[8px] font-black uppercase tracking-widest leading-none">Editar</span>
                         </button>
                     </Link>
+                    {isFinished && (
+                        <div className="w-full">
+                            <PublishResultsButton 
+                                tournamentId={tournament.id} 
+                                tournamentName={tournament.name} 
+                            />
+                        </div>
+                    )}
                     <div className={isFinished ? "hidden" : "w-full"}>
                         <DeleteTournamentButton
                             tournamentId={tournament.id}
@@ -266,3 +274,5 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
         </tr>
     );
 }
+
+import PublishResultsButton from "./PublishResultsButton";
