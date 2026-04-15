@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Link as LinkIcon, Image as ImageIcon, Check, X, Loader2, ArrowLeft } from "lucide-react";
-import { addSponsor, deleteSponsor } from "@/app/actions/sponsors";
+import { Plus, Trash2, Link as LinkIcon, Image as ImageIcon, Check, X, Loader2, ArrowLeft, Info, Edit, Undo, Save } from "lucide-react";
+import { addSponsor, deleteSponsor, updateSponsor } from "@/app/actions/sponsors";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,37 +24,92 @@ interface Props {
 export default function SponsorManagementClient({ initialSponsors }: Props) {
     const [sponsors, setSponsors] = useState<Sponsor[]>(initialSponsors);
     const [isAdding, setIsAdding] = useState(false);
+    const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
     const [loading, setLoading] = useState(false);
-    
+
     // Form state
     const [newName, setNewName] = useState("");
-    const [newLink, setNewLink] = useState("https://");
+    const [newLink, setNewLink] = useState("");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const processSponsorImage = (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new window.Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return reject("Could not create canvas context");
+
+                    // Definimos el "tamaño ideal" (2:1 para los banners)
+                    const targetWidth = 800;
+                    const targetHeight = 400;
+
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+
+                    // Limpiamos el fondo (transparente)
+                    ctx.clearRect(0, 0, targetWidth, targetHeight);
+
+                    // Calculamos el escalado para "contain"
+                    const imgRatio = img.width / img.height;
+                    const targetRatio = targetWidth / targetHeight;
+
+                    let drawWidth, drawHeight;
+                    if (imgRatio > targetRatio) {
+                        drawWidth = targetWidth;
+                        drawHeight = targetWidth / imgRatio;
+                    } else {
+                        drawHeight = targetHeight;
+                        drawWidth = targetHeight * imgRatio;
+                    }
+
+                    // Centramos la imagen en el canvas
+                    const x = (targetWidth - drawWidth) / 2;
+                    const y = (targetHeight - drawHeight) / 2;
+
+                    ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+                    // Exportamos como File
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) return reject("Blob creation failed");
+                        const processedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".png", {
+                            type: "image/png",
+                            lastModified: Date.now(),
+                        });
+                        resolve(processedFile);
+                    }, "image/png", 0.9);
+                };
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    };
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (!file.type.includes("png")) {
-            toast.error("Por favor, subí una imagen PNG con fondo transparente.");
-            // We'll still try to process it but let's warn the user.
-        }
-
         setLoading(true);
         try {
-            // Options for compression
+            // 1. Procesamiento de Redimensionado y Centrado (Canvas)
+            const processedFile = await processSponsorImage(file);
+
+            // 2. Compresión Final (Optimización de peso)
             const options = {
-                maxSizeMB: 0.2, // Target weight < 200KB
+                maxSizeMB: 0.1, // Aún más ligero < 100KB ya que es solo el logo
                 maxWidthOrHeight: 800,
                 useWebWorker: true,
-                fileType: 'image/png' // Force PNG for transparency
+                fileType: 'image/png'
             };
 
-            const compressedFile = await imageCompression(file, options);
+            const compressedFile = await imageCompression(processedFile, options);
             setSelectedFile(compressedFile);
             setPreviewUrl(URL.createObjectURL(compressedFile));
-            toast.success("Imagen procesada y optimizada correctamente.");
+            toast.success("Imagen procesada y adaptada automáticamente.");
         } catch (error) {
             console.error(error);
             toast.error("Error al procesar la imagen.");
@@ -63,47 +118,72 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
         }
     };
 
-    const handleAddSponsor = async (e: React.FormEvent) => {
+    const handleEditSponsor = (sponsor: Sponsor) => {
+        setEditingSponsor(sponsor);
+        setNewName(sponsor.name);
+        setNewLink(sponsor.link || "");
+        setPreviewUrl(sponsor.imageUrl);
+        setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancelEdit = () => {
+        setIsAdding(false);
+        setEditingSponsor(null);
+        setNewName("");
+        setNewLink("");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+    };
+
+    const handleSaveSponsor = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newName || !selectedFile) {
+        if (!newName || (!selectedFile && !editingSponsor)) {
             toast.error("Nombre e imagen son obligatorios");
             return;
         }
 
         setLoading(true);
         try {
-            // 1. Upload the optimized file
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            
-            const uploadRes = await fetch("/api/upload", {
-                method: "POST",
-                body: formData
-            });
+            let imageUrl = editingSponsor?.imageUrl;
 
-            if (!uploadRes.ok) throw new Error("Error al subir imagen");
-            const { url } = await uploadRes.json();
+            // 1. If new file selected, upload it
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
 
-            // 2. Save sponsor to DB
-            await addSponsor({
-                name: newName,
-                imageUrl: url,
-                link: newLink || undefined
-            });
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData
+                });
 
-            toast.success("Sponsor agregado con éxito");
-            
-            // Reset form
-            setNewName("");
-            setNewLink("https://");
-            setSelectedFile(null);
-            setPreviewUrl(null);
-            setIsAdding(false);
-            
-            // Refresh list (simplified, in a real app better to optimistic update or router.refresh)
+                if (!uploadRes.ok) throw new Error("Error al subir imagen");
+                const { url } = await uploadRes.json();
+                imageUrl = url;
+            }
+
+            // 2. Add or Update
+            if (editingSponsor) {
+                await updateSponsor(editingSponsor.id, {
+                    name: newName,
+                    imageUrl: imageUrl!,
+                    link: newLink || undefined,
+                });
+                toast.success("Sponsor actualizado con éxito");
+            } else {
+                await addSponsor({
+                    name: newName,
+                    imageUrl: imageUrl!,
+                    link: newLink || undefined
+                });
+                toast.success("Sponsor agregado con éxito");
+            }
+
+            // Reset form and reload
+            handleCancelEdit();
             window.location.reload();
         } catch (error: any) {
-            toast.error(error.message || "Error al agregar sponsor");
+            toast.error(error.message || "Error al procesar sponsor");
         } finally {
             setLoading(false);
         }
@@ -133,7 +213,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                         <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                         Volver al Panel
                     </Link>
-                    <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
+                    <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-black">
                         Gestión de <span className="text-emerald-500 italic">Sponsors</span>
                     </h1>
                     <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
@@ -156,9 +236,11 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                 <div className="animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -z-10" />
-                        <h2 className="text-xl font-black uppercase italic tracking-tight text-white mb-8">Nuevo Sponsor</h2>
-                        
-                        <form onSubmit={handleAddSponsor} className="space-y-8">
+                        <h2 className="text-xl font-black uppercase italic tracking-tight text-white mb-8">
+                            {editingSponsor ? "Editar Sponsor" : "Nuevo Sponsor"}
+                        </h2>
+
+                        <form onSubmit={handleSaveSponsor} className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6 text-left">
                                     <div className="space-y-2">
@@ -188,29 +270,64 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Logo (PNG transparente)</label>
-                                        <div className="relative group">
-                                            {previewUrl ? (
-                                                <div className="w-full hidden h-48 bg-black/40 border-2 border-dashed border-emerald-500/30 rounded-2xl overflow-hidden md:flex items-center justify-center p-8 group-hover:border-emerald-500/60 transition-all">
-                                                    <div className="relative w-full h-full">
-                                                        <Image src={previewUrl} alt="Preview" fill className="object-contain" />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Logo del Sponsor</label>
+                                                <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                                    <ImageIcon className="w-2.5 h-2.5" />
+                                                    {editingSponsor ? "Opcional (cambiar)" : "Recomendado"}
+                                                </div>
+                                            </div>
+                                            <div className="relative group">
+                                                {previewUrl ? (
+                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-emerald-500/30 rounded-2xl overflow-hidden flex items-center justify-center p-8 group-hover:border-emerald-500/60 transition-all">
+                                                        <div className="relative w-full h-full">
+                                                            <Image src={previewUrl} alt="Preview" fill className="object-contain" />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="w-full h-48 bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:text-slate-300 group-hover:border-emerald-500/30 transition-all">
-                                                    <ImageIcon className="w-8 h-8" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Subir PNG</span>
-                                                </div>
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/png"
-                                                onChange={handleFileSelect}
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                            />
+                                                ) : (
+                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:text-slate-300 group-hover:border-emerald-500/30 transition-all">
+                                                        <ImageIcon className="w-8 h-8" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Subir Imagen</span>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleFileSelect}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                />
+                                            </div>
                                         </div>
-                                        <p className="text-[10px] font-bold text-slate-600 italic">La imagen se ajustará a máximo 800px para optimizar la velocidad.</p>
+
+                                        {/* Clarification Box */}
+                                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-5 space-y-3">
+                                            <div className="flex items-center gap-2 text-emerald-500">
+                                                <Info className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Procesamiento Automático</span>
+                                            </div>
+                                            <ul className="space-y-2">
+                                                <li className="flex items-start gap-2">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                                        <strong className="text-slate-200">Formatos:</strong> Aceptamos <span className="text-emerald-400">PNG, JPG y WebP</span>. El sistema los convertirá automáticamente.
+                                                    </p>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                                        <strong className="text-slate-200">Ajuste Inteligente:</strong> No importa el tamaño original; centraremos y adaptaremos tu imagen al formato <span className="text-emerald-400">rectangular (2:1)</span> ideal para la web.
+                                                    </p>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                                                        Optimizamos la imagen para que pese menos de <span className="text-white">100KB</span> sin perder calidad.
+                                                    </p>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -218,22 +335,18 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                             <div className="flex gap-4 pt-4">
                                 <button
                                     type="submit"
-                                    disabled={loading || !selectedFile}
+                                    disabled={loading || (!selectedFile && !editingSponsor)}
                                     className="flex-1 bg-white text-black font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                    Guardar Sponsor
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingSponsor ? <Save className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                    {editingSponsor ? "Guardar Cambios" : "Guardar Sponsor"}
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setIsAdding(false);
-                                        setPreviewUrl(null);
-                                        setSelectedFile(null);
-                                    }}
+                                    onClick={handleCancelEdit}
                                     className="px-8 bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl border border-white/10 hover:bg-rose-900/40 hover:text-rose-400 hover:border-rose-900/50 transition-all"
                                 >
-                                    <X className="w-4 h-4" />
+                                    {editingSponsor ? <Undo className="w-4 h-4" /> : <X className="w-4 h-4" />}
                                 </button>
                             </div>
                         </form>
@@ -246,7 +359,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                 <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-3">
                     <span className="w-8 h-px bg-white/10" /> Marcas Registradas
                 </h2>
-                
+
                 {sponsors.length === 0 ? (
                     <div className="bg-slate-900/40 border border-white/5 rounded-[2rem] p-20 text-center flex flex-col items-center gap-4">
                         <ImageIcon className="w-12 h-12 text-slate-700" />
@@ -262,6 +375,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         alt={sponsor.name}
                                         fill
                                         className="object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                                        sizes="120px"
                                     />
                                 </div>
                                 <div className="text-center space-y-2">
@@ -272,12 +386,22 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         </p>
                                     )}
                                 </div>
-                                <button
-                                    onClick={() => handleDeleteSponsor(sponsor.id)}
-                                    className="absolute -top-2 -right-2 p-2 bg-rose-900 text-rose-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600 shadow-xl"
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </button>
+                                <div className="absolute -top-2 -right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={() => handleEditSponsor(sponsor)}
+                                        className="p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 shadow-xl transition-colors"
+                                        title="Editar"
+                                    >
+                                        <Edit className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteSponsor(sponsor.id)}
+                                        className="p-2 bg-rose-900 text-rose-100 rounded-full hover:bg-rose-600 shadow-xl transition-colors"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

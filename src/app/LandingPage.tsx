@@ -46,6 +46,7 @@ const SponsorItem = ({ s }: { s: any }) => (
                     alt={s.name}
                     fill
                     className="object-contain filter grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+                    sizes="(max-width: 768px) 160px, 288px"
                 />
             </Link>
         ) : (
@@ -55,6 +56,7 @@ const SponsorItem = ({ s }: { s: any }) => (
                     alt={s.name}
                     fill
                     className="object-contain filter grayscale opacity-40"
+                    sizes="(max-width: 768px) 160px, 288px"
                 />
             </div>
         )}

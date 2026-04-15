@@ -43,6 +43,36 @@ export async function addSponsor(data: {
     }
 }
 
+export async function updateSponsor(id: string, data: {
+    name?: string;
+    imageUrl?: string;
+    link?: string;
+    isActive?: boolean;
+}) {
+    const session = await getSession();
+    if (!session || session.role !== "superadmin") {
+        throw new Error("No tienes permiso para realizar esta acción");
+    }
+
+    try {
+        await db.update(sponsors)
+            .set({
+                name: data.name,
+                imageUrl: data.imageUrl,
+                link: data.link || null,
+                isActive: data.isActive,
+            })
+            .where(eq(sponsors.id, id));
+
+        revalidatePath("/");
+        revalidatePath("/admin/sponsors");
+        return { success: true };
+    } catch (err) {
+        console.error("[updateSponsor]", err);
+        throw new Error("Error al actualizar el sponsor");
+    }
+}
+
 export async function deleteSponsor(id: string) {
     const session = await getSession();
     if (!session || session.role !== "superadmin") {
