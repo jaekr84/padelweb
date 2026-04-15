@@ -13,19 +13,11 @@ import {
     Trophy,
     Activity,
     Settings,
-    ChevronRight,
     Award,
-    Medal,
-    Star,
-    Hand,
     UserCircle,
-    X,
     LayoutDashboard,
     ShieldCheck,
-    Send,
-    Copy,
-    Filter,
-    MessageCircle,
+    Target,
     Loader2,
     LogOut,
     User,
@@ -45,8 +37,11 @@ import PlayerCard from "@/components/PlayerCard";
 
 interface PlayerProfileClientProps {
     dbUser: any;
-    registrations: any[];
-    matchHistory: any[];
+    profileData: {
+        player: any;
+        stats: any;
+        history: any[];
+    };
     isOwnProfile: boolean;
     clubProfile?: any;
     createdTournaments?: any[];
@@ -60,8 +55,7 @@ interface PlayerProfileClientProps {
 
 export default function PlayerProfileClient({
     dbUser,
-    registrations,
-    matchHistory,
+    profileData,
     isOwnProfile,
     clubProfile,
     createdTournaments,
@@ -74,8 +68,17 @@ export default function PlayerProfileClient({
 }: PlayerProfileClientProps) {
     const router = useRouter();
     const isSuperAdmin = dbUser.role === 'superadmin';
-    const [activeTab, setActiveTab] = useState(isSuperAdmin ? "account" : "tournaments");
+    const [activeTab, setActiveTab] = useState("tournaments");
     const [saving, setSaving] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
+
+    const history = profileData.history || [];
+    const stats = profileData.stats || { pj: 0, pg: 0, pp: 0, wr: 0, trofeos: 0 };
+    const player = profileData.player || dbUser;
+
+    const totalPages = Math.ceil(history.length / pageSize);
+    const paginatedHistory = history.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const [formData, setFormData] = useState({
         firstName: dbUser?.firstName || "",
@@ -108,71 +111,7 @@ export default function PlayerProfileClient({
         }
     };
 
-    const myRegistrationIds = useMemo(() => {
-        return new Set(registrations.map(r => r.id));
-    }, [registrations]);
-
-    const allMatchesHistory = useMemo(() => {
-        return matchHistory.map(m => {
-            const t1Id = m.match.team1Id;
-            const t2Id = m.match.team2Id;
-            const isT1 = myRegistrationIds.has(t1Id);
-            const isT2 = myRegistrationIds.has(t2Id);
-
-            let won = false;
-            if (m.match.winnerId) {
-                won = myRegistrationIds.has(m.match.winnerId);
-            } else {
-                const s1 = Number(m.match.score1) || 0;
-                const s2 = Number(m.match.score2) || 0;
-                if (isT1) won = s1 > s2;
-                else if (isT2) won = s2 > s1;
-            }
-
-            const reg = registrations.find(r => r.id === t1Id || r.id === t2Id);
-
-            return {
-                ...m,
-                type: m.match.round !== undefined ? (m.match.round === 0 ? "Final" : "Eliminatorias") : "Fase de Grupos",
-                tournamentName: m.tournamentName,
-                isParticipant: isT1 || isT2,
-                isT1,
-                opponents: isT1 ? m.match.team2Name : m.match.team1Name,
-                won,
-                category: reg?.category
-            };
-        })
-            .filter(m => m.isParticipant)
-            .sort((a, b) => new Date(b.match.createdAt).getTime() - new Date(a.match.createdAt).getTime());
-    }, [matchHistory, myRegistrationIds, registrations]);
-
-    const stats = useMemo(() => {
-        const totalMatches = allMatchesHistory;
-        const winsSize = totalMatches.filter(m => m.won).length;
-
-        return {
-            matches: totalMatches.length,
-            wins: winsSize,
-            losses: totalMatches.length - winsSize,
-            draws: 0,
-            winRate: totalMatches.length > 0 ? Math.round((winsSize / totalMatches.length) * 100) : 0,
-            points: dbUser?.points || 0,
-            category: dbUser?.category || "D",
-            side: dbUser?.side || "drive"
-        };
-    }, [allMatchesHistory, dbUser]);
-
-    const trophies = useMemo(() => {
-        return allMatchesHistory.filter(m => m.category === dbUser.category && m.match.round === 0 && m.won);
-    }, [allMatchesHistory, dbUser.category]);
-
-    const realCategory = useMemo(() => {
-        if (dbUser?.category) return dbUser.category;
-        if (!availableCategories) return "D";
-        const points = dbUser?.points || 0;
-        const cat = availableCategories.find(c => points >= c.minPoints && points <= c.maxPoints);
-        return cat ? cat.name : "D";
-    }, [availableCategories, dbUser?.points, dbUser?.category]);
+    const realCategory = player.category || "4TA";
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-blue-500/30 relative overflow-hidden">
@@ -183,7 +122,7 @@ export default function PlayerProfileClient({
             </div>
 
             <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 relative z-10">
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -288,7 +227,7 @@ export default function PlayerProfileClient({
                                             )}
                                         </div>
                                         {isOwnProfile && (
-                                            <button 
+                                            <button
                                                 onClick={() => setActiveTab("edit")}
                                                 className="absolute bottom-1 right-1 bg-indigo-600 p-2 rounded-full border-4 border-background shadow-xl hover:bg-indigo-500 transition-colors active:scale-90"
                                             >
@@ -342,13 +281,10 @@ export default function PlayerProfileClient({
                             {/* Navigation */}
                             <div className="flex items-center gap-2 bg-card p-2 rounded-[2rem] border border-border overflow-x-auto no-scrollbar shadow-sm transition-colors">
                                 {[
-                                    ...(!isSuperAdmin ? [
-                                        { id: "tournaments", label: "Player ID", icon: Trophy },
-                                        { id: "stats", label: "Analytics", icon: Activity },
-                                        { id: "trophies", label: "Hall of Fame", icon: Award },
-                                    ] : []),
-                                    ...(isOwnProfile ? [{ id: "edit", label: "Modify Data", icon: Edit2 }] : []),
-                                    { id: "account", label: "System Config", icon: Settings },
+                                    { id: "tournaments", label: "MI PERFIL", icon: Trophy },
+                                    { id: "stats", label: "HISTORIAL", icon: Activity },
+                                    ...(isOwnProfile ? [{ id: "edit", label: "EDITAR PERFIL", icon: Edit2 }] : []),
+                                    { id: "account", label: "CONFIGURACIÓN", icon: Settings },
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}
@@ -360,7 +296,7 @@ export default function PlayerProfileClient({
                                             {tab.label}
                                         </div>
                                         {activeTab === tab.id && (
-                                            <motion.div 
+                                            <motion.div
                                                 layoutId="activeTabProfile"
                                                 className="absolute inset-0 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20"
                                             />
@@ -371,55 +307,160 @@ export default function PlayerProfileClient({
 
                             <AnimatePresence mode="wait">
                                 {activeTab === "tournaments" && (
-                                    <motion.div 
+                                    <motion.div
                                         key="tab-tournaments"
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="flex flex-col items-center gap-8 py-10"
+                                        className="py-10"
                                     >
-                                        <div className="relative group/card-wrapper flex justify-center w-full">
-                                            <div className="absolute -inset-10 bg-indigo-600/5 blur-[100px] rounded-full opacity-0 group-hover/card-wrapper:opacity-100 transition-opacity pointer-events-none" />
-                                            <PlayerCard
-                                                player={{
-                                                    firstName: dbUser.firstName,
-                                                    lastName: dbUser.lastName,
-                                                    imageUrl: dbUser.imageUrl,
-                                                    category: realCategory,
-                                                    side: dbUser.side,
-                                                    points: dbUser.points,
-                                                    clubName: memberClub?.name
-                                                }}
-                                                stats={{
-                                                    pj: stats.matches,
-                                                    pg: stats.wins,
-                                                    pp: stats.losses,
-                                                    pe: stats.draws,
-                                                    wr: stats.winRate,
-                                                    trofeos: trophies.length
-                                                }}
-                                            />
-                                        </div>
+                                        <div className="flex flex-col lg:flex-row items-stretch justify-center gap-10 lg:gap-12 w-full max-w-7xl mx-auto px-4">
 
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">
-                                            {[
-                                                { label: "Analytic Score", value: dbUser.points, icon: Star, color: "text-amber-500" },
-                                                { label: "Global Rank", value: `#${rankingPosition}`, icon: Award, color: "text-blue-600" },
-                                                { label: "Category Rank", value: `#${categoryRanking}`, icon: Medal, color: "text-emerald-600" },
-                                                { label: "Active Tier", value: realCategory, icon: ShieldCheck, color: "text-indigo-600" },
-                                            ].map((item, i) => (
-                                                <div key={i} className="bg-card border border-border p-4 rounded-2xl flex flex-col items-center gap-1 group/item hover:border-indigo-500/30 transition-colors shadow-sm">
-                                                    <item.icon className={`h-4 w-4 ${item.color} mb-1 group-hover/item:scale-110 transition-transform`} />
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</span>
-                                                    <span className="text-lg font-black italic tracking-tighter text-foreground">{item.value}</span>
+                                            {/* LEFT WING: PLAYER CARD */}
+                                            <div className="relative group/card-wrapper flex justify-center lg:block">
+                                                <div className="absolute -inset-20 bg-emerald-500/10 blur-[120px] rounded-full opacity-0 group-hover/card-wrapper:opacity-100 transition-opacity pointer-events-none" />
+                                                <PlayerCard
+                                                    player={{
+                                                        firstName: player.firstName,
+                                                        lastName: player.lastName,
+                                                        imageUrl: player.imageUrl,
+                                                        category: player.category,
+                                                        side: player.side,
+                                                        points: player.points,
+                                                        clubName: player.clubName
+                                                    }}
+                                                    stats={{
+                                                        pj: stats.pj,
+                                                        pg: stats.pg,
+                                                        pp: stats.pp,
+                                                        wr: stats.wr,
+                                                        trofeos: stats.trofeos
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* RIGHT WING: NEURO-DASHBOARD */}
+                                            <div className="flex-1 flex flex-col gap-6 relative">
+
+
+                                                {/* STATS CONTENT */}
+                                                <div className="flex flex-col gap-10 px-2 lg:px-6 py-6">
+
+                                                    {/* TIER 1: FOCUS STATS */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="relative group">
+                                                            <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-0 group-hover:opacity-10 transition-opacity" />
+                                                            <div className="bg-emerald-500 p-8 rounded-[1.5rem] transform -skew-x-6 shadow-[0_15px_30px_rgba(16,185,129,0.15)]">
+                                                                <div className="flex items-center justify-between transform skew-x-6">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[10px] font-black uppercase text-emerald-100/50 tracking-widest">Global Rank</p>
+                                                                        <p className="text-5xl font-black text-white italic">#{rankingPosition}</p>
+                                                                    </div>
+                                                                    <Zap size={40} className="text-white fill-white/20" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="relative group">
+                                                            <div className="bg-slate-900 border border-slate-800 p-8 rounded-[1.5rem] transform -skew-x-6 hover:border-secondary/50 transition-all shadow-xl shadow-slate-200">
+                                                                <div className="flex items-center justify-between transform skew-x-6">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[10px] font-black uppercase text-white/50 tracking-widest">Puntos Totales</p>
+                                                                        <p className="text-5xl font-black text-white italic">{player.points}</p>
+                                                                    </div>
+                                                                    <Target size={40} className="text-white/20" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* TIER 2: PERFORMANCE LAYER */}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 px-2">
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Activity size={14} className="text-blue-600" />
+                                                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Efectividad General</p>
+                                                            </div>
+                                                            <div className="flex items-end gap-3">
+                                                                <p className="text-4xl font-extrabold text-blue-600 italic tabular-nums leading-none">{stats.wr}%</p>
+                                                                <div className="h-6 w-px bg-slate-200 mb-1" />
+                                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Win Rate</p>
+                                                            </div>
+                                                            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                                                                <motion.div
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${stats.wr}%` }}
+                                                                    className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Award size={14} className="text-zinc-600" />
+                                                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Posición en Categoría</p>
+                                                            </div>
+                                                            <div className="flex items-end gap-3">
+                                                                <p className="text-4xl font-extrabold text-zinc-900 italic tabular-nums leading-none">#{categoryRanking}</p>
+                                                                <div className="h-6 w-px bg-slate-200 mb-1" />
+                                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Tier: {player.category}</p>
+                                                            </div>
+                                                            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                                                                <div className="h-full bg-zinc-800 w-[15%]" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* TIER 3: ACTIVITY FEEDBACK */}
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                                                        <div className="text-center">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Jugados</p>
+                                                            <p className="text-2xl font-black text-slate-900 italic">{stats.pj}</p>
+                                                        </div>
+                                                        <div className="text-center border-l border-slate-200">
+                                                            <p className="text-[8px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Ganados</p>
+                                                            <p className="text-2xl font-black text-emerald-600 italic">{stats.pg}</p>
+                                                        </div>
+                                                        <div className="text-center border-l border-slate-200">
+                                                            <p className="text-[8px] font-black text-rose-600/70 uppercase tracking-widest mb-1">Perdidos</p>
+                                                            <p className="text-2xl font-black text-rose-600 italic">{stats.pp}</p>
+                                                        </div>
+                                                        <div className="text-center border-l border-slate-200">
+                                                            <p className="text-[8px] font-black text-secondary/70 uppercase tracking-widest mb-1">Títulos</p>
+                                                            <p className="text-2xl font-black text-secondary italic">{stats.trofeos}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* RECENT FORM: GEOMETRIC GRID */}
+                                                    <div className="flex flex-col gap-4">
+                                                        <div className="flex items-center justify-between px-2">
+                                                            <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.3em]">Historial Reciente</p>
+                                                            <p className="text-[10px] font-black text-emerald-600/50 italic uppercase">ÚLTIMOS 5 ENCUENTROS</p>
+                                                        </div>
+                                                        <div className="flex items-center justify-between md:justify-start md:gap-4">
+                                                            {history.slice(0, 5).reverse().map((m, i) => (
+                                                                <div key={i} className="flex-1 md:flex-none">
+                                                                    <div className={`relative h-12 w-full md:w-16 flex items-center justify-center rounded-xl transform -skew-x-12 border transition-all group/cell ${m.isWin === true ? "bg-emerald-500 text-white border-emerald-600 shadow-lg shadow-emerald-500/20" :
+                                                                        m.isWin === false ? "bg-rose-500 text-white border-rose-600 shadow-lg shadow-rose-500/20" :
+                                                                            "bg-slate-100 border-slate-200 text-slate-400"
+                                                                        }`}>
+                                                                        <span className="text-xl font-black italic transform skew-x-12">{m.isWin === true ? "V" : m.isWin === false ? "D" : "-"}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {history.length === 0 && (
+                                                                <div className="w-full bg-slate-50 border border-slate-100 py-4 rounded-xl text-center italic text-[10px] font-bold text-slate-300 uppercase tracking-widest">Iniciando historial...</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            ))}
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
 
                                 {activeTab === "stats" && (
-                                    <motion.div 
+                                    <motion.div
                                         key="tab-stats-profile"
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -428,63 +469,99 @@ export default function PlayerProfileClient({
                                     >
                                         <div className="px-8 py-8 border-b border-border bg-muted/20 flex items-center justify-between">
                                             <div>
-                                                <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">Performance Intelligence</h2>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mt-1">Full Match Log & Neural Stats</p>
+                                                <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">Bitácora de Encuentros</h2>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mt-1">Sincronización total de resultados</p>
                                             </div>
                                             <div className="flex gap-4">
                                                 <div className="text-right">
-                                                    <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Win Rate</div>
-                                                    <div className="text-xl font-black italic tabular-nums text-emerald-600">{stats.winRate}%</div>
+                                                    <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Efectividad</div>
+                                                    <div className="text-xl font-black italic tabular-nums text-emerald-600">{stats.wr}%</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Combat Load</div>
-                                                    <div className="text-xl font-black italic tabular-nums text-indigo-600">{stats.matches} Matches</div>
+                                                    <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Total</div>
+                                                    <div className="text-xl font-black italic tabular-nums text-indigo-600">{history.length} Partidos</div>
                                                 </div>
                                             </div>
                                         </div>
-                                        {allMatchesHistory.length > 0 ? (
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-left">
-                                                    <thead>
-                                                        <tr className="border-b border-border bg-muted/30">
-                                                            <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Timestamp</th>
-                                                            <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Simulation Data</th>
-                                                            <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Adversaries</th>
-                                                            <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right">Simulation Result</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-border">
-                                                        {allMatchesHistory.map((m, i) => {
-                                                            const won = m.won;
-                                                            const date = new Date(m.match.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-                                                            return (
-                                                                <tr key={i} className="hover:bg-muted/30 transition-all group">
-                                                                    <td className="px-8 py-6 text-xs font-black text-muted-foreground group-hover:text-foreground tabular-nums uppercase">{date}</td>
-                                                                    <td className="px-8 py-6">
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-sm font-black uppercase italic tracking-tighter mb-1 text-foreground group-hover:text-indigo-600 transition-colors">{m.tournamentName}</span>
-                                                                            <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full w-fit ${m.type === 'Final' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-muted text-muted-foreground border border-border'}`}>{m.type}</span>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="px-8 py-6 text-xs font-bold text-muted-foreground group-hover:text-foreground">{m.opponents}</td>
-                                                                    <td className="px-8 py-6">
-                                                                        <div className="flex items-center justify-end gap-5">
-                                                                            <div className="flex flex-col items-end">
-                                                                                <span className={`text-[10px] font-black italic ${won ? "text-emerald-600" : "text-rose-600"}`}>
-                                                                                    {won ? "SUCCESSFUL" : "DEFEATED"}
-                                                                                </span>
-                                                                                <span className="text-xl font-black italic tracking-tighter tabular-nums text-foreground">{m.match.score1}<span className="text-muted-foreground px-1.5">-</span>{m.match.score2}</span>
+
+                                        {paginatedHistory.length > 0 ? (
+                                            <div className="flex flex-col">
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-left">
+                                                        <thead>
+                                                            <tr className="border-b border-border bg-muted/30">
+                                                                <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
+                                                                <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Evento / Tipo</th>
+                                                                <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Oponente/Sede</th>
+                                                                <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right">Resultado</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-border">
+                                                            {paginatedHistory.map((m, i) => {
+                                                                const date = new Date(m.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' });
+                                                                return (
+                                                                    <tr key={i} className="hover:bg-muted/30 transition-all group">
+                                                                        <td className="px-8 py-6 text-xs font-black text-muted-foreground group-hover:text-foreground tabular-nums uppercase">{date}</td>
+                                                                        <td className="px-8 py-6">
+                                                                            <div className="flex flex-col">
+                                                                                <span className="text-sm font-black uppercase italic tracking-tighter mb-1 text-foreground group-hover:text-indigo-600 transition-colors">{m.tournament}</span>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full w-fit bg-muted text-muted-foreground border border-border`}>{m.type}</span>
+                                                                                    <span className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">{m.subType}</span>
+                                                                                </div>
                                                                             </div>
-                                                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black ${won ? "bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm" : "bg-rose-100 text-rose-700 border border-rose-200"}`}>
-                                                                                {won ? "W" : "L"}
+                                                                        </td>
+                                                                        <td className="px-8 py-6 text-xs font-bold text-muted-foreground group-hover:text-foreground">{m.opponent}</td>
+                                                                        <td className="px-8 py-6">
+                                                                            <div className="flex items-center justify-end gap-5">
+                                                                                <div className="flex flex-col items-end">
+                                                                                    {m.isWin !== null ? (
+                                                                                        <span className={`text-[10px] font-black italic ${m.isWin ? "text-emerald-600" : "text-rose-600"}`}>
+                                                                                            {m.isWin ? "VICTORIA" : "DERROTA"}
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className="text-[10px] font-black italic text-muted-foreground">FINALIZADO</span>
+                                                                                    )}
+                                                                                    <span className="text-xl font-black italic tracking-tighter tabular-nums text-foreground">{m.score}</span>
+                                                                                </div>
+                                                                                {m.isWin !== null && (
+                                                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black ${m.isWin ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"}`}>
+                                                                                        {m.isWin ? "G" : "P"}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                {/* Pagination Controls */}
+                                                {totalPages > 1 && (
+                                                    <div className="px-8 py-6 border-t border-border bg-muted/10 flex items-center justify-between">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                                            Página {currentPage} de {totalPages} <span className="mx-2 opacity-20">|</span> {history.length} Resultados
+                                                        </p>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                disabled={currentPage === 1}
+                                                                onClick={() => setCurrentPage(prev => prev - 1)}
+                                                                className="px-4 py-2 rounded-xl bg-background border border-border text-[10px] font-black uppercase tracking-widest hover:bg-muted disabled:opacity-30 transition-all"
+                                                            >
+                                                                Anterior
+                                                            </button>
+                                                            <button
+                                                                disabled={currentPage === totalPages}
+                                                                onClick={() => setCurrentPage(prev => prev + 1)}
+                                                                className="px-4 py-2 rounded-xl bg-background border border-border text-[10px] font-black uppercase tracking-widest hover:bg-muted disabled:opacity-30 transition-all"
+                                                            >
+                                                                Siguiente
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="p-20 text-center flex flex-col items-center gap-6 bg-muted/10">
@@ -492,85 +569,14 @@ export default function PlayerProfileClient({
                                                     <Activity className="h-8 w-8 text-muted-foreground/60" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-foreground text-sm font-black uppercase tracking-widest italic">Awaiting Telemetry</p>
-                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">No match data detected in current records</p>
+                                                    <p className="text-foreground text-sm font-black uppercase tracking-widest italic">Sin Actividad</p>
+                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">No se detectaron registros en el sistema</p>
                                                 </div>
                                             </div>
                                         )}
                                     </motion.div>
                                 )}
 
-                                {activeTab === "trophies" && (
-                                    <motion.div 
-                                        key="tab-trophies-profile"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        className="space-y-8"
-                                    >
-                                        <div className="flex items-center justify-between px-4">
-                                            <div>
-                                                <h2 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">Hall of Fame</h2>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500 mt-1">Verified Championship Wins</p>
-                                            </div>
-                                        </div>
-
-                                        {trophies.length > 0 ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {trophies.map((t, idx) => (
-                                                    <div key={idx} className="group bg-card border border-border p-8 rounded-[2.5rem] hover:border-amber-500/40 shadow-sm transition-all relative overflow-hidden">
-                                                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-                                                            <Trophy className="h-32 w-32 text-amber-500" />
-                                                        </div>
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                        
-                                                        <div className="relative flex flex-col gap-6">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-200 shadow-sm">
-                                                                    <Medal className="h-7 w-7 text-amber-600" />
-                                                                </div>
-                                                                <div>
-                                                                    <h3 className="font-black uppercase italic text-2xl tracking-tighter group-hover:text-amber-600 transition-colors text-foreground">{t.tournamentName}</h3>
-                                                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Simulation Victory Verified</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="h-px bg-border/50" />
-
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex flex-col">
-                                                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Final Result</span>
-                                                                    <span className="text-2xl font-black italic tabular-nums text-emerald-600">{t.match.score1} <span className="text-muted-foreground mx-1">-</span> {t.match.score2}</span>
-                                                                </div>
-                                                                <div className="flex flex-col items-end">
-                                                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Date Logged</span>
-                                                                    <span className="text-xs font-black uppercase italic tracking-tighter text-foreground">{new Date(t.match.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <Link href={`/tournaments/${t.match.tournamentId}`} className="w-full bg-muted group-hover:bg-amber-500 transition-all py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest group-hover:text-white group-hover:shadow-lg group-hover:shadow-amber-500/20 border border-border group-hover:border-amber-400">
-                                                                Review Details <ChevronRight className="h-4 w-4" />
-                                                            </Link>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="bg-card border border-border rounded-[2.5rem] p-24 text-center flex flex-col items-center gap-8 shadow-sm relative overflow-hidden group transition-colors">
-                                                <div className="absolute inset-0 bg-indigo-500/5 blur-[120px]" />
-                                                <div className="relative">
-                                                    <Trophy className="h-24 w-24 text-muted/20 relative z-10" />
-                                                    <div className="absolute inset-0 bg-indigo-500/10 blur-2xl rounded-full" />
-                                                </div>
-                                                <div className="flex flex-col gap-4 relative">
-                                                    <h4 className="text-foreground text-lg font-black uppercase tracking-[0.2em] italic">Legacy: Empty</h4>
-                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest max-w-xs mx-auto leading-relaxed">System scan reveals 0 championship titles. Initiate your first objective to populate this log.</p>
-                                                    <Link href="/tournaments" className="mt-4 px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all active:scale-95 text-center">Engage Competition</Link>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                )}
 
                                 {activeTab === "account" && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
@@ -767,9 +773,10 @@ export default function PlayerProfileClient({
                                                     <input
                                                         type="text"
                                                         value={formData.firstName}
-                                                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                                        onChange={e => setFormData({ ...formData, firstName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                         className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
                                                         placeholder="Tu nombre"
+                                                        autoCapitalize="words"
                                                     />
                                                 </div>
                                                 <div className="flex flex-col gap-2">
@@ -777,9 +784,10 @@ export default function PlayerProfileClient({
                                                     <input
                                                         type="text"
                                                         value={formData.lastName}
-                                                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                                        onChange={e => setFormData({ ...formData, lastName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                         className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
                                                         placeholder="Tu apellido"
+                                                        autoCapitalize="words"
                                                     />
                                                 </div>
                                             </div>
@@ -792,9 +800,10 @@ export default function PlayerProfileClient({
                                                         <input
                                                             type="text"
                                                             value={formData.location}
-                                                            onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                                            onChange={e => setFormData({ ...formData, location: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                             className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
                                                             placeholder="Ciudad, País"
+                                                            autoCapitalize="sentences"
                                                         />
                                                     </div>
                                                 </div>
@@ -848,10 +857,11 @@ export default function PlayerProfileClient({
                                                 <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Bio / Sobre mí</label>
                                                 <textarea
                                                     value={formData.bio}
-                                                    onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                                    onChange={e => setFormData({ ...formData, bio: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                     rows={4}
                                                     className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 resize-none shadow-sm transition-all"
                                                     placeholder="Cuenta algo sobre tu estilo de juego..."
+                                                    autoCapitalize="sentences"
                                                 />
                                             </div>
 

@@ -381,9 +381,10 @@ export default function CreateTournamentForm({
                                     <input
                                         type="text"
                                         value={info.name}
-                                        onChange={e => setInfo({ ...info, name: e.target.value })}
+                                        onChange={e => setInfo({ ...info, name: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                         className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-lg font-black uppercase italic tracking-tight outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-foreground/20"
                                         placeholder="Ej: MASTER SERIES 2024"
+                                        autoCapitalize="words"
                                     />
                                 </div>
 
@@ -437,9 +438,10 @@ export default function CreateTournamentForm({
                                         <input
                                             type="text"
                                             value={info.surface}
-                                            onChange={e => setInfo({ ...info, surface: e.target.value })}
+                                            onChange={e => setInfo({ ...info, surface: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                             className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
                                             placeholder="Ej: Av. Principal 123 (o nombre del club)"
+                                            autoCapitalize="sentences"
                                         />
                                     </div>
                                     <p className="text-[9px] text-muted-foreground ml-2 italic">Esto habilitará el botón de GPS para los jugadores.</p>
@@ -464,9 +466,10 @@ export default function CreateTournamentForm({
                                         <input
                                             type="text"
                                             value={info.location}
-                                            onChange={e => setInfo({ ...info, location: e.target.value })}
+                                            onChange={e => setInfo({ ...info, location: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                             className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
                                             placeholder="Ej: Córdoba, Argentina"
+                                            autoCapitalize="sentences"
                                         />
                                     </div>
                                 </div>
@@ -475,10 +478,11 @@ export default function CreateTournamentForm({
                                     <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Descripción y Premios</label>
                                     <textarea
                                         value={info.description}
-                                        onChange={e => setInfo({ ...info, description: e.target.value })}
+                                        onChange={e => setInfo({ ...info, description: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                         rows={4}
                                         className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground/80 text-sm font-medium leading-relaxed outline-none focus:border-indigo-500 transition-all resize-none placeholder:text-foreground/20"
                                         placeholder="Detalles sobre el formato del torneo, premios para ganadores, etc..."
+                                        autoCapitalize="sentences"
                                     />
                                 </div>
 

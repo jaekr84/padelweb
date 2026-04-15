@@ -395,3 +395,54 @@ export type OpenCourtEvent = InferSelectModel<typeof openCourtEvents>;
 export type OpenCourtRegistration = InferSelectModel<typeof openCourtRegistrations>;
 export type OpenCourtMatch = InferSelectModel<typeof openCourtMatches>;
 export type OpenCourtCourt = InferSelectModel<typeof openCourtCourts>;
+
+export const publicMatches = mysqlTable("public_matches", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    creatorId: varchar("creator_id", { length: 256 }).notNull(),
+    date: varchar("date", { length: 255 }).notNull(),
+    time: varchar("time", { length: 255 }).notNull(),
+    location: varchar("location", { length: 255 }).notNull(),
+    city: varchar("city", { length: 255 }).notNull(),
+    category: varchar("category", { length: 100 }),
+    gender: varchar("gender", { length: 50 }).default("mixto"),
+    description: text("description"),
+    totalSlots: int("total_slots").default(4),
+    status: varchar("status", { length: 50 }).notNull().default("open"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    creatorIdIdx: index("public_matches_creator_id_idx").on(table.creatorId),
+    cityIdx: index("public_matches_city_idx").on(table.city),
+}));
+
+export const publicMatchRegistrations = mysqlTable("public_match_registrations", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    matchId: varchar("match_id", { length: 36 }).notNull(),
+    userId: varchar("user_id", { length: 256 }), // Nullable for guests
+    guestName: varchar("guest_name", { length: 256 }), // Name for non-registered users
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    matchIdIdx: index("pm_reg_match_id_idx").on(table.matchId),
+    userIdIdx: index("pm_reg_user_id_idx").on(table.userId),
+}));
+
+export const publicMatchesRelations = relations(publicMatches, ({ one, many }) => ({
+    creator: one(users, {
+        fields: [publicMatches.creatorId],
+        references: [users.id],
+    }),
+    registrations: many(publicMatchRegistrations),
+}));
+
+export const publicMatchRegistrationsRelations = relations(publicMatchRegistrations, ({ one }) => ({
+    match: one(publicMatches, {
+        fields: [publicMatchRegistrations.matchId],
+        references: [publicMatches.id],
+    }),
+    user: one(users, {
+        fields: [publicMatchRegistrations.userId],
+        references: [users.id],
+    }),
+}));
+
+export type PublicMatch = InferSelectModel<typeof publicMatches>;
+export type PublicMatchRegistration = InferSelectModel<typeof publicMatchRegistrations>;

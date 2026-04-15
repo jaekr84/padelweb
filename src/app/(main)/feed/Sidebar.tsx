@@ -14,6 +14,7 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
@@ -24,6 +25,7 @@ const NAV: Record<string, NavItem[]> = {
 
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta Club" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
@@ -35,6 +37,7 @@ const NAV: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: "/home", icon: Home, label: "Feed" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
