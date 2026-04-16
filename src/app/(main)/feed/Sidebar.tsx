@@ -14,8 +14,8 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
-        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -26,9 +26,8 @@ const NAV: Record<string, NavItem[]> = {
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/partidos", icon: Users, label: "Partidos" },
-        { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
-        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta Club" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -37,8 +36,8 @@ const NAV: Record<string, NavItem[]> = {
     ],
     superadmin: [
         { href: "/home", icon: Home, label: "Feed" },
-        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },

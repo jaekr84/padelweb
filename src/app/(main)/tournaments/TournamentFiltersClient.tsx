@@ -14,8 +14,10 @@ type Props = {
     currentFilter: string;
     selectedCategory: string;
     selectedLocation: string;
+    selectedClub: string;
     availableCategories: Category[];
     availableLocations: string[];
+    availableClubs: { id: string; name: string }[];
 };
 
 const triggerStyles = "w-full rounded-2xl border border-border/70 bg-muted/90 px-4 py-3 text-sm font-semibold uppercase tracking-tight text-foreground outline-none transition-colors shadow-sm hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 flex items-center justify-between gap-2";
@@ -27,8 +29,10 @@ export default function TournamentFiltersClient({
     currentFilter,
     selectedCategory,
     selectedLocation,
+    selectedClub,
     availableCategories,
     availableLocations,
+    availableClubs,
 }: Props) {
     const router = useRouter();
     const pathname = usePathname();
@@ -41,7 +45,7 @@ export default function TournamentFiltersClient({
     }, [pathname, router, searchParams]);
 
     return (
-        <div className="grid gap-3 mb-6 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
+        <div className="grid gap-3 mb-6 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] items-end">
             <div className="space-y-2">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">Estado</span>
                 <Select.Root value={currentFilter} onValueChange={(value) => updateQuery("filter", value)}>
@@ -58,6 +62,7 @@ export default function TournamentFiltersClient({
                                     { value: "todos", label: "Activos" },
                                     { value: "abiertas", label: "Inscripcion" },
                                     { value: "envivo", label: "En Vivo" },
+                                    { value: "clubes", label: "Organizados por Clubes" },
                                     { value: "terminados", label: "Finalizados" },
                                 ].map((item) => (
                                     <Select.Item key={item.value} value={item.value} className={itemStyles}>
@@ -126,6 +131,38 @@ export default function TournamentFiltersClient({
                                 {availableLocations.map((loc) => (
                                     <Select.Item key={loc} value={loc} className={itemStyles}>
                                         <Select.ItemText>{loc}</Select.ItemText>
+                                        <Select.ItemIndicator className="absolute left-3 inline-flex items-center text-emerald-500">
+                                            <Check className="w-4 h-4" />
+                                        </Select.ItemIndicator>
+                                    </Select.Item>
+                                ))}
+                            </Select.Viewport>
+                        </Select.Content>
+                    </Select.Portal>
+                </Select.Root>
+            </div>
+
+            <div className="space-y-2">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">Club</span>
+                <Select.Root value={selectedClub} onValueChange={(value) => updateQuery("club", value)}>
+                    <Select.Trigger className={triggerStyles} aria-label="Seleccionar club">
+                        <Select.Value placeholder="Todos los Clubes" />
+                        <Select.Icon>
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                        <Select.Content className={contentStyles} position="popper" sideOffset={8}>
+                            <Select.Viewport className={viewportStyles}>
+                                <Select.Item value="todos" className={itemStyles}>
+                                    <Select.ItemText>Todos los Clubes</Select.ItemText>
+                                    <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-emerald-500">
+                                        <Check className="w-3.5 h-3.5" />
+                                    </Select.ItemIndicator>
+                                </Select.Item>
+                                {availableClubs.map((club) => (
+                                    <Select.Item key={club.id} value={club.id} className={itemStyles}>
+                                        <Select.ItemText>{club.name}</Select.ItemText>
                                         <Select.ItemIndicator className="absolute left-3 inline-flex items-center text-emerald-500">
                                             <Check className="w-4 h-4" />
                                         </Select.ItemIndicator>

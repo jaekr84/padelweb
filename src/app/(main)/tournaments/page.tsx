@@ -49,12 +49,14 @@ export default async function TournamentsPage({
     const currentFilter = typeof sp.filter === "string" ? sp.filter : "todos";
     const selectedCategory = typeof sp.category === "string" ? sp.category : "todas";
     const selectedLocation = typeof sp.location === "string" ? sp.location : "todas";
+    const selectedClub = typeof sp.club === "string" ? sp.club : "todos";
 
     let userId: string | null = null;
     let dbUser: any = null;
     let allTournaments: any[] = [];
     let availableCategories: any[] = [];
     let availableLocations: string[] = [];
+    let availableClubs: { id: string; name: string }[] = [];
     let session: any = null;
 
     try {
@@ -86,7 +88,9 @@ export default async function TournamentsPage({
                     location: tournaments.location,
                     time: tournaments.time,
                     registrationFee: tournaments.registrationFee,
+                    memberRegistrationFee: tournaments.memberRegistrationFee,
                     type: tournaments.type,
+                    isMembersOnly: tournaments.isMembersOnly,
                 },
                 club: clubs,
             })
@@ -116,6 +120,15 @@ export default async function TournamentsPage({
         });
 
         availableLocations = Array.from(locationMap.values()).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
+        // Extract available clubs
+        const clubMap = new Map<string, string>();
+        allTournaments.forEach(t => {
+            if (t.club?.id && t.club?.name) {
+                clubMap.set(t.club.id, t.club.name);
+            }
+        });
+        availableClubs = Array.from(clubMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
 
         if (userId) {
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -175,6 +188,8 @@ export default async function TournamentsPage({
             const regIds = new Set(userRegs.map(r => r.tournamentId));
             baseFiltered = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
         }
+    } else if (currentFilter === "clubes") {
+        baseFiltered = allTournaments.filter(t => t.clubId !== null);
     } else {
         baseFiltered = active;
     }
@@ -205,10 +220,16 @@ export default async function TournamentsPage({
         });
     }
 
+    // 4. Club Filter
+    if (selectedClub && selectedClub !== "todos") {
+        filteredTournaments = filteredTournaments.filter(t => t.clubId === selectedClub);
+    }
+
     const statusFilters = [
         { key: "todos", label: "Activos", count: totalActiveC },
         { key: "abiertas", label: "Inscripción", count: openC },
         { key: "envivo", label: "En Vivo", count: liveC },
+        { key: "clubes", label: "Clubes", count: allTournaments.filter(t => t.clubId !== null).length },
         { key: "terminados", label: "Finalizados", count: finishedC },
     ];
 
@@ -252,6 +273,18 @@ export default async function TournamentsPage({
                                 Torneos
                             </h1>
                         </div>
+
+                        {(session?.role === 'club' || session?.role === 'superadmin') && (
+                            <Link
+                                href="/tournaments/create"
+                                className="group bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-indigo-600/20 flex items-center gap-3 shrink-0"
+                            >
+                                <span className="hidden sm:inline">Crear Torneo</span>
+                                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                                    <Plus className="w-4 h-4" />
+                                </div>
+                            </Link>
+                        )}
                     </div>
 
                     {/* ── Stats pills ── */}
@@ -278,8 +311,10 @@ export default async function TournamentsPage({
                         currentFilter={currentFilter}
                         selectedCategory={selectedCategory}
                         selectedLocation={selectedLocation}
+                        selectedClub={selectedClub}
                         availableCategories={availableCategories}
                         availableLocations={availableLocations}
+                        availableClubs={availableClubs}
                     />
 
                     {/* ── Tournament list grouped by month ── */}
@@ -337,6 +372,7 @@ export default async function TournamentsPage({
                                                     tournament={t}
                                                     userClubId={dbUser?.clubId}
                                                     userDbRole={session?.role}
+                                                    currentUserId={session?.userId}
                                                     isUserRegistered={t.isRegistered}
                                                 />
                                             ))}

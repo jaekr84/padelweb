@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 
 export default async function CreateTournamentPage({ searchParams }: Props) {
     const session = await getSession();
-    if (session?.role !== "superadmin") {
+    if (session?.role !== "superadmin" && session?.role !== "club") {
         redirect("/home");
     }
 
@@ -49,11 +49,12 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 openDateClub: t.openDateClub ?? null,
                 openDateGeneral: t.openDateGeneral ?? null,
                 categories: t.categories as string[] | null,
-                pointsConfig: t.pointsConfig as InitialData["pointsConfig"],
                 imageUrl: t.imageUrl ?? null,
+                isMembersOnly: !!t.isMembersOnly,
                 maxSlots: tModalidad?.maxSlots ?? 0,
                 modalidad: tModalidad,
                 registrationFee: t.registrationFee ?? null,
+                memberRegistrationFee: t.memberRegistrationFee ?? null,
                 type: t.type ?? "round_robin",
             };
         }

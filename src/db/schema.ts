@@ -78,6 +78,8 @@ export const tournaments = mysqlTable("tournaments", {
     imageUrl: varchar("image_url", { length: 512 }),
     youtubeUrl: varchar("youtube_url", { length: 512 }),
     registrationFee: int("registration_fee"),
+    memberRegistrationFee: int("member_registration_fee"),
+    isMembersOnly: boolean("is_members_only").default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     createdByIdx: index("tournaments_created_by_idx").on(table.createdByUserId),

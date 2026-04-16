@@ -6,11 +6,17 @@ import { tournaments, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+import { getTournamentPointsConfig, getClubTournamentLimits } from "@/lib/settings-actions";
+import { count, and } from "drizzle-orm";
+
 type PointsConfig = {
     winner: number;
     finalist: number;
     semi: number;
     quarter: number;
+    octavos?: number;
+    groupMatchWin?: number;
+    participation?: number;
 };
 
 type TournamentInput = {
@@ -20,7 +26,6 @@ type TournamentInput = {
     time?: string | null;
     description?: string | null;
     categories: string[];
-    pointsConfig: PointsConfig;
     imageUrl?: string | null;
     openDateClub?: string | null;
     openDateGeneral?: string | null;
@@ -35,6 +40,8 @@ type TournamentInput = {
     type?: string;
     surface?: string | null;
     location?: string | null;
+    isMembersOnly?: boolean;
+    memberRegistrationFee?: number | null;
 };
 
 export async function createTournament(data: TournamentInput) {
@@ -44,13 +51,38 @@ export async function createTournament(data: TournamentInput) {
 
     const existingUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (existingUser.length === 0) throw new Error("Usuario no encontrado en la base de datos");
+    const user = existingUser[0];
 
-    const userRole = existingUser[0].role;
-    if (userRole !== 'superadmin') {
-        throw new Error("Solo los superadministradores pueden crear torneos");
+    const isSuperAdmin = session.role === 'superadmin' || session.role === 'admin';
+    const isClub = session.role === 'club';
+
+    if (!isSuperAdmin && !isClub) {
+        throw new Error("No tienes permiso para crear torneos");
+    }
+
+    // 1. Check Limits for Clubs
+    if (isClub) {
+        const limits = await getClubTournamentLimits();
+        const typeLimit = data.isMembersOnly ? limits.closedLimit : limits.openLimit;
+        
+        // Count existing tournaments of this type for this club
+        const [existingCount] = await db
+            .select({ value: count() })
+            .from(tournaments)
+            .where(and(
+                eq(tournaments.clubId, userId),
+                eq(tournaments.isMembersOnly, !!data.isMembersOnly)
+            ));
+
+        if (existingCount.value >= typeLimit) {
+            throw new Error(`Has alcanzado el límite de torneos ${data.isMembersOnly ? 'cerrados' : 'abiertos'} (${typeLimit}). Contacte al administrador.`);
+        }
     }
 
     if (!data.name?.trim()) throw new Error("El nombre del torneo es obligatorio");
+
+    // 2. Use Global Points Config
+    const globalPoints = await getTournamentPointsConfig();
 
     const tournamentId = crypto.randomUUID();
     await db
@@ -58,6 +90,7 @@ export async function createTournament(data: TournamentInput) {
         .values({
             id: tournamentId,
             createdByUserId: userId,
+            clubId: isClub ? userId : null, // If club, set clubId
             name: data.name.trim(),
             description: data.description || null,
             startDate: data.startDate || null,
@@ -67,17 +100,17 @@ export async function createTournament(data: TournamentInput) {
             openDateClub: data.openDateClub || null,
             openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
-            pointsConfig: data.pointsConfig,
+            pointsConfig: globalPoints, // Always use global points snapshot
             imageUrl: data.imageUrl || null,
             modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
             status: "published",
             type: data.type || "round_robin",
             registrationFee: data.registrationFee || null,
+            memberRegistrationFee: data.memberRegistrationFee || null,
             surface: data.surface || null,
+            isMembersOnly: !!data.isMembersOnly,
         });
 
-    revalidatePath("/tournaments");
-    revalidatePath("/profile");
     revalidatePath("/profiles/club");
 
     return { success: true, tournamentId: tournamentId };
@@ -113,12 +146,15 @@ export async function updateTournament(id: string, data: TournamentInput) {
             openDateClub: data.openDateClub || null,
             openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
-            pointsConfig: data.pointsConfig,
+            // We do NOT update pointsConfig here if it's a club, 
+            // but for simplicity we just don't include it in the update payload if it shouldn't change.
             imageUrl: data.imageUrl || null,
             modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
             registrationFee: data.registrationFee || null,
+            memberRegistrationFee: data.memberRegistrationFee || null,
             type: data.type || "round_robin",
             surface: data.surface || null,
+            isMembersOnly: data.isMembersOnly !== undefined ? !!data.isMembersOnly : existing[0].isMembersOnly,
         })
         .where(eq(tournaments.id, id));
 

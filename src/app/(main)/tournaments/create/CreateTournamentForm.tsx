@@ -16,15 +16,15 @@ import {
     Layers,
     Star,
     Clock,
-    MapPin
+    MapPin,
+    Shield,
+    Users2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 
-
-export type PointsConfig = { winner: number; finalist: number; semi: number; quarter: number };
 
 export type InitialData = {
     id: string;
@@ -37,7 +37,6 @@ export type InitialData = {
     openDateClub: string | null;
     openDateGeneral: string | null;
     categories: string[] | null;
-    pointsConfig: PointsConfig | null;
     imageUrl: string | null;
     surface: string | null;
     maxSlots: number | null;
@@ -47,7 +46,9 @@ export type InitialData = {
         genero: "hombre" | "mujer" | "mixto";
     } | null;
     registrationFee: number | null;
+    memberRegistrationFee: number | null;
     type?: string | null;
+    isMembersOnly?: boolean;
 };
 
 
@@ -108,7 +109,7 @@ export default function CreateTournamentForm({
     const router = useRouter();
     const cats = initialData?.categories ?? [];
     const isCatMode = cats.length === 0 || cats[0] !== "libre";
-    const pc = initialData?.pointsConfig ?? null;
+    const [isMembersOnly, setIsMembersOnly] = useState<boolean>(initialData?.isMembersOnly || false);
     const [showReview, setShowReview] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -128,6 +129,7 @@ export default function CreateTournamentForm({
         description: initialData?.description ?? "",
         maxSlots: String(initialData?.maxSlots ?? 0),
         registrationFee: initialData?.registrationFee !== null && initialData?.registrationFee !== undefined ? String(initialData.registrationFee) : "",
+        memberRegistrationFee: initialData?.memberRegistrationFee !== null && initialData?.memberRegistrationFee !== undefined ? String(initialData.memberRegistrationFee) : "",
         surface: initialData?.surface ?? "",
     });
 
@@ -136,16 +138,6 @@ export default function CreateTournamentForm({
         selectedCats: isCatMode ? cats : ([] as string[]),
         participacion: initialData?.modalidad?.participacion ?? "pareja",
         genero: initialData?.modalidad?.genero ?? "mixto",
-    });
-
-    const [customPoints, setCustomPoints] = useState({
-        winner: String(pc?.winner ?? 1000),
-        finalist: String(pc?.finalist ?? 600),
-        semi: String(pc?.semi ?? 360),
-        quarter: String(pc?.quarter ?? 180),
-        octavos: String((pc as any)?.octavos ?? 90),
-        groupMatchWin: String((pc as any)?.groupMatchWin ?? 40),
-        participation: String((pc as any)?.participation ?? 20),
     });
 
 
@@ -197,15 +189,6 @@ export default function CreateTournamentForm({
             }
 
             const finalCategories = modalidad.mode === "libre" ? ["libre"] : modalidad.selectedCats;
-            const points = {
-                winner: Number(customPoints.winner),
-                finalist: Number(customPoints.finalist),
-                semi: Number(customPoints.semi),
-                quarter: Number(customPoints.quarter),
-                octavos: Number(customPoints.octavos),
-                groupMatchWin: Number(customPoints.groupMatchWin),
-                participation: Number(customPoints.participation),
-            };
 
             const tournamentData = {
                 name: info.name,
@@ -217,7 +200,6 @@ export default function CreateTournamentForm({
                 openDateClub: info.openDateClub,
                 openDateGeneral: info.openDateGeneral,
                 categories: finalCategories,
-                pointsConfig: points,
                 imageUrl: imageUrl,
                 maxSlots: Number(info.maxSlots),
                 modalidad: {
@@ -226,8 +208,10 @@ export default function CreateTournamentForm({
                     genero: modalidad.genero,
                 },
                 registrationFee: info.registrationFee ? Number(info.registrationFee) : null,
+                memberRegistrationFee: info.memberRegistrationFee ? Number(info.memberRegistrationFee) : null,
                 surface: info.surface,
                 type: tournamentType,
+                isMembersOnly: isMembersOnly,
             };
 
             if (isEditing && initialData) {
@@ -238,7 +222,7 @@ export default function CreateTournamentForm({
                 toast.success("Torneo creado con éxito");
             }
 
-            router.push("/admin/tournaments");
+            router.push("/tournaments");
         } catch (err: any) {
             toast.error(err.message || "Error al guardar");
             setIsLoading(false);
@@ -253,7 +237,7 @@ export default function CreateTournamentForm({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <button
-                            onClick={() => router.push("/admin/tournaments")}
+                            onClick={() => router.push("/tournaments")}
                             className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-accent transition-all active:scale-95"
                         >
                             <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
@@ -537,22 +521,78 @@ export default function CreateTournamentForm({
                                 </div>
 
                                 {/* registrationFee input */}
-                                <div className="md:col-span-3 space-y-2 pt-4 border-t border-border/50">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Precio de Inscripción (Opcional)</label>
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative flex-1">
-                                            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
-                                            <input
-                                                type="number"
-                                                value={info.registrationFee}
-                                                onChange={e => setInfo({ ...info, registrationFee: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
-                                                placeholder="Ej: 5000 (dejar vacío si es gratis)"
-                                            />
+                                <div className="md:col-span-3 space-y-4 pt-4 border-t border-border/50">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Precios de Inscripción (Opcional)</p>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Público General</label>
+                                            <div className="relative">
+                                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
+                                                <input
+                                                    type="number"
+                                                    value={info.registrationFee}
+                                                    onChange={e => setInfo({ ...info, registrationFee: e.target.value })}
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                                    placeholder="Ej: 5000"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex-1 text-[10px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60">
-                                            Define el costo por pareja o jugador. Se mostrará en la información del torneo.
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Socios del Club</label>
+                                            <div className="relative">
+                                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
+                                                <input
+                                                    type="number"
+                                                    value={info.memberRegistrationFee}
+                                                    onChange={e => setInfo({ ...info, memberRegistrationFee: e.target.value })}
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-indigo-500 transition-all placeholder:text-foreground/20"
+                                                    placeholder="Ej: 4000"
+                                                />
+                                            </div>
                                         </div>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground ml-2 italic opacity-60">Indica los costos por jugador/pareja. Si es gratuito, deja los campos vacíos.</p>
+                                </div>
+
+                                {/* Privacy Selection */}
+                                <div className="md:col-span-3 pt-4 border-t border-border/50 space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Privacidad del Torneo</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMembersOnly(false)}
+                                            className={`flex flex-col gap-3 p-5 rounded-3xl border transition-all text-left ${!isMembersOnly ? "bg-indigo-600/10 border-indigo-500 shadow-lg shadow-indigo-500/5" : "bg-muted/30 border-border opacity-60 hover:opacity-100"}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!isMembersOnly ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground"}`}>
+                                                    <Users2 className="w-5 h-5" />
+                                                </div>
+                                                {!isMembersOnly && <CheckCircle2 className="w-5 h-5 text-indigo-500" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black uppercase tracking-tight">Público</p>
+                                                <p className="text-[9px] font-medium text-muted-foreground leading-relaxed mt-1">Cualquier jugador de la plataforma podrá inscribirse al torneo.</p>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMembersOnly(true)}
+                                            className={`flex flex-col gap-3 p-5 rounded-3xl border transition-all text-left ${isMembersOnly ? "bg-indigo-600/10 border-indigo-500 shadow-lg shadow-indigo-500/5" : "bg-muted/30 border-border opacity-60 hover:opacity-100"}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMembersOnly ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground"}`}>
+                                                    <Shield className="w-5 h-5" />
+                                                </div>
+                                                {isMembersOnly && <CheckCircle2 className="w-5 h-5 text-indigo-500" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black uppercase tracking-tight">Solo Miembros</p>
+                                                <p className="text-[9px] font-medium text-muted-foreground leading-relaxed mt-1">Exclusivo para jugadores registrados como miembros del club.</p>
+                                            </div>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -644,46 +684,6 @@ export default function CreateTournamentForm({
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
-
-                    {/* SECCIÓN 3: PUNTUACIÓN Y RANKING */}
-                    <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-3 px-2">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
-                                <Star className="w-4 h-4 text-indigo-400" />
-                            </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Sistema de Puntos (Ranking)</h2>
-                        </div>
-
-                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-6 sm:space-y-8 transition-colors">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-                                {[
-                                    { id: "winner", label: "Campeón" },
-                                    { id: "finalist", label: "Final" },
-                                    { id: "semi", label: "Semis" },
-                                    { id: "quarter", label: "Cuartos" },
-                                    { id: "octavos", label: "Octavos" },
-                                    { id: "groupMatchWin", label: "Victoria Zona" },
-                                    { id: "participation", label: "Asistencia" }
-                                ].map(k => (
-                                    <div key={k.id} className="flex flex-col">
-                                        <div className="h-7 sm:h-8 flex items-end justify-center mb-2 sm:mb-4">
-                                            <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-500/50 text-center italic leading-tight">
-                                                {k.label}
-                                            </label>
-                                        </div>
-                                        <div className="relative group">
-                                            <input
-                                                type="number"
-                                                value={customPoints[k.id as keyof typeof customPoints]}
-                                                onChange={e => setCustomPoints({ ...customPoints, [k.id]: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-xl sm:rounded-2xl py-2.5 sm:py-4 px-2 text-center text-base sm:text-lg font-black italic tracking-tighter text-foreground outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -792,26 +792,16 @@ export default function CreateTournamentForm({
                                             </div>
                                         </div>
 
-                                        {/* Points Config Summary */}
-                                        <div className="space-y-3">
-                                            <p className="text-[8px] font-black uppercase tracking-widest text-indigo-500/60 ml-2">Sistema de Puntos</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {[
-                                                    { label: "Camp.", val: customPoints.winner },
-                                                    { label: "Fin.", val: customPoints.finalist },
-                                                    { label: "Sem.", val: customPoints.semi },
-                                                    { label: "Cuart.", val: customPoints.quarter },
-                                                    { label: "Oct.", val: customPoints.octavos },
-                                                    { label: "V. Zona", val: customPoints.groupMatchWin },
-                                                    { label: "Asist.", val: customPoints.participation },
-                                                ].map(p => (
-                                                    <div key={p.label} className="bg-muted/40 px-3 py-1.5 rounded-lg border border-border/50 flex items-center gap-2">
-                                                        <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60">{p.label}</span>
-                                                        <span className="text-[9px] font-black italic text-indigo-500">{p.val}</span>
-                                                    </div>
-                                                ))}
+                                        {/* Status Badge */}
+                                        {isMembersOnly && (
+                                            <div className="bg-purple-600/10 border border-purple-500/20 px-6 py-4 rounded-2xl flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Shield className="w-5 h-5 text-purple-500" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-500 italic">Torneo Exclusivo Miembros</span>
+                                                </div>
+                                                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                                             </div>
-                                        </div>
+                                        )}
 
                                         {/* Description & Prizes Section */}
                                         <div className="space-y-3 bg-indigo-500/5 p-6 rounded-[2rem] border border-indigo-500/10">

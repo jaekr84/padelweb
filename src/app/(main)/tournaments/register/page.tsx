@@ -181,6 +181,26 @@ export default async function RegisterPage({ searchParams }: Props) {
         }
     }
 
+    // 3. Check Club Membership if Members Only
+    if (tournament.isMembersOnly && tournament.clubId && dbUser.clubId !== tournament.clubId) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+                <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
+                    <div className="w-20 h-20 bg-purple-50 border border-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Ban className="w-10 h-10 text-purple-600" />
+                    </div>
+                    <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Exclusivo Miembros</h2>
+                    <p className="text-muted-foreground text-sm mb-8 font-medium italic leading-relaxed">
+                        Este torneo es exclusivo para miembros del club organizador. Tu perfil no está asociado a este club.
+                    </p>
+                    <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
+                        ← Volver a Torneos
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     if (!isOpen) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
