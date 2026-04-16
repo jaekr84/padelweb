@@ -6,6 +6,7 @@ import * as Select from "@radix-ui/react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import PublicOpenCourtCard from "./PublicOpenCourtCard";
 
 type EventListing = {
     id: string;
@@ -183,116 +184,12 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     transition={{ duration: 0.3 }}
                                     key={event.id}
-                                    className="group relative bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 flex flex-col h-full"
                                 >
-                                    {/* Header con Badges Flotantes */}
-                                    <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">
-                                        <div className="flex gap-2">
-                                            <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase backdrop-blur-md bg-opacity-90">
-                                                MI CLUB
-                                            </span>
-                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase ${statusLabel === 'ABIERTO' ? 'bg-green-100 text-green-700' : 'bg-secondary-container text-on-secondary-container'
-                                                }`}>
-                                                {statusLabel}
-                                            </span>
-                                        </div>
-                                        {registeredLabel && (
-                                            <div className="bg-primary text-white p-2 rounded-full shadow-lg animate-in zoom-in duration-300">
-                                                <Check className="w-4 h-4" strokeWidth={3} />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Contenido Principal */}
-                                    <div className="p-8 pt-20 flex-grow">
-                                        <h3 className="text-on-surface text-3xl font-black tracking-tight leading-[1.1] mb-6 group-hover:text-primary transition-colors">
-                                            {event.name}
-                                        </h3>
-
-                                        {/* Grid de Logística: Más limpio y directo */}
-                                        <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
-                                            <div className="flex items-start gap-3">
-                                                <div className="mt-1 p-2 bg-slate-50 rounded-xl text-primary">
-                                                    <Calendar className="w-4 h-4" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest">Fecha</p>
-                                                    <p className="text-sm font-bold text-on-surface leading-tight">{formatDate(event.date)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <div className="mt-1 p-2 bg-slate-50 rounded-xl text-primary">
-                                                    <Clock className="w-4 h-4" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest">Hora</p>
-                                                    <p className="text-sm font-bold text-on-surface leading-tight">{event.time}</p>
-                                                </div>
-                                            </div>
-                                            <div className="col-span-2 flex items-start gap-4 p-4 bg-slate-50/50 rounded-[1.5rem] border border-slate-100/50">
-                                                <div className="p-3 bg-white shadow-sm rounded-xl text-primary flex-shrink-0">
-                                                    <MapPin className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex flex-col min-w-0"> {/* min-w-0 evita que el texto rompa el layout */}
-                                                    <p className="text-[10px] font-black text-outline uppercase tracking-[0.15em] mb-1">
-                                                        Ubicación
-                                                    </p>
-                                                    <p className="text-sm font-bold text-on-surface leading-tight truncate">
-                                                        {event.address || 'Sin dirección'}
-                                                    </p>
-                                                    <p className="text-xs text-outline-variant font-medium mt-0.5">
-                                                        {event.city}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Status de Cupos: Diseño tipo Dashboard */}
-                                        <div className="bg-slate-50/80 rounded-[2rem] p-6 border border-slate-100">
-                                            <div className="flex justify-between items-end mb-3">
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Disponibilidad</p>
-                                                    <p className="text-lg font-black text-on-surface">
-                                                        {event.registrationCount} <span className="text-outline font-medium text-sm">/ {event.totalSlots || '∞'}</span>
-                                                    </p>
-                                                </div>
-                                                <span className={`text-[10px] font-black px-2 py-1 rounded ${isFull ? 'text-red-500' : 'text-primary'}`}>
-                                                    {isFull ? 'AGOTADO' : `${Math.max(0, (event.totalSlots || 0) - event.registrationCount)} LIBRES`}
-                                                </span>
-                                            </div>
-
-                                            <div className="relative h-3 w-full bg-slate-200 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${Math.min(percent, 100)}%` }}
-                                                    transition={{ duration: 1, ease: "easeOut" }}
-                                                    className={`h-full rounded-full ${percent > 80 ? 'bg-orange-400' : 'bg-primary'}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Footer: Acción y Precio */}
-                                    <div className="px-8 pb-8 pt-2">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Inversión</span>
-                                                <span className="text-3xl font-black text-on-surface">${event.registrationFee}</span>
-                                            </div>
-                                            <Link
-                                                href={`/cancha-abierta/${event.id}`}
-                                                className={`
-                    flex-grow flex justify-center items-center h-16 rounded-[1.25rem] font-black tracking-widest text-xs transition-all duration-300
-                    ${isRegistered
-                                                        ? 'bg-slate-100 text-on-surface hover:bg-slate-200'
-                                                        : 'signature-gradient text-white shadow-[0_10px_20px_-5px_rgba(var(--primary-rgb),0.4)] hover:shadow-2xl hover:scale-[1.02] active:scale-95'
-                                                    }
-                `}
-                                            >
-                                                {isRegistered ? 'DETALLES' : 'INSCRIBIRME'}
-                                            </Link>
-                                        </div>
-                                    </div>
+                                    <PublicOpenCourtCard 
+                                        event={event} 
+                                        isRegistered={isRegistered}
+                                        isLoggedIn={isLoggedIn}
+                                    />
                                 </motion.div>
                             );
                         })}
