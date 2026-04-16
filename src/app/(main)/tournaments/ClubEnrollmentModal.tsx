@@ -7,6 +7,7 @@ import {
     Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 import { getMyClubMembers, clubMassInscribe } from "@/app/actions/club-enrollment";
 import Image from "next/image";
 
@@ -17,6 +18,12 @@ interface ClubEnrollmentModalProps {
 }
 
 export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: ClubEnrollmentModalProps) {
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [members, setMembers] = useState<any[]>([]);
@@ -149,11 +156,13 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
         setSubmitting(false);
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <>
             <AnimatePresence mode="wait">
                 {isOpen && (
-                    <div key="club-enrollment-root-container" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div key="club-enrollment-root-container" className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
                         <motion.div
                             key="club-enrollment-backdrop"
                             initial={{ opacity: 0 }}
@@ -429,6 +438,7 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                     background: rgba(99, 102, 241, 0.2);
                 }
             `}</style>
-        </>
+        </>,
+        document.body
     );
 }

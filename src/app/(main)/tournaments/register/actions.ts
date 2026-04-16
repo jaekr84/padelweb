@@ -49,7 +49,8 @@ export async function registerForTournament(input: RegisterInput) {
                 category: users.category,
                 firstName: users.firstName,
                 lastName: users.lastName,
-                gender: users.gender
+                gender: users.gender,
+                clubId: users.clubId
             })
             .from(users)
             .where(eq(users.id, userIdToValidate))
@@ -90,6 +91,11 @@ export async function registerForTournament(input: RegisterInput) {
                 `El jugador ${userName} tiene categoría ${u.category || "no definida"}, por lo que no puede inscribirse en la categoría ${input.category}.`
             );
         }
+
+        // --- C. VALIDACIÓN DE MEMBRESÍA ---
+        if (tournament.isMembersOnly && tournament.clubId && u.clubId !== tournament.clubId) {
+            throw new Error(`El jugador ${userName} no puede inscribirse: este torneo es exclusivo para miembros del club organizador.`);
+        }
     };
 
     // Verify tournament exists and is published
@@ -97,7 +103,9 @@ export async function registerForTournament(input: RegisterInput) {
         id: tournaments.id, 
         status: tournaments.status, 
         modalidad: tournaments.modalidad,
-        categories: tournaments.categories
+        categories: tournaments.categories,
+        isMembersOnly: tournaments.isMembersOnly,
+        clubId: tournaments.clubId
     }).from(tournaments).where(eq(tournaments.id, input.tournamentId)).limit(1);
     
     if (!tournament) throw new Error("Torneo no encontrado");

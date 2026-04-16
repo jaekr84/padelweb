@@ -61,6 +61,16 @@ export async function clubMassInscribe(input: ClubMassInscribeInput) {
              throw new Error("No tenés permisos de club para esta acción");
         }
 
+        // 2. Validate membership if tournament isMembersOnly
+        if (tournament.isMembersOnly) {
+            const ownerClub = await db.query.clubs.findFirst({
+                where: eq(clubs.ownerId, session.userId)
+            });
+            if (!ownerClub || (tournament.clubId && ownerClub.id !== tournament.clubId)) {
+                 throw new Error("Este torneo es exclusivo para miembros del club organizador");
+            }
+        }
+
         // 2. Insert registrations in batch
         const values = input.registrations.map(r => ({
             id: crypto.randomUUID(),

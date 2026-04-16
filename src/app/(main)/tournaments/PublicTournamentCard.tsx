@@ -9,19 +9,27 @@ import {
     Edit3, LayoutDashboard, Settings
 } from "lucide-react";
 import ClubEnrollmentModal from "./ClubEnrollmentModal";
+import AccessDeniedModal from "./AccessDeniedModal";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
 
 interface PublicTournamentCardProps {
     tournament: any;
     userClubId?: string | null;
     userDbRole?: string | null;
+    userGender?: string | null;
+    userCategory?: string | null;
     currentUserId?: string | null;
     isUserRegistered?: boolean;
 }
 
-export default function PublicTournamentCard({ tournament, userClubId, userDbRole, currentUserId, isUserRegistered }: PublicTournamentCardProps) {
+export default function PublicTournamentCard({ tournament, userClubId, userDbRole, userGender, userCategory, currentUserId, isUserRegistered }: PublicTournamentCardProps) {
     const router = useRouter();
     const [isClubModalOpen, setIsClubModalOpen] = useState(false);
+    const [deniedModal, setDeniedModal] = useState<{ isOpen: boolean; reason: "gender" | "category" | "membership" | "role" | null; message: string }>({
+        isOpen: false,
+        reason: null,
+        message: ""
+    });
 
     const hasImage = tournament.imageUrl &&
         tournament.imageUrl !== "" &&
@@ -42,9 +50,10 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     // Permissions for the management buttons
     const isCreator = Boolean(currentUserId && tournament.createdByUserId && currentUserId === tournament.createdByUserId);
     const isClubOwner = Boolean(currentUserId && tournament.club?.ownerId && currentUserId === tournament.club.ownerId);
-    const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
     
-    const isClubMember = isExplicitClubMember || userDbRole === "superadmin";
+    // Strict membership check: superadmins also need to be members if it's members only (per user request)
+    const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
+    const isClubMember = isExplicitClubMember; // Removed superadmin bypass for membership check
     const canManage = userDbRole === "superadmin" || isCreator || isClubOwner || (userDbRole === "club" && isExplicitClubMember);
 
     let isOpen = false;
@@ -74,7 +83,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                     : { label: "Borrador", dot: false, pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
 
     const isClubUser = userDbRole === "club" || userDbRole === "superadmin";
-    const canDoMassInsc = isOpen && isClubUser && !isFinished && !isLive;
+    const canDoMassInsc = isOpen && isClubUser && (!tournament.isMembersOnly || isClubMember) && !isFinished && !isLive;
 
     const href = isUserRegistered || isLive || isFinished
         ? `/tournaments/${tournament.id}`
@@ -93,10 +102,78 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
 
+    const checkEligibility = () => {
+        if (!currentUserId) {
+            router.push("/login");
+            return false;
+        }
+
+        // 1. Membership Check
+        if (tournament.isMembersOnly && tournament.clubId && userClubId !== tournament.clubId) {
+            setDeniedModal({
+                isOpen: true,
+                reason: "membership",
+                message: "Este torneo es exclusivo para miembros del club organizador. Tu perfil no está asociado a este club."
+            });
+            return false;
+        }
+
+        // 2. Gender Check
+        const reqGender = mod?.genero?.toLowerCase();
+        const uGender = userGender?.toLowerCase();
+
+        if (reqGender && reqGender !== "mixto") {
+            const isMaleTournament = reqGender.startsWith("hombre");
+            const isFemaleTournament = reqGender.startsWith("mujer");
+            const isMalePlayer = uGender === "masculino";
+            const isFemalePlayer = uGender === "femenino";
+
+            if ((isMaleTournament && !isMalePlayer) || (isFemaleTournament && !isFemalePlayer)) {
+                setDeniedModal({
+                    isOpen: true,
+                    reason: "gender",
+                    message: `Este torneo es exclusivo para ${isMaleTournament ? "hombres" : "mujeres"}. Tu perfil indica que no cumples con este requisito.`
+                });
+                return false;
+            }
+        }
+
+        // 3. Category Check
+        let tCats: string[] = [];
+        try {
+            if (Array.isArray(tournament.categories)) {
+                tCats = tournament.categories;
+            } else if (typeof tournament.categories === 'string') {
+                tCats = JSON.parse(tournament.categories);
+            }
+        } catch (e) { tCats = []; }
+
+        if (tCats.length > 0 && !tCats.includes("libre")) {
+            const uCat = userCategory?.trim().toLowerCase();
+            const isEligible = tCats.some(tc => tc.trim().toLowerCase() === uCat);
+
+            if (!isEligible) {
+                setDeniedModal({
+                    isOpen: true,
+                    reason: "category",
+                    message: `Tu categoría (${userCategory || "no definida"}) no está permitida para este torneo. Categorías habilitadas: ${tCats.join(", ")}.`
+                });
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     const handleCardClick = (e: React.MouseEvent) => {
         if (canDoMassInsc) {
             e.preventDefault();
             setIsClubModalOpen(true);
+        } else if (isOpen) {
+            e.preventDefault();
+            if (checkEligibility()) {
+                router.push(href);
+            }
         } else {
             router.push(href);
         }
@@ -352,6 +429,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
             isOpen={isClubModalOpen}
             onClose={() => setIsClubModalOpen(false)}
             tournament={tournament}
+        />
+
+        <AccessDeniedModal
+            isOpen={deniedModal.isOpen}
+            onClose={() => setDeniedModal({ ...deniedModal, isOpen: false })}
+            reason={deniedModal.reason}
+            message={deniedModal.message}
+            tournamentName={tournament.name}
         />
         </>
     );

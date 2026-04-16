@@ -372,6 +372,8 @@ export default async function TournamentsPage({
                                                     tournament={t}
                                                     userClubId={dbUser?.clubId}
                                                     userDbRole={session?.role}
+                                                    userGender={dbUser?.gender}
+                                                    userCategory={dbUser?.category}
                                                     currentUserId={session?.userId}
                                                     isUserRegistered={t.isRegistered}
                                                 />
