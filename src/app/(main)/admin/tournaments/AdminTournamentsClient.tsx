@@ -9,6 +9,7 @@ import {
     Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag
 } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
+import TournamentPublishButton from "@/components/TournamentPublishButton";
 import { tournaments, clubs } from "@/db/schema";
 
 type Tournament = typeof tournaments.$inferSelect;
@@ -255,7 +256,7 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                     </Link>
                     {isFinished && (
                         <div className="w-full">
-                            <PublishResultsButton 
+                            <TournamentPublishButton 
                                 tournamentId={tournament.id} 
                                 tournamentName={tournament.name} 
                             />
@@ -275,4 +276,4 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     );
 }
 
-import PublishResultsButton from "./PublishResultsButton";
+

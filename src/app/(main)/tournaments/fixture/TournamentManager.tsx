@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
+import TournamentPublishButton from "@/components/TournamentPublishButton";
 import {
     Dialog,
     DialogContent,
@@ -1096,6 +1097,14 @@ export default function TournamentManager({
                             <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                             {initialStatus === "finalizado" ? "Torneo Finalizado" : "En Vivo"}
                         </div>
+
+                        {initialStatus === "finalizado" && (
+                            <TournamentPublishButton 
+                                tournamentId={tournamentId} 
+                                tournamentName={tournamentName} 
+                                variant="management"
+                            />
+                        )}
 
                         {!readOnly && (
                             <Link

@@ -29,8 +29,16 @@ import {
 export default async function AdminDashboardPage() {
     const session = await getSession();
 
-    if (!session || session.role !== "superadmin") {
+    if (!session || (session.role !== "superadmin" && session.role !== "club")) {
         redirect("/home");
+    }
+
+    const isClub = session.role === "club";
+    let userClubId: string | null = null;
+
+    if (isClub) {
+        const [dbUser] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
+        userClubId = dbUser?.clubId || null;
     }
 
     let tournamentCount = 0;
@@ -38,33 +46,42 @@ export default async function AdminDashboardPage() {
     let clubCount = 0;
 
     try {
-        const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
-        const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
-        const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
+        if (isClub && userClubId) {
+            const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments).where(eq(tournaments.clubId, userClubId));
+            tournamentCount = tCount;
+            // For now, players and clubs count remains 0 or we could fetch total if we want, but usually a club only cares about their tournaments.
+            // Let's set them to 0 or leave as is.
+        } else {
+            const [{ count: tCount }] = await db.select({ count: sql<number>`count(*)` }).from(tournaments);
+            const [{ count: pCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "jugador"));
+            const [{ count: cCount }] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "club"));
 
-        tournamentCount = tCount;
-        playerCount = pCount;
-        clubCount = cCount;
+            tournamentCount = tCount;
+            playerCount = pCount;
+            clubCount = cCount;
+        }
     } catch (e) {
         console.error("Error fetching admin stats:", e);
     }
 
     const allItems = [
         // Comunidad
-        { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'text-blue-500' },
-        { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'text-emerald-500' },
-        { label: 'Clubes', href: '/directory', icon: MapPin, color: 'text-indigo-500' },
-        { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'text-sky-500' },
+        ...(!isClub ? [
+            { label: 'Usuarios', href: '/admin/users', icon: Users, color: 'text-blue-500' },
+            { label: 'Invitaciones', href: '/admin/invitations', icon: UserPlus, color: 'text-emerald-500' },
+            { label: 'Clubes', href: '/directory', icon: MapPin, color: 'text-indigo-500' },
+            { label: 'Solicitudes', href: '/admin/requests', icon: MessageSquare, color: 'text-sky-500' },
+        ] : []),
 
         // Competencia
         { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'text-amber-500' },
         { label: 'Nuevo Evento', href: '/tournaments/create', icon: PlusCircle, color: 'text-emerald-500' },
-        { label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'text-slate-500' },
+        ...(!isClub ? [{ label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'text-slate-500' }] : []),
         { label: 'Cancha Abierta', href: '/admin/cancha-abierta', icon: Activity, color: 'text-emerald-500' },
-        { label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' },
+        ...(!isClub ? [{ label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' }] : []),
 
         // Sistema
-        { label: 'Sponsors', href: '/admin/sponsors', icon: Star, color: 'text-yellow-500' },
+        ...(!isClub ? [{ label: 'Sponsors', href: '/admin/sponsors', icon: Star, color: 'text-yellow-500' }] : []),
         { label: 'Ranking', href: '/ranking', icon: Star, color: 'text-yellow-500' },
         { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, color: 'text-teal-500' },
         { label: 'Reglamento', href: '/reglamento', icon: BookOpen, color: 'text-orange-500' },
@@ -133,9 +150,9 @@ export default async function AdminDashboardPage() {
                 {/* Header */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/40 pb-12 animate-fade-in">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Administración General</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">{isClub ? "Gestión de Club" : "Administración General"}</p>
                         <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tight text-foreground leading-[0.9]">
-                            Panel de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Control</span>
+                            Panel de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">{isClub ? "Gestión" : "Control"}</span>
                         </h1>
                     </div>
                     <Link href="/home" className="group flex items-center gap-3 glass-card px-6 py-3.5 rounded-2xl transition-all hover:shadow-lg active:scale-95 relative overflow-hidden">
@@ -199,24 +216,26 @@ export default async function AdminDashboardPage() {
                 </section>
 
                 {/* Notifications / Critical Actions Callout */ }
-    <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
-        <div className="flex items-center gap-6 relative z-10">
-            <div className="w-14 h-14 bg-foreground border border-border text-background rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                <MessageSquare className="w-6 h-6" />
+    {(!isClub) && (
+        <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="flex items-center gap-6 relative z-10">
+                <div className="w-14 h-14 bg-foreground border border-border text-background rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                    <MessageSquare className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                    <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
+                    <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
+                </div>
             </div>
-            <div className="space-y-1">
-                <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
-                <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
-            </div>
-        </div>
-        <Link
-            href="/admin/requests"
-            className="glow-button relative z-10 w-full md:w-auto px-10 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
-        >
-            Revisar Ahora
-        </Link>
-    </section>
+            <Link
+                href="/admin/requests"
+                className="glow-button relative z-10 w-full md:w-auto px-10 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
+            >
+                Revisar Ahora
+            </Link>
+        </section>
+    )}
             </div>
         </div>
     );

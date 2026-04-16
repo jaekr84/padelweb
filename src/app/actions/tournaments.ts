@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { tournaments, posts, bracketMatches, users } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 

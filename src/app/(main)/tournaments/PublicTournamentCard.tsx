@@ -9,6 +9,7 @@ import {
     Edit3, LayoutDashboard, Settings
 } from "lucide-react";
 import ClubEnrollmentModal from "./ClubEnrollmentModal";
+import TournamentPublishButton from "@/components/TournamentPublishButton";
 
 interface PublicTournamentCardProps {
     tournament: any;
@@ -37,10 +38,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
     const today = new Date().toISOString().split("T")[0];
+
+    // Permissions for the management buttons
+    const isCreator = Boolean(currentUserId && tournament.createdByUserId && currentUserId === tournament.createdByUserId);
+    const isClubOwner = Boolean(currentUserId && tournament.club?.ownerId && currentUserId === tournament.club.ownerId);
+    const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
     
-    // Check if the current user is a member of the tournament's club
-    // We check against the clubId explicitly associated with the tournament
-    const isClubMember = (userClubId && tournament.clubId && userClubId === tournament.clubId) || userDbRole === "superadmin";
+    const isClubMember = isExplicitClubMember || userDbRole === "superadmin";
+    const canManage = userDbRole === "superadmin" || isCreator || isClubOwner || (userDbRole === "club" && isExplicitClubMember);
 
     let isOpen = false;
     let openDate: string | null = null;
@@ -135,6 +140,42 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </span>
                         )}
                     </div>
+
+                    {/* Admin/Club Actions Overlay */}
+                    {canManage && (
+                        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    router.push(`/tournaments/${tournament.id}/edit`);
+                                }}
+                                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
+                                title="Editar Torneo"
+                            >
+                                <Edit3 className="w-4 h-4 group-hover/btn:text-indigo-400 transition-colors" />
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    router.push(`/tournaments/${tournament.id}/manage`);
+                                }}
+                                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
+                                title="Gestionar Torneo"
+                            >
+                                <Settings className="w-4 h-4 group-hover/btn:text-emerald-400 transition-colors" />
+                            </button>
+
+                            {tournament.status === 'finalizado' && (
+                                <TournamentPublishButton 
+                                    tournamentId={tournament.id} 
+                                    tournamentName={tournament.name} 
+                                    variant="card"
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-5 flex flex-col flex-1">
