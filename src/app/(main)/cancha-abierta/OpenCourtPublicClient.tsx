@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, MapPin, Calendar, Clock, Users, Zap, Trophy, ChevronRight, LayoutGrid, Check } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, Users, Zap, Trophy, ChevronRight, LayoutGrid, Check, Plus } from "lucide-react";
 import * as Select from "@radix-ui/react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -30,9 +30,10 @@ interface OpenCourtPublicClientProps {
     initialEvents: EventListing[];
     userRegistrations: string[];
     isLoggedIn: boolean;
+    userRole?: string;
 }
 
-export default function OpenCourtPublicClient({ initialEvents, userRegistrations, isLoggedIn }: OpenCourtPublicClientProps) {
+export default function OpenCourtPublicClient({ initialEvents, userRegistrations, isLoggedIn, userRole }: OpenCourtPublicClientProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
@@ -162,7 +163,17 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                             </>
                         )}
                     </h2>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{filteredEvents.length} Eventos</span>
+                    <div className="flex items-center gap-4">
+                        {userRole === 'club' && (
+                            <Link href="/admin/cancha-abierta/create">
+                                <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
+                                    <Plus className="w-4 h-4" />
+                                    Crear Evento
+                                </button>
+                            </Link>
+                        )}
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{filteredEvents.length} Eventos</span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

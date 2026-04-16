@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { systemSettings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getPromotionMode() {

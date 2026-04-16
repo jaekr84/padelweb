@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useTransition } from "react";
 import {
     Users, Play, CheckCircle, Clock, Pause,
@@ -149,10 +149,21 @@ const MatchTimer = ({ startedAt, matchId, duration, pauseState, onUpdateDuration
 
 export default function AdminLiveManagementClient({ initialEvent, initialRegistrations, allPlayers }: Props) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
     const [event, setEvent] = useState(initialEvent);
     const [registrations, setRegistrations] = useState(initialRegistrations);
-    const [activeTab, setActiveTab] = useState<"attendance" | "live" | "history">("attendance");
+    
+    // Determine initial tab based on URL param or event status
+    const initialTab = useMemo(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'attendance' || tabParam === 'live' || tabParam === 'history') {
+            return tabParam as "attendance" | "live" | "history";
+        }
+        return event.status === 'completed' ? "history" : "attendance";
+    }, [searchParams, event.status]);
+
+    const [activeTab, setActiveTab] = useState<"attendance" | "live" | "history">(initialTab);
     const [isGenerating, setIsGenerating] = useState(false);
 
     // Sincronizar estado local cuando las props cambian (vía router.refresh)

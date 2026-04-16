@@ -27,7 +27,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
-        { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/club/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },

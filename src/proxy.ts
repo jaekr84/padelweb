@@ -51,7 +51,7 @@ export default async function proxy(req: NextRequest) {
         const activeRoleCookie = req.cookies.get("active_role")?.value;
         const effectiveRole = activeRoleCookie || session?.role;
 
-        if (!session || effectiveRole !== "superadmin") {
+        if (!session || (effectiveRole !== "superadmin" && effectiveRole !== "admin" && effectiveRole !== "club")) {
             return NextResponse.redirect(new URL("/home", req.url));
         }
     }

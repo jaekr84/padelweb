@@ -158,10 +158,23 @@ export default function AdminOpenCourtClient({ initialEvents }: Props) {
 
                                 {/* Actions */}
                                 <div className="flex items-center justify-end gap-3">
-                                    <Link href={`/admin/cancha-abierta/${event.id}`} className="flex-1 max-w-[140px]">
-                                        <button className="w-full h-12 flex items-center justify-center gap-2 bg-foreground text-background rounded-2xl font-black uppercase tracking-widest text-[9px] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-black/5 group/btn">
-                                            <Activity className="w-3.5 h-3.5" />
-                                            Gestión
+                                    <Link 
+                                        href={`/admin/cancha-abierta/${event.id}${event.status !== 'active' ? '?tab=history' : ''}`} 
+                                        className="flex-1 max-w-[140px]"
+                                    >
+                                        <button className={`w-full h-12 flex items-center justify-center gap-2 rounded-2xl font-black uppercase tracking-widest text-[9px] hover:scale-[1.02] active:scale-95 transition-all shadow-lg group/btn ${
+                                            event.status === 'active' 
+                                                ? 'bg-foreground text-background shadow-black/5' 
+                                                : 'bg-muted text-muted-foreground border border-border shadow-none'
+                                        }`}>
+                                            {event.status === 'active' ? (
+                                                <Activity className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <div className="w-3.5 h-3.5 flex items-center justify-center bg-muted-foreground/20 rounded-full">
+                                                    <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full" />
+                                                </div>
+                                            )}
+                                            {event.status === 'active' ? 'Gestión' : 'Evento Finalizado'}
                                             <ChevronRight className="w-3 h-3 transition-transform group-hover/btn:translate-x-1" />
                                         </button>
                                     </Link>

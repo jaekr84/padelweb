@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { openCourtEvents, openCourtRegistrations, openCourtCourts, openCourtMatches, users } from "@/db/schema";
+import { openCourtEvents, openCourtRegistrations, openCourtCourts, openCourtMatches, users, clubs } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import AdminLiveManagementClient from "@/app/(main)/admin/cancha-abierta/[id]/AdminLiveManagementClient";
@@ -29,6 +29,27 @@ export default async function AdminLiveManagementPage(props: { params: Promise<{
 
     if (!eventBase) {
         redirect("/admin/cancha-abierta");
+    }
+
+    // Ownership check for club/admin roles
+    if (session.role !== "superadmin") {
+        let userClubId: string | null = null;
+        
+        // Try to get club ID from user record
+        const [dbUser] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
+        userClubId = dbUser?.clubId || null;
+
+        // Fallback: check if user is an owner of the club that owns the event
+        if (!userClubId || userClubId !== eventBase.clubId) {
+            const club = await db.query.clubs.findFirst({
+                where: eq(clubs.ownerId, session.userId),
+            });
+            userClubId = club?.id || userClubId;
+        }
+
+        if (eventBase.clubId !== userClubId) {
+            redirect("/home");
+        }
     }
 
     // Fetch related data in separate queries for maximum compatibility

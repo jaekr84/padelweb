@@ -47,6 +47,7 @@ export default async function CanchaAbiertaPublicPage() {
                 initialEvents={events} 
                 userRegistrations={userRegistrations}
                 isLoggedIn={!!session?.userId}
+                userRole={session?.role}
             />
         </div>
     );
