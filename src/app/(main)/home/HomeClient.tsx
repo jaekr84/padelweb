@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPost, addComment, updateComment, deleteComment, updatePost, deletePost } from "./actions";
-import { Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2, Check, RotateCcw } from "lucide-react";
+import { Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2, Check, RotateCcw, Calendar, Users, Users2, User, Trophy, MapPin, Clock } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 // ── Time Ago helper ────────────────────────────────────────────────────────
 function timeAgo(dateStr: string) {
@@ -53,6 +54,29 @@ interface Comment {
     };
 }
 
+interface TournamentQuickView {
+    id: string;
+    name: string;
+    startDate: string | null;
+    status: string;
+    imageUrl: string | null;
+    clubName: string | null;
+    createdByUserId: string | null;
+    categories: any;
+    modalidad: any;
+    type: string;
+}
+
+interface OpenCourtQuickView {
+    id: string;
+    name: string;
+    date: string;
+    time: string;
+    totalSlots: number | null;
+    clubName: string | null;
+    registrationCount: number;
+}
+
 interface HomeClientProps {
     initialPosts: Post[];
     currentUser: {
@@ -61,6 +85,9 @@ interface HomeClientProps {
         imageUrl: string | null;
         role: string;
     } | null;
+    upcomingTournaments: TournamentQuickView[];
+    ongoingTournaments: TournamentQuickView[];
+    upcomingOpenCourts: OpenCourtQuickView[];
 }
 
 // ── Upload ───────────────────────────────────────────────────────────────
@@ -76,8 +103,7 @@ const uploadImage = async (file: File): Promise<string> => {
     return data.url;
 };
 
-// ── Component ────────────────────────────────────────────────────────────
-export default function HomeClient({ initialPosts, currentUser }: HomeClientProps) {
+export default function HomeClient({ initialPosts, currentUser, upcomingTournaments, ongoingTournaments, upcomingOpenCourts }: HomeClientProps) {
     const router = useRouter();
     const [content, setContent] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -179,104 +205,315 @@ export default function HomeClient({ initialPosts, currentUser }: HomeClientProp
                 .glass-card:hover {
                     border-color: rgba(16, 185, 129, 0.5);
                 }
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
             `}</style>
 
             {/* Ambient glow */}
-            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-emerald-500">
                 <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
                 <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col pt-6 md:pt-12 px-4 md:px-6">
+            <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row pt-6 md:pt-12 px-4 md:px-6 gap-8 justify-center">
 
-                {/* ── Header ── */}
-                <motion.div 
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8 px-1 text-center md:text-left"
-                >
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500/80 mb-1">
-                        A.C.A.P.
-                    </p>
-                    <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tight text-foreground mb-2">
-                        Comunidad <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Feed</span>
-                    </h1>
-                </motion.div>
-
-                {/* ── Compose Post ── */}
-                {currentUser?.role === "superadmin" && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="glass-card rounded-[2rem] p-5 mb-8 shadow-xl"
+                {/* ── Main Feed (Left Column) ── */}
+                <div className="w-full max-w-2xl flex flex-col">
+                    {/* Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 px-1 text-center md:text-left"
                     >
-                        <div className="flex gap-3 mb-3">
-                            <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
-                                {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="40px" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
-                                        {currentUser.name?.charAt(0) || "U"}
-                                    </div>
-                                )}
-                            </div>
-                            <textarea
-                                value={content}
-                                onChange={e => setContent(e.target.value)}
-                                placeholder="¿Qué está pasando en la cancha?"
-                                className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground outline-none text-sm pt-2 min-h-[60px]"
-                            />
-                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500/80 mb-1">
+                            A.C.A.P.
+                        </p>
+                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tight text-foreground mb-2">
+                            Comunidad <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Feed</span>
+                        </h1>
+                    </motion.div>
 
-                        {/* Image Preview */}
-                        {imagePreview && (
-                            <div className="relative mb-3 mr-2 bg-muted/50 rounded-2xl overflow-hidden group aspect-video">
-                                <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized sizes="(max-width: 768px) 100vw, 672px" />
+                    {/* Compose Post */}
+                    {currentUser?.role === "superadmin" && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="glass-card rounded-[2rem] p-5 mb-8 shadow-xl"
+                        >
+                            <div className="flex gap-3 mb-3">
+                                <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
+                                    {currentUser.imageUrl ? (
+                                        <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="40px" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
+                                            {currentUser.name?.charAt(0) || "U"}
+                                        </div>
+                                    )}
+                                </div>
+                                <textarea
+                                    value={content}
+                                    onChange={e => setContent(e.target.value)}
+                                    placeholder="¿Qué está pasando en la cancha?"
+                                    className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground outline-none text-sm pt-2 min-h-[60px]"
+                                />
+                            </div>
+
+                            {imagePreview && (
+                                <div className="relative mb-3 mr-2 bg-muted/50 rounded-2xl overflow-hidden group aspect-video">
+                                    <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized sizes="(max-width: 768px) 100vw, 672px" />
+                                    <button
+                                        onClick={() => { setImagePreview(null); setCompressedFile(null); }}
+                                        className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-all"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between border-t border-border pt-3">
+                                <label className="p-2 -ml-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full cursor-pointer transition-colors">
+                                    <ImageIcon className="w-5 h-5" />
+                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                                </label>
+
                                 <button
-                                    onClick={() => { setImagePreview(null); setCompressedFile(null); }}
-                                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-all"
+                                    onClick={handlePost}
+                                    disabled={isPosting || (!content.trim() && !compressedFile)}
+                                    className="glow-button px-6 py-2 bg-foreground border border-border hover:border-emerald-500/50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 rounded-full text-[11px] font-black uppercase tracking-widest text-background transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
                                 >
-                                    <X className="w-4 h-4" />
+                                    {isPosting ? "Enviando..." : "Publicar"}
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {/* Posts List */}
+                    <div className="flex flex-col gap-4">
+                        {initialPosts.length === 0 ? (
+                            <div className="text-center py-20 glass-card rounded-3xl">
+                                <p className="text-foreground/80 font-bold text-sm">No hay publicaciones aún.</p>
+                                <p className="text-muted-foreground text-xs mt-1">Sé el primero en publicarlo.</p>
+                            </div>
+                        ) : (
+                            initialPosts.map(post => (
+                                <PostItem key={post.id} post={post} currentUser={currentUser} />
+                            ))
                         )}
+                    </div>
+                </div>
 
-                        <div className="flex items-center justify-between border-t border-border pt-3">
-                            <label className="p-2 -ml-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full cursor-pointer transition-colors">
-                                <ImageIcon className="w-5 h-5" />
-                                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                            </label>
+                {/* ── Right Sidebar (Desktop only) ── */}
+                <aside className="hidden xl:flex flex-col w-80 gap-6 sticky top-12 self-start xl:mt-[135px]">
 
-                            <button
-                                onClick={handlePost}
-                                disabled={isPosting || (!content.trim() && !compressedFile)}
-                                className="glow-button px-6 py-2 bg-foreground border border-border hover:border-emerald-500/50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 rounded-full text-[11px] font-black uppercase tracking-widest text-background transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
-                            >
-                                {isPosting ? "Enviando..." : "Publicar"}
-                            </button>
+                    {/* Tournaments Card */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-emerald-500/10"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-emerald-500/10 rounded-xl">
+                                    <Trophy className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Torneos</h2>
+                            </div>
+                            <Link href="/tournaments" className="text-[10px] font-bold text-muted-foreground hover:text-emerald-500 transition-colors uppercase tracking-tighter">Ver todo</Link>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            {upcomingTournaments.length === 0 ? (
+                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay torneos próximos</p>
+                            ) : (
+                                upcomingTournaments.map(t => {
+                                    const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
+                                    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
+                                    let cats = [];
+                                    try {
+                                        cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []);
+                                    } catch(e) {}
+                                    const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
+
+                                    return (
+                                        <div key={t.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-emerald-500/[0.02] border border-emerald-500/10">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="flex flex-col gap-0.5 min-w-0">
+                                                    <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{t.name}</h3>
+                                                    <div className="flex items-center gap-2 text-[9px] font-medium text-muted-foreground">
+                                                        <span>{t.clubName || "Acap"}</span>
+                                                        <span className="w-1 h-1 bg-border rounded-full" />
+                                                        <span className="text-emerald-500/80">{t.type === 'americano' ? 'Americano' : 'Libre'}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="shrink-0 text-[8px] font-black px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-md uppercase tracking-tighter">
+                                                    {catLabel}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 text-muted-foreground transition-colors text-[9px]">
+                                                    <div className="flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span className="font-medium">{t.startDate ? new Date(t.startDate).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : 'TBD'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        {isParejas ? <Users2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                        <span className="font-medium">{isParejas ? 'Parejas' : 'Individual'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
                     </motion.div>
-                )}
 
-                {/* ── Posts List ── */}
-                <div className="flex flex-col gap-4">
-                    {initialPosts.length === 0 ? (
-                        <div className="text-center py-20 glass-card rounded-3xl">
-                            <p className="text-foreground/80 font-bold text-sm">No hay publicaciones aún.</p>
-                            <p className="text-muted-foreground text-xs mt-1">Sé el primero en publicarlo.</p>
+                    {/* Open Courts Card */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-blue-500/10"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-blue-500/10 rounded-xl">
+                                    <Users className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Cancha Abierta</h2>
+                            </div>
+                            <Link href="/cancha-abierta" className="text-[10px] font-bold text-muted-foreground hover:text-blue-500 transition-colors uppercase tracking-tighter">Unirse</Link>
                         </div>
-                    ) : (
-                        initialPosts.map(post => (
-                            <PostItem key={post.id} post={post} currentUser={currentUser} />
-                        ))
-                    )}
-                </div>
+
+                        <div className="flex flex-col gap-4">
+                            {upcomingOpenCourts.length === 0 ? (
+                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay eventos activos</p>
+                            ) : (
+                                upcomingOpenCourts.map(oc => {
+                                    const available = (oc.totalSlots || 0) - (oc.registrationCount || 0);
+                                    const isFull = available <= 0;
+
+                                    return (
+                                        <div key={oc.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-blue-500/[0.02] border border-blue-500/10">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{oc.name}</h3>
+                                                <div className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${isFull ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                                    {isFull ? 'Completo' : `${available} Cupos`}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 text-muted-foreground">
+                                                    <div className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span className="text-[10px] font-medium">{oc.time}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3" />
+                                                        <span className="text-[10px] font-medium line-clamp-1 truncate active:w-20">{oc.clubName || "Club"}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Ongoing Tournaments Card */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-amber-500/10"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-amber-500/10 rounded-xl">
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                </div>
+                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">En Curso</h2>
+                            </div>
+                            <Link href="/tournaments" className="text-[10px] font-bold text-muted-foreground hover:text-amber-500 transition-colors uppercase tracking-tighter">Ver cuadros</Link>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            {ongoingTournaments.length === 0 ? (
+                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay torneos en curso</p>
+                            ) : (
+                                ongoingTournaments.map(t => {
+                                    const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
+                                    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
+                                    let cats = [];
+                                    try {
+                                        cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []);
+                                    } catch(e) {}
+                                    const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
+
+                                    return (
+                                        <div key={t.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-amber-500/[0.02] border border-amber-500/10">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="flex flex-col gap-0.5 min-w-0">
+                                                    <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{t.name}</h3>
+                                                    <div className="flex items-center gap-2 text-[9px] font-medium text-muted-foreground">
+                                                        <span>{t.clubName || "Acap"}</span>
+                                                        <span className="w-1 h-1 bg-border rounded-full" />
+                                                        <span className="text-amber-500/80">{t.type === 'americano' ? 'Americano' : 'Libre'}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="shrink-0 text-[8px] font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-md uppercase tracking-tighter">
+                                                    {catLabel}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 text-muted-foreground text-[9px]">
+                                                    <div className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span className="font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-md uppercase tracking-tighter">
+                                                            {t.status === 'en_curso' ? 'Grupos' : 'Playoffs'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        {isParejas ? <Users2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                        <span className="font-medium">{isParejas ? 'Parejas' : 'Individual'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Join Community CTA */}
+                    <Link href="/contact" className="group relative overflow-hidden rounded-[2rem] p-6 bg-foreground text-background transition-all hover:-translate-y-1 shadow-2xl">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-[40px] -mr-10 -mt-10" />
+                        <div className="relative z-10">
+                            <h4 className="text-xs font-black uppercase tracking-widest mb-1">¿Tienes un Club?</h4>
+                            <p className="text-[10px] leading-tight opacity-70 mb-4 font-medium italic">Publica tus torneos y canchas abiertas en la red más grande.</p>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter border-b border-current w-fit">
+                                Contactar soporte <Send className="w-3 h-3" />
+                            </div>
+                        </div>
+                    </Link>
+
+                </aside>
 
             </div>
         </div>
     );
 }
+
+// ... (PostItem and CommentItem components remain unchanged)
 
 function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const router = useRouter();
@@ -341,7 +578,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const userInitials = post.user.name?.charAt(0) || "U";
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
@@ -372,17 +609,17 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
 
                 {isPostOwner && !isEditingPost && (
                     <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
+                        <button
                             onClick={() => {
                                 setIsEditingPost(true);
                                 setEditPostContent(post.content || "");
-                            }} 
+                            }}
                             className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-full transition-colors"
                             title="Editar publicación"
                         >
                             <Pencil className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                             onClick={handleDeletePost}
                             disabled={isDeletingPost}
                             className="p-2 hover:bg-red-500/10 text-red-500 rounded-full transition-colors disabled:opacity-50"
@@ -460,10 +697,10 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                     {post.comments && post.comments.length > 0 && (
                         <div className="flex flex-col gap-3">
                             {(showComments ? post.comments : post.comments.slice(-3)).map(comment => (
-                                <CommentItem 
-                                    key={comment.id} 
-                                    comment={comment} 
-                                    currentUser={currentUser} 
+                                <CommentItem
+                                    key={comment.id}
+                                    comment={comment}
+                                    currentUser={currentUser}
                                 />
                             ))}
 
@@ -574,10 +811,10 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                                     <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-blue-500/10 text-blue-500 rounded-full transition-colors">
                                         <Pencil className="w-2.5 h-2.5" />
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             if (confirm("¿Seguro que quieres borrar este comentario?")) handleDelete();
-                                        }} 
+                                        }}
                                         disabled={isDeleting}
                                         className="p-1 hover:bg-red-500/10 text-red-500 rounded-full transition-colors disabled:opacity-50"
                                     >
@@ -587,7 +824,7 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                             )}
                         </div>
                     </div>
-                    
+
                     {isEditing ? (
                         <div className="flex flex-col gap-2 py-1">
                             <textarea

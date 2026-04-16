@@ -1134,7 +1134,7 @@ export default function TournamentManager({
                         {tournamentName}
                     </h1>
                     <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-foreground/70">
-                        Gestión de Torneo Round Robin
+                        {readOnly ? 'Fixture' : 'Gestión'} de Torneo Round Robin
                     </p>
                 </div>
 

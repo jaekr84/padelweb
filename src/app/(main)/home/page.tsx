@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { posts, users, postComments } from "@/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { posts, users, postComments, tournaments, openCourtEvents, clubs, openCourtRegistrations } from "@/db/schema";
+import { eq, desc, inArray, gte, and, not, sql } from "drizzle-orm";
 import HomeClient from "./HomeClient";
 
 export const dynamic = "force-dynamic";
@@ -84,14 +84,81 @@ export default async function HomePage() {
             }));
         }
 
+        // 4. Fetch Quick View Data
+        const upcomingTournaments = await db
+            .select({
+                id: tournaments.id,
+                name: tournaments.name,
+                startDate: tournaments.startDate,
+                status: tournaments.status,
+                imageUrl: tournaments.imageUrl,
+                createdByUserId: tournaments.createdByUserId,
+                categories: tournaments.categories,
+                modalidad: tournaments.modalidad,
+                type: tournaments.type,
+                clubName: clubs.name,
+            })
+            .from(tournaments)
+            .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
+            .where(eq(tournaments.status, 'published'))
+            .orderBy(tournaments.startDate)
+            .limit(5);
+
+        const ongoingTournaments = await db
+            .select({
+                id: tournaments.id,
+                name: tournaments.name,
+                startDate: tournaments.startDate,
+                status: tournaments.status,
+                imageUrl: tournaments.imageUrl,
+                createdByUserId: tournaments.createdByUserId,
+                categories: tournaments.categories,
+                modalidad: tournaments.modalidad,
+                type: tournaments.type,
+                clubName: clubs.name,
+            })
+            .from(tournaments)
+            .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
+            .where(inArray(tournaments.status, ['en_curso', 'en_eliminatorias']))
+            .orderBy(tournaments.startDate)
+            .limit(5);
+
+        const upcomingOpenCourts = await db
+            .select({
+                id: openCourtEvents.id,
+                name: openCourtEvents.name,
+                date: openCourtEvents.date,
+                time: openCourtEvents.time,
+                totalSlots: openCourtEvents.totalSlots,
+                clubName: clubs.name,
+                registrationCount: sql<number>`(SELECT count(*) FROM ${openCourtRegistrations} WHERE event_id = ${openCourtEvents.id})`
+            })
+            .from(openCourtEvents)
+            .leftJoin(clubs, eq(openCourtEvents.clubId, clubs.id))
+            .where(eq(openCourtEvents.status, 'active'))
+            .orderBy(openCourtEvents.date, openCourtEvents.time)
+            .limit(5);
+
+        return (
+            <HomeClient
+                initialPosts={initialPosts}
+                currentUser={currentUser}
+                upcomingTournaments={upcomingTournaments}
+                ongoingTournaments={ongoingTournaments}
+                upcomingOpenCourts={upcomingOpenCourts}
+            />
+        );
     } catch (e) {
         console.error("DEBUG: Error loading home page or feed:", e);
+        // Fallback for when DB fails but we still want to show the page with empty state
+        return (
+            <HomeClient
+                initialPosts={[]}
+                currentUser={null}
+                upcomingTournaments={[]}
+                ongoingTournaments={[]}
+                upcomingOpenCourts={[]}
+            />
+        );
     }
-
-    return (
-        <HomeClient
-            initialPosts={initialPosts}
-            currentUser={currentUser}
-        />
-    );
 }
