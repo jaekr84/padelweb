@@ -106,6 +106,9 @@ export default async function EditTournamentPage({ params }: Props) {
         maxSlots: parsedModalidad?.maxSlots ?? 0,
         modalidad: parsedModalidad,
         registrationFee: tournament.registrationFee,
+        memberRegistrationFee: tournament.memberRegistrationFee,
+        type: tournament.type,
+        isMembersOnly: tournament.isMembersOnly ?? false,
     };
 
     return (

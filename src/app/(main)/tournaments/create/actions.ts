@@ -2,7 +2,7 @@
 
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { tournaments, users } from "@/db/schema";
+import { tournaments, users, clubs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -60,8 +60,19 @@ export async function createTournament(data: TournamentInput) {
         throw new Error("No tienes permiso para crear torneos");
     }
 
-    // 1. Check Limits for Clubs
+    // 1. Determine local Club ID more accurately
+    let actualClubId: string | null = null;
     if (isClub) {
+        if (user.clubId) {
+            actualClubId = user.clubId;
+        } else {
+            const [ownedClub] = await db.select().from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
+            actualClubId = ownedClub?.id || null;
+        }
+    }
+
+    // 2. Check Limits for Clubs
+    if (isClub && actualClubId) {
         const limits = await getClubTournamentLimits();
         const typeLimit = data.isMembersOnly ? limits.closedLimit : limits.openLimit;
         
@@ -70,7 +81,7 @@ export async function createTournament(data: TournamentInput) {
             .select({ value: count() })
             .from(tournaments)
             .where(and(
-                eq(tournaments.clubId, userId),
+                eq(tournaments.clubId, actualClubId),
                 eq(tournaments.isMembersOnly, !!data.isMembersOnly)
             ));
 
@@ -90,7 +101,7 @@ export async function createTournament(data: TournamentInput) {
         .values({
             id: tournamentId,
             createdByUserId: userId,
-            clubId: isClub ? userId : null, // If club, set clubId
+            clubId: actualClubId, // Correct club ID
             name: data.name.trim(),
             description: data.description || null,
             startDate: data.startDate || null,
@@ -127,12 +138,20 @@ export async function updateTournament(id: string, data: TournamentInput) {
     const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     const isSuperAdmin = userResult[0]?.role === "superadmin";
 
-    const existing = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
-    if (existing.length === 0) throw new Error("Torneo no encontrado");
+    const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
+    if (!tournament) throw new Error("Torneo no encontrado");
 
-    const isOwner = existing[0].createdByUserId === userId;
+    // Get current user's club IDs
+    let userClubId: string | null = userResult[0]?.clubId || null;
+    if (!userClubId && userResult[0]?.role === 'club') {
+        const [ownedClub] = await db.select().from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
+        userClubId = ownedClub?.id || null;
+    }
+
+    const isOwner = tournament.createdByUserId === userId;
+    const isClubOwner = tournament.clubId && userClubId === tournament.clubId;
     
-    if (!isSuperAdmin && !isOwner) throw new Error("No tienes permiso para editar este torneo");
+    if (!isSuperAdmin && !isOwner && !isClubOwner) throw new Error("No tienes permiso para editar este torneo");
 
     await db
         .update(tournaments)
@@ -154,7 +173,7 @@ export async function updateTournament(id: string, data: TournamentInput) {
             memberRegistrationFee: data.memberRegistrationFee || null,
             type: data.type || "round_robin",
             surface: data.surface || null,
-            isMembersOnly: data.isMembersOnly !== undefined ? !!data.isMembersOnly : existing[0].isMembersOnly,
+            isMembersOnly: data.isMembersOnly !== undefined ? !!data.isMembersOnly : tournament.isMembersOnly,
         })
         .where(eq(tournaments.id, id));
 
