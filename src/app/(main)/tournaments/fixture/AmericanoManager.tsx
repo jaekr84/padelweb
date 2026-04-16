@@ -1152,26 +1152,28 @@ export default function AmericanoManager({
                                             className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-3 w-full md:w-auto">
-                                        <button
-                                            onClick={() => {
-                                                const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
-                                                setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
-                                            }}
-                                            className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
-                                        >
-                                            Todo Pago
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
-                                                setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
-                                            }}
-                                            className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all"
-                                        >
-                                            Todo Ok
-                                        </button>
-                                    </div>
+                                    {!readOnly && (
+                                        <div className="flex items-center gap-3 w-full md:w-auto">
+                                            <button
+                                                onClick={() => {
+                                                    const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
+                                                    setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                                }}
+                                                className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
+                                            >
+                                                Todo Pago
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
+                                                    setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                                }}
+                                                className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all"
+                                            >
+                                                Todo Ok
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Players Table */}
@@ -1207,46 +1209,52 @@ export default function AmericanoManager({
                                                             </td>
                                                             <td className="px-8 py-5 text-center">
                                                                 <button
-                                                                    onClick={() => setPaid(prev => {
+                                                                    onClick={() => !readOnly && setPaid(prev => {
                                                                         const next = new Set(prev);
                                                                         if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                                                                         return next;
                                                                     })}
+                                                                    disabled={readOnly}
                                                                     className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
                                                                         ? "bg-blue-600 border-blue-500 text-white shadow-lg"
                                                                         : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
-                                                                        }`}
+                                                                        } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                                 >
                                                                     <CreditCard className="w-4 h-4" />
                                                                 </button>
                                                             </td>
                                                             <td className="px-8 py-5 text-center">
-                                                                <button
-                                                                    onClick={() => setPlayerToDelete(p)}
-                                                                    className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
-                                                                    title="Eliminar Participante"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
+                                                                {!readOnly && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => setPlayerToDelete(p)}
+                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                            title="Eliminar Participante"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+
+                                                                        <button
+                                                                            onClick={() => setReplacingPlayer(p)}
+                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all mr-2"
+                                                                            title="Reemplazar Jugador"
+                                                                        >
+                                                                            <RotateCcw className="w-4 h-4" />
+                                                                        </button>
+                                                                    </>
+                                                                )}
 
                                                                 <button
-                                                                    onClick={() => setReplacingPlayer(p)}
-                                                                    className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all"
-                                                                    title="Reemplazar Jugador"
-                                                                >
-                                                                    <RotateCcw className="w-4 h-4" />
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={() => setPresent(prev => {
+                                                                    onClick={() => !readOnly && setPresent(prev => {
                                                                         const next = new Set(prev);
                                                                         if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                                                                         return next;
                                                                     })}
+                                                                    disabled={readOnly}
                                                                     className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
                                                                         ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
                                                                         : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
-                                                                        }`}
+                                                                        } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                                 >
                                                                     <UserCheck className="w-4 h-4" />
                                                                 </button>
@@ -1259,16 +1267,18 @@ export default function AmericanoManager({
                                         </table>
                                 </div>
 
-                                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
-                                    <button
-                                        onClick={() => setStep("active")}
-                                        disabled={present.size < 2}
-                                        className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
-                                    >
-                                        Iniciar Torneo ({present.size})
-                                        <ChevronRight className="w-6 h-6" />
-                                    </button>
-                                </div>
+                                {!readOnly && (
+                                    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
+                                        <button
+                                            onClick={() => setStep("active")}
+                                            disabled={present.size < 2}
+                                            className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                                        >
+                                            Iniciar Torneo ({present.size})
+                                            <ChevronRight className="w-6 h-6" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}
@@ -1321,56 +1331,58 @@ export default function AmericanoManager({
                                     );
                                 })()}
 
-                                <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-                                    <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
-                                        <div className="flex flex-col text-left">
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Canchas</span>
-                                            <div className="flex items-center gap-3 mt-1.5">
-                                                <button
-                                                    onClick={() => handleUpdateConfig(Math.max(1, numCourts - 1), matchesPerTeam)}
-                                                    className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
-                                                >
-                                                    <Minus className="w-3 h-3 text-foreground/70" />
-                                                </button>
-                                                <span className="text-sm font-black italic w-6 text-center">{numCourts}</span>
-                                                <button
-                                                    onClick={() => handleUpdateConfig(numCourts + 1, matchesPerTeam)}
-                                                    className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
-                                                >
-                                                    <Plus className="w-3 h-3 text-foreground/70" />
-                                                </button>
+                                {!readOnly && (
+                                    <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
+                                        <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Canchas</span>
+                                                <div className="flex items-center gap-3 mt-1.5">
+                                                    <button
+                                                        onClick={() => handleUpdateConfig(Math.max(1, numCourts - 1), matchesPerTeam)}
+                                                        className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
+                                                    >
+                                                        <Minus className="w-3 h-3 text-foreground/70" />
+                                                    </button>
+                                                    <span className="text-sm font-black italic w-6 text-center">{numCourts}</span>
+                                                    <button
+                                                        onClick={() => handleUpdateConfig(numCourts + 1, matchesPerTeam)}
+                                                        className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
+                                                    >
+                                                        <Plus className="w-3 h-3 text-foreground/70" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
-                                        <div className="flex flex-col text-left">
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Ptos / Jugador</span>
-                                            <div className="flex items-center gap-3 mt-1.5">
-                                                <button
-                                                    onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
-                                                    className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
-                                                >
-                                                    <Minus className="w-3 h-3 text-foreground/70" />
-                                                </button>
-                                                <span className="text-sm font-black italic w-6 text-center">{matchesPerTeam}</span>
-                                                <button
-                                                    onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
-                                                    className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
-                                                >
-                                                    <Plus className="w-3 h-3 text-foreground/70" />
-                                                </button>
+                                        <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Ptos / Jugador</span>
+                                                <div className="flex items-center gap-3 mt-1.5">
+                                                    <button
+                                                        onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
+                                                        className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
+                                                    >
+                                                        <Minus className="w-3 h-3 text-foreground/70" />
+                                                    </button>
+                                                    <span className="text-sm font-black italic w-6 text-center">{matchesPerTeam}</span>
+                                                    <button
+                                                        onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
+                                                        className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
+                                                    >
+                                                        <Plus className="w-3 h-3 text-foreground/70" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <Link
-                                        href={`/tournaments/${tournamentId}/fixture`}
-                                        className="px-6 py-5 bg-foreground text-background rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hover:scale-105 transition-all shadow-xl"
-                                    >
-                                        Pantalla Setup
-                                    </Link>
-                                </div>
+                                        <Link
+                                            href={`/tournaments/${tournamentId}/fixture`}
+                                            className="px-6 py-5 bg-foreground text-background rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hover:scale-105 transition-all shadow-xl"
+                                        >
+                                            Pantalla Setup
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Court Grid */}
@@ -1395,50 +1407,58 @@ export default function AmericanoManager({
                                                                         {team.name}
                                                                     </span>
                                                                     <div className="flex items-center bg-background rounded-xl border border-border/50 overflow-hidden h-10">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const s1 = tIdx === 0 ? Math.max(0, (activeMatch.score1 || 0) - 1).toString() : (activeMatch.score1 || 0).toString();
-                                                                                const s2 = tIdx === 1 ? Math.max(0, (activeMatch.score2 || 0) - 1).toString() : (activeMatch.score2 || 0).toString();
-                                                                                handleScoreChange(activeMatch.id, s1, s2);
-                                                                            }}
-                                                                            className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
-                                                                        >
-                                                                            <Minus className="w-3.5 h-3.5" />
-                                                                        </button>
+                                                                        {!readOnly && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const s1 = tIdx === 0 ? Math.max(0, (activeMatch.score1 || 0) - 1).toString() : (activeMatch.score1 || 0).toString();
+                                                                                    const s2 = tIdx === 1 ? Math.max(0, (activeMatch.score2 || 0) - 1).toString() : (activeMatch.score2 || 0).toString();
+                                                                                    handleScoreChange(activeMatch.id, s1, s2);
+                                                                                }}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
+                                                                            >
+                                                                                <Minus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
                                                                         <input
                                                                             type="number"
                                                                             value={tIdx === 0 ? (activeMatch.score1 ?? "") : (activeMatch.score2 ?? "")}
                                                                             onChange={(e) => {
+                                                                                if (readOnly) return;
                                                                                 const s1 = tIdx === 0 ? e.target.value : (activeMatch.score1 || 0).toString();
                                                                                 const s2 = tIdx === 1 ? e.target.value : (activeMatch.score2 || 0).toString();
                                                                                 handleScoreChange(activeMatch.id, s1, s2);
                                                                             }}
-                                                                            className="w-10 h-full bg-transparent text-center text-sm font-black outline-none no-spin-buttons"
+                                                                            readOnly={readOnly}
+                                                                            className={`w-10 h-full bg-transparent text-center text-sm font-black outline-none no-spin-buttons ${readOnly ? "cursor-default" : ""}`}
                                                                             placeholder="0"
                                                                         />
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const s1 = tIdx === 0 ? ((activeMatch.score1 || 0) + 1).toString() : (activeMatch.score1 || 0).toString();
-                                                                                const s2 = tIdx === 1 ? ((activeMatch.score2 || 0) + 1).toString() : (activeMatch.score2 || 0).toString();
-                                                                                handleScoreChange(activeMatch.id, s1, s2);
-                                                                            }}
-                                                                            className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
-                                                                        >
-                                                                            <Plus className="w-3.5 h-3.5" />
-                                                                        </button>
+                                                                        {!readOnly && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const s1 = tIdx === 0 ? ((activeMatch.score1 || 0) + 1).toString() : (activeMatch.score1 || 0).toString();
+                                                                                    const s2 = tIdx === 1 ? ((activeMatch.score2 || 0) + 1).toString() : (activeMatch.score2 || 0).toString();
+                                                                                    handleScoreChange(activeMatch.id, s1, s2);
+                                                                                }}
+                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
+                                                                            >
+                                                                                <Plus className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             ))}
                                                         </div>
 
-                                                        <button
-                                                            onClick={() => handleConfirmScore(activeMatch.id)}
-                                                            disabled={activeMatch.score1 === undefined || activeMatch.score2 === undefined || saving}
-                                                            className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-                                                        >
-                                                            <Check className="w-4 h-4" />
-                                                            Finalizar Partido
-                                                        </button>
+                                                        {!readOnly && (
+                                                            <button
+                                                                onClick={() => handleConfirmScore(activeMatch.id)}
+                                                                disabled={activeMatch.score1 === undefined || activeMatch.score2 === undefined || saving}
+                                                                className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                                                            >
+                                                                <Check className="w-4 h-4" />
+                                                                Finalizar Partido
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center gap-6 text-center">
@@ -1449,14 +1469,16 @@ export default function AmericanoManager({
                                                             <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Cancha Disponible</p>
                                                             <p className="text-xs font-bold text-foreground/20 italic">Esperando próximo partido...</p>
                                                         </div>
-                                                        <button
-                                                            onClick={() => generateNextMatch(courtNumber)}
-                                                            disabled={saving}
-                                                            className="px-6 py-3 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                            Generar Partido
-                                                        </button>
+                                                        {!readOnly && (
+                                                            <button
+                                                                onClick={() => generateNextMatch(courtNumber)}
+                                                                disabled={saving}
+                                                                className="px-6 py-3 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                Generar Partido
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -1522,13 +1544,15 @@ export default function AmericanoManager({
                                                                     <span className="text-sm font-black uppercase italic text-foreground/80">{s.player.name}</span>
                                                                     {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
                                                                 </div>
-                                                                <button
-                                                                    onClick={() => setReplacingPlayer(s.player)}
-                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all group/repl"
-                                                                    title="Reemplazar"
-                                                                >
-                                                                    <RotateCcw className="w-3.5 h-3.5 group-hover/repl:rotate-180 transition-transform duration-500" />
-                                                                </button>
+                                                                {!readOnly && (
+                                                                    <button
+                                                                        onClick={() => setReplacingPlayer(s.player)}
+                                                                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all group/repl"
+                                                                        title="Reemplazar"
+                                                                    >
+                                                                        <RotateCcw className="w-3.5 h-3.5 group-hover/repl:rotate-180 transition-transform duration-500" />
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
@@ -1569,7 +1593,7 @@ export default function AmericanoManager({
                                                 <Zap className="w-4 h-4 animate-pulse" />
                                                 Bracket Dinámico
                                             </div>
-                                            {bracket.length > 0 && (
+                                            {bracket.length > 0 && !readOnly && (
                                                 <button
                                                     onClick={() => { if (confirm("¿Borrar y reiniciar cuadro?")) setBracket([]); }}
                                                     className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"

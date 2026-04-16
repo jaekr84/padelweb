@@ -64,9 +64,8 @@ export default function SponsorSidebar() {
             <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-4 bg-white/50 backdrop-blur-sm">
                 <div className="flex items-center justify-between mb-1">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Publicidad</span>
-                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">10 SLOTS</span>
                 </div>
-                <h2 className="text-lg font-extrabold tracking-tight text-foreground leading-none lowercase">socios <span className="text-indigo-600 italic">acap</span></h2>
+                <h2 className="text-lg font-extrabold tracking-tight text-foreground leading-none uppercase">SPONSORS <span className="text-indigo-600 italic uppercase">A.C.A.P.</span></h2>
             </div>
 
             <div className="flex-1 px-4 py-2 overflow-y-auto scrollbar-hide">

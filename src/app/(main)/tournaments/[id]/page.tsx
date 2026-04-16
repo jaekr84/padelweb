@@ -176,11 +176,35 @@ export default async function TournamentDisplayPage({ params }: Props) {
                             )}
                         </div>
 
+                        {!isUserRegistered && isLoggedIn && (
+                            <Link 
+                                href={`/tournaments/register?id=${id}`}
+                                className="w-full mt-8 py-6 bg-emerald-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(16,185,129,0.3)] hover:bg-emerald-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                            >
+                                Inscribirme Ahora
+                                <CheckCircle className="w-6 h-6" />
+                            </Link>
+                        )}
+
+                        {!isLoggedIn && (
+                            <Link 
+                                href="/login"
+                                className="w-full mt-8 py-6 bg-blue-600/10 text-blue-700 border-2 border-dashed border-blue-600/20 rounded-[2.5rem] font-black uppercase italic tracking-widest hover:bg-blue-600/20 transition-all flex items-center justify-center gap-3"
+                            >
+                                Inicia Sesión para Inscribirte
+                            </Link>
+                        )}
+
                         {isUserRegistered && (
-                            <UnregisterButton 
-                                tournamentId={id} 
-                                tournamentName={tournament.name} 
-                            />
+                            <div className="mt-8">
+                                <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] text-center mb-6">
+                                    <p className="text-emerald-600 font-bold text-sm">Ya estás inscripto en este torneo.</p>
+                                </div>
+                                <UnregisterButton 
+                                    tournamentId={id} 
+                                    tournamentName={tournament.name} 
+                                />
+                            </div>
                         )}
 
                         <div className="mt-8 text-center">

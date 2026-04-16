@@ -91,6 +91,7 @@ export async function getSidebarUser() {
             firstName: users.firstName,
             lastName: users.lastName,
             role: users.role,
+            imageUrl: users.imageUrl,
         })
         .from(users)
         .where(eq(users.id, session.userId as string))
@@ -104,16 +105,22 @@ export async function getSidebarUser() {
         ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
         : user.email.split('@')[0];
     
+    let imageUrl = user.imageUrl;
+
     if (user.role === 'club') {
         const club = await db.query.clubs.findFirst({
             where: eq(clubs.ownerId, user.id)
         });
-        if (club) displayName = club.name;
+        if (club) {
+            displayName = club.name;
+            if (club.logoUrl) imageUrl = club.logoUrl;
+        }
     }
 
     return {
         name: displayName,
         role: session.role as string,
-        dbRole: (session as any).dbRole as string || user.role
+        dbRole: (session as any).dbRole as string || user.role,
+        imageUrl: imageUrl
     };
 }

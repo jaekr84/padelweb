@@ -4,13 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPost, addComment, updateComment, deleteComment, updatePost, deletePost } from "./actions";
-import { Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2, Check, RotateCcw, Calendar, Users, Users2, User, Trophy, MapPin, Clock } from "lucide-react";
+import {
+    Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2,
+    Check, RotateCcw, Calendar, Users, Users2, User, Trophy, MapPin, Clock
+} from "lucide-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-// ── Time Ago helper ────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
+
 function timeAgo(dateStr: string) {
     const d = new Date(dateStr);
     const seconds = Math.floor((new Date().getTime() - d.getTime()) / 1000);
@@ -28,7 +32,33 @@ function timeAgo(dateStr: string) {
     return Math.floor(seconds) + "s";
 }
 
-// ── Types ────────────────────────────────────────────────────────────────
+function formatDateTimeAR(dateStr: string | null) {
+    if (!dateStr) return "TBD";
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function formatDateAR(dateStr: string | null) {
+    if (!dateStr) return "TBD";
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+const capitalizeFirstLetter = (text: string) => {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
 interface Post {
     id: string;
     content: string | null;
@@ -90,7 +120,10 @@ interface HomeClientProps {
     upcomingOpenCourts: OpenCourtQuickView[];
 }
 
-// ── Upload ───────────────────────────────────────────────────────────────
+type ActionState = 'idle' | 'loading' | 'success';
+
+// ── Services ───────────────────────────────────────────────────────────────
+
 const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -103,28 +136,27 @@ const uploadImage = async (file: File): Promise<string> => {
     return data.url;
 };
 
+// ── Main Component ─────────────────────────────────────────────────────────
+
 export default function HomeClient({ initialPosts, currentUser, upcomingTournaments, ongoingTournaments, upcomingOpenCourts }: HomeClientProps) {
     const router = useRouter();
     const [content, setContent] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [compressedFile, setCompressedFile] = useState<File | null>(null);
-    const [isPosting, setIsPosting] = useState(false);
+    const [postState, setPostState] = useState<ActionState>('idle');
+
+    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setContent(capitalizeFirstLetter(e.target.value));
+    };
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Create initial preview to show something fast
-        const localPreview = URL.createObjectURL(file);
-        setImagePreview(localPreview);
+        setImagePreview(URL.createObjectURL(file));
 
         try {
-            // Compress using browser-image-compression
-            const options = {
-                maxSizeMB: 1,
-                maxWidthOrHeight: 1200,
-                useWebWorker: true
-            };
+            const options = { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true };
             const cBlob = await imageCompression(file, options);
             const cFile = new File([cBlob], "post.jpg", { type: "image/jpeg" });
 
@@ -141,7 +173,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
     const handlePost = async () => {
         if (!content.trim() && !compressedFile) return;
 
-        setIsPosting(true);
+        setPostState('loading');
         try {
             let imageUrl = null;
             if (compressedFile) {
@@ -149,24 +181,25 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
             }
 
             await createPost(content, imageUrl);
-            toast.success("Publicado");
 
-            // Reset
+            setPostState('success');
+            toast.success("Publicado exitosamente");
             setContent("");
             setImagePreview(null);
             setCompressedFile(null);
+            router.refresh();
 
-            router.refresh(); // Refresh data
+            // Reset button state after 2 seconds
+            setTimeout(() => setPostState('idle'), 2000);
         } catch (err: any) {
             toast.error(err.message || "Error al publicar");
-        } finally {
-            setIsPosting(false);
+            setPostState('idle');
         }
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-emerald-500/30">
-            {/* CSS KEYFRAMES */}
+        <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 font-sans selection:bg-emerald-500/20 relative">
+            {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
                 @keyframes gradient-x {
                     0% { background-position: 0% 50%; }
@@ -180,125 +213,116 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                     color: transparent;
                     animation: gradient-x 6s ease infinite;
                 }
-                .glow-button {
-                    position: relative;
-                }
-                .glow-button::before {
-                    content: '';
-                    position: absolute;
-                    inset: -2px;
-                    border-radius: 2rem;
-                    background: linear-gradient(45deg, #10b981, #3b82f6);
-                    z-index: -1;
-                    filter: blur(8px);
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-                .glow-button:hover::before {
-                    opacity: 1;
-                }
-                .glass-card {
-                    background-color: color-mix(in srgb, var(--card) 90%, transparent);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-                }
-                .glass-card:hover {
-                    border-color: rgba(16, 185, 129, 0.5);
-                }
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-                .scrollbar-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
             `}</style>
 
-            {/* Ambient glow */}
-            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden text-emerald-500">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
-                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
+            {/* Ambient background glows */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row pt-6 md:pt-12 px-4 md:px-6 gap-8 justify-center">
+            {/* Header Section */}
+            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-6">
+                <div className="max-w-6xl mx-auto flex flex-col gap-6">
+                    <div className="flex items-center justify-between">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="space-y-1"
+                        >
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Comunidad ACAP</p>
+                            <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
+                                <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">La mejor comunidad de Pádel</span>
+                            </h1>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row pt-8 px-4 md:px-6 gap-8 justify-center">
 
                 {/* ── Main Feed (Left Column) ── */}
                 <div className="w-full max-w-2xl flex flex-col">
-                    {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 px-1 text-center md:text-left"
-                    >
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500/80 mb-1">
-                            A.C.A.P.
-                        </p>
-                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tight text-foreground mb-2">
-                            Comunidad <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Feed</span>
-                        </h1>
-                    </motion.div>
+
+                    {/* Mobile Quick Access Bar (Visible only on mobile/tablet) */}
+                    <div className="xl:hidden mb-8 overflow-hidden">
+                        <MobileTournamentBar 
+                            ongoing={ongoingTournaments} 
+                            upcoming={upcomingTournaments} 
+                        />
+                    </div>
 
                     {/* Compose Post */}
-                    {currentUser?.role === "superadmin" && (
+                    {(currentUser?.role === "superadmin" || currentUser?.role === "club") && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="glass-card rounded-[2rem] p-5 mb-8 shadow-xl"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white rounded-3xl p-5 mb-8 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100"
                         >
-                            <div className="flex gap-3 mb-3">
-                                <div className="w-10 h-10 shrink-0 bg-muted rounded-full overflow-hidden border border-border relative">
+                            <div className="flex gap-4 mb-4">
+                                <div className="w-10 h-10 shrink-0 bg-slate-100 rounded-full overflow-hidden border border-slate-200 relative">
                                     {currentUser.imageUrl ? (
                                         <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="40px" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground uppercase">
+                                        <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-500 uppercase">
                                             {currentUser.name?.charAt(0) || "U"}
                                         </div>
                                     )}
                                 </div>
                                 <textarea
                                     value={content}
-                                    onChange={e => setContent(e.target.value)}
-                                    placeholder="¿Qué está pasando en la cancha?"
-                                    className="w-full bg-transparent resize-none text-foreground placeholder-muted-foreground outline-none text-sm pt-2 min-h-[60px]"
+                                    onChange={handleContentChange}
+                                    placeholder="¿Qué novedades hay en el club?"
+                                    className="w-full bg-transparent resize-none text-slate-900 placeholder-slate-400 outline-none text-base pt-2 min-h-[60px]"
                                 />
                             </div>
 
                             {imagePreview && (
-                                <div className="relative mb-3 mr-2 bg-muted/50 rounded-2xl overflow-hidden group aspect-video">
+                                <div className="relative mb-4 ml-14 bg-slate-100 rounded-2xl overflow-hidden group aspect-video border border-slate-200">
                                     <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized sizes="(max-width: 768px) 100vw, 672px" />
                                     <button
                                         onClick={() => { setImagePreview(null); setCompressedFile(null); }}
-                                        className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-all"
+                                        className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full text-slate-900 shadow-sm transition-all"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
                             )}
 
-                            <div className="flex items-center justify-between border-t border-border pt-3">
-                                <label className="p-2 -ml-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full cursor-pointer transition-colors">
+                            <div className="flex items-center justify-between border-t border-slate-100 pt-4 ml-14">
+                                <label className="p-2 -ml-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full cursor-pointer transition-colors">
                                     <ImageIcon className="w-5 h-5" />
                                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                                 </label>
 
                                 <button
                                     onClick={handlePost}
-                                    disabled={isPosting || (!content.trim() && !compressedFile)}
-                                    className="glow-button px-6 py-2 bg-foreground border border-border hover:border-emerald-500/50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 rounded-full text-[11px] font-black uppercase tracking-widest text-background transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                                    disabled={postState !== 'idle' || (!content.trim() && !compressedFile)}
+                                    className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2
+                                        ${postState === 'success'
+                                            ? 'bg-emerald-500 text-white shadow-emerald-500/30 shadow-md'
+                                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-slate-900'
+                                        }`}
                                 >
-                                    {isPosting ? "Enviando..." : "Publicar"}
+                                    {postState === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {postState === 'success' && <Check className="w-4 h-4" />}
+                                    {postState === 'loading' ? "Enviando..." : postState === 'success' ? "Publicado" : "Publicar"}
                                 </button>
                             </div>
                         </motion.div>
                     )}
 
                     {/* Posts List */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6">
                         {initialPosts.length === 0 ? (
-                            <div className="text-center py-20 glass-card rounded-3xl">
-                                <p className="text-foreground/80 font-bold text-sm">No hay publicaciones aún.</p>
-                                <p className="text-muted-foreground text-xs mt-1">Sé el primero en publicarlo.</p>
+                            <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 border-dashed">
+                                <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <MessageSquare className="w-5 h-5" />
+                                </div>
+                                <p className="text-slate-900 font-semibold text-sm">No hay publicaciones aún.</p>
+                                <p className="text-slate-500 text-sm mt-1">Sé el primero en iniciar la conversación.</p>
                             </div>
                         ) : (
                             initialPosts.map(post => (
@@ -309,217 +333,170 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                 </div>
 
                 {/* ── Right Sidebar (Desktop only) ── */}
-                <aside className="hidden xl:flex flex-col w-80 gap-6 sticky top-12 self-start xl:mt-[135px]">
+                <aside className="hidden xl:flex flex-col w-[340px] gap-6 sticky top-24 self-start">
 
                     {/* Tournaments Card */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-emerald-500/10"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-emerald-500/10 rounded-xl">
-                                    <Trophy className="w-4 h-4 text-emerald-500" />
-                                </div>
-                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Torneos</h2>
-                            </div>
-                            <Link href="/tournaments" className="text-[10px] font-bold text-muted-foreground hover:text-emerald-500 transition-colors uppercase tracking-tighter">Ver todo</Link>
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                            {upcomingTournaments.length === 0 ? (
-                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay torneos próximos</p>
-                            ) : (
-                                upcomingTournaments.map(t => {
-                                    const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
-                                    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
-                                    let cats = [];
-                                    try {
-                                        cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []);
-                                    } catch(e) {}
-                                    const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
-
-                                    return (
-                                        <div key={t.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-emerald-500/[0.02] border border-emerald-500/10">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="flex flex-col gap-0.5 min-w-0">
-                                                    <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{t.name}</h3>
-                                                    <div className="flex items-center gap-2 text-[9px] font-medium text-muted-foreground">
-                                                        <span>{t.clubName || "Acap"}</span>
-                                                        <span className="w-1 h-1 bg-border rounded-full" />
-                                                        <span className="text-emerald-500/80">{t.type === 'americano' ? 'Americano' : 'Libre'}</span>
-                                                    </div>
-                                                </div>
-                                                <span className="shrink-0 text-[8px] font-black px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-md uppercase tracking-tighter">
-                                                    {catLabel}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 text-muted-foreground transition-colors text-[9px]">
-                                                    <div className="flex items-center gap-1">
-                                                        <Calendar className="w-3 h-3" />
-                                                        <span className="font-medium">{t.startDate ? new Date(t.startDate).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : 'TBD'}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        {isParejas ? <Users2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                                                        <span className="font-medium">{isParejas ? 'Parejas' : 'Individual'}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </motion.div>
-
-                    {/* Open Courts Card */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-blue-500/10"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-blue-500/10 rounded-xl">
-                                    <Users className="w-4 h-4 text-blue-500" />
-                                </div>
-                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Cancha Abierta</h2>
-                            </div>
-                            <Link href="/cancha-abierta" className="text-[10px] font-bold text-muted-foreground hover:text-blue-500 transition-colors uppercase tracking-tighter">Unirse</Link>
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                            {upcomingOpenCourts.length === 0 ? (
-                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay eventos activos</p>
-                            ) : (
-                                upcomingOpenCourts.map(oc => {
-                                    const available = (oc.totalSlots || 0) - (oc.registrationCount || 0);
-                                    const isFull = available <= 0;
-
-                                    return (
-                                        <div key={oc.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-blue-500/[0.02] border border-blue-500/10">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{oc.name}</h3>
-                                                <div className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${isFull ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                                                    {isFull ? 'Completo' : `${available} Cupos`}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 text-muted-foreground">
-                                                    <div className="flex items-center gap-1">
-                                                        <Clock className="w-3 h-3" />
-                                                        <span className="text-[10px] font-medium">{oc.time}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
-                                                        <span className="text-[10px] font-medium line-clamp-1 truncate active:w-20">{oc.clubName || "Club"}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </motion.div>
+                    <SidebarCard title="Próximos Torneos" icon={<Trophy className="w-4 h-4 text-emerald-600" />} link="/tournaments" linkText="Ver calendario">
+                        {upcomingTournaments.length === 0 ? (
+                            <EmptyState text="No hay torneos próximos" />
+                        ) : (
+                            upcomingTournaments.map(t => (
+                                <TournamentItem key={t.id} t={t} />
+                            ))
+                        )}
+                    </SidebarCard>
 
                     {/* Ongoing Tournaments Card */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="glass-card rounded-[2.5rem] p-6 shadow-xl border-amber-500/10"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-amber-500/10 rounded-xl">
-                                    <Clock className="w-4 h-4 text-amber-500" />
-                                </div>
-                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">En Curso</h2>
-                            </div>
-                            <Link href="/tournaments" className="text-[10px] font-bold text-muted-foreground hover:text-amber-500 transition-colors uppercase tracking-tighter">Ver cuadros</Link>
-                        </div>
+                    <SidebarCard title="En Curso" icon={<Clock className="w-4 h-4 text-amber-500" />} link="/tournaments" linkText="Ver resultados">
+                        {ongoingTournaments.length === 0 ? (
+                            <EmptyState text="No hay torneos activos" />
+                        ) : (
+                            ongoingTournaments.map(t => (
+                                <TournamentItem key={t.id} t={t} isOngoing />
+                            ))
+                        )}
+                    </SidebarCard>
 
-                        <div className="flex flex-col gap-4">
-                            {ongoingTournaments.length === 0 ? (
-                                <p className="text-xs text-muted-foreground text-center py-4 italic">No hay torneos en curso</p>
-                            ) : (
-                                ongoingTournaments.map(t => {
-                                    const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
-                                    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
-                                    let cats = [];
-                                    try {
-                                        cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []);
-                                    } catch(e) {}
-                                    const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
+                    {/* Open Courts Card */}
+                    <SidebarCard title="Cancha Abierta" icon={<Users className="w-4 h-4 text-blue-600" />} link="/cancha-abierta" linkText="Unirse a un partido">
+                        {upcomingOpenCourts.length === 0 ? (
+                            <EmptyState text="No hay partidos abiertos" />
+                        ) : (
+                            upcomingOpenCourts.map(oc => {
+                                const available = (oc.totalSlots || 0) - (oc.registrationCount || 0);
+                                const isFull = available <= 0;
 
-                                    return (
-                                        <div key={t.id} className="group/item flex flex-col gap-2 p-3 rounded-2xl bg-amber-500/[0.02] border border-amber-500/10">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="flex flex-col gap-0.5 min-w-0">
-                                                    <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-1">{t.name}</h3>
-                                                    <div className="flex items-center gap-2 text-[9px] font-medium text-muted-foreground">
-                                                        <span>{t.clubName || "Acap"}</span>
-                                                        <span className="w-1 h-1 bg-border rounded-full" />
-                                                        <span className="text-amber-500/80">{t.type === 'americano' ? 'Americano' : 'Libre'}</span>
-                                                    </div>
-                                                </div>
-                                                <span className="shrink-0 text-[8px] font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-md uppercase tracking-tighter">
-                                                    {catLabel}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 text-muted-foreground text-[9px]">
-                                                    <div className="flex items-center gap-1">
-                                                        <Clock className="w-3 h-3" />
-                                                        <span className="font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-md uppercase tracking-tighter">
-                                                            {t.status === 'en_curso' ? 'Grupos' : 'Playoffs'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        {isParejas ? <Users2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                                                        <span className="font-medium">{isParejas ? 'Parejas' : 'Individual'}</span>
-                                                    </div>
-                                                </div>
+                                return (
+                                    <div key={oc.id} className="group flex flex-col gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100">
+                                        <div className="flex justify-between items-start gap-2">
+                                            <h3 className="text-sm font-semibold text-slate-900 leading-tight line-clamp-1">{oc.name}</h3>
+                                            <div className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-md ${isFull ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-700'}`}>
+                                                {isFull ? 'Completo' : `${available} libres`}
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    </motion.div>
-
-                    {/* Join Community CTA */}
-                    <Link href="/contact" className="group relative overflow-hidden rounded-[2rem] p-6 bg-foreground text-background transition-all hover:-translate-y-1 shadow-2xl">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-[40px] -mr-10 -mt-10" />
-                        <div className="relative z-10">
-                            <h4 className="text-xs font-black uppercase tracking-widest mb-1">¿Tienes un Club?</h4>
-                            <p className="text-[10px] leading-tight opacity-70 mb-4 font-medium italic">Publica tus torneos y canchas abiertas en la red más grande.</p>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter border-b border-current w-fit">
-                                Contactar soporte <Send className="w-3 h-3" />
-                            </div>
-                        </div>
-                    </Link>
-
+                                        <div className="flex items-center gap-4 text-slate-500 text-xs">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="w-3.5 h-3.5" />
+                                                <span className="font-medium">{formatDateAR(oc.date)} {oc.time}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <MapPin className="w-3.5 h-3.5" />
+                                                <span className="font-medium line-clamp-1 truncate">{oc.clubName || "Club"}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </SidebarCard>
                 </aside>
-
             </div>
         </div>
     );
 }
 
-// ... (PostItem and CommentItem components remain unchanged)
+function MobileTournamentBar({ ongoing, upcoming }: { ongoing: TournamentQuickView[], upcoming: TournamentQuickView[] }) {
+    if (ongoing.length === 0 && upcoming.length === 0) return null;
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between px-2">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Torneos en Curso</h2>
+                <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Ver todos</Link>
+            </div>
+            
+            <div className="flex gap-4 overflow-x-auto pb-4 px-2 no-scrollbar snap-x snap-mandatory">
+                {[...ongoing, ...upcoming].map((t) => (
+                    <div key={t.id} className="min-w-[280px] snap-center">
+                        <TournamentItem t={t} isOngoing={t.status === 'en_curso' || t.status === 'playoffs'} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ── Sidebar Helper Components ──────────────────────────────────────────────
+
+function SidebarCard({ title, icon, link, linkText, children }: any) {
+    return (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100">
+            <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">{icon}</div>
+                    <h2 className="text-sm font-bold text-slate-900">{title}</h2>
+                </div>
+                <Link href={link} className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">{linkText}</Link>
+            </div>
+            <div className="flex flex-col gap-3">
+                {children}
+            </div>
+        </motion.div>
+    );
+}
+
+function EmptyState({ text }: { text: string }) {
+    return <p className="text-sm text-slate-400 text-center py-6 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">{text}</p>;
+}
+
+function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOngoing?: boolean }) {
+    const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
+    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
+    let cats = [];
+    try { cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []); } catch (e) { }
+    const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
+
+    return (
+        <Link 
+            href={`/tournaments/${t.id}`}
+            className="group flex flex-col gap-2.5 p-4 rounded-[2rem] bg-slate-50 hover:bg-white hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 border border-slate-100 hover:border-emerald-500/20 relative overflow-hidden"
+        >
+            {/* Hover Glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur" />
+            
+            <div className="relative z-10 flex justify-between items-start gap-2">
+                <div className="flex flex-col gap-1 min-w-0">
+                    <h3 className="text-sm font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors uppercase italic">{t.name}</h3>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        <span>{t.clubName || "Acap"}</span>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                        <span className={t.type === 'americano' ? 'text-blue-500' : 'text-emerald-500'}>
+                            {t.type === 'americano' ? 'Americano' : 'Libre'}
+                        </span>
+                    </div>
+                </div>
+                <div className="p-1.5 bg-white rounded-lg border border-slate-100 text-slate-300 group-hover:text-emerald-500 group-hover:border-emerald-500/20 transition-all">
+                    <Send className="w-3 h-3 rotate-45" />
+                </div>
+            </div>
+
+            <div className="relative z-10 flex items-center justify-between mt-1">
+                <div className="flex items-center gap-3 text-slate-500 text-[10px] font-black uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5">
+                        {isOngoing ? <Clock className="w-3.5 h-3.5 text-amber-500" /> : <Calendar className="w-3.5 h-3.5 text-emerald-600" />}
+                        <span className="group-hover:text-slate-900 transition-colors">
+                            {isOngoing
+                                ? (t.status === 'en_curso' ? 'Fase de Grupos' : 'Playoffs')
+                                : formatDateAR(t.startDate)
+                            }
+                        </span>
+                    </div>
+                </div>
+                <span className="shrink-0 text-[9px] font-black px-2.5 py-1 bg-white border border-slate-100 text-slate-500 rounded-lg group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
+                    {catLabel}
+                </span>
+            </div>
+        </Link>
+    );
+}
+
+// ── Post Component ─────────────────────────────────────────────────────────
 
 function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const router = useRouter();
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [commentState, setCommentState] = useState<ActionState>('idle');
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editPostContent, setEditPostContent] = useState(post.content || "");
     const [isUpdatingPost, setIsUpdatingPost] = useState(false);
@@ -527,20 +504,25 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
 
     const isPostOwner = currentUser?.id === post.user.id;
 
+    const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCommentText(capitalizeFirstLetter(e.target.value));
+    };
+
     const handleComment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!commentText.trim() || isSubmitting) return;
+        if (!commentText.trim() || commentState === 'loading') return;
 
-        setIsSubmitting(true);
+        setCommentState('loading');
         try {
             await addComment(post.id, commentText);
-            setCommentText("");
+            setCommentState('success');
             toast.success("Comentario enviado");
+            setCommentText("");
             router.refresh();
+            setTimeout(() => setCommentState('idle'), 2000);
         } catch (err: any) {
             toast.error("Error al enviar comentario");
-        } finally {
-            setIsSubmitting(false);
+            setCommentState('idle');
         }
     };
 
@@ -579,51 +561,44 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
-            className="group glass-card rounded-[2rem] p-5 sm:p-6 shadow-sm transition-all relative overflow-hidden"
+            className="group bg-white rounded-[2rem] p-5 sm:p-7 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100 transition-all"
         >
-            {/* Highlight glow for post card */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity" />
             {/* Author */}
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted border border-border rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
+            <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                         {post.user.imageUrl ? (
-                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="40px" />
+                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="44px" />
                         ) : (
-                            <span className="text-sm font-bold text-muted-foreground uppercase">{userInitials}</span>
+                            <span className="text-sm font-bold text-slate-500 uppercase">{userInitials}</span>
                         )}
                     </div>
                     <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-bold text-foreground">{post.user.name}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-bold uppercase tracking-wider">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[15px] font-bold text-slate-900">{post.user.name}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold uppercase tracking-wide">
                                 {post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'superadmin' ? 'Administrador' : 'Usuario'}
                             </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">{timeAgo(post.createdAt)}</span>
+                        <span className="text-xs text-slate-500 font-medium">{formatDateTimeAR(post.createdAt)}</span>
                     </div>
                 </div>
 
                 {isPostOwner && !isEditingPost && (
                     <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                            onClick={() => {
-                                setIsEditingPost(true);
-                                setEditPostContent(post.content || "");
-                            }}
-                            className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-full transition-colors"
-                            title="Editar publicación"
+                            onClick={() => { setIsEditingPost(true); setEditPostContent(post.content || ""); }}
+                            className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-full transition-colors"
                         >
                             <Pencil className="w-4 h-4" />
                         </button>
                         <button
                             onClick={handleDeletePost}
                             disabled={isDeletingPost}
-                            className="p-2 hover:bg-red-500/10 text-red-500 rounded-full transition-colors disabled:opacity-50"
-                            title="Borrar publicación"
+                            className="p-2 hover:bg-red-50 hover:text-red-600 text-slate-400 rounded-full transition-colors disabled:opacity-50"
                         >
                             {isDeletingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         </button>
@@ -634,49 +609,40 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
             {/* Content */}
             <div className="relative z-10">
                 {isEditingPost ? (
-                    <div className="flex flex-col gap-3 mb-4 bg-muted/50 p-4 rounded-2xl border border-blue-500/30">
+                    <div className="flex flex-col gap-3 mb-5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                         <textarea
                             value={editPostContent}
-                            onChange={(e) => setEditPostContent(e.target.value)}
-                            className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder-muted-foreground resize-none min-h-[100px]"
+                            onChange={(e) => setEditPostContent(capitalizeFirstLetter(e.target.value))}
+                            className="w-full bg-transparent border-none outline-none text-[15px] text-slate-900 placeholder-slate-400 resize-none min-h-[100px]"
                             autoFocus
                         />
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => { setIsEditingPost(false); setEditPostContent(post.content || ""); }}
-                                className="px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors flex items-center gap-2"
+                                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
                             >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                Cancelar
+                                <RotateCcw className="w-4 h-4" /> Cancelar
                             </button>
                             <button
                                 onClick={handleUpdatePost}
                                 disabled={isUpdatingPost || !editPostContent.trim()}
-                                className="px-4 py-2 text-xs font-bold text-slate-900 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2"
+                                className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2"
                             >
-                                {isUpdatingPost ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                                Guardar Cambios
+                                {isUpdatingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Guardar Cambios
                             </button>
                         </div>
                     </div>
                 ) : (
                     post.content && (
-                        <p className="text-foreground text-sm leading-relaxed mb-4 whitespace-pre-wrap">
+                        <p className="text-slate-800 text-[15px] leading-relaxed mb-5 whitespace-pre-wrap">
                             {post.content}
                         </p>
                     )
                 )}
 
                 {post.imageUrl && (
-                    <div className="relative rounded-2xl border border-border overflow-hidden mb-3 bg-muted aspect-video w-full">
-                        <Image
-                            src={post.imageUrl}
-                            fill
-                            unoptimized
-                            className="object-cover"
-                            alt="Publicación"
-                            sizes="(max-width: 768px) 100vw, 672px"
-                        />
+                    <div className="relative rounded-2xl border border-slate-200 overflow-hidden mb-4 bg-slate-100 aspect-video w-full">
+                        <Image src={post.imageUrl} fill unoptimized className="object-cover" alt="Publicación" sizes="(max-width: 768px) 100vw, 672px" />
                     </div>
                 )}
 
@@ -684,30 +650,25 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                 <div className="flex items-center gap-4 mt-2">
                     <button
                         onClick={() => setShowComments(!showComments)}
-                        className="flex items-center gap-1.5 text-muted-foreground hover:text-emerald-500 transition-colors py-1 pr-2"
+                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors py-1 px-2 -ml-2 rounded-lg hover:bg-slate-50"
                     >
                         <MessageSquare className="w-4 h-4" />
-                        <span className="text-[11px] font-bold">{post.comments?.length || 0}</span>
+                        <span className="text-sm font-semibold">{post.comments?.length || 0} Comentarios</span>
                     </button>
                 </div>
 
                 {/* Comments Section */}
-                <div className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-4">
-                    {/* Comments List (Conditional or Preview) */}
+                <div className="mt-4 pt-5 border-t border-slate-100 flex flex-col gap-5">
                     {post.comments && post.comments.length > 0 && (
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-4">
                             {(showComments ? post.comments : post.comments.slice(-3)).map(comment => (
-                                <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    currentUser={currentUser}
-                                />
+                                <CommentItem key={comment.id} comment={comment} currentUser={currentUser} />
                             ))}
 
                             {!showComments && post.comments.length > 3 && (
                                 <button
                                     onClick={() => setShowComments(true)}
-                                    className="text-[11px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors pl-11 text-left"
+                                    className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors pl-12 text-left"
                                 >
                                     Ver los {post.comments.length - 3} comentarios restantes...
                                 </button>
@@ -717,12 +678,12 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
 
                     {/* Comment Input */}
                     {currentUser && (
-                        <form onSubmit={handleComment} className="flex gap-3 items-center">
-                            <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0 relative">
+                        <form onSubmit={handleComment} className="flex gap-3 items-center mt-2">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative">
                                 {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="32px" />
+                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase">
+                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
                                         {currentUser.name?.charAt(0) || "U"}
                                     </div>
                                 )}
@@ -731,16 +692,22 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                                 <input
                                     type="text"
                                     value={commentText}
-                                    onChange={e => setCommentText(e.target.value)}
+                                    onChange={handleCommentChange}
                                     placeholder="Escribe un comentario..."
-                                    className="w-full bg-muted/80 border border-border/50 focus:border-emerald-500/50 rounded-full py-2.5 px-4 pr-10 text-xs text-foreground placeholder-muted-foreground outline-none transition-colors"
+                                    className="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-full py-2.5 px-5 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!commentText.trim() || isSubmitting}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-400 disabled:opacity-30 disabled:hover:bg-transparent p-1.5 hover:bg-emerald-500/10 rounded-full transition-all"
+                                    disabled={!commentText.trim() || commentState === 'loading'}
+                                    className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all flex items-center justify-center
+                                        ${commentState === 'success'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-30 disabled:bg-slate-200 disabled:text-slate-500'
+                                        }`}
                                 >
-                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    {commentState === 'loading' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
+                                        commentState === 'success' ? <Check className="w-3.5 h-3.5" /> :
+                                            <Send className="w-3.5 h-3.5" />}
                                 </button>
                             </div>
                         </form>
@@ -750,6 +717,8 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
         </motion.div>
     );
 }
+
+// ── Comment Component ──────────────────────────────────────────────────────
 
 function CommentItem({ comment, currentUser }: { comment: any, currentUser: any }) {
     const router = useRouter();
@@ -791,34 +760,32 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
 
     return (
         <div className="flex gap-3 group/comment">
-            <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0 relative">
+            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative mt-1">
                 {comment.user.imageUrl ? (
-                    <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="32px" />
+                    <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase">
+                    <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-slate-500 uppercase">
                         {comment.user.name?.charAt(0) || "U"}
                     </div>
                 )}
             </div>
             <div className="flex flex-col flex-1">
-                <div className={`flex flex-col flex-1 bg-muted/40 border border-border/50 rounded-2xl px-4 py-3 ${isEditing ? 'ring-1 ring-emerald-500/30' : ''}`}>
-                    <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-bold text-foreground">{comment.user.name}</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-muted-foreground opacity-60">{timeAgo(comment.createdAt)}</span>
+                <div className={`flex flex-col flex-1 bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 ${isEditing ? 'ring-1 ring-slate-300 bg-white' : ''}`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-bold text-slate-900">{comment.user.name}</span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[11px] font-medium text-slate-400">{timeAgo(comment.createdAt)}</span>
                             {isOwner && !isEditing && (
                                 <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
-                                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-blue-500/10 text-blue-500 rounded-full transition-colors">
-                                        <Pencil className="w-2.5 h-2.5" />
+                                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-md transition-colors">
+                                        <Pencil className="w-3 h-3" />
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (confirm("¿Seguro que quieres borrar este comentario?")) handleDelete();
-                                        }}
+                                        onClick={() => { if (confirm("¿Seguro que quieres borrar este comentario?")) handleDelete(); }}
                                         disabled={isDeleting}
-                                        className="p-1 hover:bg-red-500/10 text-red-500 rounded-full transition-colors disabled:opacity-50"
+                                        className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-md transition-colors disabled:opacity-50"
                                     >
-                                        <Trash2 className="w-2.5 h-2.5" />
+                                        <Trash2 className="w-3 h-3" />
                                     </button>
                                 </div>
                             )}
@@ -826,33 +793,31 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                     </div>
 
                     {isEditing ? (
-                        <div className="flex flex-col gap-2 py-1">
+                        <div className="flex flex-col gap-2">
                             <textarea
                                 value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                className="w-full bg-transparent border-none outline-none text-xs text-foreground placeholder-muted-foreground resize-none min-h-[40px]"
+                                onChange={(e) => setEditText(capitalizeFirstLetter(e.target.value))}
+                                className="w-full bg-transparent border-none outline-none text-[13px] text-slate-900 placeholder-slate-400 resize-none min-h-[40px]"
                                 autoFocus
                             />
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2 mt-2">
                                 <button
                                     onClick={() => { setIsEditing(false); setEditText(comment.content); }}
-                                    className="p-1 text-muted-foreground hover:bg-muted rounded-md transition-colors"
-                                    title="Cancelar"
+                                    className="px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-200 rounded-md transition-colors"
                                 >
-                                    <RotateCcw className="w-3 h-3" />
+                                    Cancelar
                                 </button>
                                 <button
                                     onClick={handleUpdate}
                                     disabled={isUpdating || !editText.trim()}
-                                    className="p-1 text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors"
-                                    title="Guardar"
+                                    className="px-2 py-1 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-1"
                                 >
-                                    {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                    {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Guardar"}
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <p className="text-xs text-foreground/80 leading-relaxed font-medium">{comment.content}</p>
+                        <p className="text-[13px] text-slate-700 leading-relaxed font-normal">{comment.content}</p>
                     )}
                 </div>
             </div>

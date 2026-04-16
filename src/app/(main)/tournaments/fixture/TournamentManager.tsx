@@ -1165,26 +1165,28 @@ export default function TournamentManager({
                                             className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-3 w-full md:w-auto">
-                                        <button
-                                            onClick={() => {
-                                                const allIds = allPlayers.map(p => p.id);
-                                                setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
-                                            }}
-                                            className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
-                                        >
-                                            Todo Pago
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const allIds = allPlayers.map(p => p.id);
-                                                setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
-                                            }}
-                                            className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/5"
-                                        >
-                                            Todo Ok
-                                        </button>
-                                    </div>
+                                    {!readOnly && (
+                                        <div className="flex items-center gap-3 w-full md:w-auto">
+                                            <button
+                                                onClick={() => {
+                                                    const allIds = allPlayers.map(p => p.id);
+                                                    setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                                }}
+                                                className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
+                                            >
+                                                Todo Pago
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    const allIds = allPlayers.map(p => p.id);
+                                                    setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                                }}
+                                                className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/5"
+                                            >
+                                                Todo Ok
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Players Table */}
@@ -1220,46 +1222,52 @@ export default function TournamentManager({
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
                                                             <button
-                                                                onClick={() => setPaid(prev => {
+                                                                onClick={() => !readOnly && setPaid(prev => {
                                                                     const next = new Set(prev);
                                                                     if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                                                                     return next;
                                                                 })}
+                                                                disabled={readOnly}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
                                                                     ? "bg-blue-600 border-blue-500 text-white shadow-lg"
                                                                     : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
-                                                                    }`}
+                                                                    } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                             >
                                                                 <CreditCard className="w-4 h-4" />
                                                             </button>
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
-                                                            <button
-                                                                onClick={() => setPlayerToDelete(p)}
-                                                                className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
-                                                                title="Eliminar Participante"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {!readOnly && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => setPlayerToDelete(p)}
+                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                        title="Eliminar Participante"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() => setReplacingPlayer(p)}
+                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all mr-2"
+                                                                        title="Reemplazar Jugador"
+                                                                    >
+                                                                        <RotateCcw className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
 
                                                             <button
-                                                                onClick={() => setReplacingPlayer(p)}
-                                                                className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all"
-                                                                title="Reemplazar Jugador"
-                                                            >
-                                                                <RotateCcw className="w-4 h-4" />
-                                                            </button>
-
-                                                            <button
-                                                                onClick={() => setPresent(prev => {
+                                                                onClick={() => !readOnly && setPresent(prev => {
                                                                     const next = new Set(prev);
                                                                     if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                                                                     return next;
                                                                 })}
+                                                                disabled={readOnly}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
                                                                     ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
                                                                     : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
-                                                                    }`}
+                                                                    } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                             >
                                                                 <UserCheck className="w-4 h-4" />
                                                             </button>
@@ -1272,16 +1280,18 @@ export default function TournamentManager({
                                     </table>
                                 </div>
 
-                                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
-                                    <button
-                                        onClick={() => setStep("done")}
-                                        disabled={present.size < 2}
-                                        className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
-                                    >
-                                        Continuar ({present.size})
-                                        <ChevronRight className="w-6 h-6" />
-                                    </button>
-                                </div>
+                                {!readOnly && (
+                                    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
+                                        <button
+                                            onClick={() => setStep("done")}
+                                            disabled={present.size < 2}
+                                            className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                                        >
+                                            Continuar ({present.size})
+                                            <ChevronRight className="w-6 h-6" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}

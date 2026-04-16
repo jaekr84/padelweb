@@ -323,17 +323,20 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
             {/* Public Header */}
             {!session?.userId && (
-                <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
-                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2 group">
-                            <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
-                                <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" sizes="32px" />
+                <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
+                    <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                        <Link href="/" className="flex items-center gap-2.5 transition-transform active:scale-95 group">
+                            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                                <span className="text-white font-black text-sm tracking-tighter">AC</span>
                             </div>
-                            <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                            <div className="flex flex-col -gap-1">
+                                <span className="text-[14px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
+                                <span className="text-[9px] font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                            </div>
                         </Link>
-                        <div className="flex items-center gap-4">
-                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-                            <Link href="/" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                        <div className="flex items-center gap-3">
+                            <Link href="/login" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">Login</Link>
+                            <Link href="/" className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Volver</Link>
                         </div>
                     </div>
                 </div>
@@ -341,7 +344,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
             <div className="relative z-10">
                 {/* Header Section */}
-                <div className="sticky top-0 z-30 bg-background/60 backdrop-blur-xl border-b border-white/5 py-6 px-6">
+                <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-6">
                     <div className="max-w-7xl mx-auto flex flex-col gap-6">
                         <div className="flex items-center justify-between">
                             <motion.div 
@@ -350,7 +353,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 className="space-y-1"
                             >
                                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Comunidad ACAP</p>
-                                <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
+                                <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
                                     <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Marketplace</span>
                                 </h1>
                             </motion.div>
