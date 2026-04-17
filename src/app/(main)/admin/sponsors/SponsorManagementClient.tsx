@@ -307,25 +307,25 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-5 space-y-3">
                                             <div className="flex items-center gap-2 text-azul-primary">
                                                 <Info className="w-4 h-4" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Procesamiento Automático</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Recomendaciones de Imagen</span>
                                             </div>
                                             <ul className="space-y-2">
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed">
-                                                        <strong className="text-slate-200">Formatos:</strong> Aceptamos <span className="text-celeste">PNG, JPG y WebP</span>. El sistema los convertirá automáticamente.
+                                                        <strong className="text-slate-200">Tamaño Ideal:</strong> Recomendamos <span className="text-celeste">800 x 400 px</span> (2:1). Esto garantiza nitidez total en el sidebar.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed">
-                                                        <strong className="text-slate-200">Ajuste Inteligente:</strong> No importa el tamaño original; centraremos y adaptaremos tu imagen al formato <span className="text-celeste">rectangular (2:1)</span> ideal para la web.
+                                                        <strong className="text-slate-200">Relleno Inteligente:</strong> El sistema ahora expandirá tu imagen para cubrir todo el banner. Si la foto no es 2:1, se <span className="text-celeste">recortarán los bordes proporcionalmente</span>.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                                                        Optimizamos la imagen para que pese menos de <span className="text-white">100KB</span> sin perder calidad.
+                                                        <strong className="text-slate-200">Zona Segura:</strong> Mantén el contenido importante (logos/texto) en el <span className="text-white">centro vertical</span> para evitar recortes accidentales.
                                                     </p>
                                                 </li>
                                             </ul>
