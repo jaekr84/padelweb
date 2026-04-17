@@ -5,8 +5,8 @@ import { tournaments, registrations, users, clubs } from "@/db/schema";
 
 import Link from "next/link";
 import {
-    Plus, Calendar, MapPin, Trophy, Activity,
-    Zap, CheckCircle, Clock, LayoutGrid, User, Users2, DollarSign
+    Plus, Trophy,
+    Zap, CheckCircle
 } from "lucide-react";
 import PublicTournamentCard from "./PublicTournamentCard";
 import TournamentFiltersClient from "./TournamentFiltersClient";
@@ -23,20 +23,6 @@ function formatDate(dateStr: string | null) {
     }
     const d = new Date(dateStr);
     return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function getDaysUntil(dateStr: string | null): number | null {
-    if (!dateStr) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tournamentDate = new Date(dateStr);
-    // Adjust for timezone if string is YYYY-MM-DD to avoid offset issues
-    if (typeof dateStr === 'string' && dateStr.length === 10) {
-        tournamentDate.setMinutes(tournamentDate.getMinutes() + tournamentDate.getTimezoneOffset());
-    }
-    tournamentDate.setHours(0, 0, 0, 0);
-    const diffTime = tournamentDate.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 // ─── Page ──────────────────────────────────────────────────────────────────
@@ -237,14 +223,6 @@ export default async function TournamentsPage({
         filteredTournaments = filteredTournaments.filter(t => t.clubId === selectedClub);
     }
 
-    const statusFilters = [
-        { key: "todos", label: "Activos", count: totalActiveC },
-        { key: "abiertas", label: "Inscripción", count: openC },
-        { key: "envivo", label: "En Vivo", count: liveC },
-        { key: "clubes", label: "Clubes", count: allTournaments.filter(t => t.clubId !== null).length },
-        { key: "terminados", label: "Finalizados", count: finishedC },
-    ];
-
     return (
         <>
             <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-azul-primary/30">
@@ -378,20 +356,20 @@ export default async function TournamentsPage({
                                             </h2>
                                             <div className="h-px flex-1 bg-border" />
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                            {groups[month].map((t) => (
-                                                <PublicTournamentCard
-                                                    key={t.id}
-                                                    tournament={t}
-                                                    userClubId={dbUser?.clubId}
-                                                    userDbRole={session?.role}
-                                                    userGender={dbUser?.gender}
-                                                    userCategory={dbUser?.category}
-                                                    currentUserId={session?.userId}
-                                                    isUserRegistered={t.isRegistered}
-                                                />
-                                            ))}
-                                        </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                                {groups[month].map((t) => (
+                                                    <PublicTournamentCard
+                                                        key={t.id}
+                                                        tournament={t}
+                                                        userClubId={dbUser?.clubId}
+                                                        userDbRole={session?.role}
+                                                        userGender={dbUser?.gender}
+                                                        userCategory={dbUser?.category}
+                                                        currentUserId={session?.userId}
+                                                        isUserRegistered={t.isRegistered}
+                                                    />
+                                                ))}
+                                            </div>
                                     </div>
                                 ));
                             })()}

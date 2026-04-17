@@ -44,16 +44,22 @@ function Initials({ name }: { name: string }) {
     return <span>{initials}</span>;
 }
 
-export default function RegisterForm({ 
-    tournament, 
-    currentUser, 
-    allCategories = [], 
-    initialRegistrations = [] 
-}: { 
-    tournament: Tournament; 
-    currentUser: CurrentUser; 
+export default function RegisterForm({
+    tournament,
+    currentUser,
+    allCategories = [],
+    initialRegistrations = [],
+    isModal = false,
+    onSuccess,
+    onCancel
+}: {
+    tournament: Tournament;
+    currentUser: CurrentUser;
     allCategories?: Category[];
     initialRegistrations?: Registrant[];
+    isModal?: boolean;
+    onSuccess?: () => void;
+    onCancel?: () => void;
 }) {
     // Safety check for categories
     let cats: string[] = [];
@@ -172,6 +178,7 @@ export default function RegisterForm({
                     isGuestPartner: !isIndividual && partnerMode === "guest",
                 });
                 setStep("success");
+                if (onSuccess) onSuccess();
             } catch (err) {
                 setRegError(err instanceof Error ? err.message : "Error al confirmar la inscripción");
             }
@@ -245,9 +252,11 @@ export default function RegisterForm({
 
     if (step === "success") {
         return (
-            <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
-                <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
-                <div className="relative z-10 max-w-lg mx-auto px-4 pt-20 pb-28">
+            <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
+                {!isModal && (
+                    <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
+                )}
+                <div className={`relative z-10 max-w-lg mx-auto px-4 ${isModal ? "py-6" : "pt-20 pb-28"}`}>
                     <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
                         <div className="relative mb-6">
                             <div className="w-20 h-20 rounded-3xl bg-celeste/5 border border-celeste/10 flex items-center justify-center shadow-xl shadow-celeste/10">
@@ -278,12 +287,15 @@ export default function RegisterForm({
                         </div>
 
                         <div className="flex flex-col gap-3 w-full">
-                            <Link
-                                href="/tournaments"
+                            <button
+                                onClick={() => {
+                                    if (onCancel) onCancel();
+                                    else window.location.href = "/tournaments";
+                                }}
                                 className="w-full py-4 rounded-2xl border border-border font-black text-[10px] uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all text-center"
                             >
-                                Ver otros torneos
-                            </Link>
+                                {isModal ? "Cerrar" : "Ver otros torneos"}
+                            </button>
                             <Link
                                 href="/home"
                                 className="w-full bg-azul-primary hover:bg-azul-dark active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-[10px] uppercase tracking-widest text-center"
@@ -298,46 +310,40 @@ export default function RegisterForm({
     }
 
     return (
-        <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
+        <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
 
             {/* ── Ambient glow ── */}
-            <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
+            {!isModal && (
+                <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
+            )}
 
             {/* ── Content ── */}
-            <div className="relative z-10 max-w-6xl mx-auto px-4 pt-5 pb-28">
+            <div className={`relative z-10 ${isModal ? "w-full pt-14 pb-6 px-8" : "max-w-6xl mx-auto px-4 pt-5 pb-28"}`}>
 
                 {/* ── Top bar (Full resolution width) ── */}
-                <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto lg:max-w-none">
-                    <Link
-                        href="/tournaments"
-                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-black uppercase tracking-widest text-[10px]"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Volver
-                    </Link>
-                    <div className="px-3 py-1 rounded-full bg-azul-primary/5 border border-azul-primary/10 text-azul-primary text-[10px] font-black uppercase tracking-widest">
-                        Inscripción al Torneo
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-                    
-                    {/* LEFT COLUMN: Registrants List (Hidden on mobile or appears at bottom) */}
-                    <div className="hidden lg:block lg:col-span-5 sticky top-8">
-                        {RegistrantsList}
-                        <div className="mt-6 p-6 bg-azul-primary rounded-3xl text-white shadow-xl shadow-azul-primary/20">
-                            <h4 className="text-sm font-black uppercase italic tracking-tight mb-2">¿Necesitás ayuda?</h4>
-                            <p className="text-[10px] opacity-80 leading-relaxed font-bold uppercase tracking-wider">Si tenés problemas con tu inscripción o no encontrás a tu pareja, contactanos por WhatsApp para asistencia inmediata.</p>
+                {!isModal && (
+                    <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto lg:max-w-none">
+                        <Link
+                            href="/tournaments"
+                            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-black uppercase tracking-widest text-[10px]"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Volver
+                        </Link>
+                        <div className="px-3 py-1 rounded-full bg-azul-primary/5 border border-azul-primary/10 text-azul-primary text-[10px] font-black uppercase tracking-widest">
+                            Inscripción al Torneo
                         </div>
                     </div>
+                )}
 
+                <div className={`grid grid-cols-1 ${isModal ? "" : "lg:grid-cols-12"} gap-8 lg:gap-12 items-start justify-center`}>
                     {/* RIGHT COLUMN: Form steps */}
-                    <div className="lg:col-span-7 w-full max-w-xl mx-auto lg:mx-0">
-                        
+                    <div className={`${isModal ? "w-full" : "lg:col-span-7"} w-full ${isModal ? "max-w-2xl" : "max-w-xl"} mx-auto lg:mx-0`}>
+
                         {/* ── Step bar ── */}
-                        <div className="mb-12">
+                        <div className={`${isModal ? "mb-10 px-6" : "mb-12"}`}>
                             <div className="relative flex items-center justify-between">
-                                <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-muted">
+                                <div className="absolute top-3.5 left-0 right-0 h-[1px] bg-muted/50">
                                     <div
                                         className="absolute top-0 bottom-0 left-0 bg-celeste transition-all duration-500"
                                         style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
@@ -350,14 +356,14 @@ export default function RegisterForm({
                                     return (
                                         <div key={s.id} className="relative flex flex-col items-center gap-2">
                                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
-                                                ? "bg-azul-primary border-azul-primary text-white"
+                                                ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
                                                 : active
-                                                    ? "bg-background border-celeste text-celeste"
+                                                    ? "bg-background border-celeste text-celeste shadow-inner"
                                                     : "bg-background border-border text-muted-foreground"
                                                 }`}>
-                                                {done ? <Check className="w-3.5 h-3.5" /> : (realIdx + 1)}
+                                                {done ? <Check className="w-3 h-3" /> : (realIdx + 1)}
                                             </div>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-foreground" : "text-muted-foreground"
+                                            <span className={`text-[8px] font-black uppercase tracking-[0.15em] absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-foreground" : "text-muted-foreground"
                                                 }`}>
                                                 {s.label}
                                             </span>
@@ -477,13 +483,23 @@ export default function RegisterForm({
                                     {RegistrantsList}
                                 </div>
 
-                                <button
-                                    onClick={goNext}
-                                    className="w-full mt-6 bg-azul-primary hover:bg-azul-dark active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2"
-                                >
-                                    {isIndividual ? "Continuar" : "Elegir pareja"}
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
+                                <div className="flex gap-3 mt-6">
+                                    {isModal && (
+                                        <button
+                                            onClick={onCancel}
+                                            className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={goNext}
+                                        className={`${isModal ? "flex-[2]" : "w-full"} bg-azul-primary hover:bg-azul-dark active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2`}
+                                    >
+                                        {isIndividual ? "Continuar" : "Elegir pareja"}
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -650,10 +666,14 @@ export default function RegisterForm({
 
                                     <div className="flex gap-3 pt-6">
                                         <button
-                                            onClick={goBack}
-                                            className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
+                                            onClick={() => {
+                                                if (isModal && onCancel) onCancel();
+                                                else goBack();
+                                            }}
+                                            className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all flex items-center justify-center gap-2"
                                         >
-                                            Volver
+                                            {isModal && stepIdx === 1 ? <ArrowLeft className="w-3.5 h-3.5" /> : null}
+                                            {isModal && stepIdx === 1 ? "Volver" : "Volver"}
                                         </button>
                                         <button
                                             onClick={goNext}
@@ -747,8 +767,9 @@ export default function RegisterForm({
                                 <div className="flex gap-3 pt-4">
                                     <button
                                         onClick={goBack}
-                                        className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
+                                        className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all flex items-center justify-center gap-2"
                                     >
+                                        <ArrowLeft className="w-3.5 h-3.5" />
                                         Volver
                                     </button>
                                     <button

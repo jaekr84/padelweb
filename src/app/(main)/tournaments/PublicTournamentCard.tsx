@@ -11,6 +11,7 @@ import {
 import ClubEnrollmentModal from "./ClubEnrollmentModal";
 import AccessDeniedModal from "./AccessDeniedModal";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
+import RegisterTournamentModal from "./RegisterTournamentModal";
 
 interface PublicTournamentCardProps {
     tournament: any;
@@ -30,6 +31,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         reason: null,
         message: ""
     });
+    const [showRegModal, setShowRegModal] = useState(false);
 
     const hasImage = tournament.imageUrl &&
         tournament.imageUrl !== "" &&
@@ -50,7 +52,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     // Permissions for the management buttons
     const isCreator = Boolean(currentUserId && tournament.createdByUserId && currentUserId === tournament.createdByUserId);
     const isClubOwner = Boolean(currentUserId && tournament.club?.ownerId && currentUserId === tournament.club.ownerId);
-    
+
     // Strict membership check: superadmins also need to be members if it's members only (per user request)
     const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
     const isClubMember = isExplicitClubMember; // Removed superadmin bypass for membership check
@@ -71,11 +73,16 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
     const isPreregistration = tournament.status === "published" && !isOpen;
     const isFinished = tournament.status === "finalizado";
+    const maxSlots = Number(mod?.maxSlots || 0);
+    const isFull = maxSlots > 0 && (tournament.occupiedSlots || 0) >= maxSlots;
 
     const statusConfig = isLive
         ? { label: "En Vivo", dot: true, pill: "bg-rojo text-white shadow-rojo/20", text: "text-rojo" }
         : isOpen
-            ? { label: "Abierto", dot: false, pill: "bg-celeste text-white shadow-celeste/20", text: "text-celeste" }
+            ? (isFull
+                ? { label: "Lleno", dot: false, pill: "bg-rojo text-white shadow-rojo/20", text: "text-rojo" }
+                : { label: "Inscripción", dot: false, pill: "bg-celeste text-white shadow-celeste/20", text: "text-celeste" }
+            )
             : isPreregistration
                 ? { label: "Próximamente", dot: false, pill: "bg-azul-primary text-white shadow-azul-primary/20", text: "text-azul-primary" }
                 : isFinished
@@ -83,9 +90,9 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                     : { label: "Borrador", dot: false, pill: "bg-muted-foreground/10 text-muted-foreground", text: "text-muted-foreground" };
 
     const isClubUser = userDbRole === "club" || userDbRole === "superadmin";
-    const canDoMassInsc = isOpen && isClubUser && (!tournament.isMembersOnly || isClubMember) && !isFinished && !isLive;
+    const canDoMassInsc = isOpen && !isFull && isClubUser && (!tournament.isMembersOnly || isClubMember) && !isFinished && !isLive;
 
-    const href = isUserRegistered || isLive || isFinished
+    const href = isUserRegistered || isLive || isFinished || isFull
         ? `/tournaments/${tournament.id}`
         : isOpen
             ? `/tournaments/register?id=${tournament.id}`
@@ -165,7 +172,34 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         return true;
     };
 
+    const [isFlipped, setIsFlipped] = useState(false);
+    const [participants, setParticipants] = useState<any[]>([]);
+    const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
+
+    const toggleFlip = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const newFlipped = !isFlipped;
+        setIsFlipped(newFlipped);
+
+        if (newFlipped && participants.length === 0) {
+            setIsLoadingParticipants(true);
+            try {
+                const { getTournamentParticipants } = await import("./actions");
+                const data = await getTournamentParticipants(tournament.id);
+                setParticipants(data);
+            } catch (error) {
+                console.error("Error loading participants:", error);
+            } finally {
+                setIsLoadingParticipants(false);
+            }
+        }
+    };
+
     const handleCardClick = (e: React.MouseEvent) => {
+        if (isFlipped) return; // Don't navigate if flipped
+
         if (canDoMassInsc) {
             e.preventDefault();
             e.stopPropagation();
@@ -173,7 +207,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         } else if (isOpen) {
             e.preventDefault();
             e.stopPropagation();
-            if (checkEligibility()) {
+            
+            // If it's registration, open modal
+            if (!isFull && !isUserRegistered && !isLive && !isFinished) {
+                setShowRegModal(true);
+            } else {
                 router.push(href);
             }
         } else {
@@ -184,300 +222,353 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     return (
         <>
             <div
-            onClick={handleCardClick}
-            className="group block h-full focus:outline-none cursor-pointer"
-        >
-            <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-celeste/20 flex flex-col h-full relative group/card">
-                {/* Compact Image Area */}
-                <div className="relative h-32 w-full overflow-hidden bg-muted/20">
-                    {!showFallback ? (
-                        <img
-                            src={tournament.imageUrl}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105"
-                            alt={tournament.name}
-                            onError={() => setImageError(true)}
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-azul-primary/5 to-azul-primary/10">
-                            <Trophy className={`w-8 h-8 ${statusConfig.text} opacity-20`} />
-                        </div>
-                    )}
+                className="group block h-[700px] perspective-1000"
+                style={{ perspective: "2000px" }}
+            >
+                <div
+                    className={`relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
+                >
+                    {/* FRONT FACE */}
+                    <div
+                        className="absolute inset-0 [backface-visibility:hidden] z-10"
+                        onClick={handleCardClick}
+                    >
+                        <div className="bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-azul-primary/10 hover:border-celeste/30 flex flex-col h-full relative group/card shadow-sm hover:-translate-y-1.5 cursor-pointer">
 
-                    {/* Compact Badges */}
-                    <div className="absolute top-3 left-3 flex gap-2">
-                        <span className={`px-2 py-0.5 rounded-md ${statusConfig.pill} font-black text-[9px] uppercase tracking-wider shadow-sm`}>
-                            {statusConfig.label}
-                        </span>
-                        {tournament.isMembersOnly && (
-                            <span className="px-2 py-0.5 rounded-md bg-azul-primary text-white font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
-                                <Shield className="w-2.5 h-2.5" /> Exclusivo Miembros
-                            </span>
-                        )}
-                        {isUserRegistered && (
-                            <span className="px-2 py-0.5 rounded-md bg-white border border-celeste/10 text-celeste font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
-                                <CheckCircle className="w-2.5 h-2.5" /> Inscripto
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Admin/Club Actions Overlay */}
-                    {canManage && (
-                        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    router.push(`/tournaments/${tournament.id}/edit`);
-                                }}
-                                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
-                                title="Editar Torneo"
-                            >
-                                <Edit3 className="w-4 h-4 group-hover/btn:text-celeste transition-colors" />
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    router.push(`/tournaments/${tournament.id}/manage`);
-                                }}
-                                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
-                                title="Gestionar Torneo"
-                            >
-                                <Settings className="w-4 h-4 group-hover/btn:text-celeste transition-colors" />
-                            </button>
-
-                            {tournament.status === 'finalizado' && (
-                                <TournamentPublishButton 
-                                    tournamentId={tournament.id} 
-                                    tournamentName={tournament.name} 
-                                    variant="card"
-                                />
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className="p-5 flex flex-col flex-1">
-                    {/* Header StatsRow */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 mb-1 truncate">
-                                {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
-                            </p>
-                            <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-azul-primary transition-colors truncate">
-                                {tournament.name}
-                            </h3>
-                            {tournament.location && (
-                                <p className="text-[10px] font-bold text-azul-primary uppercase tracking-widest mt-1 flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" /> {tournament.location}
-                                </p>
-                            )}
-                        </div>
-                        <div className="flex flex-col items-end text-right">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha / Hora</span>
-                            <span className="text-xs font-bold text-foreground/80">{formatDate(tournament.startDate)}</span>
-                            {tournament.time && (
-                                <span className="text-[10px] font-black text-azul-primary uppercase tracking-tighter flex items-center gap-1 mt-0.5">
-                                    <Clock className="w-2.5 h-2.5" /> {tournament.time}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Compact Metadata Grid (3 columns for seriousness) */}
-                    <div className="grid grid-cols-3 gap-3 mb-5 border-y border-border/40 py-4 bg-muted/5 -mx-5 px-5">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Categorías</span>
-                            <span className="text-[11px] font-bold text-foreground/90 truncate">
-                                {(() => {
-                                    let cats = tournament.categories;
-                                    if (typeof cats === 'string') {
-                                        try { cats = JSON.parse(cats); } catch (e) { cats = []; }
-                                    }
-                                    return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "N/A";
-                                })()}
-                            </span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Género</span>
-                            <span className="text-[11px] font-bold text-foreground/90 capitalize">
-                                {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : 'Mixto'}
-                            </span>
-                        </div>
-                        <div className="flex flex-col col-span-1">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Inscripción</span>
-                            <div className="flex flex-col gap-0.5">
-                                {tournament.memberRegistrationFee !== null && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[7px] font-black text-azul-primary uppercase tracking-tighter">Socio:</span>
-                                        <span className="text-[10px] font-bold text-foreground/90">
-                                            ${tournament.memberRegistrationFee.toLocaleString('es-ES')}
-                                        </span>
+                            {/* Cinematic Image Area */}
+                            <div className="relative h-48 w-full overflow-hidden bg-muted/20">
+                                {!showFallback ? (
+                                    <img
+                                        src={tournament.imageUrl}
+                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover/card:scale-110"
+                                        alt={tournament.name}
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-azul-primary/10 to-celeste/10">
+                                        <Trophy className={`w-12 h-12 ${statusConfig.text} opacity-20 animate-pulse`} />
                                     </div>
                                 )}
-                                {tournament.registrationFee !== null && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-[7px] font-black text-muted-foreground uppercase tracking-tighter">Gral:</span>
-                                        <span className="text-[10px] font-bold text-foreground/90">
-                                            ${tournament.registrationFee.toLocaleString('es-ES')}
+
+                                {/* Floating Glass Badges */}
+                                <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+                                    <span className={`px-3 py-1 rounded-full ${statusConfig.pill} font-black text-[10px] uppercase tracking-[0.15em] shadow-lg backdrop-blur-md bg-opacity-90`}>
+                                        {statusConfig.label}
+                                    </span>
+                                    {isUserRegistered && (
+                                        <span className="px-3 py-1 rounded-full bg-green-500 backdrop-blur-md text-white font-bold text-[10px] uppercase tracking-[0.15em] flex items-center gap-1.5 shadow-lg border border-emerald-400/20">Inscripto
                                         </span>
+                                    )}
+                                    {tournament.isMembersOnly && (
+                                        <span className="px-3 py-1 rounded-full bg-azul-primary/90 backdrop-blur-md text-white font-black text-[10px] uppercase tracking-[0.15em] flex items-center gap-1.5 shadow-lg">
+                                            <Shield className="w-3.5 h-3.5" /> Miembros
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Admin Overlays */}
+                                {canManage && (
+                                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                router.push(`/tournaments/${tournament.id}/edit`);
+                                            }}
+                                            className="p-2.5 rounded-full bg-black/60 backdrop-blur-xl text-white hover:bg-azul-primary transition-all shadow-2xl border border-white/10 group/btn hover:scale-110"
+                                            title="Editar Torneo"
+                                        >
+                                            <Edit3 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                router.push(`/tournaments/${tournament.id}/manage`);
+                                            }}
+                                            className="p-2.5 rounded-full bg-black/60 backdrop-blur-xl text-white hover:bg-azul-primary transition-all shadow-2xl border border-white/10 group/btn hover:scale-110"
+                                            title="Gestionar Torneo"
+                                        >
+                                            <Settings className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 )}
-                                {tournament.memberRegistrationFee === null && tournament.registrationFee === null && (
-                                    <span className="text-[11px] font-black text-celeste uppercase tracking-widest">Gratis</span>
+
+                                {/* Bottom Image Gradient Overlay */}
+                                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+
+                                <div className="absolute bottom-4 left-4 right-4 text-white">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-celeste/90 mb-1 drop-shadow-lg">
+                                        {tournament.surface || tournament.location || "Sede ACAP"}
+                                    </p>
+                                    <h3 className="text-xl font-black uppercase italic tracking-tighter leading-none line-clamp-2 drop-shadow-xl text-white">
+                                        {tournament.name}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div className="p-6 flex flex-col flex-1 bg-gradient-to-b from-background to-muted/5">
+                                {/* Quick Stats Header */}
+                                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/40">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 rounded-2xl bg-azul-primary/5 border border-azul-primary/10">
+                                            <Calendar className="w-5 h-5 text-azul-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Comienza</p>
+                                            <p className="text-sm font-black text-foreground">{formatDate(tournament.startDate)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Hora</p>
+                                        <p className="text-sm font-black text-azul-primary">{tournament.time || "--:--"}</p>
+                                    </div>
+                                </div>
+
+                                {/* Metadata Grid - Premium Cells */}
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <Trophy className="w-3.5 h-3.5 text-azul-primary/60" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Categoría</span>
+                                        </div>
+                                        <p className="text-xs font-black text-foreground truncate">
+                                            {(() => {
+                                                let cats = tournament.categories;
+                                                if (typeof cats === 'string') {
+                                                    try { cats = JSON.parse(cats); } catch (e) { cats = []; }
+                                                }
+                                                return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "N/A";
+                                            })()}
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <Users2 className="w-3.5 h-3.5 text-azul-primary/60" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Género</span>
+                                        </div>
+                                        <p className="text-xs font-black text-foreground capitalize">
+                                            {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : 'Mixto'}
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <Zap className="w-3.5 h-3.5 text-azul-primary/60" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Formato</span>
+                                        </div>
+                                        <p className="text-xs font-black text-foreground truncate">
+                                            {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <DollarSign className="w-3.5 h-3.5 text-azul-primary/60" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inscripción</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            {tournament.registrationFee != null ? (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Gral:</span>
+                                                    <span className="text-xs font-black text-foreground">${Number(tournament.registrationFee).toLocaleString('es-ES')}</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Gral:</span>
+                                                    <span className="text-xs font-black text-celeste">Gratis</span>
+                                                </div>
+                                            )}
+                                            {tournament.memberRegistrationFee != null && (
+                                                <div className="flex items-center justify-between border-t border-azul-primary/10 pt-1">
+                                                    <span className="text-[8px] font-black text-azul-primary uppercase tracking-tighter">Socio:</span>
+                                                    <span className="text-xs font-black text-azul-primary">${Number(tournament.memberRegistrationFee).toLocaleString('es-ES')}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Location Section with Map Background */}
+                                {tournament.location && (
+                                    <div
+                                        onClick={(e) => {
+                                            if (tournament.surface) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.surface)}`, "_blank");
+                                            }
+                                        }}
+                                        className="mb-6 rounded-2xl border border-azul-primary/20 group/loc cursor-pointer hover:border-azul-primary/40 transition-all overflow-hidden relative min-h-[100px] flex flex-col justify-center p-5"
+                                    >
+                                        {/* Background Map Layer */}
+                                        {tournament.surface && (
+                                            <div className="absolute inset-0 z-0 pointer-events-none opacity-40 grayscale-[0.5] contrast-[1.1]">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    style={{ border: 0 }}
+                                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.surface)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                                ></iframe>
+                                                {/* Glass Overlay to protect text */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-white/60 backdrop-blur-[2px]" />
+                                            </div>
+                                        )}
+
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="p-1.5 rounded-lg bg-azul-primary/10">
+                                                    <MapPin className="w-4 h-4 text-azul-primary group-hover/loc:scale-110 transition-transform" />
+                                                </div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">Sede del Evento</span>
+                                            </div>
+                                            <p className="text-sm font-black text-foreground group-hover/loc:text-azul-primary transition-colors leading-tight">
+                                                {tournament.surface || tournament.location}
+                                            </p>
+                                        </div>
+                                    </div>
                                 )}
+
+                                {/* Action Area */}
+                                <div className="mt-auto space-y-4">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={toggleFlip}
+                                            className="flex-1 py-4 rounded-xl bg-muted/50 text-muted-foreground border border-border/40 hover:bg-muted transition-all font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 px-2"
+                                        >
+                                            <Users2 className="w-3.5 h-3.5" />
+                                            <span className="truncate">Inscriptos</span>
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isOpen && !isFull && !isUserRegistered) {
+                                                    setShowRegModal(true);
+                                                } else {
+                                                    router.push(href);
+                                                }
+                                            }}
+                                            className={`flex-1 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[9px] shadow-2xl ${isLive ? "bg-rojo text-white shadow-rojo/30 hover:bg-rojo/90" :
+                                                isUserRegistered ? "bg-azul-primary text-white shadow-azul-primary/30" :
+                                                    isOpen ? (
+                                                        isFull ? "bg-rojo/60 text-white/80 shadow-none cursor-not-allowed opacity-70 grayscale-[1] pointer-events-none" :
+                                                            (tournament.isMembersOnly ? "bg-azul-primary text-white shadow-azul-primary/40 hover:scale-[1.02] hover:shadow-azul-primary/50" : "bg-celeste text-white shadow-celeste/40 hover:scale-[1.02] hover:shadow-celeste/50")
+                                                    ) :
+                                                        isPreregistration ? "bg-celeste text-white shadow-celeste/30" :
+                                                            "bg-muted text-muted-foreground shadow-none"
+                                            }`}>
+                                            {isLive ? <Zap className="w-3.5 h-3.5" /> :
+                                                isUserRegistered ? <CheckCircle className="w-3.5 h-3.5" /> :
+                                                    isOpen ? (isFull ? <Users2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />) :
+                                                        <Clock className="w-3.5 h-3.5" />}
+
+                                            <span className="truncate">
+                                                {isLive ? "En Vivo" :
+                                                    isUserRegistered ? "Inscripto" :
+                                                        canDoMassInsc ? "Masiva" :
+                                                            isOpen ? (
+                                                                isFull ? "Lleno" :
+                                                                    (tournament.isMembersOnly && !isClubMember ? "Miembros" : "Inscribirme")
+                                                            ) :
+                                                                isPreregistration ? "Pronto" : "Cerrado"}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Modalidad</span>
-                            <span className="text-[11px] font-bold text-foreground/90">
-                                {mod?.participacion === 'individual' ? "Individual" : "En Parejas"}
-                            </span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Tipo</span>
-                            <span className="text-[11px] font-bold text-foreground/90">
-                                {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
-                            </span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Cupos</span>
-                            <span className="text-[11px] font-bold text-foreground/90">{mod?.maxSlots && mod.maxSlots !== 0 ? mod.maxSlots : "Sin límite"}</span>
-                        </div>
                     </div>
 
-                    <div className="mb-5 flex items-start gap-2">
-                        <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/70" />
-                        <div className="flex-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación Exacta</span>
-                            {tournament.surface ? (
-                                <span
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.surface)}`, "_blank");
-                                    }}
-                                    className="text-xs font-bold text-foreground/80 hover:text-azul-primary underline decoration-azul-primary/20 underline-offset-4 cursor-pointer"
+                    {/* BACK FACE */}
+                    <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] z-20">
+                        <div className="bg-card border border-border/60 rounded-[2rem] overflow-hidden flex flex-col h-full shadow-2xl border-azul-primary/20">
+                            <div className="p-6 bg-gradient-to-br from-azul-primary to-azul-dark text-white relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <Trophy className="w-6 h-6 opacity-50" />
+                                    <button
+                                        onClick={toggleFlip}
+                                        className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors"
+                                    >
+                                        <Plus className="w-5 h-5 rotate-45" />
+                                    </button>
+                                </div>
+                                <h3 className="text-xl font-black uppercase italic tracking-tighter">Inscriptos</h3>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white/70">{tournament.name}</p>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+                                {isLoadingParticipants ? (
+                                    <div className="flex flex-col items-center justify-center h-48 space-y-4">
+                                        <div className="w-8 h-8 border-4 border-azul-primary border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargando lista...</p>
+                                    </div>
+                                ) : participants.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-48 text-center space-y-2 opacity-40">
+                                        <Users2 className="w-12 h-12" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">No hay inscriptos aún</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-x-10 gap-y-2">
+                                        {participants.map((reg) => (
+                                            <div
+                                                key={reg.id}
+                                                className="flex items-center justify-between border-b border-border/10 pb-1 group/p"
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight">
+                                                        {reg.user?.firstName} {reg.user?.lastName?.charAt(0)}.
+                                                        {reg.partnerName && (
+                                                            <span className="text-muted-foreground font-bold italic ml-1 lowercase tracking-normal">
+                                                                + {reg.partnerName.split(' ')[0]}
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div className="shrink-0 ml-2">
+                                                    <span className="text-[7.5px] font-black text-azul-primary uppercase">
+                                                        {reg.category || reg.user?.category || "Cat"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-border/40 bg-muted/10">
+                                <button
+                                    onClick={toggleFlip}
+                                    className="w-full py-4 rounded-2xl bg-azul-primary text-white font-black uppercase tracking-[0.2em] text-[11px] hover:bg-azul-dark transition-all flex items-center justify-center gap-2"
                                 >
-                                    {tournament.surface}
-                                </span>
-                            ) : (
-                                <span className="text-xs font-bold text-muted-foreground/70 italic">Por confirmar</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Ultra Compact Map */}
-                    <div className="mb-6 w-full h-24 rounded-xl overflow-hidden border border-border/50 bg-muted/10 relative">
-                        {tournament.surface ? (
-                            <iframe
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0, opacity: 0.6, filter: 'grayscale(0.2)' }}
-                                loading="lazy"
-                                allowFullScreen
-                                src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.surface)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                            ></iframe>
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center opacity-20">
-                                <MapPin className="w-4 h-4 mr-2" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Sin mapa disponible</span>
+                                    Volver al Torneo
+                                </button>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Registration Progress Bar */}
-                    {mod?.maxSlots > 0 && (
-                        <div className="mb-6 space-y-2">
-                            <div className="flex justify-between items-end px-1">
-                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">Cupos Confirmados</span>
-                                <span className="text-[10px] font-bold text-foreground/80">
-                                    {tournament.occupiedSlots || 0} / {mod.maxSlots} {mod.participacion === 'pareja' ? 'Parejas' : 'Jugadores'}
-                                </span>
-                            </div>
-                            <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden border border-border/10">
-                                {(() => {
-                                    const occupied = tournament.occupiedSlots || 0;
-                                    const max = mod.maxSlots;
-                                    const percentage = Math.min((occupied / max) * 100, 100);
-                                    
-                                    let barColor = "bg-celeste";
-                                    if (percentage >= 95) barColor = "bg-rojo shadow-[0_0_12px_rgba(255,51,102,0.4)]";
-                                    else if (percentage >= 75) barColor = "bg-celeste shadow-[0_0_12px_rgba(0,157,224,0.4)]";
-                                    
-                                    return (
-                                        <div 
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
-                                            style={{ width: `${percentage}%` }}
-                                        />
-                                    );
-                                })()}
-                            </div>
-                            <div className="flex justify-between items-center px-1">
-                                <span className="text-[8px] font-bold text-muted-foreground/50 italic capitalize">
-                                    {mod.maxSlots - (tournament.occupiedSlots || 0) <= 0 ? 'Sin lugares' : `${mod.maxSlots - (tournament.occupiedSlots || 0)} libres`}
-                                </span>
-                                <span className="text-[9px] font-black italic text-azul-primary/80">
-                                    {Math.round(Math.min(((tournament.occupiedSlots || 0) / mod.maxSlots) * 100, 100))}%
-                                </span>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Enrollment Section - Minimalist */}
-                    <div className="mt-auto pt-4 border-t border-border/40">
-
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <div className="flex flex-col">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Club</span>
-                                <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateClub)}</span>
-                            </div>
-                            <div className="w-px h-6 bg-border/40" />
-                            <div className="flex flex-col text-right">
-                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">General</span>
-                                <span className="text-[10px] font-bold text-foreground/80">{formatDate(tournament.openDateGeneral)}</span>
-                            </div>
-                        </div>
-
-                        <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${isLive ? "bg-rojo text-white shadow-lg shadow-rojo/20" :
-                                isUserRegistered ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" :
-                                    isOpen ? (tournament.isMembersOnly && !isClubMember ? "bg-azul-primary/80 text-white shadow-lg shadow-azul-primary/10" : "bg-azul-primary text-white shadow-lg shadow-azul-primary/20") :
-                                        tournament.isMembersOnly ? "bg-azul-primary/80 text-white shadow-lg shadow-azul-primary/10" :
-                                            isPreregistration ? "bg-celeste text-white shadow-lg shadow-celeste/20" :
-                                                "bg-muted text-muted-foreground shadow-none"
-                            }`}>
-                            {isLive ? <Zap className="w-3.5 h-3.5" /> :
-                                isUserRegistered ? <CheckCircle className="w-3.5 h-3.5" /> :
-                                    isOpen ? (tournament.isMembersOnly && !isClubMember ? <Shield className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />) :
-                                        tournament.isMembersOnly ? <Shield className="w-3.5 h-3.5" /> :
-                                            isPreregistration ? <Clock className="w-3.5 h-3.5" /> :
-                                                <Trophy className="w-3.5 h-3.5" />}
-
-                            {isLive ? "En Vivo" :
-                                isUserRegistered ? "Mi Inscripción" :
-                                    canDoMassInsc ? "Inscripción Masiva" :
-                                        isOpen ? (tournament.isMembersOnly && !isClubMember ? "Solo Miembros" : "Inscribirse") :
-                                            tournament.isMembersOnly ? "Solo Miembros" :
-                                                isPreregistration ? "Muy Pronto" : "Próximamente"}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <ClubEnrollmentModal
-            isOpen={isClubModalOpen}
-            onClose={() => setIsClubModalOpen(false)}
-            tournament={tournament}
-        />
+            <ClubEnrollmentModal
+                isOpen={isClubModalOpen}
+                onClose={() => setIsClubModalOpen(false)}
+                tournament={tournament}
+            />
 
-        <AccessDeniedModal
-            isOpen={deniedModal.isOpen}
-            onClose={() => setDeniedModal({ ...deniedModal, isOpen: false })}
-            reason={deniedModal.reason}
-            message={deniedModal.message}
-            tournamentName={tournament.name}
-        />
+            <AccessDeniedModal
+                isOpen={deniedModal.isOpen}
+                onClose={() => setDeniedModal({ ...deniedModal, isOpen: false })}
+                reason={deniedModal.reason}
+                message={deniedModal.message}
+                tournamentName={tournament.name}
+            />
+
+            <RegisterTournamentModal 
+                tournamentId={tournament.id}
+                isOpen={showRegModal}
+                onClose={() => setShowRegModal(false)}
+                onSuccess={() => {
+                    router.refresh();
+                }}
+            />
         </>
     );
 }
+
