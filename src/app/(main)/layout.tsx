@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import Sidebar from "./feed/Sidebar";
 import SponsorSidebar from "./feed/SponsorSidebar";
+import FloatingChat from "@/components/chat/FloatingChat";
 import { getSession } from "@/lib/auth-server";
 
 export default async function MainLayout({ children }: { children: ReactNode }) {
@@ -18,6 +19,10 @@ export default async function MainLayout({ children }: { children: ReactNode }) 
                 {children}
             </main>
             {session && <SponsorSidebar />}
+            {session && <FloatingChat currentUserId={session.userId} />}
+            
+            {/* Portal for floating chat and global overlays */}
+            <div id="chat-portal" />
         </div>
     );
 }

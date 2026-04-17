@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
 import { switchActiveRole } from "@/app/actions/role";
+import { useChatStore } from "@/store/useChatStore";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -26,10 +27,10 @@ const NAV: Record<string, NavItem[]> = {
 
     club: [
         { href: "/home", icon: Home, label: "Inicio" },
-        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/club/tournaments", icon: Trophy, label: "Mis Torneos" },
         { href: "/club/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
@@ -38,22 +39,23 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
     ],
     superadmin: [
-        { href: "/home", icon: Home, label: "Feed" },
+        { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
-        { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
+        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+        { href: "/profile", icon: User, label: "Mi Perfil" },
+        { href: "/ranking", icon: Star, label: "Ranking" },
+        { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
+        { href: "/directory", icon: FolderOpen, label: "Clubes" },
+        { href: "/admin", icon: LayoutDashboard, label: "Administración" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
         { href: "/admin/puntosTorneo", icon: Zap, label: "Puntos" },
-        { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-        { href: "/directory", icon: FolderOpen, label: "Clubes" },
-        { href: "/ranking", icon: Star, label: "Ranking" },
-        { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
-        { href: "/profile", icon: User, label: "Mi Perfil" },
     ],
 };
 
@@ -84,24 +86,20 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
         initialUser?.userId ? { name: "", role: initialUser.role, dbRole: initialUser.dbRole, imageUrl: initialUser.imageUrl || null } : null
     );
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [unreadMessages, setUnreadMessages] = useState(0);
+    
+    // Global Chat Store integration
+    const unreadMessages = useChatStore(s => s.unreadCount);
+    const refreshChatUnread = useChatStore(s => s.refreshUnread);
+
     const pathname = usePathname();
     const router = useRouter();
 
-    const refreshUnread = useCallback(async () => {
-        try {
-            const { getUnreadCount } = await import("@/app/(main)/mensajes/actions");
-            const count = await getUnreadCount();
-            setUnreadMessages(count);
-        } catch { }
-    }, []);
-
     useEffect(() => {
         if (!initialUser?.userId) return;
-        refreshUnread();
-        const interval = setInterval(refreshUnread, 45000); // Increased to 45s
+        refreshChatUnread();
+        const interval = setInterval(refreshChatUnread, 45000);
         return () => clearInterval(interval);
-    }, [initialUser?.userId, refreshUnread]);
+    }, [initialUser?.userId, refreshChatUnread]);
 
     useEffect(() => {
         if (initialUser?.userId) {
