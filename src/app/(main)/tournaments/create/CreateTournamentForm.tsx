@@ -33,7 +33,6 @@ export type InitialData = {
     startDate: string | null;
     endDate: string | null;
     time: string | null;
-    location: string | null;
     openDateClub: string | null;
     openDateGeneral: string | null;
     categories: string[] | null;
@@ -123,7 +122,6 @@ export default function CreateTournamentForm({
         startDate: initialData?.startDate ?? "",
         endDate: initialData?.endDate ?? "",
         time: initialData?.time ?? "",
-        location: initialData?.location ?? "",
         openDateClub: initialData?.openDateClub ?? "",
         openDateGeneral: initialData?.openDateGeneral ?? "",
         description: initialData?.description ?? "",
@@ -196,7 +194,6 @@ export default function CreateTournamentForm({
                 startDate: info.startDate,
                 endDate: info.endDate,
                 time: info.time,
-                location: info.location,
                 openDateClub: info.openDateClub,
                 openDateGeneral: info.openDateGeneral,
                 categories: finalCategories,
@@ -442,20 +439,6 @@ export default function CreateTournamentForm({
                                             ></iframe>
                                         </div>
                                     )}
-                                </div>
-                                <div className="md:col-span-3 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Localidad / Ciudad</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <input
-                                            type="text"
-                                            value={info.location}
-                                            onChange={e => setInfo({ ...info, location: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
-                                            placeholder="Ej: Córdoba, Argentina"
-                                            autoCapitalize="sentences"
-                                        />
-                                    </div>
                                 </div>
 
                                 <div className="md:col-span-3 space-y-2">
@@ -759,10 +742,6 @@ export default function CreateTournamentForm({
                                             <div className="space-y-1">
                                                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Participación</p>
                                                 <p className="text-sm font-black italic uppercase tracking-widest text-azul-primary">{modalidad.participacion === 'pareja' ? 'Parejas' : 'Individual'}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Localidad</p>
-                                                <p className="text-sm font-black italic truncate">{info.location || "No definida"}</p>
                                             </div>
                                             <div className="col-span-2 space-y-1">
                                                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Ubicación Google Maps</p>

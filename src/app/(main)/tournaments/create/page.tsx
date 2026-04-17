@@ -45,7 +45,6 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
                 startDate: t.startDate,
                 endDate: t.endDate,
                 time: t.time,
-                location: t.location,
                 openDateClub: t.openDateClub ?? null,
                 openDateGeneral: t.openDateGeneral ?? null,
                 categories: t.categories as string[] | null,

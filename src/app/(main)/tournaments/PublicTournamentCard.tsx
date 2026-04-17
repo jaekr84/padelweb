@@ -207,7 +207,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         } else if (isOpen) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // If it's registration, open modal
             if (!isFull && !isUserRegistered && !isLive && !isFinished) {
                 setShowRegModal(true);
@@ -388,30 +388,30 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 </div>
 
                                 {/* Location Section with Map Background */}
-                                {tournament.location && (
+                                {/* Location Section with Map Background */}
+                                {(tournament.surface || tournament.location) && (
                                     <div
                                         onClick={(e) => {
-                                            if (tournament.surface) {
+                                            const addr = tournament.surface || tournament.location;
+                                            if (addr) {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.surface)}`, "_blank");
+                                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_blank");
                                             }
                                         }}
                                         className="mb-6 rounded-2xl border border-azul-primary/20 group/loc cursor-pointer hover:border-azul-primary/40 transition-all overflow-hidden relative min-h-[100px] flex flex-col justify-center p-5"
                                     >
                                         {/* Background Map Layer */}
-                                        {tournament.surface && (
-                                            <div className="absolute inset-0 z-0 pointer-events-none opacity-40 grayscale-[0.5] contrast-[1.1]">
-                                                <iframe
-                                                    width="100%"
-                                                    height="100%"
-                                                    style={{ border: 0 }}
-                                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.surface)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                                                ></iframe>
-                                                {/* Glass Overlay to protect text */}
-                                                <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-white/60 backdrop-blur-[2px]" />
-                                            </div>
-                                        )}
+                                        <div className="absolute inset-0 z-0 pointer-events-none opacity-100 grayscale-[0.5] contrast-[1.1]">
+                                            <iframe
+                                                width="100%"
+                                                height="100%"
+                                                style={{ border: 0 }}
+                                                src={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.surface || tournament.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                            ></iframe>
+                                            {/* Glass Overlay to protect text */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-white/60 backdrop-blur-[2px]" />
+                                        </div>
 
                                         <div className="relative z-10">
                                             <div className="flex items-center gap-2 mb-2">
@@ -437,7 +437,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                             <Users2 className="w-3.5 h-3.5" />
                                             <span className="truncate">Inscriptos</span>
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (isOpen && !isFull && !isUserRegistered) {
@@ -454,7 +454,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                     ) :
                                                         isPreregistration ? "bg-celeste text-white shadow-celeste/30" :
                                                             "bg-muted text-muted-foreground shadow-none"
-                                            }`}>
+                                                }`}>
                                             {isLive ? <Zap className="w-3.5 h-3.5" /> :
                                                 isUserRegistered ? <CheckCircle className="w-3.5 h-3.5" /> :
                                                     isOpen ? (isFull ? <Users2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />) :
@@ -560,7 +560,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                 tournamentName={tournament.name}
             />
 
-            <RegisterTournamentModal 
+            <RegisterTournamentModal
                 tournamentId={tournament.id}
                 isOpen={showRegModal}
                 onClose={() => setShowRegModal(false)}

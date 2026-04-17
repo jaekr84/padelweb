@@ -72,6 +72,18 @@ export const getSession = cache(async (): Promise<Session | null> => {
     };
 });
 
+/**
+ * Ensures a user is authenticated and returns the session.
+ * Throws an error if not authenticated.
+ */
+export async function requireSession(): Promise<Session> {
+    const session = await getSession();
+    if (!session) {
+        throw new Error("No autenticado");
+    }
+    return session;
+}
+
 export async function setSession(userId: string, email: string, role: string) {
     const sessionVersion = Math.floor(Date.now() / 1000);
     
