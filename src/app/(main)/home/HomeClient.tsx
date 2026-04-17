@@ -172,19 +172,19 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
         try {
             const newImages: { id: string, file: File, preview: string }[] = [];
-            
+
             for (const file of files) {
-                const options = { 
-                    maxSizeMB: 0.8, 
-                    maxWidthOrHeight: 1400, 
+                const options = {
+                    maxSizeMB: 0.8,
+                    maxWidthOrHeight: 1400,
                     useWebWorker: true,
                     fileType: 'image/webp' // Target WebP for better compression
                 };
-                
+
                 const cBlob = await imageCompression(file, options);
                 // Create a WebP file from the blob
                 const cFile = new File([cBlob], "post.webp", { type: "image/webp" });
-                
+
                 newImages.push({
                     id: crypto.randomUUID(),
                     file: cFile,
@@ -229,7 +229,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
         try {
             let imageUrls: string[] = [];
-            
+
             if (selectedImages.length > 0) {
                 // Parallel upload of all images
                 imageUrls = await Promise.all(
@@ -304,15 +304,15 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
                     {/* Mobile Quick Access Bar (Visible only on mobile/tablet) */}
                     <div className="xl:hidden mb-12 overflow-hidden px-2">
-                        <MobileTournamentBar 
-                            ongoing={ongoingTournaments} 
-                            upcoming={upcomingTournaments} 
+                        <MobileTournamentBar
+                            ongoing={ongoingTournaments}
+                            upcoming={upcomingTournaments}
                         />
                     </div>
 
                     {/* Compose Post (Seamless) */}
                     {canPost && currentUser && (
-                        <div className="py-8 mb-4 border-b border-slate-100">
+                        <div className="py-8 mb-4 border-b border-slate-300">
                             <div className="flex gap-4 mb-4">
                                 <div className="w-12 h-12 shrink-0 bg-slate-50 rounded-full overflow-hidden border border-slate-100 relative">
                                     {currentUser.imageUrl ? (
@@ -330,7 +330,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                         placeholder="¿Qué novedades hay en el club?"
                                         className="w-full bg-transparent resize-none text-slate-900 placeholder-slate-400 outline-none text-lg font-medium pt-2 min-h-[80px]"
                                     />
-                                    
+
                                     {selectedImages.length > 0 && (
                                         <div className="flex gap-3 overflow-x-auto py-4 px-1 no-scrollbar snap-x">
                                             <AnimatePresence mode="popLayout">
@@ -344,25 +344,25 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                                         className="relative w-32 h-32 shrink-0 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 snap-start group"
                                                     >
                                                         <Image src={img.preview} fill className="object-cover" alt="Preview" unoptimized />
-                                                        
+
                                                         {/* Overlays */}
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                             {idx > 0 && (
-                                                                <button 
+                                                                <button
                                                                     onClick={() => moveImage(idx, 'left')}
                                                                     className="p-1.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-colors"
                                                                 >
                                                                     <ChevronLeft className="w-4 h-4" />
                                                                 </button>
                                                             )}
-                                                            <button 
+                                                            <button
                                                                 onClick={() => removeImage(img.id)}
                                                                 className="p-1.5 bg-rose-500/80 hover:bg-rose-500 rounded-full text-white backdrop-blur-md transition-colors"
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </button>
                                                             {idx < selectedImages.length - 1 && (
-                                                                <button 
+                                                                <button
                                                                     onClick={() => moveImage(idx, 'right')}
                                                                     className="p-1.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-colors"
                                                                 >
@@ -378,7 +378,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                                     </motion.div>
                                                 ))}
                                             </AnimatePresence>
-                                            
+
                                             {selectedImages.length < 10 && (
                                                 <label className="w-32 h-32 shrink-0 rounded-2xl border-2 border-dashed border-slate-100 hover:border-celeste/50 hover:bg-celeste/5 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-celeste transition-all cursor-pointer">
                                                     <Plus className="w-6 h-6" />
@@ -442,8 +442,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
                     {/* Tournaments List (Flat) */}
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-300">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-black italic flex items-center gap-2">
                                 <Trophy className="w-3.5 h-3.5 text-celeste" /> Próximos Torneos
                             </h2>
                             <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-dark transition-colors">Ver Todo</Link>
@@ -461,8 +461,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
                     {/* Ongoing Tornaments (Flat) */}
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-300">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-black italic flex items-center gap-2">
                                 <Clock className="w-3.5 h-3.5 text-amber-500" /> En Curso
                             </h2>
                             <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors">Resultados</Link>
@@ -480,8 +480,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
                     {/* Open Courts (Flat) */}
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-300">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-black italic flex items-center gap-2">
                                 <Users className="w-3.5 h-3.5 text-blue-500" /> Cancha Abierta
                             </h2>
                             <Link href="/cancha-abierta" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors">Unirse</Link>
@@ -495,10 +495,10 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                     const isFull = available <= 0;
 
                                     return (
-                                        <Link 
-                                            key={oc.id} 
+                                        <Link
+                                            key={oc.id}
                                             href={`/cancha-abierta`}
-                                            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors px-2 -mx-2 rounded-xl"
+                                            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl"
                                         >
                                             <div className="flex justify-between items-start gap-2">
                                                 <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors">{oc.name}</h3>
@@ -526,7 +526,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                                             if (percentage >= 90) barColor = "bg-rojo";
                                                             else if (percentage >= 70) barColor = "bg-celeste";
                                                             return (
-                                                                <div 
+                                                                <div
                                                                     className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
                                                                     style={{ width: `${percentage}%` }}
                                                                 />
@@ -556,7 +556,7 @@ function MobileTournamentBar({ ongoing, upcoming }: { ongoing: TournamentQuickVi
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Torneos en Curso</h2>
                 <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary">Ver todos</Link>
             </div>
-            
+
             <div className="flex gap-4 overflow-x-auto pb-4 px-2 no-scrollbar snap-x snap-mandatory">
                 {[...ongoing, ...upcoming].map((t) => (
                     <div key={t.id} className="min-w-[280px] snap-center">
@@ -579,9 +579,9 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
     const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
 
     return (
-        <Link 
+        <Link
             href={`/tournaments/${t.id}`}
-            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
+            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
         >
             <div className="relative z-10 flex justify-between items-start gap-2">
                 <div className="flex flex-col gap-0.5 min-w-0">
@@ -625,7 +625,7 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                             if (percentage >= 90) barColor = "bg-rojo";
                             else if (percentage >= 70) barColor = "bg-celeste";
                             return (
-                                <div 
+                                <div
                                     className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
                                     style={{ width: `${percentage}%` }}
                                 />
@@ -681,10 +681,10 @@ function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallback
     } catch (e) {
         console.error("Error parsing images:", e);
     }
-    
+
     // Combine new 'images' JSON and legacy 'fallbackUrl'
     const allImages = parsedImages.length > 0 ? parsedImages : (fallbackUrl ? [fallbackUrl] : []);
-    
+
     if (allImages.length === 0) return null;
 
     const count = allImages.length;
@@ -696,70 +696,70 @@ function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallback
         <div className="mb-6 overflow-hidden">
             <AnimatePresence mode="wait">
                 {viewMode === 'grid' ? (
-                    <motion.div 
+                    <motion.div
                         key="grid"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className={`grid gap-2 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group/media
-                            ${count === 1 ? 'grid-cols-1 aspect-auto' : 
-                            count === 2 ? 'grid-cols-2 aspect-[4/3]' : 
-                            count === 3 ? 'grid-cols-3 aspect-[4/3]' : 
-                            'grid-cols-2 aspect-square'}
+                            ${count === 1 ? 'grid-cols-1 aspect-auto' :
+                                count === 2 ? 'grid-cols-2 aspect-[4/3]' :
+                                    count === 3 ? 'grid-cols-3 aspect-[4/3]' :
+                                        'grid-cols-2 aspect-square'}
                         `}
                     >
-                {count === 1 && (
-                    <div 
-                        className="relative w-full h-full min-h-[300px] max-h-[600px] overflow-hidden cursor-pointer" 
-                        onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}
-                    >
-                        <Image 
-                            src={allImages[0]} 
-                            alt="" 
-                            width={1200} 
-                            height={800}
-                            className="w-full h-auto object-contain transition-transform group-hover/media:scale-[1.01] duration-700" 
-                            unoptimized 
-                        />
-                    </div>
-                )}
-
-                {count === 2 && allImages.map((img, i) => (
-                    <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
-                        <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
-                    </div>
-                ))}
-
-                {count === 3 && (
-                    <>
-                        <div className="relative col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}>
-                            <Image src={allImages[0]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
-                        </div>
-                        <div className="grid grid-rows-2 gap-2">
-                            <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(1); setViewMode('carousel'); }}>
-                                <Image src={allImages[1]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
-                            </div>
-                            <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(2); setViewMode('carousel'); }}>
-                                <Image src={allImages[2]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
-                            </div>
-                        </div>
-                    </>
-                )}
-
-                {count >= 4 && allImages.slice(0, 4).map((img, i) => (
-                    <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
-                        <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
-                        {i === 3 && count > 4 && (
-                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
-                                <Plus className="w-8 h-8 mb-1" />
-                                <span className="text-lg font-black uppercase tracking-widest">{count - 4} más</span>
+                        {count === 1 && (
+                            <div
+                                className="relative w-full h-full min-h-[300px] max-h-[600px] overflow-hidden cursor-pointer"
+                                onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}
+                            >
+                                <Image
+                                    src={allImages[0]}
+                                    alt=""
+                                    width={1200}
+                                    height={800}
+                                    className="w-full h-auto object-contain transition-transform group-hover/media:scale-[1.01] duration-700"
+                                    unoptimized
+                                />
                             </div>
                         )}
-                    </div>
-                ))}
+
+                        {count === 2 && allImages.map((img, i) => (
+                            <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
+                                <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                            </div>
+                        ))}
+
+                        {count === 3 && (
+                            <>
+                                <div className="relative col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}>
+                                    <Image src={allImages[0]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                                </div>
+                                <div className="grid grid-rows-2 gap-2">
+                                    <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(1); setViewMode('carousel'); }}>
+                                        <Image src={allImages[1]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                                    </div>
+                                    <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(2); setViewMode('carousel'); }}>
+                                        <Image src={allImages[2]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {count >= 4 && allImages.slice(0, 4).map((img, i) => (
+                            <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
+                                <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                                {i === 3 && count > 4 && (
+                                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
+                                        <Plus className="w-8 h-8 mb-1" />
+                                        <span className="text-lg font-black uppercase tracking-widest">{count - 4} más</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </motion.div>
                 ) : (
-                    <motion.div 
+                    <motion.div
                         key="carousel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -767,7 +767,7 @@ function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallback
                         className="relative bg-slate-900 rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center p-4 group/carousel"
                     >
                         {/* Back to Grid Button */}
-                        <button 
+                        <button
                             onClick={() => setViewMode('grid')}
                             className="absolute top-4 left-4 z-20 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10"
                         >
@@ -790,12 +790,12 @@ function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallback
                                     transition={{ duration: 0.2 }}
                                     className="relative w-full h-full flex items-center justify-center"
                                 >
-                                    <Image 
-                                        src={allImages[carouselIndex]} 
-                                        alt="" 
-                                        fill 
-                                        className="object-contain" 
-                                        unoptimized 
+                                    <Image
+                                        src={allImages[carouselIndex]}
+                                        alt=""
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
                                     />
                                 </motion.div>
                             </AnimatePresence>
@@ -804,13 +804,13 @@ function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallback
                         {/* Navigation Arrows */}
                         {count > 1 && (
                             <>
-                                <button 
+                                <button
                                     onClick={(e) => { e.stopPropagation(); prev(); }}
                                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
                                 >
                                     <ChevronLeft className="w-6 h-6" />
                                 </button>
-                                <button 
+                                <button
                                     onClick={(e) => { e.stopPropagation(); next(); }}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
                                 >
@@ -898,7 +898,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const userInitials = post.user.name?.charAt(0) || "U";
 
     return (
-        <div className="group pb-12 mb-10 border-b border-slate-100 transition-all">
+        <div className="group pb-12 mb-10 border-b border-slate-300 transition-all">
             {/* Author */}
             <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
