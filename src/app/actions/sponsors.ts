@@ -5,6 +5,29 @@ import { sponsors } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
+import { unlink } from "fs/promises";
+import path from "path";
+
+/**
+ * Helper to delete a file from the server given its public URL
+ */
+async function deleteFileByUrl(url: string | null) {
+    if (!url || !url.startsWith("/uploads/")) return;
+
+    try {
+        const filename = url.replace("/uploads/", "");
+        const uploadDir = process.env.NODE_ENV === 'production'
+            ? '/home/u957097802/domains/acap.ar/public_html/uploads'
+            : path.join(process.cwd(), "public", "uploads");
+
+        const filePath = path.join(uploadDir, filename);
+        await unlink(filePath);
+        console.log(`[Storage] Deleted file: ${filePath}`);
+    } catch (err) {
+        // We log the error but don't throw, as the database operation might still be valid
+        console.error("[Storage] Error deleting file:", err);
+    }
+}
 
 export async function getSponsors() {
     try {
@@ -55,6 +78,15 @@ export async function updateSponsor(id: string, data: {
     }
 
     try {
+        // Query the old record to get the old image URL
+        const existing = await db.select().from(sponsors).where(eq(sponsors.id, id)).limit(1);
+        const oldSponsor = existing[0];
+
+        // If the image URL is changing, delete the old one
+        if (oldSponsor && data.imageUrl && oldSponsor.imageUrl !== data.imageUrl) {
+            await deleteFileByUrl(oldSponsor.imageUrl);
+        }
+
         await db.update(sponsors)
             .set({
                 name: data.name,
@@ -80,6 +112,15 @@ export async function deleteSponsor(id: string) {
     }
 
     try {
+        // Query record first to get the image URL
+        const existing = await db.select().from(sponsors).where(eq(sponsors.id, id)).limit(1);
+        const sponsorToDelete = existing[0];
+
+        if (sponsorToDelete) {
+            // Delete the physical file
+            await deleteFileByUrl(sponsorToDelete.imageUrl);
+        }
+
         await db.delete(sponsors).where(eq(sponsors.id, id));
         
         revalidatePath("/");

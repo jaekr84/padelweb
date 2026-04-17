@@ -55,17 +55,19 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                     // Limpiamos el fondo (transparente)
                     ctx.clearRect(0, 0, targetWidth, targetHeight);
 
-                    // Calculamos el escalado para "contain"
+                    // Calculamos el escalado para "cover" (rellenar el canvas)
                     const imgRatio = img.width / img.height;
                     const targetRatio = targetWidth / targetHeight;
 
                     let drawWidth, drawHeight;
                     if (imgRatio > targetRatio) {
-                        drawWidth = targetWidth;
-                        drawHeight = targetWidth / imgRatio;
-                    } else {
+                        // La imagen es más ancha -> ajustamos al alto para cubrir el ancho
                         drawHeight = targetHeight;
                         drawWidth = targetHeight * imgRatio;
+                    } else {
+                        // La imagen es más alta -> ajustamos al ancho para cubrir el alto
+                        drawWidth = targetWidth;
+                        drawHeight = targetWidth / imgRatio;
                     }
 
                     // Centramos la imagen en el canvas

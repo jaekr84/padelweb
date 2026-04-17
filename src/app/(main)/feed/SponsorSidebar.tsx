@@ -26,33 +26,44 @@ export default function SponsorSidebar() {
         fetchSponsors();
     }, []);
 
-    // Generamos 10 espacios (sponsors reales + placeholders si faltan)
-    const displaySponsors = sponsors.length >= 16
-        ? sponsors.slice(0, 16)
-        : [
-            ...sponsors,
-            ...Array(18 - sponsors.length).fill(null).map((_, i) => ({
-                id: `placeholder-${i}`,
+    const activeSponsors = sponsors.filter((s: any) => s.isActive);
+    const activeCount = activeSponsors.length;
+
+    // Lógica dinámica: Si hay menos de 10, mostramos los activos + 1 placeholder
+    // Si hay muchos, mostramos todos sin placeholders extras
+    const displaySponsors = activeCount < 10
+        ? [
+            ...activeSponsors,
+            {
+                id: "placeholder-invite",
                 name: "Espacio Disponible",
-                imageUrl: "", // Usaremos un div con color si no hay imagen
+                imageUrl: "",
                 link: "/contact",
                 isActive: true,
                 isPlaceholder: true
-            }))
-        ];
+            }
+        ]
+        : activeSponsors;
 
-    const isTwoColumns = true; // Forzamos 2 columnas para el preview de 10 espacios
+    // Configuración de layout dinámica
+    const getLayoutConfig = () => {
+        if (activeCount <= 5) return { cols: "grid-cols-1", aspect: "aspect-[2/1]" };
+        if (activeCount <= 7) return { cols: "grid-cols-1", aspect: "aspect-[3/1]" };
+        return { cols: "grid-cols-2", aspect: "aspect-[2/1]" };
+    };
+
+    const { cols, aspect } = getLayoutConfig();
 
     if (loading) {
         return (
-            <aside className="hidden xl:flex w-72 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
-                <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-2">
-                    <div className="h-3 w-16 bg-muted rounded mb-1" />
+            <aside className="hidden xl:flex w-80 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
+                <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-4 items-center">
+                    <div className="h-3 w-16 bg-muted rounded mb-2" />
                     <div className="h-6 w-32 bg-muted rounded" />
                 </div>
-                <div className="flex-1 px-4 py-2 grid grid-cols-2 gap-2 overflow-y-hidden">
-                    {[...Array(10)].map((_, i) => (
-                        <div key={i} className="aspect-[2/1] w-full bg-muted rounded-xl" />
+                <div className="px-4 space-y-3">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="aspect-[2/1] w-full bg-muted rounded-2xl" />
                     ))}
                 </div>
             </aside>
@@ -69,7 +80,7 @@ export default function SponsorSidebar() {
             </div>
 
             <div className="flex-1 px-4 py-2 overflow-y-auto scrollbar-hide">
-                <div className="grid grid-cols-2 gap-2 pb-6">
+                <div className={`grid ${cols} gap-3 pb-6`}>
                     {displaySponsors.map((s: any) => (
                         <div key={s.id} className="group relative">
                             {s.imageUrl ? (
@@ -77,27 +88,31 @@ export default function SponsorSidebar() {
                                     href={s.link || "#"}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block relative aspect-[2/1] w-full rounded-xl overflow-hidden border border-border bg-white/[0.02] transition-all duration-300 hover:border-indigo-500/30 hover:shadow-lg group-hover:-translate-y-0.5"
+                                    className={`block relative ${aspect} w-full rounded-2xl overflow-hidden border border-border bg-white/[0.02] transition-all duration-300 hover:border-indigo-500/30 hover:shadow-xl group-hover:-translate-y-1 shadow-sm`}
                                 >
                                     <Image
                                         src={s.imageUrl}
                                         alt={s.name}
                                         fill
-                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                        sizes="250px"
+                                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                                        sizes="(max-width: 1280px) 0px, 300px"
+                                        priority={activeCount <= 4}
                                     />
-                                    <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/10 transition-colors" />
+                                    <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors" />
                                 </Link>
                             ) : (
                                 <Link
                                     href="/contact"
-                                    className="block relative aspect-[2/1] w-full rounded-xl border border-dashed border-border/50 bg-muted/20 hover:bg-muted/30 transition-all group-hover:border-indigo-500/20"
+                                    className={`block relative ${aspect} w-full rounded-2xl border-2 border-dashed border-border/30 bg-muted/5 hover:bg-indigo-50/10 transition-all group-hover:border-indigo-500/20 group-hover:shadow-lg group-hover:-translate-y-1`}
                                 >
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
-                                        <div className="w-4 h-4 rounded-full bg-muted/40 flex items-center justify-center mb-1">
-                                            <Info className="w-2.5 h-2.5 text-muted-foreground" />
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
+                                        <div className="w-6 h-6 rounded-full bg-muted/20 flex items-center justify-center mb-2 group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
+                                            <Info className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
                                         </div>
-                                        <span className="text-[7px] font-bold uppercase text-muted-foreground/60 tracking-wider">Espacio<br />Disponible</span>
+                                        <div className="space-y-0.5">
+                                            <span className="block text-[8px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">Espacio</span>
+                                            <span className="block text-[10px] font-black uppercase text-indigo-600/40 tracking-widest">Disponible</span>
+                                        </div>
                                     </div>
                                 </Link>
                             )}
