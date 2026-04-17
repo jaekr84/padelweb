@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users, registrations } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import Link from "next/link";
@@ -226,6 +226,43 @@ export default async function RegisterPage({ searchParams }: Props) {
     const serialized = JSON.parse(JSON.stringify(tournament));
     const serializedCats = JSON.parse(JSON.stringify(allCats));
 
+    // Fetch all registrations to show in same page
+    const dbRegistrations = await db
+        .select()
+        .from(registrations)
+        .where(eq(registrations.tournamentId, tid))
+        .orderBy(desc(registrations.createdAt));
+
+    const allUserIds = [...new Set([
+        ...dbRegistrations.map(r => r.userId),
+        ...dbRegistrations.map(r => r.partnerUserId).filter(Boolean) as string[]
+    ])];
+
+    const dbUsersForRegs = allUserIds.length > 0 
+        ? await db.select().from(users).where(inArray(users.id, allUserIds))
+        : [];
+
+    const initialRegistrations = dbRegistrations.map(reg => {
+        const user = dbUsersForRegs.find(u => u.id === reg.userId);
+        const namePart1 = user 
+            ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0])
+            : "Jugador";
+        
+        let namePart2 = reg.partnerName;
+        if (reg.partnerUserId) {
+            const partnerUser = dbUsersForRegs.find(u => u.id === reg.partnerUserId);
+            if (partnerUser) {
+                namePart2 = [partnerUser.firstName, partnerUser.lastName].filter(Boolean).join(" ");
+            }
+        }
+        
+        return {
+            id: reg.id,
+            name: namePart2 ? `${namePart1} / ${namePart2}` : namePart1,
+            category: reg.category || "Libre",
+        };
+    });
+
     return (
         <RegisterForm
             tournament={serialized}
@@ -236,6 +273,7 @@ export default async function RegisterPage({ searchParams }: Props) {
                 email: dbUser.email || "",
                 gender: dbUser.gender,
             }}
+            initialRegistrations={initialRegistrations}
         />
     );
 }

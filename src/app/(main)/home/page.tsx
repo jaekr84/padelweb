@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
-import { posts, users, postComments, tournaments, openCourtEvents, clubs, openCourtRegistrations } from "@/db/schema";
+import { posts, users, postComments, tournaments, registrations, openCourtEvents, clubs, openCourtRegistrations } from "@/db/schema";
 import { eq, desc, inArray, gte, and, not, sql } from "drizzle-orm";
 import HomeClient from "./HomeClient";
 
@@ -84,44 +84,71 @@ export default async function HomePage() {
             }));
         }
 
-        // 4. Fetch Quick View Data
-        const upcomingTournaments = await db
-            .select({
-                id: tournaments.id,
-                name: tournaments.name,
-                startDate: tournaments.startDate,
-                status: tournaments.status,
-                imageUrl: tournaments.imageUrl,
-                createdByUserId: tournaments.createdByUserId,
-                categories: tournaments.categories,
-                modalidad: tournaments.modalidad,
-                type: tournaments.type,
-                clubName: clubs.name,
-            })
-            .from(tournaments)
-            .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
-            .where(eq(tournaments.status, 'published'))
-            .orderBy(tournaments.startDate)
-            .limit(5);
+        // 4. Fetch Quick View Data (Tournaments)
+        const fetchTournamentsWithRegistrations = async (statusFilter: any) => {
+            const tourns = await db
+                .select({
+                    id: tournaments.id,
+                    name: tournaments.name,
+                    startDate: tournaments.startDate,
+                    status: tournaments.status,
+                    imageUrl: tournaments.imageUrl,
+                    createdByUserId: tournaments.createdByUserId,
+                    categories: tournaments.categories,
+                    modalidad: tournaments.modalidad,
+                    type: tournaments.type,
+                    clubName: clubs.name,
+                })
+                .from(tournaments)
+                .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
+                .where(statusFilter)
+                .orderBy(tournaments.startDate)
+                .limit(5);
 
-        const ongoingTournaments = await db
-            .select({
-                id: tournaments.id,
-                name: tournaments.name,
-                startDate: tournaments.startDate,
-                status: tournaments.status,
-                imageUrl: tournaments.imageUrl,
-                createdByUserId: tournaments.createdByUserId,
-                categories: tournaments.categories,
-                modalidad: tournaments.modalidad,
-                type: tournaments.type,
-                clubName: clubs.name,
-            })
-            .from(tournaments)
-            .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
-            .where(inArray(tournaments.status, ['en_curso', 'en_eliminatorias']))
-            .orderBy(tournaments.startDate)
-            .limit(5);
+            if (tourns.length === 0) return [];
+
+            const tournIds = tourns.map(t => t.id);
+
+            // Fetch registration counts
+            const counts = await db
+                .select({
+                    tournamentId: registrations.tournamentId,
+                    count: sql<number>`count(*)`
+                })
+                .from(registrations)
+                .where(inArray(registrations.tournamentId, tournIds))
+                .groupBy(registrations.tournamentId);
+
+            // Fetch first 3 registrants per tournament
+            const regs = await db
+                .select({
+                    tournamentId: registrations.tournamentId,
+                    userId: registrations.userId,
+                    userImage: users.imageUrl,
+                    userName: users.firstName
+                })
+                .from(registrations)
+                .leftJoin(users, eq(registrations.userId, users.id))
+                .where(inArray(registrations.tournamentId, tournIds))
+                .orderBy(desc(registrations.createdAt));
+
+            return tourns.map(t => {
+                const tournRegs = regs.filter(r => r.tournamentId === t.id).slice(0, 3);
+                return {
+                    ...t,
+                    registrationsCount: counts.find(c => c.tournamentId === t.id)?.count || 0,
+                    registrants: tournRegs.map(r => ({
+                        name: r.userName || "Jugador",
+                        imageUrl: r.userImage || null
+                    }))
+                };
+            });
+        };
+
+        const upcomingTournaments = await fetchTournamentsWithRegistrations(eq(tournaments.status, 'published'));
+        const ongoingTournaments = await fetchTournamentsWithRegistrations(
+            inArray(tournaments.status, ['en_curso', 'en_eliminatorias'])
+        );
 
         const upcomingOpenCourts = await db
             .select({

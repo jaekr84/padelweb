@@ -30,6 +30,12 @@ type Category = {
     categoryOrder: number;
 };
 
+type Registrant = {
+    id: string;
+    name: string;
+    category: string;
+};
+
 type Step = "info" | "team" | "confirm" | "success";
 
 
@@ -38,7 +44,17 @@ function Initials({ name }: { name: string }) {
     return <span>{initials}</span>;
 }
 
-export default function RegisterForm({ tournament, currentUser, allCategories = [] }: { tournament: Tournament; currentUser: CurrentUser; allCategories?: Category[] }) {
+export default function RegisterForm({ 
+    tournament, 
+    currentUser, 
+    allCategories = [], 
+    initialRegistrations = [] 
+}: { 
+    tournament: Tournament; 
+    currentUser: CurrentUser; 
+    allCategories?: Category[];
+    initialRegistrations?: Registrant[];
+}) {
     // Safety check for categories
     let cats: string[] = [];
     try {
@@ -188,467 +204,51 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
 
     const partnerDisplayName = partnerMode === "guest" ? guestName.trim() : partnerName.trim();
 
-    return (
-        <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
-
-            {/* ── Ambient glow ── */}
-            <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none z-0" />
-
-            {/* ── Content ── */}
-            <div className="relative z-10 max-w-lg mx-auto px-4 pt-5 pb-28">
-
-                {/* ── Top bar ── */}
-                <div className="flex items-center justify-between mb-6">
-                    <Link
-                        href="/tournaments"
-                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-black uppercase tracking-widest text-[10px]"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Volver
-                    </Link>
-                    <div className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
-                        Inscripción
+    const RegistrantsList = (
+        <div className="bg-card border border-border rounded-3xl p-5 shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <Users className="w-3.5 h-3.5 text-blue-600" />
                     </div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-foreground">Inscriptos actuales</h3>
                 </div>
+                <div className="px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-[9px] font-black text-blue-600 uppercase">
+                    {initialRegistrations.length} Parejas
+                </div>
+            </div>
 
-                {/* ── Step bar (hidden on success) ── */}
-                {step !== "success" && (
-                    <div className="mb-8">
-                        <div className="relative flex items-center justify-between">
-                            <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-muted">
-                                <div
-                                    className="absolute top-0 bottom-0 left-0 bg-indigo-600 transition-all duration-500"
-                                    style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
-                                />
-                            </div>
-                            {steps.filter(s => s.id !== "success").map((s, i) => {
-                                const realIdx = steps.findIndex(st => st.id === s.id);
-                                const done = realIdx < stepIdx;
-                                const active = realIdx === stepIdx;
-                                return (
-                                    <div key={s.id} className="relative flex flex-col items-center gap-2">
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
-                                            ? "bg-indigo-600 border-indigo-600 text-white"
-                                            : active
-                                                ? "bg-background border-indigo-600 text-indigo-600"
-                                                : "bg-background border-border text-muted-foreground"
-                                            }`}>
-                                            {done ? <Check className="w-3.5 h-3.5" /> : (realIdx + 1)}
-                                        </div>
-                                        <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-foreground" : "text-muted-foreground"
-                                            }`}>
-                                            {s.label}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* ─────────────────────────────────────────
-                    STEP: info
-                ───────────────────────────────────────── */}
-                {step === "info" && (
-                    <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300">
-                        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm mb-6">
-                            <div className="relative h-44 w-full bg-muted flex items-end">
-                                {tournament.imageUrl ? (
-                                    <>
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
-                                        <img
-                                            src={tournament.imageUrl}
-                                            alt={tournament.name}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                    </>
-                                ) : (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center">
-                                        <Trophy className="w-16 h-16 text-indigo-100" />
-                                    </div>
-                                )}
-                                <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-white px-5 pb-5 leading-tight">
-                                    {tournament.name}
-                                </h1>
-                            </div>
-
-                            <div className="p-4 space-y-3">
-                                {tournament.description && (
-                                    <p className="text-muted-foreground text-sm leading-relaxed border-b border-border pb-3 italic">
-                                        {tournament.description}
-                                    </p>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    {tournament.startDate && (
-                                        <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                                                <Calendar className="w-4 h-4 text-indigo-600" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</p>
-                                                <p className="text-xs font-bold text-foreground leading-tight">
-                                                    {tournament.startDate}
-                                                    {tournament.endDate && tournament.endDate !== tournament.startDate && ` → ${tournament.endDate}`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
-                                            {isIndividual ? <User className="w-4 h-4 text-purple-600" /> : <Users className="w-4 h-4 text-purple-600" />}
-                                        </div>
-                                        <div>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</p>
-                                            <p className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</p>
-                                        </div>
-                                    </div>
-                                    {mod?.genero && (
-                                        <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
-                                                <Info className="w-4 h-4 text-amber-600" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Género</p>
-                                                <p className="text-xs font-bold text-foreground capitalize">
-                                                    {mod.genero === "mixto" ? "Mixto" : mod.genero === "hombre" ? "Hombres" : "Mujeres"}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                                            <Trophy className="w-4 h-4 text-emerald-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Inscripción</p>
-                                            <p className="text-xs font-bold text-foreground text-emerald-600">
-                                                {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
-                                            </p>
-                                        </div>
-                                    </div>
+            {initialRegistrations.length === 0 ? (
+                <p className="text-center py-8 text-xs text-muted-foreground font-medium italic">Aún no hay inscriptos. ¡Sé el primero en anotarte!</p>
+            ) : (
+                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                    {initialRegistrations.map((reg, idx) => (
+                        <div key={reg.id} className="flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-2xl hover:bg-muted/70 transition-colors">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground shrink-0 shadow-sm">
+                                    {idx + 1}
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-xs font-bold text-foreground truncate uppercase tracking-tight">{reg.name}</span>
+                                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest mt-0.5">{reg.category}</span>
                                 </div>
                             </div>
-                        </div>
-
-                        {hasCategories && (
-                            <div className="bg-card border border-border rounded-3xl p-4 mb-4 shadow-sm">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Seleccioná tu categoría</p>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {cats.map((cat) => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setCategory(cat)}
-                                            className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
-                                                ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20"
-                                                : "bg-muted border-border text-muted-foreground hover:border-indigo-500/50 hover:text-foreground"
-                                                }`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={goNext}
-                            className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2"
-                        >
-                            {isIndividual ? "Continuar" : "Elegir pareja"}
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
-
-                {/* ─────────────────────────────────────────
-                    STEP: team
-                ───────────────────────────────────────── */}
-                {step === "team" && !isIndividual && (
-                    <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
-                        <div className="text-center mb-2">
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Tu pareja</h2>
-                            <p className="text-muted-foreground text-xs mt-1">
-                                Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-indigo-600">{category}</strong></> : ""}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 1 • Vos</p>
-                            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-l-2xl" />
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-sm flex items-center justify-center shrink-0 ml-2">
-                                    <Initials name={currentUser.name} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-foreground text-sm truncate">{currentUser.name}</p>
-                                    <p className="text-muted-foreground text-[10px] truncate">{currentUser.email}</p>
-                                </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2 py-1 rounded-lg shrink-0">Vos</span>
+                            <div className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                                <Check className="w-3.5 h-3.5 text-emerald-500" />
                             </div>
                         </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 
-                        <div className="flex items-center justify-center">
-                            <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center">
-                                <UserPlus className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 2 • Compañero/a</p>
-                            <div className="bg-card border border-border rounded-2xl relative z-20 shadow-sm">
-                                <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
-                                    <button
-                                        onClick={() => switchMode("search")}
-                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
-                                    >
-                                        Buscar Jugador
-                                    </button>
-                                    <button
-                                        onClick={() => switchMode("guest")}
-                                        className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
-                                    >
-                                        Invitado
-                                    </button>
-                                    <div
-                                        className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background border border-border rounded-lg transition-all duration-300 z-0"
-                                        style={{ left: partnerMode === "search" ? "4px" : "calc(50%)" }}
-                                    />
-                                </div>
-
-                                <div className="p-3">
-                                    {partnerMode === "guest" ? (
-                                        <div className="animate-in fade-in duration-200">
-                                            <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                                <input
-                                                    className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
-                                                    placeholder="Nombre del invitado..."
-                                                    value={guestName}
-                                                    onChange={(e) => setGuestName(e.target.value)}
-                                                    autoFocus
-                                                />
-                                            </div>
-                                            <p className="text-[10px] text-muted-foreground mt-2 text-center px-2 font-medium">
-                                                Aparecerá en el fixture con este nombre.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="relative animate-in fade-in duration-200 text-left">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                            <input
-                                                className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
-                                                placeholder="Buscar jugador registrado..."
-                                                value={search}
-                                                onChange={(e) => { setSearch(e.target.value); setPartnerName(""); }}
-                                                onFocus={() => setFocused(true)}
-                                                onBlur={() => setTimeout(() => setFocused(false), 200)}
-                                            />
-
-                                            {partnerName && (
-                                                <div className="mt-2 bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 border border-indigo-200 font-black text-[10px] flex items-center justify-center">
-                                                            <Initials name={partnerName} />
-                                                        </div>
-                                                        <span className="font-bold text-indigo-600 text-sm">{partnerName}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => { setPartnerName(""); setSearch(""); setPartnerUserId(null); }}
-                                                        className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
-                                                    >
-                                                        Cambiar
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {focused && !partnerName && search.trim().length >= 2 && (
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-xl p-2 shadow-xl z-[100] max-h-60 overflow-y-auto">
-                                                    {searchResults.length > 0 ? (
-                                                        searchResults.map(p => {
-                                                            const { ok, reason } = checkPlayerEligibility(p);
-                                                            return (
-                                                                <button
-                                                                    key={p.id}
-                                                                    disabled={!ok}
-                                                                    className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${ok ? "hover:bg-muted" : "opacity-40 cursor-not-allowed"
-                                                                        }`}
-                                                                    onMouseDown={() => {
-                                                                        if (!ok) return;
-                                                                        setPartnerName(`${p.firstName} ${p.lastName || ""}`);
-                                                                        setPartnerUserId(p.id);
-                                                                        setSearch("");
-                                                                        setSearchResults([]);
-                                                                    }}
-                                                                >
-                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs flex items-center justify-center italic">
-                                                                        {(p.name || "U").charAt(0)}
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="flex items-center justify-between">
-                                                                            <p className="font-bold text-sm text-foreground truncate">{p.name}</p>
-                                                                            {!ok && (
-                                                                                <span className="text-[8px] font-black uppercase tracking-tighter bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 ml-2 whitespace-nowrap">
-                                                                                    {reason}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Categoría: {p.category || "D"} • {p.points || 0} pts</p>
-                                                                    </div>
-                                                                </button>
-                                                            );
-                                                        })
-                                                    ) : (
-                                                        <div className="p-4 text-center">
-                                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No se encontraron jugadores registrados</p>
-                                                            <button
-                                                                className="mt-2 w-full text-left p-3 rounded-lg bg-muted hover:bg-muted/70 flex items-center gap-3 transition-colors border border-border"
-                                                                onMouseDown={() => { setPartnerName(search.trim()); setPartnerUserId(null); setSearch(""); }}
-                                                            >
-                                                                <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground font-black text-xs">?</div>
-                                                                <div>
-                                                                    <p className="font-bold text-sm text-foreground">Usar "{search.trim()}"</p>
-                                                                    <p className="text-[10px] text-muted-foreground">Como nombre (no registrado)</p>
-                                                                </div>
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
-                            >
-                                Volver
-                            </button>
-                            <button
-                                onClick={goNext}
-                                disabled={!filledTeam}
-                                className="flex-[2] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
-                            >
-                                Siguiente <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* ─────────────────────────────────────────
-                    STEP: confirm
-                ───────────────────────────────────────── */}
-                {step === "confirm" && (
-                    <div className="mt-10 animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
-                        <div className="text-center">
-                            <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-3 shadow-sm">
-                                <Check className="w-7 h-7 text-indigo-600" />
-                            </div>
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Confirmá tu inscripción</h2>
-                            <p className="text-muted-foreground text-xs mt-1 font-medium">Revisá los datos antes de confirmar.</p>
-                        </div>
-
-                        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
-                            <div className="bg-muted border-b border-border px-4 py-3 flex items-center justify-between">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Torneo</p>
-                                <p className="text-sm font-black text-foreground italic">{tournament.name}</p>
-                            </div>
-
-                            <div className="p-4 space-y-2.5">
-                                {hasCategories && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Categoría</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2.5 py-1 rounded-lg">{category}</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</span>
-                                    <span className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Total a pagar</span>
-                                    <span className="text-sm font-black text-emerald-600">
-                                        {tournament.registrationFee ? `$ ${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
-                                    </span>
-                                </div>
-
-                                <div className="border-t border-border pt-3 space-y-2">
-                                    <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
-                                        <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">1</div>
-                                        <span className="font-bold text-foreground text-sm truncate">{currentUser.name}</span>
-                                    </div>
-
-                                    {!isIndividual && (
-                                        <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
-                                            <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">2</div>
-                                            <span className="font-bold text-foreground text-sm truncate flex items-center gap-2 flex-1 min-w-0">
-                                                <span className="truncate">{partnerDisplayName}</span>
-                                                {partnerMode === "guest" && (
-                                                    <span className="bg-background border border-border text-muted-foreground text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shrink-0">Invitado</span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {regError && (
-                            <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-start gap-3 shadow-sm italic">
-                                <span className="shrink-0">⚠️</span> {regError}
-                            </div>
-                        )}
-
-                        <label className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:border-indigo-500/30 transition-all shadow-sm">
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-indigo-600 border-indigo-600 text-white" : "border-border text-transparent"
-                                }`}>
-                                <Check className="w-3 h-3" strokeWidth={3} />
-                            </div>
-                            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="hidden" />
-                            <span className="text-xs font-bold text-muted-foreground leading-relaxed italic">
-                                Confirmo que los datos son correctos y acepto el reglamento del torneo.
-                            </span>
-                        </label>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={goBack}
-                                className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
-                            >
-                                Volver
-                            </button>
-                            <button
-                                onClick={handleConfirm}
-                                disabled={!agreed || isPending}
-                                className="flex-[2] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
-                            >
-                                {isPending ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Procesando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Check className="w-4 h-4" />
-                                        Confirmar
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* ─────────────────────────────────────────
-                    STEP: success
-                ───────────────────────────────────────── */}
-                {step === "success" && (
-                    <div className="mt-16 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
+    if (step === "success") {
+        return (
+            <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
+                <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none z-0" />
+                <div className="relative z-10 max-w-lg mx-auto px-4 pt-20 pb-28">
+                    <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
                         <div className="relative mb-6">
                             <div className="w-20 h-20 rounded-3xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shadow-xl shadow-emerald-500/10">
                                 <Check className="w-10 h-10 text-emerald-600" strokeWidth={2.5} />
@@ -692,7 +292,487 @@ export default function RegisterForm({ tournament, currentUser, allCategories = 
                             </Link>
                         </div>
                     </div>
-                )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-background overflow-x-hidden text-foreground">
+
+            {/* ── Ambient glow ── */}
+            <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none z-0" />
+
+            {/* ── Content ── */}
+            <div className="relative z-10 max-w-6xl mx-auto px-4 pt-5 pb-28">
+
+                {/* ── Top bar (Full resolution width) ── */}
+                <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto lg:max-w-none">
+                    <Link
+                        href="/tournaments"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-black uppercase tracking-widest text-[10px]"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Volver
+                    </Link>
+                    <div className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
+                        Inscripción al Torneo
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                    
+                    {/* LEFT COLUMN: Registrants List (Hidden on mobile or appears at bottom) */}
+                    <div className="hidden lg:block lg:col-span-5 sticky top-8">
+                        {RegistrantsList}
+                        <div className="mt-6 p-6 bg-indigo-600 rounded-3xl text-white shadow-xl shadow-indigo-600/20">
+                            <h4 className="text-sm font-black uppercase italic tracking-tight mb-2">¿Necesitás ayuda?</h4>
+                            <p className="text-[10px] opacity-80 leading-relaxed font-bold uppercase tracking-wider">Si tenés problemas con tu inscripción o no encontrás a tu pareja, contactanos por WhatsApp para asistencia inmediata.</p>
+                        </div>
+                    </div>
+
+                    {/* RIGHT COLUMN: Form steps */}
+                    <div className="lg:col-span-7 w-full max-w-xl mx-auto lg:mx-0">
+                        
+                        {/* ── Step bar ── */}
+                        <div className="mb-12">
+                            <div className="relative flex items-center justify-between">
+                                <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-muted">
+                                    <div
+                                        className="absolute top-0 bottom-0 left-0 bg-indigo-600 transition-all duration-500"
+                                        style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
+                                    />
+                                </div>
+                                {steps.filter(s => s.id !== "success").map((s, i) => {
+                                    const realIdx = steps.findIndex(st => st.id === s.id);
+                                    const done = realIdx < stepIdx;
+                                    const active = realIdx === stepIdx;
+                                    return (
+                                        <div key={s.id} className="relative flex flex-col items-center gap-2">
+                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
+                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                : active
+                                                    ? "bg-background border-indigo-600 text-indigo-600"
+                                                    : "bg-background border-border text-muted-foreground"
+                                                }`}>
+                                                {done ? <Check className="w-3.5 h-3.5" /> : (realIdx + 1)}
+                                            </div>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${realIdx <= stepIdx ? "text-foreground" : "text-muted-foreground"
+                                                }`}>
+                                                {s.label}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* ─────────────────────────────────────────
+                            STEP: info
+                        ───────────────────────────────────────── */}
+                        {step === "info" && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+                                <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm mb-6">
+                                    <div className="relative h-44 w-full bg-muted flex items-end">
+                                        {tournament.imageUrl ? (
+                                            <>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                                                <img
+                                                    src={tournament.imageUrl}
+                                                    alt={tournament.name}
+                                                    className="absolute inset-0 w-full h-full object-cover"
+                                                />
+                                            </>
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center">
+                                                <Trophy className="w-16 h-16 text-indigo-100" />
+                                            </div>
+                                        )}
+                                        <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-white px-5 pb-5 leading-tight">
+                                            {tournament.name}
+                                        </h1>
+                                    </div>
+
+                                    <div className="p-4 space-y-3">
+                                        {tournament.description && (
+                                            <p className="text-muted-foreground text-sm leading-relaxed border-b border-border pb-3 italic">
+                                                {tournament.description}
+                                            </p>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {tournament.startDate && (
+                                                <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                                                        <Calendar className="w-4 h-4 text-indigo-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</p>
+                                                        <p className="text-xs font-bold text-foreground leading-tight">
+                                                            {tournament.startDate}
+                                                            {tournament.endDate && tournament.endDate !== tournament.startDate && ` → ${tournament.endDate}`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                                                    {isIndividual ? <User className="w-4 h-4 text-purple-600" /> : <Users className="w-4 h-4 text-purple-600" />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</p>
+                                                    <p className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</p>
+                                                </div>
+                                            </div>
+                                            {mod?.genero && (
+                                                <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                                                        <Info className="w-4 h-4 text-amber-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Género</p>
+                                                        <p className="text-xs font-bold text-foreground capitalize">
+                                                            {mod.genero === "mixto" ? "Mixto" : mod.genero === "hombre" ? "Hombres" : "Mujeres"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                                    <Trophy className="w-4 h-4 text-emerald-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Inscripción</p>
+                                                    <p className="text-xs font-bold text-foreground text-emerald-600">
+                                                        {tournament.registrationFee ? `$${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {hasCategories && (
+                                    <div className="bg-card border border-border rounded-3xl p-4 mb-4 shadow-sm">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Seleccioná tu categoría</p>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {cats.map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    onClick={() => setCategory(cat)}
+                                                    className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
+                                                        ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20"
+                                                        : "bg-muted border-border text-muted-foreground hover:border-indigo-500/50 hover:text-foreground"
+                                                        }`}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* MOBILE ONLY Registrants Table (Visible only on small screens) */}
+                                <div className="lg:hidden mt-8">
+                                    {RegistrantsList}
+                                </div>
+
+                                <button
+                                    onClick={goNext}
+                                    className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    {isIndividual ? "Continuar" : "Elegir pareja"}
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* ─────────────────────────────────────────
+                            STEP: team
+                        ───────────────────────────────────────── */}
+                        {step === "team" && !isIndividual && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
+                                <div className="text-center mb-2">
+                                    <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Tu pareja</h2>
+                                    <p className="text-muted-foreground text-xs mt-1">
+                                        Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-indigo-600">{category}</strong></> : ""}
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 1 • Vos</p>
+                                        <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-l-2xl" />
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-sm flex items-center justify-center shrink-0 ml-2">
+                                                <Initials name={currentUser.name} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-foreground text-sm truncate">{currentUser.name}</p>
+                                                <p className="text-muted-foreground text-[10px] truncate">{currentUser.email}</p>
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2.5 py-1 rounded-lg shrink-0">Vos</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center">
+                                        <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center">
+                                            <UserPlus className="w-4 h-4 text-muted-foreground" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 2 • Compañero/a</p>
+                                        <div className="bg-card border border-border rounded-2xl relative z-20 shadow-sm">
+                                            <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
+                                                <button
+                                                    onClick={() => switchMode("search")}
+                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
+                                                >
+                                                    Buscar Jugador
+                                                </button>
+                                                <button
+                                                    onClick={() => switchMode("guest")}
+                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-indigo-600" : "text-muted-foreground hover:text-foreground"}`}
+                                                >
+                                                    Invitado
+                                                </button>
+                                                <div
+                                                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background border border-border rounded-lg transition-all duration-300 z-0"
+                                                    style={{ left: partnerMode === "search" ? "4px" : "calc(50%)" }}
+                                                />
+                                            </div>
+
+                                            <div className="p-3">
+                                                {partnerMode === "guest" ? (
+                                                    <div className="animate-in fade-in duration-200">
+                                                        <div className="relative">
+                                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                            <input
+                                                                className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
+                                                                placeholder="Nombre del invitado..."
+                                                                value={guestName}
+                                                                onChange={(e) => setGuestName(e.target.value)}
+                                                                autoFocus
+                                                            />
+                                                        </div>
+                                                        <p className="text-[10px] text-muted-foreground mt-2 text-center px-2 font-medium italic">
+                                                            Aparecerá en el fixture con este nombre.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative animate-in fade-in duration-200 text-left">
+                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                        <input
+                                                            className="w-full bg-muted border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-bold transition-all"
+                                                            placeholder="Buscar jugador registrado..."
+                                                            value={search}
+                                                            onChange={(e) => { setSearch(e.target.value); setPartnerName(""); }}
+                                                            onFocus={() => setFocused(true)}
+                                                            onBlur={() => setTimeout(() => setFocused(false), 200)}
+                                                        />
+
+                                                        {partnerName && (
+                                                            <div className="mt-2 bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 border border-indigo-200 font-black text-[10px] flex items-center justify-center">
+                                                                        <Initials name={partnerName} />
+                                                                    </div>
+                                                                    <span className="font-bold text-indigo-600 text-sm">{partnerName}</span>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => { setPartnerName(""); setSearch(""); setPartnerUserId(null); }}
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
+                                                                >
+                                                                    Cambiar
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {focused && !partnerName && search.trim().length >= 2 && (
+                                                            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-xl p-2 shadow-xl z-[100] max-h-60 overflow-y-auto">
+                                                                {searchResults.length > 0 ? (
+                                                                    searchResults.map(p => {
+                                                                        const { ok, reason } = checkPlayerEligibility(p);
+                                                                        return (
+                                                                            <button
+                                                                                key={p.id}
+                                                                                disabled={!ok}
+                                                                                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors mb-1 ${ok ? "hover:bg-muted" : "opacity-40 cursor-not-allowed"
+                                                                                    }`}
+                                                                                onMouseDown={() => {
+                                                                                    if (!ok) return;
+                                                                                    setPartnerName(`${p.firstName} ${p.lastName || ""}`);
+                                                                                    setPartnerUserId(p.id);
+                                                                                    setSearch("");
+                                                                                    setSearchResults([]);
+                                                                                }}
+                                                                            >
+                                                                                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs flex items-center justify-center italic">
+                                                                                    {(p.name || "U").charAt(0)}
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <p className="font-bold text-sm text-foreground truncate">{p.name}</p>
+                                                                                        {!ok && (
+                                                                                            <span className="text-[8px] font-black uppercase tracking-tighter bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 ml-2 whitespace-nowrap">
+                                                                                                {reason}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Categoría: {p.category || "D"} • {p.points || 0} pts</p>
+                                                                                </div>
+                                                                            </button>
+                                                                        );
+                                                                    })
+                                                                ) : (
+                                                                    <div className="p-4 text-center">
+                                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No se encontraron jugadores registrados</p>
+                                                                        <button
+                                                                            className="mt-2 w-full text-left p-3 rounded-lg bg-muted hover:bg-muted/70 flex items-center gap-3 transition-colors border border-border"
+                                                                            onMouseDown={() => { setPartnerName(search.trim()); setPartnerUserId(null); setSearch(""); }}
+                                                                        >
+                                                                            <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground font-black text-xs">?</div>
+                                                                            <div>
+                                                                                <p className="font-bold text-sm text-foreground">Usar "{search.trim()}"</p>
+                                                                                <p className="text-[10px] text-muted-foreground italic">Como nombre (no registrado)</p>
+                                                                            </div>
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 pt-6">
+                                        <button
+                                            onClick={goBack}
+                                            className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
+                                        >
+                                            Volver
+                                        </button>
+                                        <button
+                                            onClick={goNext}
+                                            disabled={!filledTeam}
+                                            className="flex-[2] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            Siguiente <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ─────────────────────────────────────────
+                            STEP: confirm
+                        ───────────────────────────────────────── */}
+                        {step === "confirm" && (
+                            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
+                                <div className="text-center">
+                                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                        <Check className="w-7 h-7 text-indigo-600" />
+                                    </div>
+                                    <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Confirmá tu inscripción</h2>
+                                    <p className="text-muted-foreground text-xs mt-1 font-medium">Revisá los datos antes de confirmar.</p>
+                                </div>
+
+                                <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+                                    <div className="bg-muted border-b border-border px-4 py-3 flex items-center justify-between">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Torneo</p>
+                                        <p className="text-sm font-black text-foreground italic">{tournament.name}</p>
+                                    </div>
+
+                                    <div className="p-4 space-y-2.5">
+                                        {hasCategories && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Categoría</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-600 px-2.5 py-1 rounded-lg">{category}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Modalidad</span>
+                                            <span className="text-xs font-bold text-foreground">{isIndividual ? "Individual" : "En Pareja"}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Total a pagar</span>
+                                            <span className="text-sm font-black text-emerald-600">
+                                                {tournament.registrationFee ? `$ ${tournament.registrationFee.toLocaleString('es-ES')}` : "Gratis"}
+                                            </span>
+                                        </div>
+
+                                        <div className="border-t border-border pt-4 mt-2 space-y-2">
+                                            <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
+                                                <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">1</div>
+                                                <span className="font-bold text-foreground text-sm truncate flex-1">{currentUser.name}</span>
+                                            </div>
+
+                                            {!isIndividual && (
+                                                <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
+                                                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600" />
+                                                    <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">2</div>
+                                                    <span className="font-bold text-foreground text-sm truncate flex items-center gap-2 flex-1 min-w-0">
+                                                        <span className="truncate">{partnerDisplayName}</span>
+                                                        {partnerMode === "guest" && (
+                                                            <span className="bg-background border border-border text-muted-foreground text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shrink-0">Invitado</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {regError && (
+                                    <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-start gap-3 shadow-sm italic">
+                                        <span className="shrink-0">⚠️</span> {regError}
+                                    </div>
+                                )}
+
+                                <label className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:border-indigo-500/30 transition-all shadow-sm">
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-indigo-600 border-indigo-600 text-white" : "border-border text-transparent"
+                                        }`}>
+                                        <Check className="w-3 h-3" strokeWidth={3} />
+                                    </div>
+                                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="hidden" />
+                                    <span className="text-xs font-bold text-muted-foreground leading-relaxed italic">
+                                        Confirmo que los datos son correctos y acepto el reglamento del torneo.
+                                    </span>
+                                </label>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        onClick={goBack}
+                                        className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition-all"
+                                    >
+                                        Volver
+                                    </button>
+                                    <button
+                                        onClick={handleConfirm}
+                                        disabled={!agreed || isPending}
+                                        className="flex-[2] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                    >
+                                        {isPending ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Procesando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="w-4 h-4" />
+                                                Confirmar e Inscribirse
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

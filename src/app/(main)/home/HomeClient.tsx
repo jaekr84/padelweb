@@ -95,6 +95,8 @@ interface TournamentQuickView {
     categories: any;
     modalidad: any;
     type: string;
+    registrationsCount: number;
+    registrants: { name: string, imageUrl: string | null }[];
 }
 
 interface OpenCourtQuickView {
@@ -484,6 +486,36 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                 </div>
                 <span className="shrink-0 text-[9px] font-black px-2.5 py-1 bg-white border border-slate-100 text-slate-500 rounded-lg group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
                     {catLabel}
+                </span>
+            </div>
+
+            {/* Registrants Facepile */}
+            <div className="relative z-10 flex items-center gap-3 mt-1.5 pt-3 border-t border-slate-100/50">
+                <div className="flex -space-x-2">
+                    {t.registrants && t.registrants.length > 0 ? (
+                        t.registrants.map((reg, idx) => (
+                            <div key={idx} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 overflow-hidden relative shadow-sm">
+                                {reg.imageUrl ? (
+                                    <Image src={reg.imageUrl} alt={reg.name} fill className="object-cover" sizes="24px" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[8px] font-bold text-slate-500 uppercase">
+                                        {reg.name.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-50 flex items-center justify-center">
+                            <Users className="w-3 h-3 text-slate-300" />
+                        </div>
+                    )}
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">
+                    {t.registrationsCount > 0 ? (
+                        <>{t.registrationsCount} {t.registrationsCount === 1 ? 'inscripto' : 'inscriptos'}</>
+                    ) : (
+                        <>Sin inscriptos</>
+                    )}
                 </span>
             </div>
         </Link>
