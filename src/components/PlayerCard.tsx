@@ -12,6 +12,7 @@ interface PlayerCardProps {
         side?: string;
         points?: number;
         clubName?: string | null;
+        gender?: string | null;
     };
     stats: {
         pj: number;
@@ -25,6 +26,26 @@ interface PlayerCardProps {
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
+    const isFemale = player.gender === 'femenino';
+
+    // Theme Colors
+    const theme = {
+        primary: isFemale ? 'rojo' : 'azul-primary',
+        accent: isFemale ? 'rosa' : 'celeste',
+        gradient: isFemale ? 'from-rojo via-rosa to-rojo' : 'from-azul-primary via-celeste to-azul-primary',
+        shadow: isFemale ? 'shadow-[0_0_40px_rgba(239,68,68,0.3)]' : 'shadow-[0_0_40px_rgba(0,119,255,0.3)]',
+        accentShadow: isFemale ? 'shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'shadow-[0_0_15px_rgba(30,64,175,0.5)]',
+        glow: isFemale ? 'bg-rojo/40' : 'bg-azul-primary/40',
+        ribbonGradient: isFemale
+            ? 'from-rojo/90 via-rojo/40 to-transparent'
+            : 'from-azul-primary/90 via-azul-primary/40 to-transparent',
+        ribbonBorder: isFemale ? 'border-rosa' : 'border-celeste',
+        trophyShadow: isFemale ? 'drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]' : 'drop-shadow-[0_0_8px_rgba(14,165,233,0.6)]',
+        cardBg: isFemale ? '#0d0102' : '#030712',
+        statsBg: isFemale ? 'from-[#2d0a0b] via-[#1a0506]' : 'from-slate-950 via-slate-900',
+        statBoxBg: isFemale ? 'bg-rojo border-rojo' : 'bg-azul-primary border-azul-primary'
+    };
+
     const sideLabel = player.side === 'reves' ? 'REVÉS' : player.side === 'drive' ? 'DRIVE' : 'AMBOS';
 
     return (
@@ -35,17 +56,20 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
         >
             <div className="relative group">
                 {/* BORDE CON DEGRADADO DINÁMICO */}
-                <div className="relative w-[340px] h-[520px] bg-gradient-to-br from-green-400 via-emerald-500 to-green-900 p-[3px] shadow-[0_0_40px_rgba(34,197,94,0.3)] transition-all duration-500"
+                <div className={`relative w-[340px] h-[520px] bg-gradient-to-br ${theme.gradient} p-[3px] ${theme.shadow} transition-all duration-500`}
                     style={{ clipPath: 'polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)' }}>
 
-                    <div className="relative w-full h-full bg-[#050505] overflow-hidden"
-                        style={{ clipPath: 'polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)' }}>
+                    <div className="relative w-full h-full overflow-hidden"
+                        style={{
+                            backgroundColor: theme.cardBg,
+                            clipPath: 'polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)'
+                        }}>
 
-                        {/* 1. BRANDING ACAP - Superior Izquierda */}
+                        {/* 1. BRANDING CORPORATIVO */}
                         <div className="absolute top-5 left-7 z-40">
                             <div className="flex flex-col justify-center">
                                 <span className="text-sm font-black italic text-white leading-none tracking-tighter">
-                                    ACAP<span className="text-green-500">.AR</span>
+                                    PADEL<span className={isFemale ? "text-rosa" : "text-celeste"}>WEB</span>
                                 </span>
                                 <span className="text-[8px] font-black text-white/40 tracking-[0.2em] uppercase">Series 2026</span>
                             </div>
@@ -53,19 +77,17 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
 
                         {/* 2. SECTOR SUPERIOR DERECHA: CATEGORÍA */}
                         <div className="absolute top-0 right-0 p-6 z-40">
-                            {/* Badge de Categoría Moderno */}
                             <div className="flex flex-col items-end">
                                 <div className="relative">
-                                    {/* Fondo de contraste para la letra */}
-                                    <div className="absolute -inset-2 bg-black/40 blur-md rounded-full -z-10" />
-                                    <span className="text-6xl font-black italic leading-[0.8] text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 drop-shadow-lg">
+                                    <div className={`absolute -inset-2 ${theme.glow} blur-md rounded-full -z-10`} />
+                                    <span className={`text-6xl font-black italic leading-[0.8] text-transparent bg-clip-text bg-gradient-to-b ${isFemale ? 'from-rosa to-rojo' : 'from-white to-celeste'} drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]`}>
                                         {player.category || '4TA'}
                                     </span>
                                 </div>
 
-                                {/* Label de Lado con estilo de cinta militar/deportiva */}
-                                <div className="mt-2 bg-green-500 px-2 py-0.5 rounded-sm transform skew-x-[-15deg] shadow-[0_0_15px_rgba(34,197,94,0.5)]">
-                                    <span className="text-[10px] font-black text-black uppercase tracking-widest inline-block transform skew-x-[15deg]">
+                                {/* Label de Lado Corporativo */}
+                                <div className={`mt-2 bg-${theme.primary} px-2 py-0.5 rounded-sm transform skew-x-[-15deg] ${theme.accentShadow} border border-${theme.accent}/30`}>
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest inline-block transform skew-x-[15deg]">
                                         {sideLabel}
                                     </span>
                                 </div>
@@ -73,38 +95,35 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
                         </div>
 
                         {/* Fondo y efectos */}
-                        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                        <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')] invert" />
 
-                        {/* Overlay Gradiente superior para asegurar legibilidad */}
-                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/80 to-transparent z-20" />
+                        {/* Overlay Gradiente superior */}
+                        <div className={`absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-${theme.primary}/40 to-transparent z-20`} />
 
-                        {/* Imagen del Jugador */}
-                        <div className="absolute top-0 right-0 w-full h-[380px] z-10 transition-transform duration-700">
+                        {/* Imagen del Jugador - Pantalla Completa */}
+                        <div className="absolute inset-0 z-10 transition-transform duration-700">
                             {player.imageUrl ? (
                                 <Image
                                     src={player.imageUrl}
                                     alt={player.firstName}
                                     fill
                                     className="object-cover object-top"
-                                    style={{
-                                        maskImage: 'linear-gradient(to bottom, black 65%, transparent 98%)',
-                                        WebkitMaskImage: 'linear-gradient(to bottom, black 65%, transparent 98%)'
-                                    }}
                                     unoptimized
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-zinc-900/50">
-                                    <User size={180} className="text-green-500/20" />
+                                <div className="w-full h-full flex items-center justify-center bg-slate-900/50">
+                                    <User size={180} className={`text-${theme.accent}/20`} />
                                 </div>
                             )}
+                            {/* Overlay sutil para mejorar legibilidad general */}
+                            <div className="absolute inset-0 bg-black/20 z-10" />
                         </div>
 
-                        {/* REDISEÑO: Badge de Logros (Trofeos) - Estilo Pro Ribbon */}
+                        {/* achievement badges - Estilo Pro Ribbon */}
                         <div className="absolute bottom-[206px] left-6 z-35">
-                            <div className="flex items-center gap-2 bg-gradient-to-r from-green-600/90 via-green-600/40 to-transparent backdrop-blur-md pl-2 pr-8 py-1 transform -skew-x-12 border-l-4 border-white shadow-[10px_10px_20px_rgba(0,0,0,0.3)]">
-                                {/* Etiqueta Lateral */}
+                            <div className={`flex items-center gap-2 bg-gradient-to-r ${theme.ribbonGradient} backdrop-blur-md pl-2 pr-8 py-1 transform -skew-x-12 border-l-4 ${theme.ribbonBorder} shadow-[10px_10px_20px_rgba(0,0,0,0.3)]`}>
                                 <div className="flex flex-col transform skew-x-12 mr-1 leading-none">
-                                    <span className="text-[8px] font-black text-white uppercase italic">Títulos</span>
+                                    <span className="text-[8px] font-black text-white uppercase italic">Logros</span>
                                 </div>
 
                                 <div className="flex gap-1 transform skew-x-12 items-center">
@@ -112,7 +131,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
                                         <Trophy
                                             key={i}
                                             size={16}
-                                            className="text-white drop-shadow-[0_0_8px_rgba(34,197,94,0.6)] fill-white/10"
+                                            className={`text-${theme.accent} ${theme.trophyShadow} fill-${theme.accent}/20`}
                                         />
                                     ))}
                                     {stats.trofeos > 5 && (
@@ -125,17 +144,17 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
                         {/* Nombre del Jugador */}
                         <div className="absolute bottom-[165px] left-0 w-full z-30 px-4">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-green-500 transform -skew-x-12 translate-x-2 translate-y-1 blur-[2px] opacity-30" />
-                                <div className="bg-white py-2 transform -skew-x-12 relative border-r-4 border-green-500 shadow-2xl">
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-black text-center transform skew-x-12">
-                                        {player.firstName} <span className="text-green-600">{player.lastName}</span>
+                                <div className={`absolute inset-0 bg-${theme.accent}/30 transform -skew-x-12 translate-x-2 translate-y-1 blur-[2px] opacity-30`} />
+                                <div className={`bg-white py-2 transform -skew-x-12 relative border-r-4 border-${theme.primary} shadow-2xl`}>
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950 text-center transform skew-x-12">
+                                        {player.firstName} <span className={`text-${theme.primary}`}>{player.lastName}</span>
                                     </h2>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Stats Grid */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6 h-[175px] bg-gradient-to-t from-black via-[#0a0a0a] to-transparent z-20">
+                        {/* Stats Grid Overlay */}
+                        <div className={`absolute bottom-0 left-0 right-0 p-6 pt-12 bg-gradient-to-t ${theme.statsBg} z-20`}>
                             <div className="grid grid-cols-3 gap-2 mt-4">
                                 {[
                                     { label: 'PJ', val: stats.pj },
@@ -145,8 +164,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
                                     { label: 'SC', val: stats.subcampeonatos || 0 },
                                     { label: 'PTS', val: player.points || 0 }
                                 ].map((stat, i) => (
-                                    <div key={i} className="flex flex-col items-center bg-gradient-to-b from-white/10 to-transparent rounded-t-md py-1 border-t border-white/5">
-                                        <span className="text-[7px] font-bold text-green-400 uppercase tracking-widest">{stat.label}</span>
+                                    <div key={i} className={`flex flex-col items-center ${theme.statBoxBg} rounded-lg py-1 border transition-colors hover:brightness-110 shadow-lg`}>
+                                        <span className={`text-[7px] font-bold ${isFemale ? 'text-white/60' : 'text-celeste/60'} uppercase tracking-widest`}>{stat.label}</span>
                                         <span className="text-lg font-black italic text-white leading-none">{stat.val}</span>
                                     </div>
                                 ))}
@@ -154,8 +173,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
 
                             {/* Club */}
                             <div className="mt-4 flex flex-col items-center border-t border-white/10 pt-2 pb-2">
-                                <span className="text-[9px] font-bold text-zinc-400 tracking-[0.2em] mb-1 uppercase">
-                                    Club: {player.clubName || 'Socio Independiente'}
+                                <span className={`text-[9px] font-bold ${isFemale ? 'text-rosa/60' : 'text-slate-400'} tracking-[0.2em] mb-1 uppercase italic`}>
+                                    CLUB: <span className={`text-${theme.accent}`}>{player.clubName || 'Socio Independiente'}</span>
                                 </span>
                             </div>
                         </div>
@@ -165,4 +184,5 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
         </motion.div>
     );
 };
+
 export default PlayerCard;

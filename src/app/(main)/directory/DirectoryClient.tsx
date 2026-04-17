@@ -22,8 +22,8 @@ interface DirectoryClientProps {
 // ── Sub-components ─────────────────────────────────────────────────────────────
 function VerifiedBadge() {
     return (
-        <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">
-            <CheckCircle2 className="w-3 h-3 fill-emerald-500/20" />
+        <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-celeste bg-celeste/10 border border-celeste/20 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">
+            <CheckCircle2 className="w-3 h-3 fill-celeste/20" />
             Verificado
         </div>
     );
@@ -33,8 +33,8 @@ function StarRating({ rating }: { rating: string | null }) {
     const val = rating ? parseFloat(rating) : 0;
     if (val === 0) return null;
     return (
-        <div className="flex items-center gap-1 text-[10px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20">
-            <Star className="w-3 h-3 fill-amber-400" />
+        <div className="flex items-center gap-1 text-[10px] font-black text-azul-primary bg-azul-primary/10 px-2 py-0.5 rounded-lg border border-azul-primary/20">
+            <Star className="w-3 h-3 fill-azul-primary" />
             {val.toFixed(1)}
         </div>
     );
@@ -54,7 +54,7 @@ function EmptyState({ label }: { label: string }) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-32 text-center opacity-40 select-none"
         >
-            <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl">
+            <div className="w-20 h-20 bg-muted/20 border border-border rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl">
                 <Search className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-black uppercase italic tracking-tighter">No hay {label}</h3>
@@ -79,7 +79,7 @@ export default function DirectoryClient({
     const isEmpty = filteredClubs.length === 0;
 
     return (
-        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-emerald-500/30 overflow-x-hidden">
+        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-celeste/30 overflow-x-hidden">
             
             {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
@@ -89,7 +89,7 @@ export default function DirectoryClient({
                     100% { background-position: 0% 50%; }
                 }
                 .text-gradient-animate {
-                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background: linear-gradient(to right, #003366, #009DE0, #FF3366, #003366);
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     color: transparent;
@@ -101,7 +101,7 @@ export default function DirectoryClient({
                     border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
                 }
                 .glass-card:hover {
-                    border-color: rgba(16, 185, 129, 0.4);
+                    border-color: rgba(0, 157, 224, 0.4);
                 }
                 .glow-btn {
                     position: relative;
@@ -111,7 +111,7 @@ export default function DirectoryClient({
                     position: absolute;
                     inset: -2px;
                     border-radius: inherit;
-                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    background: linear-gradient(45deg, #003366, #009DE0);
                     z-index: -1;
                     filter: blur(8px);
                     opacity: 0;
@@ -126,28 +126,28 @@ export default function DirectoryClient({
             
             {/* Ambient background glows */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
-                <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
-                <div className="absolute top-[40%] right-[20%] w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-azul-primary/10 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[10%] left-[-10%] w-[500px] h-[500px] bg-celeste/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[40%] right-[20%] w-[400px] h-[400px] bg-azul-primary/5 rounded-full blur-[120px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
             {/* Public Header */}
             {!isLoggedIn && (
-                <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
+                <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-azul-primary/5 shadow-[0_1px_10px_-5px_rgba(0,51,102,0.1)]">
                     <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2.5 transition-transform active:scale-95 group">
-                            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                            <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
                                 <span className="text-white font-black text-sm tracking-tighter">AC</span>
                             </div>
                             <div className="flex flex-col -gap-1">
-                                <span className="text-[14px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-[9px] font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                                <span className="text-[14px] font-black tracking-tight text-azul-primary leading-none">A.C.A.P.</span>
+                                <span className="text-[9px] font-bold text-celeste/80 uppercase tracking-widest leading-none">Padel App</span>
                             </div>
                         </Link>
                         <div className="flex items-center gap-3">
-                            <Link href="/login" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">Login</Link>
-                            <Link href="/" className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Volver</Link>
+                            <Link href="/login" className="px-5 py-2.5 bg-azul-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-azul-dark transition-all active:scale-95 shadow-lg shadow-azul-primary/10">Login</Link>
+                            <Link href="/" className="px-5 py-2.5 bg-white border border-border text-muted-foreground rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted/50 transition-all active:scale-95 shadow-sm">Volver</Link>
                         </div>
                     </div>
                 </div>
@@ -162,9 +162,9 @@ export default function DirectoryClient({
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-1"
                     >
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80 mb-2 px-1">Comunidad Padel</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-celeste/80 mb-2 px-1">Comunidad Padel</p>
                         <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
-                            <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Directorio</span><br/>
+                            <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(0,157,224,0.3)]">Directorio</span><br/>
                             <span className="text-foreground/90">de Clubes</span>
                         </h1>
                         <p className="text-muted-foreground text-[11px] font-black uppercase tracking-[0.2em] mt-4 opacity-60 px-1">
@@ -178,7 +178,7 @@ export default function DirectoryClient({
                         className="flex gap-3"
                     >
                         <div className="bg-white/5 border border-white/10 px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-xl">
-                            <Building2 className="w-5 h-5 text-emerald-500" />
+                            <Building2 className="w-5 h-5 text-azul-primary" />
                             <div className="flex flex-col">
                                 <span className="text-xs font-black leading-none">{initialClubs.length}</span>
                                 <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Clubes</span>
@@ -194,12 +194,12 @@ export default function DirectoryClient({
                     className="relative mb-12 group"
                 >
                     <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
+                        <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
                     </div>
                     <input
                         type="text"
                         inputMode="search"
-                        className="w-full pl-14 pr-12 py-5 glass-card rounded-[2rem] text-sm font-bold uppercase italic tracking-tight text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all shadow-2xl"
+                        className="w-full pl-14 pr-12 py-5 glass-card rounded-[2rem] text-sm font-bold uppercase italic tracking-tight text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-azul-primary/30 transition-all shadow-2xl"
                         placeholder="Buscar por nombre, barrio o ciudad..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
@@ -235,16 +235,16 @@ export default function DirectoryClient({
                                     transition={{ delay: idx * 0.05 }}
                                 >
                                     <Link href={`/profiles/club?id=${club.id}`} className="group block h-full">
-                                        <div className="glass-card rounded-[2.5rem] overflow-hidden transition-all duration-500 h-full flex flex-col group-hover:shadow-emerald-500/10 group-hover:translate-y-[-4px] relative">
+                                        <div className="glass-card rounded-[2.5rem] overflow-hidden transition-all duration-500 h-full flex flex-col group-hover:shadow-azul-primary/10 group-hover:translate-y-[-4px] relative">
                                             {/* Card Highlight */}
                                             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
                                             
                                             <div className="p-8 flex flex-col h-full gap-6 relative z-10">
                                                 <div className="flex items-start justify-between gap-4">
                                                     {/* Avatar */}
-                                                    <div className="w-20 h-20 shrink-0 bg-white/5 border border-white/10 rounded-[1.75rem] overflow-hidden flex items-center justify-center relative shadow-inner group-hover:border-emerald-500/30 transition-colors duration-500">
+                                                    <div className="w-20 h-20 shrink-0 bg-white/5 border border-white/10 rounded-[1.75rem] overflow-hidden flex items-center justify-center relative shadow-inner group-hover:border-celeste/30 transition-colors duration-500">
                                                         <Avatar url={club.logoUrl} emoji="🏟️" name={club.name} />
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-celeste/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                     </div>
                                                     
                                                     <div className="flex flex-col items-end gap-2">
@@ -255,11 +255,11 @@ export default function DirectoryClient({
 
                                                 {/* Info */}
                                                 <div className="flex-1 min-w-0 space-y-2">
-                                                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-foreground leading-none group-hover:text-emerald-400 transition-colors duration-500">
+                                                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-foreground leading-none group-hover:text-celeste transition-colors duration-500">
                                                         {club.name}
                                                     </h3>
                                                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground group-hover:text-foreground/80 transition-colors">
-                                                        <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                                        <MapPin className="w-3.5 h-3.5 text-celeste shrink-0" />
                                                         <span className="truncate">{club.location || "Sin ubicación"}</span>
                                                     </div>
                                                 </div>
@@ -267,15 +267,15 @@ export default function DirectoryClient({
                                                 {/* Meta Info */}
                                                 <div className="flex items-center justify-between pt-6 border-t border-white/5 font-black uppercase text-[8px] tracking-[0.25em] text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
                                                     <div className="flex gap-4">
-                                                        <span className="flex items-center gap-1.5"><Infinity className="w-3 h-3 text-emerald-500/40" /> Abierto</span>
-                                                        <span className="flex items-center gap-1.5"><Users className="w-3 h-3 text-blue-500/40" /> +{Math.floor(Math.random() * 50) + 10} Hoy</span>
+                                                        <span className="flex items-center gap-1.5"><Infinity className="w-3 h-3 text-celeste/40" /> Abierto</span>
+                                                        <span className="flex items-center gap-1.5"><Users className="w-3 h-3 text-azul-primary/40" /> +{Math.floor(Math.random() * 50) + 10} Hoy</span>
                                                     </div>
                                                 </div>
 
                                                 {/* Action Row */}
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex-1 bg-white/5 group-hover:bg-emerald-500/10 border border-white/5 group-hover:border-emerald-500/20 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500">
-                                                        <span className="text-[9px] font-black uppercase tracking-widest group-hover:text-emerald-400">Ver Perfil</span>
+                                                    <div className="flex-1 bg-white/5 group-hover:bg-celeste/10 border border-white/5 group-hover:border-celeste/20 py-4 rounded-2xl flex items-center justify-center gap-2 transition-all duration-500">
+                                                        <span className="text-[9px] font-black uppercase tracking-widest group-hover:text-celeste">Ver Perfil</span>
                                                         <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                                                     </div>
                                                     
@@ -287,7 +287,7 @@ export default function DirectoryClient({
                                                                 const phone = club.whatsapp || club.phone;
                                                                 window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
                                                             }}
-                                                            className="w-14 h-14 rounded-2xl bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white border border-emerald-500/20 flex items-center justify-center transition-all shrink-0 shadow-lg active:scale-95"
+                                                            className="w-14 h-14 rounded-2xl bg-azul-primary/10 hover:bg-azul-primary text-azul-primary hover:text-white border border-azul-primary/20 flex items-center justify-center transition-all shrink-0 shadow-lg active:scale-95"
                                                         >
                                                             <MessageCircle className="w-6 h-6 font-bold" />
                                                         </button>

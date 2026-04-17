@@ -22,17 +22,17 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
     }, []);
 
     const icons = {
-        gender: <Users className="w-10 h-10 text-amber-600" />,
-        category: <Trophy className="w-10 h-10 text-indigo-600" />,
-        membership: <Shield className="w-10 h-10 text-purple-600" />,
-        role: <Ban className="w-10 h-10 text-red-600" />,
+        gender: <Users className="w-10 h-10 text-rojo" />,
+        category: <Trophy className="w-10 h-10 text-azul-primary" />,
+        membership: <Shield className="w-10 h-10 text-celeste" />,
+        role: <Ban className="w-10 h-10 text-rojo" />,
     };
 
     const colors = {
-        gender: "bg-amber-50 border-amber-100",
-        category: "bg-indigo-50 border-indigo-100",
-        membership: "bg-purple-50 border-purple-100",
-        role: "bg-red-50 border-red-100",
+        gender: "bg-rojo/5 border-rojo/10",
+        category: "bg-azul-primary/5 border-azul-primary/10",
+        membership: "bg-celeste/5 border-celeste/10",
+        role: "bg-rojo/5 border-rojo/10",
     };
 
     const titles = {
@@ -62,7 +62,7 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="relative w-full max-w-sm bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden p-8 text-center"
                     >
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-azul-primary via-celeste to-azul-primary" />
                         
                         <button 
                             onClick={onClose}
@@ -71,7 +71,7 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
                             <X className="w-4 h-4" />
                         </button>
 
-                        <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center border ${reason ? colors[reason] : "bg-muted border-border"}`}>
+                        <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center border shadow-sm ${reason ? colors[reason] : "bg-muted border-border"}`}>
                             {reason ? icons[reason] : <Ban className="w-10 h-10 text-muted-foreground" />}
                         </div>
 
@@ -79,14 +79,14 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
                             {reason ? titles[reason] : "No Disponible"}
                         </h2>
                         
-                        <p className="text-muted-foreground text-sm font-medium leading-relaxed mb-8 italic text-center">
+                        <p className="text-muted-foreground text-xs font-medium leading-relaxed mb-8 italic text-center px-4">
                             {message}
                         </p>
 
                         <div className="space-y-3">
                             <button
                                 onClick={onClose}
-                                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                                className="w-full py-4 bg-azul-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-azul-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 group"
                             >
                                 Entendido
                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

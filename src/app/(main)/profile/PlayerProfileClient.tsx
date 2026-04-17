@@ -71,15 +71,6 @@ export default function PlayerProfileClient({
     const [activeTab, setActiveTab] = useState("tournaments");
     const [saving, setSaving] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 20;
-
-    const history = profileData.history || [];
-    const stats = profileData.stats || { pj: 0, pg: 0, pp: 0, wr: 0, trofeos: 0 };
-    const player = profileData.player || dbUser;
-
-    const totalPages = Math.ceil(history.length / pageSize);
-    const paginatedHistory = history.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
     const [formData, setFormData] = useState({
         firstName: dbUser?.firstName || "",
         lastName: dbUser?.lastName || "",
@@ -90,11 +81,35 @@ export default function PlayerProfileClient({
         imageUrl: dbUser?.imageUrl || "",
         gender: dbUser?.gender || "masculino"
     });
-
     const [imagePreview, setImagePreview] = useState<string | null>(dbUser?.imageUrl || null);
     const [isUploading, setIsUploading] = useState(false);
     const [passwords, setPasswords] = useState({ currentPass: "", newPass: "", confirmPass: "" });
     const [isChangingPass, setIsChangingPass] = useState(false);
+
+    const pageSize = 20;
+    const history = profileData.history || [];
+    const stats = profileData.stats || { pj: 0, pg: 0, pp: 0, wr: 0, trofeos: 0 };
+    const player = profileData.player || dbUser;
+
+    // Theme depends on formData gender for instant feedback if it's the own profile
+    const currentGender = isOwnProfile ? formData.gender : player.gender;
+    const isFemale = currentGender === 'femenino';
+
+    const theme = {
+        primary: isFemale ? 'rojo' : 'azul-primary',
+        accent: isFemale ? 'rosa' : 'celeste',
+        accentDark: isFemale ? 'rojo-dark' : 'azul-dark',
+        glow: isFemale ? 'bg-rojo/5' : 'bg-azul-primary/5',
+        glowAccent: isFemale ? 'bg-rosa/5' : 'bg-celeste/5',
+        border: isFemale ? 'border-rosa/30' : 'border-celeste/30',
+        shadow: isFemale ? 'shadow-rojo/20' : 'shadow-azul-primary/20',
+        selection: isFemale ? 'selection:bg-rojo/30' : 'selection:bg-celeste/30',
+        gradient: isFemale ? 'from-rojo/5 via-rosa/5 to-rojo/5' : 'from-azul-primary/5 via-celeste/5 to-azul-primary/5',
+        cardBg: isFemale ? 'bg-[#0c0204]' : 'bg-slate-950'
+    };
+
+    const totalPages = Math.ceil(history.length / pageSize);
+    const paginatedHistory = history.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,11 +129,11 @@ export default function PlayerProfileClient({
     const realCategory = player.category || "4TA";
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+        <div className={`min-h-screen bg-background text-foreground pb-20 font-sans ${theme.selection} relative overflow-hidden`}>
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className={`absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full ${theme.glow} blur-[120px] animate-pulse`} />
+                <div className={`absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full ${theme.glowAccent} blur-[120px] animate-pulse`} style={{ animationDelay: '2s' }} />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 relative z-10">
@@ -132,7 +147,7 @@ export default function PlayerProfileClient({
                     {pendingInvites.length > 0 && isOwnProfile && (
                         <div className="flex flex-col gap-4">
                             {pendingInvites.map((invite: any) => (
-                                <div key={invite.id} className="bg-indigo-600 rounded-[2rem] p-6 text-white shadow-xl shadow-indigo-900/10 border border-indigo-400/30 relative overflow-hidden group">
+                                <div key={invite.id} className={`bg-${theme.primary} rounded-[2rem] p-6 text-white shadow-xl ${theme.shadow} border ${theme.border} relative overflow-hidden group`}>
                                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShieldCheck className="h-24 w-24" />
                                     </div>
@@ -142,8 +157,8 @@ export default function PlayerProfileClient({
                                                 <Trophy className="h-8 w-8 text-white" />
                                             </div>
                                             <div className="text-center md:text-left">
-                                                <h3 className="text-xl font-black uppercase italic tracking-tight">Invitación de Club</h3>
-                                                <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mt-1">
+                                                <h3 className={`text-xl font-black uppercase italic tracking-tight underline decoration-${theme.accent} decoration-4 underline-offset-4`}>Invitación de Club</h3>
+                                                <p className={`text-[10px] font-bold text-${theme.accent} uppercase tracking-widest mt-1`}>
                                                     El club <span className="text-white underline decoration-2 underline-offset-4">{invite.club?.name}</span> te ha invitado a unirte.
                                                 </p>
                                             </div>
@@ -173,7 +188,7 @@ export default function PlayerProfileClient({
                                                         toast.error("Error al aceptar");
                                                     }
                                                 }}
-                                                className="flex-1 md:flex-none px-8 py-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+                                                className={`flex-1 md:flex-none px-8 py-3 bg-white text-${theme.primary} hover:bg-${theme.accent} hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg`}
                                             >
                                                 Aceptar
                                             </button>
@@ -201,7 +216,7 @@ export default function PlayerProfileClient({
                             {/* Hero section */}
                             <div className="bg-card backdrop-blur-xl border border-border rounded-[2.5rem] overflow-hidden shadow-sm relative transition-colors">
                                 <div className="h-32 md:h-48 bg-muted/30 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-blue-500/5 to-emerald-500/5" />
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient}`} />
                                     <div className="absolute inset-0 bg-grid-black/[0.02]" />
                                 </div>
 
@@ -209,17 +224,17 @@ export default function PlayerProfileClient({
                                     {isOwnProfile && dbUser?.role === "superadmin" && (
                                         <Link
                                             href="/admin"
-                                            className="flex items-center gap-1.5 bg-background border border-border text-foreground px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-muted active:scale-95 shadow-sm group/btn"
+                                            className={`flex items-center gap-1.5 bg-card/40 backdrop-blur-xl border border-border text-foreground px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-${theme.primary} hover:text-white active:scale-95 shadow-sm group/btn`}
                                         >
-                                            <LayoutDashboard className="h-3.5 w-3.5 text-indigo-600 group-hover/btn:rotate-12 transition-transform" /> Panel Admin
+                                            <LayoutDashboard className={`h-3.5 w-3.5 text-${theme.accent} group-hover/btn:rotate-12 group-hover/btn:text-white transition-all`} /> Panel Admin
                                         </Link>
                                     )}
                                 </div>
 
                                 <div className="px-8 pb-10 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-8 text-center md:text-left">
                                     <div className="relative group">
-                                        <div className="absolute -inset-1.5 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity" />
-                                        <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-background overflow-hidden bg-muted shadow-xl relative flex items-center justify-center">
+                                        <div className={`absolute -inset-1.5 bg-gradient-to-br from-${theme.primary} to-${theme.accent} rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity`} />
+                                        <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-background overflow-hidden bg-card shadow-xl relative flex items-center justify-center">
                                             {dbUser.imageUrl ? (
                                                 <Image src={dbUser.imageUrl} alt={dbUser.firstName || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority unoptimized sizes="(max-width: 768px) 96px, 160px" />
                                             ) : (
@@ -229,7 +244,7 @@ export default function PlayerProfileClient({
                                         {isOwnProfile && (
                                             <button
                                                 onClick={() => setActiveTab("edit")}
-                                                className="absolute bottom-1 right-1 bg-indigo-600 p-2 rounded-full border-4 border-background shadow-xl hover:bg-indigo-500 transition-colors active:scale-90"
+                                                className={`absolute bottom-1 right-1 bg-${theme.primary} p-2 rounded-full border-4 border-background shadow-xl hover:bg-${theme.accent} transition-colors active:scale-90`}
                                             >
                                                 <Edit2 className="h-4 w-4 text-white" />
                                             </button>
@@ -239,10 +254,10 @@ export default function PlayerProfileClient({
                                     <div className="flex-1 pt-2 pb-1">
                                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 justify-center md:justify-start">
                                             <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-foreground leading-none">
-                                                {dbUser.firstName} {dbUser.lastName}
+                                                {dbUser.firstName} <span className={`text-${theme.primary}`}>{dbUser.lastName}</span>
                                             </h1>
-                                            <div className="flex self-center md:self-auto px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                                            <div className={`flex self-center md:self-auto px-4 py-1.5 bg-${theme.primary}/10 border border-${theme.primary}/20 rounded-full`}>
+                                                <span className={`text-[10px] font-black uppercase tracking-widest text-${theme.primary}`}>
                                                     {dbUser.role === 'superadmin' ? 'SYSTEM ARCHITECT' : dbUser.role === 'club' ? 'CLUB MANAGER' : 'COMPETITOR'}
                                                 </span>
                                             </div>
@@ -250,28 +265,28 @@ export default function PlayerProfileClient({
 
                                         {memberClub && (
                                             <div className="flex justify-center md:justify-start items-center gap-2.5 mb-4 px-4 py-2 bg-muted rounded-2xl w-fit border border-border mx-auto md:mx-0">
-                                                <div className="w-6 h-6 rounded-lg bg-background relative overflow-hidden border border-border">
+                                                <div className="w-6 h-6 rounded-lg bg-card relative overflow-hidden border border-border">
                                                     {memberClub.logoUrl ? (
                                                         <Image src={memberClub.logoUrl} alt="" fill className="object-cover" sizes="24px" />
                                                     ) : (
-                                                        <ShieldCheck className="w-3 h-3 m-auto text-indigo-600" />
+                                                        <ShieldCheck className={`w-3 h-3 m-auto text-${theme.primary}`} />
                                                     )}
                                                 </div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
-                                                    Active Unit: <span className="text-indigo-600">{memberClub.name}</span>
+                                                    Unit: <span className={`text-${theme.primary}`}>{memberClub.name}</span>
                                                 </span>
                                             </div>
                                         )}
 
                                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-[10px] font-black uppercase tracking-widest">
                                             <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                                <MapPin className="h-3.5 w-3.5 text-emerald-600" /> {dbUser?.location || "Sector Desconocido"}
+                                                <MapPin className={`h-3.5 w-3.5 text-${theme.accent}`} /> {dbUser?.location || "Sector Desconocido"}
                                             </div>
                                             <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                                <Calendar className="h-3.5 w-3.5 text-indigo-600" /> {dbUser.createdAt ? `Activo desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}` : "Nuevos Datos"}
+                                                <Calendar className={`h-3.5 w-3.5 text-${theme.primary}`} /> {dbUser.createdAt ? `Activo desde ${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}` : "Nuevos Datos"}
                                             </div>
                                             <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                                <Zap className="h-3.5 w-3.5 text-amber-500" /> {stats.side === "drive" ? "Drive Specialist" : stats.side === "reves" ? "Backhand Elite" : "Standard Neutral"}
+                                                <Zap className={`h-3.5 w-3.5 text-${theme.accent}`} /> {stats.side === "drive" ? "Drive Specialist" : stats.side === "reves" ? "Backhand Elite" : "Standard Neutral"}
                                             </div>
                                         </div>
                                     </div>
@@ -298,7 +313,7 @@ export default function PlayerProfileClient({
                                         {activeTab === tab.id && (
                                             <motion.div
                                                 layoutId="activeTabProfile"
-                                                className="absolute inset-0 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20"
+                                                className={`absolute inset-0 bg-${theme.primary} rounded-2xl shadow-lg ${theme.shadow}`}
                                             />
                                         )}
                                     </button>
@@ -318,7 +333,7 @@ export default function PlayerProfileClient({
 
                                             {/* LEFT WING: PLAYER CARD */}
                                             <div className="relative group/card-wrapper flex justify-center lg:block">
-                                                <div className="absolute -inset-20 bg-emerald-500/10 blur-[120px] rounded-full opacity-0 group-hover/card-wrapper:opacity-100 transition-opacity pointer-events-none" />
+                                                <div className={`absolute -inset-20 bg-${theme.accent}/10 blur-[120px] rounded-full opacity-0 group-hover/card-wrapper:opacity-100 transition-opacity pointer-events-none`} />
                                                 <PlayerCard
                                                     player={{
                                                         firstName: player.firstName,
@@ -327,7 +342,8 @@ export default function PlayerProfileClient({
                                                         category: player.category,
                                                         side: player.side,
                                                         points: player.points,
-                                                        clubName: player.clubName
+                                                        clubName: player.clubName,
+                                                        gender: currentGender
                                                     }}
                                                     stats={{
                                                         pj: stats.pj,
@@ -349,26 +365,26 @@ export default function PlayerProfileClient({
                                                     {/* TIER 1: FOCUS STATS */}
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="relative group">
-                                                            <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-0 group-hover:opacity-10 transition-opacity" />
-                                                            <div className="bg-emerald-500 p-8 rounded-[1.5rem] transform -skew-x-6 shadow-[0_15px_30px_rgba(16,185,129,0.15)]">
+                                                            <div className={`absolute inset-0 bg-${theme.accent} blur-2xl opacity-0 group-hover:opacity-10 transition-opacity`} />
+                                                            <div className={`bg-${theme.primary} p-8 rounded-[1.5rem] transform -skew-x-6 shadow-[0_15px_30px_rgba(30,64,175,0.2)] border-r-4 border-${theme.accent}`}>
                                                                 <div className="flex items-center justify-between transform skew-x-6">
                                                                     <div className="space-y-1">
-                                                                        <p className="text-[10px] font-black uppercase text-emerald-100/50 tracking-widest">Global Rank</p>
+                                                                        <p className={`text-[10px] font-black uppercase text-${theme.accent}/70 tracking-[0.2em]`}>Global Rank</p>
                                                                         <p className="text-5xl font-black text-white italic">#{rankingPosition}</p>
                                                                     </div>
-                                                                    <Zap size={40} className="text-white fill-white/20" />
+                                                                    <Zap size={40} className={`text-white fill-${theme.accent}/20`} />
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         <div className="relative group">
-                                                            <div className="bg-slate-900 border border-slate-800 p-8 rounded-[1.5rem] transform -skew-x-6 hover:border-secondary/50 transition-all shadow-xl shadow-slate-200">
+                                                            <div className={`${isFemale ? `bg-${theme.accent}` : theme.cardBg} border border-border p-8 rounded-[1.5rem] transform -skew-x-6 hover:border-${theme.accent}/50 transition-all shadow-xl shadow-${theme.primary}/5`}>
                                                                 <div className="flex items-center justify-between transform skew-x-6">
                                                                     <div className="space-y-1">
-                                                                        <p className="text-[10px] font-black uppercase text-white/50 tracking-widest">Puntos Totales</p>
-                                                                        <p className="text-5xl font-black text-white italic">{player.points}</p>
+                                                                        <p className={`text-[10px] font-black uppercase ${isFemale ? 'text-slate-950/60' : 'text-muted-foreground'} tracking-[0.2em]`}>Puntos Totales</p>
+                                                                        <p className={`text-5xl font-black ${isFemale ? 'text-slate-950' : 'text-white'} italic`}>{player.points}</p>
                                                                     </div>
-                                                                    <Target size={40} className="text-white/20" />
+                                                                    <Target size={40} className={isFemale ? 'text-slate-950/20' : `text-${theme.primary}/30`} />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -378,56 +394,56 @@ export default function PlayerProfileClient({
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 px-2">
                                                         <div className="flex flex-col gap-2">
                                                             <div className="flex items-center gap-2">
-                                                                <Activity size={14} className="text-blue-600" />
-                                                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Efectividad General</p>
+                                                                <Activity size={14} className={`text-${theme.primary}`} />
+                                                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Efectividad General</p>
                                                             </div>
                                                             <div className="flex items-end gap-3">
-                                                                <p className="text-4xl font-extrabold text-blue-600 italic tabular-nums leading-none">{stats.wr}%</p>
-                                                                <div className="h-6 w-px bg-slate-200 mb-1" />
-                                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Win Rate</p>
+                                                                <p className={`text-4xl font-extrabold text-${theme.primary} italic tabular-nums leading-none`}>{stats.wr}%</p>
+                                                                <div className="h-6 w-px bg-border mb-1" />
+                                                                <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Win Rate</p>
                                                             </div>
-                                                            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                                                            <div className="w-full h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
                                                                 <motion.div
                                                                     initial={{ width: 0 }}
                                                                     animate={{ width: `${stats.wr}%` }}
-                                                                    className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                                                                    className={`h-full bg-${theme.primary} shadow-[0_0_10px_rgba(30,64,175,0.5)]`}
                                                                 />
                                                             </div>
                                                         </div>
 
                                                         <div className="flex flex-col gap-2">
                                                             <div className="flex items-center gap-2">
-                                                                <Award size={14} className="text-zinc-600" />
-                                                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Posición en Categoría</p>
+                                                                <Award size={14} className={`text-${theme.accent}`} />
+                                                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Posición en Categoría</p>
                                                             </div>
                                                             <div className="flex items-end gap-3">
-                                                                <p className="text-4xl font-extrabold text-zinc-900 italic tabular-nums leading-none">#{categoryRanking}</p>
-                                                                <div className="h-6 w-px bg-slate-200 mb-1" />
-                                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Tier: {player.category}</p>
+                                                                <p className="text-4xl font-extrabold text-foreground italic tabular-nums leading-none">#{categoryRanking}</p>
+                                                                <div className="h-6 w-px bg-border mb-1" />
+                                                                <p className="text-[9px] font-black text-muted-foreground uppercase mb-1">Tier: {player.category}</p>
                                                             </div>
-                                                            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                                                                <div className="h-full bg-zinc-800 w-[15%]" />
+                                                            <div className="w-full h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
+                                                                <div className={`h-full bg-${theme.accent} w-[15%] shadow-[0_0_10px_rgba(14,165,233,0.3)]`} />
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     {/* TIER 3: ACTIVITY FEEDBACK */}
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-muted/40 p-6 rounded-[2rem] border border-border shadow-sm backdrop-blur-xl">
                                                         <div className="text-center">
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Jugados</p>
-                                                            <p className="text-2xl font-black text-slate-900 italic">{stats.pj}</p>
+                                                            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">Jugados</p>
+                                                            <p className="text-2xl font-black text-foreground italic">{stats.pj}</p>
                                                         </div>
-                                                        <div className="text-center border-l border-slate-200">
-                                                            <p className="text-[8px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Ganados</p>
-                                                            <p className="text-2xl font-black text-emerald-600 italic">{stats.pg}</p>
+                                                        <div className="text-center border-l border-border">
+                                                            <p className={`text-[8px] font-black text-${theme.primary} uppercase tracking-widest mb-1`}>Ganados</p>
+                                                            <p className={`text-2xl font-black text-${theme.primary} italic`}>{stats.pg}</p>
                                                         </div>
-                                                        <div className="text-center border-l border-slate-200">
-                                                            <p className="text-[8px] font-black text-rose-600/70 uppercase tracking-widest mb-1">Perdidos</p>
-                                                            <p className="text-2xl font-black text-rose-600 italic">{stats.pp}</p>
+                                                        <div className="text-center border-l border-border">
+                                                            <p className="text-[8px] font-black text-rojo uppercase tracking-widest mb-1">Perdidos</p>
+                                                            <p className="text-2xl font-black text-rojo italic">{stats.pp}</p>
                                                         </div>
-                                                        <div className="text-center border-l border-slate-200">
-                                                            <p className="text-[8px] font-black text-secondary/70 uppercase tracking-widest mb-1">Títulos</p>
-                                                            <p className="text-2xl font-black text-secondary italic">{stats.trofeos}</p>
+                                                        <div className="text-center border-l border-border">
+                                                            <p className={`text-[8px] font-black text-${theme.accent} uppercase tracking-widest mb-1`}>Logros</p>
+                                                            <p className={`text-2xl font-black text-${theme.accent} italic`}>{stats.trofeos}</p>
                                                         </div>
                                                     </div>
 
@@ -435,14 +451,14 @@ export default function PlayerProfileClient({
                                                     <div className="flex flex-col gap-4">
                                                         <div className="flex items-center justify-between px-2">
                                                             <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.3em]">Historial Reciente</p>
-                                                            <p className="text-[10px] font-black text-emerald-600/50 italic uppercase">ÚLTIMOS 5 ENCUENTROS</p>
+                                                            <p className={`text-[10px] font-black text-${theme.accent}/70 italic uppercase`}>ÚLTIMOS 5 ENCUENTROS</p>
                                                         </div>
                                                         <div className="flex items-center justify-between md:justify-start md:gap-4">
                                                             {history.slice(0, 5).reverse().map((m, i) => (
                                                                 <div key={i} className="flex-1 md:flex-none">
-                                                                    <div className={`relative h-12 w-full md:w-16 flex items-center justify-center rounded-xl transform -skew-x-12 border transition-all group/cell ${m.isWin === true ? "bg-emerald-500 text-white border-emerald-600 shadow-lg shadow-emerald-500/20" :
-                                                                        m.isWin === false ? "bg-rose-500 text-white border-rose-600 shadow-lg shadow-rose-500/20" :
-                                                                            "bg-slate-100 border-slate-200 text-slate-400"
+                                                                    <div className={`relative h-12 w-full md:w-16 flex items-center justify-center rounded-xl transform -skew-x-12 border transition-all group/cell ${m.isWin === true ? `bg-${theme.primary} text-white border-${theme.accent}/40 shadow-lg ${theme.shadow}` :
+                                                                        m.isWin === false ? "bg-rojo text-white border-rojo shadow-lg shadow-rojo/20" :
+                                                                            "bg-muted border-border text-muted-foreground"
                                                                         }`}>
                                                                         <span className="text-xl font-black italic transform skew-x-12">{m.isWin === true ? "V" : m.isWin === false ? "D" : "-"}</span>
                                                                     </div>
@@ -470,16 +486,16 @@ export default function PlayerProfileClient({
                                         <div className="px-8 py-8 border-b border-border bg-muted/20 flex items-center justify-between">
                                             <div>
                                                 <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">Bitácora de Encuentros</h2>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mt-1">Sincronización total de resultados</p>
+                                                <p className={`text-[10px] font-black uppercase tracking-[0.2em] text-${theme.accent} mt-1`}>Sincronización total de resultados</p>
                                             </div>
                                             <div className="flex gap-4">
                                                 <div className="text-right">
                                                     <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Efectividad</div>
-                                                    <div className="text-xl font-black italic tabular-nums text-emerald-600">{stats.wr}%</div>
+                                                    <div className={`text-xl font-black italic tabular-nums text-${theme.primary}`}>{stats.wr}%</div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Total</div>
-                                                    <div className="text-xl font-black italic tabular-nums text-indigo-600">{history.length} Partidos</div>
+                                                    <div className={`text-xl font-black italic tabular-nums text-${theme.accent}`}>{history.length} Partidos</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -504,7 +520,7 @@ export default function PlayerProfileClient({
                                                                         <td className="px-8 py-6 text-xs font-black text-muted-foreground group-hover:text-foreground tabular-nums uppercase">{date}</td>
                                                                         <td className="px-8 py-6">
                                                                             <div className="flex flex-col">
-                                                                                <span className="text-sm font-black uppercase italic tracking-tighter mb-1 text-foreground group-hover:text-indigo-600 transition-colors">{m.tournament}</span>
+                                                                                <span className={`text-sm font-black uppercase italic tracking-tighter mb-1 text-foreground group-hover:text-${theme.primary} transition-colors`}>{m.tournament}</span>
                                                                                 <div className="flex items-center gap-2">
                                                                                     <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full w-fit bg-muted text-muted-foreground border border-border`}>{m.type}</span>
                                                                                     <span className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">{m.subType}</span>
@@ -516,7 +532,7 @@ export default function PlayerProfileClient({
                                                                             <div className="flex items-center justify-end gap-5">
                                                                                 <div className="flex flex-col items-end">
                                                                                     {m.isWin !== null ? (
-                                                                                        <span className={`text-[10px] font-black italic ${m.isWin ? "text-emerald-600" : "text-rose-600"}`}>
+                                                                                        <span className={`text-[10px] font-black italic ${m.isWin ? `text-${theme.primary}` : "text-rojo"}`}>
                                                                                             {m.isWin ? "VICTORIA" : "DERROTA"}
                                                                                         </span>
                                                                                     ) : (
@@ -525,7 +541,7 @@ export default function PlayerProfileClient({
                                                                                     <span className="text-xl font-black italic tracking-tighter tabular-nums text-foreground">{m.score}</span>
                                                                                 </div>
                                                                                 {m.isWin !== null && (
-                                                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black ${m.isWin ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-rose-100 text-rose-700 border border-rose-200"}`}>
+                                                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black ${m.isWin ? `bg-${theme.accent}/10 text-${theme.accent} border border-${theme.accent}/20` : "bg-rojo/10 text-rojo border border-rojo/20"}`}>
                                                                                         {m.isWin ? "G" : "P"}
                                                                                     </div>
                                                                                 )}
@@ -570,7 +586,7 @@ export default function PlayerProfileClient({
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-foreground text-sm font-black uppercase tracking-widest italic">Sin Actividad</p>
-                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">No se detectaron registros en el sistema</p>
+                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest italic opacity-50">No se detectaron registros en el sistema</p>
                                                 </div>
                                             </div>
                                         )}
@@ -596,15 +612,15 @@ export default function PlayerProfileClient({
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border">
                                                     <div className="flex items-center gap-3">
-                                                        <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                                                        <ShieldCheck className={`h-4 w-4 text-${theme.primary}`} />
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol Actual</span>
                                                     </div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">{dbUser.role}</span>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest text-${theme.primary}`}>{dbUser.role}</span>
                                                 </div>
 
                                                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border">
                                                     <div className="flex items-center gap-3">
-                                                        <UserCircle className="h-4 w-4 text-indigo-600" />
+                                                        <UserCircle className={`h-4 w-4 text-${theme.accent}`} />
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ID de Usuario</span>
                                                     </div>
                                                     <span className="text-[9px] font-mono text-muted-foreground/70">{dbUser.id.slice(0, 12)}...</span>
@@ -613,7 +629,7 @@ export default function PlayerProfileClient({
 
                                             <button
                                                 onClick={() => logoutAction()}
-                                                className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-100 active:scale-95"
+                                                className="w-full flex items-center justify-center gap-2 bg-rojo/10 text-rojo hover:bg-rojo hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-rojo/20 active:scale-95"
                                             >
                                                 <LogOut className="h-4 w-4" /> Cerrar Sesión
                                             </button>
@@ -623,7 +639,7 @@ export default function PlayerProfileClient({
                                         <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
                                             <div>
                                                 <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground flex items-center gap-2">
-                                                    <Lock className="h-5 w-5 text-indigo-600" /> Seguridad
+                                                    <Lock className={`h-5 w-5 text-${theme.primary}`} /> Seguridad
                                                 </h3>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Actualiza tu contraseña de acceso</p>
                                             </div>
@@ -635,7 +651,7 @@ export default function PlayerProfileClient({
                                                         type="password"
                                                         value={passwords.currentPass}
                                                         onChange={e => setPasswords({ ...passwords, currentPass: e.target.value })}
-                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                                        className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="••••••••"
                                                     />
                                                 </div>
@@ -646,7 +662,7 @@ export default function PlayerProfileClient({
                                                         type="password"
                                                         value={passwords.newPass}
                                                         onChange={e => setPasswords({ ...passwords, newPass: e.target.value })}
-                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
+                                                        className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="Mínimo 6 caracteres"
                                                     />
                                                 </div>
@@ -657,8 +673,8 @@ export default function PlayerProfileClient({
                                                         type="password"
                                                         value={passwords.confirmPass}
                                                         onChange={e => setPasswords({ ...passwords, confirmPass: e.target.value })}
-                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 transition-all"
-                                                        placeholder="Repetí la contraseña"
+                                                        className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        placeholder="Repetir la contraseña"
                                                     />
                                                 </div>
 
@@ -681,7 +697,7 @@ export default function PlayerProfileClient({
                                                                 newPass: passwords.newPass
                                                             });
                                                             if (res.success) {
-                                                                toast.success("Contraseña actualizada. Por favor, volvé a ingresar.");
+                                                                toast.success("Contraseña actualizada. Por favor, reingresa.");
                                                                 setPasswords({ currentPass: "", newPass: "", confirmPass: "" });
                                                                 // Logout automatically so they have to use the new one
                                                                 await logoutAction();
@@ -693,7 +709,7 @@ export default function PlayerProfileClient({
                                                         }
                                                     }}
                                                     disabled={isChangingPass}
-                                                    className="w-full bg-foreground text-background py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-foreground/90 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                    className={`w-full bg-${theme.primary} hover:bg-${theme.accent} text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg ${theme.shadow}`}
                                                 >
                                                     {isChangingPass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
                                                     Actualizar Contraseña
@@ -720,13 +736,13 @@ export default function PlayerProfileClient({
                                                     )}
                                                     {isUploading && (
                                                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
-                                                            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+                                                            <Loader2 className={`w-5 h-5 animate-spin text-${theme.primary}`} />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col gap-3 flex-1 w-full text-center sm:text-left">
                                                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest max-w-xs leading-relaxed">Sube una foto cuadrada para que otros jugadores te reconozcan en los torneos.</p>
-                                                    <label className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-indigo-600/20 active:scale-95">
+                                                    <label className={`inline-flex items-center justify-center gap-2 px-6 py-3 bg-${theme.primary} hover:bg-${theme.accent} text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg ${theme.shadow} active:scale-95`}>
                                                         <ImageIcon className="w-4 h-4" />
                                                         {isUploading ? "Subiendo..." : "Cambiar Foto"}
                                                         <input
@@ -774,7 +790,7 @@ export default function PlayerProfileClient({
                                                         type="text"
                                                         value={formData.firstName}
                                                         onChange={e => setFormData({ ...formData, firstName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
+                                                        className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} shadow-sm transition-all`}
                                                         placeholder="Tu nombre"
                                                         autoCapitalize="words"
                                                     />
@@ -785,7 +801,7 @@ export default function PlayerProfileClient({
                                                         type="text"
                                                         value={formData.lastName}
                                                         onChange={e => setFormData({ ...formData, lastName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
+                                                        className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} shadow-sm transition-all`}
                                                         placeholder="Tu apellido"
                                                         autoCapitalize="words"
                                                     />
@@ -801,7 +817,7 @@ export default function PlayerProfileClient({
                                                             type="text"
                                                             value={formData.location}
                                                             onChange={e => setFormData({ ...formData, location: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
+                                                            className={`w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} shadow-sm transition-all`}
                                                             placeholder="Ciudad, País"
                                                             autoCapitalize="sentences"
                                                         />
@@ -815,7 +831,7 @@ export default function PlayerProfileClient({
                                                             type="text"
                                                             value={formData.phone}
                                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all"
+                                                            className={`w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} shadow-sm transition-all`}
                                                             placeholder="Ej: 1122334455"
                                                         />
                                                     </div>
@@ -827,7 +843,7 @@ export default function PlayerProfileClient({
                                                         <select
                                                             value={formData.gender}
                                                             onChange={e => setFormData({ ...formData, gender: e.target.value })}
-                                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 shadow-sm transition-all appearance-none"
+                                                            className={`w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} shadow-sm transition-all appearance-none`}
                                                         >
                                                             <option value="masculino">Masculino</option>
                                                             <option value="femenino">Femenino</option>
@@ -845,7 +861,7 @@ export default function PlayerProfileClient({
                                                             key={s}
                                                             type="button"
                                                             onClick={() => setFormData({ ...formData, side: s })}
-                                                            className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${formData.side === s ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20" : "bg-muted/30 border-border text-muted-foreground hover:border-indigo-500/50"}`}
+                                                            className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${formData.side === s ? `bg-${theme.primary} border-${theme.accent}/40 text-white shadow-lg ${theme.shadow}` : "bg-muted/30 border-border text-muted-foreground hover:border-celeste/50"}`}
                                                         >
                                                             {s}
                                                         </button>
@@ -859,7 +875,7 @@ export default function PlayerProfileClient({
                                                     value={formData.bio}
                                                     onChange={e => setFormData({ ...formData, bio: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                     rows={4}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-indigo-500 resize-none shadow-sm transition-all"
+                                                    className={`w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-sm font-bold outline-none focus:border-${theme.primary} resize-none shadow-sm transition-all`}
                                                     placeholder="Cuenta algo sobre tu estilo de juego..."
                                                     autoCapitalize="sentences"
                                                 />
@@ -869,7 +885,7 @@ export default function PlayerProfileClient({
                                                 <button
                                                     type="submit"
                                                     disabled={saving}
-                                                    className="w-full md:w-auto px-10 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
+                                                    className={`w-full md:w-auto px-10 bg-${theme.primary} hover:bg-${theme.accent} text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl ${theme.shadow} disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95`}
                                                 >
                                                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Edit2 className="h-4 w-4" />}
                                                     {saving ? "Guardando..." : "Guardar Cambios"}

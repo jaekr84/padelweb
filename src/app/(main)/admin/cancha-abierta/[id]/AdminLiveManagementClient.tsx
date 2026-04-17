@@ -108,7 +108,7 @@ const MatchTimer = ({ startedAt, matchId, duration, pauseState, onUpdateDuration
     return (
         <div className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
             pauseState.isPaused ? 'bg-muted/10 border-border/40 opacity-50' :
-            isOvertime ? 'bg-red-500/10 border-red-500/30 text-red-500' : 
+            isOvertime ? 'bg-rojo/10 border-rojo/30 text-rojo' : 
             'bg-foreground/5 border-border/20 text-muted-foreground'
         }`}>
             <div className="flex items-center gap-4 mb-1">
@@ -135,7 +135,7 @@ const MatchTimer = ({ startedAt, matchId, duration, pauseState, onUpdateDuration
                 <button 
                     onClick={(e) => { e.stopPropagation(); onTogglePause(matchId); }}
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                        pauseState.isPaused ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-foreground/10 hover:bg-foreground/20'
+                        pauseState.isPaused ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-foreground/10 hover:bg-foreground/20'
                     }`}
                 >
                     {pauseState.isPaused ? <Play className="w-3.5 h-3.5 fill-current" /> : <Pause className="w-3.5 h-3.5 fill-current" />}
@@ -711,8 +711,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                     </Link>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500">Live Dashboard</span>
-                            <div className={`w-2 h-2 rounded-full bg-red-500 animate-pulse`} />
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary">Live Dashboard</span>
+                            <div className={`w-2 h-2 rounded-full bg-rojo animate-pulse`} />
                         </div>
                         <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground leading-none">
                             {event.name}
@@ -734,19 +734,19 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                     <div className="bg-card/40 border border-border/50 px-6 py-3 rounded-2xl flex items-center gap-4">
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Disponibles</span>
-                            <span className="text-xl font-black italic leading-none text-emerald-500">{availablePlayers.length}</span>
+                            <span className="text-xl font-black italic leading-none text-celeste">{availablePlayers.length}</span>
                         </div>
                         <div className="w-px h-8 bg-border/40" />
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">En Juego</span>
-                            <span className="text-xl font-black italic leading-none text-orange-500">{event.matches.filter(m => m.status === 'in_progress').length}</span>
+                            <span className="text-xl font-black italic leading-none text-azul-primary">{event.matches.filter(m => m.status === 'in_progress').length}</span>
                         </div>
                     </div>
 
                     <button 
                         onClick={handleFinishEvent}
                         disabled={isGenerating}
-                        className="px-6 py-4 bg-red-500 hover:bg-red-600 active:scale-95 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-red-500/10 flex items-center gap-2"
+                        className="px-6 py-4 bg-rojo hover:bg-rojo-dark active:scale-95 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rojo/10 flex items-center gap-2"
                     >
                         <Flag className="w-4 h-4 fill-current" />
                         Finalizar Evento
@@ -758,7 +758,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             <div className="flex gap-1 bg-muted/30 p-1.5 rounded-2xl w-fit border border-border/20">
                 <button
                     onClick={() => setActiveTab("attendance")}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "attendance" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "attendance" ? "bg-celeste text-white shadow-lg shadow-celeste/20" : "text-muted-foreground hover:text-white"
                         }`}
                 >
                     <UserCheck className="w-3.5 h-3.5" />
@@ -766,7 +766,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 </button>
                 <button
                     onClick={() => setActiveTab("live")}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "live" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "live" ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-muted-foreground hover:text-white"
                         }`}
                 >
                     <Activity className="w-3.5 h-3.5" />
@@ -774,7 +774,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 </button>
                 <button
                     onClick={() => setActiveTab("history")}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "history" ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "history" ? "bg-muted text-muted-foreground border border-border" : "text-muted-foreground hover:text-white"
                         }`}
                 >
                     <Trophy className="w-3.5 h-3.5" />
@@ -793,21 +793,21 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                     >
                         {/* Persistent Search Sidebar */}
                         <div className="lg:col-span-1 space-y-4">
-                            <div className="bg-card/40 border border-emerald-500/20 p-6 rounded-[2rem] sticky top-8">
+                            <div className="bg-card/40 border border-celeste/20 p-6 rounded-[2rem] sticky top-8">
                                 <div className="flex items-center gap-2 mb-6">
-                                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                    <div className="w-8 h-8 rounded-xl bg-celeste/10 flex items-center justify-center text-celeste">
                                         <Plus className="w-4 h-4" />
                                     </div>
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500">Inscribir Jugador</h3>
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-celeste">Inscribir Jugador</h3>
                                 </div>
                                 <div className="relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50" />
+                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
                                     <input
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         placeholder="Buscar por nombre..."
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-emerald-500/50 transition-all outline-none"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none"
                                     />
                                 </div>
 
@@ -817,13 +817,13 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             <button
                                                 key={p.id}
                                                 onClick={() => handleRegisterPlayer(p.id)}
-                                                className="w-full flex items-center justify-between p-3 bg-muted/20 hover:bg-emerald-500/10 border border-border/40 hover:border-emerald-500/30 rounded-xl group transition-all"
+                                                className="w-full flex items-center justify-between p-3 bg-muted/20 hover:bg-celeste/10 border border-border/40 hover:border-celeste/30 rounded-xl group transition-all"
                                             >
                                                 <div className="flex flex-col items-start overflow-hidden text-left">
                                                     <span className="text-[10px] font-black uppercase italic truncate w-full">{p.name}</span>
                                                     <span className="text-[8px] font-medium text-muted-foreground truncate w-full">{p.email}</span>
                                                 </div>
-                                                <ChevronRight className="w-3 h-3 text-emerald-500 group-hover:translate-x-1 transition-transform" />
+                                                <ChevronRight className="w-3 h-3 text-celeste group-hover:translate-x-1 transition-transform" />
                                             </button>
                                         ))}
                                     </div>
@@ -840,7 +840,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         <div className="lg:col-span-3">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <ListFilter className="w-4 h-4 text-emerald-500" />
+                                    <ListFilter className="w-4 h-4 text-celeste" />
                                     <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Lista de Inscritos</h3>
                                     <span className="text-[10px] font-bold bg-muted/50 px-2 py-0.5 rounded-full text-muted-foreground">{registrations.length}</span>
                                 </div>
@@ -848,7 +848,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setActiveTab("live")}
-                                        className="flex items-center gap-3 px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl transition-all shadow-lg shadow-emerald-600/20 active:scale-95 group"
+                                        className="flex items-center gap-3 px-8 py-3 bg-celeste hover:bg-celeste text-white rounded-2xl transition-all shadow-lg shadow-celeste/20 active:scale-95 group"
                                     >
                                         <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
                                         <span className="text-xs font-black uppercase tracking-widest">Comenzar Gestión Live</span>
@@ -856,17 +856,17 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                     <div className="w-px h-6 bg-border/40 mx-2" />
                                     <button
                                         onClick={handleBulkPaid}
-                                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition-all group"
+                                        className="flex items-center gap-2 px-4 py-2 bg-celeste/10 hover:bg-celeste/20 border border-celeste/20 rounded-xl transition-all group"
                                     >
-                                        <DollarSign className="w-3 h-3 text-emerald-500" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Todo Pago</span>
+                                        <DollarSign className="w-3 h-3 text-celeste" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-celeste">Todo Pago</span>
                                     </button>
                                     <button
                                         onClick={handleBulkPresence}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl transition-all group"
+                                        className="flex items-center gap-2 px-4 py-2 bg-celeste/10 hover:bg-celeste/20 border border-celeste/20 rounded-xl transition-all group"
                                     >
-                                        <CheckCircle className="w-3 h-3 text-blue-500" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-blue-500">Todo Presente</span>
+                                        <CheckCircle className="w-3 h-3 text-celeste" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-celeste">Todo Presente</span>
                                     </button>
                                 </div>
                             </div>
@@ -885,7 +885,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                         </thead>
                                         <tbody className="divide-y divide-border/10">
                                             {registrations.map(reg => (
-                                                <tr key={reg.id} className="group hover:bg-emerald-500/[0.02] transition-colors">
+                                                <tr key={reg.id} className="group hover:bg-celeste/[0.02] transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground overflow-hidden">
@@ -905,8 +905,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         <span className="text-[10px] font-bold text-muted-foreground">{reg.user.category}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${reg.user.side === 'drive' ? 'bg-blue-500/10 text-blue-500' :
-                                                            reg.user.side === 'reves' ? 'bg-orange-500/10 text-orange-500' : 'bg-emerald-500/10 text-emerald-500'
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${reg.user.side === 'drive' ? 'bg-celeste/10 text-celeste' :
+                                                            reg.user.side === 'reves' ? 'bg-azul-primary/10 text-azul-primary' : 'bg-celeste/10 text-celeste'
                                                             }`}>
                                                             {reg.user.side || 'Ambos'}
                                                         </span>
@@ -916,8 +916,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             <button
                                                                 onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
                                                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${reg.hasPaid
-                                                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
-                                                                    : 'bg-muted/30 border-border/50 text-muted-foreground/40 hover:border-emerald-500/40'
+                                                                    ? 'bg-celeste/10 border-celeste/30 text-celeste'
+                                                                    : 'bg-muted/30 border-border/50 text-muted-foreground/40 hover:border-celeste/40'
                                                                     }`}
                                                             >
                                                                 <DollarSign className={`w-3 h-3 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
@@ -929,7 +929,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         <div className="flex justify-end">
                                                             <button
                                                                 onClick={() => handleTogglePresence(reg.id, reg.status)}
-                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-muted/50 text-muted-foreground opacity-30 hover:opacity-100'
+                                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-muted/50 text-muted-foreground opacity-30 hover:opacity-100'
                                                                     }`}
                                                             >
                                                                 <CheckCircle className="w-4 h-4" />
@@ -971,14 +971,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 {activeCourts.map(court => (
                                     <div key={court.id} className="bg-card/60 backdrop-blur-md border border-border/50 rounded-[2.5rem] p-8 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden group shadow-xl">
                                         <div className="absolute top-4 left-6 flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full shadow-lg ${court.status === "available" ? "bg-emerald-500 shadow-emerald-500/50" : "bg-red-500 shadow-red-500/50"
+                                            <div className={`w-2 h-2 rounded-full shadow-lg ${court.status === "available" ? "bg-celeste shadow-celeste/50" : "bg-rojo shadow-rojo/50"
                                                 }`} />
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Cancha {court.courtNumber}</span>
                                         </div>
 
                                         <button
                                             onClick={() => handleRemoveCourt(court.id)}
-                                            className="absolute top-4 right-6 w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all overflow-hidden"
+                                            className="absolute top-4 right-6 w-8 h-8 flex items-center justify-center rounded-lg bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all overflow-hidden"
                                             title="Eliminar Cancha"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -991,13 +991,13 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in w-full">
                                                         <div className="text-center w-full relative">
                                                             <div className="flex flex-col items-center gap-1 mb-6">
-                                                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-orange-500">Parejas Armadas</span>
-                                                                <div className="w-8 h-1 bg-orange-500/20 rounded-full" />
+                                                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-azul-primary">Parejas Armadas</span>
+                                                                <div className="w-8 h-1 bg-azul-primary/20 rounded-full" />
                                                             </div>
                                                             <div className="grid grid-cols-2 gap-4 w-full px-4 mb-8">
                                                                 {[
-                                                                    { side: 'Equipo 1', slots: ['t1p1Id', 't1p2Id'] as const, color: 'text-blue-500' },
-                                                                    { side: 'Equipo 2', slots: ['t2p1Id', 't2p2Id'] as const, color: 'text-red-500' }
+                                                                    { side: 'Equipo 1', slots: ['t1p1Id', 't1p2Id'] as const, color: 'text-celeste' },
+                                                                    { side: 'Equipo 2', slots: ['t2p1Id', 't2p2Id'] as const, color: 'text-rojo' }
                                                                 ].map((team, idx) => (
                                                                     <div key={team.side} className={`space-y-1 ${idx === 1 ? 'border-l border-border/20 pl-4' : ''}`}>
                                                                         <p className={`text-[8px] font-black ${team.color}/50 uppercase tracking-widest mb-2`}>{team.side}</p>
@@ -1025,7 +1025,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                                                     placeholder="BUSCAR SUPLENTE..."
                                                                                                     value={swapSearchQuery}
                                                                                                     onChange={(e) => setSwapSearchQuery(e.target.value)}
-                                                                                                    className="w-full bg-background border border-border/20 rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-muted-foreground/30"
+                                                                                                    className="w-full bg-background border border-border/20 rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-muted-foreground/30"
                                                                                                     onClick={(e) => e.stopPropagation()}
                                                                                                 />
                                                                                             </div>
@@ -1081,16 +1081,16 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             }
                                             return (
                                                 <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in">
-                                                    <div className="w-20 h-20 rounded-[2.5rem] bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                    <div className="w-20 h-20 rounded-[2.5rem] bg-celeste/10 text-celeste flex items-center justify-center group-hover:scale-110 transition-transform">
                                                         <LayoutGrid className="w-8 h-8" />
                                                     </div>
                                                     <div className="text-center">
-                                                        <h5 className="text-sm font-black uppercase tracking-widest text-emerald-500 mb-1">Cancha Libre</h5>
+                                                        <h5 className="text-sm font-black uppercase tracking-widest text-celeste mb-1">Cancha Libre</h5>
                                                         <p className="text-[9px] font-bold text-muted-foreground/60 uppercase max-w-[150px]">Pulsa para llamar el siguiente partido de la rueda</p>
                                                     </div>
                                                     <button
                                                         onClick={() => generateNextMatch(court.id)}
-                                                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] py-5 px-12 rounded-full shadow-xl shadow-emerald-500/20 active:scale-95 transition-all"
+                                                        className="bg-celeste hover:bg-celeste text-white font-black uppercase tracking-widest text-[10px] py-5 px-12 rounded-full shadow-xl shadow-celeste/20 active:scale-95 transition-all"
                                                     >
                                                         Armar Parejas
                                                     </button>
@@ -1125,13 +1125,13 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             <div className="space-y-4 w-full">
                                                                 <div className="flex justify-around items-center gap-4">
                                                                     <div className="text-center">
-                                                                        <p className="text-[10px] font-black uppercase text-blue-500 mb-2">PAREJA 1</p>
+                                                                        <p className="text-[10px] font-black uppercase text-celeste mb-2">PAREJA 1</p>
                                                                         <p className="text-[11px] font-black uppercase italic leading-none">{getPlayerName(currentMatch.team1Player1Id)}</p>
                                                                         <p className="text-[11px] font-black uppercase italic leading-none mt-1">{getPlayerName(currentMatch.team1Player2Id)}</p>
                                                                     </div>
                                                                     <span className="text-xl font-black italic text-muted-foreground/20">VS</span>
                                                                     <div className="text-center">
-                                                                        <p className="text-[10px] font-black uppercase text-red-500 mb-2">PAREJA 2</p>
+                                                                        <p className="text-[10px] font-black uppercase text-rojo mb-2">PAREJA 2</p>
                                                                         <p className="text-[11px] font-black uppercase italic leading-none">{getPlayerName(currentMatch.team2Player1Id)}</p>
                                                                         <p className="text-[11px] font-black uppercase italic leading-none mt-1">{getPlayerName(currentMatch.team2Player2Id)}</p>
                                                                     </div>
@@ -1139,7 +1139,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             </div>
                                                             <button
                                                                 onClick={() => handleStartMatch(currentMatch.id)}
-                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 group"
+                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-celeste hover:text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 group"
                                                             >
                                                                 <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
                                                                 COMENZAR PARTIDO
@@ -1149,8 +1149,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         <>
                                                             <div className="grid grid-cols-2 gap-4">
                                                                 {/* Team 1 Score */}
-                                                                <div className="p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10 flex flex-col items-center">
-                                                                    <span className="text-[7px] font-black text-blue-500 uppercase tracking-widest mb-3">PAREJA 1</span>
+                                                                <div className="p-4 bg-celeste/5 rounded-2xl border border-celeste/10 flex flex-col items-center">
+                                                                    <span className="text-[7px] font-black text-celeste uppercase tracking-widest mb-3">PAREJA 1</span>
                                                                     {currentMatch && (
                                                                         <div className="text-center mb-4 min-h-[40px]">
                                                                             <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team1Player1Id)}</p>
@@ -1160,14 +1160,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                     <div className="flex items-center gap-4">
                                                                         <button
                                                                             onClick={() => currentMatch && updateInlineScore(currentMatch.id, 1, -1)}
-                                                                            className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                                                                            className="w-8 h-8 rounded-xl bg-celeste/10 text-celeste flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
                                                                         >
                                                                             <Minus className="w-4 h-4" />
                                                                         </button>
                                                                         <span className="text-3xl font-black italic min-w-[35px] text-center">{scores.s1}</span>
                                                                         <button
                                                                             onClick={() => currentMatch && updateInlineScore(currentMatch.id, 1, 1)}
-                                                                            className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                                                                            className="w-8 h-8 rounded-xl bg-celeste/10 text-celeste flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
                                                                         >
                                                                             <Plus className="w-4 h-4" />
                                                                         </button>
@@ -1175,8 +1175,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 </div>
 
                                                                 {/* Team 2 Score */}
-                                                                <div className="p-4 bg-red-500/5 rounded-2xl border border-red-500/10 flex flex-col items-center">
-                                                                    <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mb-3">PAREJA 2</span>
+                                                                <div className="p-4 bg-rojo/5 rounded-2xl border border-rojo/10 flex flex-col items-center">
+                                                                    <span className="text-[7px] font-black text-rojo uppercase tracking-widest mb-3">PAREJA 2</span>
                                                                     {currentMatch && (
                                                                         <div className="text-center mb-4 min-h-[40px]">
                                                                             <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team2Player1Id)}</p>
@@ -1186,14 +1186,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                     <div className="flex items-center gap-4">
                                                                         <button
                                                                             onClick={() => currentMatch && updateInlineScore(currentMatch.id, 2, -1)}
-                                                                            className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                                                            className="w-8 h-8 rounded-xl bg-rojo/10 text-rojo flex items-center justify-center hover:bg-rojo hover:text-white transition-all shadow-sm"
                                                                         >
                                                                             <Minus className="w-4 h-4" />
                                                                         </button>
                                                                         <span className="text-3xl font-black italic min-w-[35px] text-center">{scores.s2}</span>
                                                                         <button
                                                                             onClick={() => currentMatch && updateInlineScore(currentMatch.id, 2, 1)}
-                                                                            className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                                                                            className="w-8 h-8 rounded-xl bg-rojo/10 text-rojo flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
                                                                         >
                                                                             <Plus className="w-4 h-4" />
                                                                         </button>
@@ -1203,7 +1203,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
                                                             <button
                                                                 onClick={() => currentMatch && handleFinishMatch(currentMatch.id)}
-                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-xl active:scale-95"
+                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-celeste hover:text-white transition-all shadow-xl active:scale-95"
                                                             >
                                                                 Finalizar e Informar Score
                                                             </button>
@@ -1275,13 +1275,13 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     return (
                                                         <tr
                                                             key={reg.id}
-                                                            className={`border-b border-border/10 transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-blue-500/5' : ''
+                                                            className={`border-b border-border/10 transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-celeste/5' : ''
                                                                 }`}
                                                         >
                                                             <td className="px-6 py-4">
-                                                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit ${isPlaying ? 'bg-blue-500/10 text-blue-500' : 'bg-muted/50 text-muted-foreground/40'
+                                                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit ${isPlaying ? 'bg-celeste/10 text-celeste' : 'bg-muted/50 text-muted-foreground/40'
                                                                     }`}>
-                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-blue-500 animate-pulse' : 'bg-muted-foreground/40'}`} />
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-celeste animate-pulse' : 'bg-muted-foreground/40'}`} />
                                                                     <span className="text-[8px] font-black uppercase tracking-widest">{isPlaying ? 'En Juego' : 'Esperando'}</span>
                                                                 </div>
                                                             </td>
@@ -1290,9 +1290,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex justify-center">
-                                                                    <span className={`px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/20' :
-                                                                            side === 'reves' ? 'bg-red-500/20 text-red-500 border border-red-500/20' :
-                                                                                'bg-emerald-500/20 text-emerald-500 border border-emerald-500/20'
+                                                                    <span className={`px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-celeste/20 text-celeste border border-celeste/20' :
+                                                                            side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' :
+                                                                                'bg-celeste/20 text-celeste border border-celeste/20'
                                                                         }`}>
                                                                         {side === 'drive' ? 'Drive' : side === 'reves' ? 'Revés' : 'Ambos'}
                                                                     </span>
@@ -1302,7 +1302,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 <span className="text-xs font-black italic">{played}</span>
                                                             </td>
                                                             <td className="px-6 py-4 text-right">
-                                                                <span className={`text-[8px] font-bold uppercase tracking-widest ${played === 0 ? 'text-emerald-500' : 'text-muted-foreground/40'
+                                                                <span className={`text-[8px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-muted-foreground/40'
                                                                     }`}>
                                                                     {played === 0 ? 'Prioridad T1' : (isPlaying ? '-' : 'En Cola')}
                                                                 </span>
@@ -1329,7 +1329,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-[3rem] p-10 overflow-hidden shadow-2xl">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center shadow-inner">
+                                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 text-azul-primary flex items-center justify-center shadow-inner">
                                         <Trophy className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -1347,7 +1347,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                         placeholder="BUSCAR JUGADOR..."
                                         value={historySearchQuery}
                                         onChange={(e) => setHistorySearchQuery(e.target.value)}
-                                        className="w-full bg-foreground/5 border border-border/20 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-muted-foreground/20"
+                                        className="w-full bg-foreground/5 border border-border/20 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-muted-foreground/20"
                                     />
                                 </div>
                             </div>
@@ -1395,7 +1395,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     const name = getPlayer(id)?.firstName || '???';
                                                     const highlighted = isHighlighted(id);
                                                     return (
-                                                        <p className={`text-[9px] font-black uppercase italic tracking-tight leading-none transition-all ${highlighted ? 'text-orange-500 scale-110 origin-right' : ''
+                                                        <p className={`text-[9px] font-black uppercase italic tracking-tight leading-none transition-all ${highlighted ? 'text-azul-primary scale-110 origin-right' : ''
                                                             }`}>
                                                             {name}
                                                         </p>
@@ -1406,31 +1406,31 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <tr key={match.id} className="border-b border-border/10 transition-colors hover:bg-foreground/5">
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-2">
-                                                                <Clock className="w-3 h-3 text-orange-500/50" />
+                                                                <Clock className="w-3 h-3 text-azul-primary/50" />
                                                                 <span className="text-[10px] font-black uppercase tracking-tighter">
                                                                     {match.finishedAt ? new Date(match.finishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                                                                 </span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-right">
-                                                            <div className={`space-y-1 ${winner === 1 ? 'border-r-2 border-orange-500/30 pr-2' : 'pr-2'}`}>
+                                                            <div className={`space-y-1 ${winner === 1 ? 'border-r-2 border-azul-primary/30 pr-2' : 'pr-2'}`}>
                                                                 <PlayerName id={match.team1Player1Id} />
                                                                 <PlayerName id={match.team1Player2Id} />
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
                                                             <div className="inline-flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-xl border border-border/20">
-                                                                <span className={`text-base font-black italic ${winner === 1 ? 'text-orange-500' : 'text-muted-foreground/40'}`}>
+                                                                <span className={`text-base font-black italic ${winner === 1 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
                                                                     {match.score1}
                                                                 </span>
                                                                 <span className="text-[10px] font-black text-muted-foreground/20">-</span>
-                                                                <span className={`text-base font-black italic ${winner === 2 ? 'text-orange-500' : 'text-muted-foreground/40'}`}>
+                                                                <span className={`text-base font-black italic ${winner === 2 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
                                                                     {match.score2}
                                                                 </span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-left">
-                                                            <div className={`space-y-1 ${winner === 2 ? 'border-l-2 border-orange-500/30 pl-2' : 'pl-2'}`}>
+                                                            <div className={`space-y-1 ${winner === 2 ? 'border-l-2 border-azul-primary/30 pl-2' : 'pl-2'}`}>
                                                                 <div className="flex flex-col items-start space-y-1">
                                                                     <PlayerName id={match.team2Player1Id} />
                                                                     <PlayerName id={match.team2Player2Id} />

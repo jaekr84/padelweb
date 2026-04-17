@@ -209,12 +209,12 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-10">
                 <div className="space-y-1">
-                    <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 transition-colors mb-4 group">
+                    <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors mb-4 group">
                         <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                         Volver al Panel
                     </Link>
                     <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-black">
-                        Gestión de <span className="text-emerald-500 italic">Sponsors</span>
+                        Gestión de <span className="text-azul-primary italic">Sponsors</span>
                     </h1>
                     <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
                         Administrá las marcas que acompañan a ACAP.
@@ -223,7 +223,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                 {!isAdding && (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] py-4 px-8 rounded-2xl shadow-xl shadow-emerald-500/10 transition-all active:scale-95 flex items-center gap-3"
+                        className="bg-azul-primary hover:bg-azul-primary text-white font-black uppercase tracking-widest text-[10px] py-4 px-8 rounded-2xl shadow-xl shadow-azul-primary/10 transition-all active:scale-95 flex items-center gap-3"
                     >
                         <Plus className="w-4 h-4" />
                         Agregar Sponsor
@@ -235,7 +235,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
             {isAdding && (
                 <div className="animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -z-10" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-azul-primary/5 rounded-full blur-[80px] -z-10" />
                         <h2 className="text-xl font-black uppercase italic tracking-tight text-white mb-8">
                             {editingSponsor ? "Editar Sponsor" : "Nuevo Sponsor"}
                         </h2>
@@ -250,7 +250,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                             value={newName}
                                             onChange={(e) => setNewName(e.target.value)}
                                             placeholder="Ej: Wilson, Bullpadel..."
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
                                             required
                                         />
                                     </div>
@@ -263,7 +263,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                                 value={newLink}
                                                 onChange={(e) => setNewLink(e.target.value)}
                                                 placeholder="https://wilson.com"
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
                                             />
                                         </div>
                                     </div>
@@ -274,20 +274,20 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Logo del Sponsor</label>
-                                                <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                                <div className="flex items-center gap-1 text-[9px] font-bold text-azul-primary bg-azul-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                                     <ImageIcon className="w-2.5 h-2.5" />
                                                     {editingSponsor ? "Opcional (cambiar)" : "Recomendado"}
                                                 </div>
                                             </div>
                                             <div className="relative group">
                                                 {previewUrl ? (
-                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-emerald-500/30 rounded-2xl overflow-hidden flex items-center justify-center p-8 group-hover:border-emerald-500/60 transition-all">
+                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-azul-primary/30 rounded-2xl overflow-hidden flex items-center justify-center p-8 group-hover:border-azul-primary/60 transition-all">
                                                         <div className="relative w-full h-full">
                                                             <Image src={previewUrl} alt="Preview" fill className="object-contain" />
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:text-slate-300 group-hover:border-emerald-500/30 transition-all">
+                                                    <div className="w-full h-48 bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 group-hover:text-slate-300 group-hover:border-azul-primary/30 transition-all">
                                                         <ImageIcon className="w-8 h-8" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest">Subir Imagen</span>
                                                     </div>
@@ -302,26 +302,26 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         </div>
 
                                         {/* Clarification Box */}
-                                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-5 space-y-3">
-                                            <div className="flex items-center gap-2 text-emerald-500">
+                                        <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-5 space-y-3">
+                                            <div className="flex items-center gap-2 text-azul-primary">
                                                 <Info className="w-4 h-4" />
                                                 <span className="text-[10px] font-black uppercase tracking-widest">Procesamiento Automático</span>
                                             </div>
                                             <ul className="space-y-2">
                                                 <li className="flex items-start gap-2">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed">
-                                                        <strong className="text-slate-200">Formatos:</strong> Aceptamos <span className="text-emerald-400">PNG, JPG y WebP</span>. El sistema los convertirá automáticamente.
+                                                        <strong className="text-slate-200">Formatos:</strong> Aceptamos <span className="text-celeste">PNG, JPG y WebP</span>. El sistema los convertirá automáticamente.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed">
-                                                        <strong className="text-slate-200">Ajuste Inteligente:</strong> No importa el tamaño original; centraremos y adaptaremos tu imagen al formato <span className="text-emerald-400">rectangular (2:1)</span> ideal para la web.
+                                                        <strong className="text-slate-200">Ajuste Inteligente:</strong> No importa el tamaño original; centraremos y adaptaremos tu imagen al formato <span className="text-celeste">rectangular (2:1)</span> ideal para la web.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                                    <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
                                                     <p className="text-[10px] text-slate-400 leading-relaxed italic">
                                                         Optimizamos la imagen para que pese menos de <span className="text-white">100KB</span> sin perder calidad.
                                                     </p>
@@ -336,7 +336,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                 <button
                                     type="submit"
                                     disabled={loading || (!selectedFile && !editingSponsor)}
-                                    className="flex-1 bg-white text-black font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 bg-white text-black font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-celeste hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingSponsor ? <Save className="w-4 h-4" /> : <Check className="w-4 h-4" />}
                                     {editingSponsor ? "Guardar Cambios" : "Guardar Sponsor"}
@@ -368,7 +368,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {sponsors.map((sponsor) => (
-                            <div key={sponsor.id} className="group relative bg-slate-900 border border-white/10 rounded-2xl p-6 transition-all hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/5">
+                            <div key={sponsor.id} className="group relative bg-slate-900 border border-white/10 rounded-2xl p-6 transition-all hover:border-azul-primary/40 hover:shadow-2xl hover:shadow-azul-primary/5">
                                 <div className="h-24 relative mb-4">
                                     <Image
                                         src={sponsor.imageUrl}
@@ -381,7 +381,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                 <div className="text-center space-y-2">
                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-white truncate px-2">{sponsor.name}</h4>
                                     {sponsor.link && (
-                                        <p className="text-[8px] font-bold text-emerald-500 truncate lowercase opacity-60">
+                                        <p className="text-[8px] font-bold text-azul-primary truncate lowercase opacity-60">
                                             {sponsor.link.replace(/^https?:\/\//, '')}
                                         </p>
                                     )}
@@ -389,7 +389,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                 <div className="absolute -top-2 -right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => handleEditSponsor(sponsor)}
-                                        className="p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-500 shadow-xl transition-colors"
+                                        className="p-2 bg-azul-primary text-white rounded-full hover:bg-azul-primary shadow-xl transition-colors"
                                         title="Editar"
                                     >
                                         <Edit className="w-3 h-3" />

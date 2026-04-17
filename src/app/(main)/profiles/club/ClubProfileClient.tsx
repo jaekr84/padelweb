@@ -127,24 +127,24 @@ export default function ClubProfileClient({
         },
         en_curso: {
             label: "En Curso",
-            textColor: "text-blue-600",
-            bg: "bg-blue-50",
-            border: "border-blue-100",
+            textColor: "text-azul-primary",
+            bg: "bg-azul-primary/5",
+            border: "border-azul-primary/20",
         },
         abierto: {
             label: "Abierto",
-            textColor: "text-emerald-600",
-            bg: "bg-emerald-50",
-            border: "border-emerald-100",
+            textColor: "text-celeste",
+            bg: "bg-celeste/5",
+            border: "border-celeste/20",
         },
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-blue-500/30 relative overflow-hidden">
+        <div className="min-h-screen bg-background text-foreground pb-20 font-sans selection:bg-celeste/30 relative overflow-hidden">
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-azul-primary/5 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-celeste/5 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
             </div>
 
             <div className="max-w-4xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 relative z-10">
@@ -156,14 +156,14 @@ export default function ClubProfileClient({
                 >
                     {/* ── Hero Section ── */}
                     <div className="bg-card backdrop-blur-xl border border-border rounded-[2.5rem] overflow-hidden shadow-sm relative transition-colors">
-                        <div className="h-32 md:h-48 bg-gradient-to-br from-indigo-500/5 via-blue-500/5 to-emerald-500/5 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(79,70,229,0.05),transparent)]" />
+                        <div className="h-32 md:h-48 bg-gradient-to-br from-azul-primary/5 via-celeste/5 to-azul-primary/5 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(30,64,175,0.1),transparent)]" />
                             <div className="absolute inset-0 bg-grid-black/[0.01]" />
                         </div>
 
                         <div className="px-8 pb-10 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-8">
                             <div className="relative group">
-                                <div className="absolute -inset-1.5 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity" />
+                                <div className="absolute -inset-1.5 bg-gradient-to-br from-azul-primary to-celeste rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity" />
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-card overflow-hidden bg-muted shadow-xl relative flex items-center justify-center transition-colors">
                                     {club?.logoUrl ? (
                                         <Image src={club.logoUrl} alt="Club logo" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
@@ -180,22 +180,22 @@ export default function ClubProfileClient({
                                     <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-foreground">
                                         {clubName}
                                     </h1>
-                                    <div className="flex self-center md:self-auto px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full backdrop-blur-md">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Club Oficial</span>
+                                    <div className="flex self-center md:self-auto px-4 py-1.5 bg-azul-primary/10 border border-azul-primary/20 rounded-full backdrop-blur-md">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-azul-primary">Club Oficial</span>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-wrap justify-center md:justify-start gap-5 mt-2 text-[10px] font-black uppercase tracking-widest">
                                     {club?.location && (
                                         <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                            <MapPin className="h-3.5 w-3.5 text-indigo-600" /> {club.location}
+                                            <MapPin className="h-3.5 w-3.5 text-celeste" /> {club.location}
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                        <Users className="h-3.5 w-3.5 text-emerald-600" /> {totalMembers} Miembros
+                                        <Users className="h-3.5 w-3.5 text-azul-primary" /> {totalMembers} Miembros
                                     </div>
                                     <div className="flex items-center gap-2.5 bg-muted px-3 py-1.5 rounded-xl border border-border text-muted-foreground">
-                                        <Trophy className="h-3.5 w-3.5 text-amber-500" /> {totalTournaments} Torneos
+                                        <Trophy className="h-3.5 w-3.5 text-celeste" /> {totalTournaments} Torneos
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +217,7 @@ export default function ClubProfileClient({
                                 {activeTab === id && (
                                     <motion.div 
                                         layoutId="clubActiveTab"
-                                        className="absolute inset-0 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20"
+                                        className="absolute inset-0 bg-azul-primary rounded-2xl shadow-lg shadow-azul-primary/20"
                                     />
                                 )}
                             </button>
@@ -235,7 +235,7 @@ export default function ClubProfileClient({
                             >
                                 <div className="md:col-span-2 flex flex-col gap-6">
                                     <div className="bg-card border border-border p-8 rounded-[2rem] shadow-sm">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Descripción</h3>
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-celeste mb-4">Sobre Nuestra Unidad</h3>
                                         <p className="text-foreground text-sm leading-relaxed font-medium">
                                             {clubBio}
                                         </p>
@@ -261,7 +261,7 @@ export default function ClubProfileClient({
                                                 const phone = club.whatsapp || club.phone;
                                                 window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
                                             }}
-                                            className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                                            className="flex items-center justify-center gap-2 bg-celeste hover:bg-azul-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-celeste/20 active:scale-95"
                                         >
                                             <MessageCircle className="h-4 w-4 fill-current" /> Contactar por WhatsApp
                                         </button>
@@ -277,7 +277,7 @@ export default function ClubProfileClient({
                                                     toast.error(err.message || "Error al solicitar unión");
                                                 }
                                             }}
-                                            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                                            className="flex items-center justify-center gap-2 bg-azul-primary hover:bg-celeste text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-azul-primary/20 active:scale-95"
                                         >
                                             <Plus className="h-4 w-4" /> Solicitar Unirse al Club
                                         </button>
@@ -294,10 +294,12 @@ export default function ClubProfileClient({
                                 exit={{ opacity: 0, y: -20 }}
                                 className="flex flex-col gap-6"
                             >
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-4">
-                                    <h2 className="text-lg font-black uppercase tracking-widest italic">Miembros y Ranking</h2>
-                                    <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">{totalMembers} Jugadores</span>
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-4 overflow-hidden relative">
+                                    <h2 className="text-lg font-black uppercase tracking-widest italic flex items-center gap-2">
+                                        Miembros <span className="text-celeste">& Ranking</span>
+                                    </h2>
+                                    <div className="px-4 py-2 bg-azul-primary/10 border border-azul-primary/20 rounded-full">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-azul-primary">{totalMembers} Jugadores</span>
                                     </div>
                                 </div>
 
@@ -318,10 +320,14 @@ export default function ClubProfileClient({
                                                         .sort((a, b) => (b.points || 0) - (a.points || 0))
                                                         .map((member, index) => {
                                                             const isTop3 = index < 3;
+                                                            const isFemale = member.gender === 'femenino';
+                                                            const primary = isFemale ? 'rojo' : 'azul-primary';
+                                                            const accent = isFemale ? 'rosa' : 'celeste';
+
                                                             const colors = [
-                                                                "text-yellow-600 bg-yellow-50 border-yellow-100",
-                                                                "text-slate-500 bg-slate-50 border-slate-100",
-                                                                "text-amber-700 bg-amber-50 border-amber-100"
+                                                                `text-white bg-${primary} border-${accent}/40 shadow-lg ${isFemale ? 'shadow-rojo/20' : 'shadow-azul-primary/20'}`,
+                                                                `text-${accent} bg-${accent}/10 border-${accent}/30`,
+                                                                "text-slate-600 bg-slate-100 border-slate-200"
                                                             ];
 
                                                             return (
@@ -337,26 +343,26 @@ export default function ClubProfileClient({
                                                                                 {member.imageUrl ? (
                                                                                     <Image src={member.imageUrl} alt={member.firstName || "Miembro"} fill className="object-cover" sizes="40px" />
                                                                                 ) : (
-                                                                                    <div className="flex items-center justify-center h-full"><Users className="w-5 h-5 text-muted-foreground/60" /></div>
+                                                                                    <div className="flex items-center justify-center h-full"><User className={`w-5 h-5 text-${accent}/40`} /></div>
                                                                                 )}
                                                                             </div>
                                                                             <div className="flex flex-col">
-                                                                                <span className="text-sm font-bold tracking-tight group-hover:text-indigo-600 transition-colors uppercase italic text-foreground">
+                                                                                <span className={`text-sm font-bold tracking-tight group-hover:text-${primary} transition-colors uppercase italic text-foreground`}>
                                                                                     {member.firstName || member.lastName ? `${member.firstName || ''} ${member.lastName || ''}`.trim() : "Jugador"}
                                                                                 </span>
-                                                                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{member.side === 'reves' ? 'Revés' : member.side === 'drive' ? 'Drive' : 'Polivalente'}</span>
+                                                                                <span className={`text-[9px] font-black text-${accent} uppercase tracking-widest`}>{member.side === 'reves' ? 'Revés' : member.side === 'drive' ? 'Drive' : 'Polivalente'}</span>
                                                                             </div>
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-8 py-6 text-center">
-                                                                        <span className="px-3 py-1 bg-muted border border-border rounded-full text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                                                        <span className={`px-3 py-1 bg-${primary}/5 border border-${primary}/20 rounded-full text-[9px] font-black uppercase tracking-widest text-${primary}`}>
                                                                             {member.category || "D"}
                                                                         </span>
                                                                     </td>
                                                                     <td className="px-8 py-6">
                                                                         <div className="flex items-center justify-end gap-2">
-                                                                            <Star className={`w-3.5 h-3.5 ${isTop3 ? "text-yellow-500 fill-yellow-500" : "text-indigo-500"}`} />
-                                                                            <span className="text-sm font-black italic tabular-nums">{member.points || 0}</span>
+                                                                            <Star className={`w-3.5 h-3.5 ${isTop3 ? `text-${accent} fill-${accent}/20` : `text-${primary}`}`} />
+                                                                            <span className="text-sm font-black italic tabular-nums text-foreground">{member.points || 0}</span>
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -372,7 +378,7 @@ export default function ClubProfileClient({
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <p className="text-muted-foreground text-sm font-medium italic">Aún no hay miembros registrados en este club.</p>
-                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/50">Invite players to join</span>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-celeste/50">Invite players to join</span>
                                             </div>
                                         </div>
                                     )}
@@ -404,16 +410,16 @@ export default function ClubProfileClient({
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border">
                                             <div className="flex items-center gap-3">
-                                                <Shield className="h-4 w-4 text-indigo-600" />
+                                                <Shield className="h-4 w-4 text-azul-primary" />
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol Administrador</span>
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 font-bold">{user?.role}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-azul-primary font-bold">{user?.role}</span>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={() => logoutAction()}
-                                        className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-100 active:scale-95"
+                                        className="w-full flex items-center justify-center gap-2 bg-rojo/10 text-rojo hover:bg-rojo hover:text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-rojo/20 active:scale-95"
                                     >
                                         <LogOut className="h-4 w-4" /> Cerrar Sesión
                                     </button>
@@ -431,7 +437,7 @@ export default function ClubProfileClient({
                             >
                                 <div className="bg-card border border-border rounded-[2rem] p-8 md:p-12 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600">
+                                        <div className="p-3 bg-azul-primary/10 rounded-2xl text-azul-primary">
                                             <User className="h-6 w-6" />
                                         </div>
                                         <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Buscar y Vincular Jugador</h2>
@@ -457,7 +463,7 @@ export default function ClubProfileClient({
                                                         setIsSearching(false);
                                                     }
                                                 }}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-indigo-600 transition-all text-foreground"
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-azul-primary transition-all text-foreground"
                                             />
                                             <button 
                                                 onClick={async () => {
@@ -467,7 +473,7 @@ export default function ClubProfileClient({
                                                     setSearchResults(res);
                                                     setIsSearching(false);
                                                 }}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 py-2 px-6 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all outline-none"
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 py-2 px-6 bg-azul-primary rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg active:scale-95 transition-all outline-none"
                                             >
                                                 {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
                                             </button>
@@ -499,7 +505,7 @@ export default function ClubProfileClient({
                                                                     setInvitingId(null);
                                                                 }
                                                             }}
-                                                            className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+                                                            className="px-4 py-2 bg-azul-primary/10 hover:bg-azul-primary border border-azul-primary/30 text-azul-primary hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
                                                         >
                                                             {player.clubId === club?.id ? "Ya es miembro" : invitingId === player.id ? "Enviando..." : "Invitar"}
                                                         </button>
@@ -512,7 +518,7 @@ export default function ClubProfileClient({
 
                                 <div className="bg-card border border-border rounded-[2rem] p-8 md:p-12 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-600">
+                                        <div className="p-3 bg-celeste/10 rounded-2xl text-celeste">
                                             <MessageCircle className="h-6 w-6" />
                                         </div>
                                         <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Invitar Nuevos Jugadores</h2>
@@ -524,7 +530,7 @@ export default function ClubProfileClient({
 
                                     <div className="flex flex-col gap-6">
                                         <div className="bg-muted border border-border rounded-3xl p-6 relative overflow-hidden group shadow-sm">
-                                            <div className="absolute inset-0 bg-emerald-500/5 blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 bg-celeste/5 blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <h3 className="text-[10px] font-black uppercase text-muted-foreground mb-4 flex items-center gap-2">
                                                 Link de Invitación (Vence en 24hs)
                                             </h3>
@@ -539,7 +545,7 @@ export default function ClubProfileClient({
                                                             navigator.clipboard.writeText(generatedInviteLink);
                                                             toast.success("Link de invitación copiado");
                                                         }}
-                                                        className="flex-1 sm:flex-none px-4 py-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-100 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                                        className="flex-1 sm:flex-none px-4 py-3 bg-celeste/10 text-celeste hover:bg-celeste hover:text-white border border-celeste/20 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
                                                     >
                                                         <Copy className="w-4 h-4" />
                                                         Copiar
@@ -549,16 +555,16 @@ export default function ClubProfileClient({
                                                         onClick={async () => {
                                                             setIsRegenerating(true);
                                                             try {
-                                                                const newLink = await generateClubInviteLink(club.id);
-                                                                setGeneratedInviteLink(newLink);
-                                                                toast.success(generatedInviteLink ? "Nuevo link generado" : "Link generado correctamente");
+                                                                 const newLink = await generateClubInviteLink(club.id);
+                                                                 setGeneratedInviteLink(newLink);
+                                                                 toast.success(generatedInviteLink ? "Nuevo link generado" : "Link generado correctamente");
                                                             } catch (err) {
-                                                                toast.error("Error al generar link");
+                                                                 toast.error("Error al generar link");
                                                             } finally {
-                                                                setIsRegenerating(false);
+                                                                 setIsRegenerating(false);
                                                             }
                                                         }}
-                                                        className="flex-1 sm:flex-none px-4 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-100 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                                        className="flex-1 sm:flex-none px-4 py-3 bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white border border-azul-primary/20 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
                                                     >
                                                         {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                                                         {generatedInviteLink ? "Generar Nuevo" : "Generar Link"}
@@ -573,7 +579,7 @@ export default function ClubProfileClient({
                                                 const message = `¡Hola! Sumate a mi club "${clubName}" en PadelWeb: ${generatedInviteLink}`;
                                                 window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
                                             }}
-                                            className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5c] text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-green-500/20 active:scale-95 disabled:opacity-50"
+                                            className="w-full flex items-center justify-center gap-3 bg-azul-primary hover:bg-celeste text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-azul-primary/20 active:scale-95 disabled:opacity-50"
                                         >
                                             <MessageCircle className="h-4 w-4 fill-current" /> Compartir en WhatsApp
                                         </button>
@@ -592,7 +598,7 @@ export default function ClubProfileClient({
                             >
                         <div className="px-10 py-8 border-b border-border bg-muted/30">
                             <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground flex items-center gap-3">
-                                <Edit2 className="h-5 w-5 text-indigo-600" /> Database Override
+                                <Edit2 className="h-5 w-5 text-azul-primary" /> Database Override
                             </h2>
                         </div>
                         
@@ -607,15 +613,15 @@ export default function ClubProfileClient({
                                     )}
                                     {isUploading && (
                                         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
-                                            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                                            <Loader2 className="w-8 h-8 animate-spin text-azul-primary" />
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex flex-col gap-5 flex-1 w-full text-center sm:text-left">
                                     <p className="text-[11px] text-muted-foreground font-bold max-w-sm uppercase tracking-wide leading-relaxed italic">Upload high-fidelity institutional icon for visual identification in the neural network.</p>
-                                            <label className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-indigo-600/20 active:scale-95">
-                                                <ImageIcon className="w-4 h-4" />
-                                                {isUploading ? "Uploading Data..." : "Modify Logo"}
+                                            <label className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-azul-primary hover:bg-celeste text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-azul-primary/20 active:scale-95">
+                                               <ImageIcon className="w-4 h-4" />
+                                               {isUploading ? "Uploading Data..." : "Modify Logo"}
                                                 <input 
                                                     type="file" 
                                                     className="hidden" 
@@ -661,7 +667,7 @@ export default function ClubProfileClient({
                                                 type="text"
                                                 value={formData.name}
                                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-indigo-600 shadow-sm transition-all uppercase tracking-wide"
+                                                className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                 placeholder="Unit Name"
                                             />
                                         </div>
@@ -673,7 +679,7 @@ export default function ClubProfileClient({
                                                     type="text"
                                                     value={formData.location}
                                                     onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-indigo-600 shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="City, State"
                                                 />
                                             </div>
@@ -689,7 +695,7 @@ export default function ClubProfileClient({
                                                     type="text"
                                                     value={formData.phone}
                                                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-indigo-600 shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="Dial Code"
                                                 />
                                             </div>
@@ -702,7 +708,7 @@ export default function ClubProfileClient({
                                                     type="text"
                                                     value={formData.website}
                                                     onChange={e => setFormData({ ...formData, website: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-indigo-600 shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="www.hq.com"
                                                 />
                                             </div>
@@ -715,7 +721,7 @@ export default function ClubProfileClient({
                                             value={formData.bio}
                                             onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                             rows={4}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-indigo-600 resize-none shadow-sm transition-all uppercase tracking-wide"
+                                            className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary resize-none shadow-sm transition-all uppercase tracking-wide"
                                             placeholder="Brief of unit operations and objectives..."
                                         />
                                     </div>
@@ -724,7 +730,7 @@ export default function ClubProfileClient({
                                         <button
                                             type="submit"
                                             disabled={saving}
-                                            className="w-full md:w-auto px-12 bg-indigo-600 hover:bg-indigo-500 text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
+                                            className="w-full md:w-auto px-12 bg-azul-primary hover:bg-celeste text-white py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-azul-primary/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
                                         >
                                             {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5" />}
                                             {saving ? "Transmitting..." : "Save Configuration"}

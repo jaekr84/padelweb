@@ -125,15 +125,15 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className="p-2.5 rounded-2xl border border-slate-100 bg-white shadow-sm hover:bg-slate-50 transition-all active:scale-95 group"
                     >
-                        <Menu className="w-5 h-5 text-slate-600 group-hover:text-emerald-600 transition-colors" />
+                        <Menu className="w-5 h-5 text-slate-600 group-hover:text-azul-primary transition-colors" />
                     </button>
                     <Link href="/home" className="flex items-center gap-2.5 transition-transform active:scale-95">
-                        <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                        <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
                             <span className="text-white font-black text-sm tracking-tighter">AC</span>
                         </div>
                         <div className="flex flex-col -gap-1">
                             <span className="text-[15px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                            <span className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                            <span className="text-[10px] font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
                         </div>
                     </Link>
                 </div>
@@ -141,7 +141,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 <div className="flex items-center gap-3">
                     {userData?.dbRole?.includes(",") && (
                         <div className="relative group">
-                            <div className="absolute inset-0 bg-emerald-500/5 blur-md rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-azul-primary/5 blur-md rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                             <select
                                 value={userData.role}
                                 onChange={async (e) => {
@@ -149,7 +149,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     await switchActiveRole(newRole);
                                     window.location.href = "/home";
                                 }}
-                                className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm pr-7"
+                                className="bg-emerald-50 border border-celeste text-emerald-700 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all shadow-sm pr-7"
                             >
                                 {["superadmin", "club", "jugador"].filter(r => {
                                     const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -161,7 +161,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-emerald-600 pointer-events-none opacity-60" />
+                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-azul-primary pointer-events-none opacity-60" />
                         </div>
                     )}
                     <Link
@@ -186,12 +186,12 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 <div className="flex flex-col h-full p-6">
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                            <div className="w-10 h-10 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
                                 <span className="text-white font-black text-base tracking-tighter">AC</span>
                             </div>
                             <div className="flex flex-col -gap-1">
                                 <span className="text-xl font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-xs font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                                <span className="text-xs font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
                             </div>
                         </div>
                         <button
@@ -211,7 +211,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     key={item.href + item.label}
                                     href={item.href}
                                     onClick={() => setIsCollapsed(false)}
-                                    className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-lg ${isActive ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-lg ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                     <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : 'opacity-70'}`} />
                                     <span>{item.label}</span>
@@ -270,12 +270,12 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <Link href="/home" className="flex items-center gap-3 group">
                             <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border shadow-sm" priority />
-                            {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-indigo-600 transition-colors">A.C.A.P.</span>}
+                            {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button
                                 onClick={() => setIsCollapsed(true)}
-                                className="p-2 rounded-xl text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                                className="p-2 rounded-xl text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
                             >
                                 <Menu className="w-5 h-5" />
                             </button>
@@ -285,7 +285,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     {isCollapsed && (
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-2 -mt-4 rounded-xl text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                            className="p-2 -mt-4 rounded-xl text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
                         >
                             <Menu className="w-5 h-5" />
                         </button>
@@ -316,7 +316,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                         )}
                                         <button
                                             onClick={handleLogout}
-                                            className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-400 transition-colors text-left mt-0.5"
+                                            className="text-[10px] font-black uppercase text-azul-primary hover:text-celeste transition-colors text-left mt-0.5"
                                         >
                                             Cerrar Sesión
                                         </button>
@@ -326,10 +326,10 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
                             {/* ROLE SIMULATOR BLOCK */}
                             {userData?.dbRole && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
-                                <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex flex-col gap-3">
+                                <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-4 flex flex-col gap-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600/60">Cambiar Vista</span>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60">Cambiar Vista</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
                                     </div>
                                     <div className="relative group">
                                         <select
@@ -339,7 +339,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                                 await switchActiveRole(newRole);
                                                 window.location.href = "/home";
                                             }}
-                                            className="w-full bg-background border border-indigo-500/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-indigo-500/40 transition-all outline-none"
+                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none"
                                         >
                                             {["superadmin", "club", "jugador"].filter(r => {
                                                 const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -351,12 +351,12 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                                 </option>
                                             ))}
                                         </select>
-                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-600 pointer-events-none opacity-50" />
+                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-azul-primary pointer-events-none opacity-50" />
                                     </div>
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 text-sm focus-within:border-emerald-500/50 transition-all shadow-sm">
+                            <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 text-sm focus-within:border-azul-primary/50 transition-all shadow-sm">
                                 <Search className="w-4 h-4 text-muted-foreground" />
                                 <input type="text" placeholder="Buscar..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
                             </div>
@@ -372,7 +372,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             <Link
                                 key={item.href + item.label}
                                 href={item.href}
-                                className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
                                 <Icon className={`w-5 h-5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
@@ -385,7 +385,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 {isCollapsed && (
                     <div className="p-4 mt-auto border-t border-border flex flex-col items-center gap-4">
                         <Link href={profileUrl} title="Perfil">
-                            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-azul-primary/10 hover:text-azul-primary transition-colors">
                                 <User className="w-5 h-5" />
                             </div>
                         </Link>
@@ -409,12 +409,12 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         return (
                             <Link key={item.label} href={item.href} className="flex flex-col items-center gap-1 p-2 min-w-[64px] rounded-xl relative">
                                 {isActive && (
-                                    <div className="absolute top-0 w-8 h-1 bg-emerald-600 rounded-b-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                    <div className="absolute top-0 w-8 h-1 bg-azul-primary rounded-b-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                                 )}
-                                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-emerald-600/10 text-emerald-600' : 'text-slate-400'}`}>
+                                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-azul-primary/10 text-azul-primary' : 'text-slate-400'}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-azul-primary' : 'text-slate-400'}`}>
                                     {item.label.split(' ')[0]}
                                 </span>
                             </Link>

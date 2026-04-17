@@ -131,7 +131,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     }, [users, genderFilter, categoryFilter, searchQuery]);
 
     return (
-        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-emerald-500/30 overflow-x-hidden pb-32">
+        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-azul-primary/30 overflow-x-hidden pb-32">
             <style>{`
                 @keyframes gradient-x {
                     0% { background-position: 0% 50%; }
@@ -139,7 +139,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     100% { background-position: 0% 50%; }
                 }
                 .text-gradient-animate {
-                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background: linear-gradient(to right, #1e40af, #0ea5e9, #1e40af);
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     color: transparent;
@@ -156,8 +156,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
 
             {/* Background */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px]" />
+                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-celeste/5 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-azul-primary/5 rounded-full blur-[150px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
@@ -166,12 +166,12 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
                     <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2.5 transition-transform active:scale-95 group">
-                            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                            <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
                                 <span className="text-white font-black text-sm tracking-tighter">AC</span>
                             </div>
                             <div className="flex flex-col -gap-1">
                                 <span className="text-[14px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-[9px] font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                                <span className="text-[9px] font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
                             </div>
                         </Link>
                         <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                 {/* Header */}
                 <div className="mb-12">
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-600 mb-2 px-1">Clasificación Oficial</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-celeste mb-2 px-1">Clasificación Oficial</p>
                         <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
                             <span className="text-gradient-animate">Ranking</span><br />
                             <span className="text-foreground/90 font-black">General</span>
@@ -202,9 +202,9 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             placeholder="BUSCAR JUGADOR..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/60 focus:outline-none focus:border-emerald-500/30 transition-all uppercase italic tracking-tight shadow-sm"
+                            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/60 focus:outline-none focus:border-azul-primary/30 transition-all uppercase italic tracking-tight shadow-sm"
                         />
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
                     </div>
 
                     <div className="flex bg-muted p-1 rounded-2xl gap-1 md:col-span-1 border border-border shadow-sm">
@@ -212,7 +212,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             <button
                                 key={g}
                                 onClick={() => setGenderFilter(g)}
-                                className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${genderFilter === g ? "bg-emerald-600 text-white shadow-lg" : "text-muted-foreground hover:bg-card hover:text-foreground"}`}
+                                className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${genderFilter === g ? "bg-azul-primary text-white shadow-lg" : "text-muted-foreground hover:bg-card hover:text-foreground"}`}
                             >
                                 {g === "all" ? "Todos" : g === "masculino" ? "M" : "F"}
                             </button>
@@ -222,12 +222,12 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     <div className="relative md:col-span-1">
                         <button
                             onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                            className="w-full bg-card border border-border rounded-2xl py-4 px-6 flex items-center justify-between text-[10px] font-black uppercase tracking-widest transition-all hover:border-emerald-500/40 shadow-sm"
+                            className="w-full bg-card border border-border rounded-2xl py-4 px-6 flex items-center justify-between text-[10px] font-black uppercase tracking-widest transition-all hover:border-celeste/40 shadow-sm"
                         >
-                            <span className={categoryFilter === "all" ? "text-muted-foreground" : "text-emerald-500"}>
+                            <span className={categoryFilter === "all" ? "text-muted-foreground" : "text-celeste"}>
                                 {categoryFilter === "all" ? "Filtro Categoría" : `Categoría ${categoryFilter}`}
                             </span>
-                            <Filter className={`w-3.5 h-3.5 transition-transform duration-300 ${isCategoryDropdownOpen ? "rotate-180 text-emerald-500" : "text-muted-foreground"}`} />
+                            <Filter className={`w-3.5 h-3.5 transition-transform duration-300 ${isCategoryDropdownOpen ? "rotate-180 text-celeste" : "text-muted-foreground"}`} />
                         </button>
 
                         <AnimatePresence>
@@ -246,10 +246,10 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                     setCategoryFilter("all");
                                                     setIsCategoryDropdownOpen(false);
                                                 }}
-                                                className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-500/5 flex items-center justify-between ${categoryFilter === "all" ? "text-emerald-500 bg-emerald-500/5" : "text-muted-foreground"}`}
+                                                className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-azul-primary/5 flex items-center justify-between ${categoryFilter === "all" ? "text-azul-primary bg-azul-primary/5" : "text-muted-foreground"}`}
                                             >
                                                 Todas las Categorías
-                                                {categoryFilter === "all" && <Star className="w-3 h-3 fill-emerald-500" />}
+                                                {categoryFilter === "all" && <Star className="w-3 h-3 fill-azul-primary" />}
                                             </button>
                                             <div className="h-px bg-border mx-4 my-1" />
                                             {availableCategories?.map(cat => (
@@ -259,10 +259,10 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                         setCategoryFilter(cat.name);
                                                         setIsCategoryDropdownOpen(false);
                                                     }}
-                                                    className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-emerald-500/5 flex items-center justify-between ${categoryFilter === cat.name ? "text-emerald-500 bg-emerald-500/5" : "text-muted-foreground"}`}
+                                                    className={`w-full px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-azul-primary/5 flex items-center justify-between ${categoryFilter === cat.name ? "text-azul-primary bg-azul-primary/5" : "text-muted-foreground"}`}
                                                 >
                                                     Categoría {cat.name}
-                                                    {categoryFilter === cat.name && <Star className="w-3 h-3 fill-emerald-500" />}
+                                                    {categoryFilter === cat.name && <Star className="w-3 h-3 fill-azul-primary" />}
                                                 </button>
                                             ))}
                                         </div>
@@ -289,13 +289,13 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         onClick={() => handlePlayerClick(player)}
                                         className={`group relative border rounded-[2.5rem] overflow-hidden cursor-pointer transition-all duration-500 hover:translate-x-1 shadow-sm hover:shadow-md 
-                                            ${player.id === currentUserId ? 'bg-emerald-500/10 border-emerald-500/30 ring-1 ring-emerald-500/20' : 'bg-card border-border'}
+                                            ${player.id === currentUserId ? 'bg-azul-primary/10 border-azul-primary/30 ring-1 ring-azul-primary/20' : 'bg-card border-border'}
                                         `}
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-azul-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                         {player.id === currentUserId && (
-                                            <div className="absolute top-0 right-12 bg-emerald-600 text-[8px] font-black uppercase tracking-widest text-white px-3 py-1 rounded-b-xl shadow-lg z-20">
+                                            <div className="absolute top-0 right-12 bg-azul-primary text-[8px] font-black uppercase tracking-widest text-white px-3 py-1 rounded-b-xl shadow-lg z-20">
                                                 Vos
                                             </div>
                                         )}
@@ -313,7 +313,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
 
                                             {/* Profile Image / Avatar */}
                                             <div className="w-12 h-12 shrink-0 relative">
-                                                <div className="w-full h-full rounded-full border border-border overflow-hidden bg-muted group-hover:border-emerald-500/30 transition-all shadow-inner flex items-center justify-center relative">
+                                                <div className="w-full h-full rounded-full border border-border overflow-hidden bg-muted group-hover:border-azul-primary/30 transition-all shadow-inner flex items-center justify-center relative">
                                                     {player.imageUrl ? (
                                                         <Image
                                                             src={player.imageUrl}
@@ -329,17 +329,17 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
 
                                             {/* Info - Combined Row */}
                                             <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3">
-                                                <h3 className="text-lg font-black uppercase italic tracking-tighter truncate group-hover:text-emerald-600 transition-colors">
+                                                <h3 className="text-lg font-black uppercase italic tracking-tighter truncate group-hover:text-azul-primary transition-colors">
                                                     {player.name || "Jugador"}
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 shrink-0">
                                                     <span className="text-muted-foreground/60">@{getUserHandle(player.email)}</span>
                                                     <span className="w-0.5 h-0.5 bg-border rounded-full" />
-                                                    <span className="text-emerald-600/60">{tournamentCounts[player.id] || 0} TORNEOS</span>
+                                                    <span className="text-celeste/60">{tournamentCounts[player.id] || 0} TORNEOS</span>
                                                     {player.club && (
                                                         <>
                                                             <span className="w-0.5 h-0.5 bg-border rounded-full" />
-                                                            <div className="flex items-center gap-1 text-indigo-600/60">
+                                                            <div className="flex items-center gap-1 text-azul-primary/60">
                                                                 <Shield className="w-2.5 h-2.5" />
                                                                 {player.club.name}
                                                             </div>
@@ -359,7 +359,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 <div className={`text-2xl font-black tracking-tighter italic ${isTop3 ? "text-foreground" : "text-muted-foreground/60"}`}>
                                                     {points.toLocaleString()}
                                                 </div>
-                                                <div className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Pts</div>
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-celeste">Pts</div>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -389,7 +389,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                             {/* Modal Header */}
                             <div className="p-8 border-b border-border flex items-center justify-between shrink-0 bg-card/50 backdrop-blur-md z-20">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 overflow-hidden relative">
+                                    <div className="w-14 h-14 rounded-full bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center text-azul-primary overflow-hidden relative">
                                         {selectedPlayer.imageUrl ? (
                                             <Image
                                                 src={selectedPlayer.imageUrl}
@@ -404,7 +404,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                     <div>
                                         <h2 className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">{selectedPlayer.name}</h2>
                                         <div className="flex gap-2 mt-2">
-                                            <button onClick={() => setActiveTab('perfil')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-muted text-muted-foreground hover:bg-border'}`}>Ficha Técnica</button>
+                                            <button onClick={() => setActiveTab('perfil')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'bg-muted text-muted-foreground hover:bg-border'}`}>Ficha Técnica</button>
                                             <button onClick={() => setActiveTab('mural')} className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'mural' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-muted text-muted-foreground hover:bg-border'}`}>Mural de Logros</button>
                                         </div>
                                     </div>
@@ -450,7 +450,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                             { s: 'PTS', d: 'Puntos de Ranking' },
                                                         ].map(item => (
                                                             <div key={item.s} className="flex items-center gap-2">
-                                                                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded min-w-[24px] text-center">{item.s}</span>
+                                                                <span className="text-[9px] font-black text-azul-primary bg-azul-primary/5 px-1.5 py-0.5 rounded min-w-[24px] text-center">{item.s}</span>
                                                                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">{item.d}</span>
                                                             </div>
                                                         ))}
@@ -463,17 +463,17 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 <div className="max-w-4xl mx-auto space-y-10">
                                                     <div className="flex items-center justify-between">
                                                         <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3 text-foreground">
-                                                            <Activity className="w-6 h-6 text-emerald-600" />
+                                                            <Activity className="w-6 h-6 text-azul-primary" />
                                                             Historial de Competencia
                                                         </h3>
-                                                        <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
-                                                            <span className="text-[10px] font-black uppercase text-emerald-700">{matches.length} MATCHES</span>
+                                                        <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-celeste/10 border border-celeste/20">
+                                                            <span className="text-[10px] font-black uppercase text-celeste">{matches.length} MATCHES</span>
                                                         </div>
                                                     </div>
 
                                                     {loadingMatches ? (
                                                         <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                                                            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                                                            <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
                                                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sincronizando Base de Datos...</span>
                                                         </div>
                                                     ) : matches.length > 0 ? (
@@ -481,7 +481,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                             <table className="w-full text-left border-collapse">
                                                                 <thead>
                                                                     <tr className="bg-muted/50 border-b border-border">
-                                                                        <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Torneo / Evento</th>
+                                                                        <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary">Torneo / Evento</th>
                                                                         <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Oponente / Equipo Rival</th>
                                                                         <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-center">Score</th>
                                                                         <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right w-24">Estatus</th>
@@ -495,16 +495,16 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                         const isSC = isFinal && !isWinner;
 
                                                                         return (
-                                                                            <tr key={m.id} className="hover:bg-emerald-50/30 transition-colors group">
+                                                                            <tr key={m.id} className="hover:bg-azul-primary/5 transition-colors group">
                                                                                 <td className="py-5 px-8">
                                                                                     <div className="flex flex-col">
-                                                                                        <div className="text-[10px] font-black uppercase italic tracking-tighter text-foreground group-hover:text-emerald-600 transition-colors max-w-[200px] truncate">
+                                                                                        <div className="text-[10px] font-black uppercase italic tracking-tighter text-foreground group-hover:text-azul-primary transition-colors max-w-[200px] truncate">
                                                                                             {m.tournamentName}
                                                                                         </div>
                                                                                         <div className="flex gap-1 mt-1">
                                                                                             <span className="text-[8px] font-black uppercase text-muted-foreground/70">{m.type}</span>
                                                                                             {isFinal && (
-                                                                                                <span className="text-[8px] font-black uppercase text-emerald-600 border border-emerald-500/20 bg-emerald-500/5 px-1 rounded-sm ml-2">FINAL</span>
+                                                                                                <span className="text-[8px] font-black uppercase text-celeste border border-celeste/20 bg-celeste/5 px-1 rounded-sm ml-2">FINAL</span>
                                                                                             )}
                                                                                         </div>
                                                                                     </div>
@@ -516,13 +516,13 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                                 </td>
                                                                                 <td className="py-5 px-8 text-center bg-muted/10">
                                                                                     <div className="inline-flex items-center px-3 py-1 bg-white border border-border rounded-lg shadow-sm">
-                                                                                        <span className={`text-base font-black italic tracking-tighter whitespace-nowrap ${isWinner ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                                        <span className={`text-base font-black italic tracking-tighter whitespace-nowrap ${isWinner ? 'text-azul-primary' : 'text-rojo'}`}>
                                                                                             {m.score1} — {m.score2}
                                                                                         </span>
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="py-5 px-8 text-right">
-                                                                                    <div className={`text-[9px] font-black uppercase px-2 py-1 rounded-md inline-block ${isWinner ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isSC ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                                                                                    <div className={`text-[9px] font-black uppercase px-2 py-1 rounded-md inline-block ${isWinner ? 'bg-azul-primary/5 text-azul-primary border border-azul-primary/20' : isSC ? 'bg-celeste/5 text-celeste border border-celeste/20' : 'bg-rojo/5 text-rojo border border-rojo/20'}`}>
                                                                                         {isWinner ? 'VICTORIA' : isSC ? 'SUBCAMPEÓN' : 'DERROTA'}
                                                                                     </div>
                                                                                 </td>

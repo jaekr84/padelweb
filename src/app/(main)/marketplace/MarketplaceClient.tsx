@@ -262,7 +262,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const existingCats = Array.from(new Set(items.map(i => i.category?.toUpperCase()).filter(Boolean))).sort();
 
     return (
-        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-azul-primary/30">
             {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
                 @keyframes gradient-x {
@@ -283,7 +283,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                     border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
                 }
                 .glass-card:hover {
-                    border-color: rgba(16, 185, 129, 0.4);
+                    border-color: rgba(14, 165, 233, 0.4);
                 }
                 .glow-button {
                     position: relative;
@@ -315,9 +315,9 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
             
             {/* Ambient background glows */}
             <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
-                <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-celeste/10 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-rojo/5 rounded-full blur-[120px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
             </div>
 
@@ -326,12 +326,12 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                 <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
                     <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2.5 transition-transform active:scale-95 group">
-                            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                            <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
                                 <span className="text-white font-black text-sm tracking-tighter">AC</span>
                             </div>
                             <div className="flex flex-col -gap-1">
                                 <span className="text-[14px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-[9px] font-bold text-emerald-600/80 uppercase tracking-widest leading-none">Padel App</span>
+                                <span className="text-[9px] font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
                             </div>
                         </Link>
                         <div className="flex items-center gap-3">
@@ -352,9 +352,9 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 animate={{ opacity: 1, x: 0 }}
                                 className="space-y-1"
                             >
-                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Comunidad ACAP</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-celeste">Comunidad ACAP</p>
                                 <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
-                                    <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Marketplace</span>
+                                    <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(14,165,233,0.3)]">Marketplace</span>
                                 </h1>
                             </motion.div>
                             {isSuperAdmin && (
@@ -374,7 +374,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
                                 <button 
                                     onClick={() => setFilter("all")}
-                                    className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                    className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
                                 >
                                     Todas las Categorías
                                 </button>
@@ -382,7 +382,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     <button 
                                         key={cat}
                                         onClick={() => setFilter(cat!)}
-                                        className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2 ${filter === cat ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                        className={`px-5 py-3 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2 ${filter === cat ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
                                     >
                                         {cat}
                                     </button>
@@ -409,13 +409,13 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                         </div>
 
                         <div className="relative group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
                             <input 
                                 type="text" 
                                 placeholder="Buscar equipamiento..." 
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full glass-card rounded-2xl py-4 px-12 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all placeholder:text-muted-foreground/70 placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em]"
+                                className="w-full glass-card rounded-2xl py-4 px-12 text-sm font-medium outline-none focus:ring-1 focus:ring-azul-primary/30 transition-all placeholder:text-muted-foreground/70 placeholder:uppercase placeholder:text-[10px] placeholder:tracking-[0.2em]"
                             />
                         </div>
                     </div>
@@ -433,10 +433,10 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     onClick={() => setSelectedItem(item)}
-                                    className="group glass-card rounded-[2.5rem] overflow-hidden cursor-pointer shadow-xl transition-all duration-500 flex flex-col h-full hover:shadow-emerald-500/10 relative"
+                                    className="group glass-card rounded-[2.5rem] overflow-hidden cursor-pointer shadow-xl transition-all duration-500 flex flex-col h-full hover:shadow-azul-primary/10 relative"
                                 >
                                     {/* Card Glow Effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-azul-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     
                                     <div className="relative aspect-[4/5] overflow-hidden">
                                         <Image 
@@ -447,7 +447,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             className="object-cover group-hover:scale-110 transition-transform duration-1000" 
                                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                         />
-                                        <div className="absolute top-4 left-4 bg-emerald-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl backdrop-blur-md">
+                                        <div className="absolute top-4 left-4 bg-azul-primary text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl backdrop-blur-md">
                                             ${item.price.toLocaleString()}
                                         </div>
                                         <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white border border-white/10">
@@ -456,10 +456,10 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     </div>
                                     <div className="p-6 flex flex-col flex-1 gap-3 relative z-10">
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-1">
+                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-celeste mb-1">
                                                 {item.category || "General"}
                                             </span>
-                                            <h3 className="font-extrabold text-base leading-tight line-clamp-2 uppercase italic tracking-tighter text-foreground group-hover:text-emerald-400 transition-colors">{item.title}</h3>
+                                            <h3 className="font-extrabold text-base leading-tight line-clamp-2 uppercase italic tracking-tighter text-foreground group-hover:text-azul-primary transition-colors">{item.title}</h3>
                                         </div>
                                         <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
                                             <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
@@ -470,7 +470,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                     {item.user?.firstName || "Jugador"}
                                                 </span>
                                             </div>
-                                            <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-black uppercase tracking-widest ${item.condition === 'nuevo' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500' : 'border-blue-500/20 bg-blue-500/10 text-blue-500'}`}>
+                                            <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-black uppercase tracking-widest ${item.condition === 'nuevo' ? 'border-celeste/20 bg-celeste/10 text-celeste' : 'border-azul-primary/20 bg-azul-primary/10 text-azul-primary'}`}>
                                                 {item.condition === "nuevo" ? "NUEVO" : "USADO"}
                                             </div>
                                         </div>
@@ -534,7 +534,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 <div className="p-8 flex flex-col gap-6">
                                     <div className="flex flex-col gap-2">
                                         <div className="flex items-center gap-3">
-                                            <span className="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+                                            <span className="bg-azul-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
                                                 ${selectedItem.price.toLocaleString()}
                                             </span>
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic truncate">
@@ -547,7 +547,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     </div>
 
                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-5 flex flex-col gap-3">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Observaciones</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-celeste">Observaciones</h4>
                                         <p className="text-sm font-medium leading-relaxed opacity-80 whitespace-pre-wrap">
                                             {selectedItem.observations || "Sin observaciones adicionales."}
                                         </p>
@@ -572,7 +572,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             href={selectedItem.whatsappUrl || "#"}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="glow-button flex-[2] bg-emerald-600 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/20 active:scale-95 transition-all"
+                                            className="glow-button flex-[2] bg-azul-primary text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-azul-primary/20 active:scale-95 transition-all"
                                         >
                                             <MessageCircle className="w-5 h-5 fill-white" />
                                             Contactar por WhatsApp
@@ -638,7 +638,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-8 pb-32">
                                     {/* Photo Upload */}
                                     <div className="flex flex-col gap-4">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 italic px-2">Fotos del Producto (Máx 3)</h3>
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary/80 italic px-2">Fotos del Producto (Máx 3)</h3>
                                         <div className="grid grid-cols-3 gap-4">
                                             {previews.map((url, idx) => (
                                                 <div key={idx} className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 group shadow-lg">
@@ -653,13 +653,13 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                 </div>
                                             ))}
                                             {previews.length < 3 && (
-                                                <label className="aspect-square rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-emerald-500/50 transition-all hover:bg-white/5 group overflow-hidden relative">
+                                                <label className="aspect-square rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-azul-primary/50 transition-all hover:bg-white/5 group overflow-hidden relative">
                                                     {isCompressing ? (
-                                                        <Activity className="w-8 h-8 text-emerald-500 animate-spin" />
+                                                        <Activity className="w-8 h-8 text-celeste animate-spin" />
                                                     ) : (
                                                         <>
-                                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                <Camera className="w-6 h-6 text-emerald-500" />
+                                                              <div className="w-12 h-12 rounded-full bg-azul-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                <Camera className="w-6 h-6 text-azul-primary" />
                                                             </div>
                                                             <span className="text-[8px] font-black uppercase text-muted-foreground text-center">Tocar para<br/>subir</span>
                                                         </>
@@ -685,20 +685,20 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                 required
                                                 value={formData.title}
                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic tracking-tight outline-none focus:border-emerald-500/50 transition-all"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic tracking-tight outline-none focus:border-azul-primary/50 transition-all"
                                                 placeholder="Ej: Siux Electra ST2..."
                                             />
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Precio (ARS)</label>
                                             <div className="relative">
-                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-emerald-500">$</span>
+                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-azul-primary">$</span>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={formData.price}
                                                     onChange={e => setFormData({ ...formData, price: formatCurrency(e.target.value) })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-12 text-sm font-black italic tracking-tight outline-none focus:border-emerald-500/50 transition-all"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-12 text-sm font-black italic tracking-tight outline-none focus:border-azul-primary/50 transition-all"
                                                     placeholder="250.000"
                                                 />
                                             </div>
@@ -713,7 +713,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                 required
                                                 value={formData.category}
                                                 onChange={e => setFormData({ ...formData, category: e.target.value.toUpperCase() })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic outline-none focus:border-emerald-500/50 transition-all"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold uppercase italic outline-none focus:border-azul-primary/50 transition-all"
                                                 placeholder="Ej: PALETA, CALZADO..."
                                             />
                                         </div>
@@ -725,7 +725,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                         key={c.id}
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, condition: c.id })}
-                                                        className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-muted-foreground hover:text-foreground"}`}
+                                                        className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-muted-foreground hover:text-foreground"}`}
                                                     >
                                                         {c.label}
                                                     </button>
@@ -741,19 +741,19 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             value={formData.observations}
                                             onChange={e => setFormData({ ...formData, observations: e.target.value })}
                                             rows={4}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:border-emerald-500/50 transition-all resize-none shadow-inner"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-medium outline-none focus:border-azul-primary/50 transition-all resize-none shadow-inner"
                                             placeholder="Detalles técnicos, estado, medidas, etc."
                                         />
                                     </div>
 
                                     <div className="flex flex-col gap-2">
                                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Contacto</label>
-                                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl py-4 px-6 flex items-center justify-between">
+                                        <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl py-4 px-6 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                                                    <MessageCircle className="w-4 h-4 text-emerald-500" />
+                                                <div className="w-8 h-8 rounded-full bg-azul-primary/20 flex items-center justify-center">
+                                                    <MessageCircle className="w-4 h-4 text-azul-primary" />
                                                 </div>
-                                                <span className="text-sm font-bold text-emerald-500/80">WhatsApp vinculado</span>
+                                                <span className="text-sm font-bold text-azul-primary/80">WhatsApp vinculado</span>
                                             </div>
                                             <span className="text-xs font-black italic opacity-60">+{session?.user?.phone}</span>
                                         </div>

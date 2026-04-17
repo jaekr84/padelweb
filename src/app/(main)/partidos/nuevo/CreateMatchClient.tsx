@@ -99,7 +99,7 @@ export default function CreateMatchClient({ categories }: { categories: Category
         }
     };
 
-    const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all";
+    const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-azul-primary/20 focus:border-azul-primary transition-all";
     const labelClasses = "block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1";
 
     return (
@@ -120,15 +120,15 @@ export default function CreateMatchClient({ categories }: { categories: Category
                 {/* Header */}
                 <div className="bg-slate-900 p-12 text-center relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-azul-primary rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
                     </div>
                     <div className="relative z-10 space-y-4">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-300">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-celeste">
                             <Zap className="w-3 h-3 fill-current" />
                             Nuevo Desafío
                         </div>
                         <h1 className="text-4xl font-black uppercase tracking-tighter italic text-white leading-none">
-                            Creá tu <span className="text-blue-400">Partido</span>
+                            Creá tu <span className="text-celeste">Partido</span>
                         </h1>
                         <p className="text-white/40 text-sm font-medium">Completá los datos y encontrá jugadores para tu próximo game.</p>
                     </div>
@@ -338,7 +338,7 @@ export default function CreateMatchClient({ categories }: { categories: Category
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-sm font-black text-slate-900">{user.name}</p>
-                                                                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest italic">{user.category || "D"}</p>
+                                                                    <p className="text-[10px] font-bold text-celeste uppercase tracking-widest italic">{user.category || "D"}</p>
                                                                 </div>
                                                             </button>
                                                         ))}
@@ -362,7 +362,7 @@ export default function CreateMatchClient({ categories }: { categories: Category
                                             <button
                                                 type="button"
                                                 onClick={addGuest}
-                                                className="bg-slate-900 text-white px-5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-600 transition-all shrink-0"
+                                                className="bg-slate-900 text-white px-5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-azul-primary transition-all shrink-0"
                                             >
                                                 +
                                             </button>
@@ -375,9 +375,9 @@ export default function CreateMatchClient({ categories }: { categories: Category
                                     <label className={labelClasses}>Inscriptos ({selectedPlayers.length + 1}/{formData.totalSlots})</label>
                                     <div className="space-y-2">
                                         {/* Organizer */}
-                                        <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-2xl border border-blue-100">
+                                        <div className="flex items-center justify-between p-3 bg-azul-primary/5 rounded-2xl border border-azul-primary/10">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold text-[10px]">TÚ</div>
+                                                <div className="w-8 h-8 rounded-full bg-azul-primary/10 flex items-center justify-center text-azul-primary font-bold text-[10px]">TÚ</div>
                                                 <p className="text-xs font-black text-slate-900 italic">Organizador</p>
                                             </div>
                                         </div>
@@ -418,7 +418,7 @@ export default function CreateMatchClient({ categories }: { categories: Category
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-20 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-slate-900/20 hover:bg-blue-600 hover:shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                            className="w-full h-20 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-slate-900/20 hover:bg-azul-primary hover:shadow-azul-primary/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                         >
                             {loading ? (
                                 "CREANDO PARTIDO..."

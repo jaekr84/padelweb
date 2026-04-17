@@ -255,7 +255,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
     };
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 pb-24 font-sans selection:bg-emerald-500/20 relative">
+        <div className="min-h-screen bg-white text-slate-900 pb-24 font-sans selection:bg-azul-primary/20 relative">
             {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
                 @keyframes gradient-x {
@@ -264,7 +264,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                     100% { background-position: 0% 50%; }
                 }
                 .text-gradient-animate {
-                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background: linear-gradient(to right, #1e40af, #0ea5e9, #1e40af);
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     color: transparent;
@@ -274,8 +274,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
 
             {/* Ambient background glows */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-celeste/5 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-azul-primary/5 rounded-full blur-[120px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay"></div>
             </div>
 
@@ -288,9 +288,9 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                             animate={{ opacity: 1, x: 0 }}
                             className="space-y-1"
                         >
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">Comunidad ACAP</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-celeste">Comunidad ACAP</p>
                             <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
-                                <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">La mejor comunidad de Pádel</span>
+                                <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(14,165,233,0.3)]">La mejor comunidad de Pádel</span>
                             </h1>
                         </motion.div>
                     </div>
@@ -380,7 +380,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                             </AnimatePresence>
                                             
                                             {selectedImages.length < 10 && (
-                                                <label className="w-32 h-32 shrink-0 rounded-2xl border-2 border-dashed border-slate-100 hover:border-emerald-500/50 hover:bg-emerald-50/30 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer">
+                                                <label className="w-32 h-32 shrink-0 rounded-2xl border-2 border-dashed border-slate-100 hover:border-celeste/50 hover:bg-celeste/5 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-celeste transition-all cursor-pointer">
                                                     <Plus className="w-6 h-6" />
                                                     <span className="text-[10px] font-black uppercase tracking-widest">Añadir</span>
                                                     <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
@@ -390,11 +390,11 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                     )}
 
                                     <div className="flex items-center justify-between pt-4">
-                                        <label className="p-2 -ml-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full cursor-pointer transition-colors relative">
+                                        <label className="p-2 -ml-2 text-slate-400 hover:text-celeste hover:bg-celeste/5 rounded-full cursor-pointer transition-colors relative">
                                             <ImageIcon className="w-6 h-6" />
                                             <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
                                             {selectedImages.length > 0 && (
-                                                <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                                                <span className="absolute top-1 right-1 w-4 h-4 bg-celeste text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
                                                     {selectedImages.length}
                                                 </span>
                                             )}
@@ -405,7 +405,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                             disabled={postState !== 'idle' || isOptimizing || (!content.trim() && selectedImages.length === 0)}
                                             className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3
                                                 ${postState === 'success'
-                                                    ? 'bg-emerald-500 text-white shadow-emerald-500/30 shadow-lg'
+                                                    ? 'bg-azul-primary text-white shadow-azul-primary/30 shadow-lg'
                                                     : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50'
                                                 }`}
                                         >
@@ -444,9 +444,9 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                     <div className="space-y-6">
                         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
-                                <Trophy className="w-3.5 h-3.5 text-emerald-500" /> Próximos Torneos
+                                <Trophy className="w-3.5 h-3.5 text-celeste" /> Próximos Torneos
                             </h2>
-                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Ver Todo</Link>
+                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-dark transition-colors">Ver Todo</Link>
                         </div>
                         {upcomingTournaments.length === 0 ? (
                             <EmptyState text="No hay torneos próximos" />
@@ -465,7 +465,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                             <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
                                 <Clock className="w-3.5 h-3.5 text-amber-500" /> En Curso
                             </h2>
-                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Resultados</Link>
+                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors">Resultados</Link>
                         </div>
                         {ongoingTournaments.length === 0 ? (
                             <EmptyState text="No hay torneos activos" />
@@ -484,7 +484,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                             <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
                                 <Users className="w-3.5 h-3.5 text-blue-500" /> Cancha Abierta
                             </h2>
-                            <Link href="/cancha-abierta" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Unirse</Link>
+                            <Link href="/cancha-abierta" className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors">Unirse</Link>
                         </div>
                         {upcomingOpenCourts.length === 0 ? (
                             <EmptyState text="No hay partidos abiertos" />
@@ -501,8 +501,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                             className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors px-2 -mx-2 rounded-xl"
                                         >
                                             <div className="flex justify-between items-start gap-2">
-                                                <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors">{oc.name}</h3>
-                                                <div className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-md ${isFull ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-700'}`}>
+                                                <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors">{oc.name}</h3>
+                                                <div className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-md ${isFull ? 'bg-rojo/10 text-rojo' : 'bg-azul-primary/10 text-azul-primary'}`}>
                                                     {oc.registrationCount || 0}/{oc.totalSlots}
                                                 </div>
                                             </div>
@@ -522,9 +522,9 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                                     <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
                                                         {(() => {
                                                             const percentage = Math.min(((oc.registrationCount || 0) / oc.totalSlots) * 100, 100);
-                                                            let barColor = "bg-blue-500";
-                                                            if (percentage >= 90) barColor = "bg-rose-500";
-                                                            else if (percentage >= 70) barColor = "bg-amber-500";
+                                                            let barColor = "bg-azul-primary";
+                                                            if (percentage >= 90) barColor = "bg-rojo";
+                                                            else if (percentage >= 70) barColor = "bg-celeste";
                                                             return (
                                                                 <div 
                                                                     className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
@@ -554,7 +554,7 @@ function MobileTournamentBar({ ongoing, upcoming }: { ongoing: TournamentQuickVi
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Torneos en Curso</h2>
-                <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Ver todos</Link>
+                <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-azul-primary">Ver todos</Link>
             </div>
             
             <div className="flex gap-4 overflow-x-auto pb-4 px-2 no-scrollbar snap-x snap-mandatory">
@@ -585,16 +585,16 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
         >
             <div className="relative z-10 flex justify-between items-start gap-2">
                 <div className="flex flex-col gap-0.5 min-w-0">
-                    <h3 className="text-xs font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors uppercase italic tracking-tighter">{t.name}</h3>
+                    <h3 className="text-xs font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors uppercase italic tracking-tighter">{t.name}</h3>
                     <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
                         <span>{t.clubName || "Acap"}</span>
                         <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                        <span className={t.type === 'americano' ? 'text-blue-500/70' : 'text-emerald-500/70'}>
+                        <span className={t.type === 'americano' ? 'text-azul-primary/70' : 'text-celeste/70'}>
                             {t.type === 'americano' ? 'Americano' : 'Libre'}
                         </span>
                     </div>
                 </div>
-                <div className="p-1.5 text-slate-300 group-hover:text-emerald-500 transition-all">
+                <div className="p-1.5 text-slate-300 group-hover:text-azul-primary transition-all">
                     <Send className="w-3 h-3 rotate-45" />
                 </div>
             </div>
@@ -602,7 +602,7 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
             <div className="relative z-10 flex items-center justify-between mt-1">
                 <div className="flex items-center gap-3 text-slate-400 text-[9px] font-black uppercase tracking-widest">
                     <div className="flex items-center gap-1">
-                        {isOngoing ? <Clock className="w-3 h-3 text-amber-500" /> : <Calendar className="w-3 h-3 text-emerald-600" />}
+                        {isOngoing ? <Clock className="w-3 h-3 text-rojo" /> : <Calendar className="w-3 h-3 text-azul-primary" />}
                         <span className="group-hover:text-slate-700 transition-colors">
                             {isOngoing
                                 ? (t.status === 'en_curso' ? 'Fase de Grupos' : 'Playoffs')
@@ -611,7 +611,7 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                         </span>
                     </div>
                 </div>
-                <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-500 rounded-md group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all uppercase tracking-widest">
+                <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-500 rounded-md group-hover:bg-azul-primary group-hover:text-white group-hover:border-azul-primary transition-all uppercase tracking-widest">
                     {catLabel}
                 </span>
             </div>
@@ -621,9 +621,9 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                     <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
                         {(() => {
                             const percentage = Math.min(((t.registrationsCount || 0) / modal.maxSlots) * 100, 100);
-                            let barColor = "bg-emerald-500";
-                            if (percentage >= 90) barColor = "bg-rose-500";
-                            else if (percentage >= 70) barColor = "bg-amber-500";
+                            let barColor = "bg-azul-primary";
+                            if (percentage >= 90) barColor = "bg-rojo";
+                            else if (percentage >= 70) barColor = "bg-celeste";
                             return (
                                 <div 
                                     className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
@@ -656,7 +656,7 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                         </div>
                     )}
                 </div>
-                <span className="text-[9px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors uppercase tracking-widest">
+                <span className="text-[9px] font-black text-slate-400 group-hover:text-azul-primary transition-colors uppercase tracking-widest">
                     {t.registrationsCount || 0}/{modal?.maxSlots || 0}
                 </span>
             </div>
@@ -997,7 +997,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                             {!showComments && post.comments.length > 3 && (
                                 <button
                                     onClick={() => setShowComments(true)}
-                                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors pl-12 text-left"
+                                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-azul-primary transition-colors pl-12 text-left"
                                 >
                                     Ver los {post.comments.length - 3} comentarios restantes...
                                 </button>
@@ -1030,7 +1030,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                                     disabled={!commentText.trim() || commentState === 'loading'}
                                     className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 rounded-xl transition-all flex items-center justify-center
                                         ${commentState === 'success'
-                                            ? 'bg-emerald-500 text-white'
+                                            ? 'bg-azul-primary text-white'
                                             : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-30 disabled:bg-slate-200'
                                         }`}
                                 >
@@ -1106,7 +1106,7 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                             <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => { setIsEditing(true); setEditText(comment.content); }}
-                                    className="p-1 hover:text-indigo-600 transition-colors"
+                                    className="p-1 hover:text-azul-primary transition-colors"
                                 >
                                     <Pencil className="w-3 h-3" />
                                 </button>
@@ -1130,7 +1130,7 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
                             />
                             <div className="flex justify-end gap-2">
                                 <button onClick={() => setIsEditing(false)} className="text-[10px] font-bold text-slate-500 uppercase">Cancelar</button>
-                                <button onClick={handleUpdate} disabled={isUpdating} className="text-[10px] font-bold text-indigo-600 uppercase">
+                                <button onClick={handleUpdate} disabled={isUpdating} className="text-[10px] font-bold text-azul-primary uppercase">
                                     {isUpdating ? "..." : "Guardar"}
                                 </button>
                             </div>

@@ -247,12 +247,12 @@ export default async function TournamentsPage({
 
     return (
         <>
-            <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-blue-500/30">
+            <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-azul-primary/30">
 
                 {/* ── Ambient glow ── */}
                 <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
-                    <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
-                    <div className="absolute top-[10%] right-[-15%] w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px]" />
+                    <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[120px]" />
+                    <div className="absolute top-[10%] right-[-15%] w-[400px] h-[400px] bg-celeste/8 rounded-full blur-[100px]" />
                 </div>
 
                 {/* Public Header */}
@@ -260,14 +260,14 @@ export default async function TournamentsPage({
                     <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
                         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                             <Link href="/" className="flex items-center gap-2 group">
-                                <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
+                                <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
                                     <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                                 </div>
                                 <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                             </Link>
                             <div className="flex items-center gap-4">
                                 <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-                                <Link href="/" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                                <Link href="/" className="px-4 py-2 bg-azul-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
                             </div>
                         </div>
                     </div>
@@ -278,9 +278,10 @@ export default async function TournamentsPage({
                     {/* ── Header ── */}
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-1">
-                                ACAP
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary">ACAP</span>
+                                <div className="h-px w-8 bg-azul-primary/30" />
+                            </div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
                                 Torneos
                             </h1>
@@ -289,7 +290,7 @@ export default async function TournamentsPage({
                         {(session?.role === 'superadmin') && (
                             <Link
                                 href="/tournaments/create"
-                                className="group bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-indigo-600/20 flex items-center gap-3 shrink-0"
+                                className="group bg-azul-primary hover:bg-azul-dark text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-primary/20 flex items-center gap-3 shrink-0"
                             >
                                 <span className="hidden sm:inline">Crear Torneo</span>
                                 <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -302,17 +303,17 @@ export default async function TournamentsPage({
                     {/* ── Stats pills ── */}
                     <div className="grid grid-cols-3 gap-3 mb-6">
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <Trophy className="w-4 h-4 text-indigo-600 " />
+                            <Trophy className="w-4 h-4 text-azul-primary" />
                             <span className="text-xl font-black text-foreground">{totalC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
                         </div>
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <Zap className="w-4 h-4 text-red-500" />
+                            <Zap className="w-4 h-4 text-rojo" />
                             <span className="text-xl font-black text-foreground">{liveC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">En Vivo</span>
                         </div>
                         <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            <CheckCircle className="w-4 h-4 text-celeste" />
                             <span className="text-xl font-black text-foreground">{openC}</span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Abiertos</span>
                         </div>

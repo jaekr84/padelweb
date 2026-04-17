@@ -180,9 +180,9 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                             className="relative w-full max-w-4xl bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         >
                             {/* Header */}
-                            <div className="p-8 border-b border-border flex items-start justify-between bg-indigo-500/5">
+                            <div className="p-8 border-b border-border flex items-start justify-between bg-azul-primary/5">
                                 <div>
-                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary mb-2">
                                         <Shield className="w-4 h-4" />
                                         Gestión de Club ACAP
                                     </div>
@@ -207,17 +207,17 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                     <div className="p-6 border-b border-border bg-muted/20">
                                         <div className="space-y-4">
                                             <div className="relative group">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
                                                 <input 
                                                     type="text"
                                                     placeholder="Buscar socio por nombre o email..."
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                                    className="w-full bg-background border border-border rounded-xl py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all font-medium"
+                                                    className="w-full bg-background border border-border rounded-xl py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all font-medium"
                                                 />
                                             </div>
                                             {isDoubles && pendingP1 && (
-                                                <div className="bg-indigo-600 text-white p-3 rounded-xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                                                <div className="bg-azul-primary text-white p-3 rounded-xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
                                                     <div className="flex items-center gap-2">
                                                         <Users2 className="w-4 h-4" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest">
@@ -240,8 +240,8 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                             key={cat}
                                                             onClick={() => setSelectedCategory(cat)}
                                                             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${selectedCategory === cat 
-                                                                ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20" 
-                                                                : "bg-background border-border text-muted-foreground hover:border-indigo-500/30"}`}
+                                                                ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" 
+                                                                : "bg-background border-border text-muted-foreground hover:border-azul-primary/30"}`}
                                                         >
                                                             {cat}
                                                         </button>
@@ -254,7 +254,7 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                                         {loading ? (
                                             <div className="h-full flex flex-col items-center justify-center gap-3 py-20">
-                                                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                                                <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Cargando socios...</p>
                                             </div>
                                         ) : filteredMembers.length === 0 ? (
@@ -280,10 +280,10 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                             disabled={(isSelected && !isDoubles) || (isSelected && isDoubles)}
                                                             onClick={() => handleMemberClick(m.id)}
                                                             className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all ${isPending
-                                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                                ? "bg-azul-primary border-azul-primary text-white"
                                                                 : isSelected 
-                                                                    ? "bg-indigo-50 border-indigo-500/30 opacity-60" 
-                                                                    : "border-border hover:border-indigo-500/30 bg-card group"}`}
+                                                                    ? "bg-azul-primary/5 border-azul-primary/20 opacity-60" 
+                                                                    : "border-border hover:border-azul-primary/30 bg-card group"}`}
                                                         >
                                                             <div className="flex items-center gap-3">
                                                                 <div className={`w-9 h-9 rounded-full bg-white border overflow-hidden relative shadow-sm ${isPending ? "border-white/50" : "border-border"}`}>
@@ -307,14 +307,14 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                             
                                                             {isDoubles ? (
                                                                 <div className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isPending 
-                                                                    ? "bg-white text-indigo-600" 
+                                                                    ? "bg-white text-azul-primary" 
                                                                     : isSelected 
-                                                                        ? "text-emerald-600"
-                                                                        : "bg-indigo-600 text-white"}`}>
+                                                                        ? "text-celeste"
+                                                                        : "bg-azul-primary text-white"}`}>
                                                                     {isPending ? "Completar" : isSelected ? "Ya asignado" : "Seleccionar"}
                                                                 </div>
                                                             ) : (
-                                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "bg-indigo-600 border-indigo-600" : "border-border"}`}>
+                                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "bg-azul-primary border-azul-primary" : "border-border"}`}>
                                                                     {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                                                 </div>
                                                             )}
@@ -344,7 +344,7 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                         </div>
                                                         <button 
                                                             onClick={() => toggleIndividual(id)}
-                                                            className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
+                                                            className="p-1.5 rounded-lg hover:bg-rojo/10 text-rojo transition-colors"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
@@ -357,18 +357,18 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                                 return (
                                                     <div key={`summary-pair-${index}`} className="flex flex-col gap-2 p-3 bg-card border border-border rounded-xl shadow-sm group relative">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-azul-primary" />
                                                             <div className="text-[10px] font-black uppercase italic truncate">{p1?.displayName}</div>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-azul-primary" />
                                                             <div className="text-[10px] font-black uppercase italic truncate">{p2?.displayName}</div>
                                                         </div>
                                                         <div className="mt-1 pt-1 border-t border-border flex items-center justify-between">
                                                             <div className="text-[8px] text-muted-foreground font-black uppercase tracking-widest">{pair.category}</div>
                                                             <button 
                                                                 onClick={() => removePair(index)}
-                                                                className="p-1 px-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors text-[8px] font-black uppercase"
+                                                                className="p-1 px-2 rounded-lg hover:bg-rojo/10 text-rojo transition-colors text-[8px] font-black uppercase"
                                                             >
                                                                 Quitar
                                                             </button>
@@ -387,13 +387,13 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
 
                                     <div className="pt-6 border-t border-border space-y-4">
                                         {error && (
-                                            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-600 text-[10px] font-bold">
+                                            <div className="p-3 bg-rojo/5 border border-rojo/20 rounded-xl flex items-center gap-2 text-rojo text-[10px] font-bold">
                                                 <AlertCircle className="w-4 h-4 shrink-0" />
                                                 {error}
                                             </div>
                                         )}
                                         {success && (
-                                            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-600 text-[10px] font-bold">
+                                            <div className="p-3 bg-celeste/10 border border-celeste/20 rounded-xl flex items-center gap-2 text-celeste text-[10px] font-bold">
                                                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                                                 ¡Inscripción exitosa!
                                             </div>
@@ -401,9 +401,9 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                                         <button
                                             onClick={handleInscribe}
                                             disabled={submitting || success}
-                                            className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] transition-all ${submitting || success
-                                                ? "bg-muted text-muted-foreground"
-                                                : "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 hover:scale-[1.02] active:scale-95"}`}
+                                            className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] transition-all shadow-xl ${submitting || success
+                                                ? "bg-muted text-muted-foreground shadow-none"
+                                                : "bg-azul-primary text-white shadow-azul-primary/20 hover:scale-[1.02] active:scale-95"}`}
                                         >
                                             {submitting ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -431,11 +431,11 @@ export default function ClubEnrollmentModal({ isOpen, onClose, tournament }: Clu
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(99, 102, 241, 0.1);
+                    background: rgba(0, 157, 224, 0.1);
                     border-radius: 10px;
                 }
                 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-                    background: rgba(99, 102, 241, 0.2);
+                    background: rgba(0, 157, 224, 0.2);
                 }
             `}</style>
         </>,

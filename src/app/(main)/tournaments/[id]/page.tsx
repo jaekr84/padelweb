@@ -39,14 +39,14 @@ export default async function TournamentDisplayPage({ params }: Props) {
         <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-full border border-emerald-500/30 overflow-hidden shrink-0 relative">
+                    <div className="w-8 h-8 rounded-full border border-azul-primary/30 overflow-hidden shrink-0 relative">
                         <Image src="/img/stickers 1.jpg" alt="Logo" fill className="object-cover" sizes="32px" />
                     </div>
                     <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                 </Link>
                 <div className="flex items-center gap-4">
                     <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-                    <Link href="/tournaments" className="px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Ver Más Torneos</Link>
+                    <Link href="/tournaments" className="px-4 py-2 bg-azul-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-azul-dark/20">Ver Más Torneos</Link>
                 </div>
             </div>
         </div>
@@ -130,8 +130,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
                 <div className="min-h-screen bg-background text-foreground pb-24 font-sans">
                     <div className="max-w-3xl mx-auto px-4 pt-12">
                         <div className="text-center mb-10">
-                            <div className="w-20 h-20 bg-blue-600/10 border border-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <Trophy className="w-10 h-10 text-blue-500" />
+                            <div className="w-20 h-20 bg-azul-primary/10 border border-azul-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <Trophy className="w-10 h-10 text-azul-primary" />
                             </div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground mb-2">{tournament.name}</h1>
                             <p className="text-foreground/70 font-bold uppercase tracking-widest text-[10px]">Las llaves se generarán cuando cierren las inscripciones</p>
@@ -142,11 +142,11 @@ export default async function TournamentDisplayPage({ params }: Props) {
                                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Jugadores Inscriptos</h2>
                                 <div className="flex items-center gap-3">
                                     {tournament.registrationFee !== null && (
-                                        <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                        <span className="px-3 py-1 bg-azul-primary/10 border border-azul-primary/20 text-azul-primary text-[10px] font-black rounded-full uppercase tracking-widest">
                                             $ {tournament.registrationFee.toLocaleString('es-ES')}
                                         </span>
                                     )}
-                                    <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
+                                    <span className="px-3 py-1 bg-azul-primary text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-md shadow-azul-dark/20">
                                         {initialPlayers.length}{mod?.maxSlots && mod.maxSlots > 0 ? ` / ${mod.maxSlots}` : ""} {isIndividual ? "Jugadores" : "Parejas"}
                                     </span>
                                 </div>
@@ -164,11 +164,11 @@ export default async function TournamentDisplayPage({ params }: Props) {
                                                 <span className="text-[10px] font-black text-muted-foreground w-4">{i + 1}</span>
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-foreground uppercase tracking-tight">{p.name}</span>
-                                                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mt-0.5">{p.category}</span>
+                                                    <span className="text-[9px] font-black text-azul-primary uppercase tracking-widest mt-0.5">{p.category}</span>
                                                 </div>
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                            <div className="w-8 h-8 rounded-full bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                                <CheckCircle className="w-4 h-4 text-azul-primary" />
                                             </div>
                                         </div>
                                     ))}
@@ -179,7 +179,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                         {!isUserRegistered && isLoggedIn && (
                             <Link 
                                 href={`/tournaments/register?id=${id}`}
-                                className="w-full mt-8 py-6 bg-emerald-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(16,185,129,0.3)] hover:bg-emerald-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                                className="w-full mt-8 py-6 bg-azul-primary text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(0,119,255,0.3)] hover:bg-azul-dark hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border border-azul-primary/20"
                             >
                                 Inscribirme Ahora
                                 <CheckCircle className="w-6 h-6" />
@@ -189,7 +189,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                         {!isLoggedIn && (
                             <Link 
                                 href="/login"
-                                className="w-full mt-8 py-6 bg-blue-600/10 text-blue-700 border-2 border-dashed border-blue-600/20 rounded-[2.5rem] font-black uppercase italic tracking-widest hover:bg-blue-600/20 transition-all flex items-center justify-center gap-3"
+                                className="w-full mt-8 py-6 bg-azul-primary/5 text-azul-primary border-2 border-dashed border-azul-primary/20 rounded-[2.5rem] font-black uppercase italic tracking-widest hover:bg-azul-primary/10 transition-all flex items-center justify-center gap-3"
                             >
                                 Inicia Sesión para Inscribirte
                             </Link>
@@ -197,8 +197,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
 
                         {isUserRegistered && (
                             <div className="mt-8">
-                                <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] text-center mb-6">
-                                    <p className="text-emerald-600 font-bold text-sm">Ya estás inscripto en este torneo.</p>
+                                <div className="p-6 bg-azul-primary/5 border border-azul-primary/10 rounded-[2rem] text-center mb-6">
+                                    <p className="text-azul-primary font-bold text-sm">Ya estás inscripto en este torneo.</p>
                                 </div>
                                 <UnregisterButton 
                                     tournamentId={id} 

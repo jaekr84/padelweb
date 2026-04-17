@@ -37,10 +37,10 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
-    const dropdownTriggerStyles = "w-full rounded-3xl border border-background/20 bg-background/10 py-6 pl-14 pr-10 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50 backdrop-blur-xl transition-all flex items-center justify-between gap-2";
+    const dropdownTriggerStyles = "w-full rounded-3xl border border-background/20 bg-background/10 py-6 pl-14 pr-10 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-celeste/50 backdrop-blur-xl transition-all flex items-center justify-between gap-2";
     const dropdownContentStyles = "z-50 overflow-hidden rounded-3xl border border-background/20 bg-foreground shadow-2xl";
     const dropdownViewportStyles = "p-1";
-    const dropdownItemStyles = "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm font-bold tracking-tight uppercase text-background outline-none transition-colors data-[highlighted]:bg-emerald-500/10 data-[highlighted]:text-background data-[state=checked]:bg-emerald-500 data-[state=checked]:text-background";
+    const dropdownItemStyles = "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm font-bold tracking-tight uppercase text-background outline-none transition-colors data-[highlighted]:bg-celeste/10 data-[highlighted]:text-background data-[state=checked]:bg-celeste data-[state=checked]:text-background";
 
     const searchOptions = useMemo(() => {
         const values = new Set<string>();
@@ -74,8 +74,8 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
             {/* Hero Section */}
             <div className="relative rounded-[3rem] overflow-hidden bg-foreground p-12 lg:p-20 text-background flex flex-col items-center text-center space-y-6 shadow-2xl">
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-celeste rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-azul-primary rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
                 </div>
 
                 <motion.div
@@ -84,11 +84,11 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     className="relative z-10 space-y-4"
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/10 border border-background/20 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
-                        <Zap className="w-3 h-3 text-emerald-400 fill-current" />
+                        <Zap className="w-3 h-3 text-celeste fill-current" />
                         Partidos de Rotación Rápida
                     </div>
                     <h1 className="text-5xl lg:text-7xl font-black uppercase tracking-tighter leading-none italic">
-                        Cancha <span className="text-emerald-400">Abierta</span>
+                        Cancha <span className="text-celeste">Abierta</span>
                     </h1>
                     <p className="text-lg text-background/60 max-w-2xl mx-auto font-medium leading-relaxed">
                         Inscribite solo o con amigos. El club arma las parejas en el momento para que juegues con todos y pases una tarde de puro padel.
@@ -110,7 +110,7 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                                 <Select.Viewport className={dropdownViewportStyles}>
                                     <Select.Item value="__empty__" className={dropdownItemStyles}>
                                         <Select.ItemText>Buscar por localidad...</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-4 inline-flex items-center text-emerald-500">
+                                        <Select.ItemIndicator className="absolute right-4 inline-flex items-center text-celeste">
                                             <Check className="w-4 h-4" />
                                         </Select.ItemIndicator>
                                     </Select.Item>
@@ -153,12 +153,12 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     <h2 className="text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-3">
                         {activeTab === "active" ? (
                             <>
-                                <Calendar className="w-6 h-6 text-emerald-500" />
+                                <Calendar className="w-6 h-6 text-celeste" />
                                 Próximas Fechas
                             </>
                         ) : (
                             <>
-                                <Trophy className="w-6 h-6 text-orange-500" />
+                                <Trophy className="w-6 h-6 text-celeste" />
                                 Historial de Eventos
                             </>
                         )}
@@ -166,7 +166,7 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     <div className="flex items-center gap-4">
                         {userRole === 'club' && (
                             <Link href="/admin/cancha-abierta/create">
-                                <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
+                                <button className="flex items-center gap-2 bg-azul-primary hover:bg-azul-dark text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-xl shadow-lg shadow-azul-primary/20 transition-all active:scale-95">
                                     <Plus className="w-4 h-4" />
                                     Crear Evento
                                 </button>
@@ -226,7 +226,7 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     { icon: LayoutGrid, title: "Organización Total", desc: "Los clubes gestionan las canchas en vivo para que no pierdas tiempo esperando." }
                 ].map((item, i) => (
                     <div key={i} className="bg-muted/80 border border-border/40 rounded-[2.5rem] p-8 space-y-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-2xl bg-celeste/10 text-celeste flex items-center justify-center">
                             <item.icon className="w-6 h-6 border-none" />
                         </div>
                         <h4 className="text-sm font-black uppercase tracking-widest">{item.title}</h4>

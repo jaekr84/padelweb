@@ -40,7 +40,7 @@ export default function TournamentPublishButton({ tournamentId, tournamentName, 
             <button
                 onClick={handlePublish}
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-celeste/10 border border-celeste/20 text-celeste text-[10px] font-black uppercase tracking-widest hover:bg-celeste hover:text-white transition-all disabled:opacity-50"
                 title="Publicar resultados en el feed"
             >
                 {loading ? (
@@ -68,7 +68,7 @@ export default function TournamentPublishButton({ tournamentId, tournamentName, 
                 {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                    <Share2 className="w-4 h-4 group-hover/btn:text-emerald-400 transition-colors" />
+                    <Share2 className="w-4 h-4 group-hover/btn:text-celeste transition-colors" />
                 )}
             </button>
         );
@@ -78,7 +78,7 @@ export default function TournamentPublishButton({ tournamentId, tournamentName, 
         <button
             onClick={handlePublish}
             disabled={loading}
-            className="w-full h-8 flex items-center justify-center gap-1.5 px-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-600/20 rounded-lg transition-all active:scale-95 group/btn disabled:opacity-50"
+            className="w-full h-8 flex items-center justify-center gap-1.5 px-3 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 rounded-lg transition-all active:scale-95 group/btn disabled:opacity-50"
             title="Publicar resultados en el feed"
         >
             {loading ? (

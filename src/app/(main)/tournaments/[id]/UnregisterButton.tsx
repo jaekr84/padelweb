@@ -32,7 +32,7 @@ export default function UnregisterButton({ tournamentId, tournamentName }: Props
 
     if (confirm) {
         return (
-            <div className="mt-8 p-6 bg-red-500/5 border border-red-500/20 rounded-[2rem] text-center animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="mt-8 p-6 bg-rojo/5 border border-rojo/20 rounded-[2rem] text-center animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <p className="text-sm font-bold text-foreground mb-4">¿Estás seguro que deseas desincribirte de {tournamentName}?</p>
                 <div className="flex items-center justify-center gap-3">
                     <button
@@ -45,7 +45,7 @@ export default function UnregisterButton({ tournamentId, tournamentName }: Props
                     <button
                         onClick={handleCancel}
                         disabled={loading}
-                        className="px-6 py-2 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all flex items-center gap-2"
+                        className="px-6 py-2 bg-rojo text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-rojo/20 active:scale-95"
                     >
                         {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserMinus className="w-3 h-3" />}
                         Confirmar Desinscripción
@@ -59,7 +59,7 @@ export default function UnregisterButton({ tournamentId, tournamentName }: Props
         <div className="mt-8 text-center">
             <button
                 onClick={() => setConfirm(true)}
-                className="inline-flex items-center gap-2 px-8 py-3 bg-red-600/10 border border-red-600/20 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl shadow-red-600/10"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-rojo/10 border border-rojo/20 text-rojo rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rojo hover:text-white transition-all shadow-xl shadow-rojo/10"
             >
                 <UserMinus className="w-4 h-4" />
                 Desincribirse del Torneo

@@ -81,7 +81,7 @@ export default function EventJoinClient({
         const regex = new RegExp(`(${escaped})`, "gi");
         return name.split(regex).map((part, index) =>
             part.toLowerCase() === query.toLowerCase() ? (
-                <span key={index} className="bg-orange-500/10 text-orange-500 rounded px-0.5">
+                <span key={index} className="bg-celeste/10 text-celeste rounded px-0.5">
                     {part}
                 </span>
             ) : (
@@ -143,8 +143,8 @@ export default function EventJoinClient({
         <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
                 <div className="lg:col-span-5">
                     <div className="sticky top-24 space-y-6">
-                        <div className={`bg-card border-2 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group transition-all ${isCompleted ? 'border-orange-500/20' : 'border-border/50'}`}>
-                            <div className={`absolute top-0 right-0 w-32 h-32 -translate-y-16 translate-x-16 rounded-full blur-2xl transition-all duration-700 ${isCompleted ? 'bg-orange-500/10' : 'bg-emerald-500/5 group-hover:bg-emerald-500/10'}`} />
+                        <div className={`bg-card border-2 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group transition-all ${isCompleted ? 'border-azul-primary/20' : 'border-border/50'}`}>
+                            <div className={`absolute top-0 right-0 w-32 h-32 -translate-y-16 translate-x-16 rounded-full blur-2xl transition-all duration-700 ${isCompleted ? 'bg-azul-primary/10' : 'bg-celeste/5 group-hover:bg-celeste/10'}`} />
                             
                             {/* Right Column: Enrollment or Event Info */}
                             <div className="relative z-10 space-y-8">
@@ -159,9 +159,9 @@ export default function EventJoinClient({
 
                                 {isCompleted ? (
                                     <div className="space-y-6">
-                                        <div className="bg-orange-500/10 rounded-2xl p-6 border border-orange-500/20 flex flex-col items-center gap-3 text-center">
-                                            <Trophy className="w-10 h-10 text-orange-500" />
-                                            <p className="text-xs font-bold text-orange-600 uppercase italic leading-relaxed">
+                                        <div className="bg-azul-primary/10 rounded-2xl p-6 border border-azul-primary/20 flex flex-col items-center gap-3 text-center">
+                                            <Trophy className="w-10 h-10 text-azul-primary" />
+                                            <p className="text-xs font-bold text-azul-primary uppercase italic leading-relaxed">
                                                 Este evento ya ha concluido. Podés consultar los resultados históricos.
                                             </p>
                                         </div>
@@ -177,9 +177,9 @@ export default function EventJoinClient({
                                     <>
                                         {userRegistration ? (
                                             <div className="space-y-6">
-                                                <div className="bg-emerald-500/10 rounded-2xl p-6 border border-emerald-500/20 flex flex-col items-center gap-3">
-                                                    <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                                                    <p className="text-xs font-bold text-emerald-600 uppercase italic text-center leading-relaxed">
+                                                <div className="bg-celeste/10 rounded-2xl p-6 border border-celeste/20 flex flex-col items-center gap-3">
+                                                    <CheckCircle2 className="w-10 h-10 text-celeste" />
+                                                    <p className="text-xs font-bold text-celeste uppercase italic text-center leading-relaxed">
                                                         Tu lugar está asegurado. Recordá llegar 15 minutos antes.
                                                     </p>
                                                 </div>
@@ -197,7 +197,7 @@ export default function EventJoinClient({
                                                 <div className="bg-muted/30 rounded-2xl p-6 border border-border/40 space-y-2 text-center">
                                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Preferencia de Lado</p>
                                                     <p className="text-sm font-black uppercase italic text-foreground tracking-tighter">
-                                                        Jugás de: <span className="text-emerald-500">{defaultSidePreference}</span>
+                                                        Jugás de: <span className="text-celeste">{defaultSidePreference}</span>
                                                     </p>
                                                     <p className="text-[8px] font-bold text-muted-foreground/30 uppercase leading-none mt-2">
                                                         (De tu perfil de jugador)
@@ -206,7 +206,7 @@ export default function EventJoinClient({
                                                 <button
                                                     onClick={handleJoin}
                                                     disabled={isPending || isFull}
-                                                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black uppercase tracking-widest text-sm py-6 rounded-[2rem] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 group/btn"
+                                                    className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-widest text-sm py-6 rounded-[2rem] shadow-xl shadow-azul-primary/20 active:scale-95 transition-all flex items-center justify-center gap-3 group/btn"
                                                 >
                                                     {isPending ? "Procesando..." : (isFull ? "Lista de Espera" : "Inscribirme")}
                                                     <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
@@ -219,11 +219,11 @@ export default function EventJoinClient({
                         </div>
 
                         {!isLoggedIn && (
-                            <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-start gap-4">
-                                <ShieldCheck className="w-5 h-5 text-red-500 shrink-0" />
+                            <div className="bg-rojo/5 border border-rojo/20 rounded-2xl p-6 flex items-start gap-4">
+                                <ShieldCheck className="w-5 h-5 text-rojo shrink-0" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase text-red-600">Inicio de Sesión Requerido</p>
-                                    <p className="text-[9px] font-medium text-red-900/40 uppercase italic leading-tight">Debes estar registrado para participar.</p>
+                                    <p className="text-[10px] font-black uppercase text-rojo">Inicio de Sesión Requerido</p>
+                                    <p className="text-[9px] font-medium text-rojo/40 uppercase italic leading-tight">Debes estar registrado para participar.</p>
                                 </div>
                             </div>
                         )}
@@ -268,7 +268,7 @@ export default function EventJoinClient({
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder="Apellido o nombre"
-                                            className="w-full rounded-2xl border border-border/40 bg-muted px-4 py-3 text-sm font-bold text-foreground outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                            className="w-full rounded-2xl border border-border/40 bg-muted px-4 py-3 text-sm font-bold text-foreground outline-none transition focus:border-celeste focus:ring-2 focus:ring-celeste/20"
                                         />
                                     </div>
 
@@ -300,7 +300,7 @@ export default function EventJoinClient({
                                                     <div key={match.id} className="bg-card border border-border/40 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                                         <div className="bg-muted/30 px-6 py-2 border-b border-border/20 flex justify-between items-center">
                                                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">Cancha {match.courtId || (i + 1)}</span>
-                                                            <span className="text-[8px] font-black uppercase tracking-widest text-orange-500 italic">Oficial</span>
+                                                            <span className="text-[8px] font-black uppercase tracking-widest text-azul-primary italic">Oficial</span>
                                                         </div>
                                                         <div className="p-6 grid grid-cols-3 items-center gap-4 text-center">
                                                             <div className="space-y-1">
@@ -310,7 +310,7 @@ export default function EventJoinClient({
                                                             <div className="bg-foreground text-background rounded-2xl py-3 px-4 flex flex-col items-center justify-center shadow-lg">
                                                                 <span className="text-[7px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Score</span>
                                                                 <span className="text-2xl font-black italic tracking-tighter font-mono">
-                                                                    {match.score1 ?? 0} <span className="text-orange-500">:</span> {match.score2 ?? 0}
+                                                                    {match.score1 ?? 0} <span className="text-azul-primary">:</span> {match.score2 ?? 0}
                                                                 </span>
                                                             </div>
                                                             <div className="space-y-1">
@@ -340,7 +340,7 @@ export default function EventJoinClient({
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: idx * 0.05 }}
                                             key={p.id}
-                                            className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${p.userId === currentUserId ? 'bg-emerald-500/5 border-emerald-500/20 ring-1 ring-emerald-500/10' : 'bg-card border-border/40 hover:border-border hover:shadow-md'}`}
+                                            className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${p.userId === currentUserId ? 'bg-celeste/5 border-celeste/20 ring-1 ring-celeste/10' : 'bg-card border-border/40 hover:border-border hover:shadow-md'}`}
                                         >
                                             <div className="flex items-center gap-4 min-w-0">
                                                 <div className="w-12 h-12 rounded-2xl bg-muted overflow-hidden relative border border-border/20 shrink-0 shadow-sm">
@@ -361,9 +361,9 @@ export default function EventJoinClient({
                                             </div>
 
                                             <div className="flex items-center gap-3">
-                                                <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${p.side === 'drive' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600' :
-                                                    p.side === 'reves' ? 'bg-orange-500/10 border-orange-500/20 text-orange-600' :
-                                                        'bg-emerald-500/10 border-emerald-500/20 text-emerald-600'
+                                                <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${p.side === 'drive' ? 'bg-celeste/10 border-celeste/20 text-celeste' :
+                                                    p.side === 'reves' ? 'bg-azul-primary/10 border-azul-primary/20 text-azul-primary' :
+                                                        'bg-celeste/10 border-celeste/20 text-celeste'
                                                     }`}>
                                                     {p.side}
                                                 </div>

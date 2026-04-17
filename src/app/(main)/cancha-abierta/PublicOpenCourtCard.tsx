@@ -32,8 +32,8 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
     const statusConfig = isFinished
         ? { label: "Finalizado", pill: "bg-muted-foreground/40", text: "text-muted-foreground" }
         : isFull
-            ? { label: "Agotado", pill: "bg-red-500", text: "text-red-500" }
-            : { label: "Abierto", pill: "bg-emerald-600", text: "text-emerald-600" };
+            ? { label: "Agotado", pill: "bg-rojo", text: "text-rojo" }
+            : { label: "Abierto", pill: "bg-celeste", text: "text-celeste" };
 
     const href = `/cancha-abierta/${event.id}`;
 
@@ -53,7 +53,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
             onClick={handleCardClick}
             className="group block h-full focus:outline-none cursor-pointer"
         >
-            <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-indigo-500/20 flex flex-col h-full relative group/card">
+            <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-celeste/20 flex flex-col h-full relative group/card">
                 {/* Compact Image Area */}
                 <div className="relative h-32 w-full overflow-hidden bg-muted/20">
                     {!showFallback ? (
@@ -64,7 +64,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50/50 to-indigo-100/50">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-celeste/5 to-azul-primary/5">
                             <Zap className={`w-8 h-8 ${statusConfig.text} opacity-20`} />
                         </div>
                     )}
@@ -75,7 +75,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                             {statusConfig.label}
                         </span>
                         {isRegistered && (
-                            <span className="px-2 py-0.5 rounded-md bg-white border border-indigo-100 text-indigo-600 font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md bg-white border border-celeste/20 text-celeste font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <CheckCircle className="w-2.5 h-2.5" /> Inscripto
                             </span>
                         )}
@@ -89,11 +89,11 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                             <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 mb-1 truncate">
                                 {event.club?.name || "Club Padel"}
                             </p>
-                            <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-indigo-600 transition-colors truncate">
+                            <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-azul-primary transition-colors truncate">
                                 {event.name}
                             </h3>
                             {event.city && (
-                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                                <p className="text-[10px] font-bold text-celeste uppercase tracking-widest mt-1 flex items-center gap-1">
                                     <MapPin className="w-3 h-3" /> {event.city}
                                 </p>
                             )}
@@ -102,7 +102,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha / Hora</span>
                             <span className="text-xs font-bold text-foreground/80">{formatDate(event.date)}</span>
                             {event.time && (
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter flex items-center gap-1 mt-0.5">
+                                <span className="text-[10px] font-black text-azul-primary uppercase tracking-tighter flex items-center gap-1 mt-0.5">
                                     <Clock className="w-2.5 h-2.5" /> {event.time}
                                 </span>
                             )}
@@ -130,14 +130,14 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                         <div className="mb-5 space-y-1.5">
                             <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">
                                 <span>Ocupación</span>
-                                <span className={isFull ? "text-red-500" : "text-indigo-500"}>{Math.round(percent)}%</span>
+                                <span className={isFull ? "text-rojo" : "text-celeste"}>{Math.round(percent)}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden border border-border/50">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min(percent, 100)}%` }}
                                     transition={{ duration: 1, ease: "easeOut" }}
-                                    className={`h-full rounded-full ${percent > 80 ? 'bg-orange-500' : 'bg-indigo-600'}`}
+                                    className={`h-full rounded-full ${percent > 80 ? 'bg-rojo' : 'bg-celeste'}`}
                                 />
                             </div>
                         </div>
@@ -154,7 +154,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                                         e.stopPropagation();
                                         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address + " " + event.city)}`, "_blank");
                                     }}
-                                    className="text-xs font-bold text-foreground/80 hover:text-indigo-600 underline decoration-indigo-500/20 underline-offset-4 cursor-pointer"
+                                    className="text-xs font-bold text-foreground/80 hover:text-azul-primary underline decoration-azul-primary/20 underline-offset-4 cursor-pointer"
                                 >
                                     {event.address}
                                 </span>
@@ -187,9 +187,9 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                     <div className="mt-auto">
                         <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${
                             isFinished ? "bg-muted text-muted-foreground shadow-none" :
-                            isRegistered ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" :
-                            isFull ? "bg-red-500/10 text-red-500 border border-red-500/20" :
-                            "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-95 transition-transform"
+                            isRegistered ? "bg-celeste text-white shadow-lg shadow-celeste/20" :
+                            isFull ? "bg-rojo/10 text-rojo border border-rojo/20" :
+                            "bg-azul-primary text-white shadow-lg shadow-azul-primary/20 hover:scale-[1.02] active:scale-95 transition-transform"
                         }`}>
                             {isFinished ? <Trophy className="w-3.5 h-3.5" /> :
                              isRegistered ? <CheckCircle className="w-3.5 h-3.5" /> :

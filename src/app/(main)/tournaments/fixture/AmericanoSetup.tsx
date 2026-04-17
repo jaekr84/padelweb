@@ -305,7 +305,7 @@ export default function AmericanoSetup({
                             <div className="h-6 w-px bg-border/50 hidden md:block" />
 
                             <div className="hidden md:flex flex-col">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60 leading-none mb-1">Torneo</span>
                                 <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
                                     {tournamentName}
                                 </span>
@@ -334,9 +334,9 @@ export default function AmericanoSetup({
                                                     if (s.id === "checkin") setStep("checkin");
                                                 }}
                                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${s.active 
-                                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" 
                                                     : s.completed 
-                                                        ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
+                                                        ? "text-azul-primary bg-celeste/10 hover:bg-celeste/20"
                                                         : "text-foreground/70 hover:bg-white/5"}`}
                                             >
                                                 <Icon className="w-3.5 h-3.5" />
@@ -355,11 +355,11 @@ export default function AmericanoSetup({
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <div className="px-4 py-2 bg-blue-500/5 border border-blue-500/10 text-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
+                            <div className="px-4 py-2 bg-azul-primary/5 border border-azul-primary/10 text-azul-primary rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
                                 Método Americano
                             </div>
                             {!isIndividual && (
-                                <div className="p-2 rounded-xl bg-orange-500/5 border border-orange-500/10 text-orange-500" title="Torneo de Parejas">
+                                <div className="p-2 rounded-xl bg-celeste/5 border border-celeste/10 text-azul-primary" title="Torneo de Parejas">
                                     <Users2 className="w-4 h-4" />
                                 </div>
                             )}
@@ -381,7 +381,7 @@ export default function AmericanoSetup({
                                 <div className="flex gap-2">
                                         <button
                                             onClick={() => setIsPlayerModalOpen(true)}
-                                            className="px-3 py-1.5 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                            className="px-3 py-1.5 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2"
                                         >
                                             <Plus className="w-3 h-3" />
                                             Inscribir
@@ -398,13 +398,13 @@ export default function AmericanoSetup({
                                             placeholder="Filtrar por nombre..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-background border border-border rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-blue-500 transition-all"
+                                            className="w-full bg-background border border-border rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-azul-primary transition-all"
                                         />
                                     </div>
                                     <select 
                                         value={categoryFilter}
                                         onChange={(e) => setCategoryFilter(e.target.value)}
-                                        className="bg-background border border-border rounded-xl px-4 py-2 text-[10px] font-black uppercase italic outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                                        className="bg-background border border-border rounded-xl px-4 py-2 text-[10px] font-black uppercase italic outline-none focus:border-azul-primary appearance-none cursor-pointer"
                                     >
                                         <option value="all">Categoría (Todas)</option>
                                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -413,8 +413,8 @@ export default function AmericanoSetup({
                                 <div className="px-6 py-4 flex items-center justify-between">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Jugadores</span>
                                     <div className="flex gap-4">
-                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-blue-600">Todo Pago</button>
-                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Todo Ok</button>
+                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-azul-primary">Todo Pago</button>
+                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-celeste">Todo Ok</button>
                                     </div>
                                 </div>
                                 <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
@@ -455,28 +455,28 @@ export default function AmericanoSetup({
                                             const isPresent = present.has(p.checkinId);
 
                                             return (
-                                                <div key={p.checkinId} className={`flex items-center justify-between px-6 py-4 transition-all duration-300 ${isPresent ? "bg-emerald-500/[0.03] border-l-4 border-l-emerald-500" : "bg-card border-l-4 border-l-transparent"}`}>
+                                                <div key={p.checkinId} className={`flex items-center justify-between px-6 py-4 transition-all duration-300 ${isPresent ? "bg-celeste/5 border-l-4 border-l-celeste" : "bg-card border-l-4 border-l-transparent"}`}>
                                                     <div className="flex flex-col gap-1">
                                                         <p className={`text-sm font-black uppercase italic transition-colors ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
                                                             {p.displayName}
                                                         </p>
                                                         {!isIndividual && (
                                                             <p className="text-[9px] text-foreground/60 font-bold uppercase tracking-widest">
-                                                                Equipo: <span className="text-blue-500/60">{p.pairName}</span>
+                                                                Equipo: <span className="text-azul-primary/60">{p.pairName}</span>
                                                             </p>
                                                         )}
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button 
                                                             onClick={() => togglePaid(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPaid ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
+                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPaid ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Pago"
                                                         >
                                                             <CreditCard className="w-4 h-4" />
                                                         </button>
                                                         <button 
                                                             onClick={() => togglePresent(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPresent ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
+                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPresent ? "bg-celeste border-celeste text-azul-primary shadow-lg shadow-celeste/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Presencia"
                                                         >
                                                             <UserCheck className="w-4 h-4" />
@@ -492,7 +492,7 @@ export default function AmericanoSetup({
                             <button
                                 onClick={handleStart}
                                 disabled={PRESENT_PLAYERS.length < 2 || saving}
-                                className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-6 bg-azul-primary hover:bg-azul-dark text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {saving ? (
                                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />

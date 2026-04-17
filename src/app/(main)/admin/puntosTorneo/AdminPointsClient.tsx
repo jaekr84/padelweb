@@ -49,14 +49,14 @@ export default function AdminPointsClient({
             {/* Header */}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-indigo-500" />
+                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-azul-primary" />
                     </div>
                     <div>
                         <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">
                             Control Global de Torneos
                         </h1>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-500/60">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-azul-primary/60">
                             Administración Centralizada ACAP
                         </p>
                     </div>
@@ -81,7 +81,7 @@ export default function AdminPointsClient({
                         <button
                             onClick={handleSavePoints}
                             disabled={isSaving}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                         >
                             {isSaving ? <Activity className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                             Guardar Puntos
@@ -92,11 +92,11 @@ export default function AdminPointsClient({
                         {[
                             { id: "winner", label: "Campeón", icon: Trophy, color: "text-amber-500" },
                             { id: "finalist", label: "Finalista", icon: Star, color: "text-slate-400" },
-                            { id: "semi", label: "Semifinal", icon: Target, color: "text-indigo-400" },
-                            { id: "quarter", label: "Cuartos", icon: LayoutGrid, color: "text-indigo-400" },
-                            { id: "octavos", label: "Octavos", icon: Zap, color: "text-indigo-400" },
-                            { id: "groupMatchWin", label: "Victoria en Zona", icon: Activity, color: "text-emerald-500" },
-                            { id: "participation", label: "Asistencia", icon: Users, color: "text-indigo-400" },
+                            { id: "semi", label: "Semifinal", icon: Target, color: "text-celeste" },
+                            { id: "quarter", label: "Cuartos", icon: LayoutGrid, color: "text-celeste" },
+                            { id: "octavos", label: "Octavos", icon: Zap, color: "text-celeste" },
+                            { id: "groupMatchWin", label: "Victoria en Zona", icon: Activity, color: "text-celeste" },
+                            { id: "participation", label: "Asistencia", icon: Users, color: "text-celeste" },
                         ].map((item: any) => (
                             <div key={item.id} className="space-y-2">
                                 <div className="flex items-center gap-2 ml-1">
@@ -109,15 +109,15 @@ export default function AdminPointsClient({
                                     type="number"
                                     value={points[item.id]}
                                     onChange={(e) => setPoints({ ...points, [item.id]: Number(e.target.value) })}
-                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground font-black text-lg italic outline-none focus:border-indigo-500 transition-all"
+                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground font-black text-lg italic outline-none focus:border-azul-primary transition-all"
                                 />
                             </div>
                         ))}
                     </div>
 
-                    <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 flex gap-3 italic">
-                        <Info className="w-5 h-5 text-indigo-500 shrink-0" />
-                        <p className="text-[10px] text-indigo-500/70 leading-relaxed font-medium">
+                    <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-4 flex gap-3 italic">
+                        <Info className="w-5 h-5 text-azul-primary shrink-0" />
+                        <p className="text-[10px] text-azul-primary/70 leading-relaxed font-medium">
                             Estos puntos se aplican a todos los torneos nuevos. Los clubes ya no pueden modificar estos valores individualmente para garantizar la integridad del ranking.
                         </p>
                     </div>
@@ -132,15 +132,15 @@ export default function AdminPointsClient({
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                <Settings2 className="w-5 h-5 text-indigo-500" />
+                            <div className="w-10 h-10 rounded-xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                <Settings2 className="w-5 h-5 text-azul-primary" />
                             </div>
                             <h2 className="text-lg font-black uppercase italic tracking-tight italic">Límites de Clubes</h2>
                         </div>
                         <button
                             onClick={handleSaveLimits}
                             disabled={isSaving}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                         >
                             {isSaving ? <Activity className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                             Guardar Límites
@@ -153,7 +153,7 @@ export default function AdminPointsClient({
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                                     Torneos Abiertos por Club
                                 </label>
-                                <span className="text-[10px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-lg border border-indigo-500/20">
+                                <span className="text-[10px] font-black text-azul-primary bg-azul-primary/10 px-2 py-0.5 rounded-lg border border-azul-primary/20">
                                     Públicos
                                 </span>
                             </div>
@@ -162,7 +162,7 @@ export default function AdminPointsClient({
                                     type="number"
                                     value={limits.openLimit}
                                     onChange={(e) => setLimits({ ...limits, openLimit: Number(e.target.value) })}
-                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-indigo-500 transition-all"
+                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all"
                                 />
                                 <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
                                     Máximo de torneos abiertos a todo público permitidos.
@@ -184,7 +184,7 @@ export default function AdminPointsClient({
                                     type="number"
                                     value={limits.closedLimit}
                                     onChange={(e) => setLimits({ ...limits, closedLimit: Number(e.target.value) })}
-                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-indigo-500 transition-all"
+                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all"
                                 />
                                 <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
                                     Máximo de torneos exclusivos para miembros del club.
@@ -193,7 +193,7 @@ export default function AdminPointsClient({
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-[2rem] bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+                    <div className="p-6 rounded-[2rem] bg-gradient-to-br from-azul-primary to-azul-primary text-white shadow-xl shadow-azul-primary/20 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                             <Shield className="w-20 h-20" />
                         </div>

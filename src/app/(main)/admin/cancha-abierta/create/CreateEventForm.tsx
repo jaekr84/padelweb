@@ -62,13 +62,13 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         </button>
                     </Link>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500">Nuevo Evento</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary">Nuevo Evento</p>
                         <h1 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">
-                            Configuración de <span className="text-emerald-500">Cancha Abierta</span>
+                            Configuración de <span className="text-azul-primary">Cancha Abierta</span>
                         </h1>
                     </div>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <div className="w-10 h-10 rounded-full bg-azul-primary/10 flex items-center justify-center text-azul-primary">
                     <Sparkles className="w-5 h-5" />
                 </div>
             </header>
@@ -80,10 +80,10 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Nombre del Evento</label>
                             <div className="relative">
-                                <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50" />
+                                <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
                                 <input
                                     {...register("name", { required: true })}
-                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-emerald-500/50 transition-all outline-none capitalize"
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
                                     placeholder="Ej: Americano Nocturno Viernes"
                                 />
                             </div>
@@ -93,24 +93,24 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Fecha</label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50 pointer-events-none" />
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50 pointer-events-none" />
                                     <input
                                         type="date"
                                         {...register("date", { required: true })}
                                         onClick={(e) => e.currentTarget.showPicker?.()}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-emerald-500/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Hora</label>
                                 <div className="relative">
-                                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50 pointer-events-none" />
+                                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50 pointer-events-none" />
                                     <input
                                         type="time"
                                         {...register("time", { required: true })}
                                         onClick={(e) => e.currentTarget.showPicker?.()}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-emerald-500/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
                                     />
                                 </div>
                             </div>
@@ -120,10 +120,10 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Dirección (Club)</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/50" />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
                                     <input
                                         {...register("address", { required: true })}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-blue-500/50 transition-all outline-none"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none"
                                         placeholder="Calle y número..."
                                     />
                                 </div>
@@ -131,10 +131,10 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Localidad / Zona</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500/50" />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
                                     <input
                                         {...register("city", { required: true })}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-emerald-500/50 transition-all outline-none capitalize"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
                                         placeholder="Zona norte, Palermo, etc..."
                                     />
                                 </div>
@@ -147,7 +147,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-4">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                            <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
+                            <DollarSign className="w-3.5 h-3.5 text-celeste" />
                             Costo Inscripción
                         </label>
                         <input
@@ -163,7 +163,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
 
                     <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-4">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                            <Users className="w-3.5 h-3.5 text-blue-500" />
+                            <Users className="w-3.5 h-3.5 text-celeste" />
                             Cupos Totales
                         </label>
                         <input
@@ -190,7 +190,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                                     {...register("categories")}
                                     className="peer absolute opacity-0"
                                 />
-                                <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-400 group-hover:border-emerald-500/50">
+                                <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste-light group-hover:border-celeste/50">
                                     {cat.name}
                                 </div>
                             </label>
@@ -202,7 +202,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                                 {...register("categories")}
                                 className="peer absolute opacity-0"
                             />
-                            <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-400 group-hover:border-emerald-500/50">
+                            <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste group-hover:border-celeste/50">
                                 Libre
                             </div>
                         </label>
@@ -213,7 +213,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                        className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-azul-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                     >
                         {isSubmitting ? (
                             <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

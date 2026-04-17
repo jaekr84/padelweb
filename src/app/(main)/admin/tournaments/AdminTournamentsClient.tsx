@@ -74,7 +74,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
                 <div>
                     <h1 className="text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
-                        <Settings className="w-6 h-6 text-emerald-600" />
+                        <Settings className="w-6 h-6 text-azul-primary" />
                         Gestión de Torneos
                     </h1>
                     <p className="text-xs font-medium text-muted-foreground mt-1 text-balance">
@@ -82,7 +82,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                     </p>
                 </div>
                 <Link href="/tournaments/create">
-                    <button className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-xl shadow-lg shadow-emerald-600/10 transition-all active:scale-95">
+                    <button className="flex items-center gap-2 bg-azul-primary hover:bg-azul-dark text-white font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-xl shadow-lg shadow-azul-primary/10 transition-all active:scale-95">
                         <Plus className="w-4 h-4" />
                         Crear Torneo
                     </button>
@@ -164,12 +164,12 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     const isDraft = tournament.status === "draft";
 
     const statusStyle = isLive
-        ? "text-red-500 bg-red-500/10 border-red-500/20"
+        ? "text-rojo bg-rojo/10 border-rojo/20"
         : isFinished
             ? "text-muted-foreground bg-muted/10 border-border"
             : isDraft
-                ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
-                : "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+                ? "text-foreground bg-muted border-border"
+                : "text-celeste bg-celeste/10 border-celeste/20";
 
     const statusLabel = isLive ? "En Vivo" : isFinished ? "Cerrado" : isDraft ? "Borrador" : "Abierto";
 
@@ -182,13 +182,13 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
         <tr className="hover:bg-muted/10 transition-colors group">
             <td className="px-6 py-4">
                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider ${statusStyle}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full fill-current ${isLive ? "animate-pulse bg-red-500" : "bg-current opacity-60"}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full fill-current ${isLive ? "animate-pulse bg-rojo" : "bg-current opacity-60"}`} />
                     {statusLabel}
                 </div>
             </td>
             <td className="px-4 py-4">
                 <div className="flex flex-col">
-                    <span className="text-[15px] font-black uppercase italic text-foreground leading-tight group-hover:text-emerald-600 transition-colors truncate">
+                    <span className="text-[15px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate">
                         {tournament.name}
                     </span>
                     <div className="flex items-center gap-2.5 mt-1.5 font-bold uppercase tracking-widest">
@@ -199,7 +199,7 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                         <span className="text-[10px] text-muted-foreground/60">•</span>
                         <div className="flex items-center gap-1.5">
                             <span className="text-[8px] text-muted-foreground/70">Inicio:</span>
-                            <span className="text-[10px] text-emerald-600/80">{formatDate(tournament.startDate)}</span>
+                            <span className="text-[10px] text-azul-primary/80">{formatDate(tournament.startDate)}</span>
                         </div>
                     </div>
                 </div>
@@ -242,14 +242,14 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                 <div className="grid grid-cols-2 gap-1.5 min-w-[170px] justify-end">
                     {!isFinished && (
                         <Link href={`/tournaments/${tournament.id}/manage`} className="col-span-2">
-                            <button className="w-full h-10 flex items-center justify-center gap-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700/20 rounded-xl transition-all active:scale-95 group/btn shadow-sm">
+                            <button className="w-full h-10 flex items-center justify-center gap-2 px-3 bg-azul-primary hover:bg-azul-dark text-white border border-azul-primary/20 rounded-xl transition-all active:scale-95 group/btn shadow-sm">
                                 <Activity className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase tracking-widest">Iniciar Torneo</span>
                             </button>
                         </Link>
                     )}
                     <Link href={`/tournaments/${tournament.id}/edit`} className={isFinished ? "w-full" : "w-full"}>
-                        <button className="w-full h-8 flex items-center justify-center gap-1 px-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-600/20 rounded-lg transition-all active:scale-95 group/btn">
+                        <button className="w-full h-8 flex items-center justify-center gap-1 px-2 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 rounded-lg transition-all active:scale-95 group/btn">
                             <Edit className="w-3 h-3" />
                             <span className="text-[8px] font-black uppercase tracking-widest leading-none">Editar</span>
                         </button>

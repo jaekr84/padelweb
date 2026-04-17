@@ -1030,7 +1030,7 @@ export default function AmericanoManager({
                         <div className="h-10 w-px bg-border/30 hidden md:block" />
 
                         <div className="hidden md:flex flex-col">
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary leading-none mb-1">Torneo</span>
                             <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
                                 {tournamentName}
                             </span>
@@ -1059,9 +1059,9 @@ export default function AmericanoManager({
                                             <button
                                                 onClick={() => isAccessible && setStep(s.id as any)}
                                                 className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl transition-all ${s.active
-                                                    ? "bg-foreground text-background shadow-lg shadow-foreground/10"
+                                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20"
                                                     : s.completed
-                                                        ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
+                                                        ? "text-azul-primary bg-azul-primary/5 hover:bg-azul-primary/10"
                                                         : "text-foreground/60 hover:bg-muted/80"
                                                     }`}
                                             >
@@ -1080,8 +1080,8 @@ export default function AmericanoManager({
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/5 border border-blue-500/20 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-azul-primary/5 border border-azul-primary/20 text-azul-primary text-[10px] font-black uppercase tracking-widest">
+                            <div className="w-2 h-2 rounded-full bg-azul-primary animate-pulse" />
                             {initialStatus === "finalizado" ? "Torneo Finalizado" : "En Vivo"}
                         </div>
 
@@ -1137,7 +1137,7 @@ export default function AmericanoManager({
                             <div className="w-full space-y-8 pb-32">
                                 <div className="text-center space-y-4">
                                     <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic mb-3">Lista de Asistencia</h2>
-                                    <p className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
+                                    <p className="text-azul-primary text-xs font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
                                 </div>
 
                                 {/* Control Bar */}
@@ -1149,7 +1149,7 @@ export default function AmericanoManager({
                                             placeholder="Buscar participante..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
+                                            className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
                                         />
                                     </div>
                                     {!readOnly && (
@@ -1159,7 +1159,7 @@ export default function AmericanoManager({
                                                     const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
                                                     setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                                 }}
-                                                className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all"
+                                                className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                                             >
                                                 Todo Pago
                                             </button>
@@ -1168,7 +1168,7 @@ export default function AmericanoManager({
                                                     const allIds = (initialGroups[0]?.players || []).map((p: Player) => p.id);
                                                     setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                                 }}
-                                                className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all"
+                                                className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                                             >
                                                 Todo Ok
                                             </button>
@@ -1194,11 +1194,11 @@ export default function AmericanoManager({
                                                     return (
                                                         <tr
                                                             key={p.id}
-                                                            className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-emerald-500/[0.02]" : ""}`}
+                                                            className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-azul-primary/[0.02]" : ""}`}
                                                         >
                                                             <td className="px-8 py-5">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-emerald-500 text-white" : "bg-muted text-foreground/20"}`}>
+                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-azul-primary text-white" : "bg-muted text-foreground/20"}`}>
                                                                         <Users2 className="w-4 h-4" />
                                                                     </div>
                                                                     <span className="font-black uppercase italic text-sm">{p.name}</span>
@@ -1216,8 +1216,8 @@ export default function AmericanoManager({
                                                                     })}
                                                                     disabled={readOnly}
                                                                     className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
-                                                                        ? "bg-blue-600 border-blue-500 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
+                                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
                                                                         } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                                 >
                                                                     <CreditCard className="w-4 h-4" />
@@ -1228,7 +1228,7 @@ export default function AmericanoManager({
                                                                     <>
                                                                         <button
                                                                             onClick={() => setPlayerToDelete(p)}
-                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all mr-2"
                                                                             title="Eliminar Participante"
                                                                         >
                                                                             <Trash2 className="w-4 h-4" />
@@ -1236,7 +1236,7 @@ export default function AmericanoManager({
 
                                                                         <button
                                                                             onClick={() => setReplacingPlayer(p)}
-                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all mr-2"
+                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all mr-2"
                                                                             title="Reemplazar Jugador"
                                                                         >
                                                                             <RotateCcw className="w-4 h-4" />
@@ -1252,8 +1252,8 @@ export default function AmericanoManager({
                                                                     })}
                                                                     disabled={readOnly}
                                                                     className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
-                                                                        ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
+                                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
                                                                         } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                                 >
                                                                     <UserCheck className="w-4 h-4" />
@@ -1272,7 +1272,7 @@ export default function AmericanoManager({
                                         <button
                                             onClick={() => setStep("active")}
                                             disabled={present.size < 2}
-                                            className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                                            className="w-full py-6 bg-azul-primary text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(0,119,255,0.4)] hover:bg-azul-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
                                         >
                                             Iniciar Torneo ({present.size})
                                             <ChevronRight className="w-6 h-6" />
@@ -1293,7 +1293,7 @@ export default function AmericanoManager({
                             {/* Court Dashboard Title */}
                             <div className="text-center space-y-4">
                                 <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic">Control de Canchas En Vivo</h2>
-                                <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em]">Gestión de Partidos en Tiempo Real</p>
+                                <p className="text-azul-primary text-[10px] font-black uppercase tracking-[0.3em]">Gestión de Partidos en Tiempo Real</p>
 
                                 {/* Progress Tracker */}
                                 {(() => {
@@ -1314,7 +1314,7 @@ export default function AmericanoManager({
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <span className="text-4xl font-black italic text-blue-600 leading-none">{Math.round(progress)}<span className="text-lg ml-0.5">%</span></span>
+                                                    <span className="text-4xl font-black italic text-azul-primary leading-none">{Math.round(progress)}<span className="text-lg ml-0.5">%</span></span>
                                                 </div>
                                             </div>
                                             <div className="h-4 w-full bg-muted/30 rounded-full overflow-hidden border border-border/40 p-[3px] shadow-inner">
@@ -1322,7 +1322,7 @@ export default function AmericanoManager({
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${progress}%` }}
                                                     transition={{ duration: 1.5, ease: "circOut" }}
-                                                    className="h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 shadow-[0_0_25px_rgba(37,99,235,0.5)] relative"
+                                                    className="h-full rounded-full bg-gradient-to-r from-azul-primary via-celeste to-azul-dark shadow-[0_0_25px_rgba(0,119,255,0.5)] relative"
                                                 >
                                                     <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]" />
                                                 </motion.div>
@@ -1393,7 +1393,7 @@ export default function AmericanoManager({
 
                                     return (
                                         <div key={courtNumber} className="relative group">
-                                            <div className="absolute -top-3 left-8 px-4 py-1 bg-blue-600 text-white rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-lg shadow-blue-600/20">
+                                            <div className="absolute -top-3 left-8 px-4 py-1 bg-azul-primary text-white rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-lg shadow-azul-primary/20">
                                                 Cancha {courtNumber}
                                             </div>
 
@@ -1453,7 +1453,7 @@ export default function AmericanoManager({
                                                             <button
                                                                 onClick={() => handleConfirmScore(activeMatch.id)}
                                                                 disabled={activeMatch.score1 === undefined || activeMatch.score2 === undefined || saving}
-                                                                className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                                                                className="w-full py-4 rounded-2xl bg-azul-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-azul-primary/20 hover:bg-azul-dark transition-all disabled:opacity-30 flex items-center justify-center gap-2"
                                                             >
                                                                 <Check className="w-4 h-4" />
                                                                 Finalizar Partido
@@ -1473,7 +1473,7 @@ export default function AmericanoManager({
                                                             <button
                                                                 onClick={() => generateNextMatch(courtNumber)}
                                                                 disabled={saving}
-                                                                className="px-6 py-3 bg-blue-600/10 text-blue-600 border border-blue-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                                                                className="px-6 py-3 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2 shadow-lg shadow-azul-primary/5"
                                                             >
                                                                 <Plus className="w-3.5 h-3.5" />
                                                                 Generar Partido
@@ -1491,8 +1491,8 @@ export default function AmericanoManager({
                             <div className="space-y-8">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center">
-                                            <Users2 className="w-6 h-6 text-blue-500" />
+                                        <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 flex items-center justify-center">
+                                            <Users2 className="w-6 h-6 text-azul-primary" />
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-black uppercase italic tracking-tight">Estado de Jugadores</h3>
@@ -1505,10 +1505,10 @@ export default function AmericanoManager({
                                         <button onClick={() => setPlayersTab("all")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "all" ? "bg-foreground text-background shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
                                             Todos ({standings.length})
                                         </button>
-                                        <button onClick={() => setPlayersTab("pending")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-orange-500 text-white shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
+                                        <button onClick={() => setPlayersTab("pending")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-azul-primary shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
                                             Pendientes ({standings.filter(s => s.matchesPlayed < matchesPerTeam).length})
                                         </button>
-                                        <button onClick={() => setPlayersTab("done")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-emerald-500 text-white shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
+                                        <button onClick={() => setPlayersTab("done")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-azul-primary text-white shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
                                             Completos ({standings.filter(s => s.matchesPlayed >= matchesPerTeam).length})
                                         </button>
                                     </div>
@@ -1532,9 +1532,9 @@ export default function AmericanoManager({
                                                 const isDone = s.matchesPlayed >= matchesPerTeam;
                                                 const rank = standings.findIndex(st => st.playerId === s.playerId) + 1;
                                                 return (
-                                                    <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-blue-500/[0.05]" : isDone ? "bg-emerald-500/[0.02]" : ""}`}>
+                                                    <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-azul-primary/[0.05]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
                                                         <td className="px-8 py-5">
-                                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black italic ${rank === 1 ? "bg-amber-500 text-white" : "bg-muted text-foreground/70"}`}>
+                                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black italic shadow-sm ${rank === 1 ? "bg-celeste text-azul-primary" : "bg-muted text-foreground/70"}`}>
                                                                 {rank}
                                                             </span>
                                                         </td>
@@ -1542,29 +1542,29 @@ export default function AmericanoManager({
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex flex-col">
                                                                     <span className="text-sm font-black uppercase italic text-foreground/80">{s.player.name}</span>
-                                                                    {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
+                                                                    {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-azul-primary flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
                                                                 </div>
                                                                 {!readOnly && (
-                                                                    <button
-                                                                        onClick={() => setReplacingPlayer(s.player)}
-                                                                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all group/repl"
-                                                                        title="Reemplazar"
-                                                                    >
+                                                                        <button
+                                                                            onClick={() => setReplacingPlayer(s.player)}
+                                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-celeste/20 text-azul-primary hover:bg-celeste/40 transition-all group/repl"
+                                                                            title="Reemplazar"
+                                                                        >
                                                                         <RotateCcw className="w-3.5 h-3.5 group-hover/repl:rotate-180 transition-transform duration-500" />
                                                                     </button>
                                                                 )}
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
-                                                            {isDone ? <span className="text-emerald-500"><CheckCircle2 className="w-4 h-4 mx-auto" /></span> : isPlaying ? <span className="text-blue-500 animate-pulse font-black text-[8px] uppercase tracking-widest">En Cancha</span> : <span className="text-orange-500"><Clock className="w-4 h-4 mx-auto" /></span>}
+                                                            {isDone ? <span className="text-azul-primary"><CheckCircle2 className="w-4 h-4 mx-auto" /></span> : isPlaying ? <span className="text-azul-primary animate-pulse font-black text-[8px] uppercase tracking-widest">En Cancha</span> : <span className="text-celeste"><Clock className="w-4 h-4 mx-auto" /></span>}
                                                         </td>
                                                         <td className="px-8 py-5 text-center">
                                                             <span className="text-xs font-black italic">{s.matchesPlayed} / {matchesPerTeam}</span>
                                                         </td>
                                                         <td className="px-8 py-5 text-center font-bold text-foreground/70 text-[10px]">
-                                                            <span className="text-emerald-500">{s.won}</span>-<span className="text-red-500">{s.lost}</span>
+                                                            <span className="text-azul-primary">{s.won}</span>-<span className="text-rojo">{s.lost}</span>
                                                         </td>
-                                                        <td className="px-8 py-5 text-center font-black text-blue-600 text-sm">
+                                                        <td className="px-8 py-5 text-center font-black text-azul-primary text-sm">
                                                             {s.points > 0 ? `+${s.points}` : s.points}
                                                         </td>
                                                     </tr>
@@ -1580,8 +1580,8 @@ export default function AmericanoManager({
                                 <div className="lg:col-span-12 flex flex-col gap-8">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-                                                <Trophy className="w-6 h-6 text-amber-500" />
+                                            <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 flex items-center justify-center">
+                                                <Trophy className="w-6 h-6 text-azul-primary" />
                                             </div>
                                             <div>
                                                 <h3 className="text-xl font-black uppercase italic tracking-tight">Cuadro de Eliminatorias</h3>
@@ -1589,14 +1589,14 @@ export default function AmericanoManager({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 px-4 py-2 rounded-full border border-blue-500/20">
+                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-azul-primary bg-azul-primary/10 px-4 py-2 rounded-full border border-azul-primary/20">
                                                 <Zap className="w-4 h-4 animate-pulse" />
                                                 Bracket Dinámico
                                             </div>
                                             {bracket.length > 0 && !readOnly && (
                                                 <button
                                                     onClick={() => { if (confirm("¿Borrar y reiniciar cuadro?")) setBracket([]); }}
-                                                    className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                                    className="p-2 rounded-lg bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all shadow-lg shadow-rojo/5"
                                                     title="Reiniciar Cuadro"
                                                 >
                                                     <RotateCcw className="w-4 h-4" />
@@ -1636,17 +1636,17 @@ export default function AmericanoManager({
                                                                                 className="flex flex-col justify-center px-2"
                                                                             >
                                                                                 {match ? (
-                                                                                    <div className={`backdrop-blur-xl border-2 rounded-[2.5rem] p-5 transition-all duration-300 relative group shadow-lg ${match.confirmed ? (match.round === 0 ? "border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.3)] bg-amber-500/5 ring-4 ring-amber-500/10" : "border-emerald-500/30 bg-card/40") : "border-border/50 bg-card/40 hover:border-blue-500/30"}`}>
+                                                                                    <div className={`backdrop-blur-xl border-2 rounded-[2.5rem] p-5 transition-all duration-300 relative group shadow-lg ${match.confirmed ? (match.round === 0 ? "border-celeste shadow-[0_0_50px_rgba(34,211,238,0.3)] bg-celeste/5 ring-4 ring-celeste/10" : "border-azul-primary/30 bg-card/40") : "border-border/50 bg-card/40 hover:border-azul-primary/30"}`}>
                                                                                         <div className="space-y-6">
                                                                                             {match.round === 0 && match.confirmed && (
-                                                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white p-2 rounded-full shadow-lg z-30">
+                                                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-celeste text-azul-primary p-2 rounded-full shadow-lg z-30">
                                                                                                     <Trophy className="w-4 h-4" />
                                                                                                 </div>
                                                                                             )}
                                                                                             {[match.team1, match.team2].map((team, tIdx) => (
                                                                                                 <div key={tIdx} className="flex items-center justify-between gap-4 group/team">
                                                                         <div className="flex items-center gap-2 overflow-hidden">
-                                                                                                    <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
+                                                                                                    <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
                                                                                                         {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
                                                                                                     </span>
                                                                             {team && team !== "BYE" && !match.confirmed && !readOnly && (
@@ -1655,7 +1655,7 @@ export default function AmericanoManager({
                                                                                         e.stopPropagation();
                                                                                         setReplacingPlayer(team as Player);
                                                                                     }}
-                                                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-500/10 text-amber-500 opacity-0 group-hover/team:opacity-100 transition-all hover:bg-amber-500 hover:text-white shrink-0 shadow-lg shadow-amber-500/5"
+                                                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-azul-primary/10 text-azul-primary opacity-0 group-hover/team:opacity-100 transition-all hover:bg-azul-primary hover:text-white shrink-0 shadow-lg shadow-azul-primary/5"
                                                                                     title="Reemplazar"
                                                                                 >
                                                                                     <RotateCcw className="w-3 h-3" />
@@ -1712,9 +1712,9 @@ export default function AmericanoManager({
                                                                                                         }}
                                                                                                         disabled={!isPending && !canEdit}
                                                                                                         className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending
-                                                                                                                ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20"
+                                                                                                                ? "bg-azul-primary text-white hover:bg-azul-dark shadow-azul-primary/20"
                                                                                                                 : canEdit
-                                                                                                                    ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50"
+                                                                                                                    ? "bg-celeste/10 text-azul-primary hover:bg-celeste hover:text-azul-primary border border-celeste/50"
                                                                                                                     : "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none"
                                                                                                             }`}
                                                                                                     >
@@ -1724,7 +1724,7 @@ export default function AmericanoManager({
                                                                                                 );
                                                                                             })()}
                                                                                         </div>
-                                                                                        {match.confirmed && <div className="absolute -right-3 -top-3 bg-emerald-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-4 border-background z-20"><Check className="w-4 h-4" /></div>}
+                                                                                        {match.confirmed && <div className="absolute -right-3 -top-3 bg-azul-primary text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-4 border-background z-20"><Check className="w-4 h-4" /></div>}
                                                                                     </div>
                                                                                 ) : null}
                                                                             </div>
@@ -1739,7 +1739,7 @@ export default function AmericanoManager({
                                         </div>
                                     ) : (
                                         <div className="text-center py-24 rounded-[3rem] border-4 border-dashed border-border/30 bg-muted/20 flex flex-col items-center gap-6">
-                                            <Zap className="w-12 h-12 text-blue-500/20 animate-pulse" />
+                                            <Zap className="w-12 h-12 text-azul-primary/20 animate-pulse" />
                                             <div className="space-y-1">
                                                 <p className="text-sm font-black uppercase italic text-foreground/70">Sincronizando Cuadro...</p>
                                                 <p className="text-[10px] font-medium text-foreground/20 uppercase tracking-widest">Preparando eliminatorias basadas en el ranking actual</p>
@@ -1767,9 +1767,9 @@ export default function AmericanoManager({
                             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500/0 via-orange-500 to-orange-500/0" />
                             
                             <div className="flex flex-col items-center text-center space-y-8">
-                                <div className="w-24 h-24 rounded-full bg-orange-500/10 flex items-center justify-center relative">
-                                    <div className="absolute inset-0 rounded-full bg-orange-500/5 animate-ping" />
-                                    <Users2 className="w-10 h-10 text-orange-500" />
+                                <div className="w-24 h-24 rounded-full bg-azul-primary/10 flex items-center justify-center relative">
+                                    <div className="absolute inset-0 rounded-full bg-azul-primary/5 animate-ping" />
+                                    <Users2 className="w-10 h-10 text-azul-primary" />
                                 </div>
 
                                 <div className="space-y-3">
@@ -1779,15 +1779,15 @@ export default function AmericanoManager({
 
                                 <div className="w-full grid grid-cols-3 gap-4 p-6 bg-muted/30 rounded-[2rem] border border-border/50">
                                     <div className="flex flex-col items-center gap-1">
-                                        <span className="text-xl font-black italic text-blue-500">{noPlayersData.playing}</span>
+                                        <span className="text-xl font-black italic text-azul-primary">{noPlayersData.playing}</span>
                                         <span className="text-[7px] font-black uppercase tracking-widest text-foreground/60">Jugando</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-1 border-x border-border/50">
-                                        <span className="text-xl font-black italic text-emerald-500">{noPlayersData.finished}</span>
+                                        <span className="text-xl font-black italic text-azul-primary">{noPlayersData.finished}</span>
                                         <span className="text-[7px] font-black uppercase tracking-widest text-foreground/60">Completos</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-1">
-                                        <span className="text-xl font-black italic text-orange-500">{noPlayersData.waiting}</span>
+                                        <span className="text-xl font-black italic text-celeste">{noPlayersData.waiting}</span>
                                         <span className="text-[7px] font-black uppercase tracking-widest text-foreground/60">Esperando</span>
                                     </div>
                                 </div>
@@ -1815,7 +1815,7 @@ export default function AmericanoManager({
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="relative w-full max-w-lg bg-card border border-border/50 shadow-2xl rounded-[3rem] p-12 text-center"
                         >
-                            <div className="mb-8 w-24 h-24 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/40">
+                            <div className="mb-8 w-24 h-24 bg-azul-primary text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-azul-primary/40">
                                 <Trophy className="w-12 h-12" />
                             </div>
                             <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">¡Torneo Finalizado!</h2>
@@ -1874,7 +1874,7 @@ export default function AmericanoManager({
 
                             <div className="space-y-4">
                                 <div className="flex-1 relative mt-2">
-                                    <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-blue-500 uppercase tracking-widest z-10 rounded-full border border-border/10">
+                                    <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-azul-primary uppercase tracking-widest z-10 rounded-full border border-border/10">
                                         {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
                                     </span>
                                     <input
@@ -1882,7 +1882,7 @@ export default function AmericanoManager({
                                         placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split(/[\/\+]/)[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
                                         value={replaceSlot === 1 ? guestName : guestName2}
                                         onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
-                                        className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-sm"
+                                        className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-azul-primary shadow-sm"
                                     />
                                 </div>
 
@@ -1940,7 +1940,7 @@ export default function AmericanoManager({
                                                     }
                                                 }
                                             }}
-                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-blue-600 hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
+                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-azul-primary hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
@@ -1969,7 +1969,7 @@ export default function AmericanoManager({
             <Dialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-red-500">¿Eliminar Participante?</DialogTitle>
+                        <DialogTitle className="text-rojo">¿Eliminar Participante?</DialogTitle>
                         <DialogDescription>
                             Estás por quitar a <span className="text-foreground font-black">{playerToDelete?.name}</span> de la lista del torneo. Esta acción no se puede deshacer.
                         </DialogDescription>
@@ -1984,7 +1984,7 @@ export default function AmericanoManager({
                         </button>
                         <button
                             onClick={() => playerToDelete && handleDeletePlayer(playerToDelete.id)}
-                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-900/20"
+                            className="flex-1 px-4 py-3 bg-rojo hover:bg-rojo/90 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rojo/20"
                         >
                             Sí, Eliminar
                         </button>

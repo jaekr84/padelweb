@@ -5,7 +5,7 @@ import { eq, and, inArray, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import Link from "next/link";
-import { Trophy, Ban, Users, Clock } from "lucide-react";
+import { Trophy, Ban, Users, Clock, Shield } from "lucide-react";
 
 type Props = {
     searchParams: Promise<{ id?: string }>;
@@ -30,14 +30,14 @@ export default async function RegisterPage({ searchParams }: Props) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
-                    <div className="w-20 h-20 bg-red-50 border border-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Ban className="w-10 h-10 text-red-600" />
+                    <div className="w-20 h-20 bg-rojo/10 border border-rojo/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Ban className="w-10 h-10 text-rojo" />
                     </div>
                     <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Acceso no permitido</h2>
-                    <p className="text-muted-foreground text-sm mb-8 font-medium italic">
+                    <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
                         Solo los <strong>jugadores</strong> pueden inscribirse en torneos. Los clubes y centros de pádel no pueden participar como jugadores.
                     </p>
-                    <Link href="/tournaments" className="w-full inline-block py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-600/20 active:scale-95 transition-all">
+                    <Link href="/tournaments" className="w-full inline-block py-4 bg-azul-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-azul-primary/20 active:scale-95 transition-all">
                         ← Volver a Torneos
                     </Link>
                 </div>
@@ -65,23 +65,23 @@ export default async function RegisterPage({ searchParams }: Props) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm w-full relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600" />
-                    <div className="w-20 h-20 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Trophy className="w-10 h-10 text-indigo-600" />
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-azul-primary" />
+                    <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Trophy className="w-10 h-10 text-azul-primary" />
                     </div>
                     <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground mb-2 italic">¡Ya estás inscripto!</h2>
-                    <p className="text-muted-foreground text-sm font-bold mb-8 italic leading-relaxed">
-                        Ya formás parte de <span className="text-indigo-600 underline underline-offset-4 decoration-2">{tournament.name}</span>. Podés ver la lista de inscriptos y esperar el inicio del fixture.
+                    <p className="text-muted-foreground text-xs font-bold mb-8 italic leading-relaxed">
+                        Ya formás parte de <span className="text-azul-primary underline underline-offset-4 decoration-2">{tournament.name}</span>. Podés ver la lista de inscriptos y esperar el inicio del fixture.
                     </p>
                     <div className="flex flex-col gap-3">
-                        <Link 
-                            href={`/tournaments/${tid}/manage`} 
-                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2"
+                        <Link
+                            href={`/tournaments/${tid}/manage`}
+                            className="w-full py-4 bg-azul-primary hover:bg-azul-dark text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-azul-primary/20 active:scale-95 flex items-center justify-center gap-2"
                         >
                             Ver jugadores inscriptos
                         </Link>
-                        <Link 
-                            href="/tournaments" 
+                        <Link
+                            href="/tournaments"
                             className="w-full py-4 bg-muted hover:bg-muted/70 text-muted-foreground rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 border border-border"
                         >
                             Volver a torneos
@@ -95,7 +95,7 @@ export default async function RegisterPage({ searchParams }: Props) {
     // Open date check
     const today = new Date().toISOString().split("T")[0];
     const hasClub = !!dbUser.clubId;
-    
+
     let isOpen = false;
     let openDate: string | null = null;
     let message = "";
@@ -116,10 +116,10 @@ export default async function RegisterPage({ searchParams }: Props) {
     }
 
     // --- Pre-check Requirements (Gender and Category) ---
-    const modalidad = typeof tournament.modalidad === 'string' 
-        ? JSON.parse(tournament.modalidad) 
+    const modalidad = typeof tournament.modalidad === 'string'
+        ? JSON.parse(tournament.modalidad)
         : tournament.modalidad;
-    
+
     const reqGender = modalidad?.genero?.toLowerCase();
     const userGender = dbUser.gender?.toLowerCase();
 
@@ -134,11 +134,11 @@ export default async function RegisterPage({ searchParams }: Props) {
             return (
                 <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                     <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
-                        <div className="w-20 h-20 bg-amber-50 border border-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <Users className="w-10 h-10 text-amber-600" />
+                        <div className="w-20 h-20 bg-rojo/10 border border-rojo/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <Users className="w-10 h-10 text-rojo" />
                         </div>
                         <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Requisito de Género</h2>
-                        <p className="text-muted-foreground text-sm mb-8 font-medium italic italic leading-relaxed">
+                        <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
                             Este torneo es exclusivo para {isMaleTournament ? "hombres" : "mujeres"}. Tu perfil indica que no cumples con este requisito.
                         </p>
                         <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
@@ -153,8 +153,8 @@ export default async function RegisterPage({ searchParams }: Props) {
     const { categoriesTable } = require("@/db/schema");
     const allCats = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.categoryOrder);
 
-    const tCats: string[] = Array.isArray(tournament.categories) 
-        ? tournament.categories 
+    const tCats: string[] = Array.isArray(tournament.categories)
+        ? tournament.categories
         : (typeof tournament.categories === 'string' ? JSON.parse(tournament.categories) : []);
 
     if (tCats.length > 0 && !tCats.includes("libre")) {
@@ -165,11 +165,11 @@ export default async function RegisterPage({ searchParams }: Props) {
             return (
                 <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                     <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
-                        <div className="w-20 h-20 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <Trophy className="w-10 h-10 text-indigo-600" />
+                        <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <Trophy className="w-10 h-10 text-azul-primary" />
                         </div>
                         <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Categoría No Permitida</h2>
-                        <p className="text-muted-foreground text-sm mb-8 font-medium italic leading-relaxed">
+                        <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
                             Tu categoría ({dbUser.category || "no definida"}) no está permitida para este torneo. Categorías habilitadas: {tCats.join(", ")}.
                         </p>
                         <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
@@ -186,11 +186,11 @@ export default async function RegisterPage({ searchParams }: Props) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
-                    <div className="w-20 h-20 bg-purple-50 border border-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Ban className="w-10 h-10 text-purple-600" />
+                    <div className="w-20 h-20 bg-celeste/10 border border-celeste/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Shield className="w-10 h-10 text-celeste" />
                     </div>
                     <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Exclusivo Miembros</h2>
-                    <p className="text-muted-foreground text-sm mb-8 font-medium italic leading-relaxed">
+                    <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
                         Este torneo es exclusivo para miembros del club organizador. Tu perfil no está asociado a este club.
                     </p>
                     <Link href="/tournaments" className="w-full inline-block py-4 bg-muted text-muted-foreground rounded-2xl font-black text-[10px] uppercase tracking-widest border border-border hover:bg-muted/70 transition-all">
@@ -205,17 +205,17 @@ export default async function RegisterPage({ searchParams }: Props) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
-                    <div className="w-20 h-20 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Clock className="w-10 h-10 text-indigo-600" />
+                    <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Clock className="w-10 h-10 text-azul-primary" />
                     </div>
                     <h2 className="text-2xl font-black italic uppercase text-foreground mb-2 italic">Inscripción no abierta</h2>
-                    <p className="text-muted-foreground text-sm mb-8 font-medium italic leading-relaxed">
-                        {openDate 
+                    <p className="text-muted-foreground text-xs mb-8 font-medium italic leading-relaxed">
+                        {openDate
                             ? `${message} ${new Date(openDate + "T12:00:00").toLocaleDateString("es-ES")}.`
                             : "Este torneo no tiene una fecha de inscripción definida o ya ha finalizado."
                         }
                     </p>
-                    <Link href="/tournaments" className="w-full inline-block py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-600/20 active:scale-95 transition-all">
+                    <Link href="/tournaments" className="w-full inline-block py-4 bg-azul-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-azul-primary/20 active:scale-95 transition-all">
                         ← Volver a Torneos
                     </Link>
                 </div>
@@ -238,16 +238,16 @@ export default async function RegisterPage({ searchParams }: Props) {
         ...dbRegistrations.map(r => r.partnerUserId).filter(Boolean) as string[]
     ])];
 
-    const dbUsersForRegs = allUserIds.length > 0 
+    const dbUsersForRegs = allUserIds.length > 0
         ? await db.select().from(users).where(inArray(users.id, allUserIds))
         : [];
 
     const initialRegistrations = dbRegistrations.map(reg => {
         const user = dbUsersForRegs.find(u => u.id === reg.userId);
-        const namePart1 = user 
+        const namePart1 = user
             ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0])
             : "Jugador";
-        
+
         let namePart2 = reg.partnerName;
         if (reg.partnerUserId) {
             const partnerUser = dbUsersForRegs.find(u => u.id === reg.partnerUserId);
@@ -255,7 +255,7 @@ export default async function RegisterPage({ searchParams }: Props) {
                 namePart2 = [partnerUser.firstName, partnerUser.lastName].filter(Boolean).join(" ");
             }
         }
-        
+
         return {
             id: reg.id,
             name: namePart2 ? `${namePart1} / ${namePart2}` : namePart1,

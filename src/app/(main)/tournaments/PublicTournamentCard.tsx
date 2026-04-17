@@ -73,14 +73,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     const isFinished = tournament.status === "finalizado";
 
     const statusConfig = isLive
-        ? { label: "En Vivo", dot: true, pill: "bg-red-500", text: "text-red-500" }
+        ? { label: "En Vivo", dot: true, pill: "bg-rojo text-white shadow-rojo/20", text: "text-rojo" }
         : isOpen
-            ? { label: "Abierto", dot: false, pill: "bg-emerald-600", text: "text-emerald-600" }
+            ? { label: "Abierto", dot: false, pill: "bg-celeste text-white shadow-celeste/20", text: "text-celeste" }
             : isPreregistration
-                ? { label: "Próximamente", dot: false, pill: "bg-blue-500", text: "text-blue-500" }
+                ? { label: "Próximamente", dot: false, pill: "bg-azul-primary text-white shadow-azul-primary/20", text: "text-azul-primary" }
                 : isFinished
-                    ? { label: "Finalizado", dot: false, pill: "bg-muted-foreground/40", text: "text-muted-foreground" }
-                    : { label: "Borrador", dot: false, pill: "bg-muted-foreground/20", text: "text-muted-foreground" };
+                    ? { label: "Finalizado", dot: false, pill: "bg-muted-foreground/20 text-muted-foreground", text: "text-muted-foreground" }
+                    : { label: "Borrador", dot: false, pill: "bg-muted-foreground/10 text-muted-foreground", text: "text-muted-foreground" };
 
     const isClubUser = userDbRole === "club" || userDbRole === "superadmin";
     const canDoMassInsc = isOpen && isClubUser && (!tournament.isMembersOnly || isClubMember) && !isFinished && !isLive;
@@ -168,9 +168,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     const handleCardClick = (e: React.MouseEvent) => {
         if (canDoMassInsc) {
             e.preventDefault();
+            e.stopPropagation();
             setIsClubModalOpen(true);
         } else if (isOpen) {
             e.preventDefault();
+            e.stopPropagation();
             if (checkEligibility()) {
                 router.push(href);
             }
@@ -185,7 +187,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
             onClick={handleCardClick}
             className="group block h-full focus:outline-none cursor-pointer"
         >
-            <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-indigo-500/20 flex flex-col h-full relative group/card">
+            <div className="bg-card border border-border/60 rounded-[1.5rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-celeste/20 flex flex-col h-full relative group/card">
                 {/* Compact Image Area */}
                 <div className="relative h-32 w-full overflow-hidden bg-muted/20">
                     {!showFallback ? (
@@ -196,23 +198,23 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50/50 to-indigo-100/50">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-azul-primary/5 to-azul-primary/10">
                             <Trophy className={`w-8 h-8 ${statusConfig.text} opacity-20`} />
                         </div>
                     )}
 
                     {/* Compact Badges */}
                     <div className="absolute top-3 left-3 flex gap-2">
-                        <span className={`px-2 py-0.5 rounded-md ${statusConfig.pill} text-white font-black text-[9px] uppercase tracking-wider shadow-sm`}>
+                        <span className={`px-2 py-0.5 rounded-md ${statusConfig.pill} font-black text-[9px] uppercase tracking-wider shadow-sm`}>
                             {statusConfig.label}
                         </span>
                         {tournament.isMembersOnly && (
-                            <span className="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md bg-azul-primary text-white font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <Shield className="w-2.5 h-2.5" /> Exclusivo Miembros
                             </span>
                         )}
                         {isUserRegistered && (
-                            <span className="px-2 py-0.5 rounded-md bg-white border border-indigo-100 text-indigo-600 font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md bg-white border border-celeste/10 text-celeste font-black text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <CheckCircle className="w-2.5 h-2.5" /> Inscripto
                             </span>
                         )}
@@ -230,7 +232,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
                                 title="Editar Torneo"
                             >
-                                <Edit3 className="w-4 h-4 group-hover/btn:text-indigo-400 transition-colors" />
+                                <Edit3 className="w-4 h-4 group-hover/btn:text-celeste transition-colors" />
                             </button>
                             <button
                                 onClick={(e) => {
@@ -241,7 +243,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn"
                                 title="Gestionar Torneo"
                             >
-                                <Settings className="w-4 h-4 group-hover/btn:text-emerald-400 transition-colors" />
+                                <Settings className="w-4 h-4 group-hover/btn:text-celeste transition-colors" />
                             </button>
 
                             {tournament.status === 'finalizado' && (
@@ -262,11 +264,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             <p className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 mb-1 truncate">
                                 {tournament.club?.name || tournament.createdBy?.clubs?.[0]?.name || "Club ACAP"}
                             </p>
-                            <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-indigo-600 transition-colors truncate">
+                            <h3 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-azul-primary transition-colors truncate">
                                 {tournament.name}
                             </h3>
                             {tournament.location && (
-                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                                <p className="text-[10px] font-bold text-azul-primary uppercase tracking-widest mt-1 flex items-center gap-1">
                                     <MapPin className="w-3 h-3" /> {tournament.location}
                                 </p>
                             )}
@@ -275,7 +277,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Fecha / Hora</span>
                             <span className="text-xs font-bold text-foreground/80">{formatDate(tournament.startDate)}</span>
                             {tournament.time && (
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter flex items-center gap-1 mt-0.5">
+                                <span className="text-[10px] font-black text-azul-primary uppercase tracking-tighter flex items-center gap-1 mt-0.5">
                                     <Clock className="w-2.5 h-2.5" /> {tournament.time}
                                 </span>
                             )}
@@ -307,7 +309,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             <div className="flex flex-col gap-0.5">
                                 {tournament.memberRegistrationFee !== null && (
                                     <div className="flex items-center gap-1">
-                                        <span className="text-[7px] font-black text-indigo-500 uppercase tracking-tighter">Socio:</span>
+                                        <span className="text-[7px] font-black text-azul-primary uppercase tracking-tighter">Socio:</span>
                                         <span className="text-[10px] font-bold text-foreground/90">
                                             ${tournament.memberRegistrationFee.toLocaleString('es-ES')}
                                         </span>
@@ -322,7 +324,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     </div>
                                 )}
                                 {tournament.memberRegistrationFee === null && tournament.registrationFee === null && (
-                                    <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Gratis</span>
+                                    <span className="text-[11px] font-black text-celeste uppercase tracking-widest">Gratis</span>
                                 )}
                             </div>
                         </div>
@@ -347,7 +349,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                     <div className="mb-5 flex items-start gap-2">
                         <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground/70" />
                         <div className="flex-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación Exacta (Google Maps)</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 block mb-0.5">Ubicación Exacta</span>
                             {tournament.surface ? (
                                 <span
                                     onClick={(e) => {
@@ -355,7 +357,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                         e.stopPropagation();
                                         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.surface)}`, "_blank");
                                     }}
-                                    className="text-xs font-bold text-foreground/80 hover:text-indigo-600 underline decoration-indigo-500/20 underline-offset-4 cursor-pointer"
+                                    className="text-xs font-bold text-foreground/80 hover:text-azul-primary underline decoration-azul-primary/20 underline-offset-4 cursor-pointer"
                                 >
                                     {tournament.surface}
                                 </span>
@@ -399,9 +401,9 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     const max = mod.maxSlots;
                                     const percentage = Math.min((occupied / max) * 100, 100);
                                     
-                                    let barColor = "bg-emerald-500";
-                                    if (percentage >= 90) barColor = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]";
-                                    else if (percentage >= 70) barColor = "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]";
+                                    let barColor = "bg-celeste";
+                                    if (percentage >= 95) barColor = "bg-rojo shadow-[0_0_12px_rgba(255,51,102,0.4)]";
+                                    else if (percentage >= 75) barColor = "bg-celeste shadow-[0_0_12px_rgba(0,157,224,0.4)]";
                                     
                                     return (
                                         <div 
@@ -415,7 +417,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 <span className="text-[8px] font-bold text-muted-foreground/50 italic capitalize">
                                     {mod.maxSlots - (tournament.occupiedSlots || 0) <= 0 ? 'Sin lugares' : `${mod.maxSlots - (tournament.occupiedSlots || 0)} libres`}
                                 </span>
-                                <span className="text-[9px] font-black italic text-indigo-500/80">
+                                <span className="text-[9px] font-black italic text-azul-primary/80">
                                     {Math.round(Math.min(((tournament.occupiedSlots || 0) / mod.maxSlots) * 100, 100))}%
                                 </span>
                             </div>
@@ -437,11 +439,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </div>
                         </div>
 
-                        <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${isLive ? "bg-red-500 text-white shadow-lg shadow-red-500/20" :
-                                isUserRegistered ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" :
-                                    isOpen ? (tournament.isMembersOnly && !isClubMember ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20") :
-                                        tournament.isMembersOnly ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" :
-                                            isPreregistration ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" :
+                        <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${isLive ? "bg-rojo text-white shadow-lg shadow-rojo/20" :
+                                isUserRegistered ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" :
+                                    isOpen ? (tournament.isMembersOnly && !isClubMember ? "bg-azul-primary/80 text-white shadow-lg shadow-azul-primary/10" : "bg-azul-primary text-white shadow-lg shadow-azul-primary/20") :
+                                        tournament.isMembersOnly ? "bg-azul-primary/80 text-white shadow-lg shadow-azul-primary/10" :
+                                            isPreregistration ? "bg-celeste text-white shadow-lg shadow-celeste/20" :
                                                 "bg-muted text-muted-foreground shadow-none"
                             }`}>
                             {isLive ? <Zap className="w-3.5 h-3.5" /> :

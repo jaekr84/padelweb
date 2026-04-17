@@ -49,8 +49,8 @@ export default function DeleteTournamentButton({ tournamentId, tournamentName, c
             title={confirming ? "Hacé clic de nuevo para confirmar eliminación" : "Eliminar Torneo"}
             className={`flex items-center justify-center gap-1.5 font-black uppercase tracking-widest text-[8px] transition-all active:scale-95 border w-full h-8 ${
                 confirming 
-                ? "bg-red-600 text-white border-red-700 hover:bg-red-500 animate-pulse" 
-                : "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600"
+                ? "bg-rojo text-white border-rojo-dark hover:bg-rojo-dark animate-pulse shadow-lg shadow-rojo/20" 
+                : "bg-rojo/5 hover:bg-rojo/10 border-rojo/10 text-rojo"
             } disabled:opacity-50 rounded-lg`}
         >
             {loading ? (

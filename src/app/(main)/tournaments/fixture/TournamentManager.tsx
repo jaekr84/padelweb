@@ -89,16 +89,16 @@ function getSeedingOrder(size: number) {
 }
 
 const MATCH_COLORS = [
-    { bg: "bg-blue-600/15", border: "border-blue-600", text: "text-blue-700" },
-    { bg: "bg-emerald-600/15", border: "border-emerald-600", text: "text-emerald-700" },
+    { bg: "bg-azul-primary/15", border: "border-azul-primary", text: "text-azul-primary" },
+    { bg: "bg-celeste/15", border: "border-celeste", text: "text-celeste-dark" },
     { bg: "bg-amber-600/20", border: "border-amber-600", text: "text-amber-700" },
-    { bg: "bg-rose-600/15", border: "border-rose-600", text: "text-rose-700" },
+    { bg: "bg-rojo/15", border: "border-rojo", text: "text-rojo" },
     { bg: "bg-violet-600/15", border: "border-violet-600", text: "text-violet-700" },
     { bg: "bg-orange-600/20", border: "border-orange-600", text: "text-orange-700" },
     { bg: "bg-cyan-600/15", border: "border-cyan-600", text: "text-cyan-700" },
     { bg: "bg-fuchsia-600/15", border: "border-fuchsia-600", text: "text-fuchsia-700" },
     { bg: "bg-lime-600/20", border: "border-lime-600", text: "text-lime-700" },
-    { bg: "bg-indigo-600/15", border: "border-indigo-600", text: "text-indigo-700" },
+    { bg: "bg-azul-dark/15", border: "border-azul-dark", text: "text-azul-dark" },
 ];
 
 export default function TournamentManager({
@@ -1044,7 +1044,7 @@ export default function TournamentManager({
                         <div className="h-8 w-[1px] bg-border/50 hidden md:block" />
 
                         <div className="hidden md:flex flex-col">
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/60 leading-none mb-1">Torneo</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-1">Torneo</span>
                             <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
                                 {tournamentName}
                             </span>
@@ -1070,9 +1070,9 @@ export default function TournamentManager({
                                                 onClick={() => isAccessible && setStep(s.id as any)}
                                                 disabled={!isAccessible}
                                                 className={`flex items-center gap-2 px-6 py-2 rounded-xl transition-all ${s.active
-                                                    ? "bg-foreground text-background shadow-lg shadow-foreground/10"
+                                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20"
                                                     : s.completed
-                                                        ? "text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10"
+                                                        ? "text-celeste bg-celeste/5 hover:bg-celeste/10"
                                                         : isAccessible
                                                             ? "text-foreground/60 hover:bg-muted/80"
                                                             : "opacity-30 cursor-not-allowed"
@@ -1082,7 +1082,7 @@ export default function TournamentManager({
                                                 <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest hidden sm:block">
                                                     {s.label}
                                                 </span>
-                                                {s.completed && <Check className="w-2.5 h-2.5 lg:w-3 lg:h-3 ml-1" />}
+                                                {s.completed && <Check className="w-2.5 h-2.5 lg:w-3 lg:h-3 ml-1 text-celeste" />}
                                             </button>
                                             {idx < steps.length - 1 && <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 mx-1 text-border/40" />}
                                         </div>
@@ -1093,8 +1093,8 @@ export default function TournamentManager({
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/5 border border-blue-500/20 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-celeste/5 border border-celeste/20 text-celeste text-[10px] font-black uppercase tracking-widest">
+                            <div className="w-2 h-2 rounded-full bg-celeste animate-pulse" />
                             {initialStatus === "finalizado" ? "Torneo Finalizado" : "En Vivo"}
                         </div>
 
@@ -1150,7 +1150,7 @@ export default function TournamentManager({
                             <div className="w-full space-y-8">
                                 <div className="text-center space-y-4">
                                     <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic mb-3">Lista de Asistencia</h2>
-                                    <p className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
+                                    <p className="text-celeste text-xs font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
                                 </div>
 
                                 {/* Control Bar */}
@@ -1162,7 +1162,7 @@ export default function TournamentManager({
                                             placeholder="Buscar participante..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500 transition-all placeholder:text-foreground/20"
+                                            className="w-full bg-muted/50 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
                                         />
                                     </div>
                                     {!readOnly && (
@@ -1172,7 +1172,7 @@ export default function TournamentManager({
                                                     const allIds = allPlayers.map(p => p.id);
                                                     setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                                 }}
-                                                className="flex-1 md:flex-none px-6 py-4 bg-blue-500/10 text-blue-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
+                                                className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                                             >
                                                 Todo Pago
                                             </button>
@@ -1181,7 +1181,7 @@ export default function TournamentManager({
                                                     const allIds = allPlayers.map(p => p.id);
                                                     setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
                                                 }}
-                                                className="flex-1 md:flex-none px-6 py-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/5"
+                                                className="flex-1 md:flex-none px-6 py-4 bg-celeste/10 text-celeste rounded-2xl font-black uppercase text-[9px] tracking-widest border border-celeste/20 hover:bg-celeste hover:text-white transition-all shadow-lg shadow-celeste/5"
                                             >
                                                 Todo Ok
                                             </button>
@@ -1207,11 +1207,11 @@ export default function TournamentManager({
                                                 return (
                                                     <tr
                                                         key={p.id}
-                                                        className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-emerald-500/[0.02]" : ""}`}
+                                                        className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-celeste/[0.02]" : ""}`}
                                                     >
                                                         <td className="px-8 py-5">
                                                             <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-emerald-500 text-white" : "bg-muted text-foreground/20"}`}>
+                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-white" : "bg-muted text-foreground/20"}`}>
                                                                     <Users2 className="w-4 h-4" />
                                                                 </div>
                                                                 <span className="font-black uppercase italic text-sm">{p.name}</span>
@@ -1229,8 +1229,8 @@ export default function TournamentManager({
                                                                 })}
                                                                 disabled={readOnly}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
-                                                                    ? "bg-blue-600 border-blue-500 text-white shadow-lg"
-                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-blue-500/30 hover:text-blue-500"
+                                                                    ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
                                                                     } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                             >
                                                                 <CreditCard className="w-4 h-4" />
@@ -1241,7 +1241,7 @@ export default function TournamentManager({
                                                                 <>
                                                                     <button
                                                                         onClick={() => setPlayerToDelete(p)}
-                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-red-500/30 hover:text-red-500 transition-all mr-2"
+                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all mr-2"
                                                                         title="Eliminar Participante"
                                                                     >
                                                                         <Trash2 className="w-4 h-4" />
@@ -1249,7 +1249,7 @@ export default function TournamentManager({
 
                                                                     <button
                                                                         onClick={() => setReplacingPlayer(p)}
-                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-amber-500/30 hover:text-amber-500 transition-all mr-2"
+                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all mr-2"
                                                                         title="Reemplazar Jugador"
                                                                     >
                                                                         <RotateCcw className="w-4 h-4" />
@@ -1265,8 +1265,8 @@ export default function TournamentManager({
                                                                 })}
                                                                 disabled={readOnly}
                                                                 className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
-                                                                    ? "bg-emerald-600 border-emerald-600 text-white shadow-lg"
-                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-emerald-500/30 hover:text-emerald-500"
+                                                                    ? "bg-celeste border-celeste text-white shadow-lg shadow-celeste/20"
+                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-celeste/30 hover:text-celeste"
                                                                     } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                             >
                                                                 <UserCheck className="w-4 h-4" />
@@ -1285,7 +1285,7 @@ export default function TournamentManager({
                                         <button
                                             onClick={() => setStep("done")}
                                             disabled={present.size < 2}
-                                            className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                                            className="w-full py-6 bg-azul-primary text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(0,119,255,0.4)] hover:bg-azul-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
                                         >
                                             Continuar ({present.size})
                                             <ChevronRight className="w-6 h-6" />
@@ -1307,7 +1307,7 @@ export default function TournamentManager({
                             <section className="space-y-12">
                                 <div className="text-center">
                                     <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Fase de Grupos</h2>
-                                    <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
+                                    <p className="text-azul-primary text-[10px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
                                 </div>
 
                                 {/* Progress Bar */}
@@ -1318,7 +1318,7 @@ export default function TournamentManager({
                                             {!readOnly && progressPercent < 100 && (
                                                 <button
                                                     onClick={handleSimulateResults}
-                                                    className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
+                                                    className="flex items-center gap-1.5 px-2 py-1 bg-azul-primary/10 hover:bg-azul-primary/20 text-azul-primary border border-azul-primary/30 rounded-lg text-[9px] font-black tracking-widest transition-all group"
                                                 >
                                                     <Dice5 className="w-3 h-3 group-hover:rotate-12 transition-transform" />
                                                     Simular Restante
@@ -1329,7 +1329,7 @@ export default function TournamentManager({
                                     </div>
                                     <div className="h-2 bg-muted rounded-full overflow-hidden border border-border">
                                         <motion.div
-                                            className="h-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+                                            className="h-full bg-celeste shadow-[0_0_20px_rgba(var(--celeste-rgb),0.4)]"
                                             initial={{ width: 0 }}
                                             animate={{ width: `${progressPercent}%` }}
                                         />
@@ -1343,8 +1343,8 @@ export default function TournamentManager({
                                         return (
                                             <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-fit group">
                                                 <div className="bg-muted px-8 py-6 border-b border-border/50 flex items-center justify-between">
-                                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-blue-700">{g.name}</h3>
-                                                    <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-blue-600/20" />
+                                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-azul-primary">{g.name}</h3>
+                                                    <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-azul-primary/20" />
                                                 </div>
                                                 <div className="px-6 py-4 border-b border-border/30 bg-card/20">
                                                     <table className="w-full text-left">
@@ -1352,28 +1352,28 @@ export default function TournamentManager({
                                                             <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/70 border-b border-border/50">
                                                                 <th className="pb-3 pr-3 italic">Pos</th>
                                                                 <th className="pb-3 px-2">Jugador</th>
-                                                                <th className="pb-3 px-2 text-center text-emerald-500">PG</th>
-                                                                <th className="pb-3 px-2 text-center text-blue-600">+/-</th>
+                                                                <th className="pb-3 px-2 text-center text-azul-primary">PG</th>
+                                                                <th className="pb-3 px-2 text-center text-azul-primary/60">+/-</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-border/20">
                                                             {standings.map((s: any, idx: number) => (
-                                                                <tr key={s.playerId} className="hover:bg-blue-600/5 transition-colors group/row">
+                                                                <tr key={s.playerId} className="hover:bg-azul-primary/5 transition-colors group/row">
                                                                     <td className="py-4 pr-3 text-xs font-black italic text-foreground/20">#{idx + 1}</td>
                                                                     <td className="py-4 px-2 font-black text-sm text-foreground uppercase truncate italic flex items-center gap-2">
                                                                         {s.player.name}
                                                                         {!readOnly && (
                                                                             <button
                                                                                 onClick={() => setReplacingPlayer(s.player)}
-                                                                                className="opacity-0 group-hover/row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                className="opacity-0 group-hover/row:opacity-100 transition-opacity p-1 text-azul-primary hover:bg-azul-primary/10 rounded-md"
                                                                                 title="Reemplazar Jugador"
                                                                             >
                                                                                 <RotateCcw className="w-3 h-3" />
                                                                             </button>
                                                                         )}
                                                                     </td>
-                                                                    <td className="py-4 px-2 text-center text-sm font-black text-emerald-500">{s.won}</td>
-                                                                    <td className="py-4 px-2 text-center text-sm font-black text-blue-600">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                    <td className="py-4 px-2 text-center text-sm font-black text-azul-primary">{s.won}</td>
+                                                                    <td className="py-4 px-2 text-center text-sm font-black text-azul-primary/60">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -1383,14 +1383,14 @@ export default function TournamentManager({
                                                     <table className="w-full">
                                                         <tbody className="divide-y divide-border/10">
                                                             {groupMatches.map(m => (
-                                                                <tr key={m.id} className={`${m.confirmed ? "bg-emerald-500/5" : ""} group/match-row`}>
+                                                                <tr key={m.id} className={`${m.confirmed ? "bg-azul-primary/5" : ""} group/match-row`}>
                                                                     <td className="py-4 px-4 text-[10px] font-black uppercase italic text-foreground/60 w-1/3 truncate">
                                                                         <div className="flex items-center gap-2">
                                                                             {m.team1.name}
                                                                             {!readOnly && (
                                                                                 <button
                                                                                     onClick={() => setReplacingPlayer(m.team1)}
-                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-celeste hover:bg-celeste/10 rounded-md"
                                                                                     title="Reemplazar"
                                                                                 >
                                                                                     <RotateCcw className="w-2.5 h-2.5" />
@@ -1428,7 +1428,7 @@ export default function TournamentManager({
                                                                                     <button
                                                                                         onClick={() => handleConfirmScore(m.id)}
                                                                                         disabled={m.score1 === undefined || m.score2 === undefined || saving}
-                                                                                        className="w-8 h-8 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale"
+                                                                                        className="w-8 h-8 rounded-lg bg-azul-primary text-white shadow-lg shadow-azul-primary/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale"
                                                                                     >
                                                                                         <Check className="w-4 h-4" />
                                                                                     </button>
@@ -1459,14 +1459,14 @@ export default function TournamentManager({
                                                                             ) : (
                                                                                 <div className="flex items-center gap-4">
                                                                                     <div className="font-black text-lg italic tracking-tighter flex items-center gap-3">
-                                                                                        <span className={m.score1! > m.score2! ? "text-blue-600" : "text-foreground/70"}>{m.score1}</span>
+                                                                                        <span className={m.score1! > m.score2! ? "text-azul-primary" : "text-foreground/70"}>{m.score1}</span>
                                                                                         <span className="text-foreground/10">-</span>
-                                                                                        <span className={m.score2! > m.score1! ? "text-blue-600" : "text-foreground/70"}>{m.score2}</span>
+                                                                                        <span className={m.score2! > m.score1! ? "text-azul-primary" : "text-foreground/70"}>{m.score2}</span>
                                                                                     </div>
                                                                                     {!readOnly && m.confirmed && (
                                                                                         <button
                                                                                             onClick={() => handleEditScore(m.id)}
-                                                                                            className="p-1.5 rounded-md hover:bg-amber-500/10 text-amber-500/40 hover:text-amber-500 transition-all border border-transparent hover:border-amber-500/20"
+                                                                                            className="p-1.5 rounded-md hover:bg-azul-primary/10 text-azul-primary/40 hover:text-azul-primary transition-all border border-transparent hover:border-azul-primary/20"
                                                                                             title="Editar Resultado"
                                                                                         >
                                                                                             <Pencil className="w-3 h-3" />
@@ -1481,7 +1481,7 @@ export default function TournamentManager({
                                                                             {!readOnly && (
                                                                                 <button
                                                                                     onClick={() => setReplacingPlayer(m.team2)}
-                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                    className="opacity-0 group-hover/match-row:opacity-100 transition-opacity p-1 text-celeste hover:bg-celeste/10 rounded-md"
                                                                                     title="Reemplazar"
                                                                                 >
                                                                                     <RotateCcw className="w-2.5 h-2.5" />
@@ -1518,7 +1518,7 @@ export default function TournamentManager({
                                 <section className="space-y-16">
                                     <div className="text-center">
                                         <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Cuadro del Torneo</h2>
-                                        <p className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em]">Playoffs Dinámicos</p>
+                                        <p className="text-celeste text-[10px] font-black uppercase tracking-[0.3em]">Playoffs Dinámicos</p>
                                     </div>
 
                                     <div className="overflow-x-auto pb-20 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
@@ -1552,23 +1552,23 @@ export default function TournamentManager({
                                                                         }}
                                                                     >
                                                                         <div className="relative group/match">
-                                                                            <div className={`w-full p-6 bg-card/60 backdrop-blur-xl border-2 rounded-[2.5rem] shadow-2xl transition-all relative z-10 ${m.confirmed ? (m.round === 0 ? "border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.3)] bg-amber-500/5 ring-4 ring-amber-500/10" : "border-emerald-500/30 ring-4 ring-emerald-500/5") : "border-border/50 hover:border-blue-500/30"}`}>
+                                                                            <div className={`w-full p-6 bg-card/60 backdrop-blur-xl border-2 rounded-[2.5rem] shadow-2xl transition-all relative z-10 ${m.confirmed ? (m.round === 0 ? "border-celeste shadow-[0_0_50px_rgba(var(--celeste-rgb),0.3)] bg-celeste/5 ring-4 ring-celeste/10" : "border-azul-primary/30 ring-4 ring-azul-primary/5") : "border-border/50 hover:border-azul-primary/30"}`}>
                                                                                 <div className="space-y-6">
                                                                                     {m.round === 0 && m.confirmed && (
-                                                                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white p-2 rounded-full shadow-lg">
+                                                                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-celeste text-white p-2 rounded-full shadow-lg">
                                                                                             <Trophy className="w-4 h-4" />
                                                                                         </div>
                                                                                     )}
                                                                                     {[m.team1, m.team2].map((team, tIdx) => (
                                                                                         <div key={tIdx} className="flex items-center justify-between gap-4">
                                                                                                                             <div className="flex-1 min-w-0 flex items-center gap-2">
-                                                                                                <span className={`font-black uppercase italic truncate block transition-all ${m.winnerId === (team as Player)?.id ? (m.round === 0 ? "text-amber-500 text-sm scale-105" : "text-emerald-500 text-[11px]") : team === "BYE" ? "text-foreground/20 text-[11px]" : "text-foreground/60 text-[11px]"}`}>
+                                                                                                <span className={`font-black uppercase italic truncate block transition-all ${m.winnerId === (team as Player)?.id ? (m.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-[11px]") : team === "BYE" ? "text-foreground/20 text-[11px]" : "text-foreground/60 text-[11px]"}`}>
                                                                                                     {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "A definir..."}
                                                                                                 </span>
                                                                                                 {!readOnly && team && team !== "BYE" && !m.confirmed && (
                                                                                                     <button
                                                                                                         onClick={() => setReplacingPlayer(team as Player)}
-                                                                                                        className="shrink-0 opacity-0 group-hover/match:opacity-100 transition-opacity p-1 text-amber-500 hover:bg-amber-500/10 rounded-md"
+                                                                                                        className="shrink-0 opacity-0 group-hover/match:opacity-100 transition-opacity p-1 text-azul-primary hover:bg-azul-primary/10 rounded-md"
                                                                                                         title="Reemplazar"
                                                                                                     >
                                                                                                         <RotateCcw className="w-2.5 h-2.5" />
@@ -1622,8 +1622,8 @@ export default function TournamentManager({
                                                                                             <button
                                                                                                 onClick={() => isPending ? handleBracketConfirm(m.id) : canEdit && handleBracketEdit(m.id)}
                                                                                                 disabled={!isPending && !canEdit}
-                                                                                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20" :
-                                                                                                    canEdit ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border border-amber-500/50" :
+                                                                                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending ? "bg-azul-primary text-white hover:bg-azul-dark shadow-azul-primary/20" :
+                                                                                                    canEdit ? "bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white border border-azul-primary/50" :
                                                                                                         "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none font-bold"
                                                                                                     }`}
                                                                                             >
@@ -1646,9 +1646,9 @@ export default function TournamentManager({
                                     </div>
                                 </section>
                             ) : isGroupStageFinished && (
-                                <div className="max-w-xl mx-auto p-12 bg-blue-600/5 border-2 border-dashed border-blue-600/30 rounded-[3rem] text-center space-y-8">
-                                    <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto shadow-xl">
-                                        <Trophy className="w-8 h-8 text-blue-600" />
+                                <div className="max-w-xl mx-auto p-12 bg-azul-primary/5 border-2 border-dashed border-azul-primary/30 rounded-[3rem] text-center space-y-8">
+                                    <div className="w-20 h-20 bg-azul-primary/10 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                                        <Trophy className="w-8 h-8 text-azul-primary" />
                                     </div>
                                     <div className="space-y-4">
                                         <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">Ranking de Fase Grupos Listo</h3>
@@ -1657,7 +1657,7 @@ export default function TournamentManager({
                                     <button
                                         onClick={generateBracket}
                                         disabled={saving}
-                                        className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest italic shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                        className="w-full py-5 bg-azul-primary text-white rounded-2xl font-black uppercase tracking-widest italic shadow-2xl shadow-azul-primary/30 hover:bg-azul-dark transition-all flex items-center justify-center gap-3 active:scale-95"
                                     >
                                         <Swords className="w-5 h-5" />
                                         Comenzar Eliminatorias
@@ -1671,7 +1671,7 @@ export default function TournamentManager({
                                 if (finalMatch?.confirmed && initialStatus !== "finalizado" && !readOnly) {
                                     return (
                                         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-6">
-                                            <div className="p-6 bg-emerald-600 text-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(16,185,129,0.4)] flex items-center justify-between border-4 border-emerald-400">
+                                            <div className="p-6 bg-azul-primary text-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,119,255,0.4)] flex items-center justify-between border-4 border-azul-primary/40">
                                                 <div className="flex items-center gap-4">
                                                     <Trophy className="w-8 h-8" />
                                                     <div className="text-left">
@@ -1688,7 +1688,7 @@ export default function TournamentManager({
                                                         setSaving(false);
                                                         if (res.ok) setShowSuccessModal(true);
                                                     }}
-                                                    className="px-6 py-3 bg-white text-emerald-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 transition-all font-bold"
+                                                    className="px-6 py-3 bg-white text-azul-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-azul-primary/10 hover:text-azul-primary transition-all font-bold"
                                                 >
                                                     Cerrar Torneo
                                                 </button>
@@ -1729,11 +1729,11 @@ export default function TournamentManager({
                             <div className="p-8 space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                                            <Users2 className="w-7 h-7 text-blue-500" />
+                                        <div className="w-14 h-14 rounded-2xl bg-azul-primary/10 flex items-center justify-center border border-azul-primary/20">
+                                            <Users2 className="w-7 h-7 text-azul-primary" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest leading-none mb-1">Campaña Fase de Grupos</p>
+                                            <p className="text-[10px] font-black uppercase text-azul-primary tracking-widest leading-none mb-1">Campaña Fase de Grupos</p>
                                             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">{selectedPlayer.name}</h3>
                                         </div>
                                     </div>
@@ -1760,8 +1760,8 @@ export default function TournamentManager({
                                                     key={m.id}
                                                     className={`p-4 rounded-2xl border transition-all ${m.confirmed
                                                         ? isWinner
-                                                            ? "bg-emerald-500/5 border-emerald-500/20"
-                                                            : "bg-rose-500/5 border-rose-500/20"
+                                                            ? "bg-azul-primary/5 border-azul-primary/20"
+                                                            : "bg-rojo/5 border-rojo/20"
                                                         : "bg-muted/10 border-border"
                                                         }`}
                                                 >
@@ -1770,7 +1770,7 @@ export default function TournamentManager({
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-[8px] font-black uppercase text-foreground/60">Oponente</span>
                                                                 {m.confirmed && (
-                                                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${isWinner ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                                                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${isWinner ? 'bg-azul-primary text-white' : 'bg-rojo text-white'}`}>
                                                                         {isWinner ? "Victoria" : "Derrota"}
                                                                     </span>
                                                                 )}
@@ -1778,7 +1778,7 @@ export default function TournamentManager({
                                                             <p className="font-bold text-foreground text-sm truncate uppercase italic tracking-tight">{opponent.name}</p>
                                                         </div>
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border ${isWinner ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' : 'bg-rose-500/10 border-rose-500/30 text-rose-600'}`}>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg border ${isWinner ? 'bg-azul-primary/10 border-azul-primary/30 text-azul-primary' : 'bg-rojo/10 border-rojo/30 text-rojo'}`}>
                                                                 {myScore ?? "-"}
                                                             </div>
                                                             <span className="text-[10px] font-black text-foreground/60 uppercase">vs</span>
@@ -1826,20 +1826,20 @@ export default function TournamentManager({
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="relative w-full max-w-sm bg-card border border-border rounded-3xl p-8 text-center shadow-2xl overflow-hidden"
                         >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-rose-500" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-azul-primary via-celeste to-rojo" />
 
-                            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                            <div className="w-20 h-20 bg-azul-primary/10 border border-azul-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 relative">
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     transition={{ type: "spring", damping: 12, delay: 0.2 }}
                                 >
-                                    <Trophy className="w-10 h-10 text-emerald-500" />
+                                    <Trophy className="w-10 h-10 text-azul-primary" />
                                 </motion.div>
                                 <motion.div
                                     animate={{ scale: [1, 1.2, 1] }}
                                     transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute inset-0 rounded-full bg-emerald-500/5"
+                                    className="absolute inset-0 rounded-full bg-azul-primary/5"
                                 />
                             </div>
 
@@ -1852,7 +1852,7 @@ export default function TournamentManager({
 
                             <button
                                 onClick={() => setShowSuccessModal(false)}
-                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                                className="w-full py-4 bg-azul-primary hover:bg-azul-dark text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-azul-primary/20 active:scale-95"
                             >
                                 Entendido
                             </button>
@@ -1924,7 +1924,7 @@ export default function TournamentManager({
                                             setIsReplacingPlayer(null);
                                             toast.success(`BYE asignado a la semilla #${isReplacingPlayer}`);
                                         }}
-                                        className="h-14 px-8 bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-amber-500/20 active:scale-95 transition-all flex items-center gap-2 border-2 border-amber-400/20 whitespace-nowrap"
+                                        className="h-14 px-8 bg-celeste hover:bg-celeste/90 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-celeste/20 active:scale-95 transition-all flex items-center gap-2 border-2 border-celeste-light/20 whitespace-nowrap"
                                     >
                                         <X className="h-4 w-4" />
                                         ASIGNAR BYE
@@ -1982,7 +1982,7 @@ export default function TournamentManager({
                                                                     ) : isAlreadyQual ? (
                                                                         <span className="text-[7px] font-black italic text-foreground/60 uppercase tracking-widest">OK</span>
                                                                     ) : (
-                                                                        <span className="text-[7px] font-black italic text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100">SEL.</span>
+                                                                        <span className="text-[7px] font-black italic text-azul-primary uppercase tracking-widest opacity-0 group-hover:opacity-100">SEL.</span>
                                                                     )}
                                                                 </td>
                                                             </tr>
@@ -2049,16 +2049,16 @@ export default function TournamentManager({
 
                             <div className="space-y-4">
                                 <div className="flex-1 relative mt-2">
-                                    <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-blue-500 uppercase tracking-widest z-10 rounded-full border border-border/10">
-                                        {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
-                                    </span>
-                                    <input
-                                        type="text"
-                                        placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split("/")[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
-                                        value={replaceSlot === 1 ? guestName : guestName2}
-                                        onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
-                                        className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-sm"
-                                    />
+                                        <span className="absolute -top-2.5 left-4 px-2 bg-background text-[8px] font-black text-azul-primary uppercase tracking-widest z-10 rounded-full border border-border/10">
+                                            {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
+                                        </span>
+                                        <input
+                                            type="text"
+                                            placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split("/")[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
+                                            value={replaceSlot === 1 ? guestName : guestName2}
+                                            onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
+                                            className="w-full bg-background border border-border/50 rounded-xl px-4 py-4 text-sm font-bold outline-none focus:border-azul-primary shadow-sm"
+                                        />
                                 </div>
 
                                 <button
@@ -2084,7 +2084,7 @@ export default function TournamentManager({
                                     placeholder="Buscar por nombre..."
                                     value={playerSearchQuery}
                                     onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-blue-500"
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-azul-primary"
                                 />
                             </div>
 
@@ -2115,7 +2115,7 @@ export default function TournamentManager({
                                                     }
                                                 }
                                             }}
-                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-blue-600 hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
+                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-azul-primary hover:text-white rounded-2xl border border-border/50 transition-all group/p shadow-sm"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
@@ -2159,7 +2159,7 @@ export default function TournamentManager({
             <Dialog open={!!playerToDelete} onOpenChange={(open) => !open && setPlayerToDelete(null)}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-red-500">¿Eliminar Participante?</DialogTitle>
+                        <DialogTitle className="text-rojo">¿Eliminar Participante?</DialogTitle>
                         <DialogDescription>
                             Estás por quitar a <span className="text-foreground font-black">{playerToDelete?.name}</span> de la lista del torneo. Esta acción no se puede deshacer.
                         </DialogDescription>
@@ -2174,7 +2174,7 @@ export default function TournamentManager({
                         </button>
                         <button
                             onClick={() => playerToDelete && handleDeletePlayer(playerToDelete.id)}
-                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-900/20"
+                            className="flex-1 px-4 py-3 bg-rojo hover:bg-rojo/90 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rojo/20"
                         >
                             Sí, Eliminar
                         </button>

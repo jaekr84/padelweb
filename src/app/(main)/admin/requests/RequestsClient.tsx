@@ -85,9 +85,9 @@ export default function RequestsClient() {
         const currentStatus = isExpired ? 'caducado' : status;
 
         switch (currentStatus) {
-            case 'pendiente': return { bg: 'bg-indigo-600/10', border: 'border-indigo-500/20', text: 'text-indigo-400', icon: Clock, label: 'Pendiente' };
-            case 'enviado': return { bg: 'bg-blue-600/10', border: 'border-blue-500/20', text: 'text-blue-400', icon: Send, label: 'Enviado' };
-            case 'aceptado': return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', icon: CheckCircle2, label: 'Registrado' };
+            case 'pendiente': return { bg: 'bg-azul-primary/10', border: 'border-azul-primary/20', text: 'text-azul-primary', icon: Clock, label: 'Pendiente' };
+            case 'enviado': return { bg: 'bg-celeste/10', border: 'border-celeste/20', text: 'text-celeste', icon: Send, label: 'Enviado' };
+            case 'aceptado': return { bg: 'bg-azul-primary/10', border: 'border-azul-primary/20', text: 'text-azul-primary', icon: CheckCircle2, label: 'Registrado' };
             case 'rechazado': return { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', icon: XCircle, label: 'Rechazado' };
             case 'caducado': return { bg: 'bg-slate-500/10', border: 'border-slate-500/20', text: 'text-slate-500', icon: Clock, label: 'Caducado' };
             default: return { bg: 'bg-slate-600/10', border: 'border-slate-500/20', text: 'text-slate-400', icon: Clock, label: status };
@@ -108,7 +108,7 @@ export default function RequestsClient() {
                     100% { background-position: 0% 50%; }
                 }
                 .text-gradient-animate {
-                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background: linear-gradient(to right, var(--azul-primary), var(--celeste), var(--azul-primary));
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     color: transparent;
@@ -120,7 +120,7 @@ export default function RequestsClient() {
                     border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
                 }
                 .glass-card:hover {
-                    border-color: rgba(16, 185, 129, 0.5);
+                    border-color: var(--azul-primary);
                 }
                 .glow-button {
                     position: relative;
@@ -130,7 +130,7 @@ export default function RequestsClient() {
                     position: absolute;
                     inset: -2px;
                     border-radius: 2rem;
-                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    background: linear-gradient(45deg, var(--azul-primary), var(--celeste));
                     z-index: -1;
                     filter: blur(8px);
                     opacity: 0;
@@ -143,12 +143,12 @@ export default function RequestsClient() {
 
             {/* Ambient glow */}
             <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
-                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-azul-primary/10 rounded-full blur-[150px]" />
+                <div className="absolute top-[30%] right-[-15%] w-[500px] h-[500px] bg-celeste/10 rounded-full blur-[150px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-8 font-sans selection:bg-emerald-500/30">
+            <div className="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-8 font-sans selection:bg-azul-primary/30">
                 <motion.header 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -156,13 +156,13 @@ export default function RequestsClient() {
                 >
                     <div className="flex items-center gap-5">
                         <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
-                            <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
+                            <div className="absolute inset-0 bg-azul-primary/10 blur-xl opacity-50" />
                             <MessageSquare className="relative z-10 w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-1">Gestión de nuevos ingresos</p>
+                            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-azul-primary/80 mb-1">Gestión de nuevos ingresos</p>
                             <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tight leading-none text-foreground">
-                                Solicitudes de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Registro</span>
+                                Solicitudes de <span className="text-gradient-animate drop-shadow-[0_0_20px_var(--azul-primary),0.3)]">Registro</span>
                             </h1>
                         </div>
                     </div>
@@ -170,7 +170,7 @@ export default function RequestsClient() {
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-32 gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+                    <Loader2 className="w-10 h-10 animate-spin text-azul-primary" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cargando solicitudes...</span>
                 </div>
             ) : requests.length === 0 ? (
@@ -179,7 +179,7 @@ export default function RequestsClient() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="glass-card rounded-[2.5rem] p-12 md:p-20 text-center flex flex-col items-center gap-6 shadow-xl relative overflow-hidden group"
                 >
-                    <div className="absolute top-[-30%] right-[-10%] w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    <div className="absolute top-[-30%] right-[-10%] w-[300px] h-[300px] bg-azul-primary/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-border relative z-10">
                         <ShieldCheck className="w-10 h-10 opacity-20" />
                     </div>
@@ -204,12 +204,12 @@ export default function RequestsClient() {
                                     exit={{ opacity: 0, scale: 0.98 }}
                                     className={`glass-card p-5 md:p-8 rounded-[2.5rem] transition-all relative overflow-hidden group ${
                                         req.status === 'pendiente' 
-                                            ? 'shadow-[0_20px_40px_-15px_rgba(16,185,129,0.1)] border-emerald-500/30' 
+                                            ? 'shadow-[0_20px_40px_-15px_rgba(30,58,138,0.15)] border-azul-primary/30' 
                                             : 'opacity-60 grayscale-[0.2] hover:grayscale-0'
                                     }`}
                                 >
                                     {/* Subtler highlight glow */}
-                                    <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    <div className="absolute top-0 right-0 w-40 h-40 bg-azul-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                     
                                     <div className="flex flex-col gap-6 relative z-10">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -225,7 +225,7 @@ export default function RequestsClient() {
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-col md:flex-row md:items-center gap-x-4 gap-y-1">
-                                                        <div className="flex items-center gap-2 text-indigo-500 font-bold text-[10px] md:text-[11px] uppercase tracking-widest">
+                                                        <div className="flex items-center gap-2 text-azul-primary font-bold text-[10px] md:text-[11px] uppercase tracking-widest">
                                                             <Phone className="w-3.5 h-3.5" />
                                                             {req.whatsapp}
                                                         </div>
@@ -262,7 +262,7 @@ export default function RequestsClient() {
                                                     <button
                                                         onClick={() => handleProcess(req.id, req.whatsapp, req.fullName)}
                                                         disabled={isPending}
-                                                        className="glow-button w-full lg:flex-[2] h-12 bg-foreground hover:bg-foreground/90 text-background rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 disabled:opacity-50 border border-border"
+                                                        className="glow-button w-full lg:flex-[2] h-12 bg-foreground hover:bg-foreground/90 text-background rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-azul-primary/20 active:scale-95 disabled:opacity-50 border border-border"
                                                     >
                                                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                                                         Aprobar e Invitar
@@ -275,7 +275,7 @@ export default function RequestsClient() {
                                                     <button
                                                         onClick={() => handleProcess(req.id, req.whatsapp, req.fullName)}
                                                         disabled={isPending}
-                                                        className="w-full flex-1 h-12 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20 transition-all flex items-center justify-center gap-2"
+                                                        className="w-full flex-1 h-12 bg-azul-primary/10 hover:bg-azul-primary text-azul-primary hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-azul-primary/20 transition-all flex items-center justify-center gap-2"
                                                     >
                                                         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                                         Re-generar Link
@@ -283,7 +283,7 @@ export default function RequestsClient() {
                                                     <button
                                                         onClick={() => handleUpdateStatus(req.id, "aceptado")}
                                                         disabled={isPending}
-                                                        className="w-full flex-[1.5] h-12 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                                                        className="w-full flex-[1.5] h-12 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white rounded-xl md:rounded-2xl text-[10px] font-black uppercase tracking-widest border border-celeste/20 transition-all flex items-center justify-center gap-2"
                                                     >
                                                         <CheckCircle2 className="w-4 h-4" />
                                                         Marcar Registrado
@@ -311,16 +311,16 @@ export default function RequestsClient() {
                                                 className="pt-6 border-t border-border flex flex-col gap-4"
                                             >
                                                 <div className="flex flex-col gap-2">
-                                                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1">Link de Invitación Generado</label>
+                                                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary ml-1">Link de Invitación Generado</label>
                                                     <div className="flex flex-col sm:flex-row gap-2">
-                                                        <div className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-indigo-600 ">
+                                                        <div className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-azul-primary ">
                                                             {generatedLinks[req.id]}
                                                         </div>
                                                         <div className="flex gap-2 shrink-0">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => copyLink(generatedLinks[req.id])}
-                                                                className="flex-1 sm:flex-none h-12 w-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-90"
+                                                                className="flex-1 sm:flex-none h-12 w-12 bg-azul-primary hover:bg-azul-primary/80 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-90"
                                                                 title="Copiar Link"
                                                             >
                                                                 <Copy className="w-4 h-4" />
@@ -329,7 +329,7 @@ export default function RequestsClient() {
                                                                 href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${req.fullName}! Te enviamos tu link de registro para ACAP (válido por 24hs): ${generatedLinks[req.id]}`)}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex-1 sm:flex-none h-12 w-12 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-90"
+                                                                className="flex-1 sm:flex-none h-12 w-12 bg-celeste hover:bg-celeste/80 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-90"
                                                                 title="Enviar por WhatsApp"
                                                             >
                                                                 <ExternalLink className="w-4 h-4" />

@@ -79,7 +79,7 @@ export default function LandingPage({
     const opacityHero = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
 
     return (
-        <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
             {/* ── CSS KEYFRAMES PARA TEXTO ANIMADO Y GLOWS ── */}
             <style>{`
                 @keyframes gradient-x {
@@ -88,7 +88,7 @@ export default function LandingPage({
                     100% { background-position: 0% 50%; }
                 }
                 .text-gradient-animate {
-                    background: linear-gradient(to right, #10b981, #3b82f6, #06b6d4, #10b981);
+                    background: linear-gradient(to right, #1e40af, #0ea5e9, #1e40af);
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     color: transparent;
@@ -102,7 +102,7 @@ export default function LandingPage({
                     position: absolute;
                     inset: -2px;
                     border-radius: 2rem;
-                    background: linear-gradient(45deg, #10b981, #3b82f6);
+                    background: linear-gradient(45deg, #1e40af, #0ea5e9);
                     z-index: -1;
                     filter: blur(8px);
                     opacity: 0;
@@ -117,7 +117,7 @@ export default function LandingPage({
                     border: 1px solid rgba(59, 130, 246, 0.2);
                 }
                 .glass-card:hover {
-                    border-color: rgba(16, 185, 129, 0.5);
+                    border-color: rgba(14, 165, 233, 0.5);
                 }
                 @keyframes shine-multi {
                     /* Barrido 1: Izquierda a Derecha */
@@ -161,8 +161,8 @@ export default function LandingPage({
 
             {/* ── FONDO DINÁMICO (Parallax Mesh Glows) ── */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }} className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[150px]" />
-                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, 300]) }} className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px]" />
+                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }} className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-celeste/10 rounded-full blur-[150px]" />
+                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, 300]) }} className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[150px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
@@ -185,17 +185,17 @@ export default function LandingPage({
                     </div>
 
                     <div className="hidden lg:flex gap-8 items-center justify-center flex-[2]">
-                        <Link href="/ranking" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                        <Link href="/ranking" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
                             <Trophy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Ranking
                         </Link>
-                        <Link href="/tournaments" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
-                            <Trophy className="w-3.5 h-3.5 text-emerald-500 group-hover:scale-110 transition-transform" /> Torneos
+                        <Link href="/tournaments" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
+                            <Trophy className="w-3.5 h-3.5 text-azul-primary group-hover:scale-110 transition-transform" /> Torneos
                         </Link>
-                        <Link href="/directory" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
+                        <Link href="/directory" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
                             <MapPin className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Clubes
                         </Link>
-                        <Link href="/marketplace" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-emerald-400 transition-all uppercase flex items-center gap-2 group">
-                            <ShoppingBag className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" /> Marketplace
+                        <Link href="/marketplace" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
+                            <ShoppingBag className="w-3.5 h-3.5 text-celeste group-hover:scale-110 transition-transform" /> Marketplace
                         </Link>
                     </div>
 
@@ -221,7 +221,7 @@ export default function LandingPage({
                         <div
                             className="relative flex items-center justify-center shrink-0 mx-auto w-[280px] h-[180px] md:w-[450px] md:h-[300px] z-10"
                             style={{
-                                filter: "drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.1))"
+                                filter: "drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 0 20px rgba(14, 165, 233, 0.1))"
                             }}
                         >
                             {/* Logo Base */}
@@ -266,13 +266,13 @@ export default function LandingPage({
 
                         {/* Sutil resplandor de fondo (Auroras) */}
                         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 -z-20 flex justify-center opacity-30">
-                            <div className="w-[300px] h-[200px] md:w-[600px] md:h-[400px] bg-emerald-500/10 blur-[130px] rounded-full" />
+                            <div className="w-[300px] h-[200px] md:w-[600px] md:h-[400px] bg-celeste/10 blur-[130px] rounded-full" />
                         </div>
                     </motion.div>
 
 
                     <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[5.5rem] font-black italic tracking-tighter uppercase leading-[0.85] mb-6 text-white">
-                        Dominá La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(16,185,129,0.3)]">Cancha</span>
+                        Dominá La <br /> <span className="text-gradient-animate drop-shadow-[0_0_40px_rgba(14,165,233,0.3)]">Cancha</span>
                     </motion.h1>
 
                     <motion.p variants={fadeUp} className="text-base md:text-lg text-slate-400 font-medium mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -317,7 +317,7 @@ export default function LandingPage({
                     className="grid grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 mt-16 w-full border-t border-slate-800 pt-12"
                 >
                     {[
-                        { label: "Torneos Activos", value: "+" + tournamentCount, color: "text-emerald-400" },
+                        { label: "Torneos Activos", value: "+" + tournamentCount, color: "text-celeste" },
                         { label: "Jugadores Registrados", value: "+" + playerCount, color: "text-blue-400" },
                         { label: "Clubes Aliados", value: "" + clubCount, color: "text-cyan-400" }
                     ].map((stat, i) => (
@@ -349,12 +349,12 @@ export default function LandingPage({
                     {/* Tarjeta 2: Torneos */}
                     <Link href="/tournaments" className="block h-full group">
                         <motion.div variants={fadeUp} whileHover={{ scale: 1.02 }} className="glass-card rounded-[2rem] p-8 h-full flex flex-col justify-end relative overflow-hidden">
-                            <div className="absolute -top-10 -left-10 w-48 h-48 bg-emerald-500/20 rounded-full blur-[60px] group-hover:bg-emerald-500/30 transition-colors" />
-                            <Trophy className="w-12 h-12 text-emerald-400 mb-6 relative z-10" />
+                            <div className="absolute -top-10 -left-10 w-48 h-48 bg-azul-primary/20 rounded-full blur-[60px] group-hover:bg-azul-primary/30 transition-colors" />
+                            <Trophy className="w-12 h-12 text-celeste mb-6 relative z-10" />
                             <h3 className="text-2xl font-black italic uppercase text-white mb-2 relative z-10">Torneos</h3>
                             <div className="flex justify-between items-center relative z-10">
                                 <p className="text-sm text-slate-400">Inscripción directa, llaves dinámicas y resultados.</p>
-                                <ArrowRight className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ArrowRight className="w-4 h-4 text-celeste opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                         </motion.div>
                     </Link>
@@ -423,8 +423,8 @@ export default function LandingPage({
                         viewport={{ once: true, margin: "-100px" }}
                         className="glass-card p-6 rounded-2xl flex gap-4 w-full md:w-3/4 mx-auto rotate-1 md:-ml-8"
                     >
-                        <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/30">
-                            <Trophy className="w-6 h-6 text-emerald-400" />
+                        <div className="w-14 h-14 bg-azul-primary/20 rounded-full flex items-center justify-center shrink-0 border border-azul-primary/30">
+                            <Trophy className="w-6 h-6 text-celeste" />
                         </div>
                         <div>
                             <p className="text-sm text-slate-300 font-medium">¡<strong className="text-white">Martín Lopez</strong> acaba de coronarse campeón de 5ta categoría en El Bosque Padel!</p>
@@ -451,7 +451,7 @@ export default function LandingPage({
 
             {/* ── FOOTER FINAL CTA ── */}
             <footer className="relative z-10 border-t border-slate-800/50 pt-24 pb-12 overflow-hidden mt-12 bg-black">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-50" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-1 bg-gradient-to-r from-transparent via-azul-primary to-transparent opacity-50" />
 
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <h2 className="text-5xl md:text-7xl font-black italic uppercase text-white mb-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">Entrá a jugar</h2>
@@ -469,7 +469,7 @@ export default function LandingPage({
                     </div>
                     <div>
                         <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600">
-                            Designed & Developed by <a href="https://x.com/Kr84Jae" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-emerald-400 transition-colors">@JaeKr84</a>
+                            Designed & Developed by <a href="https://x.com/Kr84Jae" target="_blank" rel="noopener noreferrer" className="text-azul-primary hover:text-celeste transition-colors">@JaeKr84</a>
                         </span>
                     </div>
                 </div>

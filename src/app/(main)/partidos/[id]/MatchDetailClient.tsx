@@ -143,14 +143,14 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                 >
                     <div className="bg-slate-900 p-12 text-white relative">
                         <div className="absolute inset-0 opacity-20">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-[80px]" />
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-azul-primary rounded-full blur-[80px]" />
                         </div>
                         <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-                            <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            <div className="bg-azul-primary text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                                 Categoría {match.category} • {match.gender}
                             </div>
                             <h2 className="text-4xl font-black uppercase tracking-tighter italic leading-none">
-                                Partido en <span className="text-blue-400">{match.location}</span>
+                                Partido en <span className="text-celeste">{match.location}</span>
                             </h2>
                             <p className="text-white/60 font-medium uppercase tracking-widest text-xs">{match.city}</p>
                         </div>
@@ -161,7 +161,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/5 text-azul-primary flex items-center justify-center">
                                         <Calendar className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -170,7 +170,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/5 text-azul-primary flex items-center justify-center">
                                         <Clock className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -193,14 +193,14 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${match.location}, ${match.city}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="h-12 px-6 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                        className="h-12 px-6 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-azul-primary hover:text-white transition-all shadow-sm active:scale-95"
                                     >
                                         <Share2 className="w-4 h-4" /> {/* Using Share2 as a proxy if map icon unavailable, but I'll check if I can use a generic map icon */}
                                         CÓMO LLEGAR
                                     </a>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-celeste/10 text-celeste flex items-center justify-center">
                                         <Users className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -247,7 +247,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                             </div>
                             <div className="text-center bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
                                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nivel</p>
-                                <p className="text-xs font-black text-blue-600 uppercase italic">Cat {match.creator.category}</p>
+                                <p className="text-xs font-black text-azul-primary uppercase italic">Cat {match.creator.category}</p>
                             </div>
                         </div>
 
@@ -267,8 +267,8 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                                             </div>
                                             <span className="font-bold text-slate-900 text-sm">
                                                 {reg.user ? `${reg.user.firstName} ${reg.user.lastName}` : reg.guestName}
-                                                {reg.userId === match.creatorId && <span className="ml-2 text-[8px] bg-blue-600 text-white px-1.5 py-0.5 rounded uppercase font-black tracking-widest">Org</span>}
-                                                {!reg.user && <span className="ml-2 text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded uppercase font-black tracking-widest">Guest</span>}
+                                                {reg.userId === match.creatorId && <span className="ml-2 text-[8px] bg-azul-primary text-white px-1.5 py-0.5 rounded uppercase font-black tracking-widest">Org</span>}
+                                                {!reg.user && <span className="ml-2 text-[8px] bg-celeste/10 text-celeste px-1.5 py-0.5 rounded uppercase font-black tracking-widest">Guest</span>}
                                             </span>
                                         </div>
                                         <div className="text-[10px] font-black text-blue-500 uppercase italic">
@@ -277,11 +277,11 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                                     </div>
                                 ))}
                                 {Array.from({ length: remaining }).map((_, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-4 border border-dashed border-green-200 bg-green-50/30 rounded-2xl animate-pulse">
-                                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                                            <Users className="w-4 h-4 text-green-500" />
+                                    <div key={i} className="flex items-center gap-3 p-4 border border-dashed border-celeste/20 bg-celeste/5 rounded-2xl animate-pulse">
+                                        <div className="w-10 h-10 rounded-full bg-celeste/10 flex items-center justify-center">
+                                            <Users className="w-4 h-4 text-celeste" />
                                         </div>
-                                        <span className="font-bold text-green-600/60 text-sm italic tracking-tight">Buscando jugador...</span>
+                                        <span className="font-bold text-celeste/60 text-sm italic tracking-tight">Buscando jugador...</span>
                                     </div>
                                 ))}
                             </div>
@@ -293,12 +293,12 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
             {/* Bottom Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 z-50">
                 <div className="max-w-4xl mx-auto flex items-center gap-4">
-                    <button className="h-16 w-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">
+                    <button className="h-16 w-16 bg-azul-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-azul-primary/20 hover:scale-105 transition-all">
                         <MessageCircle className="w-6 h-6" />
                     </button>
                     {isCreator ? (
                         match.status === 'completed' ? (
-                            <div className="flex-1 h-16 bg-emerald-50 text-emerald-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-emerald-100">
+                            <div className="flex-1 h-16 bg-celeste/10 text-celeste rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-celeste/20">
                                 <Trophy className="w-4 h-4" />
                                 PARTIDO FINALIZADO
                             </div>
@@ -311,7 +311,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                             <button
                                 onClick={handleComplete}
                                 disabled={loading}
-                                className="flex-1 h-16 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                className="flex-1 h-16 bg-azul-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-azul-primary/20 hover:bg-azul-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
                                 {loading ? "PROCESANDO..." : (
                                     <>
@@ -323,7 +323,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                         )
                     ) : (
                         match.status === 'completed' ? (
-                            <div className="flex-1 h-16 bg-emerald-50 text-emerald-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-emerald-100">
+                            <div className="flex-1 h-16 bg-celeste/10 text-celeste rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 border border-celeste/20">
                                 <Trophy className="w-4 h-4" />
                                 PARTIDO FINALIZADO
                             </div>
@@ -337,7 +337,7 @@ export default function MatchDetailClient({ match, isLoggedIn, currentUserId }: 
                                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                         : match.status === 'cancelled'
                                             ? 'bg-rose-50 text-rose-400 cursor-not-allowed'
-                                            : 'bg-slate-900 text-white shadow-slate-900/20 hover:bg-blue-600'
+                                            : 'bg-slate-900 text-white shadow-slate-900/20 hover:bg-azul-primary'
                                     }`}
                             >
                                 {loading ? "PROCESANDO..." : isJoined ? (

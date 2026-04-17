@@ -76,11 +76,11 @@ function MatchCard({
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between text-slate-900">
                                     <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-blue-500" />
+                                        <Calendar className="w-4 h-4 text-azul-primary" />
                                         <span className="text-sm font-bold">{formatDate(match.date)}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-blue-500" />
+                                        <Clock className="w-4 h-4 text-azul-primary" />
                                         <span className="text-sm font-bold">{match.time}</span>
                                     </div>
                                 </div>
@@ -134,7 +134,7 @@ function MatchCard({
                                             {reg.user?.imageUrl ? (
                                                 <Image src={reg.user.imageUrl} alt="Player" fill className="object-cover" />
                                             ) : (
-                                                <User className="w-4 h-4 text-blue-500" />
+                                                <User className="w-4 h-4 text-azul-primary" />
                                             )}
                                         </div>
                                     ))}
@@ -176,7 +176,7 @@ function MatchCard({
                                     disabled={loadingId === match.id || remaining === 0}
                                     className={`w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${remaining === 0
                                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                        : 'bg-slate-900 text-white hover:bg-blue-600 shadow-xl hover:shadow-blue-500/20 active:scale-95'
+                                        : 'bg-slate-900 text-white hover:bg-blue-600 shadow-xl hover:shadow-azul-primary/20 active:scale-95'
                                         }`}
                                 >
                                     {loadingId === match.id ? "PROCESANDO..." : remaining === 0 ? "PARTIDO LLENO" : "UNIRME A JUGAR"}
@@ -223,7 +223,7 @@ function MatchCard({
                                                 {reg.user ? `${reg.user.firstName} ${reg.user.lastName}` : reg.guestName}
                                             </p>
                                             <div className="flex items-center gap-2">
-                                                {reg.userId === match.creatorId && <span className="text-[7px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 bg-blue-500 text-white rounded">Org</span>}
+                                                {reg.userId === match.creatorId && <span className="text-[7px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 bg-azul-primary text-white rounded">Org</span>}
                                                 <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest italic">{reg.user ? "Jugador" : "Invitado"}</span>
                                             </div>
                                         </div>
@@ -231,7 +231,7 @@ function MatchCard({
                                     {reg.userId && (
                                         <button
                                             onClick={() => onShowProfile(reg.userId!)}
-                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all"
+                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-blue-600 hover:border-azul-primary transition-all"
                                         >
                                             <User className="w-4 h-4" />
                                         </button>
@@ -252,7 +252,7 @@ function MatchCard({
                         <div className="p-8 pt-4">
                             <Link
                                 href={`/partidos/${match.id}`}
-                                className="w-full h-12 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                                className="w-full h-12 bg-blue-600 hover:bg-azul-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-azul-primary/20"
                             >
                                 <Info className="w-3 h-3" />
                                 Ver detalle completo
@@ -404,17 +404,17 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             {/* Hero Section */}
             <div className="relative rounded-[3rem] overflow-hidden bg-foreground p-12 lg:p-16 text-background flex flex-col lg:flex-row items-center justify-between gap-12 shadow-2xl">
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-azul-primary rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-azul-primary rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
                 </div>
 
                 <div className="relative z-10 space-y-6 max-w-2xl text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/10 border border-background/20 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-blue-300">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/10 border border-background/20 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-celeste">
                         <Users className="w-3 h-3 fill-current" />
                         Completá tu partido
                     </div>
                     <h1 className="text-5xl lg:text-7xl font-black uppercase tracking-tighter leading-none italic">
-                        Armá tu <span className="text-blue-400">Match</span>
+                        Armá tu <span className="text-celeste">Match</span>
                     </h1>
                     <p className="text-lg text-background/60 font-medium leading-relaxed">
                         ¿Te falta gente? Creá un partido público o unite a uno ya existente. Encontrá jugadores de tu zona y categoría al instante.
@@ -422,7 +422,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                     <div className="flex flex-wrap gap-4 pt-4 justify-center lg:justify-start">
                         <Link
                             href="/partidos/nuevo"
-                            className="bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                            className="bg-azul-primary text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-azul-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
                             Crear Partido
@@ -432,7 +432,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                 <div className="relative z-10 w-full lg:w-80 space-y-4">
                     <div className="bg-background/10 backdrop-blur-md border border-background/20 rounded-3xl p-6 space-y-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-blue-300">Filtrar Partidos</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-celeste">Filtrar Partidos</p>
 
                         {/* City Filter */}
                         <div className="space-y-2">
@@ -490,7 +490,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                 <button
                                     onClick={() => setShowMyMatches(!showMyMatches)}
                                     className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${showMyMatches
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                                        ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/30"
                                         : "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10"
                                         }`}
                                 >
@@ -556,7 +556,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                             {loadingProfile ? (
                                 <div className="bg-slate-900/80 backdrop-blur-xl rounded-[3rem] p-20 flex flex-col items-center justify-center border border-white/10">
-                                    <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+                                    <div className="w-12 h-12 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin mb-4" />
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Cargando Perfil...</p>
                                 </div>
                             ) : profileData ? (
@@ -569,23 +569,23 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                 className={`relative py-2 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'resumen' ? 'text-white' : 'text-white/30 hover:text-white/50'}`}
                                             >
                                                 Resumen
-                                                {activeTab === 'resumen' && <motion.div layoutId="activeTab" className="absolute -bottom-6 left-0 right-0 h-1 bg-blue-500 rounded-full" />}
+                                                {activeTab === 'resumen' && <motion.div layoutId="activeTab" className="absolute -bottom-6 left-0 right-0 h-1 bg-azul-primary rounded-full" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveTab('historial')}
                                                 className={`relative py-2 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'historial' ? 'text-white' : 'text-white/30 hover:text-white/50'}`}
                                             >
                                                 Últimos 20 partidos
-                                                {activeTab === 'historial' && <motion.div layoutId="activeTab" className="absolute -bottom-6 left-0 right-0 h-1 bg-blue-500 rounded-full" />}
+                                                {activeTab === 'historial' && <motion.div layoutId="activeTab" className="absolute -bottom-6 left-0 right-0 h-1 bg-azul-primary rounded-full" />}
                                             </button>
                                         </div>
                                         <div className="hidden lg:flex items-center gap-4">
                                             <div className="flex flex-col items-end">
                                                 <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Nivel Proyectado</span>
-                                                <span className="text-sm font-black text-blue-400 italic">CATEGORÍA {profileData.player.category}</span>
+                                                <span className="text-sm font-black text-celeste italic">CATEGORÍA {profileData.player.category}</span>
                                             </div>
-                                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                                                <Zap className="w-5 h-5 text-blue-500" />
+                                            <div className="w-10 h-10 rounded-xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                                <Zap className="w-5 h-5 text-azul-primary" />
                                             </div>
                                         </div>
                                     </div>
@@ -633,9 +633,9 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                             </div>
                                                         </div>
 
-                                                        <div className="bg-blue-600/10 border border-blue-500/20 p-8 rounded-[2rem] relative overflow-hidden group">
+                                                        <div className="bg-blue-600/10 border border-azul-primary/20 p-8 rounded-[2rem] relative overflow-hidden group">
                                                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                                                                <Zap className="w-20 h-20 text-blue-500" />
+                                                                <Zap className="w-20 h-20 text-azul-primary" />
                                                             </div>
                                                             <h4 className="text-lg font-black text-white uppercase italic tracking-tighter mb-1 relative z-10">Potencial del Jugador</h4>
                                                             <p className="text-xs text-blue-200/60 font-medium leading-relaxed max-w-sm relative z-10">
@@ -656,11 +656,11 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                         <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Registro Cronológico</h4>
                                                         <div className="flex gap-4">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                                                <div className="w-2 h-2 rounded-full bg-azul-primary" />
                                                                 <span className="text-[10px] font-bold text-white/40 uppercase">Torneo</span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
-                                                                <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                                                                <div className="w-2 h-2 rounded-full bg-celeste" />
                                                                 <span className="text-[10px] font-bold text-white/40 uppercase">Cancha Abierta</span>
                                                             </div>
                                                         </div>
@@ -670,7 +670,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                         {profileData.history.map((m: any) => (
                                                             <div key={m.id} className="group relative bg-white/5 hover:bg-white/10 border border-white/5 p-5 rounded-[2rem] flex items-center justify-between transition-all">
                                                                 <div className="flex items-center gap-6">
-                                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-blue-500/10 text-blue-500' : m.type === 'Cancha Abierta' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-slate-500/10 text-slate-500'}`}>
+                                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-slate-500'}`}>
                                                                         {m.type === 'Torneo' ? <Zap className="w-6 h-6" /> : m.type === 'Cancha Abierta' ? <Users className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
                                                                     </div>
                                                                     <div className="flex flex-col gap-1 min-w-0">
