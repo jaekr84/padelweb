@@ -94,6 +94,15 @@ export async function createTournament(data: TournamentInput) {
 
     // 2. Use Global Points Config
     const globalPoints = await getTournamentPointsConfig();
+    const pointsConfig = isSuperAdmin ? globalPoints : {
+        winner: 0,
+        finalist: 0,
+        semi: 0,
+        quarter: 0,
+        octavos: 0,
+        groupMatchWin: 0,
+        participation: 0
+    };
 
     const tournamentId = crypto.randomUUID();
     await db
@@ -111,7 +120,7 @@ export async function createTournament(data: TournamentInput) {
             openDateClub: data.openDateClub || null,
             openDateGeneral: data.openDateGeneral || null,
             categories: data.categories,
-            pointsConfig: globalPoints, // Always use global points snapshot
+            pointsConfig: pointsConfig, // Club-created tournaments get 0 points config
             imageUrl: data.imageUrl || null,
             modalidad: data.modalidad ? { ...data.modalidad, maxSlots: data.maxSlots || 0 } : null,
             status: "published",

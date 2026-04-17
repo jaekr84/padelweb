@@ -91,7 +91,7 @@ function MatchCard({
                                         <h4 className="text-sm font-black text-slate-900 truncate">{match.location}</h4>
                                         <p className="text-xs text-slate-500 font-bold uppercase tracking-tight">{match.city}</p>
                                     </div>
-                                    <a 
+                                    <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${match.location}, ${match.city}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -155,14 +155,7 @@ function MatchCard({
                                 <Users className="w-3 h-3" />
                                 Ver Jugadores
                             </button>
-                            {isCreator ? (
-                                <Link
-                                    href={`/partidos/${match.id}`}
-                                    className="w-full h-14 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center hover:bg-blue-600 transition-all"
-                                >
-                                    Administrar Partido
-                                </Link>
-                            ) : isJoined ? (
+                            {isJoined ? (
                                 <button
                                     onClick={() => handleLeave(match.id)}
                                     disabled={loadingId === match.id}
@@ -247,16 +240,6 @@ function MatchCard({
                                     <span className="text-xs font-bold uppercase tracking-widest">Buscando...</span>
                                 </div>
                             ))}
-                        </div>
-
-                        <div className="p-8 pt-4">
-                            <Link
-                                href={`/partidos/${match.id}`}
-                                className="w-full h-12 bg-blue-600 hover:bg-azul-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-azul-primary/20"
-                            >
-                                <Info className="w-3 h-3" />
-                                Ver detalle completo
-                            </Link>
                         </div>
                     </div>
                 </div>

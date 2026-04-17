@@ -1,11 +1,11 @@
-import { SignJWT, jwtVerify } from "jose";
+import { signJWT, verifyJWT } from "./auth-jwt";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "padel_master_secret_key_change_me_in_prod");
+// JWT Logic moved to auth-jwt.ts
 
 export async function hashPassword(password: string) {
     return await bcrypt.hash(password, 10);
@@ -15,22 +15,7 @@ export async function comparePassword(password: string, hash: string) {
     return await bcrypt.compare(password, hash);
 }
 
-export async function signJWT(payload: any) {
-    return await new SignJWT(payload)
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("24h")
-        .sign(JWT_SECRET);
-}
-
-export async function verifyJWT(token: string) {
-    try {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        return payload;
-    } catch (e) {
-        return null;
-    }
-}
+// JWT functions now imported from auth-jwt.ts
 
 export interface Session {
     userId: string;
@@ -100,7 +85,7 @@ export async function setSession(userId: string, email: string, role: string) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 60 * 60 * 24, // 1 day
+        maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 }
 

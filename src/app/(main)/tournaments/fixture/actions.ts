@@ -354,6 +354,13 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
             return;
         }
 
+        // Check if creator is a club - Club tournaments are recreational only
+        const [creator] = await db.select({ role: users.role }).from(users).where(eq(users.id, t.createdByUserId)).limit(1);
+        if (creator?.role === 'club') {
+            console.log(`[awardTournamentPoints] Torneo recreativo (Club). No se reparten puntos.`);
+            return;
+        }
+
         const points = ensureParsed(t.pointsConfig);
         console.log(`[awardTournamentPoints] Config de puntos cargada:`, points);
 
