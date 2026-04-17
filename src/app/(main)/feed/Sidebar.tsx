@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -45,6 +45,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
+        { href: "/admin/puntosTorneo", icon: Zap, label: "Puntos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
         { href: "/ranking", icon: Star, label: "Ranking" },

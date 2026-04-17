@@ -85,7 +85,7 @@ export async function createTournament(data: TournamentInput) {
                 eq(tournaments.isMembersOnly, !!data.isMembersOnly)
             ));
 
-        if (existingCount.value >= typeLimit) {
+        if (typeLimit !== -1 && existingCount.value >= typeLimit) {
             throw new Error(`Has alcanzado el límite de torneos ${data.isMembersOnly ? 'cerrados' : 'abiertos'} (${typeLimit}). Contacte al administrador.`);
         }
     }

@@ -22,7 +22,8 @@ import {
     LayoutDashboard,
     MapPin,
     ChevronRight,
-    Activity
+    Activity,
+    Zap
 } from "lucide-react";
 
 
@@ -77,6 +78,7 @@ export default async function AdminDashboardPage() {
         { label: 'Torneos', href: '/admin/tournaments', icon: Trophy, color: 'text-amber-500' },
         { label: 'Nuevo Evento', href: '/tournaments/create', icon: PlusCircle, color: 'text-emerald-500' },
         ...(!isClub ? [{ label: 'Categorías', href: '/admin/categories', icon: Settings, color: 'text-slate-500' }] : []),
+        ...(!isClub ? [{ label: 'Puntos', href: '/admin/puntosTorneo', icon: Zap, color: 'text-celeste' }] : []),
         { label: 'Cancha Abierta', href: '/admin/cancha-abierta', icon: Activity, color: 'text-emerald-500' },
         ...(!isClub ? [{ label: 'Promociones', href: '/admin/promotions', icon: TrendingUp, color: 'text-rose-500' }] : []),
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { updateTournamentPointsConfig, updateClubTournamentLimits } from "@/lib/settings-actions";
-import { Trophy, Save, Shield, Settings2, Target, Users, Zap, Star, Activity, Info } from "lucide-react";
+import { Trophy, Save, Shield, Settings2, Target, Users, Zap, Star, Activity, Info, Infinity } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -157,15 +157,34 @@ export default function AdminPointsClient({
                                     Públicos
                                 </span>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    value={limits.openLimit}
-                                    onChange={(e) => setLimits({ ...limits, openLimit: Number(e.target.value) })}
-                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all"
-                                />
+                            <div className="flex items-center gap-3">
+                                <div className="relative flex-1 group">
+                                    <input
+                                        type="number"
+                                        value={limits.openLimit === -1 ? "" : limits.openLimit}
+                                        disabled={limits.openLimit === -1}
+                                        onChange={(e) => setLimits({ ...limits, openLimit: Number(e.target.value) })}
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all disabled:opacity-50"
+                                        placeholder={limits.openLimit === -1 ? "∞" : "0"}
+                                    />
+                                    {limits.openLimit === -1 && (
+                                        <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
+                                            <span className="text-3xl font-black text-azul-primary italic">∞</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setLimits({ ...limits, openLimit: limits.openLimit === -1 ? 3 : -1 })}
+                                    className={`px-6 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border ${
+                                        limits.openLimit === -1 
+                                            ? "bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20" 
+                                            : "bg-muted/30 text-muted-foreground border-border hover:border-azul-primary/40"
+                                    }`}
+                                >
+                                    {limits.openLimit === -1 ? "Ilimitado" : "Sin Límite"}
+                                </button>
                                 <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
-                                    Máximo de torneos abiertos a todo público permitidos.
+                                    Máximo de torneos abiertos permitidos por club.
                                 </div>
                             </div>
                         </div>
@@ -179,15 +198,34 @@ export default function AdminPointsClient({
                                     Sólo Miembros
                                 </span>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    value={limits.closedLimit}
-                                    onChange={(e) => setLimits({ ...limits, closedLimit: Number(e.target.value) })}
-                                    className="flex-1 bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all"
-                                />
+                            <div className="flex items-center gap-3">
+                                <div className="relative flex-1 group">
+                                    <input
+                                        type="number"
+                                        value={limits.closedLimit === -1 ? "" : limits.closedLimit}
+                                        disabled={limits.closedLimit === -1}
+                                        onChange={(e) => setLimits({ ...limits, closedLimit: Number(e.target.value) })}
+                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all disabled:opacity-50"
+                                        placeholder={limits.closedLimit === -1 ? "∞" : "0"}
+                                    />
+                                    {limits.closedLimit === -1 && (
+                                        <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
+                                            <span className="text-3xl font-black text-purple-500 italic">∞</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setLimits({ ...limits, closedLimit: limits.closedLimit === -1 ? 3 : -1 })}
+                                    className={`px-6 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border ${
+                                        limits.closedLimit === -1 
+                                            ? "bg-purple-500 text-white border-purple-500 shadow-lg shadow-purple-500/20" 
+                                            : "bg-muted/30 text-muted-foreground border-border hover:border-purple-500/40"
+                                    }`}
+                                >
+                                    {limits.closedLimit === -1 ? "Ilimitado" : "Sin Límite"}
+                                </button>
                                 <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
-                                    Máximo de torneos exclusivos para miembros del club.
+                                    Máximo de torneos exclusivos para miembros permitidos.
                                 </div>
                             </div>
                         </div>
