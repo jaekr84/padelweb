@@ -42,7 +42,6 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
-        { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
@@ -86,7 +85,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
         initialUser?.userId ? { name: "", role: initialUser.role, dbRole: initialUser.dbRole, imageUrl: initialUser.imageUrl || null } : null
     );
     const [isCollapsed, setIsCollapsed] = useState(false);
-    
+
     // Global Chat Store integration
     const unreadMessages = useChatStore(s => s.unreadCount);
     const refreshChatUnread = useChatStore(s => s.refreshUnread);
