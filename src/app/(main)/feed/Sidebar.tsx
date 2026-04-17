@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -16,6 +16,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/partidos", icon: Users, label: "Partidos" },
+        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -29,6 +30,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/club/tournaments", icon: Trophy, label: "Mis Torneos" },
         { href: "/club/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
+        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -40,6 +42,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
@@ -81,8 +84,24 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
         initialUser?.userId ? { name: "", role: initialUser.role, dbRole: initialUser.dbRole, imageUrl: initialUser.imageUrl || null } : null
     );
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
     const pathname = usePathname();
     const router = useRouter();
+
+    const refreshUnread = useCallback(async () => {
+        try {
+            const { getUnreadCount } = await import("@/app/(main)/mensajes/actions");
+            const count = await getUnreadCount();
+            setUnreadMessages(count);
+        } catch { }
+    }, []);
+
+    useEffect(() => {
+        if (!initialUser?.userId) return;
+        refreshUnread();
+        const interval = setInterval(refreshUnread, 45000); // Increased to 45s
+        return () => clearInterval(interval);
+    }, [initialUser?.userId, refreshUnread]);
 
     useEffect(() => {
         if (initialUser?.userId) {
@@ -369,6 +388,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
+                        const isMsgs = item.href === "/mensajes";
                         return (
                             <Link
                                 key={item.href + item.label}
@@ -376,8 +396,20 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
-                                <Icon className={`w-5 h-5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
-                                {!isCollapsed && <span className="tracking-tight pointer-events-none truncate">{item.label}</span>}
+                                <div className="relative">
+                                    <Icon className={`w-5 h-5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                    {isMsgs && unreadMessages > 0 && (
+                                        <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                            {unreadMessages > 9 ? "9+" : unreadMessages}
+                                        </span>
+                                    )}
+                                </div>
+                                {!isCollapsed && <span className="tracking-tight pointer-events-none truncate flex-1">{item.label}</span>}
+                                {!isCollapsed && isMsgs && unreadMessages > 0 && (
+                                    <span className="ml-auto min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                        {unreadMessages > 9 ? "9+" : unreadMessages}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+import { cache } from "react";
+
 // JWT Logic moved to auth-jwt.ts
 
 export async function hashPassword(password: string) {
@@ -24,7 +26,7 @@ export interface Session {
     dbRole: string;
 }
 
-export async function getSession(): Promise<Session | null> {
+export const getSession = cache(async (): Promise<Session | null> => {
     const cookieStore = await cookies();
     const token = cookieStore.get("session")?.value;
     if (!token) return null;
@@ -68,7 +70,7 @@ export async function getSession(): Promise<Session | null> {
         role: activeRole,
         dbRole: user.role
     };
-}
+});
 
 export async function setSession(userId: string, email: string, role: string) {
     const sessionVersion = Math.floor(Date.now() / 1000);

@@ -7,17 +7,7 @@ export async function initializeOpenCourtTables() {
     
     try {
         // Verificación de estructura antigua
-        try {
-            // Intentamos una operación que fallará si la columna no existe
-            await db.execute(sql`SELECT address from open_court_events LIMIT 1`);
-        } catch (e: any) {
-            // Si el error es "Unknown column", borramos la tabla
-            if (e.message?.includes("Unknown column") || e.message?.includes("doesn't exist")) {
-                console.log("Estructura incompatible detectada. Reseteando tabla...");
-                await db.execute(sql`DROP TABLE IF EXISTS open_court_events`);
-            }
-        }
-
+        // 1. Asegurar que las tablas existan
         await db.execute(sql`
             CREATE TABLE IF NOT EXISTS open_court_events (
                 id varchar(255) PRIMARY KEY,
@@ -31,6 +21,26 @@ export async function initializeOpenCourtTables() {
                 total_slots int NOT NULL DEFAULT 0,
                 categories json NOT NULL,
                 status enum('active', 'completed', 'cancelled') NOT NULL DEFAULT 'active',
+                created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+
+        // 3. Asegurar estructura completa
+        await db.execute(sql`
+            CREATE TABLE IF NOT EXISTS open_court_events (
+                id varchar(255) PRIMARY KEY,
+                club_id varchar(255) NOT NULL,
+                name varchar(255) NOT NULL,
+                date varchar(255) NOT NULL,
+                time varchar(255) NOT NULL,
+                address varchar(255) NOT NULL,
+                city varchar(255) NOT NULL,
+                registration_fee int NOT NULL DEFAULT 0,
+                total_slots int NOT NULL DEFAULT 0,
+                categories json NOT NULL,
+                status enum('active', 'completed', 'cancelled') NOT NULL DEFAULT 'active',
+                creator_id varchar(255),
                 created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         `);

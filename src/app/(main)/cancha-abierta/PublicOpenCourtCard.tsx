@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     Calendar, MapPin, Trophy, Zap,
-    CheckCircle, Clock, User, Users2, DollarSign, LayoutGrid, Plus, Shield
+    CheckCircle, Clock, User, Users2, DollarSign, LayoutGrid, Plus, Shield, MessageSquare
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -12,9 +12,11 @@ interface PublicOpenCourtCardProps {
     event: any;
     isRegistered?: boolean;
     isLoggedIn?: boolean;
+    currentUserId?: string;
+    onMessage?: (e: React.MouseEvent, recipientId: string) => void;
 }
 
-export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }: PublicOpenCourtCardProps) {
+export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, currentUserId, onMessage }: PublicOpenCourtCardProps) {
     const router = useRouter();
     const [imageError, setImageError] = useState(false);
 
@@ -163,28 +165,19 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn }:
                             )}
                         </div>
                     </div>
-
-                    {/* Ultra Compact Map */}
-                    <div className="mb-6 w-full h-24 rounded-xl overflow-hidden border border-border/50 bg-muted/10 relative">
-                        {event.address ? (
-                            <iframe
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0, opacity: 0.6, filter: 'grayscale(0.2)' }}
-                                loading="lazy"
-                                allowFullScreen
-                                src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address + " " + event.city)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                            ></iframe>
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center opacity-20">
-                                <MapPin className="w-4 h-4 mr-2" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Sin mapa disponible</span>
-                            </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="mt-auto space-y-3 pt-4">
+                        {isLoggedIn && (event.creatorId || event.club?.ownerId) && currentUserId !== (event.creatorId || event.club?.ownerId) && (
+                            <button
+                                onClick={(e) => onMessage?.(e, event.creatorId || event.club.ownerId)}
+                                className="w-full h-11 bg-azul-primary/5 border border-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/msg"
+                            >
+                                <MessageSquare className="w-3.5 h-3.5 group-hover/msg:scale-110 transition-transform" />
+                                Mensaje al {event.creatorId ? "Organizador" : "Club"}
+                            </button>
                         )}
-                    </div>
-
-                    {/* Action Button */}
-                    <div className="mt-auto">
+                        
                         <div className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[10px] ${
                             isFinished ? "bg-muted text-muted-foreground shadow-none" :
                             isRegistered ? "bg-celeste text-white shadow-lg shadow-celeste/20" :

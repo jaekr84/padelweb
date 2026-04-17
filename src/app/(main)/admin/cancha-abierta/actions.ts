@@ -151,6 +151,7 @@ export async function createOpenCourtEventAction(data: {
             totalSlots: data.totalSlots,
             categories: data.categories,
             status: "active",
+            creatorId: session.userId,
         });
 
         revalidatePath("/admin/cancha-abierta");

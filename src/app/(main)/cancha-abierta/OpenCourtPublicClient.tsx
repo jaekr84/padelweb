@@ -7,10 +7,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import PublicOpenCourtCard from "./PublicOpenCourtCard";
+import { startConversation } from "@/app/(main)/mensajes/actions";
+import { useRouter } from "next/navigation";
 
 type EventListing = {
     id: string;
     clubId: string;
+    creatorId: string | null;
     name: string;
     date: string;
     time: string;
@@ -19,9 +22,16 @@ type EventListing = {
     registrationFee: number;
     totalSlots: number | null;
     status: string;
+    creator: {
+        id: string;
+        firstName: string | null;
+        lastName: string | null;
+        imageUrl: string | null;
+    } | null;
     club: {
         name: string | null;
         image: string | null;
+        ownerId: string | null;
     };
     registrationCount: number;
 };
@@ -30,12 +40,25 @@ interface OpenCourtPublicClientProps {
     initialEvents: EventListing[];
     userRegistrations: string[];
     isLoggedIn: boolean;
+    currentUserId?: string;
     userRole?: string;
 }
 
-export default function OpenCourtPublicClient({ initialEvents, userRegistrations, isLoggedIn, userRole }: OpenCourtPublicClientProps) {
+export default function OpenCourtPublicClient({ initialEvents, userRegistrations, isLoggedIn, currentUserId, userRole }: OpenCourtPublicClientProps) {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+
+    const handleMessage = async (e: React.MouseEvent, recipientId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            const { conversationId } = await startConversation(recipientId);
+            router.push(`/mensajes?conv=${conversationId}`);
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const dropdownTriggerStyles = "w-full rounded-3xl border border-background/20 bg-background/10 py-6 pl-14 pr-10 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-celeste/50 backdrop-blur-xl transition-all flex items-center justify-between gap-2";
     const dropdownContentStyles = "z-50 overflow-hidden rounded-3xl border border-background/20 bg-foreground shadow-2xl";
@@ -200,6 +223,8 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                                         event={event} 
                                         isRegistered={isRegistered}
                                         isLoggedIn={isLoggedIn}
+                                        currentUserId={currentUserId}
+                                        onMessage={handleMessage}
                                     />
                                 </motion.div>
                             );

@@ -1,12 +1,15 @@
 import { db } from "@/db";
 import { publicMatches, publicMatchRegistrations, users, categoriesTable } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, and, gte, asc } from "drizzle-orm";
 import PartidosClient from "./PartidosClient";
 
 export default async function PartidosPage() {
     const session = await getSession();
     
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
     // Fetch matches with creator info
     const matchesData = await db
         .select({
@@ -21,8 +24,13 @@ export default async function PartidosPage() {
         })
         .from(publicMatches)
         .leftJoin(users, eq(publicMatches.creatorId, users.id))
-        .where(eq(publicMatches.status, "open"))
-        .orderBy(desc(publicMatches.createdAt));
+        .where(
+            and(
+                eq(publicMatches.status, "open"),
+                gte(publicMatches.date, today)
+            )
+        )
+        .orderBy(asc(publicMatches.date), asc(publicMatches.time));
 
     if (matchesData.length === 0) {
         return (

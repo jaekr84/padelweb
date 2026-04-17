@@ -316,6 +316,7 @@ export const openCourtEvents = mysqlTable("open_court_events", {
     totalSlots: int("total_slots").default(0),
     categories: json("categories"), // Array of category IDs or "libre"
     status: varchar("status", { length: 50 }).notNull().default("active"), // active | completed | cancelled
+    creatorId: varchar("creator_id", { length: 256 }), // Reference to the user who created the event
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     clubIdIdx: index("open_court_events_club_id_idx").on(table.clubId),
@@ -366,6 +367,10 @@ export const openCourtEventsRelations = relations(openCourtEvents, ({ one, many 
     club: one(clubs, {
         fields: [openCourtEvents.clubId],
         references: [clubs.id],
+    }),
+    creator: one(users, {
+        fields: [openCourtEvents.creatorId],
+        references: [users.id],
     }),
     registrations: many(openCourtRegistrations),
     courts: many(openCourtCourts),
@@ -461,3 +466,59 @@ export const sponsors = mysqlTable("sponsors", {
 });
 
 export type Sponsor = InferSelectModel<typeof sponsors>;
+
+// ── Messaging System ─────────────────────────────────────────────────────────
+export const conversations = mysqlTable("conversations", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    user1Id: varchar("user1_id", { length: 256 }).notNull(),
+    user2Id: varchar("user2_id", { length: 256 }).notNull(),
+    lastMessage: text("last_message"),
+    lastMessageAt: timestamp("last_message_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    user1Idx: index("conversations_user1_idx").on(table.user1Id),
+    user2Idx: index("conversations_user2_idx").on(table.user2Id),
+}));
+
+export const messages = mysqlTable("messages", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    conversationId: varchar("conversation_id", { length: 36 }).notNull(),
+    senderId: varchar("sender_id", { length: 256 }).notNull(),
+    content: text("content").notNull(),
+    isRead: boolean("is_read").default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    conversationIdx: index("messages_conversation_idx").on(table.conversationId),
+    senderIdx: index("messages_sender_idx").on(table.senderId),
+}));
+
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+    user1: one(users, { fields: [conversations.user1Id], references: [users.id] }),
+    user2: one(users, { fields: [conversations.user2Id], references: [users.id] }),
+    messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+    conversation: one(conversations, { fields: [messages.conversationId], references: [conversations.id] }),
+    sender: one(users, { fields: [messages.senderId], references: [users.id] }),
+}));
+
+export type Conversation = InferSelectModel<typeof conversations>;
+export type Message = InferSelectModel<typeof messages>;
+
+// ── Push Subscriptions ──────────────────────────────────────────────────────
+
+export const pushSubscriptions = mysqlTable("push_subscriptions", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+    user: one(users, { fields: [pushSubscriptions.userId], references: [users.id] }),
+}));
+
+export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;

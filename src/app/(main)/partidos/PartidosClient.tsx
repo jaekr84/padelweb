@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, MapPin, Calendar, Clock, Users, Zap, User, ChevronRight, Check, Plus, Star, X, ArrowLeft, Info, ExternalLink } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, Users, Zap, User, ChevronRight, Check, Plus, Star, X, ArrowLeft, Info, ExternalLink, MessageSquare } from "lucide-react";
 import * as Select from "@radix-ui/react-select";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { joinPublicMatch, leavePublicMatch } from "./actions";
+import { startConversation } from "@/app/(main)/mensajes/actions";
 import { getPlayerProfileData } from "@/app/actions/players";
 import PlayerCard from "@/components/PlayerCard";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,8 @@ function MatchCard({
     handleLeave,
     loadingId,
     formatDate,
-    onShowProfile
+    onShowProfile,
+    onMessageCreator
 }: {
     match: MatchWithData;
     currentUserId?: string;
@@ -30,6 +32,7 @@ function MatchCard({
     loadingId: string | null;
     formatDate: (d: string) => string;
     onShowProfile: (id: string) => void;
+    onMessageCreator: (creatorId: string) => void;
 }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const isJoined = match.registrations.some(r => r.userId === currentUserId);
@@ -39,7 +42,7 @@ function MatchCard({
     const remaining = Math.max(0, totalSpots - spotsFull);
 
     return (
-        <div className="relative h-[650px] w-full [perspective:1000px] group/card mb-8">
+        <div className="relative h-[540px] w-full [perspective:1000px] group/card mb-8">
             <motion.div
                 animate={{ rotateY: isFlipped ? 180 : 0 }}
                 transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
@@ -104,21 +107,6 @@ function MatchCard({
                                     </a>
                                 </div>
 
-                                {/* MAP THUMBNAIL */}
-                                <div className="w-full h-32 rounded-2xl overflow-hidden border border-slate-100 shadow-inner bg-slate-50 relative group/mini-map">
-                                    <iframe
-                                        width="100%"
-                                        height="100%"
-                                        frameBorder="0"
-                                        scrolling="no"
-                                        marginHeight={0}
-                                        marginWidth={0}
-                                        loading="lazy"
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${match.location}, ${match.city}`)}&z=14&ie=UTF8&iwloc=&output=embed`}
-                                        className="opacity-70 group-hover/mini-map:opacity-100 transition-opacity duration-500 grayscale-[0.5] hover:grayscale-0"
-                                    />
-                                    <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-slate-900/5 rounded-2xl" />
-                                </div>
                             </div>
 
                             <div className="space-y-3">
@@ -155,6 +143,15 @@ function MatchCard({
                                 <Users className="w-3 h-3" />
                                 Ver Jugadores
                             </button>
+                            {isLoggedIn && !isCreator && (
+                                <button
+                                    onClick={() => onMessageCreator(match.creatorId)}
+                                    className="w-full h-12 bg-azul-primary/5 border border-azul-primary/20 text-azul-primary hover:bg-azul-primary hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                    Mensaje al Organizador
+                                </button>
+                            )}
                             {isJoined ? (
                                 <button
                                     onClick={() => handleLeave(match.id)}
@@ -309,6 +306,15 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             console.error(err);
         } finally {
             setLoadingProfile(false);
+        }
+    };
+
+    const handleMessageCreator = async (creatorId: string) => {
+        try {
+            const { conversationId } = await startConversation(creatorId);
+            router.push(`/mensajes?conv=${conversationId}`);
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -500,6 +506,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                             loadingId={loadingId}
                             formatDate={formatDate}
                             onShowProfile={handleShowProfile}
+                            onMessageCreator={handleMessageCreator}
                         />
                     ))}
                 </AnimatePresence>
@@ -625,6 +632,22 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                                 Basado en su historial de torneos y win rate actual, este jugador muestra un rendimiento sólido en {profileData.player.category}.
                                                             </p>
                                                         </div>
+
+                                                        {/* Message Button */}
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const { conversationId } = await startConversation(selectedPlayerId!);
+                                                                    router.push(`/mensajes?conv=${conversationId}`);
+                                                                } catch (e) {
+                                                                    alert("Error al iniciar conversación");
+                                                                }
+                                                            }}
+                                                            className="w-full h-12 bg-azul-primary/10 border border-azul-primary/30 text-azul-primary hover:bg-azul-primary hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                        >
+                                                            <MessageSquare className="w-4 h-4" />
+                                                            Enviar Mensaje
+                                                        </button>
                                                     </div>
                                                 </motion.div>
                                             ) : (
