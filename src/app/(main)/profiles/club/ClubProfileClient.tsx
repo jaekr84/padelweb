@@ -148,7 +148,7 @@ export default function ClubProfileClient({
             </div>
 
             <div className="max-w-4xl mx-auto px-4 pt-4 md:pt-8 flex flex-col gap-6 relative z-10">
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -167,8 +167,6 @@ export default function ClubProfileClient({
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-card overflow-hidden bg-muted shadow-xl relative flex items-center justify-center transition-colors">
                                     {club?.logoUrl ? (
                                         <Image src={club.logoUrl} alt="Club logo" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
-                                    ) : user?.imageUrl ? (
-                                        <Image src={user.imageUrl} alt="Club avatar" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
                                     ) : (
                                         <Building2 className="h-10 w-10 text-muted-foreground/60" />
                                     )}
@@ -215,7 +213,7 @@ export default function ClubProfileClient({
                                     {label}
                                 </div>
                                 {activeTab === id && (
-                                    <motion.div 
+                                    <motion.div
                                         layoutId="clubActiveTab"
                                         className="absolute inset-0 bg-azul-primary rounded-2xl shadow-lg shadow-azul-primary/20"
                                     />
@@ -450,7 +448,7 @@ export default function ClubProfileClient({
                                     <div className="flex flex-col gap-4">
                                         <div className="relative">
                                             <Filter className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <input 
+                                            <input
                                                 type="text"
                                                 placeholder="Buscar jugador..."
                                                 value={searchQuery}
@@ -465,7 +463,7 @@ export default function ClubProfileClient({
                                                 }}
                                                 className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-azul-primary transition-all text-foreground"
                                             />
-                                            <button 
+                                            <button
                                                 onClick={async () => {
                                                     if (searchQuery.length < 3) return;
                                                     setIsSearching(true);
@@ -492,7 +490,7 @@ export default function ClubProfileClient({
                                                                 <span className="text-[9px] font-bold text-muted-foreground uppercase">{player.email}</span>
                                                             </div>
                                                         </div>
-                                                        <button 
+                                                        <button
                                                             disabled={invitingId === player.id || player.clubId === club?.id}
                                                             onClick={async () => {
                                                                 setInvitingId(player.id);
@@ -555,13 +553,13 @@ export default function ClubProfileClient({
                                                         onClick={async () => {
                                                             setIsRegenerating(true);
                                                             try {
-                                                                 const newLink = await generateClubInviteLink(club.id);
-                                                                 setGeneratedInviteLink(newLink);
-                                                                 toast.success(generatedInviteLink ? "Nuevo link generado" : "Link generado correctamente");
+                                                                const newLink = await generateClubInviteLink(club.id);
+                                                                setGeneratedInviteLink(newLink);
+                                                                toast.success(generatedInviteLink ? "Nuevo link generado" : "Link generado correctamente");
                                                             } catch (err) {
-                                                                 toast.error("Error al generar link");
+                                                                toast.error("Error al generar link");
                                                             } finally {
-                                                                 setIsRegenerating(false);
+                                                                setIsRegenerating(false);
                                                             }
                                                         }}
                                                         className="flex-1 sm:flex-none px-4 py-3 bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white border border-azul-primary/20 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
@@ -589,60 +587,60 @@ export default function ClubProfileClient({
                         )}
 
                         {activeTab === "edit" && isOwner && (
-                            <motion.div 
+                            <motion.div
                                 key="tab-edit"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 className="bg-card border border-border rounded-[2.5rem] shadow-sm overflow-hidden"
                             >
-                        <div className="px-10 py-8 border-b border-border bg-muted/30">
-                            <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground flex items-center gap-3">
-                                <Edit2 className="h-5 w-5 text-azul-primary" /> Database Override
-                            </h2>
-                        </div>
-                        
-                        <div className="p-10 border-b border-border">
-                            <label className="text-[10px] font-black uppercase text-muted-foreground mb-6 block tracking-[0.2em]">Institutional Identity Logo</label>
-                            <div className="flex flex-col sm:flex-row items-center gap-10">
-                                <div className="w-40 h-40 rounded-[2.5rem] bg-muted/30 border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shadow-sm">
-                                    {logoPreview ? (
-                                        <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized sizes="160px" />
-                                    ) : (
-                                        <Building2 className="w-12 h-12 text-muted-foreground/20" />
-                                    )}
-                                    {isUploading && (
-                                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
-                                            <Loader2 className="w-8 h-8 animate-spin text-azul-primary" />
-                                        </div>
-                                    )}
+                                <div className="px-10 py-8 border-b border-border bg-muted/30">
+                                    <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground flex items-center gap-3">
+                                        <Edit2 className="h-5 w-5 text-azul-primary" /> Información del Club
+                                    </h2>
                                 </div>
-                                <div className="flex flex-col gap-5 flex-1 w-full text-center sm:text-left">
-                                    <p className="text-[11px] text-muted-foreground font-bold max-w-sm uppercase tracking-wide leading-relaxed italic">Upload high-fidelity institutional icon for visual identification in the neural network.</p>
+
+                                <div className="p-10 border-b border-border">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground mb-6 block tracking-[0.2em]">Logo Institucional del Club</label>
+                                    <div className="flex flex-col sm:flex-row items-center gap-10">
+                                        <div className="w-40 h-40 rounded-[2.5rem] bg-muted/30 border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shadow-sm">
+                                            {logoPreview ? (
+                                                <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized sizes="160px" />
+                                            ) : (
+                                                <Building2 className="w-12 h-12 text-muted-foreground/20" />
+                                            )}
+                                            {isUploading && (
+                                                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-azul-primary" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-5 flex-1 w-full text-center sm:text-left">
+                                            <p className="text-[11px] text-muted-foreground font-bold max-w-sm uppercase tracking-wide leading-relaxed italic">Upload high-fidelity institutional icon for visual identification in the neural network.</p>
                                             <label className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-azul-primary hover:bg-celeste text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-azul-primary/20 active:scale-95">
-                                               <ImageIcon className="w-4 h-4" />
-                                               {isUploading ? "Uploading Data..." : "Modify Logo"}
-                                                <input 
-                                                    type="file" 
-                                                    className="hidden" 
-                                                    accept="image/*" 
+                                                <ImageIcon className="w-4 h-4" />
+                                                {isUploading ? "Subiendo..." : "Modificar Logo del Club"}
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
                                                     disabled={isUploading}
                                                     onChange={async (e) => {
                                                         const file = e.target.files?.[0];
                                                         if (!file) return;
-                                                        
+
                                                         setIsUploading(true);
                                                         try {
                                                             const options = { maxSizeMB: 0.5, maxWidthOrHeight: 800, useWebWorker: true };
                                                             const compressedBlob = await imageCompression(file, options);
                                                             const compressedFile = new File([compressedBlob], "logo.jpg", { type: "image/jpeg" });
-                                                            
+
                                                             const uploadFormData = new FormData();
                                                             uploadFormData.append("file", compressedFile);
-                                                            
+
                                                             const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
                                                             if (!res.ok) throw new Error("Error al subir");
-                                                            
+
                                                             const data = await res.json();
                                                             setFormData(prev => ({ ...prev, logoUrl: data.url }));
                                                             setLogoPreview(data.url);
@@ -652,7 +650,7 @@ export default function ClubProfileClient({
                                                         } finally {
                                                             setIsUploading(false);
                                                         }
-                                                    }} 
+                                                    }}
                                                 />
                                             </label>
                                         </div>

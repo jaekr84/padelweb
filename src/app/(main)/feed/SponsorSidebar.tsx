@@ -38,7 +38,7 @@ export default function SponsorSidebar() {
                 id: "placeholder-invite",
                 name: "Espacio Disponible",
                 imageUrl: "",
-                link: "/contact",
+                link: "https://www.instagram.com/acaparg",
                 isActive: true,
                 isPlaceholder: true
             }
@@ -101,8 +101,10 @@ export default function SponsorSidebar() {
                                     <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors" />
                                 </Link>
                             ) : (
-                                <Link
-                                    href="/contact"
+                                <a
+                                    href="https://www.instagram.com/acaparg"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className={`block relative ${aspect} w-full rounded-2xl border-2 border-dashed border-border/30 bg-muted/5 hover:bg-indigo-50/10 transition-all group-hover:border-indigo-500/20 group-hover:shadow-lg group-hover:-translate-y-1`}
                                 >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
@@ -114,7 +116,7 @@ export default function SponsorSidebar() {
                                             <span className="block text-[10px] font-black uppercase text-indigo-600/40 tracking-widest">Disponible</span>
                                         </div>
                                     </div>
-                                </Link>
+                                </a>
                             )}
                         </div>
                     ))}
@@ -122,8 +124,10 @@ export default function SponsorSidebar() {
 
                 {/* Promotional CTA */}
                 <div className="px-1 mb-8">
-                    <Link
-                        href="/contact"
+                    <a
+                        href="https://www.instagram.com/acaparg"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="block group relative overflow-hidden rounded-2xl p-4 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 transition-all hover:translate-y-[-2px] hover:shadow-indigo-600/30 active:translate-y-0"
                     >
                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
@@ -138,7 +142,7 @@ export default function SponsorSidebar() {
                                 <ExternalLink className="w-3 h-3 text-white" />
                             </div>
                         </div>
-                    </Link>
+                    </a>
                 </div>
             </div>
         </aside>

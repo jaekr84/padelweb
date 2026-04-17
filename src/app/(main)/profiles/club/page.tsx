@@ -125,7 +125,7 @@ export default async function ClubProfilePage({
                 firstName: owner?.firstName,
                 lastName: owner?.lastName,
                 publicMetadata: { role: session.role },
-                imageUrl: owner?.imageUrl // Fallback to owner's photo
+                imageUrl: null // No fallback to owner's photo to keep them separate
             } : null}
             club={JSON.parse(JSON.stringify(club))}
             members={JSON.parse(JSON.stringify(clubMembers))}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
-import { Trophy, Star, Users, MapPin, ArrowRight, Activity, ShoppingBag } from "lucide-react";
+import { Trophy, Star, Users, MapPin, ArrowRight, Activity, ShoppingBag, Instagram } from "lucide-react";
 
 // Variantes de Framer Motion
 const staggerContainer: Variants = {
@@ -197,6 +197,14 @@ export default function LandingPage({
                         <Link href="/marketplace" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
                             <ShoppingBag className="w-3.5 h-3.5 text-celeste group-hover:scale-110 transition-transform" /> Marketplace
                         </Link>
+                        <a 
+                            href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-pink-500 transition-all uppercase flex items-center gap-2 group"
+                        >
+                            <Instagram className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Instagram
+                        </a>
                     </div>
 
                     <div className="flex gap-4 items-center justify-end flex-1">
@@ -467,7 +475,15 @@ export default function LandingPage({
                         </div>
                         <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">© 2026 Asociación Coreana Argentina de Pádel</span>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-6">
+                        <a 
+                            href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-slate-600 hover:text-pink-500 transition-colors"
+                        >
+                            <Instagram className="w-5 h-5" />
+                        </a>
                         <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600">
                             Designed & Developed by <a href="https://x.com/Kr84Jae" target="_blank" rel="noopener noreferrer" className="text-azul-primary hover:text-celeste transition-colors">@JaeKr84</a>
                         </span>

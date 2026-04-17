@@ -726,7 +726,7 @@ export default function PlayerProfileClient({
                                         </div>
 
                                         <div className="p-8 border-b border-border">
-                                            <label className="text-[10px] font-black uppercase text-muted-foreground mb-4 block tracking-widest">Foto de Perfil</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground mb-4 block tracking-widest">Foto de Perfil Personal</label>
                                             <div className="flex flex-col sm:flex-row items-center gap-6">
                                                 <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center relative overflow-hidden group shrink-0">
                                                     {imagePreview ? (
@@ -744,7 +744,7 @@ export default function PlayerProfileClient({
                                                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest max-w-xs leading-relaxed">Sube una foto cuadrada para que otros jugadores te reconozcan en los torneos.</p>
                                                     <label className={`inline-flex items-center justify-center gap-2 px-6 py-3 bg-${theme.primary} hover:bg-${theme.accent} text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg ${theme.shadow} active:scale-95`}>
                                                         <ImageIcon className="w-4 h-4" />
-                                                        {isUploading ? "Subiendo..." : "Cambiar Foto"}
+                                                        {isUploading ? "Subiendo..." : "Cambiar Foto Personal"}
                                                         <input
                                                             type="file"
                                                             className="hidden"
