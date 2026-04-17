@@ -62,6 +62,7 @@ export default async function HomePage() {
                 id: r.post.id,
                 content: r.post.content,
                 imageUrl: r.post.imageUrl,
+                images: r.post.images,
                 createdAt: r.post.createdAt.toISOString(),
                 user: {
                     id: r.user?.id || "unknown",

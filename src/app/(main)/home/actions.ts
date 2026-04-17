@@ -6,17 +6,25 @@ import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 
-export async function createPost(content: string, imageUrl: string | null) {
-    const session = await getSession() as { userId: string, role: string, email: string } | null;
+export async function createPost(content: string, images: string[] | null) {
+    const session = await getSession();
     if (!session?.userId) throw new Error("No autenticado");
-    if (session.role !== "superadmin" && session.role !== "club") throw new Error("Solo los administradores pueden publicar");
+    
+    // Use dbRole for actual permissions, as 'role' might be a simulated active role (e.g. "jugador")
+    const baseRoles = session.dbRole.split(',');
+    if (!baseRoles.includes("superadmin") && !baseRoles.includes("club")) {
+        throw new Error("Solo los administradores pueden publicar");
+    }
+    
     const userId = session.userId;
 
     await db.insert(posts).values({
         id: crypto.randomUUID(),
         userId,
         content,
-        imageUrl,
+        // If it's a single image, we can also set the legacy imageUrl field for compatibility
+        imageUrl: images && images.length === 1 ? images[0] : null,
+        images: images,
     });
     revalidatePath("/home");
 }

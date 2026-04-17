@@ -340,7 +340,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70 mb-1">Cupos</span>
-                            <span className="text-[11px] font-bold text-foreground/90">{tournament.maxSlots || "Sin límite"}</span>
+                            <span className="text-[11px] font-bold text-foreground/90">{mod?.maxSlots && mod.maxSlots !== 0 ? mod.maxSlots : "Sin límite"}</span>
                         </div>
                     </div>
 
@@ -383,6 +383,44 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </div>
                         )}
                     </div>
+
+                    {/* Registration Progress Bar */}
+                    {mod?.maxSlots > 0 && (
+                        <div className="mb-6 space-y-2">
+                            <div className="flex justify-between items-end px-1">
+                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">Cupos Confirmados</span>
+                                <span className="text-[10px] font-bold text-foreground/80">
+                                    {tournament.occupiedSlots || 0} / {mod.maxSlots} {mod.participacion === 'pareja' ? 'Parejas' : 'Jugadores'}
+                                </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden border border-border/10">
+                                {(() => {
+                                    const occupied = tournament.occupiedSlots || 0;
+                                    const max = mod.maxSlots;
+                                    const percentage = Math.min((occupied / max) * 100, 100);
+                                    
+                                    let barColor = "bg-emerald-500";
+                                    if (percentage >= 90) barColor = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]";
+                                    else if (percentage >= 70) barColor = "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]";
+                                    
+                                    return (
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                            <div className="flex justify-between items-center px-1">
+                                <span className="text-[8px] font-bold text-muted-foreground/50 italic capitalize">
+                                    {mod.maxSlots - (tournament.occupiedSlots || 0) <= 0 ? 'Sin lugares' : `${mod.maxSlots - (tournament.occupiedSlots || 0)} libres`}
+                                </span>
+                                <span className="text-[9px] font-black italic text-indigo-500/80">
+                                    {Math.round(Math.min(((tournament.occupiedSlots || 0) / mod.maxSlots) * 100, 100))}%
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Enrollment Section - Minimalist */}
                     <div className="mt-auto pt-4 border-t border-border/40">

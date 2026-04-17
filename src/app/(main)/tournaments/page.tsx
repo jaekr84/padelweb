@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth-server";
-import { eq, desc, notInArray, or, inArray } from "drizzle-orm";
+import { eq, desc, notInArray, or, inArray, count } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments, registrations, users, clubs } from "@/db/schema";
 
@@ -102,10 +102,22 @@ export default async function TournamentsPage({
         const userRegs = userId ? await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId)) : [];
         const registeredSet = new Set(userRegs.map(r => r.tournamentId));
 
+        // Fetch registration counts for all tournaments to show "cupos" percentage
+        const regCounts = await db
+            .select({
+                tournamentId: registrations.tournamentId,
+                occupiedSlots: count(),
+            })
+            .from(registrations)
+            .groupBy(registrations.tournamentId);
+
+        const countsMap = new Map(regCounts.map(rc => [rc.tournamentId, rc.occupiedSlots]));
+
         allTournaments = tournamentsRes.map(r => ({
             ...r.tournament,
             club: r.club,
             isRegistered: registeredSet.has(r.tournament.id),
+            occupiedSlots: countsMap.get(r.tournament.id) || 0,
         }));
 
         const locationMap = new Map<string, string>();

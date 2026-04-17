@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth-server";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, count } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments, users, clubs, registrations } from "@/db/schema";
 import { redirect } from "next/navigation";
@@ -49,9 +49,21 @@ export default async function ClubTournamentsPage() {
         .where(eq(tournaments.clubId, clubId))
         .orderBy(desc(tournaments.createdAt));
 
+    // Fetch registration counts for all tournaments to show "cupos" percentage
+    const regCounts = await db
+        .select({
+            tournamentId: registrations.tournamentId,
+            occupiedSlots: count(),
+        })
+        .from(registrations)
+        .groupBy(registrations.tournamentId);
+
+    const countsMap = new Map(regCounts.map(rc => [rc.tournamentId, rc.occupiedSlots]));
+
     const allMyTournaments = tournamentsRes.map(r => ({
         ...r.tournament,
-        club: r.club
+        club: r.club,
+        occupiedSlots: countsMap.get(r.tournament.id) || 0,
     }));
 
     return (

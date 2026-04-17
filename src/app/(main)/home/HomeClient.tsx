@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPost, addComment, updateComment, deleteComment, updatePost, deletePost } from "./actions";
 import {
     Image as ImageIcon, X, MessageSquare, Send, Loader2, Pencil, Trash2,
-    Check, RotateCcw, Calendar, Users, Users2, User, Trophy, MapPin, Clock
+    Check, RotateCcw, Calendar, Users, Users2, User, Trophy, MapPin, Clock,
+    ChevronLeft, ChevronRight, Plus
 } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
@@ -63,6 +64,7 @@ interface Post {
     id: string;
     content: string | null;
     imageUrl: string | null;
+    images?: string[] | null;
     createdAt: string;
     user: {
         id: string;
@@ -143,64 +145,117 @@ const uploadImage = async (file: File): Promise<string> => {
 export default function HomeClient({ initialPosts, currentUser, upcomingTournaments, ongoingTournaments, upcomingOpenCourts }: HomeClientProps) {
     const router = useRouter();
     const [content, setContent] = useState("");
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [compressedFile, setCompressedFile] = useState<File | null>(null);
+    const [selectedImages, setSelectedImages] = useState<{ id: string, file: File, preview: string }[]>([]);
+    const [isOptimizing, setIsOptimizing] = useState(false);
     const [postState, setPostState] = useState<ActionState>('idle');
+
+    // Helper to check if user has permission to post (superadmin or club)
+    const canPost = currentUser?.role.split(',').some(r => r === 'superadmin' || r === 'club');
 
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(capitalizeFirstLetter(e.target.value));
     };
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
-        setImagePreview(URL.createObjectURL(file));
+        // Limit to 10 photos
+        const totalAfterAdd = selectedImages.length + files.length;
+        if (totalAfterAdd > 10) {
+            toast.error("Máximo 10 fotos por publicación");
+            return;
+        }
+
+        setIsOptimizing(true);
+        const optimizationToast = toast.loading("Optimizando imágenes...");
 
         try {
-            const options = { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true };
-            const cBlob = await imageCompression(file, options);
-            const cFile = new File([cBlob], "post.jpg", { type: "image/jpeg" });
+            const newImages: { id: string, file: File, preview: string }[] = [];
+            
+            for (const file of files) {
+                const options = { 
+                    maxSizeMB: 0.8, 
+                    maxWidthOrHeight: 1400, 
+                    useWebWorker: true,
+                    fileType: 'image/webp' // Target WebP for better compression
+                };
+                
+                const cBlob = await imageCompression(file, options);
+                // Create a WebP file from the blob
+                const cFile = new File([cBlob], "post.webp", { type: "image/webp" });
+                
+                newImages.push({
+                    id: crypto.randomUUID(),
+                    file: cFile,
+                    preview: URL.createObjectURL(cFile)
+                });
+            }
 
-            setCompressedFile(cFile);
-            setImagePreview(URL.createObjectURL(cFile));
-            toast.success("Imagen optimizada para red");
+            setSelectedImages(prev => [...prev, ...newImages]);
+            toast.success(`${files.length} imágenes listas`, { id: optimizationToast });
         } catch (err) {
-            toast.error("Error al procesar la imagen");
-            setImagePreview(null);
-            setCompressedFile(null);
+            toast.error("Error al procesar algunas imágenes", { id: optimizationToast });
+        } finally {
+            setIsOptimizing(false);
         }
     };
 
+    const removeImage = (id: string) => {
+        setSelectedImages(prev => {
+            const filtered = prev.filter(img => img.id !== id);
+            // Clean up memory
+            const removed = prev.find(img => img.id === id);
+            if (removed) URL.revokeObjectURL(removed.preview);
+            return filtered;
+        });
+    };
+
+    const moveImage = (index: number, direction: 'left' | 'right') => {
+        const newIndex = direction === 'left' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= selectedImages.length) return;
+
+        const updated = [...selectedImages];
+        const [moved] = updated.splice(index, 1);
+        updated.splice(newIndex, 0, moved);
+        setSelectedImages(updated);
+    };
+
     const handlePost = async () => {
-        if (!content.trim() && !compressedFile) return;
+        if (!content.trim() && selectedImages.length === 0) return;
 
         setPostState('loading');
+        const uploadToast = toast.loading("Publicando...");
+
         try {
-            let imageUrl = null;
-            if (compressedFile) {
-                imageUrl = await uploadImage(compressedFile);
+            let imageUrls: string[] = [];
+            
+            if (selectedImages.length > 0) {
+                // Parallel upload of all images
+                imageUrls = await Promise.all(
+                    selectedImages.map(img => uploadImage(img.file))
+                );
             }
 
-            await createPost(content, imageUrl);
+            await createPost(content, imageUrls.length > 0 ? imageUrls : null);
 
             setPostState('success');
-            toast.success("Publicado exitosamente");
+            toast.success("Publicado en la comunidad", { id: uploadToast });
             setContent("");
-            setImagePreview(null);
-            setCompressedFile(null);
+            // Revoke URLs to free memory
+            selectedImages.forEach(img => URL.revokeObjectURL(img.preview));
+            setSelectedImages([]);
             router.refresh();
 
-            // Reset button state after 2 seconds
             setTimeout(() => setPostState('idle'), 2000);
         } catch (err: any) {
-            toast.error(err.message || "Error al publicar");
+            toast.error(err.message || "Error al publicar", { id: uploadToast });
             setPostState('idle');
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 font-sans selection:bg-emerald-500/20 relative">
+        <div className="min-h-screen bg-white text-slate-900 pb-24 font-sans selection:bg-emerald-500/20 relative">
             {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
                 @keyframes gradient-x {
@@ -225,8 +280,8 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
             </div>
 
             {/* Header Section */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-6">
-                <div className="max-w-6xl mx-auto flex flex-col gap-6">
+            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-3 sm:px-6">
+                <div className="max-w-[1440px] mx-auto flex flex-col gap-6">
                     <div className="flex items-center justify-between">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
@@ -242,82 +297,130 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                 </div>
             </div>
 
-
-            <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row pt-8 px-4 md:px-6 gap-8 justify-center">
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col md:flex-row pt-8 px-2 md:px-4 gap-12 justify-center">
 
                 {/* ── Main Feed (Left Column) ── */}
-                <div className="w-full max-w-2xl flex flex-col">
+                <div className="w-full max-w-3xl flex flex-col px-4 sm:px-0">
 
                     {/* Mobile Quick Access Bar (Visible only on mobile/tablet) */}
-                    <div className="xl:hidden mb-8 overflow-hidden">
+                    <div className="xl:hidden mb-12 overflow-hidden px-2">
                         <MobileTournamentBar 
                             ongoing={ongoingTournaments} 
                             upcoming={upcomingTournaments} 
                         />
                     </div>
 
-                    {/* Compose Post */}
-                    {(currentUser?.role === "superadmin" || currentUser?.role === "club") && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-3xl p-5 mb-8 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100"
-                        >
+                    {/* Compose Post (Seamless) */}
+                    {canPost && currentUser && (
+                        <div className="py-8 mb-4 border-b border-slate-100">
                             <div className="flex gap-4 mb-4">
-                                <div className="w-10 h-10 shrink-0 bg-slate-100 rounded-full overflow-hidden border border-slate-200 relative">
+                                <div className="w-12 h-12 shrink-0 bg-slate-50 rounded-full overflow-hidden border border-slate-100 relative">
                                     {currentUser.imageUrl ? (
-                                        <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="40px" />
+                                        <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" priority sizes="48px" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-500 uppercase">
+                                        <div className="w-full h-full flex items-center justify-center text-base font-black bg-slate-50 text-slate-400 uppercase italic">
                                             {currentUser.name?.charAt(0) || "U"}
                                         </div>
                                     )}
                                 </div>
-                                <textarea
-                                    value={content}
-                                    onChange={handleContentChange}
-                                    placeholder="¿Qué novedades hay en el club?"
-                                    className="w-full bg-transparent resize-none text-slate-900 placeholder-slate-400 outline-none text-base pt-2 min-h-[60px]"
-                                />
-                            </div>
+                                <div className="flex-1 min-w-0">
+                                    <textarea
+                                        value={content}
+                                        onChange={handleContentChange}
+                                        placeholder="¿Qué novedades hay en el club?"
+                                        className="w-full bg-transparent resize-none text-slate-900 placeholder-slate-400 outline-none text-lg font-medium pt-2 min-h-[80px]"
+                                    />
+                                    
+                                    {selectedImages.length > 0 && (
+                                        <div className="flex gap-3 overflow-x-auto py-4 px-1 no-scrollbar snap-x">
+                                            <AnimatePresence mode="popLayout">
+                                                {selectedImages.map((img, idx) => (
+                                                    <motion.div
+                                                        key={img.id}
+                                                        layout
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.8 }}
+                                                        className="relative w-32 h-32 shrink-0 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 snap-start group"
+                                                    >
+                                                        <Image src={img.preview} fill className="object-cover" alt="Preview" unoptimized />
+                                                        
+                                                        {/* Overlays */}
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                            {idx > 0 && (
+                                                                <button 
+                                                                    onClick={() => moveImage(idx, 'left')}
+                                                                    className="p-1.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-colors"
+                                                                >
+                                                                    <ChevronLeft className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <button 
+                                                                onClick={() => removeImage(img.id)}
+                                                                className="p-1.5 bg-rose-500/80 hover:bg-rose-500 rounded-full text-white backdrop-blur-md transition-colors"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                            {idx < selectedImages.length - 1 && (
+                                                                <button 
+                                                                    onClick={() => moveImage(idx, 'right')}
+                                                                    className="p-1.5 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-colors"
+                                                                >
+                                                                    <ChevronRight className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
 
-                            {imagePreview && (
-                                <div className="relative mb-4 ml-14 bg-slate-100 rounded-2xl overflow-hidden group aspect-video border border-slate-200">
-                                    <Image src={imagePreview} fill className="object-cover" alt="Preview" unoptimized sizes="(max-width: 768px) 100vw, 672px" />
-                                    <button
-                                        onClick={() => { setImagePreview(null); setCompressedFile(null); }}
-                                        className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full text-slate-900 shadow-sm transition-all"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                                                        {/* Index Badge */}
+                                                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md text-[9px] font-black text-white rounded-md uppercase tracking-tighter">
+                                                            {idx + 1}
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                            
+                                            {selectedImages.length < 10 && (
+                                                <label className="w-32 h-32 shrink-0 rounded-2xl border-2 border-dashed border-slate-100 hover:border-emerald-500/50 hover:bg-emerald-50/30 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-600 transition-all cursor-pointer">
+                                                    <Plus className="w-6 h-6" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Añadir</span>
+                                                    <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+                                                </label>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between pt-4">
+                                        <label className="p-2 -ml-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full cursor-pointer transition-colors relative">
+                                            <ImageIcon className="w-6 h-6" />
+                                            <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+                                            {selectedImages.length > 0 && (
+                                                <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                                                    {selectedImages.length}
+                                                </span>
+                                            )}
+                                        </label>
+
+                                        <button
+                                            onClick={handlePost}
+                                            disabled={postState !== 'idle' || isOptimizing || (!content.trim() && selectedImages.length === 0)}
+                                            className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3
+                                                ${postState === 'success'
+                                                    ? 'bg-emerald-500 text-white shadow-emerald-500/30 shadow-lg'
+                                                    : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50'
+                                                }`}
+                                        >
+                                            {postState === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
+                                            {postState === 'success' && <Check className="w-4 h-4" />}
+                                            {postState === 'loading' ? "Enviando..." : postState === 'success' ? "Publicado" : "Publicar Ahora"}
+                                        </button>
+                                    </div>
                                 </div>
-                            )}
-
-                            <div className="flex items-center justify-between border-t border-slate-100 pt-4 ml-14">
-                                <label className="p-2 -ml-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full cursor-pointer transition-colors">
-                                    <ImageIcon className="w-5 h-5" />
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                                </label>
-
-                                <button
-                                    onClick={handlePost}
-                                    disabled={postState !== 'idle' || (!content.trim() && !compressedFile)}
-                                    className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2
-                                        ${postState === 'success'
-                                            ? 'bg-emerald-500 text-white shadow-emerald-500/30 shadow-md'
-                                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-slate-900'
-                                        }`}
-                                >
-                                    {postState === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {postState === 'success' && <Check className="w-4 h-4" />}
-                                    {postState === 'loading' ? "Enviando..." : postState === 'success' ? "Publicado" : "Publicar"}
-                                </button>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
 
                     {/* Posts List */}
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4">
                         {initialPosts.length === 0 ? (
                             <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 border-dashed">
                                 <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -335,62 +438,109 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                 </div>
 
                 {/* ── Right Sidebar (Desktop only) ── */}
-                <aside className="hidden xl:flex flex-col w-[340px] gap-6 sticky top-24 self-start">
+                <aside className="hidden xl:flex flex-col w-[340px] gap-12 sticky top-24 self-start">
 
-                    {/* Tournaments Card */}
-                    <SidebarCard title="Próximos Torneos" icon={<Trophy className="w-4 h-4 text-emerald-600" />} link="/tournaments" linkText="Ver calendario">
+                    {/* Tournaments List (Flat) */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                                <Trophy className="w-3.5 h-3.5 text-emerald-500" /> Próximos Torneos
+                            </h2>
+                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Ver Todo</Link>
+                        </div>
                         {upcomingTournaments.length === 0 ? (
                             <EmptyState text="No hay torneos próximos" />
                         ) : (
-                            upcomingTournaments.map(t => (
-                                <TournamentItem key={t.id} t={t} />
-                            ))
+                            <div className="flex flex-col">
+                                {upcomingTournaments.map(t => (
+                                    <TournamentItem key={t.id} t={t} />
+                                ))}
+                            </div>
                         )}
-                    </SidebarCard>
+                    </div>
 
-                    {/* Ongoing Tournaments Card */}
-                    <SidebarCard title="En Curso" icon={<Clock className="w-4 h-4 text-amber-500" />} link="/tournaments" linkText="Ver resultados">
+                    {/* Ongoing Tornaments (Flat) */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5 text-amber-500" /> En Curso
+                            </h2>
+                            <Link href="/tournaments" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Resultados</Link>
+                        </div>
                         {ongoingTournaments.length === 0 ? (
                             <EmptyState text="No hay torneos activos" />
                         ) : (
-                            ongoingTournaments.map(t => (
-                                <TournamentItem key={t.id} t={t} isOngoing />
-                            ))
+                            <div className="flex flex-col">
+                                {ongoingTournaments.map(t => (
+                                    <TournamentItem key={t.id} t={t} isOngoing />
+                                ))}
+                            </div>
                         )}
-                    </SidebarCard>
+                    </div>
 
-                    {/* Open Courts Card */}
-                    <SidebarCard title="Cancha Abierta" icon={<Users className="w-4 h-4 text-blue-600" />} link="/cancha-abierta" linkText="Unirse a un partido">
+                    {/* Open Courts (Flat) */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-2">
+                                <Users className="w-3.5 h-3.5 text-blue-500" /> Cancha Abierta
+                            </h2>
+                            <Link href="/cancha-abierta" className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">Unirse</Link>
+                        </div>
                         {upcomingOpenCourts.length === 0 ? (
                             <EmptyState text="No hay partidos abiertos" />
                         ) : (
-                            upcomingOpenCourts.map(oc => {
-                                const available = (oc.totalSlots || 0) - (oc.registrationCount || 0);
-                                const isFull = available <= 0;
+                            <div className="flex flex-col">
+                                {upcomingOpenCourts.map(oc => {
+                                    const available = (oc.totalSlots || 0) - (oc.registrationCount || 0);
+                                    const isFull = available <= 0;
 
-                                return (
-                                    <div key={oc.id} className="group flex flex-col gap-2.5 p-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100">
-                                        <div className="flex justify-between items-start gap-2">
-                                            <h3 className="text-sm font-semibold text-slate-900 leading-tight line-clamp-1">{oc.name}</h3>
-                                            <div className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-md ${isFull ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-700'}`}>
-                                                {isFull ? 'Completo' : `${available} libres`}
+                                    return (
+                                        <Link 
+                                            key={oc.id} 
+                                            href={`/cancha-abierta`}
+                                            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors px-2 -mx-2 rounded-xl"
+                                        >
+                                            <div className="flex justify-between items-start gap-2">
+                                                <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors">{oc.name}</h3>
+                                                <div className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-md ${isFull ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-700'}`}>
+                                                    {oc.registrationCount || 0}/{oc.totalSlots}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-4 text-slate-500 text-xs">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                <span className="font-medium">{formatDateAR(oc.date)} {oc.time}</span>
+                                            <div className="flex items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span>{formatDateAR(oc.date)} {oc.time}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" />
+                                                    <span className="truncate">{oc.clubName || "Club"}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <MapPin className="w-3.5 h-3.5" />
-                                                <span className="font-medium line-clamp-1 truncate">{oc.clubName || "Club"}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })
+
+                                            {oc.totalSlots && oc.totalSlots > 0 && (
+                                                <div className="w-full mt-1">
+                                                    <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                        {(() => {
+                                                            const percentage = Math.min(((oc.registrationCount || 0) / oc.totalSlots) * 100, 100);
+                                                            let barColor = "bg-blue-500";
+                                                            if (percentage >= 90) barColor = "bg-rose-500";
+                                                            else if (percentage >= 70) barColor = "bg-amber-500";
+                                                            return (
+                                                                <div 
+                                                                    className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
+                                                                    style={{ width: `${percentage}%` }}
+                                                                />
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
                         )}
-                    </SidebarCard>
+                    </div>
                 </aside>
             </div>
         </div>
@@ -418,32 +568,12 @@ function MobileTournamentBar({ ongoing, upcoming }: { ongoing: TournamentQuickVi
     );
 }
 
-// ── Sidebar Helper Components ──────────────────────────────────────────────
-
-function SidebarCard({ title, icon, link, linkText, children }: any) {
-    return (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100">
-            <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-slate-50 rounded-xl border border-slate-100">{icon}</div>
-                    <h2 className="text-sm font-bold text-slate-900">{title}</h2>
-                </div>
-                <Link href={link} className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">{linkText}</Link>
-            </div>
-            <div className="flex flex-col gap-3">
-                {children}
-            </div>
-        </motion.div>
-    );
-}
-
 function EmptyState({ text }: { text: string }) {
-    return <p className="text-sm text-slate-400 text-center py-6 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">{text}</p>;
+    return <p className="text-xs font-bold text-slate-400 text-center py-8 bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed italic uppercase tracking-widest">{text}</p>;
 }
 
 function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOngoing?: boolean }) {
     const modal = typeof t.modalidad === 'string' ? JSON.parse(t.modalidad) : t.modalidad;
-    const isParejas = modal?.participacion === 'parejas' || !modal?.participacion;
     let cats = [];
     try { cats = typeof t.categories === 'string' ? JSON.parse(t.categories) : (t.categories || []); } catch (e) { }
     const catLabel = Array.isArray(cats) && cats.length > 0 ? (cats[0] === 'libre' ? 'Libre' : cats.join(", ")) : "N/A";
@@ -451,32 +581,29 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
     return (
         <Link 
             href={`/tournaments/${t.id}`}
-            className="group flex flex-col gap-2.5 p-4 rounded-[2rem] bg-slate-50 hover:bg-white hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 border border-slate-100 hover:border-emerald-500/20 relative overflow-hidden"
+            className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
         >
-            {/* Hover Glow */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur" />
-            
             <div className="relative z-10 flex justify-between items-start gap-2">
-                <div className="flex flex-col gap-1 min-w-0">
-                    <h3 className="text-sm font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors uppercase italic">{t.name}</h3>
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                    <h3 className="text-xs font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors uppercase italic tracking-tighter">{t.name}</h3>
+                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
                         <span>{t.clubName || "Acap"}</span>
-                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                        <span className={t.type === 'americano' ? 'text-blue-500' : 'text-emerald-500'}>
+                        <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                        <span className={t.type === 'americano' ? 'text-blue-500/70' : 'text-emerald-500/70'}>
                             {t.type === 'americano' ? 'Americano' : 'Libre'}
                         </span>
                     </div>
                 </div>
-                <div className="p-1.5 bg-white rounded-lg border border-slate-100 text-slate-300 group-hover:text-emerald-500 group-hover:border-emerald-500/20 transition-all">
+                <div className="p-1.5 text-slate-300 group-hover:text-emerald-500 transition-all">
                     <Send className="w-3 h-3 rotate-45" />
                 </div>
             </div>
 
             <div className="relative z-10 flex items-center justify-between mt-1">
-                <div className="flex items-center gap-3 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                    <div className="flex items-center gap-1.5">
-                        {isOngoing ? <Clock className="w-3.5 h-3.5 text-amber-500" /> : <Calendar className="w-3.5 h-3.5 text-emerald-600" />}
-                        <span className="group-hover:text-slate-900 transition-colors">
+                <div className="flex items-center gap-3 text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                    <div className="flex items-center gap-1">
+                        {isOngoing ? <Clock className="w-3 h-3 text-amber-500" /> : <Calendar className="w-3 h-3 text-emerald-600" />}
+                        <span className="group-hover:text-slate-700 transition-colors">
                             {isOngoing
                                 ? (t.status === 'en_curso' ? 'Fase de Grupos' : 'Playoffs')
                                 : formatDateAR(t.startDate)
@@ -484,43 +611,222 @@ function TournamentItem({ t, isOngoing = false }: { t: TournamentQuickView, isOn
                         </span>
                     </div>
                 </div>
-                <span className="shrink-0 text-[9px] font-black px-2.5 py-1 bg-white border border-slate-100 text-slate-500 rounded-lg group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
+                <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-500 rounded-md group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all uppercase tracking-widest">
                     {catLabel}
                 </span>
             </div>
 
+            {modal?.maxSlots > 0 && (
+                <div className="relative z-10 w-full mt-1">
+                    <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                        {(() => {
+                            const percentage = Math.min(((t.registrationsCount || 0) / modal.maxSlots) * 100, 100);
+                            let barColor = "bg-emerald-500";
+                            if (percentage >= 90) barColor = "bg-rose-500";
+                            else if (percentage >= 70) barColor = "bg-amber-500";
+                            return (
+                                <div 
+                                    className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
+                                    style={{ width: `${percentage}%` }}
+                                />
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
+
             {/* Registrants Facepile */}
-            <div className="relative z-10 flex items-center gap-3 mt-1.5 pt-3 border-t border-slate-100/50">
-                <div className="flex -space-x-2">
+            <div className="relative z-10 flex items-center gap-2 mt-1">
+                <div className="flex -space-x-1.5">
                     {t.registrants && t.registrants.length > 0 ? (
                         t.registrants.map((reg, idx) => (
-                            <div key={idx} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 overflow-hidden relative shadow-sm">
+                            <div key={idx} className="w-5 h-5 rounded-full border border-white bg-slate-100 overflow-hidden relative shadow-sm">
                                 {reg.imageUrl ? (
-                                    <Image src={reg.imageUrl} alt={reg.name} fill className="object-cover" sizes="24px" />
+                                    <Image src={reg.imageUrl} alt={reg.name} fill className="object-cover" sizes="20px" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[8px] font-bold text-slate-500 uppercase">
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[6px] font-black text-slate-500 uppercase italic">
                                         {reg.name.charAt(0)}
                                     </div>
                                 )}
                             </div>
                         ))
                     ) : (
-                        <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-50 flex items-center justify-center">
-                            <Users className="w-3 h-3 text-slate-300" />
+                        <div className="w-5 h-5 rounded-full border border-white bg-slate-50 flex items-center justify-center">
+                            <Users className="w-2.5 h-2.5 text-slate-300" />
                         </div>
                     )}
                 </div>
-                <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">
-                    {t.registrationsCount > 0 ? (
-                        <>{t.registrationsCount} {t.registrationsCount === 1 ? 'inscripto' : 'inscriptos'}</>
-                    ) : (
-                        <>Sin inscriptos</>
-                    )}
+                <span className="text-[9px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors uppercase tracking-widest">
+                    {t.registrationsCount || 0}/{modal?.maxSlots || 0}
                 </span>
             </div>
         </Link>
     );
 }
+
+// ── Post Media Components ──────────────────────────────────────────────────
+
+function PostMedia({ images, fallbackUrl }: { images?: string[] | null, fallbackUrl?: string | null }) {
+    const [viewMode, setViewMode] = useState<'grid' | 'carousel'>('grid');
+    const [carouselIndex, setCarouselIndex] = useState(0);
+
+    // Safe parse images if it's a string (MySQL JSON sometimes comes back as string)
+    let parsedImages: string[] = [];
+    try {
+        if (Array.isArray(images)) {
+            parsedImages = images;
+        } else if (typeof images === "string") {
+            parsedImages = JSON.parse(images);
+        }
+    } catch (e) {
+        console.error("Error parsing images:", e);
+    }
+    
+    // Combine new 'images' JSON and legacy 'fallbackUrl'
+    const allImages = parsedImages.length > 0 ? parsedImages : (fallbackUrl ? [fallbackUrl] : []);
+    
+    if (allImages.length === 0) return null;
+
+    const count = allImages.length;
+
+    const next = () => setCarouselIndex((prev) => (prev + 1) % count);
+    const prev = () => setCarouselIndex((prev) => (prev - 1 + count) % count);
+
+    return (
+        <div className="mb-6 overflow-hidden">
+            <AnimatePresence mode="wait">
+                {viewMode === 'grid' ? (
+                    <motion.div 
+                        key="grid"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className={`grid gap-2 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group/media
+                            ${count === 1 ? 'grid-cols-1 aspect-auto' : 
+                            count === 2 ? 'grid-cols-2 aspect-[4/3]' : 
+                            count === 3 ? 'grid-cols-3 aspect-[4/3]' : 
+                            'grid-cols-2 aspect-square'}
+                        `}
+                    >
+                {count === 1 && (
+                    <div 
+                        className="relative w-full h-full min-h-[300px] max-h-[600px] overflow-hidden cursor-pointer" 
+                        onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}
+                    >
+                        <Image 
+                            src={allImages[0]} 
+                            alt="" 
+                            width={1200} 
+                            height={800}
+                            className="w-full h-auto object-contain transition-transform group-hover/media:scale-[1.01] duration-700" 
+                            unoptimized 
+                        />
+                    </div>
+                )}
+
+                {count === 2 && allImages.map((img, i) => (
+                    <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
+                        <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                    </div>
+                ))}
+
+                {count === 3 && (
+                    <>
+                        <div className="relative col-span-2 row-span-2 overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(0); setViewMode('carousel'); }}>
+                            <Image src={allImages[0]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                        </div>
+                        <div className="grid grid-rows-2 gap-2">
+                            <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(1); setViewMode('carousel'); }}>
+                                <Image src={allImages[1]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                            </div>
+                            <div className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(2); setViewMode('carousel'); }}>
+                                <Image src={allImages[2]} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {count >= 4 && allImages.slice(0, 4).map((img, i) => (
+                    <div key={i} className="relative w-full h-full overflow-hidden cursor-pointer" onClick={() => { setCarouselIndex(i); setViewMode('carousel'); }}>
+                        <Image src={img} fill alt="" className="object-cover transition-transform group-hover/media:scale-[1.02] duration-700" unoptimized />
+                        {i === 3 && count > 4 && (
+                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
+                                <Plus className="w-8 h-8 mb-1" />
+                                <span className="text-lg font-black uppercase tracking-widest">{count - 4} más</span>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        key="carousel"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="relative bg-slate-900 rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center p-4 group/carousel"
+                    >
+                        {/* Back to Grid Button */}
+                        <button 
+                            onClick={() => setViewMode('grid')}
+                            className="absolute top-4 left-4 z-20 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10"
+                        >
+                            <ChevronLeft className="w-3 h-3" /> Volver
+                        </button>
+
+                        {/* Image Counter */}
+                        <div className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/40 backdrop-blur-md text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">
+                            {carouselIndex + 1} / {count}
+                        </div>
+
+                        {/* Current Image */}
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={carouselIndex}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="relative w-full h-full flex items-center justify-center"
+                                >
+                                    <Image 
+                                        src={allImages[carouselIndex]} 
+                                        alt="" 
+                                        fill 
+                                        className="object-contain" 
+                                        unoptimized 
+                                    />
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Navigation Arrows */}
+                        {count > 1 && (
+                            <>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); prev(); }}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                                >
+                                    <ChevronLeft className="w-6 h-6" />
+                                </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); next(); }}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                                >
+                                    <ChevronRight className="w-6 h-6" />
+                                </button>
+                            </>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+
+
 
 // ── Post Component ─────────────────────────────────────────────────────────
 
@@ -592,30 +898,25 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
     const userInitials = post.user.name?.charAt(0) || "U";
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            className="group bg-white rounded-[2rem] p-5 sm:p-7 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] border border-slate-100 transition-all"
-        >
+        <div className="group pb-12 mb-10 border-b border-slate-100 transition-all">
             {/* Author */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
+            <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                         {post.user.imageUrl ? (
-                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="44px" />
+                            <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="48px" />
                         ) : (
-                            <span className="text-sm font-bold text-slate-500 uppercase">{userInitials}</span>
+                            <span className="text-sm font-black text-slate-400 uppercase italic">{userInitials}</span>
                         )}
                     </div>
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-bold text-slate-900">{post.user.name}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold uppercase tracking-wide">
+                            <span className="text-base font-black uppercase italic tracking-tighter text-slate-900">{post.user.name}</span>
+                            <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 font-black uppercase tracking-widest border border-slate-100">
                                 {post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'superadmin' ? 'Administrador' : 'Usuario'}
                             </span>
                         </div>
-                        <span className="text-xs text-slate-500 font-medium">{formatDateTimeAR(post.createdAt)}</span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{formatDateTimeAR(post.createdAt)}</span>
                     </div>
                 </div>
 
@@ -641,56 +942,52 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
             {/* Content */}
             <div className="relative z-10">
                 {isEditingPost ? (
-                    <div className="flex flex-col gap-3 mb-5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div className="flex flex-col gap-4 mb-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
                         <textarea
                             value={editPostContent}
                             onChange={(e) => setEditPostContent(capitalizeFirstLetter(e.target.value))}
-                            className="w-full bg-transparent border-none outline-none text-[15px] text-slate-900 placeholder-slate-400 resize-none min-h-[100px]"
+                            className="w-full bg-transparent border-none outline-none text-lg text-slate-900 placeholder-slate-400 resize-none min-h-[120px]"
                             autoFocus
                         />
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-3">
                             <button
                                 onClick={() => { setIsEditingPost(false); setEditPostContent(post.content || ""); }}
-                                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
+                                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2"
                             >
                                 <RotateCcw className="w-4 h-4" /> Cancelar
                             </button>
                             <button
                                 onClick={handleUpdatePost}
                                 disabled={isUpdatingPost || !editPostContent.trim()}
-                                className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2"
+                                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2"
                             >
-                                {isUpdatingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Guardar Cambios
+                                {isUpdatingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Guardar
                             </button>
                         </div>
                     </div>
                 ) : (
                     post.content && (
-                        <p className="text-slate-800 text-[15px] leading-relaxed mb-5 whitespace-pre-wrap">
+                        <p className="text-slate-800 text-lg font-medium leading-relaxed mb-6 whitespace-pre-wrap">
                             {post.content}
                         </p>
                     )
                 )}
 
-                {post.imageUrl && (
-                    <div className="relative rounded-2xl border border-slate-200 overflow-hidden mb-4 bg-slate-100 aspect-video w-full">
-                        <Image src={post.imageUrl} fill unoptimized className="object-cover" alt="Publicación" sizes="(max-width: 768px) 100vw, 672px" />
-                    </div>
-                )}
+                <PostMedia images={post.images} fallbackUrl={post.imageUrl} />
 
                 {/* Interaction Row */}
                 <div className="flex items-center gap-4 mt-2">
                     <button
                         onClick={() => setShowComments(!showComments)}
-                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors py-1 px-2 -ml-2 rounded-lg hover:bg-slate-50"
+                        className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors py-2 px-3 -ml-3 rounded-xl hover:bg-slate-50 font-black uppercase tracking-widest text-[10px]"
                     >
                         <MessageSquare className="w-4 h-4" />
-                        <span className="text-sm font-semibold">{post.comments?.length || 0} Comentarios</span>
+                        <span>{post.comments?.length || 0} Comentarios</span>
                     </button>
                 </div>
 
                 {/* Comments Section */}
-                <div className="mt-4 pt-5 border-t border-slate-100 flex flex-col gap-5">
+                <div className="mt-4 pt-6 border-t border-slate-50 flex flex-col gap-5">
                     {post.comments && post.comments.length > 0 && (
                         <div className="flex flex-col gap-4">
                             {(showComments ? post.comments : post.comments.slice(-3)).map(comment => (
@@ -700,7 +997,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                             {!showComments && post.comments.length > 3 && (
                                 <button
                                     onClick={() => setShowComments(true)}
-                                    className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors pl-12 text-left"
+                                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors pl-12 text-left"
                                 >
                                     Ver los {post.comments.length - 3} comentarios restantes...
                                 </button>
@@ -711,11 +1008,11 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                     {/* Comment Input */}
                     {currentUser && (
                         <form onSubmit={handleComment} className="flex gap-3 items-center mt-2">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative">
+                            <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 overflow-hidden shrink-0 relative">
                                 {currentUser.imageUrl ? (
-                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
+                                    <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="40px" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
+                                    <div className="w-full h-full flex items-center justify-center text-xs font-black text-slate-400 uppercase italic">
                                         {currentUser.name?.charAt(0) || "U"}
                                     </div>
                                 )}
@@ -726,15 +1023,15 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                                     value={commentText}
                                     onChange={handleCommentChange}
                                     placeholder="Escribe un comentario..."
-                                    className="w-full bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-full py-2.5 px-5 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+                                    className="w-full bg-slate-50 border border-slate-100 focus:border-slate-300 focus:bg-white rounded-2xl py-3 px-5 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all font-medium"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!commentText.trim() || commentState === 'loading'}
-                                    className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all flex items-center justify-center
+                                    className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 rounded-xl transition-all flex items-center justify-center
                                         ${commentState === 'success'
                                             ? 'bg-emerald-500 text-white'
-                                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-30 disabled:bg-slate-200 disabled:text-slate-500'
+                                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-30 disabled:bg-slate-200'
                                         }`}
                                 >
                                     {commentState === 'loading' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
@@ -746,7 +1043,7 @@ function PostItem({ post, currentUser }: { post: Post, currentUser: any }) {
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -792,66 +1089,57 @@ function CommentItem({ comment, currentUser }: { comment: any, currentUser: any 
 
     return (
         <div className="flex gap-3 group/comment">
-            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative mt-1">
+            <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 overflow-hidden shrink-0 relative mt-1">
                 {comment.user.imageUrl ? (
                     <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-slate-500 uppercase">
+                    <div className="w-full h-full flex items-center justify-center text-[11px] font-black text-slate-400 uppercase italic">
                         {comment.user.name?.charAt(0) || "U"}
                     </div>
                 )}
             </div>
-            <div className="flex flex-col flex-1">
-                <div className={`flex flex-col flex-1 bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 ${isEditing ? 'ring-1 ring-slate-300 bg-white' : ''}`}>
-                    <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm font-bold text-slate-900">{comment.user.name}</span>
-                        <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-medium text-slate-400">{timeAgo(comment.createdAt)}</span>
-                            {isOwner && !isEditing && (
-                                <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
-                                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-md transition-colors">
-                                        <Pencil className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                        onClick={() => { if (confirm("¿Seguro que quieres borrar este comentario?")) handleDelete(); }}
-                                        disabled={isDeleting}
-                                        className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-md transition-colors disabled:opacity-50"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {isEditing ? (
-                        <div className="flex flex-col gap-2">
-                            <textarea
-                                value={editText}
-                                onChange={(e) => setEditText(capitalizeFirstLetter(e.target.value))}
-                                className="w-full bg-transparent border-none outline-none text-[13px] text-slate-900 placeholder-slate-400 resize-none min-h-[40px]"
-                                autoFocus
-                            />
-                            <div className="flex justify-end gap-2 mt-2">
+            <div className="flex-1 flex flex-col gap-1">
+                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 relative group-hover/comment:border-slate-200 transition-colors">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-black uppercase italic tracking-tighter text-slate-900">{comment.user.name}</span>
+                        {isOwner && (
+                            <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
                                 <button
-                                    onClick={() => { setIsEditing(false); setEditText(comment.content); }}
-                                    className="px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-200 rounded-md transition-colors"
+                                    onClick={() => { setIsEditing(true); setEditText(comment.content); }}
+                                    className="p-1 hover:text-indigo-600 transition-colors"
                                 >
-                                    Cancelar
+                                    <Pencil className="w-3 h-3" />
                                 </button>
                                 <button
-                                    onClick={handleUpdate}
-                                    disabled={isUpdating || !editText.trim()}
-                                    className="px-2 py-1 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition-colors flex items-center gap-1"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                    className="p-1 hover:text-red-600 transition-colors"
                                 >
-                                    {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Guardar"}
+                                    {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {isEditing ? (
+                        <div className="flex flex-col gap-2">
+                            <input
+                                value={editText}
+                                onChange={(e) => setEditText(capitalizeFirstLetter(e.target.value))}
+                                className="w-full bg-transparent border-none outline-none text-sm text-slate-900"
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-2">
+                                <button onClick={() => setIsEditing(false)} className="text-[10px] font-bold text-slate-500 uppercase">Cancelar</button>
+                                <button onClick={handleUpdate} disabled={isUpdating} className="text-[10px] font-bold text-indigo-600 uppercase">
+                                    {isUpdating ? "..." : "Guardar"}
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <p className="text-[13px] text-slate-700 leading-relaxed font-normal">{comment.content}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed font-medium">{comment.content}</p>
                     )}
                 </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">{timeAgo(comment.createdAt)}</span>
             </div>
         </div>
     );

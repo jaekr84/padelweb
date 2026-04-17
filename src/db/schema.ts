@@ -154,6 +154,7 @@ export const posts = mysqlTable("posts", {
     userId: varchar("user_id", { length: 256 }).notNull(),
     content: text("content"),
     imageUrl: varchar("image_url", { length: 512 }),
+    images: json("images"), // Added for multi-photo support
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     userIdIdx: index("posts_user_id_idx").on(table.userId),
