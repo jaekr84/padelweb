@@ -44,6 +44,7 @@ export default async function TournamentsPage({
     let availableLocations: string[] = [];
     let availableClubs: { id: string; name: string }[] = [];
     let session: any = null;
+    let finalClubId: string | null = null;
 
     try {
         session = await getSession();
@@ -130,6 +131,9 @@ export default async function TournamentsPage({
 
         if (userId) {
             [dbUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+            
+            const ownedClub = await db.select({ id: clubs.id }).from(clubs).where(eq(clubs.ownerId, userId)).limit(1);
+            finalClubId = dbUser?.clubId || ownedClub[0]?.id || null;
         }
 
     } catch (e) {
@@ -178,14 +182,11 @@ export default async function TournamentsPage({
     } else if (currentFilter === "terminados") {
         baseFiltered = finished;
     } else if (currentFilter === "mios" && userId) {
-        const isSuperAdmin = dbUser?.role === 'superadmin';
-        if (isSuperAdmin) {
-            baseFiltered = allTournaments;
-        } else {
-            const userRegs = await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId));
-            const regIds = new Set(userRegs.map(r => r.tournamentId));
-            baseFiltered = allTournaments.filter(t => t.createdByUserId === userId || regIds.has(t.id));
-        }
+        // Show only tournaments where user is registered or is the creator
+        baseFiltered = allTournaments.filter(t => t.createdByUserId === userId || t.isRegistered);
+    } else if (currentFilter === "mi_club" && finalClubId) {
+        // Show only tournaments belonging to the user's club
+        baseFiltered = allTournaments.filter(t => t.clubId === finalClubId);
     } else if (currentFilter === "clubes") {
         baseFiltered = allTournaments.filter(t => t.clubId !== null);
     } else {
@@ -299,6 +300,8 @@ export default async function TournamentsPage({
 
                     {/* ── Filters ── */}
                     <TournamentFiltersClient
+                        userId={userId}
+                        userClubId={finalClubId}
                         currentFilter={currentFilter}
                         selectedCategory={selectedCategory}
                         selectedLocation={selectedLocation}

@@ -847,7 +847,6 @@ export default function PlayerProfileClient({
                                                         >
                                                             <option value="masculino">Masculino</option>
                                                             <option value="femenino">Femenino</option>
-                                                            <option value="otro">Otro</option>
                                                         </select>
                                                     </div>
                                                 </div>

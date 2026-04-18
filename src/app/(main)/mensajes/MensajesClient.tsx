@@ -1,200 +1,148 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, ArrowLeft, MessageSquare, Search, Check, CheckCheck, Pencil, X } from "lucide-react";
+import { Send, User, ArrowLeft, MessageSquare, Search, Check, CheckCheck, Pencil, X, ChevronDown, Image as ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { getMessages, sendMessage, markAsRead, getConversations, searchUsers, startConversation } from "./actions";
-import { useRouter } from "next/navigation";
-
-type ConvUser = {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    imageUrl: string | null;
-    category: string | null;
-};
-
-type ConvItem = {
-    id: string;
-    user1Id: string;
-    user2Id: string;
-    lastMessage: string | null;
-    lastMessageAt: Date | null;
-    otherUser: ConvUser | null;
-    unreadCount: number;
-};
-
-type Msg = {
-    id: string;
-    conversationId: string;
-    senderId: string;
-    content: string;
-    isRead: boolean | null;
-    createdAt: Date;
-};
-
-type SearchResult = {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    imageUrl: string | null;
-    category: string | null;
-    email: string;
-};
+import { useClubs } from "@/hooks/use-clubs";
+import { useClubPlayers } from "@/hooks/use-club-players";
+import { useChatStore } from "@/store/useChatStore";
+import { SearchResult } from "@/types/chat";
+import imageCompression from "browser-image-compression";
 
 interface MensajesClientProps {
-    initialConversations: ConvItem[];
     currentUserId: string;
     initialConvId?: string;
 }
 
-export default function MensajesClient({ initialConversations, currentUserId, initialConvId }: MensajesClientProps) {
-    const [conversations, setConversations] = useState<ConvItem[]>(initialConversations);
-    const [activeConvId, setActiveConvId] = useState<string | null>(initialConvId || null);
-    const [messages, setMessages] = useState<Msg[]>([]);
+export default function MensajesClient({ currentUserId, initialConvId }: MensajesClientProps) {
+    const {
+        conversations,
+        activeConvId,
+        messages,
+        isLoadingMessages,
+        convSearchQuery,
+        setConvSearchQuery,
+        setActiveConvId,
+        fetchConversations,
+        fetchMessages,
+        sendNewMessage,
+        markRead,
+        searchPlayers,
+        userSearchResults,
+        isSearchingUsers,
+        createNewConversation,
+        uploadImage
+    } = useChatStore();
+
     const [newMessage, setNewMessage] = useState("");
     const [sending, setSending] = useState(false);
-    const [search, setSearch] = useState("");
-    const [loadingMessages, setLoadingMessages] = useState(false);
-    const [mobileShowChat, setMobileShowChat] = useState(!!initialConvId);
+    const [mobileShowChat, setMobileShowChat] = useState(false);
+    
     // New conversation search
     const [showNewConv, setShowNewConv] = useState(false);
     const [userQuery, setUserQuery] = useState("");
-    const [userResults, setUserResults] = useState<SearchResult[]>([]);
-    const [searchingUsers, setSearchingUsers] = useState(false);
     const [startingConv, setStartingConv] = useState(false);
-    const markedAsReadRef = useRef<Set<string>>(new Set());
+    const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+    const { clubs } = useClubs();
+    const { players: clubMembers, isLoading: isLoadingMembers } = useClubPlayers(selectedClubId);
+    
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const activeConv = conversations.find(c => c.id === activeConvId);
 
-    const loadMessages = useCallback(async (convId: string, markRead = false) => {
-        const msgs = await getMessages(convId);
-        setMessages(msgs as Msg[]);
-        if (markRead && !markedAsReadRef.current.has(convId)) {
-            await markAsRead(convId);
-            markedAsReadRef.current.add(convId);
-        }
-        setConversations(prev => prev.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c));
-    }, []);
-    
-    // Clear the read ref when user leaves or switches focus, or periodically
+    // Initial load and polling
     useEffect(() => {
-        const clearHistory = () => markedAsReadRef.current.clear();
-        window.addEventListener("blur", clearHistory);
-        return () => window.removeEventListener("blur", clearHistory);
-    }, []);
-
-    const refreshConversations = useCallback(async () => {
-        const convs = await getConversations();
-        setConversations(convs as ConvItem[]);
-    }, []);
-
-    // Initial load if there's an active conv
-    useEffect(() => {
-        if (activeConvId) {
-            setLoadingMessages(true);
-            loadMessages(activeConvId, true).finally(() => setLoadingMessages(false));
+        fetchConversations();
+        if (initialConvId) {
+            setActiveConvId(initialConvId);
+            setMobileShowChat(true);
         }
-    }, [activeConvId, loadMessages]);
+        const convInterval = setInterval(fetchConversations, 30000);
+        return () => clearInterval(convInterval);
+    }, [fetchConversations, initialConvId, setActiveConvId]);
 
-    // Polling: messages every 5s (only when tab is visible)
+    // Polling for active chat
     useEffect(() => {
         if (!activeConvId) return;
+        const msgInterval = setInterval(() => fetchMessages(activeConvId), 8000);
+        return () => clearInterval(msgInterval);
+    }, [activeConvId, fetchMessages]);
 
-        const pollMessages = async () => {
-            if (document.hidden) return;
-            const msgs = await getMessages(activeConvId);
-            setMessages(msgs as Msg[]);
-        };
-
-        const onVisible = async () => {
-            if (document.hidden) return;
-            await markAsRead(activeConvId);
-            setConversations(prev => prev.map(c => c.id === activeConvId ? { ...c, unreadCount: 0 } : c));
-        };
-
-        const msgInterval = setInterval(pollMessages, 12000);
-        const convInterval = setInterval(refreshConversations, 45000);
-        document.addEventListener("visibilitychange", onVisible);
-
-        return () => {
-            clearInterval(msgInterval);
-            clearInterval(convInterval);
-            document.removeEventListener("visibilitychange", onVisible);
-        };
-    }, [activeConvId, refreshConversations]);
-
-    // Scroll to bottom on new messages
+    // Scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     // Debounced user search
     useEffect(() => {
-        if (userQuery.length < 2) { setUserResults([]); return; }
-        setSearchingUsers(true);
-        const timer = setTimeout(async () => {
-            const res = await searchUsers(userQuery);
-            setUserResults(res as SearchResult[]);
-            setSearchingUsers(false);
+        if (userQuery.length < 2) return;
+        const timer = setTimeout(() => {
+            searchPlayers(userQuery, selectedClubId);
         }, 300);
         return () => clearTimeout(timer);
-    }, [userQuery]);
+    }, [userQuery, selectedClubId, searchPlayers]);
 
     const handleSelectConv = (convId: string) => {
         setActiveConvId(convId);
         setMobileShowChat(true);
-        // Rely on useEffect to load messages
-        inputRef.current?.focus();
+        setTimeout(() => inputRef.current?.focus(), 100);
     };
 
     const handleStartConv = async (user: SearchResult) => {
         if (startingConv) return;
         setStartingConv(true);
         try {
-            const { conversationId } = await startConversation(user.id);
-            await refreshConversations();
-            setShowNewConv(false);
-            setUserQuery("");
-            setUserResults([]);
-            handleSelectConv(conversationId);
-        } catch {
+            const conversationId = await createNewConversation(user.id);
+            if (conversationId) {
+                setShowNewConv(false);
+                setUserQuery("");
+                setMobileShowChat(true);
+            }
         } finally {
             setStartingConv(false);
         }
     };
 
-    const handleSend = async () => {
-        if (!newMessage.trim() || !activeConvId || sending) return;
+    const handleSend = async (imageUrl?: string | null) => {
+        if ((!newMessage.trim() && !imageUrl) || !activeConvId || sending) return;
+        
         setSending(true);
         const text = newMessage.trim();
-        setNewMessage("");
-
-        // Optimistic update
-        const optimistic: Msg = {
-            id: `opt-${Date.now()}`,
-            conversationId: activeConvId,
-            senderId: currentUserId,
-            content: text,
-            isRead: false,
-            createdAt: new Date(),
-        };
-        setMessages(prev => [...prev, optimistic]);
+        if (!imageUrl) setNewMessage("");
 
         try {
-            await sendMessage(activeConvId, text);
-            const msgs = await getMessages(activeConvId);
-            setMessages(msgs as Msg[]);
-            setConversations(prev => prev.map(c =>
-                c.id === activeConvId ? { ...c, lastMessage: text, lastMessageAt: new Date() } : c
-            ));
-        } catch {
+            await sendNewMessage(activeConvId, text, currentUserId, imageUrl);
         } finally {
             setSending(false);
+        }
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setSending(true);
+            // Compression
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1280,
+                useWebWorker: true
+            };
+            const compressedFile = await imageCompression(file, options);
+            
+            const url = await uploadImage(compressedFile);
+            if (url) {
+                await handleSend(url);
+            }
+        } catch (err) {
+            console.error("Error processing image:", err);
+        } finally {
+            setSending(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
 
@@ -208,13 +156,21 @@ export default function MensajesClient({ initialConversations, currentUserId, in
     };
 
     const filteredConvs = conversations.filter(c => {
-        if (!search) return true;
+        if (!convSearchQuery) return true;
         const name = `${c.otherUser?.firstName ?? ""} ${c.otherUser?.lastName ?? ""}`.toLowerCase();
-        return name.includes(search.toLowerCase());
+        return name.includes(convSearchQuery.toLowerCase());
     });
 
     return (
         <div className="min-h-screen bg-white text-slate-900 pb-24 font-sans">
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*" 
+            />
+
             {/* ── Sticky Header ── */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-3 sm:px-6">
                 <div className="flex items-center justify-between">
@@ -225,7 +181,7 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                         </h1>
                     </div>
                     <button
-                        onClick={() => { setShowNewConv(true); setUserQuery(""); setUserResults([]); }}
+                        onClick={() => { setShowNewConv(true); setUserQuery(""); }}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-azul-primary transition-all shadow-md"
                     >
                         <Pencil className="w-3.5 h-3.5" />
@@ -245,8 +201,8 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                             <input
                                 type="text"
                                 placeholder="Buscar conversación..."
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
+                                value={convSearchQuery}
+                                onChange={e => setConvSearchQuery(e.target.value)}
                                 className="w-full h-10 pl-9 pr-4 bg-slate-50 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30 focus:border-azul-primary/50 transition-all"
                             />
                         </div>
@@ -259,16 +215,8 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                 <div className="flex flex-col items-center justify-center h-full opacity-40 py-20">
                                     <MessageSquare className="w-12 h-12 mb-3 text-slate-300" />
                                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                        {search ? "Sin resultados" : "Sin conversaciones"}
+                                        {convSearchQuery ? "Sin resultados" : "Sin conversaciones"}
                                     </p>
-                                    {!search && (
-                                        <button
-                                            onClick={() => setShowNewConv(true)}
-                                            className="mt-4 px-4 py-2 bg-azul-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all opacity-100"
-                                        >
-                                            Nuevo mensaje
-                                        </button>
-                                    )}
                                 </div>
                             ) : filteredConvs.map(conv => (
                                 <motion.button
@@ -281,7 +229,7 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                     <div className="relative flex-shrink-0">
                                         <div className="w-11 h-11 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100">
                                             {conv.otherUser?.imageUrl ? (
-                                                <Image src={conv.otherUser.imageUrl} alt="" fill className="object-cover" />
+                                                <Image src={conv.otherUser.imageUrl} alt="" width={44} height={44} className="object-cover" />
                                             ) : (
                                                 <User className="w-5 h-5 text-slate-400" />
                                             )}
@@ -306,9 +254,6 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                             <p className={`text-xs truncate flex-1 ${conv.unreadCount > 0 ? "text-slate-900 font-bold" : "text-slate-400 font-medium"}`}>
                                                 {conv.lastMessage ?? "Conversación iniciada"}
                                             </p>
-                                            {conv.unreadCount > 0 && (
-                                                <div className="w-2 h-2 rounded-full bg-azul-primary animate-pulse flex-shrink-0" />
-                                            )}
                                         </div>
                                     </div>
                                 </motion.button>
@@ -331,7 +276,7 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                 </button>
                                 <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100 flex-shrink-0">
                                     {activeConv.otherUser?.imageUrl ? (
-                                        <Image src={activeConv.otherUser.imageUrl} alt="" fill className="object-cover" />
+                                        <Image src={activeConv.otherUser.imageUrl} alt="" width={40} height={40} className="object-cover" />
                                     ) : (
                                         <User className="w-5 h-5 text-slate-400" />
                                     )}
@@ -350,20 +295,20 @@ export default function MensajesClient({ initialConversations, currentUserId, in
 
                             {/* Messages */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-slate-50/50">
-                                {loadingMessages ? (
+                                {isLoadingMessages && messages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full opacity-30">
-                                        <div className="w-8 h-8 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin" />
+                                        <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
                                     </div>
                                 ) : messages.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3">
                                         <MessageSquare className="w-12 h-12 text-slate-300" />
                                         <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                            Todavía no hay mensajes. ¡Empezá la conversación!
+                                            Todavía no hay mensajes
                                         </p>
                                     </div>
                                 ) : messages.map((msg, i) => {
                                     const isMine = msg.senderId === currentUserId;
-                                    const showDate = i === 0 || new Date(messages[i - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+                                    const showDate = i === 0 || i > 0 && new Date(messages[i - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
                                     return (
                                         <div key={msg.id}>
                                             {showDate && (
@@ -381,6 +326,17 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                                         ? "bg-azul-primary text-white rounded-br-sm shadow-md shadow-azul-primary/20"
                                                         : "bg-white text-slate-900 rounded-bl-sm border border-slate-100 shadow-sm"
                                                         }`}>
+                                                        {msg.imageUrl && (
+                                                            <div className="mb-2 rounded-lg overflow-hidden border border-white/20">
+                                                                <Image 
+                                                                    src={msg.imageUrl} 
+                                                                    alt="Chat attachment" 
+                                                                    width={300} 
+                                                                    height={300} 
+                                                                    className="object-contain max-h-60" 
+                                                                />
+                                                            </div>
+                                                        )}
                                                         {msg.content}
                                                     </div>
                                                     <div className="flex items-center gap-1 px-1">
@@ -404,6 +360,12 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                             {/* Message Input */}
                             <div className="px-6 py-4 border-t border-slate-100 bg-white">
                                 <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-slate-100 hover:text-azul-primary transition-all active:scale-95"
+                                    >
+                                        <ImageIcon className="w-5 h-5" />
+                                    </button>
                                     <input
                                         ref={inputRef}
                                         type="text"
@@ -414,17 +376,16 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                         className="flex-1 h-12 px-5 bg-slate-50 rounded-2xl text-sm text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30 focus:border-azul-primary/50 transition-all"
                                     />
                                     <button
-                                        onClick={handleSend}
-                                        disabled={!newMessage.trim() || sending}
+                                        onClick={() => handleSend()}
+                                        disabled={(!newMessage.trim() && !sending) || sending}
                                         className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center transition-all hover:bg-azul-primary active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
                                     >
-                                        <Send className="w-5 h-5" />
+                                        {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                     </button>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        /* Empty state */
                         <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-slate-50/50">
                             <MessageSquare className="w-16 h-16 text-slate-200" />
                             <div className="text-center">
@@ -446,7 +407,6 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                             exit={{ opacity: 0 }}
                             className="fixed inset-0 z-50 flex items-center justify-center p-4"
                         >
-                            {/* Backdrop */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -455,68 +415,91 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                 className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
                             />
 
-                            {/* Modal */}
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                                 className="relative z-10 w-full max-w-md bg-white border border-slate-100 rounded-3xl shadow-2xl overflow-hidden"
                             >
-                                {/* Modal Header */}
                                 <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                                     <div>
                                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-azul-primary">Mensajería</p>
                                         <h2 className="text-lg font-black uppercase italic tracking-tighter text-slate-900">Nuevo Mensaje</h2>
                                     </div>
                                     <button
-                                        onClick={() => setShowNewConv(false)}
+                                        onClick={() => { setShowNewConv(false); setSelectedClubId(null); }}
                                         className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 border border-slate-100 transition-colors"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                {/* Search Input */}
+                                <div className="px-6 py-5 bg-slate-50/50 space-y-4 border-b border-slate-100">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Filtrar por Club</label>
+                                        <select
+                                            value={selectedClubId || ""}
+                                            onChange={(e) => {
+                                                setSelectedClubId(e.target.value || null);
+                                                setUserQuery("");
+                                            }}
+                                            className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
+                                        >
+                                            <option value="">Todos los clubes</option>
+                                            {clubs.map(club => (
+                                                <option key={club.id} value={club.id}>{club.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    {selectedClubId && (
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Seleccionar Jugador</label>
+                                            <select
+                                                onChange={(e) => {
+                                                    const player = clubMembers.find(m => m.id === e.target.value);
+                                                    if (player) handleStartConv({ id: player.id, firstName: player.name, lastName: "" } as any);
+                                                }}
+                                                defaultValue=""
+                                                disabled={isLoadingMembers}
+                                                className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all disabled:opacity-50"
+                                            >
+                                                <option value="" disabled>{isLoadingMembers ? "Cargando..." : "Seleccionar un jugador..."}</option>
+                                                {clubMembers.map(member => (
+                                                    <option key={member.id} value={member.id}>{member.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="px-6 py-4 border-b border-slate-100">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                         <input
                                             type="text"
-                                            autoFocus
-                                            placeholder="Buscá un jugador por nombre o email..."
+                                            placeholder="Buscá un jugador..."
                                             value={userQuery}
                                             onChange={e => setUserQuery(e.target.value)}
-                                            className="w-full h-11 pl-9 pr-4 bg-slate-50 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30 focus:border-azul-primary/50 transition-all"
+                                            className="w-full h-11 pl-9 pr-4 bg-slate-50 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30"
                                         />
                                     </div>
                                 </div>
 
-                                {/* Results */}
                                 <div className="overflow-y-auto max-h-72">
-                                    {searchingUsers ? (
+                                    {isSearchingUsers ? (
                                         <div className="flex items-center justify-center py-10">
-                                            <div className="w-6 h-6 border-2 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin" />
+                                            <Loader2 className="w-6 h-6 text-azul-primary animate-spin" />
                                         </div>
-                                    ) : userQuery.length < 2 ? (
-                                        <div className="flex flex-col items-center justify-center py-10 opacity-40">
-                                            <Search className="w-8 h-8 mb-2 text-slate-300" />
-                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Escribí al menos 2 letras</p>
-                                        </div>
-                                    ) : userResults.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-10 opacity-40">
-                                            <User className="w-8 h-8 mb-2 text-slate-300" />
-                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Sin resultados</p>
-                                        </div>
-                                    ) : userResults.map(user => (
+                                    ) : userSearchResults.map(user => (
                                         <button
                                             key={user.id}
                                             onClick={() => handleStartConv(user)}
-                                            disabled={startingConv}
-                                            className="group w-full flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50 transition-all text-left border-b border-slate-100 last:border-0 disabled:opacity-50"
+                                            className="group w-full flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50 transition-all text-left border-b border-slate-100 last:border-0"
                                         >
                                             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-100">
                                                 {user.imageUrl ? (
-                                                    <Image src={user.imageUrl} alt="" fill className="object-cover" />
+                                                    <Image src={user.imageUrl} alt="" width={40} height={40} className="object-cover" />
                                                 ) : (
                                                     <User className="w-5 h-5 text-slate-400" />
                                                 )}
@@ -525,11 +508,6 @@ export default function MensajesClient({ initialConversations, currentUserId, in
                                                 <p className="text-sm font-black text-slate-900 truncate">
                                                     {user.firstName} {user.lastName}
                                                 </p>
-                                                {user.category && (
-                                                    <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
-                                                        Cat. {user.category}
-                                                    </p>
-                                                )}
                                             </div>
                                             <div className="text-[10px] font-black uppercase tracking-widest text-azul-primary opacity-0 group-hover:opacity-100 transition-opacity">
                                                 Mensaje →

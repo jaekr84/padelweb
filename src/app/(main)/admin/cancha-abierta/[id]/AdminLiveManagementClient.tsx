@@ -18,6 +18,7 @@ import {
     toggleCourtAction,
     setPlayerPresenceAction,
     registerPlayerManualAction,
+    registerGuestManualAction,
     togglePaymentStatusAction,
     bulkMarkAllAsPaidAction,
     bulkMarkAllAsPresentAction,
@@ -31,7 +32,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 
 interface RegistrationWithUser extends OpenCourtRegistration {
-    user: User;
+    user: User | null;
     hasPaid: boolean;
 }
 
@@ -54,98 +55,7 @@ interface Props {
     allPlayers: MiniPlayer[];
 }
 
-interface MatchTimerProps {
-    startedAt: Date | null;
-    matchId: string;
-    duration: number;
-    pauseState: { isPaused: boolean; totalPausedMs: number; lastPausedAt: number | null };
-    onUpdateDuration: (matchId: string, delta: number) => void;
-    onTogglePause: (matchId: string) => void;
-}
 
-const MatchTimer = ({ startedAt, matchId, duration, pauseState, onUpdateDuration, onTogglePause }: MatchTimerProps) => {
-    const [now, setNow] = useState(Date.now());
-    const [isOvertime, setIsOvertime] = useState(false);
-
-    // Un único intervalo estable que solo marca el paso del tiempo
-    useEffect(() => {
-        const timer = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const timeLeft = useMemo(() => {
-        if (!startedAt) {
-            const totalSeconds = duration * 60;
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        const start = new Date(startedAt).getTime();
-        const currentNow = pauseState.isPaused ? (pauseState.lastPausedAt || now) : now;
-        const totalPaused = pauseState.totalPausedMs;
-        
-        const elapsedSeconds = Math.floor((currentNow - start - totalPaused) / 1000);
-        const totalSeconds = duration * 60;
-        const diff = totalSeconds - elapsedSeconds;
-
-        setIsOvertime(diff < 0);
-        const absoluteDiff = Math.abs(diff);
-        const mins = Math.floor(absoluteDiff / 60);
-        const secs = absoluteDiff % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }, [startedAt, now, duration, pauseState]);
-
-    if (!startedAt) {
-        return (
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl border border-border/20 bg-foreground/5 text-muted-foreground/40">
-                <span className="text-[7px] font-black uppercase tracking-widest opacity-40">Prep.</span>
-                <span className="text-sm font-black italic leading-none">{timeLeft}</span>
-            </div>
-        );
-    }
-
-    return (
-        <div className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
-            pauseState.isPaused ? 'bg-muted/10 border-border/40 opacity-50' :
-            isOvertime ? 'bg-rojo/10 border-rojo/30 text-rojo' : 
-            'bg-foreground/5 border-border/20 text-muted-foreground'
-        }`}>
-            <div className="flex items-center gap-4 mb-1">
-                <div className="flex items-center gap-1.5">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onUpdateDuration(matchId, -1); }}
-                        className="w-5 h-5 rounded-md bg-foreground/5 items-center justify-center flex hover:bg-foreground/10"
-                    >
-                        <Minus className="w-2.5 h-2.5" />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onUpdateDuration(matchId, 1); }}
-                        className="w-5 h-5 rounded-md bg-foreground/5 items-center justify-center flex hover:bg-foreground/10"
-                    >
-                        <Plus className="w-2.5 h-2.5" />
-                    </button>
-                </div>
-
-                <div className="flex flex-col items-center min-w-[50px]">
-                    <span className="text-[7px] font-black uppercase tracking-widest opacity-40">Tiempo</span>
-                    <span className="text-sm font-black italic leading-none">{timeLeft}</span>
-                </div>
-
-                <button 
-                    onClick={(e) => { e.stopPropagation(); onTogglePause(matchId); }}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                        pauseState.isPaused ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-foreground/10 hover:bg-foreground/20'
-                    }`}
-                >
-                    {pauseState.isPaused ? <Play className="w-3.5 h-3.5 fill-current" /> : <Pause className="w-3.5 h-3.5 fill-current" />}
-                </button>
-            </div>
-            {isOvertime && !pauseState.isPaused && <span className="text-[6px] font-bold uppercase tracking-[0.2em] animate-pulse">Extra Time</span>}
-            {pauseState.isPaused && <span className="text-[6px] font-bold uppercase tracking-[0.2em]">Pausado</span>}
-        </div>
-    );
-};
 
 export default function AdminLiveManagementClient({ initialEvent, initialRegistrations, allPlayers }: Props) {
     const router = useRouter();
@@ -153,6 +63,15 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     const [isPending, startTransition] = useTransition();
     const [event, setEvent] = useState(initialEvent);
     const [registrations, setRegistrations] = useState(initialRegistrations);
+
+    // Synchronize local states with props when they change (e.g. after router.refresh())
+    useEffect(() => {
+        setRegistrations(initialRegistrations);
+    }, [initialRegistrations]);
+
+    useEffect(() => {
+        setEvent(initialEvent);
+    }, [initialEvent]);
     
     // Determine initial tab based on URL param or event status
     const initialTab = useMemo(() => {
@@ -179,10 +98,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
     // Score Entry State (Inline per Match)
     const [liveScores, setLiveScores] = useState<Record<string, { s1: number, s2: number }>>({});
-    // Custom durations per match (default 20 min)
-    const [matchDurations, setMatchDurations] = useState<Record<string, number>>({});
-    // Track pauses: { isPaused: boolean, totalPausedMs: number, lastPausedAt: number | null }
-    const [timerPauseStates, setTimerPauseStates] = useState<Record<string, { isPaused: boolean, totalPausedMs: number, lastPausedAt: number | null }>>({});
 
     // Draft Matches (Local only, before creation)
     const [draftMatches, setDraftMatches] = useState<Record<string, {
@@ -194,6 +109,12 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
     const [selectingFor, setSelectingFor] = useState<{ courtId: string, slot: 't1p1Id' | 't1p2Id' | 't2p1Id' | 't2p2Id' } | null>(null);
     const [swapSearchQuery, setSwapSearchQuery] = useState("");
+
+    // Side Selection State
+    const [sideSelector, setSideSelector] = useState<{ userId: string; name: string; isGuest?: boolean } | null>(null);
+    const [selectedSide, setSelectedSide] = useState<"drive" | "reves" | "ambos">("ambos");
+    const [isGuestMode, setIsGuestMode] = useState(false);
+    const [guestName, setGuestName] = useState("");
 
     const updateDraftPlayer = (courtId: string, slot: 't1p1Id' | 't1p2Id' | 't2p1Id' | 't2p2Id', newPlayerId: string) => {
         setDraftMatches(prev => {
@@ -209,8 +130,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     };
 
     const getPlayerName = (id: string) => {
-        const reg = registrations.find(r => r.userId === id);
-        return reg ? `${reg.user.firstName} ${reg.user.lastName}` : "Jugador";
+        const reg = registrations.find(r => r.userId === id || r.id === id);
+        if (!reg) return "Jugador";
+        return reg.guestName || (reg.user ? `${reg.user.firstName} ${reg.user.lastName}` : "Jugador");
     };
 
     const updateInlineScore = (matchId: string, team: 1 | 2, delta: number) => {
@@ -223,26 +145,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         });
     };
 
-    const updateMatchDuration = (matchId: string, delta: number) => {
-        setMatchDurations(prev => ({
-            ...prev,
-            [matchId]: (prev[matchId] || 20) + delta
-        }));
-    };
 
-    const toggleTimerPause = (matchId: string) => {
-        setTimerPauseStates(prev => {
-            const current = prev[matchId] || { isPaused: false, totalPausedMs: 0, lastPausedAt: null };
-            if (!current.isPaused) {
-                // Seteamos pausa
-                return { ...prev, [matchId]: { ...current, isPaused: true, lastPausedAt: Date.now() } };
-            } else {
-                // Quitamos pausa, acumulamos tiempo
-                const diff = current.lastPausedAt ? (Date.now() - current.lastPausedAt) : 0;
-                return { ...prev, [matchId]: { ...current, isPaused: false, totalPausedMs: current.totalPausedMs + diff, lastPausedAt: null } };
-            }
-        });
-    };
 
 
     const handleFinishMatch = async (matchId: string) => {
@@ -300,6 +203,34 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         }
     };
 
+    const confirmRegistrationWithSide = async () => {
+        if (!sideSelector) return;
+
+        let res;
+        if (sideSelector.isGuest) {
+            if (!guestName.trim()) {
+                toast.error("El nombre del invitado es obligatorio");
+                return;
+            }
+            res = await registerGuestManualAction(event.id, guestName.trim(), selectedSide);
+        } else {
+            res = await registerPlayerManualAction(event.id, sideSelector.userId, selectedSide);
+        }
+
+        if (res.success) {
+            toast.success(sideSelector.isGuest ? "Invitado agregado" : "Jugador agregado");
+            setSideSelector(null);
+            setSearchQuery("");
+            setGuestName("");
+            setIsAddingPlayer(false);
+            startTransition(() => {
+                router.refresh();
+            });
+        } else {
+            toast.error("Error: " + res.error);
+        }
+    };
+
 
     // Derived State
     const waitingPlayers = useMemo(() =>
@@ -332,7 +263,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 draftIds.add(d.t2p2Id);
             }
         });
-        return waitingPlayers.filter(p => !playingPlayersIds.has(p.userId) && !draftIds.has(p.userId));
+        return waitingPlayers.filter(p => {
+            const pid = p.userId || p.id;
+            return !playingPlayersIds.has(pid) && !draftIds.has(pid);
+        });
     }, [waitingPlayers, playingPlayersIds, draftMatches]);
 
     const activeCourts = useMemo(() =>
@@ -341,7 +275,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
     const filteredPlayers = useMemo(() => {
         if (!searchQuery) return [];
-        const registeredIds = new Set(registrations.map(r => r.userId));
+        const registeredIds = new Set<string>();
+        registrations.forEach(r => {
+            if (r.userId) registeredIds.add(r.userId);
+        });
         return allPlayers
             .filter(p => !registeredIds.has(p.id))
             .filter(p =>
@@ -351,10 +288,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             .slice(0, 5);
     }, [searchQuery, allPlayers, registrations]);
 
-    // Calcular partidos jugados por cada usuario
+    // Calcular partidos jugados por cada usuario/invitado
     const matchesPlayedCount = useMemo(() => {
         const counts = new Map<string, number>();
-        registrations.forEach(r => counts.set(r.userId, 0));
+        registrations.forEach(r => counts.set(r.userId || r.id, 0));
         event.matches.filter(m => m.status === "completed").forEach(m => {
             [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id].forEach(id => {
                 counts.set(id, (counts.get(id) || 0) + 1);
@@ -405,10 +342,12 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
         // 2. Seleccionar los 4 candidatos con prioridad: Rueda > Tiempo de espera
         const candidates = [...availablePlayers].sort((a, b) => {
-            const matchesA = matchesPlayedCount.get(a.userId) || 0;
-            const matchesB = matchesPlayedCount.get(b.userId) || 0;
+            const idA = a.userId || a.id;
+            const idB = b.userId || b.id;
+            const matchesA = matchesPlayedCount.get(idA) || 0;
+            const matchesB = matchesPlayedCount.get(idB) || 0;
             if (matchesA !== matchesB) return matchesA - matchesB;
-            return (lastMatchTime.get(a.userId) || 0) - (lastMatchTime.get(b.userId) || 0);
+            return (lastMatchTime.get(idA) || 0) - (lastMatchTime.get(idB) || 0);
         }).slice(0, 4);
 
         // 3. Evaluar las 3 combinaciones posibles de estos 4 jugadores
@@ -430,15 +369,20 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             const t2p2 = candidates[combo.t2[1]];
 
             // Penalidad por repetición de pareja (+50)
-            const p1Key = [t1p1.userId, t1p2.userId].sort().join("-");
-            const p2Key = [t2p1.userId, t2p2.userId].sort().join("-");
+            const id1 = t1p1.userId || t1p1.id;
+            const id2 = t1p2.userId || t1p2.id;
+            const id3 = t2p1.userId || t2p1.id;
+            const id4 = t2p2.userId || t2p2.id;
+
+            const p1Key = [id1, id2].sort().join("-");
+            const p2Key = [id3, id4].sort().join("-");
             penalty += (pairHistory.get(p1Key) || 0) * 50;
             penalty += (pairHistory.get(p2Key) || 0) * 50;
 
             // Penalidad por repetición de oponentes (+100)
             const opponents = [
-                [t1p1.userId, t2p1.userId], [t1p1.userId, t2p2.userId],
-                [t1p2.userId, t2p1.userId], [t1p2.userId, t2p2.userId]
+                [id1, id3], [id1, id4],
+                [id2, id3], [id2, id4]
             ];
             opponents.forEach(opp => {
                 const key = opp.sort().join("-");
@@ -447,8 +391,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
             // --- Lógica Posicional Estricta ---
             const calculatePositionalPenalty = (a: RegistrationWithUser, b: RegistrationWithUser) => {
-                const sideA = a.user.side;
-                const sideB = b.user.side;
+                const sideA = a.sidePreference || (a.user?.side) || "ambos";
+                const sideB = b.sidePreference || (b.user?.side) || "ambos";
 
                 // Caso ideal: Drive + Reves
                 if ((sideA === "drive" && sideB === "reves") || (sideA === "reves" && sideB === "drive")) {
@@ -478,7 +422,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             }
         });
 
-        // 4. Crear el partido con la mejor combinación directamente
         // 4. Crear el borrador localmente
         const finalT1 = [candidates[bestCombo.t1[0]], candidates[bestCombo.t1[1]]];
         const finalT2 = [candidates[bestCombo.t2[0]], candidates[bestCombo.t2[1]]];
@@ -486,10 +429,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         setDraftMatches(prev => ({
             ...prev,
             [courtId]: {
-                t1p1Id: finalT1[0].userId,
-                t1p2Id: finalT1[1].userId,
-                t2p1Id: finalT2[0].userId,
-                t2p2Id: finalT2[1].userId,
+                t1p1Id: finalT1[0].userId || finalT1[0].id,
+                t1p2Id: finalT1[1].userId || finalT1[1].id,
+                t2p1Id: finalT2[0].userId || finalT2[0].id,
+                t2p2Id: finalT2[1].userId || finalT2[1].id,
             }
         }));
         
@@ -612,18 +555,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     };
 
 
-    const handleRegisterPlayer = async (userId: string) => {
-        const res = await registerPlayerManualAction(event.id, userId);
-        if (res.success) {
-            toast.success("Jugador agregado correctamente");
-            setSearchQuery("");
-            setIsAddingPlayer(false);
-            startTransition(() => {
-                router.refresh();
-            });
-        } else {
-            toast.error("Error al agregar jugador");
-        }
+    const handleRegisterPlayer = async (userId: string, name: string, side: string = "ambos") => {
+        setSideSelector({ userId, name });
+        setSelectedSide(side as any);
     };
 
     const handleTogglePayment = async (regId: string, currentStatus: boolean) => {
@@ -800,39 +734,111 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                     </div>
                                     <h3 className="text-xs font-black uppercase tracking-widest text-celeste">Inscribir Jugador</h3>
                                 </div>
-                                <div className="relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Buscar por nombre..."
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none"
-                                    />
-                                </div>
-
-                                {filteredPlayers.length > 0 && (
-                                    <div className="mt-4 space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {filteredPlayers.map(p => (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => handleRegisterPlayer(p.id)}
-                                                className="w-full flex items-center justify-between p-3 bg-muted/20 hover:bg-celeste/10 border border-border/40 hover:border-celeste/30 rounded-xl group transition-all"
-                                            >
-                                                <div className="flex flex-col items-start overflow-hidden text-left">
-                                                    <span className="text-[10px] font-black uppercase italic truncate w-full">{p.name}</span>
-                                                    <span className="text-[8px] font-medium text-muted-foreground truncate w-full">{p.email}</span>
-                                                </div>
-                                                <ChevronRight className="w-3 h-3 text-celeste group-hover:translate-x-1 transition-transform" />
-                                            </button>
-                                        ))}
+                                <div className="space-y-4">
+                                    <div className="flex gap-2 bg-muted/20 p-1 rounded-xl">
+                                        <button
+                                            onClick={() => { setIsGuestMode(false); setSideSelector(null); }}
+                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${!isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
+                                        >
+                                            Registrado
+                                        </button>
+                                        <button
+                                            onClick={() => { setIsGuestMode(true); setSideSelector({ userId: "guest", name: "Invitado", isGuest: true }); }}
+                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
+                                        >
+                                            Invitado
+                                        </button>
                                     </div>
-                                )}
 
-                                <div className="mt-6 pt-6 border-t border-border/40">
-                                    <p className="text-[9px] font-bold text-muted-foreground/40 leading-relaxed uppercase">
-                                        Escribe el nombre del jugador para buscarlo en la base de datos e inscribirlo directamente.
-                                    </p>
+                                    {!isGuestMode ? (
+                                        <>
+                                            <div className="relative">
+                                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
+                                                <input
+                                                    type="text"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    placeholder="Buscar por nombre..."
+                                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none"
+                                                />
+                                            </div>
+
+                                            {filteredPlayers.length > 0 && (
+                                                <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {filteredPlayers.map(p => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => handleRegisterPlayer(p.id, p.name, p.category)}
+                                                            className="w-full flex items-center justify-between p-3 bg-muted/20 hover:bg-celeste/10 border border-border/40 hover:border-celeste/30 rounded-xl group transition-all"
+                                                        >
+                                                            <div className="flex flex-col items-start overflow-hidden text-left">
+                                                                <span className="text-[10px] font-black uppercase italic truncate w-full">{p.name}</span>
+                                                                <span className="text-[8px] font-medium text-muted-foreground truncate w-full">{p.email}</span>
+                                                            </div>
+                                                            <ChevronRight className="w-3 h-3 text-celeste group-hover:translate-x-1 transition-transform" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                            <div className="relative">
+                                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
+                                                <input
+                                                    type="text"
+                                                    value={guestName}
+                                                    onChange={(e) => setGuestName(e.target.value)}
+                                                    placeholder="Nombre del Invitado..."
+                                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <AnimatePresence>
+                                        {sideSelector && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="pt-4 border-t border-border/40 space-y-4"
+                                            >
+                                                <div className="text-center">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2 block">Lado de juego</span>
+                                                    <div className="flex gap-2">
+                                                        {[
+                                                            { id: 'drive', label: 'Drive' },
+                                                            { id: 'reves', label: 'Revés' },
+                                                            { id: 'ambos', label: 'Ambos' }
+                                                        ].map(side => (
+                                                            <button
+                                                                key={side.id}
+                                                                onClick={() => setSelectedSide(side.id as any)}
+                                                                className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase border transition-all ${selectedSide === side.id ? 'bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20 scale-105' : 'bg-muted/30 border-border/50 text-muted-foreground'}`}
+                                                            >
+                                                                {side.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={confirmRegistrationWithSide}
+                                                    className="w-full py-4 bg-celeste text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-celeste/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                                >
+                                                    {isGuestMode ? "Registrar Invitado" : `Registrar a ${sideSelector.name.split(' ')[0]}`}
+                                                </button>
+                                                
+                                                <button 
+                                                    onClick={() => { setSideSelector(null); setIsGuestMode(false); }}
+                                                    className="w-full py-1 text-[8px] font-black uppercase text-muted-foreground/50 hover:text-rojo transition-colors"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         </div>
@@ -889,26 +895,32 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground overflow-hidden">
-                                                                {reg.user.imageUrl ? (
+                                                                {reg.user?.imageUrl ? (
                                                                     <img src={reg.user.imageUrl} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <Users className="w-4 h-4" />
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-xs font-black uppercase italic tracking-tight">{reg.user.firstName} {reg.user.lastName}</span>
-                                                                <span className="text-[9px] font-medium text-muted-foreground/60">{reg.user.email}</span>
+                                                                <span className="text-xs font-black uppercase italic tracking-tight">
+                                                                    {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
+                                                                </span>
+                                                                <span className="text-[9px] font-medium text-muted-foreground/60">
+                                                                    {reg.guestName ? "Jugador Invitado" : reg.user?.email}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className="text-[10px] font-bold text-muted-foreground">{reg.user.category}</span>
+                                                        <span className="text-[10px] font-bold text-muted-foreground">
+                                                            {reg.guestName ? "S/N" : reg.user?.category}
+                                                        </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${reg.user.side === 'drive' ? 'bg-celeste/10 text-celeste' :
-                                                            reg.user.side === 'reves' ? 'bg-azul-primary/10 text-azul-primary' : 'bg-celeste/10 text-celeste'
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${reg.sidePreference === 'drive' ? 'bg-celeste/10 text-celeste' :
+                                                            reg.sidePreference === 'reves' ? 'bg-rojo/10 text-rojo' : 'bg-azul-primary/10 text-azul-primary'
                                                             }`}>
-                                                            {reg.user.side || 'Ambos'}
+                                                            {reg.sidePreference === 'drive' ? 'Drive' : reg.sidePreference === 'reves' ? 'Revés' : 'Ambos'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -1035,7 +1047,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                                                 </div>
                                                                                                 {(() => {
                                                                                                     const filtered = availablePlayers.filter(p => 
-                                                                                                        `${p.user.firstName} ${p.user.lastName}`.toLowerCase().includes(swapSearchQuery.toLowerCase())
+                                                                                                        (p.guestName || `${p.user?.firstName} ${p.user?.lastName}`).toLowerCase().includes(swapSearchQuery.toLowerCase())
                                                                                                     );
                                                                                                     if (filtered.length === 0) {
                                                                                                         return <p className="p-4 text-[9px] font-bold text-muted-foreground/30 uppercase italic text-center">No hay resultados</p>;
@@ -1043,11 +1055,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                                                     return filtered.map(p => (
                                                                                                         <button
                                                                                                             key={p.id}
-                                                                                                            onClick={() => updateDraftPlayer(court.id, slot, p.userId)}
+                                                                                                            onClick={() => updateDraftPlayer(court.id, slot, p.userId || p.id)}
                                                                                                             className="w-full text-left px-3 py-2.5 hover:bg-foreground/5 rounded-xl transition-colors"
                                                                                                         >
-                                                                                                            <p className="text-[10px] font-black uppercase italic truncate">{p.user.firstName} {p.user.lastName}</p>
-                                                                                                            <p className="text-[7px] font-bold text-muted-foreground/40 uppercase tracking-tighter">Partidos: {matchesPlayedCount.get(p.userId) || 0}</p>
+                                                                                                            <p className="text-[10px] font-black uppercase italic truncate">{p.guestName || `${p.user?.firstName} ${p.user?.lastName}`}</p>
+                                                                                                            <p className="text-[7px] font-bold text-muted-foreground/40 uppercase tracking-tighter">Partidos: {matchesPlayedCount.get(p.userId || p.id) || 0}</p>
                                                                                                         </button>
                                                                                                     ));
                                                                                                 })()}
@@ -1098,27 +1110,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             );
                                         })() : (() => {
                                             const currentMatch = event.matches.find(m => m.courtId === court.id && m.status === "in_progress");
-                                            const getPlayerName = (id: string) => {
-                                                const reg = registrations.find(r => r.userId === id);
-                                                return reg ? `${reg.user.firstName} ${reg.user.lastName}` : "Jugador";
-                                            };
-
                                             const scores = currentMatch ? (liveScores[currentMatch.id] || { s1: 0, s2: 0 }) : { s1: 0, s2: 0 };
 
                                             return (
                                                 <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                    {currentMatch && (
-                                                        <div className="flex justify-center">
-                                                            <MatchTimer 
-                                                                startedAt={currentMatch.startedAt} 
-                                                                matchId={currentMatch.id} 
-                                                                duration={matchDurations[currentMatch.id] || 20}
-                                                                pauseState={timerPauseStates[currentMatch.id] || { isPaused: false, totalPausedMs: 0, lastPausedAt: null }}
-                                                                onUpdateDuration={updateMatchDuration}
-                                                                onTogglePause={toggleTimerPause}
-                                                            />
-                                                        </div>
-                                                    )}
+
 
                                                     {currentMatch && !currentMatch.startedAt ? (
                                                         <div className="flex flex-col items-center gap-6 py-4">
@@ -1256,21 +1252,24 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             return [...registrations]
                                                 .filter(r => r.status !== 'absent')
                                                 .sort((a, b) => {
-                                                    const isPlayingA = playingPlayersIds.has(a.userId);
-                                                    const isPlayingB = playingPlayersIds.has(b.userId);
+                                                    const idA = a.userId || a.id;
+                                                    const idB = b.userId || b.id;
+                                                    const isPlayingA = playingPlayersIds.has(idA);
+                                                    const isPlayingB = playingPlayersIds.has(idB);
                                                     if (isPlayingA && !isPlayingB) return -1;
                                                     if (!isPlayingA && isPlayingB) return 1;
-                                                    const matchesA = matchesPlayedCount.get(a.userId) || 0;
-                                                    const matchesB = matchesPlayedCount.get(b.userId) || 0;
+                                                    const matchesA = matchesPlayedCount.get(idA) || 0;
+                                                    const matchesB = matchesPlayedCount.get(idB) || 0;
                                                     if (matchesA !== matchesB) return matchesA - matchesB;
-                                                    const timeA = lastMatchTime.get(a.userId) || 0;
-                                                    const timeB = lastMatchTime.get(b.userId) || 0;
+                                                    const timeA = lastMatchTime.get(idA) || 0;
+                                                    const timeB = lastMatchTime.get(idB) || 0;
                                                     return timeA - timeB;
                                                 })
                                                 .map(reg => {
-                                                    const isPlaying = playingPlayersIds.has(reg.userId);
-                                                    const played = matchesPlayedCount.get(reg.userId) || 0;
-                                                    const side = reg.user.side;
+                                                    const pid = reg.userId || reg.id;
+                                                    const isPlaying = playingPlayersIds.has(pid);
+                                                    const played = matchesPlayedCount.get(pid) || 0;
+                                                    const side = reg.sidePreference || (reg.user?.side) || "ambos";
 
                                                     return (
                                                         <tr
@@ -1286,13 +1285,15 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <span className="text-xs font-black uppercase italic tracking-tight">{reg.user.firstName} {reg.user.lastName}</span>
+                                                                <span className="text-xs font-black uppercase italic tracking-tight">
+                                                                    {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
+                                                                </span>
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex justify-center">
                                                                     <span className={`px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-celeste/20 text-celeste border border-celeste/20' :
                                                                             side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' :
-                                                                                'bg-celeste/20 text-celeste border border-celeste/20'
+                                                                                'bg-azul-primary/20 text-azul-primary border border-azul-primary/20'
                                                                         }`}>
                                                                         {side === 'drive' ? 'Drive' : side === 'reves' ? 'Revés' : 'Ambos'}
                                                                     </span>
@@ -1368,31 +1369,34 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             .filter(m => {
                                                 if (!historySearchQuery) return true;
                                                 const q = historySearchQuery.toLowerCase();
-                                                const getPlayer = (id: string) => registrations.find(r => r.userId === id)?.user;
+                                                const getPlayer = (id: string) => registrations.find(r => r.userId === id || r.id === id);
                                                 const p1 = getPlayer(m.team1Player1Id);
                                                 const p2 = getPlayer(m.team1Player2Id);
                                                 const p3 = getPlayer(m.team2Player1Id);
                                                 const p4 = getPlayer(m.team2Player2Id);
 
-                                                const matchString = `${p1?.firstName} ${p1?.lastName} ${p2?.firstName} ${p2?.lastName} ${p3?.firstName} ${p3?.lastName} ${p4?.firstName} ${p4?.lastName}`.toLowerCase();
+                                                const getName = (reg: any) => reg ? (reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`) : "";
+                                                const matchString = `${getName(p1)} ${getName(p2)} ${getName(p3)} ${getName(p4)}`.toLowerCase();
                                                 return matchString.includes(q);
                                             })
                                             .sort((a, b) => new Date(b.finishedAt || "").getTime() - new Date(a.finishedAt || "").getTime())
                                             .map(match => {
-                                                const getPlayer = (id: string) => registrations.find(r => r.userId === id)?.user;
+                                                const getPlayerReg = (id: string) => registrations.find(r => r.userId === id || r.id === id);
                                                 const winner = match.score1! > match.score2! ? 1 :
                                                     match.score2! > match.score1! ? 2 : 0;
 
                                                 const isHighlighted = (id: string) => {
                                                     if (!historySearchQuery) return false;
-                                                    const u = getPlayer(id);
-                                                    if (!u) return false;
+                                                    const r = getPlayerReg(id);
+                                                    if (!r) return false;
                                                     const q = historySearchQuery.toLowerCase();
-                                                    return `${u.firstName} ${u.lastName}`.toLowerCase().includes(q);
+                                                    const name = r.guestName || `${r.user?.firstName} ${r.user?.lastName}`;
+                                                    return name.toLowerCase().includes(q);
                                                 };
 
                                                 const PlayerName = ({ id }: { id: string }) => {
-                                                    const name = getPlayer(id)?.firstName || '???';
+                                                    const r = getPlayerReg(id);
+                                                    const name = r ? (r.guestName || r.user?.firstName || '???') : '???';
                                                     const highlighted = isHighlighted(id);
                                                     return (
                                                         <p className={`text-[9px] font-black uppercase italic tracking-tight leading-none transition-all ${highlighted ? 'text-azul-primary scale-110 origin-right' : ''

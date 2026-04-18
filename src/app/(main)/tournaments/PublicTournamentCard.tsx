@@ -233,14 +233,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         className="absolute inset-0 [backface-visibility:hidden] z-10"
                         onClick={handleCardClick}
                     >
-                        <div className="bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-azul-primary/10 hover:border-celeste/30 flex flex-col h-full relative group/card shadow-sm hover:-translate-y-1.5 cursor-pointer">
-
+                        <div className="bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-azul-primary/20 hover:border-azul-primary/40 flex flex-col h-full relative group/card shadow-sm cursor-pointer">
                             {/* Cinematic Image Area */}
                             <div className="relative h-80 w-full overflow-hidden bg-muted/20">
                                 {!showFallback ? (
                                     <img
                                         src={tournament.imageUrl}
-                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover/card:scale-110"
+                                        className="w-full h-full object-cover transition-transform duration-700"
                                         alt={tournament.name}
                                         onError={() => setImageError(true)}
                                     />
@@ -457,11 +456,11 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                     router.push(href);
                                                 }
                                             }}
-                                            className={`flex-1 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[9px] shadow-2xl ${isLive ? "bg-rojo text-white shadow-rojo/30 hover:bg-rojo/90" :
+                                            className={`flex-1 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-black uppercase tracking-widest text-[9px] shadow-lg ${isLive ? "bg-rojo text-white shadow-rojo/30 hover:bg-rojo/90" :
                                                 isUserRegistered ? "bg-azul-primary text-white shadow-azul-primary/30" :
                                                     isOpen ? (
                                                         isFull ? "bg-rojo/60 text-white/80 shadow-none cursor-not-allowed opacity-70 grayscale-[1] pointer-events-none" :
-                                                            (tournament.isMembersOnly ? "bg-azul-primary text-white shadow-azul-primary/40 hover:scale-[1.02] hover:shadow-azul-primary/50" : "bg-celeste text-white shadow-celeste/40 hover:scale-[1.02] hover:shadow-celeste/50")
+                                                            (tournament.isMembersOnly ? "bg-azul-primary text-white shadow-azul-primary/40 hover:bg-azul-primary/90" : "bg-celeste text-white shadow-celeste/40 hover:bg-celeste/90")
                                                     ) :
                                                         isPreregistration ? "bg-celeste text-white shadow-celeste/30" :
                                                             "bg-muted text-muted-foreground shadow-none"

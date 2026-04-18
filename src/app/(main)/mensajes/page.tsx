@@ -19,7 +19,6 @@ export default async function MensajesPage({ searchParams }: PageProps) {
     return (
         <>
             <MensajesClient
-                initialConversations={conversations as any}
                 currentUserId={session.userId}
                 initialConvId={initialConvId}
             />

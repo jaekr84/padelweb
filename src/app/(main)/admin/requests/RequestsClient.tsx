@@ -468,7 +468,7 @@ export default function RequestsClient() {
 
                                         <div className="p-5 md:p-6 bg-background/40 border border-border rounded-2xl space-y-3 text-left">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-azul-primary/60">{msg.subject}</p>
-                                            <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                                            <p className="text-sm text-foreground leading-relaxed font-medium">
                                                 {msg.message}
                                             </p>
                                         </div>

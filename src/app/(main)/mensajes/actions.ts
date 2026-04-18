@@ -13,46 +13,31 @@ export const getConversations = cache(async () => {
 
     const myId = session.userId;
 
-    const convs = await db
-        .select()
+    const results = await db
+        .select({
+            id: conversations.id,
+            user1Id: conversations.user1Id,
+            user2Id: conversations.user2Id,
+            lastMessage: conversations.lastMessage,
+            lastMessageAt: conversations.lastMessageAt,
+            otherUser: {
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                imageUrl: users.imageUrl,
+                category: users.category
+            },
+            unreadCount: sql<number>`(SELECT COUNT(*) FROM ${messages} WHERE ${messages.conversationId} = ${conversations.id} AND ${messages.isRead} = 0 AND ${messages.senderId} != ${myId})`
+        })
         .from(conversations)
+        .leftJoin(users, sql`${users.id} = CASE WHEN ${conversations.user1Id} = ${myId} THEN ${conversations.user2Id} ELSE ${conversations.user1Id} END`)
         .where(or(eq(conversations.user1Id, myId), eq(conversations.user2Id, myId)))
         .orderBy(desc(conversations.lastMessageAt));
 
-    if (convs.length === 0) return [];
-
-    const otherUserIds = convs.map(c => c.user1Id === myId ? c.user2Id : c.user1Id);
-    const otherUsers = await db
-        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, imageUrl: users.imageUrl, category: users.category })
-        .from(users)
-        .where(sql`${users.id} IN (${sql.join(otherUserIds.map(id => sql`${id}`), sql`, `)})`);
-
-    const userMap = new Map(otherUsers.map(u => [u.id, u]));
-
-    // Count unread per conversation
-    const unreadCounts = await Promise.all(convs.map(async c => {
-        const [{ count }] = await db
-            .select({ count: sql<number>`COUNT(*)` })
-            .from(messages)
-            .where(and(
-                eq(messages.conversationId, c.id),
-                eq(messages.isRead, false),
-                not(eq(messages.senderId, myId))
-            ));
-        return { conversationId: c.id, count: Number(count) };
+    return results.map(r => ({
+        ...r,
+        unreadCount: Number(r.unreadCount || 0)
     }));
-
-    const unreadMap = new Map(unreadCounts.map(u => [u.conversationId, u.count]));
-
-    return convs.map(c => {
-        const otherId = c.user1Id === myId ? c.user2Id : c.user1Id;
-        const other = userMap.get(otherId);
-        return {
-            ...c,
-            otherUser: other ?? null,
-            unreadCount: unreadMap.get(c.id) ?? 0,
-        };
-    });
 });
 
 export const getMessages = cache(async (conversationId: string) => {
@@ -74,7 +59,7 @@ export const getMessages = cache(async (conversationId: string) => {
     return msgs;
 });
 
-export async function sendMessage(conversationId: string, content: string) {
+export async function sendMessage(conversationId: string, content: string, imageUrl?: string | null) {
     const session = await getSession();
     if (!session?.userId) throw new Error("No autorizado");
 
@@ -90,6 +75,7 @@ export async function sendMessage(conversationId: string, content: string) {
         conversationId,
         senderId: myId,
         content: content.trim(),
+        imageUrl: imageUrl || null,
         isRead: false,
     });
 
@@ -204,34 +190,40 @@ export const getUnreadCount = cache(async (): Promise<number> => {
 
     const myId = session.userId;
 
-    // First get the conversations I'm part of
-    const myConvs = await db
-        .select({ id: conversations.id })
-        .from(conversations)
-        .where(or(eq(conversations.user1Id, myId), eq(conversations.user2Id, myId)));
-
-    if (myConvs.length === 0) return 0;
-
-    const convIds = myConvs.map(c => c.id);
-
-    const [{ count }] = await db
+    // Direct count of unread messages where recipient (me) is part of the conversation
+    const result = await db
         .select({ count: sql<number>`COUNT(*)` })
         .from(messages)
+        .innerJoin(conversations, eq(messages.conversationId, conversations.id))
         .where(and(
-            sql`${messages.conversationId} IN (${sql.join(convIds.map(id => sql`${id}`), sql`, `)})`,
+            or(eq(conversations.user1Id, myId), eq(conversations.user2Id, myId)),
             eq(messages.isRead, false),
             not(eq(messages.senderId, myId))
         ));
 
-    return Number(count);
+    return Number(result[0]?.count || 0);
 });
 
-export async function searchUsers(query: string) {
+export async function searchUsers(query: string, clubId?: string | null) {
     const session = await getSession();
     if (!session?.userId || query.trim().length < 2) return [];
 
     const myId = session.userId;
     const q = `%${query.trim()}%`;
+
+    const whereConditions = [
+        sql`${users.id} != ${myId}`,
+        sql`${users.role} NOT LIKE '%manual%'`,
+        or(
+            like(users.firstName, q),
+            like(users.lastName, q),
+            like(users.email, q)
+        )
+    ];
+
+    if (clubId) {
+        whereConditions.push(eq(users.clubId, clubId));
+    }
 
     const results = await db
         .select({
@@ -243,17 +235,7 @@ export async function searchUsers(query: string) {
             email: users.email,
         })
         .from(users)
-        .where(
-            and(
-                sql`${users.id} != ${myId}`,
-                sql`${users.role} NOT LIKE '%manual%'`,
-                or(
-                    like(users.firstName, q),
-                    like(users.lastName, q),
-                    like(users.email, q)
-                )
-            )
-        )
+        .where(and(...whereConditions))
         .limit(10);
 
     return results;

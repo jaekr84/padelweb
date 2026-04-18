@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Pencil, Send, User, ArrowLeft, Search, Check, CheckCheck, Minimize2, Maximize2 } from "lucide-react";
+import { MessageSquare, X, Pencil, Send, User, ArrowLeft, Search, Check, CheckCheck, Minimize2, Maximize2, ChevronDown, Image as ImageIcon, Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useChatStore } from "@/store/useChatStore";
+import { useClubs } from "@/hooks/use-clubs";
+import { useClubPlayers } from "@/hooks/use-club-players";
+import imageCompression from "browser-image-compression";
 
 interface FloatingChatProps {
     currentUserId: string;
@@ -19,7 +22,14 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
     const [userQuery, setUserQuery] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [newMessage, setNewMessage] = useState("");
+    const [sending, setSending] = useState(false);
+    
+    // Club Search
+    const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+    const { clubs } = useClubs();
+    const { players: clubMembers, isLoading: isLoadingMembers } = useClubPlayers(selectedClubId);
 
     const {
         conversations,
@@ -32,11 +42,11 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
         fetchConversations,
         fetchMessages,
         sendNewMessage,
-        refreshUnread,
         userSearchResults,
         isSearchingUsers,
         searchPlayers,
-        createNewConversation
+        createNewConversation,
+        uploadImage
     } = useChatStore();
 
     // Hide if on messages page
@@ -48,46 +58,67 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
         else if (view !== "search") setView("list");
     }, [activeConvId, view]);
 
-    // Debounced search
-    useEffect(() => {
-        if (view !== "search") return;
-        const timer = setTimeout(() => {
-            searchPlayers(userQuery);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [userQuery, view, searchPlayers]);
-
+    // Initial load and polling
     useEffect(() => {
         setMounted(true);
-        refreshUnread();
         fetchConversations();
-
         const convInterval = setInterval(fetchConversations, 30000);
         return () => clearInterval(convInterval);
-    }, [fetchConversations, refreshUnread]);
+    }, [fetchConversations]);
 
-    // Polling for active chat messages
+    // Polling for active chat
     useEffect(() => {
         if (!activeConvId || !isExpanded) return;
-
-        const interval = setInterval(() => {
-            fetchMessages(activeConvId);
-        }, 8000);
-
-        return () => clearInterval(interval);
+        const msgInterval = setInterval(() => fetchMessages(activeConvId), 8000);
+        return () => clearInterval(msgInterval);
     }, [activeConvId, isExpanded, fetchMessages]);
 
+    // Debounced search
+    useEffect(() => {
+        if (view !== "search" || userQuery.length < 2) return;
+        const timer = setTimeout(() => {
+            searchPlayers(userQuery, selectedClubId);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [userQuery, view, searchPlayers, selectedClubId]);
+
+    // Scroll to bottom
     useEffect(() => {
         if (isExpanded && messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages, isExpanded]);
 
-    const handleSend = async () => {
-        if (!newMessage.trim() || !activeConvId) return;
-        const msg = newMessage.trim();
-        setNewMessage("");
-        await sendNewMessage(activeConvId, msg, currentUserId);
+    const handleSend = async (imageUrl?: string | null) => {
+        if ((!newMessage.trim() && !imageUrl) || !activeConvId || sending) return;
+        
+        setSending(true);
+        const text = newMessage.trim();
+        if (!imageUrl) setNewMessage("");
+
+        try {
+            await sendNewMessage(activeConvId, text, currentUserId, imageUrl);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setSending(true);
+            const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1024, useWebWorker: true };
+            const compressedFile = await imageCompression(file, options);
+            const url = await uploadImage(compressedFile);
+            if (url) await handleSend(url);
+        } catch (err) {
+            console.error("Error upload:", err);
+        } finally {
+            setSending(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
     };
 
     if (!mounted || isMessagesPage) return null;
@@ -108,10 +139,17 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
 
     return createPortal(
         <div className="fixed bottom-0 right-4 md:right-8 z-[100] font-sans pointer-events-none">
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*" 
+            />
+            
             <div className="flex flex-col items-end gap-2 pointer-events-auto">
                 <AnimatePresence mode="wait">
                     {!isExpanded ? (
-                        /* Case 1: Minimized Bar */
                         <motion.button
                             key="minimized"
                             initial={{ y: 20, opacity: 0 }}
@@ -123,7 +161,7 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                             <div className="relative">
                                 <MessageSquare className="w-5 h-5 text-azul-primary" />
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">
+                                    <span className="absolute -top-2 -right-2 bg-azul-primary text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center border-2 border-white">
                                         {unreadCount > 9 ? "9+" : unreadCount}
                                     </span>
                                 )}
@@ -132,7 +170,6 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                             <Maximize2 className="w-3.5 h-3.5 text-slate-400 ml-auto group-hover:text-azul-primary transition-colors" />
                         </motion.button>
                     ) : (
-                        /* Case 2: Expanded Window */
                         <motion.div
                             key="expanded"
                             initial={{ y: 100, opacity: 0, scale: 0.95 }}
@@ -140,7 +177,6 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                             exit={{ y: 100, opacity: 0, scale: 0.95 }}
                             className="bg-white border border-slate-200 shadow-2xl rounded-t-2xl w-[92vw] sm:w-[360px] h-[500px] flex flex-col overflow-hidden"
                         >
-                            {/* Window Header */}
                             <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     {view === "chat" ? (
@@ -174,10 +210,8 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                 </div>
                             </div>
 
-                            {/* Window Content */}
                             <div className="flex-1 overflow-hidden flex flex-col bg-white">
                                 {view === "list" ? (
-                                    /* ── Sub-view: Conversation List ── */
                                     <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
                                         {conversations.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-full p-8 opacity-40">
@@ -193,7 +227,7 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                 <div className="relative flex-shrink-0">
                                                     <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100">
                                                         {conv.otherUser?.imageUrl ? (
-                                                            <Image src={conv.otherUser.imageUrl} alt="" fill className="object-cover" />
+                                                            <Image src={conv.otherUser.imageUrl} alt="" width={36} height={36} className="object-cover" />
                                                         ) : (
                                                             <User className="w-4 h-4 text-slate-400" />
                                                         )}
@@ -214,86 +248,97 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                         </span>
                                                     </div>
                                                     <p className={`text-[10px] truncate ${conv.unreadCount > 0 ? "text-slate-900 font-bold" : "text-slate-400"}`}>
-                                                        {conv.lastMessage ?? "..."}
+                                                        {conv.lastMessage ?? "Conversación iniciada"}
                                                     </p>
                                                 </div>
                                             </button>
                                         ))}
                                     </div>
                                 ) : view === "search" ? (
-                                    /* ── Sub-view: Search Results ── */
                                     <div className="flex-1 flex flex-col overflow-hidden">
-                                        <div className="p-3 border-b border-slate-100">
+                                        <div className="p-3 border-b border-slate-100 bg-slate-50/30 space-y-3">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Filtrar por Club</label>
+                                                <select
+                                                    value={selectedClubId || ""}
+                                                    onChange={(e) => {
+                                                        setSelectedClubId(e.target.value || null);
+                                                        setUserQuery("");
+                                                    }}
+                                                    className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
+                                                >
+                                                    <option value="">Todos los clubes</option>
+                                                    {clubs.map(club => (
+                                                        <option key={club.id} value={club.id}>{club.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            {selectedClubId && (
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Seleccionar Jugador</label>
+                                                    <select
+                                                        onChange={(e) => {
+                                                            const player = clubMembers.find(m => m.id === e.target.value);
+                                                            if (player) {
+                                                                createNewConversation(player.id);
+                                                                setSelectedClubId(null);
+                                                            }
+                                                        }}
+                                                        defaultValue=""
+                                                        className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
+                                                    >
+                                                        <option value="" disabled>{isLoadingMembers ? "Cargando..." : "Seleccionar un jugador..."}</option>
+                                                        {clubMembers.map(member => (
+                                                            <option key={member.id} value={member.id}>{member.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
+
                                             <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                                                 <input
                                                     type="text"
-                                                    autoFocus
-                                                    placeholder="Buscar jugador..."
+                                                    placeholder="O busca por nombre..."
                                                     value={userQuery}
                                                     onChange={e => setUserQuery(e.target.value)}
-                                                    className="w-full h-9 pl-9 pr-4 bg-slate-50 rounded-xl text-xs font-medium text-slate-900 border border-slate-100 outline-none focus:ring-1 focus:ring-azul-primary/30"
+                                                    className="w-full h-9 pl-8 pr-4 bg-white rounded-xl text-[11px] font-medium text-slate-900 border border-slate-100 outline-none focus:ring-1 focus:ring-azul-primary/30"
                                                 />
                                             </div>
                                         </div>
                                         <div className="flex-1 overflow-y-auto">
                                             {isSearchingUsers ? (
-                                                <div className="flex items-center justify-center p-8">
-                                                    <div className="w-5 h-5 border-2 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin" />
-                                                </div>
-                                            ) : userQuery.length < 2 ? (
-                                                <div className="flex flex-col items-center justify-center p-8 opacity-40">
-                                                    <Search className="w-6 h-6 mb-2 text-slate-300" />
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-center">Escribe 2+ letras</p>
-                                                </div>
-                                            ) : userSearchResults.length === 0 ? (
-                                                <div className="flex flex-col items-center justify-center p-8 opacity-40">
-                                                    <User className="w-6 h-6 mb-2 text-slate-300" />
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-center">No hay resultados</p>
-                                                </div>
+                                                <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 text-azul-primary animate-spin" /></div>
                                             ) : userSearchResults.map(user => (
                                                 <button
                                                     key={user.id}
-                                                    onClick={() => {
-                                                        createNewConversation(user.id);
-                                                        setUserQuery("");
-                                                    }}
-                                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-all text-left border-b border-slate-50 last:border-0"
+                                                    onClick={() => createNewConversation(user.id)}
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-50 last:border-0"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 border border-slate-100 relative">
-                                                        {user.imageUrl ? (
-                                                            <Image src={user.imageUrl} alt="" fill className="object-cover" />
-                                                        ) : (
-                                                            <User className="w-4 h-4 m-auto text-slate-400" />
-                                                        )}
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 border border-slate-100">
+                                                        {user.imageUrl ? <Image src={user.imageUrl} alt="" width={32} height={32} className="object-cover" /> : <User className="w-4 h-4 m-auto text-slate-400" />}
                                                     </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-xs font-bold text-slate-900 truncate">
-                                                            {user.firstName} {user.lastName}
-                                                        </p>
-                                                        {user.category && (
-                                                            <p className="text-[9px] font-bold uppercase text-slate-400">Cat. {user.category}</p>
-                                                        )}
-                                                    </div>
+                                                    <p className="text-xs font-bold text-slate-900">{user.firstName} {user.lastName}</p>
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                 ) : (
-                                    /* ── Sub-view: Active Chat ── */
                                     <div className="flex-1 flex flex-col overflow-hidden">
-                                        {/* Messages Area */}
                                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-                                            {messages.map((msg, i) => {
+                                            {messages.map((msg) => {
                                                 const isMine = msg.senderId === currentUserId;
                                                 return (
                                                     <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                                                        <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug shadow-sm ${isMine
-                                                            ? "bg-azul-primary text-white rounded-br-sm"
-                                                            : "bg-white text-slate-900 border border-slate-100 rounded-bl-sm"
-                                                            }`}>
+                                                        <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug shadow-sm ${isMine ? "bg-azul-primary text-white rounded-br-sm" : "bg-white text-slate-900 border border-slate-100 rounded-bl-sm"}`}>
+                                                            {msg.imageUrl && (
+                                                                <div className="mb-1.5 rounded-lg overflow-hidden border border-white/20">
+                                                                    <Image src={msg.imageUrl} alt="" width={200} height={200} className="object-contain max-h-40" />
+                                                                </div>
+                                                            )}
                                                             {msg.content}
-                                                            <div className={`mt-1 text-[8px] flex justify-end gap-1 ${isMine ? "text-blue-100" : "text-slate-400"}`}>
+                                                            <div className={`mt-0.5 text-[8px] flex justify-end gap-1 ${isMine ? "text-blue-100" : "text-slate-400"}`}>
                                                                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                 {isMine && (msg.isRead ? <CheckCheck className="w-2.5 h-2.5" /> : <Check className="w-2.5 h-2.5" />)}
                                                             </div>
@@ -304,9 +349,14 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                             <div ref={messagesEndRef} />
                                         </div>
 
-                                        {/* Mini Input */}
                                         <div className="p-3 border-t border-slate-100 bg-white">
                                             <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="w-9 h-9 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-all"
+                                                >
+                                                    <ImageIcon className="w-4 h-4" />
+                                                </button>
                                                 <input
                                                     ref={inputRef}
                                                     type="text"
@@ -317,11 +367,11 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                     className="flex-1 h-9 px-4 bg-slate-50 rounded-xl text-xs text-slate-900 border border-slate-100 outline-none focus:ring-1 focus:ring-azul-primary/30"
                                                 />
                                                 <button
-                                                    onClick={handleSend}
-                                                    disabled={!newMessage.trim()}
-                                                    className="w-9 h-9 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-azul-primary disabled:opacity-40 transition-all"
+                                                    onClick={() => handleSend()}
+                                                    disabled={(!newMessage.trim() && !sending) || sending}
+                                                    className="w-9 h-9 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-azul-primary transition-all disabled:opacity-40"
                                                 >
-                                                    <Send className="w-4 h-4" />
+                                                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                                 </button>
                                             </div>
                                         </div>

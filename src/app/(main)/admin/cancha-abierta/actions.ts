@@ -294,7 +294,7 @@ export async function finishMatchAction(matchId: string, score1: number, score2:
     }
 }
 
-export async function registerPlayerManualAction(eventId: string, userId: string) {
+export async function registerPlayerManualAction(eventId: string, userId: string, sidePreference: string = "ambos") {
     if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
     try {
         const id = crypto.randomUUID();
@@ -302,7 +302,25 @@ export async function registerPlayerManualAction(eventId: string, userId: string
             id,
             eventId,
             userId,
-            sidePreference: "ambos",
+            sidePreference,
+            status: "waiting",
+        });
+        revalidatePath(`/admin/cancha-abierta/${eventId}`);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function registerGuestManualAction(eventId: string, guestName: string, sidePreference: string) {
+    if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
+    try {
+        const id = crypto.randomUUID();
+        await db.insert(openCourtRegistrations).values({
+            id,
+            eventId,
+            guestName,
+            sidePreference,
             status: "waiting",
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);

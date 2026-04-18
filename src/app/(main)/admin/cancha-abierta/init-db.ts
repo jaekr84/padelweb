@@ -45,19 +45,26 @@ export async function initializeOpenCourtTables() {
             )
         `);
 
-        // Reset de inscripciones si falta la columna de pago
+        // Reset de inscripciones si falta la columna de pago o invitados
         try {
-            await db.execute(sql`SELECT has_paid from open_court_registrations LIMIT 1`);
+            await db.execute(sql`SELECT guest_name from open_court_registrations LIMIT 1`);
         } catch (e) {
-            console.log("Estructura de inscripciones vieja detectada. Reseteando...");
-            await db.execute(sql`DROP TABLE IF EXISTS open_court_registrations`);
+            console.log("Estructura de inscripciones vieja detectada (falta guest_name). Intentando actualizar...");
+            try {
+                await db.execute(sql`ALTER TABLE open_court_registrations ADD COLUMN guest_name varchar(255)`);
+                await db.execute(sql`ALTER TABLE open_court_registrations MODIFY COLUMN user_id varchar(255)`);
+            } catch (err) {
+                console.log("No se pudo actualizar la tabla. Intentando recrear...");
+                await db.execute(sql`DROP TABLE IF EXISTS open_court_registrations`);
+            }
         }
 
         await db.execute(sql`
             CREATE TABLE IF NOT EXISTS open_court_registrations (
                 id varchar(255) PRIMARY KEY,
                 event_id varchar(255) NOT NULL,
-                user_id varchar(255) NOT NULL,
+                user_id varchar(255),
+                guest_name varchar(255),
                 side_preference enum('drive', 'reves', 'ambos') NOT NULL DEFAULT 'ambos',
                 has_paid boolean NOT NULL DEFAULT false,
                 status enum('waiting', 'playing', 'finished', 'absent') NOT NULL DEFAULT 'waiting',

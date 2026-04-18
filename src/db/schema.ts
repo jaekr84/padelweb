@@ -325,7 +325,8 @@ export const openCourtEvents = mysqlTable("open_court_events", {
 export const openCourtRegistrations = mysqlTable("open_court_registrations", {
     id: varchar("id", { length: 36 }).primaryKey(),
     eventId: varchar("event_id", { length: 36 }).notNull(),
-    userId: varchar("user_id", { length: 256 }).notNull(),
+    userId: varchar("user_id", { length: 256 }), // Nullable for guests
+    guestName: varchar("guest_name", { length: 256 }), // Name for non-registered users
     sidePreference: varchar("side_preference", { length: 50 }), // drive | reves | ambos
     hasPaid: boolean("has_paid").notNull().default(false),
     status: varchar("status", { length: 50 }).notNull().default("waiting"), // waiting | playing | finished | absent
@@ -486,6 +487,7 @@ export const messages = mysqlTable("messages", {
     senderId: varchar("sender_id", { length: 256 }).notNull(),
     content: text("content").notNull(),
     isRead: boolean("is_read").default(false),
+    imageUrl: varchar("image_url", { length: 512 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     conversationIdx: index("messages_conversation_idx").on(table.conversationId),

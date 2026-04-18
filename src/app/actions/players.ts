@@ -34,6 +34,35 @@ export async function getAllPlayers() {
         return [];
     }
 }
+export async function getPlayersByClub(clubId: string) {
+    if (!clubId) return [];
+    try {
+        const results = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                imageUrl: users.imageUrl,
+                category: users.category,
+            })
+            .from(users)
+            .where(
+                and(
+                    eq(users.clubId, clubId),
+                    eq(users.role, "jugador")
+                )
+            )
+            .orderBy(users.firstName);
+
+        return results.map(u => ({
+            ...u,
+            name: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
+        }));
+    } catch (err) {
+        console.error("[getPlayersByClub]", err);
+        return [];
+    }
+}
 export async function searchPlayers(query: string) {
     if (!query || query.length < 2) return [];
     

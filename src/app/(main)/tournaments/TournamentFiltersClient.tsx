@@ -1,7 +1,7 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
-import { Check, ChevronDown, LayoutGrid, List } from "lucide-react";
+import { Check, ChevronDown, Trophy, User } from "lucide-react";
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -11,6 +11,8 @@ type Category = {
 };
 
 type Props = {
+    userId: string | null;
+    userClubId?: string | null;
     currentFilter: string;
     selectedCategory: string;
     selectedLocation: string;
@@ -26,6 +28,8 @@ const viewportStyles = "p-1";
 const itemStyles = "relative flex cursor-default select-none items-center rounded-xl pl-4 pr-10 py-2.5 text-sm font-bold normal-case tracking-tight text-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/5 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/10 data-[state=checked]:text-azul-primary";
 
 export default function TournamentFiltersClient({
+    userId,
+    userClubId,
     currentFilter,
     selectedCategory,
     selectedLocation,
@@ -46,6 +50,51 @@ export default function TournamentFiltersClient({
 
     return (
         <div className="flex flex-col gap-6 mb-8">
+            {userId && (
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-1">
+                    <button
+                        type="button"
+                        onClick={() => updateQuery("filter", "mios")}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                            currentFilter === "mios"
+                                ? "bg-azul-primary text-white border-azul-primary shadow-xl shadow-azul-primary/20 scale-[1.02]"
+                                : "bg-white/50 backdrop-blur-sm border-border text-muted-foreground hover:border-azul-primary/50 hover:text-azul-primary"
+                        }`}
+                    >
+                        <User className="w-3.5 h-3.5" />
+                        Mis Torneos
+                    </button>
+                    {userClubId && (
+                        <button
+                            type="button"
+                            onClick={() => updateQuery("filter", "mi_club")}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                                currentFilter === "mi_club"
+                                    ? "bg-celeste text-white border-celeste shadow-xl shadow-celeste/20 scale-[1.02]"
+                                    : "bg-white/50 backdrop-blur-sm border-border text-muted-foreground hover:border-celeste/50 hover:text-celeste"
+                            }`}
+                        >
+                            <Trophy className="w-3.5 h-3.5" />
+                            Mi Club
+                        </button>
+                    )}
+                    {currentFilter !== "todos" && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.set("filter", "todos");
+                                params.set("category", "todas");
+                                params.set("club", "todos");
+                                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+                            }}
+                            className="flex items-center gap-2 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-rojo transition-colors"
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
                 <div className="space-y-2">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Estado</span>
@@ -64,6 +113,7 @@ export default function TournamentFiltersClient({
                                         { value: "abiertas", label: "Inscripción" },
                                         { value: "envivo", label: "En Vivo" },
                                         { value: "clubes", label: "Clubes" },
+                                        ...(userId ? [{ value: "mios", label: "Mis Torneos" }] : []),
                                         { value: "terminados", label: "Finalizados" },
                                     ].map((item) => (
                                         <Select.Item key={item.value} value={item.value} className={itemStyles}>
