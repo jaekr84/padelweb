@@ -57,6 +57,13 @@
       "when": 1776267208301,
       "tag": "0007_futuristic_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1776511508631,
+      "tag": "0008_absent_warstar",
+      "breakpoints": true
     }
   ]
 }

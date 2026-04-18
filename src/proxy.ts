@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = [
     "/",
     "/login",
     "/register",
+    "/contacto",
     "/profiles/centro",
 ];
 
@@ -20,7 +21,7 @@ async function extendToken(payload: any) {
         .sign(JWT_SECRET);
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // 1. Excluir rutas estáticas y API inmediatamente

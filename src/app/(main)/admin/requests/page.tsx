@@ -5,7 +5,8 @@ import RequestsClient from "./RequestsClient";
 export default async function RequestsPage() {
     const session = await getSession();
 
-    if (!session || session.role !== "superadmin") {
+    const allowedRoles = ["superadmin", "admin"];
+    if (!session || !allowedRoles.includes(session.role as string)) {
         redirect("/home");
     }
 

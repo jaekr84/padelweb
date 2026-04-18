@@ -165,14 +165,11 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
             {!isLoggedIn && (
                 <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
                     <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2.5 transition-transform active:scale-95 group">
-                            <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
-                                <span className="text-white font-black text-sm tracking-tighter">AC</span>
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
+                                <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                             </div>
-                            <div className="flex flex-col -gap-1">
-                                <span className="text-[14px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-[9px] font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
-                            </div>
+                            <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                         </Link>
                         <div className="flex items-center gap-3">
                             <Link href="/login" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">Login</Link>

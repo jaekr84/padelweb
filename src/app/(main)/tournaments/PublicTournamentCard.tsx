@@ -236,7 +236,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         <div className="bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-azul-primary/10 hover:border-celeste/30 flex flex-col h-full relative group/card shadow-sm hover:-translate-y-1.5 cursor-pointer">
 
                             {/* Cinematic Image Area */}
-                            <div className="relative h-48 w-full overflow-hidden bg-muted/20">
+                            <div className="relative h-80 w-full overflow-hidden bg-muted/20">
                                 {!showFallback ? (
                                     <img
                                         src={tournament.imageUrl}
@@ -251,7 +251,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 )}
 
                                 {/* Floating Glass Badges */}
-                                <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+                                <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 max-w-[80%]">
                                     <span className={`px-3 py-1 rounded-full ${statusConfig.pill} font-black text-[10px] uppercase tracking-[0.15em] shadow-lg backdrop-blur-md bg-opacity-90`}>
                                         {statusConfig.label}
                                     </span>
@@ -268,7 +268,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                                 {/* Admin Overlays */}
                                 {canManage && (
-                                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
+                                    <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -294,10 +294,10 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     </div>
                                 )}
 
-                                {/* Bottom Image Gradient Overlay */}
-                                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+                                {/* Bottom Image Gradient Overlay - Improved for text contrast */}
+                                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none" />
 
-                                <div className="absolute bottom-4 left-4 right-4 text-white">
+                                <div className="absolute bottom-3 left-3 right-3 text-white">
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-celeste/90 mb-1 drop-shadow-lg">
                                         {tournament.surface || tournament.location || "Sede ACAP"}
                                     </p>
@@ -327,7 +327,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                                 {/* Metadata Grid - Premium Cells */}
                                 <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors h-[72px]">
                                         <div className="flex items-center gap-2">
                                             <Trophy className="w-3.5 h-3.5 text-azul-primary/60" />
                                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Categoría</span>
@@ -338,20 +338,20 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                 if (typeof cats === 'string') {
                                                     try { cats = JSON.parse(cats); } catch (e) { cats = []; }
                                                 }
-                                                return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "N/A";
+                                                return (Array.isArray(cats) && cats.length > 0) ? (cats[0] === "libre" ? "Libre" : cats.join(", ")) : "No definido";
                                             })()}
                                         </p>
                                     </div>
-                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors h-[72px]">
                                         <div className="flex items-center gap-2">
                                             <Users2 className="w-3.5 h-3.5 text-azul-primary/60" />
                                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Género</span>
                                         </div>
                                         <p className="text-xs font-black text-foreground capitalize">
-                                            {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : 'Mixto'}
+                                            {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : mod?.genero === 'mixto' ? 'Mixto' : 'No definido'}
                                         </p>
                                     </div>
-                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors h-[72px]">
                                         <div className="flex items-center gap-2">
                                             <Zap className="w-3.5 h-3.5 text-azul-primary/60" />
                                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Formato</span>
@@ -360,48 +360,59 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                             {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
                                         </p>
                                     </div>
-                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 space-y-2 group/meta hover:border-azul-primary/20 transition-colors h-[72px]">
                                         <div className="flex items-center gap-2">
                                             <DollarSign className="w-3.5 h-3.5 text-azul-primary/60" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inscripción</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Precio</span>
                                         </div>
                                         <div className="space-y-1">
-                                            {tournament.registrationFee != null ? (
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Gral:</span>
-                                                    <span className="text-xs font-black text-foreground">${Number(tournament.registrationFee).toLocaleString('es-ES')}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Gral:</span>
-                                                    <span className="text-xs font-black text-celeste">Gratis</span>
-                                                </div>
-                                            )}
-                                            {tournament.memberRegistrationFee != null && (
-                                                <div className="flex items-center justify-between border-t border-azul-primary/10 pt-1">
-                                                    <span className="text-[8px] font-black text-azul-primary uppercase tracking-tighter">Socio:</span>
-                                                    <span className="text-xs font-black text-azul-primary">${Number(tournament.memberRegistrationFee).toLocaleString('es-ES')}</span>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[8px] font-bold text-muted-foreground uppercase">Gral:</span>
+                                                <span className="text-xs font-black text-foreground">
+                                                    {tournament.registrationFee != null ? `$${Number(tournament.registrationFee).toLocaleString('es-ES')}` : "Consultar"}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-azul-primary/10 pt-1">
+                                                <span className="text-[8px] font-black text-azul-primary uppercase tracking-tighter">Socio:</span>
+                                                <span className="text-xs font-black text-azul-primary">
+                                                    {tournament.memberRegistrationFee != null ? `$${Number(tournament.memberRegistrationFee).toLocaleString('es-ES')}` : "Consultar"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* New Column for Registration Dates */}
+                                    <div className="col-span-2 p-4 rounded-2xl bg-azul-primary/5 border border-azul-primary/10 space-y-2 group/meta hover:border-azul-primary/30 transition-colors h-[72px]">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-3.5 h-3.5 text-azul-primary" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-azul-primary">Apertura de Inscripciones</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-0.5">
+                                                <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60">Socios</p>
+                                                <p className="text-xs font-black text-foreground">{formatDate(tournament.openDateClub)}</p>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60">General</p>
+                                                <p className="text-xs font-black text-foreground">{formatDate(tournament.openDateGeneral)}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Location Section with Map Background */}
-                                {/* Location Section with Map Background */}
-                                {(tournament.surface || tournament.location) && (
-                                    <div
-                                        onClick={(e) => {
-                                            const addr = tournament.surface || tournament.location;
-                                            if (addr) {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_blank");
-                                            }
-                                        }}
-                                        className="mb-6 rounded-2xl border border-azul-primary/20 group/loc cursor-pointer hover:border-azul-primary/40 transition-all overflow-hidden relative min-h-[100px] flex flex-col justify-center p-5"
-                                    >
-                                        {/* Background Map Layer */}
+                                {/* Location Section with Map Background - ALWAYS VISIBLE FOR SYMMETRY */}
+                                <div
+                                    onClick={(e) => {
+                                        const addr = tournament.surface || tournament.location;
+                                        if (addr) {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, "_blank");
+                                        }
+                                    }}
+                                    className="mb-6 rounded-2xl border border-azul-primary/20 group/loc cursor-pointer hover:border-azul-primary/40 transition-all overflow-hidden relative min-h-[100px] flex flex-col justify-center p-5 bg-muted/10"
+                                >
+                                    {/* Background Map Layer */}
+                                    {(tournament.surface || tournament.location) && (
                                         <div className="absolute inset-0 z-0 pointer-events-none opacity-100 grayscale-[0.5] contrast-[1.1]">
                                             <iframe
                                                 width="100%"
@@ -412,20 +423,20 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                             {/* Glass Overlay to protect text */}
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-white/60 backdrop-blur-[2px]" />
                                         </div>
+                                    )}
 
-                                        <div className="relative z-10">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <div className="p-1.5 rounded-lg bg-azul-primary/10">
-                                                    <MapPin className="w-4 h-4 text-azul-primary group-hover/loc:scale-110 transition-transform" />
-                                                </div>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">Sede del Evento</span>
+                                    <div className="relative z-10">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="p-1.5 rounded-lg bg-azul-primary/10">
+                                                <MapPin className="w-4 h-4 text-azul-primary group-hover/loc:scale-110 transition-transform" />
                                             </div>
-                                            <p className="text-sm font-black text-foreground group-hover/loc:text-azul-primary transition-colors leading-tight">
-                                                {tournament.surface || tournament.location}
-                                            </p>
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">Sede del Evento</span>
                                         </div>
+                                        <p className="text-sm font-black text-foreground group-hover/loc:text-azul-primary transition-colors leading-tight truncate">
+                                            {tournament.surface || tournament.location || "Sede por confirmar"}
+                                        </p>
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Action Area */}
                                 <div className="mt-auto space-y-4">

@@ -105,14 +105,11 @@ export default function DirectoryClient({
             {!isLoggedIn && (
                 <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100">
                     <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-3 group">
-                            <div className="w-10 h-10 bg-azul-primary rounded-2xl flex items-center justify-center shadow-lg shadow-azul-primary/20 rotate-3 transition-transform group-hover:rotate-0">
-                                <Trophy className="w-5 h-5 text-white" />
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
+                                <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg font-black tracking-tighter italic text-azul-primary leading-none uppercase">A.C.A.P.</span>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Clubes</span>
-                            </div>
+                            <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                         </Link>
                         <div className="flex items-center gap-4">
                             <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-azul-primary transition-colors">Entrar</Link>

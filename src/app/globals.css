@@ -73,4 +73,70 @@
     -moz-appearance: textfield;
     appearance: none;
   }
+
+  /* Landing Page Utilities */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  .glass-card:hover {
+    border-color: rgba(14, 165, 233, 0.5);
+  }
+
+  @keyframes shine-multi {
+    0% { transform: translate(-150%, -50%) rotate(25deg); opacity: 0; }
+    2% { opacity: 1; }
+    31% { transform: translate(250%, -50%) rotate(25deg); opacity: 1; }
+    32% { opacity: 0; }
+    33% { transform: translate(250%, -50%) rotate(-25deg); opacity: 0; }
+    35% { opacity: 1; }
+    64% { transform: translate(-150%, -50%) rotate(-25deg); opacity: 1; }
+    65% { opacity: 0; }
+    66% { transform: translate(-50%, -200%) rotate(60deg); opacity: 0; }
+    68% { opacity: 1; }
+    98% { transform: translate(-50%, 300%) rotate(60deg); opacity: 1; }
+    100% { transform: translate(-50%, 300%) rotate(60deg); opacity: 0; }
+  }
+  .animate-shine-multi {
+    animation: shine-multi 6s linear infinite;
+  }
+
+  /* Premium Buttons */
+  .glow-button {
+    position: relative;
+    z-index: 1;
+  }
+  .glow-button::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 9999px;
+    background: linear-gradient(45deg, #1e40af, #0ea5e9);
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-button:hover::before {
+    opacity: 1;
+  }
+
+  /* Custom Flag Gradients */
+  .text-korea-gradient {
+    display: inline-block;
+    background: linear-gradient(165deg, #CD2E3A 35%, #ffffff 38%, #ffffff 62%, #0047A0 65%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(205, 46, 58, 0.4)) drop-shadow(0 0 15px rgba(0, 71, 160, 0.4));
+    position: relative;
+  }
+  .text-argentina-gradient {
+    display: inline-block;
+    background: linear-gradient(165deg, #74ACDF 30%, #ffffff 35%, #ffffff 65%, #74ACDF 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(116, 172, 223, 0.4));
+    position: relative;
+  }
 }

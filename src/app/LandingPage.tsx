@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
-import { Trophy, Star, Users, MapPin, ArrowRight, Activity, ShoppingBag, Instagram } from "lucide-react";
+import { Trophy, Star, Users, MapPin, ArrowRight, Activity, ShoppingBag } from "lucide-react";
+import { Navbar } from "@/components/landing/Navbar";
+import { Footer } from "@/components/landing/Footer";
 
 // Variantes de Framer Motion
 const staggerContainer: Variants = {
@@ -80,84 +82,6 @@ export default function LandingPage({
 
     return (
         <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
-            {/* ── CSS KEYFRAMES PARA TEXTO ANIMADO Y GLOWS ── */}
-            <style>{`
-                @keyframes gradient-x {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                .text-gradient-animate {
-                    background: linear-gradient(to right, #1e40af, #0ea5e9, #1e40af);
-                    background-size: 300% 300%;
-                    -webkit-background-clip: text;
-                    color: transparent;
-                    animation: gradient-x 6s ease infinite;
-                }
-                .glow-button {
-                    position: relative;
-                }
-                .glow-button::before {
-                    content: '';
-                    position: absolute;
-                    inset: -2px;
-                    border-radius: 2rem;
-                    background: linear-gradient(45deg, #1e40af, #0ea5e9);
-                    z-index: -1;
-                    filter: blur(8px);
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-                .glow-button:hover::before {
-                    opacity: 1;
-                }
-                .glass-card {
-                    background: rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(59, 130, 246, 0.2);
-                }
-                .glass-card:hover {
-                    border-color: rgba(14, 165, 233, 0.5);
-                }
-                @keyframes shine-multi {
-                    /* Barrido 1: Izquierda a Derecha */
-                    0% { transform: translate(-150%, -50%) rotate(25deg); opacity: 0; }
-                    2% { opacity: 1; }
-                    31% { transform: translate(250%, -50%) rotate(25deg); opacity: 1; }
-                    32% { opacity: 0; }
-                    
-                    /* Barrido 2: Derecha a Izquierda */
-                    33% { transform: translate(250%, -50%) rotate(-25deg); opacity: 0; }
-                    35% { opacity: 1; }
-                    64% { transform: translate(-150%, -50%) rotate(-25deg); opacity: 1; }
-                    65% { opacity: 0; }
-                    
-                    /* Barrido 3: Arriba a Abajo (Diagonal Profunda) */
-                    66% { transform: translate(-50%, -200%) rotate(60deg); opacity: 0; }
-                    68% { opacity: 1; }
-                    98% { transform: translate(-50%, 300%) rotate(60deg); opacity: 1; }
-                    100% { transform: translate(-50%, 300%) rotate(60deg); opacity: 0; }
-                }
-                .animate-shine-multi {
-                    animation: shine-multi 6s linear infinite;
-                }
-                .text-korea-gradient {
-                    display: inline-block;
-                    background: linear-gradient(165deg, #CD2E3A 35%, #ffffff 38%, #ffffff 62%, #0047A0 65%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    filter: drop-shadow(0 0 15px rgba(205, 46, 58, 0.4)) drop-shadow(0 0 15px rgba(0, 71, 160, 0.4));
-                    position: relative;
-                }
-                .text-argentina-gradient {
-                    display: inline-block;
-                    background: linear-gradient(165deg, #74ACDF 30%, #ffffff 35%, #ffffff 65%, #74ACDF 70%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    filter: drop-shadow(0 0 15px rgba(116, 172, 223, 0.4));
-                    position: relative;
-                }
-            `}</style>
 
             {/* ── FONDO DINÁMICO (Parallax Mesh Glows) ── */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -167,52 +91,7 @@ export default function LandingPage({
             </div>
 
             {/* ── NAV ── */}
-            <nav className="fixed top-0 w-full z-50 p-4 lg:p-6 flex justify-center">
-                <motion.div
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
-                    className="flex justify-between items-center w-full max-w-7xl glass-card rounded-[2rem] px-6 py-3 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
-                >
-                    <div className="flex items-center gap-3 flex-1">
-                        <div className="relative w-10 h-10 flex items-center justify-center">
-                            <Image src="/img/acap logo svg blanco sombra.svg" alt="Logo" fill className="object-contain" priority sizes="40px" />
-                            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ WebkitMaskImage: 'url("/img/acap logo svg blanco sombra.svg")', maskImage: 'url("/img/acap logo svg blanco sombra.svg")', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }}>
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent w-[200%] h-[200%] animate-shine-multi" />
-                            </div>
-                        </div>
-                        <span className="font-black text-xl italic tracking-tighter text-white">A.C.A.P</span>
-                    </div>
-
-                    <div className="hidden lg:flex gap-8 items-center justify-center flex-[2]">
-                        <Link href="/ranking" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
-                            <Trophy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Ranking
-                        </Link>
-                        <Link href="/tournaments" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
-                            <Trophy className="w-3.5 h-3.5 text-azul-primary group-hover:scale-110 transition-transform" /> Torneos
-                        </Link>
-                        <Link href="/directory" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
-                            <MapPin className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Clubes
-                        </Link>
-                        <Link href="/marketplace" className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-celeste transition-all uppercase flex items-center gap-2 group">
-                            <ShoppingBag className="w-3.5 h-3.5 text-celeste group-hover:scale-110 transition-transform" /> Marketplace
-                        </Link>
-                        <a 
-                            href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-[10px] font-black tracking-[0.2em] text-slate-400 hover:text-pink-500 transition-all uppercase flex items-center gap-2 group"
-                        >
-                            <Instagram className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> Instagram
-                        </a>
-                    </div>
-
-                    <div className="flex gap-4 items-center justify-end flex-1">
-                        <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all mr-2">Entrar</Link>
-                        <Link href="/register" className="glow-button bg-white text-black px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl">Unite a ACAP</Link>
-                    </div>
-                </motion.div>
-            </nav>
+            <Navbar />
 
             {/* ── HERO SECTION ── */}
             <motion.section style={{ y: yHero, opacity: opacityHero }} className="relative z-10 pt-20 lg:pt-24 pb-2 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
@@ -458,38 +337,7 @@ export default function LandingPage({
             </section>
 
             {/* ── FOOTER FINAL CTA ── */}
-            <footer className="relative z-10 border-t border-slate-800/50 pt-24 pb-12 overflow-hidden mt-12 bg-black">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-1 bg-gradient-to-r from-transparent via-azul-primary to-transparent opacity-50" />
-
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-5xl md:text-7xl font-black italic uppercase text-white mb-10 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">Entrá a jugar</h2>
-                    <Link href="/register" className="glow-button inline-block bg-white text-black px-16 py-5 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] shadow-xl hover:scale-110 active:scale-95 transition-all">
-                        Unite a la Comunidad
-                    </Link>
-                </div>
-
-                <div className="max-w-6xl mx-auto mt-32 px-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-slate-900 pt-8">
-                    <div className="flex items-center gap-3">
-                        <div className="relative w-8 h-8">
-                            <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" />
-                        </div>
-                        <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">© 2026 Asociación Coreana Argentina de Pádel</span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <a 
-                            href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-slate-600 hover:text-pink-500 transition-colors"
-                        >
-                            <Instagram className="w-5 h-5" />
-                        </a>
-                        <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600">
-                            Designed & Developed by <a href="https://x.com/Kr84Jae" target="_blank" rel="noopener noreferrer" className="text-azul-primary hover:text-celeste transition-colors">@JaeKr84</a>
-                        </span>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

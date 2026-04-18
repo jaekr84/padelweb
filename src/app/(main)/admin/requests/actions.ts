@@ -1,13 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { registrationRequests } from "@/db/schema";
+import { registrationRequests, contactMessages } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { checkSuperadmin } from "@/lib/auth";
+import { checkAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function getRegistrationRequests() {
-    if (!(await checkSuperadmin())) {
+    if (!(await checkAdmin())) {
         throw new Error("No autorizado");
     }
 
@@ -15,7 +15,7 @@ export async function getRegistrationRequests() {
 }
 
 export async function updateRequestStatus(id: string, status: "pendiente" | "enviado" | "aceptado" | "rechazado" | "caducado") {
-    if (!(await checkSuperadmin())) {
+    if (!(await checkAdmin())) {
         throw new Error("No autorizado");
     }
 
@@ -27,10 +27,40 @@ export async function updateRequestStatus(id: string, status: "pendiente" | "env
 }
 
 export async function deleteRequestAction(id: string) {
-    if (!(await checkSuperadmin())) {
+    if (!(await checkAdmin())) {
         throw new Error("No autorizado");
     }
 
     await db.delete(registrationRequests).where(eq(registrationRequests.id, id));
+    revalidatePath("/admin/requests");
+}
+
+// Contact Messages Actions
+export async function getContactMessages() {
+    if (!(await checkAdmin())) {
+        throw new Error("No autorizado");
+    }
+
+    return await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+}
+
+export async function updateMessageStatus(id: string, status: "pendiente" | "leido") {
+    if (!(await checkAdmin())) {
+        throw new Error("No autorizado");
+    }
+
+    await db.update(contactMessages)
+        .set({ status })
+        .where(eq(contactMessages.id, id));
+
+    revalidatePath("/admin/requests");
+}
+
+export async function deleteMessageAction(id: string) {
+    if (!(await checkAdmin())) {
+        throw new Error("No autorizado");
+    }
+
+    await db.delete(contactMessages).where(eq(contactMessages.id, id));
     revalidatePath("/admin/requests");
 }

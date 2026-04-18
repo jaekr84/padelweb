@@ -521,4 +521,14 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
     user: one(users, { fields: [pushSubscriptions.userId], references: [users.id] }),
 }));
 
-export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
+export const contactMessages = mysqlTable("contact_messages", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 256 }).notNull(),
+    email: varchar("email", { length: 256 }).notNull(),
+    subject: varchar("subject", { length: 256 }).notNull(),
+    message: text("message").notNull(),
+    status: varchar("status", { length: 50 }).notNull().default("pendiente"), // pendiente | leido
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ContactMessage = InferSelectModel<typeof contactMessages>;
