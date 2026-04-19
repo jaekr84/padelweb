@@ -2,10 +2,10 @@
 import crypto from "crypto";
 
 import { db } from "@/db";
-import { 
-    openCourtEvents, 
-    openCourtRegistrations, 
-    openCourtCourts, 
+import {
+    openCourtEvents,
+    openCourtRegistrations,
+    openCourtCourts,
     openCourtMatches,
     users,
     clubs
@@ -30,7 +30,7 @@ async function verifyEventOwnership(eventId: string) {
     const club = await db.query.clubs.findFirst({
         where: and(eq(clubs.id, event.clubId), eq(clubs.ownerId, session.userId)),
     });
-    
+
     return !!club;
 }
 
@@ -53,7 +53,7 @@ export async function finishOpenCourtEventAction(eventId: string) {
 
         // 2. Finalizar todos los partidos que aún estén en curso
         await db.update(openCourtMatches)
-            .set({ 
+            .set({
                 status: "finished",
                 finishedAt: new Date()
             })
@@ -128,7 +128,7 @@ export async function createOpenCourtEventAction(data: {
     if (session.role !== "superadmin") {
         const [user] = await db.select({ clubId: users.clubId }).from(users).where(eq(users.id, session.userId)).limit(1);
         const ownedClub = await db.query.clubs.findFirst({ where: eq(clubs.ownerId, session.userId) });
-        
+
         if (data.clubId !== user?.clubId && data.clubId !== ownedClub?.id) {
             throw new Error("No autorizado para crear eventos en este club");
         }
@@ -137,7 +137,7 @@ export async function createOpenCourtEventAction(data: {
     try {
         // Asegurar que las tablas existan con la estructura correcta
         await initializeOpenCourtTables();
-        
+
         const id = crypto.randomUUID();
         await db.insert(openCourtEvents).values({
             id,
@@ -252,6 +252,7 @@ export async function createMatchAction(data: {
             team2Player1Id: data.t2p1Id,
             team2Player2Id: data.t2p2Id,
             status: "in_progress",
+            startedAt: new Date(),
         });
 
         // Update court status
@@ -273,9 +274,9 @@ export async function finishMatchAction(matchId: string, score1: number, score2:
     try {
 
         await db.update(openCourtMatches)
-            .set({ 
-                score1, 
-                score2, 
+            .set({
+                score1,
+                score2,
                 status: "completed",
                 finishedAt: new Date()
             })
@@ -294,7 +295,27 @@ export async function finishMatchAction(matchId: string, score1: number, score2:
     }
 }
 
-export async function registerPlayerManualAction(eventId: string, userId: string, sidePreference: string = "ambos") {
+export async function updateMatchPlayerAction(matchId: string, slot: string, newPlayerId: string) {
+    const [match] = await db.select().from(openCourtMatches).where(eq(openCourtMatches.id, matchId)).limit(1);
+    if (!match) return { success: false, error: "Match not found" };
+    if (!(await verifyEventOwnership(match.eventId))) return { success: false, error: "No autorizado" };
+
+    try {
+        const updateData: any = {};
+        updateData[slot] = newPlayerId;
+
+        await db.update(openCourtMatches)
+            .set(updateData)
+            .where(eq(openCourtMatches.id, matchId));
+
+        revalidatePath(`/admin/cancha-abierta/${match.eventId}`);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function registerPlayerManualAction(eventId: string, userId: string, sidePreference: string = "ambos", gender?: "masculino" | "femenino") {
     if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
     try {
         const id = crypto.randomUUID();
@@ -303,6 +324,7 @@ export async function registerPlayerManualAction(eventId: string, userId: string
             eventId,
             userId,
             sidePreference,
+            gender: gender || null,
             status: "waiting",
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
@@ -312,7 +334,7 @@ export async function registerPlayerManualAction(eventId: string, userId: string
     }
 }
 
-export async function registerGuestManualAction(eventId: string, guestName: string, sidePreference: string) {
+export async function registerGuestManualAction(eventId: string, guestName: string, sidePreference: string, gender?: "masculino" | "femenino") {
     if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
     try {
         const id = crypto.randomUUID();
@@ -321,6 +343,7 @@ export async function registerGuestManualAction(eventId: string, guestName: stri
             eventId,
             guestName,
             sidePreference,
+            gender: gender || null,
             status: "waiting",
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
@@ -388,9 +411,9 @@ export async function finishOpenCourtMatchAction(matchId: string, score1: number
     try {
 
         await db.update(openCourtMatches)
-            .set({ 
-                score1, 
-                score2, 
+            .set({
+                score1,
+                score2,
                 status: "completed",
                 finishedAt: new Date()
             })
@@ -403,6 +426,20 @@ export async function finishOpenCourtMatchAction(matchId: string, score1: number
                 .where(eq(openCourtCourts.id, match.courtId));
         }
 
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function updateCourtSettingsAction(courtId: string, settings: { matchType: string }) {
+    const [court] = await db.select({ eventId: openCourtCourts.eventId }).from(openCourtCourts).where(eq(openCourtCourts.id, courtId)).limit(1);
+    if (!court || !(await verifyEventOwnership(court.eventId))) return { success: false, error: "No autorizado" };
+    try {
+        await db.update(openCourtCourts)
+            .set({ matchType: settings.matchType })
+            .where(eq(openCourtCourts.id, courtId));
+        revalidatePath(`/admin/cancha-abierta/${court.eventId}`);
         return { success: true };
     } catch (error) {
         return { success: false, error: String(error) };
@@ -441,13 +478,13 @@ export async function joinOpenCourtEventAction(eventId: string, sidePreference: 
         const event = await db.query.openCourtEvents.findFirst({
             where: eq(openCourtEvents.id, eventId)
         });
-        
+
         if (!event) return { success: false, error: "Evento no encontrado" };
-        
+
         const regs = await db.select({ count: sql<number>`count(*)` })
             .from(openCourtRegistrations)
             .where(eq(openCourtRegistrations.eventId, eventId));
-            
+
         if (event.totalSlots && Number(regs[0].count) >= event.totalSlots) {
             return { success: false, error: "Este evento ya está completo" };
         }

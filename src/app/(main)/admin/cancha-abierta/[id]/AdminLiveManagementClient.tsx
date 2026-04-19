@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useTransition } from "react";
 import {
-    Users, Play, CheckCircle, Clock, Pause,
+    Users, Play, CheckCircle, Clock, Search,
     Plus, Minus, RefreshCw, Trophy, Activity,
     Calendar, DollarSign, UserCheck, ShieldCheck,
     ChevronRight, ArrowLeft, LayoutGrid, ListFilter,
@@ -24,9 +24,10 @@ import {
     bulkMarkAllAsPresentAction,
     removeCourtAction,
     finishOpenCourtMatchAction,
-    startOpenCourtMatchAction,
     createOpenCourtMatchAction,
-    finishOpenCourtEventAction
+    finishOpenCourtEventAction,
+    updateCourtSettingsAction,
+    updateMatchPlayerAction
 } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -72,7 +73,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     useEffect(() => {
         setEvent(initialEvent);
     }, [initialEvent]);
-    
+
     // Determine initial tab based on URL param or event status
     const initialTab = useMemo(() => {
         const tabParam = searchParams.get('tab');
@@ -99,32 +100,35 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     // Score Entry State (Inline per Match)
     const [liveScores, setLiveScores] = useState<Record<string, { s1: number, s2: number }>>({});
 
-    // Draft Matches (Local only, before creation)
-    const [draftMatches, setDraftMatches] = useState<Record<string, {
-        t1p1Id: string;
-        t1p2Id: string;
-        t2p1Id: string;
-        t2p2Id: string;
-    } | null>>({});
 
-    const [selectingFor, setSelectingFor] = useState<{ courtId: string, slot: 't1p1Id' | 't1p2Id' | 't2p1Id' | 't2p2Id' } | null>(null);
+    const [selectingFor, setSelectingFor] = useState<{ courtId: string, slot: 'team1Player1Id' | 'team1Player2Id' | 'team2Player1Id' | 'team2Player2Id' } | null>(null);
     const [swapSearchQuery, setSwapSearchQuery] = useState("");
 
     // Side Selection State
     const [sideSelector, setSideSelector] = useState<{ userId: string; name: string; isGuest?: boolean } | null>(null);
     const [selectedSide, setSelectedSide] = useState<"drive" | "reves" | "ambos">("ambos");
+    const [selectedGender, setSelectedGender] = useState<"masculino" | "femenino">("masculino");
     const [isGuestMode, setIsGuestMode] = useState(false);
     const [guestName, setGuestName] = useState("");
 
-    const updateDraftPlayer = (courtId: string, slot: 't1p1Id' | 't1p2Id' | 't2p1Id' | 't2p2Id', newPlayerId: string) => {
-        setDraftMatches(prev => {
-            const current = prev[courtId];
-            if (!current) return prev;
-            return {
+    const handleUpdatePlayer = async (courtId: string, slot: string, newPlayerId: string) => {
+        const isOccupied = event.courts.find(c => c.id === courtId)?.status !== "available";
+        const currentMatch = event.matches.find(m => m.courtId === courtId && m.status === "in_progress");
+
+        if (isOccupied && currentMatch) {
+            // Live Update (Server + Optimistic)
+            setEvent(prev => ({
                 ...prev,
-                [courtId]: { ...current, [slot]: newPlayerId }
-            };
-        });
+                matches: prev.matches.map(m => m.id === currentMatch.id ? { ...m, [slot]: newPlayerId } : m)
+            }));
+            const res = await updateMatchPlayerAction(currentMatch.id, slot, newPlayerId);
+            if (!res.success) {
+                toast.error("Error al actualizar jugador");
+                // Refresh to sync
+                startTransition(() => { router.refresh(); });
+            }
+        }
+
         setSelectingFor(null);
         setSwapSearchQuery("");
     };
@@ -133,6 +137,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         const reg = registrations.find(r => r.userId === id || r.id === id);
         if (!reg) return "Jugador";
         return reg.guestName || (reg.user ? `${reg.user.firstName} ${reg.user.lastName}` : "Jugador");
+    };
+    const getPlayerSide = (id: string) => {
+        const reg = registrations.find(r => r.userId === id || r.id === id);
+        if (!reg) return null;
+        return reg.sidePreference || (reg.user?.side) || "ambos";
     };
 
     const updateInlineScore = (matchId: string, team: 1 | 2, delta: number) => {
@@ -157,10 +166,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             setEvent(prev => ({
                 ...prev,
                 courts: prev.courts.map(c => c.id === match.courtId ? { ...c, status: 'available' } : c),
-                matches: prev.matches.map(m => m.id === matchId ? { 
-                    ...m, 
-                    status: 'completed', 
-                    score1: scores.s1, 
+                matches: prev.matches.map(m => m.id === matchId ? {
+                    ...m,
+                    status: 'completed',
+                    score1: scores.s1,
                     score2: scores.s2,
                     finishedAt: new Date() // Cambiado de string a objeto Date para cumplir con el esquema
                 } : m)
@@ -184,24 +193,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         }
     };
 
-    const handleStartMatch = async (matchId: string) => {
-        // Optimistic update
-        setEvent(prev => ({
-            ...prev,
-            matches: prev.matches.map(m => m.id === matchId ? { ...m, startedAt: new Date() } : m)
-        }));
-
-        const res = await startOpenCourtMatchAction(matchId);
-        if (res.success) {
-            toast.success("Partido iniciado");
-            startTransition(() => {
-                router.refresh();
-            });
-        } else {
-            toast.error("Error al iniciar partido");
-            window.location.reload();
-        }
-    };
 
     const confirmRegistrationWithSide = async () => {
         if (!sideSelector) return;
@@ -212,9 +203,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 toast.error("El nombre del invitado es obligatorio");
                 return;
             }
-            res = await registerGuestManualAction(event.id, guestName.trim(), selectedSide);
+            res = await registerGuestManualAction(event.id, guestName.trim(), selectedSide, selectedGender);
         } else {
-            res = await registerPlayerManualAction(event.id, sideSelector.userId, selectedSide);
+            res = await registerPlayerManualAction(event.id, sideSelector.userId, selectedSide, selectedGender);
         }
 
         if (res.success) {
@@ -253,24 +244,56 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         return ids;
     }, [event.matches, event.courts]);
 
+    // Calcular partidos jugados por cada usuario/invitado
+    const matchesPlayedCount = useMemo(() => {
+        const counts = new Map<string, number>();
+        registrations.forEach(r => counts.set(r.userId || r.id, 0));
+        event.matches.filter(m => m.status === "completed").forEach(m => {
+            [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id].forEach(id => {
+                counts.set(id, (counts.get(id) || 0) + 1);
+            });
+        });
+        return counts;
+    }, [event.matches, registrations]);
+
     const availablePlayers = useMemo(() => {
-        const draftIds = new Set<string>();
-        Object.values(draftMatches).forEach(d => {
-            if (d) {
-                draftIds.add(d.t1p1Id);
-                draftIds.add(d.t1p2Id);
-                draftIds.add(d.t2p1Id);
-                draftIds.add(d.t2p2Id);
-            }
+
+        // Obtener última vez que jugó (para desempate si matchesPlayed es igual)
+        const lastMatchTime = new Map<string, number>();
+        event.matches.filter(m => m.status === "completed").forEach(m => {
+            const time = m.finishedAt ? new Date(m.finishedAt).getTime() : 0;
+            [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id].forEach(id => {
+                const prev = lastMatchTime.get(id) || 0;
+                if (time > prev) lastMatchTime.set(id, time);
+            });
         });
-        return waitingPlayers.filter(p => {
-            const pid = p.userId || p.id;
-            return !playingPlayersIds.has(pid) && !draftIds.has(pid);
-        });
-    }, [waitingPlayers, playingPlayersIds, draftMatches]);
+
+        return waitingPlayers
+            .filter(p => {
+                const pid = p.userId || p.id;
+                return !playingPlayersIds.has(pid);
+            })
+            .sort((a, b) => {
+                const idA = a.userId || a.id;
+                const idB = b.userId || b.id;
+
+                // 1. Prioridad: Menos partidos jugados (RUEDA)
+                const matchesA = matchesPlayedCount.get(idA) || 0;
+                const matchesB = matchesPlayedCount.get(idB) || 0;
+                if (matchesA !== matchesB) return matchesA - matchesB;
+
+                // 2. Desempate 1: El que más tiempo lleva fuera (último partido finalizado)
+                const timeA = lastMatchTime.get(idA) || 0;
+                const timeB = lastMatchTime.get(idB) || 0;
+                if (timeA !== timeB) return timeA - timeB; // El que terminó antes va primero
+
+                // 3. Desempate 2: Fecha de inscripción original
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            });
+    }, [waitingPlayers, playingPlayersIds, matchesPlayedCount, event.matches]);
 
     const activeCourts = useMemo(() =>
-        event.courts.filter(c => c.isActive),
+        [...event.courts].filter(c => c.isActive).sort((a, b) => a.courtNumber - b.courtNumber),
         [event.courts]);
 
     const filteredPlayers = useMemo(() => {
@@ -288,18 +311,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             .slice(0, 5);
     }, [searchQuery, allPlayers, registrations]);
 
-    // Calcular partidos jugados por cada usuario/invitado
-    const matchesPlayedCount = useMemo(() => {
-        const counts = new Map<string, number>();
-        registrations.forEach(r => counts.set(r.userId || r.id, 0));
-        event.matches.filter(m => m.status === "completed").forEach(m => {
-            [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id].forEach(id => {
-                counts.set(id, (counts.get(id) || 0) + 1);
-            });
-        });
-        return counts;
-    }, [event.matches, registrations]);
-
     // Matching Algorithm (Social & Fair Rotation)
     const generateNextMatch = useCallback(async (courtId: string) => {
         if (availablePlayers.length < 4) {
@@ -309,7 +320,60 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
         setIsGenerating(true);
 
-        // 1. Obtener historial y tiempos
+        const court = event.courts.find(c => c.id === courtId);
+        if (!court) {
+            setIsGenerating(false);
+            return;
+        }
+
+        const mode = court.matchType || 'libre';
+
+        // 1. Seleccionar los 4 jugadores respetando prioridad y restricciones de modo
+        let candidates: RegistrationWithUser[] = [];
+
+        if (mode === 'mixto') {
+            // Caso Mixto: Necesitamos 2 hombres y 2 mujeres de los que más tiempo llevan esperando
+            const topMales = availablePlayers.filter(p => (p.gender || p.user?.gender) === 'masculino').slice(0, 2);
+            const topFemales = availablePlayers.filter(p => (p.gender || p.user?.gender) === 'femenino').slice(0, 2);
+
+            if (topMales.length < 2 || topFemales.length < 2) {
+                toast.error("No hay suficientes hombres y mujeres (2+2) para un mixto.");
+                setIsGenerating(false);
+                return;
+            }
+            candidates = [...topMales, ...topFemales];
+        } else if (mode === 'mismo_genero') {
+            // Caso Mismo Género: Seleccionar los primeros 4 que permitan hacer parejas de igual género (H+H y/o M+M)
+            // Esto significa que el número de hombres seleccionados debe ser par (0, 2 o 4)
+            const picked: RegistrationWithUser[] = [];
+            let hombresPicked = 0;
+
+            for (const p of availablePlayers) {
+                if (picked.length === 4) break;
+                const isH = (p.gender || p.user?.gender) === 'masculino';
+
+                // Si ya tenemos 3 y vamos a pickear el 4to, debemos asegurar paridad
+                if (picked.length === 3) {
+                    const willBeHombres = hombresPicked + (isH ? 1 : 0);
+                    if (willBeHombres % 2 !== 0) continue; // Skip if it breaks parity
+                }
+
+                picked.push(p);
+                if (isH) hombresPicked++;
+            }
+
+            if (picked.length < 4) {
+                toast.error("No hay jugadores suficientes para formar dos parejas de mismo género.");
+                setIsGenerating(false);
+                return;
+            }
+            candidates = picked;
+        } else {
+            // Modo Libre: Los primeros 4 de la lista
+            candidates = availablePlayers.slice(0, 4);
+        }
+
+        // 2. Obtener historial y tiempos para el desempate de parejas
         const lastMatchTime = new Map<string, number>();
         const pairHistory = new Map<string, number>(); // "id1-id2" -> count
         const opponentHistory = new Map<string, number>(); // "id1-id2" -> count
@@ -339,16 +403,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 [m.team2Player1Id, m.team2Player2Id].forEach(p2 => registerOpp(p1, p2));
             });
         });
-
-        // 2. Seleccionar los 4 candidatos con prioridad: Rueda > Tiempo de espera
-        const candidates = [...availablePlayers].sort((a, b) => {
-            const idA = a.userId || a.id;
-            const idB = b.userId || b.id;
-            const matchesA = matchesPlayedCount.get(idA) || 0;
-            const matchesB = matchesPlayedCount.get(idB) || 0;
-            if (matchesA !== matchesB) return matchesA - matchesB;
-            return (lastMatchTime.get(idA) || 0) - (lastMatchTime.get(idB) || 0);
-        }).slice(0, 4);
 
         // 3. Evaluar las 3 combinaciones posibles de estos 4 jugadores
         // Opciones: (0,1)vs(2,3), (0,2)vs(1,3), (0,3)vs(1,2)
@@ -416,48 +470,31 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             penalty += calculatePositionalPenalty(t1p1, t1p2);
             penalty += calculatePositionalPenalty(t2p1, t2p2);
 
+            // --- Restricciones de Género Estrictas ---
+            if (mode === 'mixto') {
+                const isT1Mixed = (t1p1.gender || t1p1.user?.gender) !== (t1p2.gender || t1p2.user?.gender);
+                const isT2Mixed = (t2p1.gender || t2p1.user?.gender) !== (t2p2.gender || t2p2.user?.gender);
+                if (!isT1Mixed || !isT2Mixed) penalty += 10000;
+            } else if (mode === 'mismo_genero') {
+                const isT1Same = (t1p1.gender || t1p1.user?.gender) === (t1p2.gender || t1p2.user?.gender);
+                const isT2Same = (t2p1.gender || t2p1.user?.gender) === (t2p2.gender || t2p2.user?.gender);
+                if (!isT1Same || !isT2Same) penalty += 10000;
+            }
+
             if (penalty < minPenalty) {
                 minPenalty = penalty;
                 bestCombo = combo;
             }
         });
 
-        // 4. Crear el borrador localmente
+        // 4. Crear el partido directamente e iniciarlo
         const finalT1 = [candidates[bestCombo.t1[0]], candidates[bestCombo.t1[1]]];
         const finalT2 = [candidates[bestCombo.t2[0]], candidates[bestCombo.t2[1]]];
 
-        setDraftMatches(prev => ({
-            ...prev,
-            [courtId]: {
-                t1p1Id: finalT1[0].userId || finalT1[0].id,
-                t1p2Id: finalT1[1].userId || finalT1[1].id,
-                t2p1Id: finalT2[0].userId || finalT2[0].id,
-                t2p2Id: finalT2[1].userId || finalT2[1].id,
-            }
-        }));
-        
-        setIsGenerating(false);
-    }, [availablePlayers, registrations, event.matches, matchesPlayedCount, event.id, draftMatches]);
-
-    const handleFinishEvent = async () => {
-        if (!confirm("¿Estás seguro de que deseas finalizar este evento? Se cerrarán todos los partidos en curso y el evento pasará a estar completado.")) return;
-        
-        setIsGenerating(true);
-        const res = await finishOpenCourtEventAction(event.id);
-        if (res.success) {
-            toast.success("Evento finalizado correctamente");
-            router.push("/admin/cancha-abierta");
-        } else {
-            toast.error("Error al finalizar evento: " + res.error);
-        }
-        setIsGenerating(false);
-    };
-
-    const confirmDraftAndStart = async (courtId: string) => {
-        const draft = draftMatches[courtId];
-        if (!draft) return;
-
-        setIsGenerating(true);
+        const t1p1Id = finalT1[0].userId || finalT1[0].id;
+        const t1p2Id = finalT1[1].userId || finalT1[1].id;
+        const t2p1Id = finalT2[0].userId || finalT2[0].id;
+        const t2p2Id = finalT2[1].userId || finalT2[1].id;
 
         // --- Optimistic Update ---
         const tempId = Math.random().toString();
@@ -465,10 +502,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             id: tempId,
             eventId: event.id,
             courtId,
-            team1Player1Id: draft.t1p1Id,
-            team1Player2Id: draft.t1p2Id,
-            team2Player1Id: draft.t2p1Id,
-            team2Player2Id: draft.t2p2Id,
+            team1Player1Id: t1p1Id,
+            team1Player2Id: t1p2Id,
+            team2Player1Id: t2p1Id,
+            team2Player2Id: t2p2Id,
             score1: 0,
             score2: 0,
             status: "in_progress",
@@ -481,17 +518,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             courts: prev.courts.map(c => c.id === courtId ? { ...c, status: "occupied" } : c),
             matches: [newMatch, ...prev.matches]
         }));
-        
-        // Limpiamos el draft localmente de inmediato
-        setDraftMatches(prev => ({ ...prev, [courtId]: null }));
 
         const res = await createOpenCourtMatchAction({
             eventId: event.id,
             courtId,
-            t1p1Id: draft.t1p1Id,
-            t1p2Id: draft.t1p2Id,
-            t2p1Id: draft.t2p1Id,
-            t2p2Id: draft.t2p2Id,
+            t1p1Id,
+            t1p2Id,
+            t2p1Id,
+            t2p2Id,
         });
 
         if (res.success) {
@@ -501,15 +535,26 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             });
         } else {
             toast.error("Error al iniciar partido");
-            // Aquí se podría revertir el estado si falla, pero el refresh lo hará
             window.location.reload();
+        }
+
+        setIsGenerating(false);
+    }, [availablePlayers, registrations, event.matches, matchesPlayedCount, event.id, event.courts]);
+
+    const handleFinishEvent = async () => {
+        if (!confirm("¿Estás seguro de que deseas finalizar este evento? Se cerrarán todos los partidos en curso y el evento pasará a estar completado.")) return;
+
+        setIsGenerating(true);
+        const res = await finishOpenCourtEventAction(event.id);
+        if (res.success) {
+            toast.success("Evento finalizado correctamente");
+            router.push("/admin/cancha-abierta");
+        } else {
+            toast.error("Error al finalizar evento: " + res.error);
         }
         setIsGenerating(false);
     };
 
-    const cancelDraft = (courtId: string) => {
-        setDraftMatches(prev => ({ ...prev, [courtId]: null }));
-    };
 
     const handleAddCourt = async () => {
         const nextNum = event.courts.length + 1;
@@ -520,6 +565,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             eventId: event.id,
             courtNumber: nextNum,
             isActive: true,
+            matchType: "libre",
             status: "available"
         };
         setEvent(prev => ({ ...prev, courts: [...prev.courts, newCourt] }));
@@ -551,6 +597,23 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         } else {
             toast.error("Error al eliminar cancha");
             window.location.reload();
+        }
+    };
+
+    const handleUpdateCourtSettings = async (courtId: string, settings: { matchType: string }) => {
+        // Optimistic update
+        setEvent(prev => ({
+            ...prev,
+            courts: prev.courts.map(c => c.id === courtId ? { ...c, ...settings } : c)
+        }));
+
+        const res = await updateCourtSettingsAction(courtId, settings);
+        if (!res.success) {
+            toast.error("Error al actualizar configuración de cancha");
+        } else {
+            startTransition(() => {
+                router.refresh();
+            });
         }
     };
 
@@ -663,29 +726,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         </div>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-6">
-                    <div className="bg-card/40 border border-border/50 px-6 py-3 rounded-2xl flex items-center gap-4">
-                        <div className="flex flex-col items-center">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Disponibles</span>
-                            <span className="text-xl font-black italic leading-none text-celeste">{availablePlayers.length}</span>
-                        </div>
-                        <div className="w-px h-8 bg-border/40" />
-                        <div className="flex flex-col items-center">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">En Juego</span>
-                            <span className="text-xl font-black italic leading-none text-azul-primary">{event.matches.filter(m => m.status === 'in_progress').length}</span>
-                        </div>
-                    </div>
-
-                    <button 
-                        onClick={handleFinishEvent}
-                        disabled={isGenerating}
-                        className="px-6 py-4 bg-rojo hover:bg-rojo-dark active:scale-95 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rojo/10 flex items-center gap-2"
-                    >
-                        <Flag className="w-4 h-4 fill-current" />
-                        Finalizar Evento
-                    </button>
-                </div>
             </div>
 
             {/* Navigation Tabs */}
@@ -747,6 +787,22 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
                                         >
                                             Invitado
+                                        </button>
+                                    </div>
+
+                                    {/* Selector de Género para registro */}
+                                    <div className="flex gap-2 bg-muted/20 p-1 rounded-xl">
+                                        <button
+                                            onClick={() => setSelectedGender("masculino")}
+                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${selectedGender === "masculino" ? 'bg-azul-primary text-white shadow-md' : 'text-muted-foreground'}`}
+                                        >
+                                            Hombre
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedGender("femenino")}
+                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${selectedGender === "femenino" ? 'bg-rojo text-white shadow-md' : 'text-muted-foreground'}`}
+                                        >
+                                            Mujer
                                         </button>
                                     </div>
 
@@ -829,8 +885,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 >
                                                     {isGuestMode ? "Registrar Invitado" : `Registrar a ${sideSelector.name.split(' ')[0]}`}
                                                 </button>
-                                                
-                                                <button 
+
+                                                <button
                                                     onClick={() => { setSideSelector(null); setIsGuestMode(false); }}
                                                     className="w-full py-1 text-[8px] font-black uppercase text-muted-foreground/50 hover:text-rojo transition-colors"
                                                 >
@@ -966,254 +1022,227 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         exit={{ opacity: 0, x: -20 }}
                         className="space-y-12"
                     >
-                        {/* Courts Section */}
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Gestión de Canchas en Vivo</h3>
-                                <button
-                                    onClick={handleAddCourt}
-                                    className="flex items-center gap-2 px-6 py-3 bg-muted border border-border/40 rounded-2xl hover:bg-muted-foreground/10 transition-all"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Agregar Cancha</span>
-                                </button>
+                        {/* Courts Section - Horizontal Table Layout */}
+                        <div className="space-y-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 mt-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-xl font-black uppercase italic tracking-tighter text-foreground leading-none">Gestión de Canchas</h3>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    {/* KPIs Movidos */}
+                                    <div className="hidden lg:flex items-center gap-4 bg-card/40 border border-border/50 px-6 py-2.5 rounded-2xl">
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Disponibles</span>
+                                            <span className="text-lg font-black italic leading-none text-celeste">{availablePlayers.length}</span>
+                                        </div>
+                                        <div className="w-px h-6 bg-border/40" />
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">En Juego</span>
+                                            <span className="text-lg font-black italic leading-none text-azul-primary">{event.matches.filter(m => m.status === 'in_progress').length}</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={handleAddCourt}
+                                        className="h-12 flex items-center gap-2 px-6 bg-muted/50 border border-border/40 rounded-xl hover:bg-foreground hover:text-background transition-all group"
+                                    >
+                                        <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Agregar Cancha</span>
+                                    </button>
+
+                                    <button
+                                        onClick={handleFinishEvent}
+                                        disabled={isGenerating}
+                                        className="h-12 px-6 bg-rojo hover:bg-rojo-dark active:scale-95 disabled:opacity-50 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rojo/10 flex items-center gap-2"
+                                    >
+                                        <Flag className="w-3.5 h-3.5 fill-current" />
+                                        Finalizar Evento
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {activeCourts.map(court => (
-                                    <div key={court.id} className="bg-card/60 backdrop-blur-md border border-border/50 rounded-[2.5rem] p-8 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden group shadow-xl">
-                                        <div className="absolute top-4 left-6 flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full shadow-lg ${court.status === "available" ? "bg-celeste shadow-celeste/50" : "bg-rojo shadow-rojo/50"
-                                                }`} />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Cancha {court.courtNumber}</span>
-                                        </div>
+                            <div className="flex flex-col gap-3">
+                                {activeCourts.map(court => {
+                                    const currentMatch = event.matches.find(m => m.courtId === court.id && m.status === "in_progress");
+                                    const scores = currentMatch ? (liveScores[currentMatch.id] || { s1: 0, s2: 0 }) : { s1: 0, s2: 0 };
+                                    const isOccupied = court.status !== "available";
 
-                                        <button
-                                            onClick={() => handleRemoveCourt(court.id)}
-                                            className="absolute top-4 right-6 w-8 h-8 flex items-center justify-center rounded-lg bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all overflow-hidden"
-                                            title="Eliminar Cancha"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                    return (
+                                        <div key={court.id} className="group relative bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] overflow-hidden shadow-2xl hover:border-celeste/40 transition-all flex flex-col">
 
-                                        {court.status === "available" ? (() => {
-                                            const draft = draftMatches[court.id];
-                                            if (draft) {
-                                                return (
-                                                    <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in w-full">
-                                                        <div className="text-center w-full relative">
-                                                            <div className="flex flex-col items-center gap-1 mb-6">
-                                                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-azul-primary">Parejas Armadas</span>
-                                                                <div className="w-8 h-1 bg-azul-primary/20 rounded-full" />
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-4 w-full px-4 mb-8">
-                                                                {[
-                                                                    { side: 'Equipo 1', slots: ['t1p1Id', 't1p2Id'] as const, color: 'text-celeste' },
-                                                                    { side: 'Equipo 2', slots: ['t2p1Id', 't2p2Id'] as const, color: 'text-rojo' }
-                                                                ].map((team, idx) => (
-                                                                    <div key={team.side} className={`space-y-1 ${idx === 1 ? 'border-l border-border/20 pl-4' : ''}`}>
-                                                                        <p className={`text-[8px] font-black ${team.color}/50 uppercase tracking-widest mb-2`}>{team.side}</p>
-                                                                        {team.slots.map(slot => {
-                                                                            const isCurrentEdit = selectingFor?.courtId === court.id && selectingFor?.slot === slot;
-                                                                            return (
-                                                                                <div key={slot} className="relative group/player">
-                                                                                    <button 
-                                                                                        onClick={() => {
-                                                                                            setSelectingFor(isCurrentEdit ? null : { courtId: court.id, slot });
-                                                                                            setSwapSearchQuery("");
-                                                                                        }}
-                                                                                        className={`w-full flex items-center justify-center gap-2 py-1 px-2 rounded-lg transition-all ${isCurrentEdit ? 'bg-foreground/10 ring-1 ring-foreground/20' : 'hover:bg-foreground/5'}`}
-                                                                                    >
-                                                                                        <p className="text-[11px] font-black uppercase italic truncate text-foreground/80">{getPlayerName(draft[slot])}</p>
-                                                                                        <RefreshCw className={`w-2.5 h-2.5 opacity-0 group-hover/player:opacity-40 transition-opacity ${isCurrentEdit ? 'animate-spin opacity-100' : ''}`} />
-                                                                                    </button>
+                                            {/* --- TIER 1: HEADER (COMMAND BAR) --- */}
+                                            <div className="flex items-center justify-between px-8 py-0 bg-foreground/5 border-b border-white/5 backdrop-blur-3xl rounded-t-[2rem]">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)] ${isOccupied ? "bg-rojo animate-pulse" : "bg-celeste"}`} />
+                                                        <h4 className="text-[14px] font-black uppercase italic tracking-tighter text-foreground/80">Cancha {court.courtNumber}</h4>
+                                                    </div>
 
-                                                                                    {isCurrentEdit && (
-                                                                                        <div className="absolute left-0 top-full mt-2 w-56 bg-card border border-border/50 rounded-2xl shadow-2xl z-[50] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                                                                                            <div className="p-2 bg-foreground/5 border-b border-border/10">
-                                                                                                <input 
-                                                                                                    autoFocus
-                                                                                                    type="text"
-                                                                                                    placeholder="BUSCAR SUPLENTE..."
-                                                                                                    value={swapSearchQuery}
-                                                                                                    onChange={(e) => setSwapSearchQuery(e.target.value)}
-                                                                                                    className="w-full bg-background border border-border/20 rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-muted-foreground/30"
-                                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                                />
-                                                                                            </div>
-                                                                                            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
-                                                                                                <div className="p-2 border-b border-border/5">
-                                                                                                    <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/40">Sustituir por:</p>
-                                                                                                </div>
-                                                                                                {(() => {
-                                                                                                    const filtered = availablePlayers.filter(p => 
-                                                                                                        (p.guestName || `${p.user?.firstName} ${p.user?.lastName}`).toLowerCase().includes(swapSearchQuery.toLowerCase())
-                                                                                                    );
-                                                                                                    if (filtered.length === 0) {
-                                                                                                        return <p className="p-4 text-[9px] font-bold text-muted-foreground/30 uppercase italic text-center">No hay resultados</p>;
-                                                                                                    }
-                                                                                                    return filtered.map(p => (
-                                                                                                        <button
-                                                                                                            key={p.id}
-                                                                                                            onClick={() => updateDraftPlayer(court.id, slot, p.userId || p.id)}
-                                                                                                            className="w-full text-left px-3 py-2.5 hover:bg-foreground/5 rounded-xl transition-colors"
-                                                                                                        >
-                                                                                                            <p className="text-[10px] font-black uppercase italic truncate">{p.guestName || `${p.user?.firstName} ${p.user?.lastName}`}</p>
-                                                                                                            <p className="text-[7px] font-bold text-muted-foreground/40 uppercase tracking-tighter">Partidos: {matchesPlayedCount.get(p.userId || p.id) || 0}</p>
-                                                                                                        </button>
-                                                                                                    ));
-                                                                                                })()}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex flex-col gap-3 w-full px-8">
+                                                    {/* Selector de Modo Compacto */}
+                                                    <div className="flex items-center bg-background/20 rounded-lg p-1 border border-white/5">
+                                                        {[
+                                                            { id: 'libre', label: 'LIBRE', title: 'Cualquier combinación: los primeros 4 que lleguen.' },
+                                                            { id: 'mixto', label: 'MIXTO', title: 'Mixto Estricto: obliga a formar parejas de Hombre + Mujer (H+M vs M+H).' }
+                                                        ].map(m => (
                                                             <button
-                                                                onClick={() => confirmDraftAndStart(court.id)}
-                                                                className="bg-foreground text-background font-black uppercase tracking-widest text-[10px] py-4 rounded-3xl shadow-xl shadow-foreground/20 active:scale-95 transition-all w-full flex items-center justify-center gap-2"
+                                                                key={m.id}
+                                                                title={m.title}
+                                                                onClick={() => handleUpdateCourtSettings(court.id, { matchType: m.id })}
+                                                                className={`px-3 py-1 rounded-md text-[7px] font-black tracking-widest transition-all ${(court.matchType || 'libre') === m.id
+                                                                    ? 'bg-celeste text-white shadow-lg'
+                                                                    : 'text-muted-foreground/30 hover:text-muted-foreground/60'
+                                                                    }`}
                                                             >
-                                                                <Play className="w-3 h-3 fill-current" />
-                                                                Llamar y Comenzar
+                                                                {m.label}
                                                             </button>
-                                                            <button
-                                                                onClick={() => cancelDraft(court.id)}
-                                                                className="text-muted-foreground font-black uppercase tracking-widest text-[8px] hover:text-foreground transition-all py-2"
-                                                            >
-                                                                Cambiar Jugadores
-                                                            </button>
-                                                        </div>
+                                                        ))}
                                                     </div>
-                                                );
-                                            }
-                                            return (
-                                                <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in">
-                                                    <div className="w-20 h-20 rounded-[2.5rem] bg-celeste/10 text-celeste flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                        <LayoutGrid className="w-8 h-8" />
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <h5 className="text-sm font-black uppercase tracking-widest text-celeste mb-1">Cancha Libre</h5>
-                                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase max-w-[150px]">Pulsa para llamar el siguiente partido de la rueda</p>
-                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-4">
+                                                    {!isOccupied ? (
+                                                        <button
+                                                            onClick={() => generateNextMatch(court.id)}
+                                                            className="flex items-center gap-2 px-6 py-2 bg-celeste text-white font-black uppercase tracking-widest text-[9px] rounded-lg shadow-lg shadow-celeste/20 hover:scale-105 active:scale-95 transition-all"
+                                                        >
+                                                            <Trophy className="w-3 h-3" />
+                                                            Armar Parejas
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => currentMatch && handleFinishMatch(currentMatch.id)}
+                                                            className="flex items-center gap-2 px-6 py-2 bg-foreground text-background font-black uppercase tracking-widest text-[9px] rounded-lg hover:bg-celeste hover:text-white transition-all shadow-xl active:scale-95"
+                                                        >
+                                                            <CheckCircle className="w-3 h-3" />
+                                                            Finalizar Match
+                                                        </button>
+                                                    )}
+
+                                                    <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
                                                     <button
-                                                        onClick={() => generateNextMatch(court.id)}
-                                                        className="bg-celeste hover:bg-celeste text-white font-black uppercase tracking-widest text-[10px] py-5 px-12 rounded-full shadow-xl shadow-celeste/20 active:scale-95 transition-all"
+                                                        onClick={() => handleRemoveCourt(court.id)}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-rojo/30 hover:text-rojo hover:bg-rojo/10 transition-all"
                                                     >
-                                                        Armar Parejas
+                                                        <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
-                                            );
-                                        })() : (() => {
-                                            const currentMatch = event.matches.find(m => m.courtId === court.id && m.status === "in_progress");
-                                            const scores = currentMatch ? (liveScores[currentMatch.id] || { s1: 0, s2: 0 }) : { s1: 0, s2: 0 };
+                                            </div>
 
-                                            return (
-                                                <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="flex items-center justify-between px-12 py-0 bg-transparent relative">
 
-
-                                                    {currentMatch && !currentMatch.startedAt ? (
-                                                        <div className="flex flex-col items-center gap-6 py-4">
-                                                            <div className="space-y-4 w-full">
-                                                                <div className="flex justify-around items-center gap-4">
-                                                                    <div className="text-center">
-                                                                        <p className="text-[10px] font-black uppercase text-celeste mb-2">PAREJA 1</p>
-                                                                        <p className="text-[11px] font-black uppercase italic leading-none">{getPlayerName(currentMatch.team1Player1Id)}</p>
-                                                                        <p className="text-[11px] font-black uppercase italic leading-none mt-1">{getPlayerName(currentMatch.team1Player2Id)}</p>
-                                                                    </div>
-                                                                    <span className="text-xl font-black italic text-muted-foreground/20">VS</span>
-                                                                    <div className="text-center">
-                                                                        <p className="text-[10px] font-black uppercase text-rojo mb-2">PAREJA 2</p>
-                                                                        <p className="text-[11px] font-black uppercase italic leading-none">{getPlayerName(currentMatch.team2Player1Id)}</p>
-                                                                        <p className="text-[11px] font-black uppercase italic leading-none mt-1">{getPlayerName(currentMatch.team2Player2Id)}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => handleStartMatch(currentMatch.id)}
-                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-celeste hover:text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 group"
-                                                            >
-                                                                <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
-                                                                COMENZAR PARTIDO
-                                                            </button>
+                                                <div className="flex-1 flex justify-start">
+                                                    {isOccupied && currentMatch ? (
+                                                        <div className="flex items-center gap-10">
+                                                            {[
+                                                                { id: 'team2Player1Id', label: 'Drive' },
+                                                                { id: 'team2Player2Id', label: 'Revés' }
+                                                            ].map(pos => {
+                                                                const pid = currentMatch[pos.id as keyof typeof currentMatch] as string;
+                                                                return (
+                                                                    <button
+                                                                        key={pos.id}
+                                                                        onClick={() => setSelectingFor({ courtId: court.id, slot: pos.id as any })}
+                                                                        className="flex flex-col items-start group/player transition-all"
+                                                                    >
+                                                                        <span className="text-[14px] font-black uppercase italic tracking-tighter text-foreground group-hover/player:text-rojo transition-all">
+                                                                            {getPlayerName(pid)}
+                                                                        </span>
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className={`text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm bg-rojo/10 text-rojo/60`}>
+                                                                                {(() => {
+                                                                                    const side = getPlayerSide(pid);
+                                                                                    return side === 'ambos' ? 'AMBOS' : (side || pos.label);
+                                                                                })()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </button>
+                                                                );
+                                                            })}
                                                         </div>
                                                     ) : (
-                                                        <>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                {/* Team 1 Score */}
-                                                                <div className="p-4 bg-celeste/5 rounded-2xl border border-celeste/10 flex flex-col items-center">
-                                                                    <span className="text-[7px] font-black text-celeste uppercase tracking-widest mb-3">PAREJA 1</span>
-                                                                    {currentMatch && (
-                                                                        <div className="text-center mb-4 min-h-[40px]">
-                                                                            <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team1Player1Id)}</p>
-                                                                            <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team1Player2Id)}</p>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="flex items-center gap-4">
-                                                                        <button
-                                                                            onClick={() => currentMatch && updateInlineScore(currentMatch.id, 1, -1)}
-                                                                            className="w-8 h-8 rounded-xl bg-celeste/10 text-celeste flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
-                                                                        >
-                                                                            <Minus className="w-4 h-4" />
-                                                                        </button>
-                                                                        <span className="text-3xl font-black italic min-w-[35px] text-center">{scores.s1}</span>
-                                                                        <button
-                                                                            onClick={() => currentMatch && updateInlineScore(currentMatch.id, 1, 1)}
-                                                                            className="w-8 h-8 rounded-xl bg-celeste/10 text-celeste flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
-                                                                        >
-                                                                            <Plus className="w-4 h-4" />
-                                                                        </button>
+                                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-10">Esperando Jugadores</span>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-shrink-0 w-[420px] mx-8 relative h-16">
+                                                    {isOccupied && currentMatch ? (
+                                                        <div className="absolute inset-0 bg-foreground shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-y border-white/10" style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)' }}>
+                                                            <div className="h-full flex items-center text-background px-10">
+                                                                <div className="flex-1 flex items-center justify-start gap-4">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 2, 1)} className="w-5 h-5 rounded bg-background/10 hover:bg-rojo flex items-center justify-center transition-all"><Plus className="w-3 h-3 text-white" /></button>
+                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 2, -1)} className="w-5 h-5 rounded bg-background/10 hover:bg-rojo/50 flex items-center justify-center transition-all"><Minus className="w-3 h-3 text-white" /></button>
                                                                     </div>
+                                                                    <span className="text-4xl font-black italic tabular-nums leading-none tracking-tighter">{scores.s2}</span>
                                                                 </div>
 
-                                                                {/* Team 2 Score */}
-                                                                <div className="p-4 bg-rojo/5 rounded-2xl border border-rojo/10 flex flex-col items-center">
-                                                                    <span className="text-[7px] font-black text-rojo uppercase tracking-widest mb-3">PAREJA 2</span>
-                                                                    {currentMatch && (
-                                                                        <div className="text-center mb-4 min-h-[40px]">
-                                                                            <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team2Player1Id)}</p>
-                                                                            <p className="text-[10px] font-black uppercase italic truncate max-w-[110px]">{getPlayerName(currentMatch.team2Player2Id)}</p>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="flex items-center gap-4">
-                                                                        <button
-                                                                            onClick={() => currentMatch && updateInlineScore(currentMatch.id, 2, -1)}
-                                                                            className="w-8 h-8 rounded-xl bg-rojo/10 text-rojo flex items-center justify-center hover:bg-rojo hover:text-white transition-all shadow-sm"
-                                                                        >
-                                                                            <Minus className="w-4 h-4" />
-                                                                        </button>
-                                                                        <span className="text-3xl font-black italic min-w-[35px] text-center">{scores.s2}</span>
-                                                                        <button
-                                                                            onClick={() => currentMatch && updateInlineScore(currentMatch.id, 2, 1)}
-                                                                            className="w-8 h-8 rounded-xl bg-rojo/10 text-rojo flex items-center justify-center hover:bg-celeste hover:text-white transition-all shadow-sm"
-                                                                        >
-                                                                            <Plus className="w-4 h-4" />
-                                                                        </button>
+                                                                <div className="flex-shrink-0 flex flex-col items-center justify-center">
+                                                                    <span className="text-[40px] font-black italic tracking-[0.05em] text-rojo leading-none">VS</span>
+                                                                    <div className="w-8 h-[1px] bg-rojo/20 mt-1" />
+                                                                </div>
+
+                                                                <div className="flex-1 flex items-center justify-end gap-4">
+                                                                    <span className="text-4xl font-black italic tabular-nums leading-none tracking-tighter">{scores.s1}</span>
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 1, 1)} className="w-5 h-5 rounded bg-background/10 hover:bg-celeste flex items-center justify-center transition-all"><Plus className="w-3 h-3 text-white" /></button>
+                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 1, -1)} className="w-5 h-5 rounded bg-background/10 hover:bg-celeste/50 flex items-center justify-center transition-all"><Minus className="w-3 h-3 text-white" /></button>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <button
-                                                                onClick={() => currentMatch && handleFinishMatch(currentMatch.id)}
-                                                                className="w-full py-5 bg-foreground text-background rounded-3xl font-black uppercase tracking-widest text-[11px] hover:bg-celeste hover:text-white transition-all shadow-xl active:scale-95"
-                                                            >
-                                                                Finalizar e Informar Score
-                                                            </button>
-                                                        </>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="absolute inset-0 bg-white/5 border border-white/10" style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)' }}>
+                                                            <div className="h-full flex items-center justify-center">
+                                                                <span className="text-[8px] font-black uppercase tracking-[0.8em] opacity-20">Consola Tactica Inactiva</span>
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
-                                            );
-                                        })()}
-                                    </div>
-                                ))}
+
+                                                <div className="flex-1 flex justify-end">
+                                                    {isOccupied && currentMatch ? (
+                                                        <div className="flex items-center gap-10 text-right">
+                                                            {[
+                                                                { id: 'team1Player2Id', label: 'Revés' },
+                                                                { id: 'team1Player1Id', label: 'Drive' }
+                                                            ].map(pos => {
+                                                                const pid = currentMatch[pos.id as keyof typeof currentMatch] as string;
+                                                                return (
+                                                                    <button
+                                                                        key={pos.id}
+                                                                        onClick={() => setSelectingFor({ courtId: court.id, slot: pos.id as any })}
+                                                                        className="flex flex-col items-end group/player transition-all"
+                                                                    >
+                                                                        <span className="text-[14px] font-black uppercase italic tracking-tighter text-foreground group-hover/player:text-celeste transition-all">
+                                                                            {getPlayerName(pid)}
+                                                                        </span>
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className={`text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm bg-celeste/10 text-celeste/60`}>
+                                                                                {(() => {
+                                                                                    const side = getPlayerSide(pid);
+                                                                                    return side === 'ambos' ? 'AMBOS' : (side || pos.label);
+                                                                                })()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-10">Pista Libre</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Control de Rotación Superior Bottom */}
                         <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-[3rem] p-10 mt-12 overflow-hidden shadow-2xl">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-4">
@@ -1285,15 +1314,25 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <span className="text-xs font-black uppercase italic tracking-tight">
-                                                                    {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
-                                                                </span>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-xs font-black uppercase italic tracking-tight">
+                                                                        {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
+                                                                    </span>
+                                                                    <div className="flex gap-1.5 mt-1">
+                                                                        <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-sm ${(reg.gender || reg.user?.gender) === 'masculino'
+                                                                            ? 'bg-azul-primary/10 text-azul-primary'
+                                                                            : 'bg-rojo/10 text-rojo'
+                                                                            }`}>
+                                                                            {(reg.gender || reg.user?.gender) === 'femenino' ? 'MUJER' : 'HOMBRE'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex justify-center">
                                                                     <span className={`px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-celeste/20 text-celeste border border-celeste/20' :
-                                                                            side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' :
-                                                                                'bg-azul-primary/20 text-azul-primary border border-azul-primary/20'
+                                                                        side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' :
+                                                                            'bg-azul-primary/20 text-azul-primary border border-azul-primary/20'
                                                                         }`}>
                                                                         {side === 'drive' ? 'Drive' : side === 'reves' ? 'Revés' : 'Ambos'}
                                                                     </span>
@@ -1315,149 +1354,231 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </motion.div>
-                )}
+                        </div >
+                    </motion.div >
+                )
+                }
 
-                {activeTab === "history" && (
-                    <motion.div
-                        key="history"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        className="space-y-6"
-                    >
-                        <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-[3rem] p-10 overflow-hidden shadow-2xl">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 text-azul-primary flex items-center justify-center shadow-inner">
-                                        <Trophy className="w-6 h-6" />
+                {
+                    activeTab === "history" && (
+                        <motion.div
+                            key="history"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            className="space-y-6"
+                        >
+                            <div className="bg-card/30 backdrop-blur-xl border border-border/50 rounded-[3rem] p-10 overflow-hidden shadow-2xl">
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 text-azul-primary flex items-center justify-center shadow-inner">
+                                            <Trophy className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black uppercase tracking-[0.2em] italic mb-1">Historial de Partidos</h3>
+                                            <p className="text-[9px] font-bold text-muted-foreground/40 uppercase">Resultados oficiales y estadísticas del evento</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-sm font-black uppercase tracking-[0.2em] italic mb-1">Historial de Partidos</h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/40 uppercase">Resultados oficiales y estadísticas del evento</p>
+
+                                    <div className="relative w-full md:w-80">
+                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-muted-foreground/30">
+                                            <ListFilter className="w-4 h-4" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="BUSCAR JUGADOR..."
+                                            value={historySearchQuery}
+                                            onChange={(e) => setHistorySearchQuery(e.target.value)}
+                                            className="w-full bg-foreground/5 border border-border/20 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-muted-foreground/20"
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="relative w-full md:w-80">
-                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-muted-foreground/30">
-                                        <ListFilter className="w-4 h-4" />
+                                <div className="overflow-x-auto">
+                                    <table className="w-full border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-border/20">
+                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Finalizado</th>
+                                                <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Equipo 1</th>
+                                                <th className="text-center px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Resultado</th>
+                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Equipo 2</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {[...event.matches]
+                                                .filter(m => m.status === "completed")
+                                                .filter(m => {
+                                                    if (!historySearchQuery) return true;
+                                                    const q = historySearchQuery.toLowerCase();
+                                                    const getPlayer = (id: string) => registrations.find(r => r.userId === id || r.id === id);
+                                                    const p1 = getPlayer(m.team1Player1Id);
+                                                    const p2 = getPlayer(m.team1Player2Id);
+                                                    const p3 = getPlayer(m.team2Player1Id);
+                                                    const p4 = getPlayer(m.team2Player2Id);
+
+                                                    const getName = (reg: any) => reg ? (reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`) : "";
+                                                    const matchString = `${getName(p1)} ${getName(p2)} ${getName(p3)} ${getName(p4)}`.toLowerCase();
+                                                    return matchString.includes(q);
+                                                })
+                                                .sort((a, b) => new Date(b.finishedAt || "").getTime() - new Date(a.finishedAt || "").getTime())
+                                                .map(match => {
+                                                    const getPlayerReg = (id: string) => registrations.find(r => r.userId === id || r.id === id);
+                                                    const winner = match.score1! > match.score2! ? 1 :
+                                                        match.score2! > match.score1! ? 2 : 0;
+
+                                                    const isHighlighted = (id: string) => {
+                                                        if (!historySearchQuery) return false;
+                                                        const r = getPlayerReg(id);
+                                                        if (!r) return false;
+                                                        const q = historySearchQuery.toLowerCase();
+                                                        const name = r.guestName || `${r.user?.firstName} ${r.user?.lastName}`;
+                                                        return name.toLowerCase().includes(q);
+                                                    };
+
+                                                    const PlayerName = ({ id }: { id: string }) => {
+                                                        const r = getPlayerReg(id);
+                                                        const name = r ? (r.guestName || r.user?.firstName || '???') : '???';
+                                                        const highlighted = isHighlighted(id);
+                                                        return (
+                                                            <p className={`text-[9px] font-black uppercase italic tracking-tight leading-none transition-all ${highlighted ? 'text-azul-primary scale-110 origin-right' : ''
+                                                                }`}>
+                                                                {name}
+                                                            </p>
+                                                        );
+                                                    };
+
+                                                    return (
+                                                        <tr key={match.id} className="border-b border-border/10 transition-colors hover:bg-foreground/5">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Clock className="w-3 h-3 text-azul-primary/50" />
+                                                                    <span className="text-[10px] font-black uppercase tracking-tighter">
+                                                                        {match.finishedAt ? new Date(match.finishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <div className={`space-y-1 ${winner === 1 ? 'border-r-2 border-azul-primary/30 pr-2' : 'pr-2'}`}>
+                                                                    <PlayerName id={match.team1Player1Id} />
+                                                                    <PlayerName id={match.team1Player2Id} />
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <div className="inline-flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-xl border border-border/20">
+                                                                    <span className={`text-base font-black italic ${winner === 1 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
+                                                                        {match.score1}
+                                                                    </span>
+                                                                    <span className="text-[10px] font-black text-muted-foreground/20">-</span>
+                                                                    <span className={`text-base font-black italic ${winner === 2 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
+                                                                        {match.score2}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-left">
+                                                                <div className={`space-y-1 ${winner === 2 ? 'border-l-2 border-azul-primary/30 pl-2' : 'pl-2'}`}>
+                                                                    <div className="flex flex-col items-start space-y-1">
+                                                                        <PlayerName id={match.team2Player1Id} />
+                                                                        <PlayerName id={match.team2Player2Id} />
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                        </tbody>
+                                    </table>
+
+                                    {[...event.matches].filter(m => m.status === "completed").length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-20">
+                                            <Trophy className="w-12 h-12 text-muted-foreground/20 mb-4" />
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">No hay partidos terminados todavía</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
+            <AnimatePresence>
+                {selectingFor && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectingFor(null)}
+                            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-card border border-border/50 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+                        >
+                            <div className="p-8 border-b border-border/20 bg-foreground/5">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-lg font-black uppercase italic tracking-tighter">Sustituir Jugador</h3>
+                                        <p className="text-[10px] font-bold text-celeste uppercase tracking-widest">Cancha {activeCourts.find(c => c.id === selectingFor.courtId)?.courtNumber}</p>
                                     </div>
+                                    <button
+                                        onClick={() => setSelectingFor(null)}
+                                        className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center hover:bg-rojo/10 hover:text-rojo transition-all"
+                                    >
+                                        <Plus className="w-5 h-5 rotate-45" />
+                                    </button>
+                                </div>
+
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
                                     <input
+                                        autoFocus
                                         type="text"
-                                        placeholder="BUSCAR JUGADOR..."
-                                        value={historySearchQuery}
-                                        onChange={(e) => setHistorySearchQuery(e.target.value)}
-                                        className="w-full bg-foreground/5 border border-border/20 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-muted-foreground/20"
+                                        placeholder="BUSCAR JUGADOR POR NOMBRE..."
+                                        value={swapSearchQuery}
+                                        onChange={(e) => setSwapSearchQuery(e.target.value)}
+                                        className="w-full bg-foreground/5 border border-border/20 rounded-2xl py-4 pl-12 pr-6 text-sm font-black uppercase italic outline-none focus:border-celeste/50 transition-all"
                                     />
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="border-b border-border/20">
-                                            <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Finalizado</th>
-                                            <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Equipo 1</th>
-                                            <th className="text-center px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Resultado</th>
-                                            <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Equipo 2</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {[...event.matches]
-                                            .filter(m => m.status === "completed")
-                                            .filter(m => {
-                                                if (!historySearchQuery) return true;
-                                                const q = historySearchQuery.toLowerCase();
-                                                const getPlayer = (id: string) => registrations.find(r => r.userId === id || r.id === id);
-                                                const p1 = getPlayer(m.team1Player1Id);
-                                                const p2 = getPlayer(m.team1Player2Id);
-                                                const p3 = getPlayer(m.team2Player1Id);
-                                                const p4 = getPlayer(m.team2Player2Id);
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                <div className="grid grid-cols-1 gap-2">
+                                    {availablePlayers
+                                        .filter(p => (p.guestName || `${p.user?.firstName} ${p.user?.lastName}`).toLowerCase().includes(swapSearchQuery.toLowerCase()))
+                                        .map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handleUpdatePlayer(selectingFor!.courtId, selectingFor!.slot, p.userId || p.id)}
+                                                className="flex items-center justify-between p-4 hover:bg-celeste/5 transition-all group rounded-2xl border border-transparent hover:border-celeste/20 text-left"
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black uppercase italic text-foreground group-hover:text-celeste">
+                                                        {p.guestName || `${p.user?.firstName} ${p.user?.lastName}`}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest italic">
+                                                        {p.userId ? 'Usuario' : 'Invitado'}
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[8px] font-black uppercase px-3 py-1 rounded-full ${(p.sidePreference || p.user?.side || 'ambos') === 'drive' ? 'bg-celeste/10 text-celeste' : (p.sidePreference || p.user?.side || 'ambos') === 'reves' ? 'bg-rojo/10 text-rojo' : 'bg-foreground/10 text-muted-foreground'}`}>
+                                                    {(p.sidePreference || p.user?.side || 'ambos') === 'ambos' ? 'AMBOS' : (p.sidePreference || p.user?.side || 'ambos')}
+                                                </span>
+                                            </button>
+                                        ))}
 
-                                                const getName = (reg: any) => reg ? (reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`) : "";
-                                                const matchString = `${getName(p1)} ${getName(p2)} ${getName(p3)} ${getName(p4)}`.toLowerCase();
-                                                return matchString.includes(q);
-                                            })
-                                            .sort((a, b) => new Date(b.finishedAt || "").getTime() - new Date(a.finishedAt || "").getTime())
-                                            .map(match => {
-                                                const getPlayerReg = (id: string) => registrations.find(r => r.userId === id || r.id === id);
-                                                const winner = match.score1! > match.score2! ? 1 :
-                                                    match.score2! > match.score1! ? 2 : 0;
-
-                                                const isHighlighted = (id: string) => {
-                                                    if (!historySearchQuery) return false;
-                                                    const r = getPlayerReg(id);
-                                                    if (!r) return false;
-                                                    const q = historySearchQuery.toLowerCase();
-                                                    const name = r.guestName || `${r.user?.firstName} ${r.user?.lastName}`;
-                                                    return name.toLowerCase().includes(q);
-                                                };
-
-                                                const PlayerName = ({ id }: { id: string }) => {
-                                                    const r = getPlayerReg(id);
-                                                    const name = r ? (r.guestName || r.user?.firstName || '???') : '???';
-                                                    const highlighted = isHighlighted(id);
-                                                    return (
-                                                        <p className={`text-[9px] font-black uppercase italic tracking-tight leading-none transition-all ${highlighted ? 'text-azul-primary scale-110 origin-right' : ''
-                                                            }`}>
-                                                            {name}
-                                                        </p>
-                                                    );
-                                                };
-
-                                                return (
-                                                    <tr key={match.id} className="border-b border-border/10 transition-colors hover:bg-foreground/5">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock className="w-3 h-3 text-azul-primary/50" />
-                                                                <span className="text-[10px] font-black uppercase tracking-tighter">
-                                                                    {match.finishedAt ? new Date(match.finishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            <div className={`space-y-1 ${winner === 1 ? 'border-r-2 border-azul-primary/30 pr-2' : 'pr-2'}`}>
-                                                                <PlayerName id={match.team1Player1Id} />
-                                                                <PlayerName id={match.team1Player2Id} />
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <div className="inline-flex items-center gap-3 bg-muted/30 px-4 py-2 rounded-xl border border-border/20">
-                                                                <span className={`text-base font-black italic ${winner === 1 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
-                                                                    {match.score1}
-                                                                </span>
-                                                                <span className="text-[10px] font-black text-muted-foreground/20">-</span>
-                                                                <span className={`text-base font-black italic ${winner === 2 ? 'text-azul-primary' : 'text-muted-foreground/40'}`}>
-                                                                    {match.score2}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-left">
-                                                            <div className={`space-y-1 ${winner === 2 ? 'border-l-2 border-azul-primary/30 pl-2' : 'pl-2'}`}>
-                                                                <div className="flex flex-col items-start space-y-1">
-                                                                    <PlayerName id={match.team2Player1Id} />
-                                                                    <PlayerName id={match.team2Player2Id} />
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                    </tbody>
-                                </table>
-
-                                {[...event.matches].filter(m => m.status === "completed").length === 0 && (
-                                    <div className="flex flex-col items-center justify-center py-20">
-                                        <Trophy className="w-12 h-12 text-muted-foreground/20 mb-4" />
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">No hay partidos terminados todavía</p>
-                                    </div>
-                                )}
+                                    {availablePlayers.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-10 opacity-20">
+                                            <Users className="w-8 h-8 mb-2" />
+                                            <p className="text-[10px] font-black uppercase tracking-widest">No hay jugadores disponibles</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }

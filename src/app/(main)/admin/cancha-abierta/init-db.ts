@@ -4,7 +4,7 @@ import crypto from "crypto";
 
 export async function initializeOpenCourtTables() {
     console.log("Iniciando creación de tablas de Cancha Abierta...");
-    
+
     try {
         // Verificación de estructura antigua
         // 1. Asegurar que las tablas existan
@@ -85,9 +85,26 @@ export async function initializeOpenCourtTables() {
                 event_id varchar(255) NOT NULL,
                 court_number int NOT NULL,
                 is_active boolean NOT NULL DEFAULT true,
+                match_type varchar(50) NOT NULL DEFAULT 'libre',
                 status enum('available', 'occupied', 'maintenance') NOT NULL DEFAULT 'available'
             )
         `);
+
+        // Migración para match_type si la tabla ya existe
+        try {
+            await db.execute(sql`SELECT match_type from open_court_courts LIMIT 1`);
+        } catch (e) {
+            console.log("Actualizando tabla open_court_courts con match_type...");
+            await db.execute(sql`ALTER TABLE open_court_courts ADD COLUMN match_type varchar(50) NOT NULL DEFAULT 'libre'`);
+        }
+
+        // Migración para gender en registrations si la tabla ya existe
+        try {
+            await db.execute(sql`SELECT gender from open_court_registrations LIMIT 1`);
+        } catch (e) {
+            console.log("Actualizando tabla open_court_registrations con gender...");
+            await db.execute(sql`ALTER TABLE open_court_registrations ADD COLUMN gender varchar(20)`);
+        }
 
         // Reset de partidos si los nombres de columnas no coinciden
         try {

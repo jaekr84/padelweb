@@ -327,6 +327,7 @@ export const openCourtRegistrations = mysqlTable("open_court_registrations", {
     eventId: varchar("event_id", { length: 36 }).notNull(),
     userId: varchar("user_id", { length: 256 }), // Nullable for guests
     guestName: varchar("guest_name", { length: 256 }), // Name for non-registered users
+    gender: varchar("gender", { length: 20 }), // masculino | femenino
     sidePreference: varchar("side_preference", { length: 50 }), // drive | reves | ambos
     hasPaid: boolean("has_paid").notNull().default(false),
     status: varchar("status", { length: 50 }).notNull().default("waiting"), // waiting | playing | finished | absent
@@ -341,6 +342,7 @@ export const openCourtCourts = mysqlTable("open_court_courts", {
     eventId: varchar("event_id", { length: 36 }).notNull(),
     courtNumber: int("court_number").notNull(),
     isActive: boolean("is_active").default(true),
+    matchType: varchar("match_type", { length: 50 }).default("libre"), // libre | mixto | mismo_genero
     status: varchar("status", { length: 50 }).notNull().default("available"), // available | occupied
 }, (table) => ({
     eventIdIdx: index("oc_courts_event_id_idx").on(table.eventId),
