@@ -79,14 +79,16 @@ export default function LandingPage({
     const { scrollYProgress } = useScroll();
     const yHero = useTransform(scrollYProgress, [0, 1], [0, 400]);
     const opacityHero = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
+    const yBg1 = useTransform(scrollYProgress, [0, 1], [0, -200]);
+    const yBg2 = useTransform(scrollYProgress, [0, 1], [0, 300]);
 
     return (
         <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
 
             {/* ── FONDO DINÁMICO (Parallax Mesh Glows) ── */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }} className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-celeste/10 rounded-full blur-[150px]" />
-                <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], [0, 300]) }} className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[150px]" />
+                <motion.div style={{ y: yBg1 }} className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-celeste/10 rounded-full blur-[150px]" />
+                <motion.div style={{ y: yBg2 }} className="absolute top-[20%] -right-[10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[150px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 

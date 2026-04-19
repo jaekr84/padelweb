@@ -2,6 +2,7 @@
 
 import { usePlayers } from "@/hooks/use-players";
 import React, { createContext, useContext, ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Early-fetches and provides master data like players, clubs, etc.
@@ -13,13 +14,16 @@ const MasterDataContext = createContext<{
 } | undefined>(undefined);
 
 export function MasterDataProvider({ children }: { children: ReactNode }) {
-  // Pre-load players using the hook
-  const { isLoading: isLoadingPlayers } = usePlayers();
+  const pathname = usePathname();
+  
+  // Only pre-load if we are in the app, not in the landing or auth pages
+  const shouldPreload = pathname !== "/" && pathname !== "/login" && pathname !== "/register";
 
-  // You can add more pre-loads here (e.g., useClubs, useCategories if they were hooks)
+  // Pre-load players using the hook
+  const { isLoading: isLoadingPlayers } = usePlayers({ enabled: shouldPreload });
 
   const value = {
-    isReady: !isLoadingPlayers,
+    isReady: shouldPreload ? !isLoadingPlayers : true,
   };
 
   return (

@@ -18,9 +18,11 @@ export interface MatchHistoryItem {
 export async function getAllPlayers() {
     try {
         const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
+        if (!allUsers) return [];
+        
         return allUsers.map(u => ({
             id: u.id,
-            name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
+            name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email?.split("@")[0] || "Jugador",
             firstName: u.firstName,
             lastName: u.lastName,
             email: u.email,
