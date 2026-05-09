@@ -118,8 +118,20 @@ export default function TournamentManager({
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
     const [groups, setGroups] = useState<Group[]>(initialGroups);
-    const [matches, setMatches] = useState<Match[]>(initialMatches);
-    const [bracket, setBracket] = useState<BracketMatch[]>(initialBracket);
+    const [matches, setMatches] = useState<Match[]>(() => 
+        initialMatches.map(m => ({
+            ...m,
+            score1: m.score1 ?? 0,
+            score2: m.score2 ?? 0
+        }))
+    );
+    const [bracket, setBracket] = useState<BracketMatch[]>(() => 
+        initialBracket.map(m => ({
+            ...m,
+            score1: m.score1 ?? 0,
+            score2: m.score2 ?? 0
+        }))
+    );
     const [step, setStep] = useState<"setup" | "done" | "qual" | "elim">(
         initialStatus === "setup" ? "setup" :
             (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done"
@@ -659,7 +671,7 @@ export default function TournamentManager({
 
     const handleConfirmScore = async (matchId: string) => {
         const match = matches.find(m => m.id === matchId);
-        if (!match || match.score1 === undefined || match.score2 === undefined) return;
+        if (!match || match.score1 == null || match.score2 == null) return;
 
         if (match.score1 === match.score2) {
             toast.error("No se permiten empates en los partidos del torneo");
@@ -1194,12 +1206,12 @@ export default function TournamentManager({
                                 {/* Players Table */}
                                 <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
                                     <table className="w-full text-left">
-                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/70 border-b border-border/50">
+                                        <thead className="bg-muted text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40 border-b border-border/50">
                                             <tr>
-                                                <th className="px-8 py-6">Jugador</th>
-                                                <th className="px-8 py-6">Categoría</th>
-                                                <th className="px-8 py-6 text-center">Pago</th>
-                                                <th className="px-8 py-6 text-center">Asistencia</th>
+                                                <th className="px-4 py-2">Jugador</th>
+                                                <th className="px-4 py-2">Categoría</th>
+                                                <th className="px-4 py-2 text-center">Pago</th>
+                                                <th className="px-4 py-2 text-center">Asistencia</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/50">
@@ -1211,18 +1223,18 @@ export default function TournamentManager({
                                                         key={p.id}
                                                         className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-celeste/[0.02]" : ""}`}
                                                     >
-                                                        <td className="px-8 py-5">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-white" : "bg-muted text-foreground/20"}`}>
-                                                                    <Users2 className="w-4 h-4" />
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-white" : "bg-muted text-foreground/20"}`}>
+                                                                    <Users2 className="w-3.5 h-3.5" />
                                                                 </div>
-                                                                <span className="font-black uppercase italic text-sm">{p.name}</span>
+                                                                <span className={`font-black uppercase text-xs tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-8 py-5">
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">{p.category || "D"}</span>
+                                                        <td className="px-4 py-1.5">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
                                                         </td>
-                                                        <td className="px-8 py-5 text-center">
+                                                        <td className="px-4 py-1.5 text-center">
                                                             <button
                                                                 onClick={() => !readOnly && setPaid(prev => {
                                                                     const next = new Set(prev);
@@ -1230,50 +1242,51 @@ export default function TournamentManager({
                                                                     return next;
                                                                 })}
                                                                 disabled={readOnly}
-                                                                className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
+                                                                className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPaid
                                                                     ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                                                    : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
                                                                     } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                             >
-                                                                <CreditCard className="w-4 h-4" />
+                                                                <CreditCard className="w-3.5 h-3.5" />
                                                             </button>
                                                         </td>
-                                                        <td className="px-8 py-5 text-center">
-                                                            {!readOnly && (
-                                                                <>
-                                                                    <button
-                                                                        onClick={() => setPlayerToDelete(p)}
-                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all mr-2"
-                                                                        title="Eliminar Participante"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                        <td className="px-4 py-1.5 text-center">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                {!readOnly && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => setPlayerToDelete(p)}
+                                                                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
+                                                                            title="Eliminar"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
 
-                                                                    <button
-                                                                        onClick={() => setReplacingPlayer(p)}
-                                                                        className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all mr-2"
-                                                                        title="Reemplazar Jugador"
-                                                                    >
-                                                                        <RotateCcw className="w-4 h-4" />
-                                                                    </button>
-                                                                </>
-                                                            )}
+                                                                        <button
+                                                                            onClick={() => setReplacingPlayer(p)}
+                                                                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
+                                                                            title="Reemplazar"
+                                                                        >
+                                                                            <RotateCcw className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </>
+                                                                )}
 
-                                                            <button
-                                                                onClick={() => !readOnly && setPresent(prev => {
-                                                                    const next = new Set(prev);
-                                                                    if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                                    return next;
-                                                                })}
-                                                                disabled={readOnly}
-                                                                className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
-                                                                    ? "bg-celeste border-celeste text-white shadow-lg shadow-celeste/20"
-                                                                    : "bg-muted/50 border-border/50 text-foreground/20 hover:border-celeste/30 hover:text-celeste"
-                                                                    } ${readOnly ? "cursor-default opacity-80" : ""}`}
-                                                            >
-                                                                <UserCheck className="w-4 h-4" />
-                                                            </button>
-
+                                                                <button
+                                                                    onClick={() => !readOnly && setPresent(prev => {
+                                                                        const next = new Set(prev);
+                                                                        if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                                                        return next;
+                                                                    })}
+                                                                    disabled={readOnly}
+                                                                    className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPresent
+                                                                        ? "bg-celeste border-celeste text-white shadow-lg shadow-celeste/20"
+                                                                        : "bg-muted/30 border-border/40 text-foreground/20 hover:border-celeste/30 hover:text-celeste"
+                                                                        } ${readOnly ? "cursor-default opacity-80" : ""}`}
+                                                                >
+                                                                    <UserCheck className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 );
@@ -1338,21 +1351,20 @@ export default function TournamentManager({
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 2xl:grid-cols-2 gap-10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                                     {groups.map((g: Group) => {
                                         const standings = computeStandings(g.id);
                                         const groupMatches = matches.filter(m => m.groupId === g.id);
                                         return (
-                                            <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-fit group">
-                                                <div className="bg-muted px-8 py-6 border-b border-border/50 flex items-center justify-between">
-                                                    <div className="flex items-center gap-6">
-                                                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-azul-primary">{g.name}</h3>
+                                            <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full group/g">
+                                                <div className="bg-muted/50 px-3 py-2 border-b border-border/40 flex items-center justify-between">
+                                                    <div className="flex flex-col gap-1">
                                                         {!readOnly && (
-                                                            <div className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-xl border border-border/50 focus-within:border-azul-primary/50 transition-all">
-                                                                <MapPin className="w-3 h-3 text-azul-primary/50" />
+                                                            <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-xl border border-border/50 focus-within:border-azul-primary/50 transition-all w-fit">
+                                                                <MapPin className="w-2.5 h-2.5 text-azul-primary/50" />
                                                                 <input
                                                                     type="text"
-                                                                    placeholder="ASIGNAR CANCHA..."
+                                                                    placeholder="CANCHA..."
                                                                     value={g.courtNumber || ""}
                                                                     onChange={(e) => {
                                                                         const newGroups = groups.map(group =>
@@ -1360,179 +1372,169 @@ export default function TournamentManager({
                                                                         );
                                                                         setGroups(newGroups);
                                                                     }}
-                                                                    className="bg-transparent border-none outline-none text-[9px] font-black uppercase tracking-[0.1em] w-28 placeholder:text-foreground/20 text-foreground/70"
+                                                                    className="w-16 bg-transparent border-none p-0 text-[10px] font-black italic uppercase text-azul-primary/70 placeholder:text-azul-primary/20 focus:ring-0 outline-none"
                                                                 />
                                                             </div>
                                                         )}
                                                         {readOnly && g.courtNumber && (
-                                                            <div className="flex items-center gap-2 bg-azul-primary/5 px-3 py-1.5 rounded-xl border border-azul-primary/10">
+                                                            <div className="flex items-center gap-2 bg-azul-primary/5 px-3 py-1 rounded-xl border border-azul-primary/10 w-fit">
                                                                 <MapPin className="w-3 h-3 text-azul-primary" />
                                                                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-azul-primary">{g.courtNumber}</span>
                                                             </div>
                                                         )}
+                                                        <h3 className="text-xl font-black italic uppercase tracking-tighter text-azul-primary leading-none mt-1">{g.name}</h3>
                                                     </div>
                                                     <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-azul-primary/20" />
                                                 </div>
-                                                <div className="px-6 py-4 border-b border-border/30 bg-card/20">
-                                                    <table className="w-full text-left">
-                                                        <thead>
-                                                            <tr className="text-[9px] uppercase font-black tracking-widest text-foreground/70 border-b border-border/50">
-                                                                <th className="pb-3 pr-3 italic">Pos</th>
-                                                                <th className="pb-3 px-2">Jugador</th>
-                                                                <th className="pb-3 px-2 text-center text-azul-primary">PG</th>
-                                                                <th className="pb-3 px-2 text-center text-azul-primary/60">+/-</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-border/20">
-                                                            {standings.map((s: any, idx: number) => (
-                                                                <tr key={s.playerId} className="hover:bg-azul-primary/5 transition-colors group/row">
-                                                                    <td className="py-4 pr-3 text-xs font-black italic text-foreground/20">#{idx + 1}</td>
-                                                                    <td className="py-4 px-4 text-left">
-                                                                        <div className="flex items-center gap-3">
+                                                <div className="px-3 py-2 border-b border-border/30 bg-card/20">
+                                                    <div className="flex-1 overflow-x-auto custom-scrollbar">
+                                                        <table className="w-full text-[10px]">
+                                                            <thead>
+                                                                <tr className="border-b border-border/30">
+                                                                    <th className="px-3 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Pos</th>
+                                                                    <th className="px-2 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Jugador</th>
+                                                                    <th className="px-3 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">PG</th>
+                                                                    <th className="px-3 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">+/-</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {standings.map((s: any, idx: number) => (
+                                                                    <tr key={s.playerId} className="border-b border-border/10 hover:bg-muted/20 transition-colors">
+                                                                        <td className="px-3 py-1 text-left">
+                                                                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-lg font-black italic text-[9px] ${idx === 0 ? "bg-rojo text-white" : "bg-muted text-foreground/40"}`}>
+                                                                                #{idx + 1}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-2 py-1">
                                                                             <div className="flex flex-col">
                                                                                 {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic ${i === 0 ? "text-sm text-foreground/80" : "text-[10px] text-foreground/40 mt-0.5"}`}>
+                                                                                    <span key={i} className={`font-black uppercase italic tracking-tight leading-tight ${i === 0 ? "text-[10px] text-foreground/80" : "text-[8px] text-foreground/50"}`}>
                                                                                         {name.trim()}
                                                                                     </span>
                                                                                 ))}
                                                                             </div>
-                                                                            {!readOnly && (
-                                                                                <button
-                                                                                    onClick={() => setReplacingPlayer(s.player)}
-                                                                                    className="opacity-0 group-hover/row:opacity-100 transition-opacity p-1 text-azul-primary hover:bg-azul-primary/10 rounded-md"
-                                                                                    title="Reemplazar Jugador"
-                                                                                >
-                                                                                    <RotateCcw className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="py-4 px-2 text-center text-sm font-black text-azul-primary">{s.won}</td>
-                                                                    <td className="py-4 px-2 text-center text-sm font-black text-azul-primary/60">{s.points > 0 ? `+${s.points}` : s.points}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div className="p-4 space-y-4">
-                                                    <div className="flex items-center justify-between px-2">
-                                                        <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40">Fixture del Grupo</h4>
-                                                        <div className="h-px flex-1 bg-border/10 mx-4" />
+                                                                        </td>
+                                                                        <td className="px-3 py-1 text-center font-black italic text-azul-primary">{s.won}</td>
+                                                                        <td className="px-3 py-1 text-center font-black italic text-foreground/60">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
+                                                </div>
+                                                    <div className="p-2.5 space-y-1.5">
+                                                        <div className="flex items-center justify-between px-1">
+                                                            <h4 className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/50">Fixture del Grupo</h4>
+                                                            <div className="h-px flex-1 bg-border/10 mx-2" />
+                                                        </div>
 
-                                                    <div className="grid gap-3">
+                                                        <div className="grid gap-1.5">
                                                         {groupMatches.map(m => (
-                                                            <div
-                                                                key={m.id}
-                                                                className={`relative overflow-hidden rounded-[2rem] border-2 transition-all duration-500 ${m.confirmed
-                                                                    ? "bg-muted/30 border-border/50 opacity-80"
-                                                                    : m.status === 'in_progress'
-                                                                        ? "bg-celeste/[0.03] border-celeste/30 shadow-[0_10px_30px_rgba(var(--celeste-rgb),0.1)]"
-                                                                        : "bg-card/40 border-border/40 hover:border-border/80"
-                                                                    }`}
-                                                            >
-                                                                {/* Badge En Vivo (Esquina) */}
-                                                                {m.status === 'in_progress' && !m.confirmed && (
-                                                                    <div className="absolute top-0 left-0 z-20">
-                                                                        <motion.div
-                                                                            animate={{ opacity: [1, 0.6, 1] }}
-                                                                            transition={{ repeat: Infinity, duration: 2 }}
-                                                                            className="bg-rojo text-white px-3 py-1 rounded-br-2xl text-[7px] font-black tracking-widest flex items-center gap-1.5 shadow-lg shadow-rojo/20"
-                                                                        >
-                                                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                                                            LIVE
-                                                                        </motion.div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Contenido del Partido */}
-                                                                <div className="p-5 sm:p-6 space-y-4">
-                                                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
-                                                                        {/* Equipo 1 */}
-                                                                        <div className="flex-1 w-full flex items-center justify-center sm:justify-start gap-3">
-                                                                            <div className="flex flex-col">
-                                                                                {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic ${i === 0 ? "text-[11px] sm:text-xs text-foreground/80" : "text-[9px] sm:text-[10px] text-foreground/40 mt-0.5"} ${m.confirmed && m.score1! > m.score2! ? "text-celeste" : ""}`}>
-                                                                                        {name.trim()}
-                                                                                    </span>
-                                                                                ))}
-                                                                            </div>
-                                                                            {!readOnly && !m.confirmed && (
-                                                                                <button onClick={() => setReplacingPlayer(m.team1)} className="p-1.5 text-foreground/20 hover:text-celeste transition-colors shrink-0">
-                                                                                    <RotateCcw className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
+                                                            <div key={m.id} className="group/match relative transition-all">
+                                                                <div
+                                                                    className={`rounded-2xl border transition-all overflow-hidden min-h-[64px] flex flex-col justify-center ${m.status === 'in_progress'
+                                                                        ? "bg-rojo/[0.03] border-rojo/40 shadow-lg shadow-rojo/5"
+                                                                        : "bg-background/40 border-border/40 hover:border-border/60"
+                                                                        }`}
+                                                                >
+                                                                    {m.status === 'in_progress' && (
+                                                                        <div className="absolute top-0 left-0 bg-rojo text-white px-2 py-0.5 text-[6px] font-black italic rounded-tl-xl rounded-br-lg shadow-lg z-10 animate-pulse tracking-widest uppercase">
+                                                                            VIVO
                                                                         </div>
+                                                                    )}
+                                                                    <div className="px-2 py-2">
+                                                                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
 
-                                                                        {/* Centro: Scores y Controles */}
-                                                                        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-muted/40 rounded-2xl border border-border/50">
-                                                                            {!m.confirmed && !readOnly ? (
-                                                                                <>
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
-                                                                                            setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
-                                                                                        }}
-                                                                                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${m.status === 'in_progress' ? "bg-rojo text-white shadow-lg shadow-rojo/20" : "bg-card border border-border/50 text-rojo hover:bg-rojo/5"}`}
-                                                                                    >
-                                                                                        {m.status === 'in_progress' ? <X className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5 fill-current" />}
-                                                                                    </button>
-
-                                                                                    <div className="flex items-center gap-1 mx-2">
+                                                                            {/* Equipo 1 */}
+                                                                            <div className="flex flex-col gap-1.5 min-w-0">
+                                                                                <div className="flex flex-col min-w-0">
+                                                                                    {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${m.confirmed && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                                            {name.trim()}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                                {!m.confirmed && !readOnly ? (
+                                                                                    <div className="flex items-center gap-1">
                                                                                         <input
                                                                                             type="number"
                                                                                             value={m.score1 ?? ""}
                                                                                             onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                                            className="w-8 h-8 bg-background border border-border/50 rounded-lg text-center font-black text-xs outline-none focus:border-celeste/50"
+                                                                                            className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
                                                                                             placeholder="0"
                                                                                         />
-                                                                                        <span className="text-[10px] font-black text-foreground/20">:</span>
+                                                                                        <div className="flex flex-col gap-0.5">
+                                                                                            <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Plus className="w-2.5 h-2.5" /></button>
+                                                                                            <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Minus className="w-2.5 h-2.5" /></button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span className={`text-[11px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-foreground/40"}`}>{m.score1}</span>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Centro: Acciones */}
+                                                                            <div className="flex flex-col items-center justify-center gap-1.5">
+                                                                                <div className="text-[7px] font-black text-foreground/40 mb-1">VS</div>
+                                                                                {!m.confirmed && !readOnly && (
+                                                                                    <div className="flex flex-col items-center gap-1 opacity-0 group-hover/match:opacity-100 transition-opacity">
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
+                                                                                                setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
+                                                                                            }}
+                                                                                            className={`w-[52px] py-1 rounded-md transition-all flex items-center justify-center gap-1 text-[8px] font-black italic border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "hover:bg-rojo/10 text-rojo border-rojo/20"}`}
+                                                                                            title={m.status === 'in_progress' ? "Pausar Partido" : "Iniciar Grabación"}
+                                                                                        >
+                                                                                            {m.status === 'in_progress' ? (
+                                                                                                <><X className="w-2 h-2" /> PAU</>
+                                                                                            ) : (
+                                                                                                <><Circle className="w-2 h-2 fill-current" /> Go!</>
+                                                                                            )}
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                handleConfirmScore(m.id);
+                                                                                                setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed' } : match));
+                                                                                            }}
+                                                                                            className="w-[52px] py-1 rounded-md hover:bg-azul-primary/10 text-azul-primary text-[8px] font-black italic border border-azul-primary/20 flex items-center justify-center"
+                                                                                            title="Finalizar Partido"
+                                                                                        >
+                                                                                            FIN
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Equipo 2 */}
+                                                                            <div className="flex flex-col items-end gap-1.5 min-w-0 text-right">
+                                                                                <div className="flex flex-col items-end min-w-0">
+                                                                                    {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${m.confirmed && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                                            {name.trim()}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                                {!m.confirmed && !readOnly ? (
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <div className="flex flex-col gap-0.5">
+                                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Plus className="w-2.5 h-2.5" /></button>
+                                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Minus className="w-2.5 h-2.5" /></button>
+                                                                                        </div>
                                                                                         <input
                                                                                             type="number"
                                                                                             value={m.score2 ?? ""}
                                                                                             onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                                            className="w-8 h-8 bg-background border border-border/50 rounded-lg text-center font-black text-xs outline-none focus:border-celeste/50"
+                                                                                            className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
                                                                                             placeholder="0"
                                                                                         />
                                                                                     </div>
-
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            handleConfirmScore(m.id);
-                                                                                            setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed' } : match));
-                                                                                        }}
-                                                                                        disabled={m.score1 === undefined || m.score2 === undefined || saving}
-                                                                                        className="w-8 h-8 rounded-xl bg-azul-primary text-white shadow-lg shadow-azul-primary/20 flex items-center justify-center disabled:opacity-30"
-                                                                                    >
-                                                                                        <Check className="w-4 h-4" />
-                                                                                    </button>
-                                                                                </>
-                                                                            ) : (
-                                                                                <div className="flex items-center gap-4 px-4 py-1">
-                                                                                    <span className={`text-xl font-black ${m.score1! > m.score2! ? "text-celeste" : "text-foreground/40"}`}>{m.score1}</span>
-                                                                                    <span className="text-[10px] font-black text-foreground/10">-</span>
-                                                                                    <span className={`text-xl font-black ${m.score2! > m.score1! ? "text-celeste" : "text-foreground/40"}`}>{m.score2}</span>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-
-                                                                        {/* Equipo 2 */}
-                                                                        <div className="flex-1 w-full flex items-center justify-center sm:justify-end gap-3">
-                                                                            {!readOnly && !m.confirmed && (
-                                                                                <button onClick={() => setReplacingPlayer(m.team2)} className="p-1.5 text-foreground/20 hover:text-celeste transition-colors shrink-0">
-                                                                                    <RotateCcw className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
-                                                                            <div className="flex flex-col">
-                                                                                {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic ${i === 0 ? "text-[11px] sm:text-xs text-foreground/80" : "text-[9px] sm:text-[10px] text-foreground/40 mt-0.5"} ${m.confirmed && m.score2! > m.score1! ? "text-celeste" : ""}`}>
-                                                                                        {name.trim()}
-                                                                                    </span>
-                                                                                ))}
+                                                                                ) : (
+                                                                                    <span className={`text-[11px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-foreground/40"}`}>{m.score2}</span>
+                                                                                )}
                                                                             </div>
-                                                                        </div>
 
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>

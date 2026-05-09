@@ -106,8 +106,21 @@ export default function AmericanoManager({
 }: AmericanoManagerProps) {
     const router = useRouter();
     const [groups, setGroups] = useState<Group[]>(initialGroups);
-    const [matches, setMatches] = useState<Match[]>(initialMatches);
-    const [bracket, setBracket] = useState<BracketMatch[]>(initialBracket);
+    const [matches, setMatches] = useState<Match[]>(() => 
+        initialMatches.map(m => ({
+            ...m,
+            score1: m.score1 ?? 0,
+            score2: m.score2 ?? 0,
+            played: m.played || m.confirmed // If it was confirmed, it was played.
+        }))
+    );
+    const [bracket, setBracket] = useState<BracketMatch[]>(() => 
+        initialBracket.map(m => ({
+            ...m,
+            score1: m.score1 ?? 0,
+            score2: m.score2 ?? 0
+        }))
+    );
     const [saving, setSaving] = useState(false);
 
     // Configuration from modality or defaults
@@ -296,7 +309,7 @@ export default function AmericanoManager({
             let g2 = guestName2.trim() || names[1] || "Jugador 2";
 
             const guestPlayer: Player = {
-                id: oldPlayerId, 
+                id: oldPlayerId,
                 name: `${g1} / ${g2}`,
                 category: oldPlayer.category
             };
@@ -323,7 +336,7 @@ export default function AmericanoManager({
         })));
 
         // Remove from matches if they were generated
-        setMatches(prevMatches => prevMatches.filter(m => 
+        setMatches(prevMatches => prevMatches.filter(m =>
             m.team1.id !== playerId && m.team2.id !== playerId
         ));
 
@@ -472,7 +485,7 @@ export default function AmericanoManager({
             const finishedCount = players.filter(p => (playerMatchCounts.get(p.id) || 0) >= matchesPerTeam).length;
             const playingCount = currentlyPlaying.size;
             const waitingCount = available.length;
-            
+
             setNoPlayersData({ finished: finishedCount, playing: playingCount, waiting: waitingCount });
             return;
         }
@@ -518,7 +531,9 @@ export default function AmericanoManager({
             groupId: groups[0]?.id || "g0",
             team1: p1,
             team2: p2,
-            played: false,
+            score1: 0,
+            score2: 0,
+            played: true,
             confirmed: false,
             courtNumber: courtNum,
             roundIndex: Math.floor(matches.length / numCourts) // Rough round estimate
@@ -632,7 +647,7 @@ export default function AmericanoManager({
                         if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
                             match.team1 = t1;
                             match.team2 = t2 as BracketSlot;
-                            
+
                             // Essential fix: If it's not a BYE anymore, it shouldn't be confirmed
                             match.confirmed = t2 === "BYE";
                             if (t2 === "BYE") {
@@ -670,7 +685,7 @@ export default function AmericanoManager({
                     const s1 = seedPositions[i];
                     const s2 = seedPositions[i + 1];
                     const match = firstRoundMatches[mIdx];
-                    
+
                     // Essential fix: Allow update if it's unconfirmed OR if it's a BYE (to handle transition to real match)
                     if (match && (!match.confirmed || match.team1 === "BYE" || match.team2 === "BYE")) {
                         const t1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
@@ -679,7 +694,7 @@ export default function AmericanoManager({
                         if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
                             match.team1 = t1;
                             match.team2 = t2;
-                            
+
                             // Reset confirmation if no longer a BYE
                             match.confirmed = (t1 === "BYE" || t2 === "BYE");
                             if (match.confirmed) {
@@ -716,13 +731,13 @@ export default function AmericanoManager({
 
     const handleConfirmScore = async (matchId: string) => {
         const match = matches.find(m => m.id === matchId);
-        if (!match || match.score1 === undefined || match.score2 === undefined) return;
-        if (match.score1 === match.score2) {
-            toast.error("No se permiten empates");
-            return;
-        }
+        if (!match) return;
 
-        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, confirmed: true } : m);
+        // Default to 0 if scores are missing
+        const s1 = match.score1 ?? 0;
+        const s2 = match.score2 ?? 0;
+
+        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, score1: s1, score2: s2, confirmed: true } : m);
         setSaving(true);
         const res = await saveTournamentFixture({
             tournamentId,
@@ -750,9 +765,9 @@ export default function AmericanoManager({
             if (m.id !== matchId) return m;
             return {
                 ...m,
-                score1: s1 === "" ? undefined : parseInt(s1, 10),
-                score2: s2 === "" ? undefined : parseInt(s2, 10),
-                played: s1 !== "" && s2 !== ""
+                score1: s1 === "" ? 0 : parseInt(s1, 10),
+                score2: s2 === "" ? 0 : parseInt(s2, 10),
+                played: true
             };
         }));
     };
@@ -1140,9 +1155,9 @@ export default function AmericanoManager({
                         </div>
 
                         {initialStatus === "finalizado" && (
-                            <TournamentPublishButton 
-                                tournamentId={tournamentId} 
-                                tournamentName={tournamentName} 
+                            <TournamentPublishButton
+                                tournamentId={tournamentId}
+                                tournamentName={tournamentName}
                                 variant="management"
                             />
                         )}
@@ -1233,67 +1248,68 @@ export default function AmericanoManager({
                                 {/* Players Table */}
                                 <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
                                     <table className="w-full text-left">
-                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/70 border-b border-border/50">
-                                                <tr>
-                                                    <th className="px-8 py-6">Jugador</th>
-                                                    <th className="px-8 py-6">Categoría</th>
-                                                    <th className="px-8 py-6 text-center">Pago</th>
-                                                    <th className="px-8 py-6 text-center">Asistencia</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border/50">
-                                                {(initialGroups[0]?.players || []).filter((p: Player) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p: Player) => {
-                                                    const isPresent = present.has(p.id);
-                                                    const isPaid = paid.has(p.id);
-                                                    return (
-                                                        <tr
-                                                            key={p.id}
-                                                            className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-azul-primary/[0.02]" : ""}`}
-                                                        >
-                                                            <td className="px-8 py-5">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-azul-primary text-white" : "bg-muted text-foreground/20"}`}>
-                                                                        <Users2 className="w-4 h-4" />
-                                                                    </div>
-                                                                    <span className="font-black uppercase italic text-sm">{p.name}</span>
+                                        <thead className="bg-muted text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40 border-b border-border/50">
+                                            <tr>
+                                                <th className="px-4 py-2">Jugador</th>
+                                                <th className="px-4 py-2">Categoría</th>
+                                                <th className="px-4 py-2 text-center">Pago</th>
+                                                <th className="px-4 py-2 text-center">Asistencia</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/50">
+                                            {(initialGroups[0]?.players || []).filter((p: Player) => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p: Player) => {
+                                                const isPresent = present.has(p.id);
+                                                const isPaid = paid.has(p.id);
+                                                return (
+                                                    <tr
+                                                        key={p.id}
+                                                        className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-azul-primary/[0.02]" : ""}`}
+                                                    >
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-azul-primary text-white" : "bg-muted text-foreground/20"}`}>
+                                                                    <Users2 className="w-3.5 h-3.5" />
                                                                 </div>
-                                                            </td>
-                                                            <td className="px-8 py-5">
-                                                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">{p.category || "D"}</span>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-center">
-                                                                <button
-                                                                    onClick={() => !readOnly && setPaid(prev => {
-                                                                        const next = new Set(prev);
-                                                                        if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                                        return next;
-                                                                    })}
-                                                                    disabled={readOnly}
-                                                                    className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPaid
-                                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
-                                                                        } ${readOnly ? "cursor-default opacity-80" : ""}`}
-                                                                >
-                                                                    <CreditCard className="w-4 h-4" />
-                                                                </button>
-                                                            </td>
-                                                            <td className="px-8 py-5 text-center">
+                                                                <span className={`font-black uppercase text-xs tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
+                                                        </td>
+                                                        <td className="px-4 py-1.5 text-center">
+                                                            <button
+                                                                onClick={() => !readOnly && setPaid(prev => {
+                                                                    const next = new Set(prev);
+                                                                    if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                                                    return next;
+                                                                })}
+                                                                disabled={readOnly}
+                                                                className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPaid
+                                                                    ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                                    : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                                                    } ${readOnly ? "cursor-default opacity-80" : ""}`}
+                                                            >
+                                                                <CreditCard className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </td>
+                                                        <td className="px-4 py-1.5 text-center">
+                                                            <div className="flex items-center justify-center gap-1.5">
                                                                 {!readOnly && (
                                                                     <>
                                                                         <button
                                                                             onClick={() => setPlayerToDelete(p)}
-                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all mr-2"
-                                                                            title="Eliminar Participante"
+                                                                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
+                                                                            title="Eliminar"
                                                                         >
-                                                                            <Trash2 className="w-4 h-4" />
+                                                                            <Trash2 className="w-3.5 h-3.5" />
                                                                         </button>
 
                                                                         <button
                                                                             onClick={() => setReplacingPlayer(p)}
-                                                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center border border-border/50 bg-muted/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all mr-2"
-                                                                            title="Reemplazar Jugador"
+                                                                            className="w-8 h-8 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
+                                                                            title="Reemplazar"
                                                                         >
-                                                                            <RotateCcw className="w-4 h-4" />
+                                                                            <RotateCcw className="w-3.5 h-3.5" />
                                                                         </button>
                                                                     </>
                                                                 )}
@@ -1305,20 +1321,20 @@ export default function AmericanoManager({
                                                                         return next;
                                                                     })}
                                                                     disabled={readOnly}
-                                                                    className={`w-10 h-10 rounded-xl inline-flex items-center justify-center border transition-all ${isPresent
+                                                                    className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPresent
                                                                         ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                                        : "bg-muted/50 border-border/50 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                                                        : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
                                                                         } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                                 >
-                                                                    <UserCheck className="w-4 h-4" />
+                                                                    <UserCheck className="w-3.5 h-3.5" />
                                                                 </button>
-
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
 
                                 {!readOnly && (
@@ -1372,7 +1388,7 @@ export default function AmericanoManager({
                                                 </div>
                                             </div>
                                             <div className="h-4 w-full bg-muted/30 rounded-full overflow-hidden border border-border/40 p-[3px] shadow-inner">
-                                                <motion.div 
+                                                <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${progress}%` }}
                                                     transition={{ duration: 1.5, ease: "circOut" }}
@@ -1440,143 +1456,135 @@ export default function AmericanoManager({
                             </div>
 
                             {/* Court Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {Array.from({ length: numCourts }).map((_, courtIdx) => {
                                     const courtNumber = courtIdx + 1;
                                     const activeMatch = matches.find(m => m.courtNumber === courtNumber && !m.confirmed);
 
                                     return (
                                         <div key={courtNumber} className="relative group">
-                                            <div className="absolute -top-3 left-8 flex items-center gap-2 z-10">
-                                                <div className="px-4 py-1 bg-azul-primary text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg shadow-azul-primary/20">
+                                            <div className="absolute -top-3 right-4 flex items-center gap-2 z-10">
+                                                <div className="px-3 py-1 bg-azul-primary/10 text-azul-primary border border-azul-primary/20 backdrop-blur-md rounded-full text-[7px] font-black uppercase tracking-widest shadow-lg">
                                                     Cancha {courtNumber}
                                                 </div>
                                                 {activeMatch && !readOnly && (
-                                                    <div className="flex items-center gap-2">
-                                                        <motion.div 
-                                                            animate={{ scale: [1, 1.1, 1] }}
-                                                            transition={{ repeat: Infinity, duration: 2 }}
-                                                            className="px-3 py-1 bg-rojo text-white rounded-full text-[7px] font-black tracking-widest shadow-lg shadow-rojo/20 flex items-center gap-1.5"
-                                                        >
-                                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                                            EN VIVO
-                                                        </motion.div>
-                                                        <button
-                                                            onClick={() => handleDeleteMatch(activeMatch.id)}
-                                                            className="p-1.5 bg-rojo/10 text-rojo hover:bg-rojo hover:text-white rounded-lg transition-all border border-rojo/20"
-                                                            title="Eliminar Partido"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteMatch(activeMatch.id)}
+                                                        className="p-1.5 bg-background/80 backdrop-blur-md text-rojo hover:bg-rojo hover:text-white rounded-lg transition-all border border-border/50 shadow-sm"
+                                                        title="Eliminar Partido"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
                                                 )}
                                             </div>
 
-                                            <div className={`p-8 bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] transition-all duration-500 min-h-[300px] flex flex-col justify-center shadow-2xl relative overflow-hidden group-hover:border-celeste/40 ${activeMatch && !readOnly ? "border-celeste/20 bg-celeste/[0.03] shadow-[inset_0_0_40px_rgba(var(--celeste-rgb),0.05)]" : "border-border/50"}`}>
+                                            <div className={`rounded-2xl border-2 transition-all duration-500 flex flex-col shadow-xl relative overflow-hidden group-hover:border-celeste/40 min-h-[110px] ${activeMatch && !readOnly ? "border-celeste/40 bg-celeste/[0.03] shadow-[inset_0_0_40px_rgba(var(--celeste-rgb),0.05)]" : "border-border/50 bg-card/40 backdrop-blur-xl"}`}>
                                                 {activeMatch && !readOnly && (
-                                                    <motion.div 
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: [0.1, 0.2, 0.1] }}
-                                                        transition={{ repeat: Infinity, duration: 4 }}
-                                                        className="absolute inset-0 bg-celeste/10 pointer-events-none"
-                                                    />
+                                                    <div className="absolute top-0 left-0 bg-rojo text-white px-2 py-0.5 text-[6px] font-black italic rounded-tl-xl rounded-br-lg shadow-lg z-10 animate-pulse tracking-widest uppercase">
+                                                        VIVO
+                                                    </div>
                                                 )}
                                                 {activeMatch ? (
-                                                    <div className="space-y-6">
-                                                        <div className="space-y-4">
-                                                            {[activeMatch.team1, activeMatch.team2].map((team, tIdx) => (
-                                                                <div key={tIdx} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50 transition-all">
-                                                                    <div className="flex flex-col flex-1 min-w-0 pr-4">
-                                                                        <div className="flex items-center justify-between group/pname">
-                                                                            <div className="flex flex-col min-w-0">
-                                                                                {team.name.split('/').map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic leading-tight ${i === 0 ? "text-sm text-foreground/70" : "text-[10px] text-foreground/40 mt-1"}`}>
-                                                                                        {name.trim()}
-                                                                                    </span>
-                                                                                ))}
-                                                                            </div>
-                                                                            {!readOnly && (
-                                                                                <button
-                                                                                    onClick={() => setEditingMatchPlayer({ matchId: activeMatch.id, playerIndex: (tIdx + 1) as 1 | 2 })}
-                                                                                    className="p-1.5 rounded-lg bg-azul-primary/5 text-azul-primary opacity-0 group-hover/pname:opacity-100 hover:bg-azul-primary hover:text-white transition-all ml-2"
-                                                                                    title="Cambiar Jugador"
-                                                                                >
-                                                                                    <Pencil className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center bg-background rounded-xl border border-border/50 overflow-hidden h-10">
-                                                                        {!readOnly && (
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const s1 = tIdx === 0 ? Math.max(0, (activeMatch.score1 || 0) - 1).toString() : (activeMatch.score1 || 0).toString();
-                                                                                    const s2 = tIdx === 1 ? Math.max(0, (activeMatch.score2 || 0) - 1).toString() : (activeMatch.score2 || 0).toString();
-                                                                                    handleScoreChange(activeMatch.id, s1, s2);
-                                                                                }}
-                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
-                                                                            >
-                                                                                <Minus className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
+                                                    <div className="p-2.5 flex-1 flex flex-col justify-center">
+                                                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                                                            {/* Equipo 1 */}
+                                                            <div className="flex flex-col gap-2 min-w-0">
+                                                                <div className="flex flex-col min-w-0">
+                                                                    {activeMatch.team1.name.split('/').map((name: string, i: number) => (
+                                                                        <span key={i} className={`font-black uppercase italic leading-tight truncate ${i === 0 ? "text-[10px] text-foreground/80" : "text-[8px] text-foreground/50 mt-0.5"}`}>
+                                                                            {name.trim()}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                                {!readOnly ? (
+                                                                    <div className="flex items-center gap-1">
                                                                         <input
                                                                             type="number"
-                                                                            value={tIdx === 0 ? (activeMatch.score1 ?? "") : (activeMatch.score2 ?? "")}
-                                                                            onChange={(e) => {
-                                                                                if (readOnly) return;
-                                                                                const s1 = tIdx === 0 ? e.target.value : (activeMatch.score1 || 0).toString();
-                                                                                const s2 = tIdx === 1 ? e.target.value : (activeMatch.score2 || 0).toString();
-                                                                                handleScoreChange(activeMatch.id, s1, s2);
-                                                                            }}
-                                                                            readOnly={readOnly}
-                                                                            className={`w-10 h-full bg-transparent text-center text-sm font-black outline-none no-spin-buttons ${readOnly ? "cursor-default" : ""}`}
+                                                                            value={activeMatch.score1 ?? ""}
+                                                                            onChange={(e) => handleScoreChange(activeMatch.id, e.target.value, activeMatch.score2?.toString() ?? "")}
+                                                                            className="w-10 h-8 bg-background border border-border/40 rounded-lg text-center font-black text-xs outline-none focus:border-celeste/50 no-spin-buttons placeholder:text-foreground/10"
                                                                             placeholder="0"
                                                                         />
-                                                                        {!readOnly && (
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const s1 = tIdx === 0 ? ((activeMatch.score1 || 0) + 1).toString() : (activeMatch.score1 || 0).toString();
-                                                                                    const s2 = tIdx === 1 ? ((activeMatch.score2 || 0) + 1).toString() : (activeMatch.score2 || 0).toString();
-                                                                                    handleScoreChange(activeMatch.id, s1, s2);
-                                                                                }}
-                                                                                className="w-8 h-full flex items-center justify-center hover:bg-muted transition-colors text-foreground/70"
-                                                                            >
-                                                                                <Plus className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <button onClick={() => handleScoreChange(activeMatch.id, ((activeMatch.score1 || 0) + 1).toString(), activeMatch.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-celeste"><Plus className="w-2.5 h-2.5" /></button>
+                                                                            <button onClick={() => handleScoreChange(activeMatch.id, Math.max(0, (activeMatch.score1 || 0) - 1).toString(), activeMatch.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-celeste"><Minus className="w-2.5 h-2.5" /></button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                                ) : (
+                                                                    <span className="text-sm font-black italic text-celeste">{activeMatch.score1}</span>
+                                                                )}
+                                                            </div>
 
-                                                        {!readOnly && (
-                                                            <button
-                                                                onClick={() => handleConfirmScore(activeMatch.id)}
-                                                                disabled={activeMatch.score1 === undefined || activeMatch.score2 === undefined || saving}
-                                                                className="w-full py-4 rounded-2xl bg-azul-primary text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-azul-primary/20 hover:bg-azul-dark transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-                                                            >
-                                                                <Check className="w-4 h-4" />
-                                                                Finalizar Partido
-                                                            </button>
-                                                        )}
+                                                            {/* Acciones Centrales */}
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <div className="text-[8px] font-black text-foreground/40 italic">VS</div>
+                                                                {!readOnly && (
+                                                                    <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <button
+                                                                            onClick={() => handleConfirmScore(activeMatch.id)}
+                                                                            disabled={saving}
+                                                                            className="w-[52px] py-1 rounded-md bg-celeste text-azul-primary text-[8px] font-black italic uppercase border border-celeste/20 hover:bg-celeste/80 transition-all disabled:opacity-30 flex items-center justify-center"
+                                                                        >
+                                                                            FIN
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteMatch(activeMatch.id)}
+                                                                            className="w-[52px] py-1 rounded-md bg-rojo/10 text-rojo text-[8px] font-black italic uppercase border border-rojo/20 hover:bg-rojo hover:text-white transition-all flex items-center justify-center"
+                                                                        >
+                                                                            BORRAR
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Equipo 2 */}
+                                                            <div className="flex flex-col items-end gap-2 min-w-0">
+                                                                <div className="flex flex-col items-end min-w-0">
+                                                                    {activeMatch.team2.name.split('/').map((name: string, i: number) => (
+                                                                        <span key={i} className={`font-black uppercase italic leading-tight truncate text-right ${i === 0 ? "text-[10px] text-foreground/80" : "text-[8px] text-foreground/50 mt-0.5"}`}>
+                                                                            {name.trim()}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                                {!readOnly ? (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <button onClick={() => handleScoreChange(activeMatch.id, activeMatch.score1?.toString() ?? "", ((activeMatch.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-celeste"><Plus className="w-2.5 h-2.5" /></button>
+                                                                            <button onClick={() => handleScoreChange(activeMatch.id, activeMatch.score1?.toString() ?? "", Math.max(0, (activeMatch.score2 || 0) - 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-celeste"><Minus className="w-2.5 h-2.5" /></button>
+                                                                        </div>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={activeMatch.score2 ?? ""}
+                                                                            onChange={(e) => handleScoreChange(activeMatch.id, activeMatch.score1?.toString() ?? "", e.target.value)}
+                                                                            className="w-10 h-8 bg-background border border-border/40 rounded-lg text-center font-black text-xs outline-none focus:border-celeste/50 no-spin-buttons placeholder:text-foreground/10"
+                                                                            placeholder="0"
+                                                                        />
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-sm font-black italic text-celeste">{activeMatch.score2}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-center gap-6 text-center">
-                                                        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center text-foreground/20">
-                                                            <Clock className="w-8 h-8" />
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Cancha Disponible</p>
-                                                            <p className="text-xs font-bold text-foreground/20 italic">Esperando próximo partido...</p>
+                                                    <div className="p-2.5 flex flex-col items-center justify-center gap-3 min-h-[110px] text-center">
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-5 h-5 rounded-lg bg-muted/50 flex items-center justify-center text-foreground/20">
+                                                                    <Clock className="w-2.5 h-2.5" />
+                                                                </div>
+                                                                <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 italic">Cancha Libre</p>
+                                                            </div>
+                                                            <p className="text-[9px] font-bold text-foreground/20 italic whitespace-nowrap">Disponible para jugar</p>
                                                         </div>
                                                         {!readOnly && (
                                                             <button
                                                                 onClick={() => generateNextMatch(courtNumber)}
                                                                 disabled={saving}
-                                                                className="px-6 py-3 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2 shadow-lg shadow-azul-primary/5"
+                                                                className="w-full max-w-[120px] py-1.5 bg-celeste text-azul-primary border border-celeste/20 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-celeste/80 transition-all flex items-center justify-center gap-2 shadow-lg shadow-celeste/10"
                                                             >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                                Generar Partido
+                                                                <Plus className="w-3 h-3" />
+                                                                Generar
                                                             </button>
                                                         )}
                                                     </div>
@@ -1587,100 +1595,103 @@ export default function AmericanoManager({
                                 })}
                             </div>
 
-                            {/* Ranking & Player Status Section */}
-                            <div className="space-y-8">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 flex items-center justify-center">
-                                            <Users2 className="w-6 h-6 text-azul-primary" />
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                {/* Ranking Table */}
+                                <div className="lg:col-span-12 space-y-3">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-azul-primary/10 flex items-center justify-center">
+                                                <Users2 className="w-4 h-4 text-azul-primary" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight">Estado de Jugadores</h3>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-foreground/70 mt-0.5">Control de partidos y ranking</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-xl font-black uppercase italic tracking-tight">Estado de Jugadores</h3>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70 mt-0.5">Control de partidos y ranking</p>
+
+                                        <div className="flex items-center p-1 bg-muted/50 border border-border/50 rounded-xl gap-1">
+                                            <button onClick={() => setPlayersTab("all")} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${playersTab === "all" ? "bg-foreground text-background shadow-md" : "hover:bg-muted text-foreground/70"}`}>
+                                                Todos ({standings.length})
+                                            </button>
+                                            <button onClick={() => setPlayersTab("pending")} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-azul-primary shadow-md" : "hover:bg-muted text-foreground/70"}`}>
+                                                Pendientes ({standings.filter(s => s.matchesPlayed < matchesPerTeam).length})
+                                            </button>
+                                            <button onClick={() => setPlayersTab("done")} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-azul-primary text-white shadow-md" : "hover:bg-muted text-foreground/70"}`}>
+                                                Completos ({standings.filter(s => s.matchesPlayed >= matchesPerTeam).length})
+                                            </button>
                                         </div>
                                     </div>
 
-                                    {/* Tabs */}
-                                    <div className="flex items-center p-1.5 bg-muted/50 border border-border/50 rounded-2xl gap-1">
-                                        <button onClick={() => setPlayersTab("all")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "all" ? "bg-foreground text-background shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
-                                            Todos ({standings.length})
-                                        </button>
-                                        <button onClick={() => setPlayersTab("pending")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-azul-primary shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
-                                            Pendientes ({standings.filter(s => s.matchesPlayed < matchesPerTeam).length})
-                                        </button>
-                                        <button onClick={() => setPlayersTab("done")} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-azul-primary text-white shadow-lg" : "hover:bg-muted text-foreground/70"}`}>
-                                            Completos ({standings.filter(s => s.matchesPlayed >= matchesPerTeam).length})
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all">
-                                    <table className="w-full text-left">
-                                        <thead className="bg-muted text-[10px] font-black uppercase tracking-widest text-foreground/70 border-b border-border/50">
-                                            <tr>
-                                                <th className="px-8 py-6">Pos</th>
-                                                <th className="px-8 py-6">Jugador</th>
-                                                <th className="px-8 py-6 text-center">Estado</th>
-                                                <th className="px-8 py-6 text-center">Partidos</th>
-                                                <th className="px-8 py-6 text-center">PG-PP</th>
-                                                <th className="px-8 py-6 text-center">Dif</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-border/50">
-                                            {filteredStandings.map((s, idx) => {
-                                                const isPlaying = playingIds.has(s.playerId);
-                                                const isDone = s.matchesPlayed >= matchesPerTeam;
-                                                const rank = standings.findIndex(st => st.playerId === s.playerId) + 1;
-                                                return (
-                                                    <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-azul-primary/[0.05]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
-                                                        <td className="px-8 py-5">
-                                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black italic shadow-sm ${rank === 1 ? "bg-celeste text-azul-primary" : "bg-muted text-foreground/70"}`}>
-                                                                {rank}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-8 py-5">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex flex-col">
-                                                                    {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic leading-tight ${i === 0 ? "text-sm text-foreground/80" : "text-[10px] text-foreground/40 mt-0.5"}`}>
-                                                                            {name.trim()}
-                                                                        </span>
-                                                                    ))}
-                                                                    {isPlaying && (
-                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-rojo flex items-center gap-1.5 mt-1">
-                                                                            <div className="w-1.5 h-1.5 bg-rojo rounded-full animate-pulse" />
-                                                                            Jugando
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                {!readOnly && (
-                                                                        <button
-                                                                            onClick={() => setReplacingPlayer(s.player)}
-                                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-celeste/20 text-azul-primary hover:bg-celeste/40 transition-all group/repl"
-                                                                            title="Reemplazar"
-                                                                        >
-                                                                        <RotateCcw className="w-3.5 h-3.5 group-hover/repl:rotate-180 transition-transform duration-500" />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-8 py-5 text-center">
-                                                            {isDone ? <span className="text-azul-primary"><CheckCircle2 className="w-4 h-4 mx-auto" /></span> : isPlaying ? <span className="text-azul-primary animate-pulse font-black text-[8px] uppercase tracking-widest">En Cancha</span> : <span className="text-celeste"><Clock className="w-4 h-4 mx-auto" /></span>}
-                                                        </td>
-                                                        <td className="px-8 py-5 text-center">
-                                                            <span className="text-xs font-black italic">{s.matchesPlayed} / {matchesPerTeam}</span>
-                                                        </td>
-                                                        <td className="px-8 py-5 text-center font-bold text-foreground/70 text-[10px]">
-                                                            <span className="text-azul-primary">{s.won}</span>-<span className="text-rojo">{s.lost}</span>
-                                                        </td>
-                                                        <td className="px-8 py-5 text-center font-black text-azul-primary text-sm">
-                                                            {s.points > 0 ? `+${s.points}` : s.points}
-                                                        </td>
+                                    <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl overflow-hidden shadow-xl transition-all">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-muted/50 text-[8px] font-black uppercase tracking-widest text-foreground/70 border-b border-border/50">
+                                                    <tr>
+                                                        <th className="px-4 py-3">#</th>
+                                                        <th className="px-4 py-3">Jugador</th>
+                                                        <th className="px-4 py-3 text-center">Estado</th>
+                                                        <th className="px-4 py-3 text-center">PJ</th>
+                                                        <th className="px-4 py-3 text-center">G-P</th>
+                                                        <th className="px-4 py-3 text-center text-azul-primary">Dif</th>
                                                     </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-border/50">
+                                                    {filteredStandings.map((s, idx) => {
+                                                        const isPlaying = playingIds.has(s.playerId);
+                                                        const isDone = s.matchesPlayed >= matchesPerTeam;
+                                                        const rank = standings.findIndex(st => st.playerId === s.playerId) + 1;
+                                                        return (
+                                                            <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-azul-primary/[0.05]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
+                                                                <td className="px-4 py-1.5">
+                                                                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[9px] font-black italic shadow-sm ${rank === 1 ? "bg-celeste text-azul-primary" : "bg-muted text-foreground/70"}`}>
+                                                                        {rank}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-1.5">
+                                                                    <div className="flex items-center justify-between gap-4">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-azul-primary/20 to-celeste/20 flex items-center justify-center text-[9px] font-black text-azul-primary border border-white/10 shrink-0">
+                                                                                {s.player.name.charAt(0)}
+                                                                            </div>
+                                                                            <div className="flex flex-col">
+                                                                                <span className="text-[10px] font-black uppercase italic leading-tight text-foreground/80 tracking-tight">{s.player.name}</span>
+                                                                                {isPlaying && (
+                                                                                    <span className="text-[7px] font-black uppercase tracking-widest text-rojo flex items-center gap-1 mt-0.5">
+                                                                                        <div className="w-1 h-1 bg-rojo rounded-full animate-pulse" />
+                                                                                        Jugando
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                        {!readOnly && (
+                                                                            <button
+                                                                                onClick={() => setReplacingPlayer(s.player)}
+                                                                                className="w-6 h-6 rounded-lg flex items-center justify-center bg-celeste/20 text-azul-primary hover:bg-celeste/40 transition-all opacity-0 group-hover:opacity-100"
+                                                                            >
+                                                                                <RotateCcw className="w-2.5 h-2.5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-1.5 text-center">
+                                                                    {isDone ? <CheckCircle2 className="w-3.5 h-3.5 mx-auto text-azul-primary" /> : isPlaying ? <div className="text-[7px] font-black uppercase text-azul-primary animate-pulse">En Cancha</div> : <Clock className="w-3.5 h-3.5 mx-auto text-foreground/20" />}
+                                                                </td>
+                                                                <td className="px-4 py-1.5 text-center text-[9px] font-black italic text-foreground/50">{s.matchesPlayed} / {matchesPerTeam}</td>
+                                                                <td className="px-4 py-1.5 text-center font-bold text-[9px]">
+                                                                    <span className="text-celeste">{s.won}</span>-<span className="text-rojo/60">{s.lost}</span>
+                                                                </td>
+                                                                <td className="px-4 py-1.5 text-center font-black text-[10px]">
+                                                                    <span className={s.points >= 0 ? "text-azul-primary" : "text-rojo"}>
+                                                                        {s.points > 0 ? `+${s.points}` : s.points}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1754,23 +1765,23 @@ export default function AmericanoManager({
                                                                                             )}
                                                                                             {[match.team1, match.team2].map((team, tIdx) => (
                                                                                                 <div key={tIdx} className="flex items-center justify-between gap-4 group/team">
-                                                                        <div className="flex items-center gap-2 overflow-hidden">
-                                                                                                    <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
-                                                                                                        {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
-                                                                                                    </span>
-                                                                            {team && team !== "BYE" && !match.confirmed && !readOnly && (
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        setReplacingPlayer(team as Player);
-                                                                                    }}
-                                                                                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-azul-primary/10 text-azul-primary opacity-0 group-hover/team:opacity-100 transition-all hover:bg-azul-primary hover:text-white shrink-0 shadow-lg shadow-azul-primary/5"
-                                                                                    title="Reemplazar"
-                                                                                >
-                                                                                    <RotateCcw className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
+                                                                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                                                                        <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
+                                                                                                            {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
+                                                                                                        </span>
+                                                                                                        {team && team !== "BYE" && !match.confirmed && !readOnly && (
+                                                                                                            <button
+                                                                                                                onClick={(e) => {
+                                                                                                                    e.stopPropagation();
+                                                                                                                    setReplacingPlayer(team as Player);
+                                                                                                                }}
+                                                                                                                className="w-7 h-7 rounded-lg flex items-center justify-center bg-azul-primary/10 text-azul-primary opacity-0 group-hover/team:opacity-100 transition-all hover:bg-azul-primary hover:text-white shrink-0 shadow-lg shadow-azul-primary/5"
+                                                                                                                title="Reemplazar"
+                                                                                                            >
+                                                                                                                <RotateCcw className="w-3 h-3" />
+                                                                                                            </button>
+                                                                                                        )}
+                                                                                                    </div>
                                                                                                     <div className={`flex items-center bg-muted/40 rounded-2xl border border-border/50 overflow-hidden h-10 ${match.confirmed ? "pointer-events-none opacity-50" : ""}`}>
                                                                                                         <button
                                                                                                             onClick={() => {
@@ -1821,10 +1832,10 @@ export default function AmericanoManager({
                                                                                                         }}
                                                                                                         disabled={!isPending && !canEdit}
                                                                                                         className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl group/btn flex items-center justify-center ${isPending
-                                                                                                                ? "bg-azul-primary text-white hover:bg-azul-dark shadow-azul-primary/20"
-                                                                                                                : canEdit
-                                                                                                                    ? "bg-celeste/10 text-azul-primary hover:bg-celeste hover:text-azul-primary border border-celeste/50"
-                                                                                                                    : "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none"
+                                                                                                            ? "bg-azul-primary text-white hover:bg-azul-dark shadow-azul-primary/20"
+                                                                                                            : canEdit
+                                                                                                                ? "bg-celeste/10 text-azul-primary hover:bg-celeste hover:text-azul-primary border border-celeste/50"
+                                                                                                                : "bg-muted/50 text-foreground/20 cursor-not-allowed shadow-none"
                                                                                                             }`}
                                                                                                     >
                                                                                                         <span className={canEdit ? "group-hover/btn:hidden" : ""}>{btnText}</span>
@@ -1874,7 +1885,7 @@ export default function AmericanoManager({
                             className="relative w-full max-w-md bg-card border-2 border-border/50 rounded-[3rem] p-10 shadow-2xl overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500/0 via-orange-500 to-orange-500/0" />
-                            
+
                             <div className="flex flex-col items-center text-center space-y-8">
                                 <div className="w-24 h-24 rounded-full bg-azul-primary/10 flex items-center justify-center relative">
                                     <div className="absolute inset-0 rounded-full bg-azul-primary/5 animate-ping" />
@@ -1945,7 +1956,7 @@ export default function AmericanoManager({
                     <DialogHeader>
                         <DialogTitle>Cambiar Participante</DialogTitle>
                         <DialogDescription>
-                            {isIndividual 
+                            {isIndividual
                                 ? <>Reemplazar a <span className="text-foreground">{replacingPlayer?.name}</span> por otro jugador.</>
                                 : <>Modificar la pareja <span className="text-foreground">{replacingPlayer?.name}</span>.</>
                             }
@@ -2029,10 +2040,10 @@ export default function AmericanoManager({
                                     </div>
                                 ) : allPotentialPlayers
                                     .filter(p => {
-                                        const query = isIndividual 
-                                            ? (guestName || playerSearchQuery) 
+                                        const query = isIndividual
+                                            ? (guestName || playerSearchQuery)
                                             : (replaceSlot === 1 ? guestName : guestName2) || playerSearchQuery;
-                                        
+
                                         if (!query || query.length < 2) return false;
                                         return p.name.toLowerCase().includes(query.toLowerCase());
                                     })
@@ -2131,8 +2142,8 @@ export default function AmericanoManager({
                                         key={p.id}
                                         onClick={() => editingMatchPlayer && handleUpdateMatchPlayer(editingMatchPlayer.matchId, editingMatchPlayer.playerIndex, p)}
                                         disabled={!!isAlreadyInMatch}
-                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isAlreadyInMatch 
-                                            ? "bg-muted/50 border-transparent opacity-50 cursor-not-allowed" 
+                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isAlreadyInMatch
+                                            ? "bg-muted/50 border-transparent opacity-50 cursor-not-allowed"
                                             : "bg-card border-border/50 hover:border-azul-primary hover:bg-azul-primary/[0.02]"}`}
                                     >
                                         <div className="flex items-center gap-3">

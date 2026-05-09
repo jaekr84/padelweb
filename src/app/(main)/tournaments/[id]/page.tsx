@@ -159,16 +159,16 @@ export default async function TournamentDisplayPage({ params }: Props) {
                             ) : (
                                 <div className="divide-y divide-border">
                                     {initialPlayers.map((p, i) => (
-                                        <div key={p.id} className="px-8 py-5 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                                        <div key={p.id} className="px-6 py-2.5 flex items-center justify-between hover:bg-muted/10 transition-colors">
                                             <div className="flex items-center gap-4">
-                                                <span className="text-[10px] font-black text-muted-foreground w-4">{i + 1}</span>
+                                                <span className="text-[9px] font-black text-muted-foreground w-4">{i + 1}</span>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-foreground uppercase tracking-tight">{p.name}</span>
-                                                    <span className="text-[9px] font-black text-azul-primary uppercase tracking-widest mt-0.5">{p.category}</span>
+                                                    <span className="text-xs font-bold text-foreground uppercase tracking-tight">{p.name}</span>
+                                                    <span className="text-[8px] font-black text-azul-primary uppercase tracking-widest mt-0.5">{p.category}</span>
                                                 </div>
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
-                                                <CheckCircle className="w-4 h-4 text-azul-primary" />
+                                            <div className="w-7 h-7 rounded-full bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                                <CheckCircle className="w-3.5 h-3.5 text-azul-primary" />
                                             </div>
                                         </div>
                                     ))}

@@ -410,11 +410,11 @@ export default function AmericanoSetup({
                                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                     </select>
                                 </div>
-                                <div className="px-6 py-4 flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Jugadores</span>
+                                <div className="px-4 py-2.5 flex items-center justify-between">
+                                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Jugadores</span>
                                     <div className="flex gap-4">
-                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-azul-primary">Todo Pago</button>
-                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-celeste">Todo Ok</button>
+                                        <button onClick={() => handleCheckAll('paid')} className="text-[8px] font-black uppercase tracking-widest text-azul-primary">Todo Pago</button>
+                                        <button onClick={() => handleCheckAll('present')} className="text-[8px] font-black uppercase tracking-widest text-celeste">Todo Ok</button>
                                     </div>
                                 </div>
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -455,31 +455,31 @@ export default function AmericanoSetup({
                                             const isPresent = present.has(p.checkinId);
 
                                             return (
-                                                <div key={p.checkinId} className={`flex items-center justify-between px-6 py-4 transition-all duration-300 ${isPresent ? "bg-celeste/5 border-l-4 border-l-celeste" : "bg-card border-l-4 border-l-transparent"}`}>
-                                                    <div className="flex flex-col gap-1">
-                                                        <p className={`text-sm font-black uppercase italic transition-colors ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
+                                                <div key={p.checkinId} className={`flex items-center justify-between px-4 py-1.5 transition-all duration-300 ${isPresent ? "bg-celeste/5 border-l-4 border-l-celeste" : "bg-card border-l-4 border-l-transparent"}`}>
+                                                    <div className="flex flex-col">
+                                                        <p className={`text-xs font-black uppercase italic transition-colors ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
                                                             {p.displayName}
                                                         </p>
                                                         {!isIndividual && (
-                                                            <p className="text-[9px] text-foreground/60 font-bold uppercase tracking-widest">
-                                                                Equipo: <span className="text-azul-primary/60">{p.pairName}</span>
+                                                            <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-widest leading-none">
+                                                                Equipo: <span className="text-azul-primary/40">{p.pairName}</span>
                                                             </p>
                                                         )}
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex gap-1.5">
                                                         <button 
                                                             onClick={() => togglePaid(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPaid ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
+                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${isPaid ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Pago"
                                                         >
-                                                            <CreditCard className="w-4 h-4" />
+                                                            <CreditCard className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button 
                                                             onClick={() => togglePresent(p.checkinId)} 
-                                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${isPresent ? "bg-celeste border-celeste text-azul-primary shadow-lg shadow-celeste/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
+                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${isPresent ? "bg-celeste border-celeste text-azul-primary shadow-lg shadow-celeste/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
                                                             title="Confirmar Presencia"
                                                         >
-                                                            <UserCheck className="w-4 h-4" />
+                                                            <UserCheck className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
                                                 </div>

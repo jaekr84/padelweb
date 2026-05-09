@@ -472,24 +472,24 @@ export default function ManualRegistrationModal({
                                 filteredAvailable.map(p => (
                                     <div
                                         key={p.id}
-                                        className="group flex items-center justify-between p-4 bg-card hover:bg-muted/40 border border-border/50 rounded-2xl transition-all duration-300"
+                                        className="group flex items-center justify-between px-3 py-1.5 bg-card hover:bg-muted/40 border border-border/50 rounded-xl transition-all duration-300"
                                     >
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-black uppercase italic tracking-tight">{p.name}</span>
-                                            <div className="flex gap-2 mt-1">
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/60 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
+                                            <span className="text-[10px] font-black uppercase italic tracking-tight">{p.name}</span>
+                                            <div className="flex gap-1.5 mt-0.5">
+                                                <span className="text-[7px] font-bold uppercase tracking-widest text-foreground/40 bg-muted px-1 py-0 rounded-md border border-border/50">
                                                     {p.category || "D"}
                                                 </span>
-                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/60 bg-muted px-1.5 py-0.5 rounded-md border border-border/50">
+                                                <span className="text-[7px] font-bold uppercase tracking-widest text-foreground/40 bg-muted px-1 py-0 rounded-md border border-border/50">
                                                     {p.gender || "masculino"}
                                                 </span>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => handleQuickInscribe(p.id)}
-                                            className="px-4 py-2 bg-azul-primary/10 text-azul-primary border border-azul-primary/20 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/10 active:scale-95 flex items-center gap-2"
+                                            className="px-2 py-1 bg-azul-primary/10 text-azul-primary border border-azul-primary/20 rounded-lg text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/10 active:scale-95 flex items-center gap-1.5"
                                         >
-                                            <Plus className="w-3.5 h-3.5" />
+                                            <Plus className="w-2.5 h-2.5" />
                                             Inscribir
                                         </button>
                                     </div>

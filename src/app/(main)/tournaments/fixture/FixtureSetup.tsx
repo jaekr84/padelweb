@@ -731,79 +731,79 @@ export default function FixtureSetup({
                                             return (
                                                 <div
                                                     key={p.checkinId}
-                                                    className={`group flex items-center justify-between px-6 py-5 transition-all duration-300 ${isPresent 
+                                                    className={`group flex items-center justify-between px-4 py-1.5 transition-all duration-300 ${isPresent 
                                                         ? "bg-celeste/[0.03] border-l-4 border-l-celeste" 
                                                         : "bg-card hover:bg-muted/30 border-l-4 border-l-transparent"
-                                                    } ${p.isSecond ? "mt-[-2px]" : ""}`}
+                                                    } ${p.isSecond ? "mt-[-1px]" : ""}`}
                                                 >
-                                                    <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-col">
                                                         <div className="flex flex-col">
-                                                            <span className={`text-sm font-black uppercase tracking-tight transition-all duration-300 ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
+                                                            <span className={`text-xs font-black uppercase tracking-tight transition-all duration-300 ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
                                                                 {p.displayName}
                                                             </span>
                                                             {!isIndividual && (
-                                                                <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/60 mt-1">
-                                                                    Equipo: <span className="text-azul-primary/60 ">{p.pairName}</span>
+                                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/40 leading-none">
+                                                                    Equipo: <span className="text-azul-primary/40 ">{p.pairName}</span>
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div className="flex gap-2 mt-1">
-                                                            {isPaid && (
-                                                                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-azul-primary/10 text-azul-primary rounded-full border border-azul-primary/20">
-                                                                    <div className="w-1 h-1 rounded-full bg-azul-primary" />
-                                                                    Pago
-                                                                </span>
-                                                            )}
-                                                            {isPresent && (
-                                                                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-celeste/10 text-celeste rounded-full border border-celeste/20">
-                                                                    <div className="w-1 h-1 rounded-full bg-celeste" />
-                                                                    Presente
-                                                                </span>
-                                                            )}
-                                                            {p.category && !p.isSecond && (
-                                                                <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-muted text-foreground/70 rounded-full border border-border">
-                                                                    {p.category}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        {(isPaid || isPresent || (p.category && !p.isSecond)) && (
+                                                            <div className="flex gap-1.5 mt-0.5">
+                                                                {isPaid && (
+                                                                    <span className="flex items-center gap-1 text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-azul-primary/10 text-azul-primary rounded-full border border-azul-primary/20">
+                                                                        Pago
+                                                                    </span>
+                                                                )}
+                                                                {isPresent && (
+                                                                    <span className="flex items-center gap-1 text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-celeste/10 text-celeste rounded-full border border-celeste/20">
+                                                                        Ok
+                                                                    </span>
+                                                                )}
+                                                                {p.category && !p.isSecond && (
+                                                                    <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-muted text-foreground/70 rounded-full border border-border">
+                                                                        {p.category}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
 
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-1.5">
                                                         <button
                                                             onClick={() => setParticipantToDelete({ id: p.id, name: p.displayName })}
-                                                            className="w-11 h-11 rounded-xl flex items-center justify-center bg-muted/50 border border-border text-foreground/20 hover:text-red-500 hover:border-red-500/50 transition-all transform active:scale-90"
-                                                            title="Eliminar Participante"
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30 border border-border/40 text-foreground/20 hover:text-red-500 hover:border-red-500/50 transition-all transform active:scale-90"
+                                                            title="Eliminar"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-3 h-3" />
                                                         </button>
 
                                                         <button
                                                             onClick={() => setReplacingParticipant({ checkinId: p.checkinId, displayName: p.displayName, pairId: p.id })}
-                                                            className="w-11 h-11 rounded-xl flex items-center justify-center bg-muted/50 border border-border text-foreground/20 hover:text-azul-primary hover:border-azul-primary/50 transition-all transform active:scale-90"
-                                                            title="Reemplazar Participante"
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30 border border-border/40 text-foreground/20 hover:text-azul-primary hover:border-azul-primary/50 transition-all transform active:scale-90"
+                                                            title="Reemplazar"
                                                         >
-                                                            <RotateCcw className="w-4 h-4" />
+                                                            <RotateCcw className="w-3 h-3" />
                                                         </button>
 
                                                         <button
                                                             onClick={() => togglePaid(p.checkinId)}
-                                                            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPaid
-                                                                ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/30 ring-2 ring-azul-primary/20"
-                                                                : "bg-muted/50 border border-border text-foreground/20 hover:text-foreground/70 hover:border-foreground/20"
+                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPaid
+                                                                ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/30 ring-1 ring-azul-primary/20"
+                                                                : "bg-muted/30 border border-border/40 text-foreground/20 hover:text-foreground/70"
                                                                 }`}
-                                                            title="Confirmar Pago"
+                                                            title="Pago"
                                                         >
-                                                            <CreditCard className="w-4 h-4" />
+                                                            <CreditCard className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => togglePresent(p.checkinId)}
-                                                            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPresent
-                                                                ? "bg-celeste text-white shadow-lg shadow-celeste/30 ring-2 ring-celeste/20"
-                                                                : "bg-muted/50 border border-border text-foreground/20 hover:text-foreground/70 hover:border-foreground/20"
+                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPresent
+                                                                ? "bg-celeste text-azul-primary shadow-lg shadow-celeste/30 ring-1 ring-celeste/20"
+                                                                : "bg-muted/30 border border-border/40 text-foreground/20 hover:text-foreground/70"
                                                                 }`}
-                                                            title="Confirmar Presentismo"
+                                                            title="Ok"
                                                         >
-                                                            <UserCheck className="w-4 h-4" />
+                                                            <UserCheck className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -811,7 +811,7 @@ export default function FixtureSetup({
                                         });
                                     })()}
                                 </div>
-                            </div>
+                                </div>
 
                             <button
                                 onClick={() => setStep("config")}
