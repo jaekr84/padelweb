@@ -27,6 +27,7 @@ export type SaveFixtureInput = {
         score1?: number;
         score2?: number;
         confirmed: boolean;
+        status?: string;
         roundIndex?: number;
         courtNumber?: number;
     }[];
@@ -39,6 +40,7 @@ export type SaveFixtureInput = {
         score1?: number;
         score2?: number;
         confirmed: boolean;
+        status?: string;
         winnerId?: string;
     }[];
     championName?: string;
@@ -123,6 +125,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     score1: m.score1 ?? null,
                     score2: m.score2 ?? null,
                     confirmed: m.confirmed,
+                    status: m.status || "pending",
                     roundIndex: m.roundIndex ?? null,
                     courtNumber: m.courtNumber ?? null,
                 };
@@ -156,6 +159,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     score1: bm.score1 ?? null,
                     score2: bm.score2 ?? null,
                     confirmed: bm.confirmed,
+                    status: bm.status || "pending",
                     winnerId: bm.winnerId ?? null,
                     winnerName,
                 };

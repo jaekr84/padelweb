@@ -71,6 +71,13 @@
       "when": 1776550878471,
       "tag": "0009_secret_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1778355087337,
+      "tag": "0010_nappy_charles_xavier",
+      "breakpoints": true
     }
   ]
 }

@@ -6,7 +6,7 @@ import {
     CheckCircle2, AlertCircle, ChevronRight,
     ArrowLeft, LayoutDashboard, Settings,
     BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw,
-    UserCheck, Zap, Settings2, Trash2, ArrowRight, Share2, Download, Search, CreditCard, Plus, Printer, ListFilter, LayoutGrid, Minus
+    UserCheck, Zap, Settings2, Trash2, ArrowRight, Share2, Download, Search, CreditCard, Plus, Printer, ListFilter, LayoutGrid, Minus, Circle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture, resetTournamentStatus } from "./actions";
@@ -169,6 +169,7 @@ export default function AmericanoManager({
     const [guestName2, setGuestName2] = useState("");
     const [playerSearchQuery, setPlayerSearchQuery] = useState("");
     const [replaceSlot, setReplaceSlot] = useState<1 | 2>(1);
+    const [editingMatchPlayer, setEditingMatchPlayer] = useState<{ matchId: string, playerIndex: 1 | 2 } | null>(null);
 
     const fetchPlayers = useCallback(async () => {
         setIsFetchLoading(true);
@@ -340,6 +341,59 @@ export default function AmericanoManager({
 
         setPlayerToDelete(null);
         toast.success("Participante eliminado");
+    };
+
+    const handleDeleteMatch = async (matchId: string) => {
+        if (!confirm("¿Seguro que querés eliminar este partido? Los jugadores volverán a estar disponibles.")) return;
+
+        const updatedMatches = matches.filter(m => m.id !== matchId);
+        setSaving(true);
+        const res = await saveTournamentFixture({
+            tournamentId,
+            phase: "grupos",
+            groups,
+            matches: updatedMatches,
+            bracket,
+            modalidad: { numCourts, matchesPerTeam, isIndividual }
+        });
+
+        if (res.ok) {
+            setMatches(updatedMatches);
+            toast.success("Partido eliminado");
+        } else {
+            toast.error("Error al eliminar: " + res.error);
+        }
+        setSaving(false);
+    };
+
+    const handleUpdateMatchPlayer = async (matchId: string, playerIndex: 1 | 2, newPlayer: Player) => {
+        const updatedMatches = matches.map(m => {
+            if (m.id !== matchId) return m;
+            return {
+                ...m,
+                team1: playerIndex === 1 ? newPlayer : m.team1,
+                team2: playerIndex === 2 ? newPlayer : m.team2,
+            };
+        });
+
+        setSaving(true);
+        const res = await saveTournamentFixture({
+            tournamentId,
+            phase: "grupos",
+            groups,
+            matches: updatedMatches,
+            bracket,
+            modalidad: { numCourts, matchesPerTeam, isIndividual }
+        });
+
+        if (res.ok) {
+            setMatches(updatedMatches);
+            toast.success("Jugador actualizado en el partido");
+            setEditingMatchPlayer(null);
+        } else {
+            toast.error("Error al actualizar jugador: " + res.error);
+        }
+        setSaving(false);
     };
 
 
@@ -1393,19 +1447,65 @@ export default function AmericanoManager({
 
                                     return (
                                         <div key={courtNumber} className="relative group">
-                                            <div className="absolute -top-3 left-8 px-4 py-1 bg-azul-primary text-white rounded-full text-[8px] font-black uppercase tracking-widest z-10 shadow-lg shadow-azul-primary/20">
-                                                Cancha {courtNumber}
+                                            <div className="absolute -top-3 left-8 flex items-center gap-2 z-10">
+                                                <div className="px-4 py-1 bg-azul-primary text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg shadow-azul-primary/20">
+                                                    Cancha {courtNumber}
+                                                </div>
+                                                {activeMatch && !readOnly && (
+                                                    <div className="flex items-center gap-2">
+                                                        <motion.div 
+                                                            animate={{ scale: [1, 1.1, 1] }}
+                                                            transition={{ repeat: Infinity, duration: 2 }}
+                                                            className="px-3 py-1 bg-rojo text-white rounded-full text-[7px] font-black tracking-widest shadow-lg shadow-rojo/20 flex items-center gap-1.5"
+                                                        >
+                                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                                            EN VIVO
+                                                        </motion.div>
+                                                        <button
+                                                            onClick={() => handleDeleteMatch(activeMatch.id)}
+                                                            className="p-1.5 bg-rojo/10 text-rojo hover:bg-rojo hover:text-white rounded-lg transition-all border border-rojo/20"
+                                                            title="Eliminar Partido"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
 
-                                            <div className="p-8 bg-card/40 backdrop-blur-xl border-2 border-border/50 rounded-[2.5rem] transition-all duration-500 min-h-[300px] flex flex-col justify-center shadow-2xl relative overflow-hidden group-hover:border-blue-500/30">
+                                            <div className={`p-8 bg-card/40 backdrop-blur-xl border-2 rounded-[2.5rem] transition-all duration-500 min-h-[300px] flex flex-col justify-center shadow-2xl relative overflow-hidden group-hover:border-celeste/40 ${activeMatch && !readOnly ? "border-celeste/20 bg-celeste/[0.03] shadow-[inset_0_0_40px_rgba(var(--celeste-rgb),0.05)]" : "border-border/50"}`}>
+                                                {activeMatch && !readOnly && (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: [0.1, 0.2, 0.1] }}
+                                                        transition={{ repeat: Infinity, duration: 4 }}
+                                                        className="absolute inset-0 bg-celeste/10 pointer-events-none"
+                                                    />
+                                                )}
                                                 {activeMatch ? (
                                                     <div className="space-y-6">
                                                         <div className="space-y-4">
                                                             {[activeMatch.team1, activeMatch.team2].map((team, tIdx) => (
                                                                 <div key={tIdx} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50 transition-all">
-                                                                    <span className="text-sm font-black uppercase italic truncate pr-4 text-foreground/70">
-                                                                        {team.name}
-                                                                    </span>
+                                                                    <div className="flex flex-col flex-1 min-w-0 pr-4">
+                                                                        <div className="flex items-center justify-between group/pname">
+                                                                            <div className="flex flex-col min-w-0">
+                                                                                {team.name.split('/').map((name: string, i: number) => (
+                                                                                    <span key={i} className={`font-black uppercase italic leading-tight ${i === 0 ? "text-sm text-foreground/70" : "text-[10px] text-foreground/40 mt-1"}`}>
+                                                                                        {name.trim()}
+                                                                                    </span>
+                                                                                ))}
+                                                                            </div>
+                                                                            {!readOnly && (
+                                                                                <button
+                                                                                    onClick={() => setEditingMatchPlayer({ matchId: activeMatch.id, playerIndex: (tIdx + 1) as 1 | 2 })}
+                                                                                    className="p-1.5 rounded-lg bg-azul-primary/5 text-azul-primary opacity-0 group-hover/pname:opacity-100 hover:bg-azul-primary hover:text-white transition-all ml-2"
+                                                                                    title="Cambiar Jugador"
+                                                                                >
+                                                                                    <Pencil className="w-3 h-3" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
                                                                     <div className="flex items-center bg-background rounded-xl border border-border/50 overflow-hidden h-10">
                                                                         {!readOnly && (
                                                                             <button
@@ -1541,8 +1641,17 @@ export default function AmericanoManager({
                                                         <td className="px-8 py-5">
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-sm font-black uppercase italic text-foreground/80">{s.player.name}</span>
-                                                                    {isPlaying && <span className="text-[8px] font-black uppercase tracking-widest text-azul-primary flex items-center gap-1 mt-1"><Zap className="w-2.5 h-2.5 animate-pulse" />Jugando</span>}
+                                                                    {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                        <span key={i} className={`font-black uppercase italic leading-tight ${i === 0 ? "text-sm text-foreground/80" : "text-[10px] text-foreground/40 mt-0.5"}`}>
+                                                                            {name.trim()}
+                                                                        </span>
+                                                                    ))}
+                                                                    {isPlaying && (
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-rojo flex items-center gap-1.5 mt-1">
+                                                                            <div className="w-1.5 h-1.5 bg-rojo rounded-full animate-pulse" />
+                                                                            Jugando
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 {!readOnly && (
                                                                         <button
@@ -1739,7 +1848,7 @@ export default function AmericanoManager({
                                         </div>
                                     ) : (
                                         <div className="text-center py-24 rounded-[3rem] border-4 border-dashed border-border/30 bg-muted/20 flex flex-col items-center gap-6">
-                                            <Zap className="w-12 h-12 text-azul-primary/20 animate-pulse" />
+                                            <Circle className="w-12 h-12 text-rojo/20 animate-pulse fill-current" />
                                             <div className="space-y-1">
                                                 <p className="text-sm font-black uppercase italic text-foreground/70">Sincronizando Cuadro...</p>
                                                 <p className="text-[10px] font-medium text-foreground/20 uppercase tracking-widest">Preparando eliminatorias basadas en el ranking actual</p>
@@ -1988,6 +2097,59 @@ export default function AmericanoManager({
                         >
                             Sí, Eliminar
                         </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            {/* MODAL CAMBIAR JUGADOR EN PARTIDO ESPECIFICO */}
+            <Dialog open={!!editingMatchPlayer} onOpenChange={(open) => !open && setEditingMatchPlayer(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Seleccionar Jugador</DialogTitle>
+                        <DialogDescription>
+                            Elegí un jugador para reemplazar en este partido.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="relative my-4">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                        <input
+                            type="text"
+                            placeholder="Buscar jugador del torneo..."
+                            value={playerSearchQuery}
+                            onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                            className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-azul-primary transition-all"
+                        />
+                    </div>
+
+                    <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        {groups[0]?.players
+                            .filter(p => p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()))
+                            .map((p) => {
+                                const isAlreadyInMatch = matches.find(m => m.id === editingMatchPlayer?.matchId && (m.team1.id === p.id || m.team2.id === p.id));
+                                return (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => editingMatchPlayer && handleUpdateMatchPlayer(editingMatchPlayer.matchId, editingMatchPlayer.playerIndex, p)}
+                                        disabled={!!isAlreadyInMatch}
+                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isAlreadyInMatch 
+                                            ? "bg-muted/50 border-transparent opacity-50 cursor-not-allowed" 
+                                            : "bg-card border-border/50 hover:border-azul-primary hover:bg-azul-primary/[0.02]"}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                                                <Users2 className="w-4 h-4 text-foreground/40" />
+                                            </div>
+                                            <span className="text-sm font-black uppercase italic">{p.name}</span>
+                                        </div>
+                                        {isAlreadyInMatch ? (
+                                            <span className="text-[8px] font-black uppercase text-foreground/30">Ya en el partido</span>
+                                        ) : (
+                                            <ChevronRight className="w-4 h-4 text-azul-primary" />
+                                        )}
+                                    </button>
+                                );
+                            })
+                        }
                     </div>
                 </DialogContent>
             </Dialog>
