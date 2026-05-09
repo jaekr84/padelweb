@@ -46,7 +46,7 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
   return (
     <Link
       href={`/tournaments/${t.id}`}
-      className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
+      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
     >
       <div className="relative z-10 flex justify-between items-start gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">

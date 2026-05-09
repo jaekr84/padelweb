@@ -224,27 +224,27 @@ export default function ManualRegistrationModal({
                 className="relative w-full max-w-5xl bg-card border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]"
             >
                 {/* Header */}
-                <div className="p-6 md:p-8 border-b border-border flex items-center justify-between bg-muted/30">
+                <div className="p-4 md:p-5 border-b border-border flex items-center justify-between bg-muted/30">
                     <div>
-                        <h3 className="text-xl md:text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
-                            <Plus className="w-6 h-6 text-azul-primary" />
+                        <h3 className="text-lg md:text-xl font-black uppercase italic tracking-tight flex items-center gap-3">
+                            <Plus className="w-5 h-5 text-azul-primary" />
                             Inscribir Participantes
                         </h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70 mt-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-foreground/40 mt-1">
                             Buscá en la base de datos o agregalos de forma manual
                         </p>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="w-12 h-12 rounded-2xl hover:bg-muted transition-all flex items-center justify-center text-foreground/70 hover:text-foreground border border-transparent hover:border-border active:scale-95"
+                        className="w-10 h-10 rounded-xl hover:bg-muted transition-all flex items-center justify-center text-foreground/70 hover:text-foreground border border-transparent hover:border-border active:scale-95"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12">
                     {/* Left Column: Manual Form */}
-                    <div className="md:col-span-5 p-6 md:p-8 overflow-y-auto space-y-8 bg-card border-r border-border/30">
+                    <div className="md:col-span-5 p-4 md:p-6 overflow-y-auto space-y-6 bg-card border-r border-border/30">
                         <div className="space-y-6">
                             <div className="flex items-center gap-2 text-azul-primary">
                                 <Users2 className="w-4 h-4 stroke-[3]" />
@@ -393,7 +393,7 @@ export default function ManualRegistrationModal({
                     </div>
 
                     {/* Right Column: Search Section */}
-                    <div className="md:col-span-7 bg-muted/10 p-6 md:p-8 flex flex-col space-y-6">
+                    <div className="md:col-span-7 bg-muted/10 p-4 md:p-6 flex flex-col space-y-5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-foreground/70">
                                 <Search className="w-4 h-4 stroke-[3]" />

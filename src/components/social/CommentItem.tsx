@@ -64,8 +64,8 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
   };
 
   return (
-    <div className="flex gap-3 group/comment">
-      <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 overflow-hidden shrink-0 relative mt-1">
+    <div className="flex gap-2 group/comment">
+      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 overflow-hidden shrink-0 relative mt-0.5">
         {comment.user.imageUrl ? (
           <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
         ) : (
@@ -74,8 +74,8 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
           </div>
         )}
       </div>
-      <div className="flex-1 flex flex-col gap-1">
-        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 relative group-hover/comment:border-slate-200 transition-colors">
+      <div className="flex-1 flex flex-col gap-0.5">
+        <div className="bg-slate-50/50 rounded-xl py-2 px-3.5 border border-slate-100 relative group-hover/comment:border-slate-200 transition-colors">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight">
               {comment.user.name}
@@ -119,7 +119,7 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-700 leading-relaxed font-medium">{comment.content}</p>
+            <p className="text-xs text-slate-700 leading-relaxed font-medium">{comment.content}</p>
           )}
         </div>
         <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">

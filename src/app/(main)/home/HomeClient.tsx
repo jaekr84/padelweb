@@ -248,16 +248,16 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
             </div>
 
             {/* Header Section */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-6 px-3 sm:px-6">
-                <div className="max-w-[1440px] mx-auto flex flex-col gap-6">
+            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-4 px-3 sm:px-6">
+                <div className="max-w-[1440px] mx-auto flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             className="space-y-1"
                         >
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-celeste">Comunidad ACAP</p>
-                            <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
+                            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-celeste">Comunidad ACAP</p>
+                            <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tight leading-none text-slate-900">
                                 <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(14,165,233,0.3)]">La mejor comunidad de Pádel</span>
                             </h1>
                         </motion.div>
@@ -265,7 +265,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                 </div>
             </div>
 
-            <div className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col md:flex-row pt-8 px-2 md:px-4 gap-12 justify-center">
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col md:flex-row pt-4 px-2 md:px-4 gap-8 justify-center">
 
                 {/* ── Main Feed (Left Column) ── */}
                 <div className="w-full max-w-3xl flex flex-col px-4 sm:px-0">
@@ -359,14 +359,14 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                                         <button
                                             onClick={handlePost}
                                             disabled={postState !== 'idle' || isOptimizing || (!content.trim() && selectedImages.length === 0)}
-                                            className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3
+                                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3
                                                 ${postState === 'success'
                                                     ? 'bg-azul-primary text-white shadow-azul-primary/30 shadow-lg'
                                                     : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50'
                                                 }`}
                                         >
-                                            {postState === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
-                                            {postState === 'success' && <Check className="w-4 h-4" />}
+                                            {postState === 'loading' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                            {postState === 'success' && <Check className="w-3.5 h-3.5" />}
                                             {postState === 'loading' ? "Enviando..." : postState === 'success' ? "Publicado" : "Publicar Ahora"}
                                         </button>
                                     </div>
@@ -401,7 +401,7 @@ export default function HomeClient({ initialPosts, currentUser, upcomingTourname
                 </div>
 
                 {/* ── Right Sidebar ── */}
-                <aside className="hidden xl:flex flex-col w-[340px] gap-12 sticky top-24 self-start">
+                <aside className="hidden xl:flex flex-col w-[240px] gap-8 sticky top-20 self-start">
 
                     {/* Tournaments List */}
                     <div className="space-y-6">

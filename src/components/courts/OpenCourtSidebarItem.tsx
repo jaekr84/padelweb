@@ -29,7 +29,7 @@ export const OpenCourtSidebarItem = memo(function OpenCourtSidebarItem({
   return (
     <Link
       href={`/cancha-abierta`}
-      className="group flex flex-col gap-2 py-4 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl"
+      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl"
     >
       <div className="flex justify-between items-start gap-2">
         <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors">

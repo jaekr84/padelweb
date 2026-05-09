@@ -47,16 +47,14 @@ export default function SponsorSidebar() {
 
     // Configuración de layout dinámica
     const getLayoutConfig = () => {
-        if (activeCount <= 5) return { cols: "grid-cols-1", aspect: "aspect-[2/1]" };
-        if (activeCount <= 7) return { cols: "grid-cols-1", aspect: "aspect-[3/1]" };
-        return { cols: "grid-cols-2", aspect: "aspect-[2/1]" };
+        return { cols: "grid-cols-1", aspect: "aspect-[2/1]" };
     };
 
     const { cols, aspect } = getLayoutConfig();
 
     if (loading) {
         return (
-            <aside className="hidden xl:flex w-80 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
+            <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
                 <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-4 items-center">
                     <div className="h-3 w-16 bg-muted rounded mb-2" />
                     <div className="h-6 w-32 bg-muted rounded" />
@@ -71,16 +69,16 @@ export default function SponsorSidebar() {
     }
 
     return (
-        <aside className="hidden xl:flex w-80 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1">
-            <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-4 bg-white/50 backdrop-blur-sm">
+        <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1">
+            <div className="p-3 pb-2 flex flex-col border-b border-border/50 mb-3 bg-white/50 backdrop-blur-sm">
                 <div className="flex items-center justify-between mb-1">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Publicidad</span>
                 </div>
-                <h2 className="text-lg font-extrabold tracking-tight text-foreground leading-none uppercase">SPONSORS <span className="text-indigo-600 italic uppercase">A.C.A.P.</span></h2>
+                <h2 className="text-sm font-extrabold tracking-tight text-foreground leading-none uppercase">SPONSORS <span className="text-indigo-600 italic uppercase">A.C.A.P.</span></h2>
             </div>
 
-            <div className="flex-1 px-4 py-2 overflow-y-auto scrollbar-hide">
-                <div className={`grid ${cols} gap-3 pb-6`}>
+            <div className="flex-1 px-2.5 py-2 overflow-y-auto scrollbar-hide">
+                <div className={`grid ${cols} gap-2 pb-4`}>
                     {displaySponsors.map((s: any) => (
                         <div key={s.id} className="group relative">
                             {s.imageUrl ? (
@@ -123,12 +121,12 @@ export default function SponsorSidebar() {
                 </div>
 
                 {/* Promotional CTA */}
-                <div className="px-1 mb-8">
+                <div className="px-0.5 mb-6">
                     <a
                         href="https://www.instagram.com/acaparg"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block group relative overflow-hidden rounded-2xl p-4 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 transition-all hover:translate-y-[-2px] hover:shadow-indigo-600/30 active:translate-y-0"
+                        className="block group relative overflow-hidden rounded-xl p-3 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 transition-all hover:translate-y-[-2px] hover:shadow-indigo-600/30 active:translate-y-0"
                     >
                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
                         <div className="flex items-center justify-between relative z-10">

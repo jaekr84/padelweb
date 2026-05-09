@@ -119,11 +119,11 @@ export const PostItem = memo(function PostItem({
   const userInitials = post.user.name?.charAt(0) || "U";
 
   return (
-    <div className="group pb-12 mb-10 border-b border-slate-300 transition-all">
+    <div className="group pb-8 mb-8 border-b border-slate-200 transition-all">
       {/* Author */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
             {post.user.imageUrl ? (
               <Image src={post.user.imageUrl} alt={post.user.name || ""} fill unoptimized className="object-cover" sizes="48px" />
             ) : (
@@ -132,7 +132,7 @@ export const PostItem = memo(function PostItem({
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-base font-black uppercase italic tracking-tighter text-slate-900 leading-none">{post.user.name}</span>
+              <span className="text-sm font-black uppercase italic tracking-tighter text-slate-900 leading-none">{post.user.name}</span>
               <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 font-black uppercase tracking-widest border border-slate-100">
                 {post.user.role === 'jugador' ? 'Jugador' : post.user.role === 'club' ? 'Club' : post.user.role === 'superadmin' ? 'Administrador' : 'Usuario'}
               </span>
@@ -194,7 +194,7 @@ export const PostItem = memo(function PostItem({
           </div>
         ) : (
           post.content && (
-            <p className="text-slate-800 text-lg font-medium leading-relaxed mb-6 whitespace-pre-wrap">
+            <p className="text-slate-800 text-base font-medium leading-relaxed mb-4 whitespace-pre-wrap">
               {post.content}
             </p>
           )
@@ -214,7 +214,7 @@ export const PostItem = memo(function PostItem({
         </div>
 
         {/* Comments Section */}
-        <div className="mt-4 pt-6 border-t border-slate-50 flex flex-col gap-5">
+        <div className="mt-4 pt-4 border-t border-slate-50 flex flex-col gap-4">
           {post.comments && post.comments.length > 0 && (
             <div className="flex flex-col gap-4">
               {(showComments ? post.comments : post.comments.slice(-3)).map((comment) => (
@@ -256,7 +256,7 @@ export const PostItem = memo(function PostItem({
                   value={commentText}
                   onChange={handleCommentChange}
                   placeholder="Escribe un comentario..."
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-slate-300 focus:bg-white rounded-2xl py-3 px-5 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all font-medium"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-slate-300 focus:bg-white rounded-2xl py-2 px-4 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all font-medium"
                 />
                 <button
                   type="submit"

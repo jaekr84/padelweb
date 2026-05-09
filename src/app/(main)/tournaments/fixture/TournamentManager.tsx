@@ -1143,11 +1143,11 @@ export default function TournamentManager({
 
             {/* ── Page content ── */}
             <div className="w-full px-4 md:px-8 lg:px-12 py-8 pb-32">
-                <div className="mb-12 text-center">
-                    <h1 className="text-4xl md:text-6xl font-black text-foreground tracking-[-0.05em] italic uppercase leading-[0.9]">
+                <div className="mb-6 text-center">
+                    <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight italic uppercase">
                         {tournamentName}
                     </h1>
-                    <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-foreground/70">
+                    <p className="mt-2 text-[9px] font-black uppercase tracking-[0.3em] text-foreground/40">
                         {readOnly ? 'Fixture' : 'Gestión'} de Torneo Round Robin
                     </p>
                 </div>
@@ -1162,13 +1162,13 @@ export default function TournamentManager({
                             className="space-y-12 pb-20"
                         >
                             <div className="w-full space-y-8">
-                                <div className="text-center space-y-4">
-                                    <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter uppercase italic mb-3">Lista de Asistencia</h2>
-                                    <p className="text-celeste text-xs font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
+                                <div className="text-center space-y-1">
+                                    <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">Lista de Asistencia</h2>
+                                    <p className="text-celeste text-[10px] font-black uppercase tracking-[0.3em]">Verificación de Jugadores y Presentismo</p>
                                 </div>
 
                                 {/* Control Bar */}
-                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] shadow-2xl">
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-card/40 backdrop-blur-xl border border-border/50 rounded-3xl shadow-xl">
                                     <div className="relative flex-1 w-full">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
                                         <input
@@ -1204,7 +1204,7 @@ export default function TournamentManager({
                                 </div>
 
                                 {/* Players Table */}
-                                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-3xl overflow-hidden shadow-xl">
                                     <table className="w-full text-left">
                                         <thead className="bg-muted text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40 border-b border-border/50">
                                             <tr>
@@ -1300,10 +1300,10 @@ export default function TournamentManager({
                                         <button
                                             onClick={() => setStep("done")}
                                             disabled={present.size < 2}
-                                            className="w-full py-6 bg-azul-primary text-white rounded-[2.5rem] font-black uppercase italic tracking-widest shadow-[0_20px_50px_rgba(0,119,255,0.4)] hover:bg-azul-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                                            className="w-full py-3.5 bg-celeste text-white rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-celeste/30 hover:bg-celeste/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale text-sm"
                                         >
-                                            Continuar ({present.size})
-                                            <ChevronRight className="w-6 h-6" />
+                                            Iniciar Torneo ({present.size})
+                                            <ChevronRight className="w-5 h-5" />
                                         </button>
                                     </div>
                                 )}
@@ -1320,9 +1320,9 @@ export default function TournamentManager({
                         >
                             {/* --- FASE DE GRUPOS --- */}
                             <section className="space-y-12">
-                                <div className="text-center">
-                                    <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Fase de Grupos</h2>
-                                    <p className="text-azul-primary text-[10px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
+                                <div className="text-center space-y-1">
+                                    <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">Fase de Grupos</h2>
+                                    <p className="text-azul-primary text-[8px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
                                 </div>
 
                                 {/* Progress Bar */}
@@ -1562,9 +1562,9 @@ export default function TournamentManager({
                             {/* --- ELIMINATORIAS (BRACKET) --- */}
                             {bracket.length > 0 ? (
                                 <section className="space-y-16">
-                                    <div className="text-center">
-                                        <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase italic mb-2">Cuadro del Torneo</h2>
-                                        <p className="text-celeste text-[10px] font-black uppercase tracking-[0.3em]">Playoffs Dinámicos</p>
+                                    <div className="text-center space-y-1">
+                                        <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">Cuadro del Torneo</h2>
+                                        <p className="text-celeste text-[8px] font-black uppercase tracking-[0.3em]">Playoffs Dinámicos</p>
                                     </div>
 
                                     <div className="overflow-x-auto pb-20 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">

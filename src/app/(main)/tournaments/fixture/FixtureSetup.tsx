@@ -816,7 +816,7 @@ export default function FixtureSetup({
                             <button
                                 onClick={() => setStep("config")}
                                 disabled={present.size === 0}
-                                className={`w-full py-6 rounded-3xl font-black uppercase italic tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl ${present.size > 0
+                                className={`w-full py-3 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl ${present.size > 0
                                     ? "bg-azul-primary hover:bg-azul-primary/90 text-white shadow-azul-primary/40 translate-y-0"
                                     : "bg-card text-foreground/20 cursor-not-allowed border border-border translate-y-2 opacity-60 shadow-none"
                                     }`}
@@ -843,9 +843,9 @@ export default function FixtureSetup({
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-card border border-border rounded-3xl p-6 space-y-4">
+                                <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                                     <div className="flex items-center gap-2 text-azul-primary">
-                                        <Users2 className="w-5 h-5" />
+                                        <Users2 className="w-4 h-4" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
                                     </div>
                                     <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
@@ -865,9 +865,9 @@ export default function FixtureSetup({
                                     </div>
                                 </div>
 
-                                <div className="bg-card border border-border rounded-3xl p-6 space-y-4">
+                                <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                                     <div className="flex items-center gap-2 text-celeste">
-                                        <Users className="w-5 h-5" />
+                                        <Users className="w-4 h-4" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Jugadores / Parejas</span>
                                     </div>
                                     <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
@@ -915,7 +915,7 @@ export default function FixtureSetup({
                                 </button>
                                 <button
                                     onClick={handleStart}
-                                    className="flex-[2] py-5 bg-azul-primary hover:bg-azul-primary/90 text-white rounded-3xl font-black uppercase italic tracking-widest transition-all shadow-xl shadow-azul-primary/40"
+                                    className="flex-[2] py-3 bg-azul-primary hover:bg-azul-primary/90 text-white rounded-2xl font-black uppercase italic tracking-widest transition-all shadow-xl shadow-azul-primary/40"
                                 >
                                     Configurar Grupos
                                 </button>
@@ -1065,20 +1065,20 @@ export default function FixtureSetup({
                                 <div className="max-w-6xl mx-auto flex gap-4">
                                     <button
                                         onClick={() => setStep("checkin")}
-                                        className="w-16 h-16 rounded-2xl bg-card border border-border flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"
+                                        className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"
                                     >
-                                        <ArrowLeft className="w-6 h-6" />
+                                        <ArrowLeft className="w-5 h-5" />
                                     </button>
                                     <button
                                         disabled={!allFull || saving}
                                         onClick={handleConfirmGroups}
-                                        className={`flex-1 h-16 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all shadow-2xl flex items-center justify-center gap-3 backdrop-blur-xl ${!allFull
+                                        className={`flex-1 h-12 rounded-xl font-black uppercase italic tracking-widest text-[10px] md:text-xs transition-all shadow-2xl flex items-center justify-center gap-3 backdrop-blur-xl ${!allFull
                                             ? "bg-card text-muted-foreground/60 border border-border/50"
                                             : "bg-celeste text-white shadow-celeste/40"
                                             }`}
                                     >
                                         {saving ? "Guardando..." : allFull ? "Iniciar Torneo" : "Completá los grupos"}
-                                        {!saving && allFull && <Trophy className="w-5 h-5" />}
+                                        {!saving && allFull && <Trophy className="w-4 h-4" />}
                                     </button>
                                 </div>
                             </div>

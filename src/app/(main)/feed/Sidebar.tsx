@@ -166,7 +166,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     await switchActiveRole(newRole);
                                     window.location.href = "/home";
                                 }}
-                                className="bg-emerald-50 border border-celeste text-emerald-700 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all shadow-sm pr-7"
+                                className="bg-emerald-50 border border-celeste text-emerald-700 text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all shadow-sm pr-7"
                             >
                                 {["superadmin", "club", "jugador"].filter(r => {
                                     const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -261,7 +261,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </div>
 
             {/* DESKTOP SIDEBAR */}
-            <aside className={`hidden md:flex ${isCollapsed ? 'w-20' : 'w-64'} border-r border-border bg-background flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
+            <aside className={`hidden md:flex ${isCollapsed ? 'w-16' : 'w-52'} border-r border-border bg-background flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
                 <style>{`
                     .sidebar-scroll::-webkit-scrollbar {
                         width: 5px;
@@ -283,11 +283,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         background: rgba(99, 102, 241, 0.3);
                     }
                 `}</style>
-                <div className={`p-6 flex flex-col gap-6 border-b border-border ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`p-4 flex flex-col gap-4 border-b border-border ${isCollapsed ? 'items-center' : ''}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-                        <Link href="/home" className="flex items-center gap-3 group">
-                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={40} height={40} className="rounded-full border border-border shadow-sm" priority />
-                            {!isCollapsed && <span className="text-xl font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
+                        <Link href="/home" className="flex items-center gap-2 group">
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={32} height={32} className="rounded-full border border-border shadow-sm" priority />
+                            {!isCollapsed && <span className="text-lg font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button
@@ -312,15 +312,15 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         <>
                             <div className="flex items-center justify-between mt-2">
                                 <div className="flex items-center gap-3 w-full group">
-                                    <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center">
-                                        <User className="w-5 h-5 text-muted-foreground" />
+                                    <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+                                        <User className="w-4 h-4 text-muted-foreground" />
                                     </div>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         {userData ? (
                                             <>
                                                 <span className="text-sm font-bold truncate text-foreground">{userData.name}</span>
                                                 <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-semibold">
                                                         {ROLE_LABELS[userData.role] || userData.role}
                                                     </span>
                                                 </div>
@@ -343,7 +343,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
                             {/* ROLE SIMULATOR BLOCK */}
                             {userData?.dbRole && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
-                                <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-4 flex flex-col gap-3">
+                                <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-xl p-3 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60">Cambiar Vista</span>
                                         <div className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
@@ -356,7 +356,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                                 await switchActiveRole(newRole);
                                                 window.location.href = "/home";
                                             }}
-                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none"
+                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none"
                                         >
                                             {["superadmin", "club", "jugador"].filter(r => {
                                                 const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -373,7 +373,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 text-sm focus-within:border-azul-primary/50 transition-all shadow-sm">
+                            <div className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl border border-slate-100 text-xs focus-within:border-azul-primary/50 transition-all shadow-sm">
                                 <Search className="w-4 h-4 text-muted-foreground" />
                                 <input type="text" placeholder="Buscar..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
                             </div>
@@ -390,11 +390,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             <Link
                                 key={item.href + item.label}
                                 href={item.href}
-                                className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all group font-semibold text-[15px] ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all group font-semibold text-sm ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
                                 <div className="relative">
-                                    <Icon className={`w-5 h-5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                    <Icon className={`w-4 h-4 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
                                     {isMsgs && unreadMessages > 0 && (
                                         <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
                                             {unreadMessages > 9 ? "9+" : unreadMessages}
