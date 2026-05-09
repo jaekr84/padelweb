@@ -143,43 +143,53 @@
 
 /* --- Global Premium Scrollbar --- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px !important;
+  height: 8px !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(15, 23, 42, 0.02) !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db; /* gray-300 */
-  border-radius: 10px;
-  transition: background 0.3s ease;
+  background: #cbd5e1 !important; /* gray-300 */
+  border-radius: 20px !important;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+  transition: background 0.3s ease !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9; /* celeste */
+  background: #0ea5e9 !important; /* celeste */
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 /* Scrollbar Utilities */
 .no-scrollbar::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 6px !important;
 }
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #0ea5e9; /* celeste directamente */
+  background: #0ea5e9 !important; /* celeste */
+  border-radius: 20px !important;
+  border: 1px solid transparent !important;
+  background-clip: content-box !important;
 }
 

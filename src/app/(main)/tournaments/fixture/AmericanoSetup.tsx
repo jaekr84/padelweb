@@ -417,7 +417,7 @@ export default function AmericanoSetup({
                                         <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-celeste">Todo Ok</button>
                                     </div>
                                 </div>
-                                <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
                                     {(() => {
                                         const flatPlayers: any[] = [];
                                         players.forEach(p => {
