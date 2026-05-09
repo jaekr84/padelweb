@@ -150,8 +150,6 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     backdrop-filter: blur(20px);
                     border: 1px solid hsl(var(--border));
                 }
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
             {/* Background */}

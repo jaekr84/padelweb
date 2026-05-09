@@ -114,6 +114,7 @@ export default async function EditTournamentPage({ params }: Props) {
         <CreateTournamentForm 
             initialData={initialData} 
             allCategoriesFromDb={categories.length > 0 ? categories : undefined}
+            userRole={session.role}
         />
     );
 }

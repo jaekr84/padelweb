@@ -59,5 +59,9 @@ export default async function CreateTournamentPage({ searchParams }: Props) {
         }
     }
 
-    return <CreateTournamentForm initialData={initialData} allCategoriesFromDb={allCategoriesFromDb.map(c => c.name)} />;
+    return <CreateTournamentForm 
+        initialData={initialData} 
+        allCategoriesFromDb={allCategoriesFromDb.map(c => c.name)} 
+        userRole={session?.role}
+    />;
 }

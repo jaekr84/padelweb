@@ -99,10 +99,12 @@ const compressImage = (file: File): Promise<Blob> => {
 
 export default function CreateTournamentForm({
     initialData,
-    allCategoriesFromDb = ["A+", "A", "B", "C", "D"]
+    allCategoriesFromDb = ["A+", "A", "B", "C", "D"],
+    userRole
 }: {
     initialData?: InitialData | null,
-    allCategoriesFromDb?: string[]
+    allCategoriesFromDb?: string[],
+    userRole?: string
 }) {
     const isEditing = !!initialData;
     const router = useRouter();
@@ -112,6 +114,8 @@ export default function CreateTournamentForm({
     const [showReview, setShowReview] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
+    const redirectPath = (userRole === "superadmin" || userRole === "admin") ? "/admin/tournaments" : userRole === "club" ? "/club/tournaments" : "/tournaments";
+
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
     const [imageUploading, setImageUploading] = useState(false);
     const [compressedFile, setCompressedFile] = useState<File | null>(null);
@@ -219,7 +223,7 @@ export default function CreateTournamentForm({
                 toast.success("Torneo creado con éxito");
             }
 
-            router.push("/tournaments");
+            router.push(redirectPath);
         } catch (err: any) {
             toast.error(err.message || "Error al guardar");
             setIsLoading(false);
@@ -234,7 +238,7 @@ export default function CreateTournamentForm({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <button
-                            onClick={() => router.push("/tournaments")}
+                            onClick={() => router.push(redirectPath)}
                             className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-azul-primary/50 transition-all active:scale-95"
                         >
                             <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />

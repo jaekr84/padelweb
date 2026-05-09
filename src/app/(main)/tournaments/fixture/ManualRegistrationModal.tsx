@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
     X, Search, Users2, Zap, Dice5, ChevronDown, UserCheck, 
     Plus, Trophy, Check, AlertCircle, RefreshCw 
@@ -50,6 +50,25 @@ export default function ManualRegistrationModal({
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [genderFilter, setGenderFilter] = useState("all");
+    
+    const [showResults1, setShowResults1] = useState(false);
+    const [showResults2, setShowResults2] = useState(false);
+    const containerRef1 = useRef<HTMLDivElement>(null);
+    const containerRef2 = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef1.current && !containerRef1.current.contains(event.target as Node)) {
+                setShowResults1(false);
+            }
+            if (containerRef2.current && !containerRef2.current.contains(event.target as Node)) {
+                setShowResults2(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
 
 
     const handleManualRegister = async () => {
@@ -222,7 +241,7 @@ export default function ManualRegistrationModal({
                             
                             <div className="space-y-4">
                                 {/* Player 1 Input */}
-                                <div className="relative">
+                                <div className="relative" ref={containerRef1}>
                                     <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">
                                         {isIndividual ? "Jugador" : "Jugador 1"}
                                     </div>
@@ -233,11 +252,13 @@ export default function ManualRegistrationModal({
                                         onChange={(e) => {
                                             setSelectedPlayer1(null);
                                             setManualName(e.target.value);
+                                            setShowResults1(true);
                                         }}
+                                        onFocus={() => setShowResults1(true)}
                                         className="w-full bg-muted/30 border border-border rounded-xl py-3 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-azul-primary transition-all text-foreground"
                                     />
-                                    {manualName.length > 1 && !selectedPlayer1 && (
-                                        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden">
+                                    {manualName.length > 1 && !selectedPlayer1 && showResults1 && (
+                                        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                             {allPlayers
                                                 .filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
                                                 .filter(p => !selectedPlayer2 || p.id !== selectedPlayer2.id)
@@ -245,7 +266,11 @@ export default function ManualRegistrationModal({
                                                 .slice(0, 5).map(p => (
                                                 <button 
                                                     key={p.id}
-                                                    onClick={() => { setSelectedPlayer1(p); setManualName(p.name); }}
+                                                    onClick={() => { 
+                                                        setSelectedPlayer1(p); 
+                                                        setManualName(p.name); 
+                                                        setShowResults1(false);
+                                                    }}
                                                     className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-azul-primary hover:text-white transition-colors border-b border-border/50 last:border-0"
                                                 >
                                                     {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
@@ -257,7 +282,7 @@ export default function ManualRegistrationModal({
 
                                 {/* Player 2 Input (if doubles) */}
                                 {!isIndividual && (
-                                    <div className="relative">
+                                    <div className="relative" ref={containerRef2}>
                                         <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">Jugador 2</div>
                                         <input 
                                             type="text"
@@ -266,11 +291,13 @@ export default function ManualRegistrationModal({
                                             onChange={(e) => {
                                                 setSelectedPlayer2(null);
                                                 setManualName2(e.target.value);
+                                                setShowResults2(true);
                                             }}
+                                            onFocus={() => setShowResults2(true)}
                                             className="w-full bg-muted/30 border border-border rounded-xl py-3 px-5 text-sm font-bold placeholder:text-foreground/20 outline-none focus:border-azul-primary transition-all text-foreground"
                                         />
-                                        {manualName2.length > 1 && !selectedPlayer2 && (
-                                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden">
+                                        {manualName2.length > 1 && !selectedPlayer2 && showResults2 && (
+                                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                                 {allPlayers
                                                     .filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
                                                     .filter(p => !selectedPlayer1 || p.id !== selectedPlayer1.id)
@@ -278,7 +305,11 @@ export default function ManualRegistrationModal({
                                                     .slice(0, 5).map(p => (
                                                     <button 
                                                         key={p.id}
-                                                        onClick={() => { setSelectedPlayer2(p); setManualName2(p.name); }}
+                                                        onClick={() => { 
+                                                            setSelectedPlayer2(p); 
+                                                            setManualName2(p.name); 
+                                                            setShowResults2(false);
+                                                        }}
                                                         className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-azul-primary hover:text-white transition-colors border-b border-border/50 last:border-0"
                                                     >
                                                         {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
