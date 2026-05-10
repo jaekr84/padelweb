@@ -54,7 +54,7 @@ export function TournamentBracketView({
             </div>
 
             <div className="overflow-x-auto pb-8 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
-                <div className="min-w-max flex items-stretch justify-center h-[550px] gap-4">
+                <div className="min-w-max flex items-stretch justify-center h-[850px] gap-4">
                     {roundsArr.map((round) => {
                         const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
                         const maxRounds = roundsArr.length;
@@ -108,7 +108,7 @@ export function TournamentBracketView({
                                                                 </div>
                                                             )}
 
-                                                            <div className="px-2.5 py-1.5 flex flex-col min-h-[90px]">
+                                                            <div className="px-2 py-1 flex flex-col min-h-[80px]">
                                                                 {/* Top Row: Names & VS */}
                                                                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
                                                                     <div 
@@ -121,6 +121,10 @@ export function TournamentBracketView({
                                                                         <div className="flex flex-col min-w-0">
                                                                             {m.team1 === "BYE" ? (
                                                                                 <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                            ) : (m.team1 as any)?.id?.startsWith('TBD_') ? (
+                                                                                <span className="text-azul-primary/40 text-[8px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                    {(m.team1 as Player).name}
+                                                                                </span>
                                                                             ) : (
                                                                                 (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
                                                                                     <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
@@ -141,6 +145,10 @@ export function TournamentBracketView({
                                                                         <div className="flex flex-col items-end min-w-0 text-right">
                                                                             {m.team2 === "BYE" ? (
                                                                                 <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                            ) : (m.team2 as any)?.id?.startsWith('TBD_') ? (
+                                                                                <span className="text-azul-primary/40 text-[8px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                    {(m.team2 as Player).name}
+                                                                                </span>
                                                                             ) : (
                                                                                 (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
                                                                                     <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>

@@ -1260,6 +1260,10 @@ export default function AmericanoManager({
                                 matchesPerTeam={matchesPerTeam}
                                 playingIds={playingIds}
                                 readOnly={readOnly}
+                                present={present}
+                                togglePresent={togglePresent}
+                                paid={paid}
+                                togglePaid={togglePaid}
                                 setReplacingPlayer={setReplacingPlayer}
                             />
 

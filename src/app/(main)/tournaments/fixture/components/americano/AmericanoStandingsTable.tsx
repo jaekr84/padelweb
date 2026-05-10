@@ -1,7 +1,7 @@
 "use client";
 
 import { 
-    Users2, RotateCcw, CheckCircle2, Clock 
+    Users2, RotateCcw, CheckCircle2, Clock, UserCheck, CreditCard 
 } from "lucide-react";
 import { Player, Standing } from "./types";
 
@@ -12,6 +12,10 @@ interface AmericanoStandingsTableProps {
     matchesPerTeam: number;
     playingIds: Set<string>;
     readOnly?: boolean;
+    present: Set<string>;
+    togglePresent: (id: string) => void;
+    paid: Set<string>;
+    togglePaid: (id: string) => void;
     setReplacingPlayer: (p: Player) => void;
 }
 
@@ -22,6 +26,10 @@ export function AmericanoStandingsTable({
     matchesPerTeam,
     playingIds,
     readOnly,
+    present,
+    togglePresent,
+    paid,
+    togglePaid,
     setReplacingPlayer
 }: AmericanoStandingsTableProps) {
     const filteredStandings = (() => {
@@ -62,6 +70,8 @@ export function AmericanoStandingsTable({
                         <thead className="bg-muted/50 text-[8px] font-black uppercase tracking-widest text-foreground/40 border-b border-border/50">
                             <tr>
                                 <th className="px-4 py-2">#</th>
+                                <th className="px-4 py-2 text-center">Ok</th>
+                                <th className="px-4 py-2 text-center">$$</th>
                                 <th className="px-4 py-2">Jugador</th>
                                 <th className="px-4 py-2 text-center">Estado</th>
                                 <th className="px-4 py-2 text-center">PJ</th>
@@ -80,6 +90,24 @@ export function AmericanoStandingsTable({
                                             <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[9px] font-black italic shadow-sm ${rank === 1 ? "bg-celeste text-azul-primary" : "bg-muted text-foreground/70"}`}>
                                                 {rank}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-1.5 text-center">
+                                            <button
+                                                onClick={() => togglePresent(s.playerId)}
+                                                disabled={readOnly}
+                                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary shadow-sm" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
+                                            >
+                                                <UserCheck className="w-3 h-3" />
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-1.5 text-center">
+                                            <button
+                                                onClick={() => togglePaid(s.playerId)}
+                                                disabled={readOnly}
+                                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white shadow-sm" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
+                                            >
+                                                <CreditCard className="w-3 h-3" />
+                                            </button>
                                         </td>
                                         <td className="px-4 py-1.5">
                                             <div className="flex items-center justify-between gap-4">

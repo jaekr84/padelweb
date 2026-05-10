@@ -456,6 +456,11 @@ export function useTournamentLogic({
         return rankFIPGroup(standings, groupMatches);
     }, [groups, matches]);
 
+    const isGroupFinished = useCallback((groupId: string) => {
+        const groupMatches = matches.filter(m => m.groupId === groupId);
+        return groupMatches.length > 0 && groupMatches.every(m => m.confirmed);
+    }, [matches]);
+
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
         setMatches(prev => prev.map(m => {
             if (m.id !== matchId) return m;
@@ -560,18 +565,41 @@ export function useTournamentLogic({
 
     const sortedQualifiers = useMemo(() => {
         const quals: any[] = [];
-        groups.forEach(g => {
+        // Only consider groups that have players
+        const activeGroups = groups.filter(g => {
+            const players = Array.isArray(g.players) ? g.players : [];
+            return players.length > 0;
+        });
+
+        activeGroups.forEach(g => {
+            const finished = isGroupFinished(g.id);
             const groupStandings = computeStandings(g.id);
             for (let i = 0; i < qualPerGroup; i++) {
-                if (groupStandings[i]) {
-                    quals.push({ ...groupStandings[i], groupId: g.id, groupRank: i + 1 });
+                if (finished) {
+                    if (groupStandings[i]) {
+                        quals.push({ ...groupStandings[i], groupId: g.id, groupRank: i + 1, isPlaceholder: false });
+                    } else {
+                        quals.push({ playerId: `BYE_${g.id}_${i}`, name: 'BYE', isPlaceholder: false, isBye: true, groupRank: i + 1, groupId: g.id });
+                    }
+                } else {
+                    const groupName = g.name.toUpperCase().includes('GRUPO') ? g.name.toUpperCase() : `GRUPO ${g.name.toUpperCase()}`;
+                    quals.push({
+                        playerId: `TBD_${g.id}_${i}`,
+                        player: { id: `TBD_${g.id}_${i}`, name: `${i + 1}º ${groupName}`, category: '' },
+                        name: `${i + 1}º ${groupName}`,
+                        groupId: g.id,
+                        groupRank: i + 1,
+                        isPlaceholder: true
+                    });
                 }
             }
         });
-        return quals.sort((a, b) =>
-            (a.groupRank - b.groupRank) || (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon)
-        );
-    }, [groups, matches, qualPerGroup, computeStandings]);
+        return quals.sort((a, b) => {
+            if (a.isPlaceholder && !b.isPlaceholder) return 1;
+            if (!a.isPlaceholder && b.isPlaceholder) return -1;
+            return (a.groupRank - b.groupRank) || (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon);
+        });
+    }, [groups, matches, qualPerGroup, computeStandings, isGroupFinished]);
 
     const finalQualifiers = useMemo(() => {
         return sortedQualifiers.map((q, idx) => {
@@ -647,13 +675,10 @@ export function useTournamentLogic({
                 if (item) shiftedSeconds.push(item);
             }
 
-            // Corrected Seeding Logic: 1st places get seeds 1..N/2, 2nd places get seeds N/2+1..N
-            const half = bracketSize / 2;
-            const getQualForSeed = (seed: number) => {
-                if (seed <= half) return firsts[seed - 1] || "BYE";
-                // Shifted seconds start from seed half+1
-                return shiftedSeconds[seed - half - 1] || "BYE";
-            };
+            const seedMap = new Map<number, any>();
+            let currentSeed = 1;
+            firsts.forEach(q => seedMap.set(currentSeed++, q));
+            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
 
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
@@ -662,11 +687,14 @@ export function useTournamentLogic({
                 const s1 = seedPositions[idx * 2];
                 const s2 = seedPositions[idx * 2 + 1];
                 
-                const q1 = getQualForSeed(s1);
-                const q2 = getQualForSeed(s2);
+                const q1 = seedMap.get(s1);
+                const q2 = seedMap.get(s2);
 
-                m.team1 = (q1 === "BYE" ? "BYE" : q1.player) as BracketSlot;
-                m.team2 = (q2 === "BYE" ? "BYE" : q2.player) as BracketSlot;
+                const t1 = q1 ? q1.player : "BYE";
+                const t2 = q2 ? q2.player : "BYE";
+
+                m.team1 = t1 as BracketSlot;
+                m.team2 = t2 as BracketSlot;
 
                 if (m.team1 === "BYE" || m.team2 === "BYE") {
                     m.confirmed = true;
@@ -907,14 +935,18 @@ export function useTournamentLogic({
                 if (item) shiftedSeconds.push(item);
             }
 
+            const seedMap = new Map<number, any>();
+            let currentSeed = 1;
+            firsts.forEach(q => seedMap.set(currentSeed++, q));
+            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
+
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;
                 const s1 = seedPositions[i];
                 const s2 = seedPositions[i + 1];
 
-                const q1 = s1 <= firsts.length ? firsts[s1 - 1] : null;
-                const s2Idx = s2 - firsts.length - 1;
-                const q2 = (s2Idx >= 0 && s2Idx < shiftedSeconds.length) ? shiftedSeconds[s2Idx] : null;
+                const q1 = seedMap.get(s1);
+                const q2 = seedMap.get(s2);
 
                 const t1 = q1 ? q1.player : "BYE";
                 const t2 = q2 ? q2.player : "BYE";

@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Users2, UserCheck, Check, Plus, Minus, X, Circle, RotateCcw } from "lucide-react";
+import { MapPin, Users2, UserCheck, Check, Plus, Minus, X, Circle, RotateCcw, CreditCard } from "lucide-react";
 import { Group, Match, Standing, Player } from "./types";
 
 interface TournamentGroupsViewProps {
@@ -9,6 +9,8 @@ interface TournamentGroupsViewProps {
     readOnly: boolean;
     present: Set<string>;
     togglePresent: (id: string) => void;
+    paid: Set<string>;
+    togglePaid: (id: string) => void;
     handleScoreChange: (matchId: string, s1: string, s2: string) => void;
     handleConfirmScore: (matchId: string) => void;
     handleReopenMatch: (matchId: string) => void;
@@ -23,6 +25,8 @@ export function TournamentGroupsView({
     readOnly,
     present,
     togglePresent,
+    paid,
+    togglePaid,
     handleScoreChange,
     handleConfirmScore,
     handleReopenMatch,
@@ -81,6 +85,7 @@ export function TournamentGroupsView({
                                         <thead>
                                             <tr className="border-b border-border/30">
                                                 <th className="px-1 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">OK</th>
+                                                <th className="px-1 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">$$</th>
                                                 <th className="px-3 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Pos</th>
                                                 <th className="px-2 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Jugador</th>
                                                 <th className="px-3 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">PG</th>
@@ -93,9 +98,17 @@ export function TournamentGroupsView({
                                                     <td className="px-1 py-1 text-center">
                                                         <button
                                                             onClick={() => togglePresent(s.playerId)}
-                                                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary shadow-sm shadow-celeste/20" : "bg-muted/50 text-foreground/10 hover:text-foreground/30"}`}
+                                                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary shadow-sm shadow-celeste/20" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
                                                         >
                                                             <UserCheck className="w-3 h-3" />
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-1 py-1 text-center">
+                                                        <button
+                                                            onClick={() => togglePaid(s.playerId)}
+                                                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white shadow-sm shadow-azul-primary/20" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                        >
+                                                            <CreditCard className="w-3 h-3" />
                                                         </button>
                                                     </td>
                                                     <td className="px-3 py-1 text-left">

@@ -159,70 +159,70 @@ export function TournamentModals({
                             className="relative w-full max-w-2xl h-[80vh] bg-card border border-border/50 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                         >
                             {/* Header del Modal */}
-                            <div className="p-8 pb-4 flex items-center justify-between border-b border-border/10">
+                            <div className="p-5 pb-3 flex items-center justify-between border-b border-border/10">
                                 <div>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter">Gestión de Jugadores</h2>
-                                    <p className="text-xs text-foreground/40 font-bold uppercase tracking-widest">Asistencia y Pagos en tiempo real</p>
+                                    <h2 className="text-lg font-black uppercase italic tracking-tighter">Gestión de Jugadores</h2>
+                                    <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest">Asistencia y Pagos en tiempo real</p>
                                 </div>
                                 <button
                                     onClick={() => setIsPlayersModalOpen(false)}
-                                    className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-rojo/10 hover:text-rojo transition-all"
+                                    className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center hover:bg-rojo/10 hover:text-rojo transition-all"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
 
                             {/* Buscador */}
-                            <div className="px-8 py-4">
+                            <div className="px-5 py-3">
                                 <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
+                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/30" />
                                     <input
                                         type="text"
                                         placeholder="BUSCAR JUGADOR POR NOMBRE..."
                                         value={playerSearchQuery}
                                         onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-xl py-2.5 pl-10 pr-3 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Lista de Jugadores */}
-                            <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar">
-                                <div className="grid gap-2">
+                            <div className="flex-1 overflow-y-auto px-5 pb-5 custom-scrollbar">
+                                <div className="grid gap-1.5">
                                     {filteredPlayers.map((p) => (
                                         <div
                                             key={p.id}
-                                            className="group flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all"
+                                            className="group flex items-center justify-between p-2.5 rounded-xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all"
                                         >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${present.has(p.id) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-foreground/5 text-foreground/20'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${present.has(p.id) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-foreground/5 text-foreground/20'}`}>
                                                     {p.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className="text-sm font-black uppercase italic leading-none mb-1">{p.name}</div>
-                                                    <div className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider">{p.category || 'Sin Cat.'}</div>
+                                                    <div className="text-xs font-black uppercase italic leading-none mb-0.5">{p.name}</div>
+                                                    <div className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">{p.category || 'Sin Cat.'}</div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => togglePaid(p.id)}
-                                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${paid.has(p.id)
+                                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${paid.has(p.id)
                                                         ? 'bg-azul-primary/10 border-azul-primary/30 text-azul-primary'
                                                         : 'bg-transparent border-border/50 text-foreground/30 hover:border-azul-primary/30 hover:text-azul-primary'}`}
                                                 >
-                                                    <CreditCard className={`w-3.5 h-3.5 ${paid.has(p.id) ? 'animate-pulse' : ''}`} />
-                                                    <span className="text-[9px] font-black uppercase tracking-tighter">{paid.has(p.id) ? 'PAGADO' : 'PAGAR'}</span>
+                                                    <CreditCard className={`w-3 h-3 ${paid.has(p.id) ? 'animate-pulse' : ''}`} />
+                                                    <span className="text-[8px] font-black uppercase tracking-tighter">{paid.has(p.id) ? 'PAGADO' : 'PAGAR'}</span>
                                                 </button>
 
                                                 <button
                                                     onClick={() => togglePresent(p.id)}
-                                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${present.has(p.id)
+                                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${present.has(p.id)
                                                         ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
                                                         : 'bg-transparent border-border/50 text-foreground/30 hover:border-emerald-500/30 hover:text-emerald-500'}`}
                                                 >
-                                                    <UserCheck className={`w-3.5 h-3.5 ${present.has(p.id) ? 'animate-bounce' : ''}`} />
-                                                    <span className="text-[9px] font-black uppercase tracking-tighter">{present.has(p.id) ? 'PRESENTE' : 'AUSENTE'}</span>
+                                                    <UserCheck className={`w-3 h-3 ${present.has(p.id) ? 'animate-bounce' : ''}`} />
+                                                    <span className="text-[8px] font-black uppercase tracking-tighter">{present.has(p.id) ? 'PRESENTE' : 'AUSENTE'}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -267,64 +267,64 @@ export function TournamentModals({
             {/* Replacement Modal */}
             <Dialog open={!!replacingPlayer} onOpenChange={() => setReplacingPlayer(null)}>
                 <DialogContent className="max-w-2xl bg-card border-border/50 rounded-[2rem] p-0 overflow-hidden">
-                    <DialogHeader className="p-8 pb-4 border-b border-border/10">
-                        <DialogTitle className="text-2xl font-black uppercase italic tracking-tight flex items-center gap-3">
-                            <RotateCcw className="w-6 h-6 text-azul-primary" />
+                    <DialogHeader className="p-5 pb-3 border-b border-border/10">
+                        <DialogTitle className="text-lg font-black uppercase italic tracking-tight flex items-center gap-2">
+                            <RotateCcw className="w-5 h-5 text-azul-primary" />
                             Reemplazar Participante
                         </DialogTitle>
-                        <DialogDescription className="text-xs font-bold uppercase tracking-widest text-foreground/40">
+                        <DialogDescription className="text-[9px] font-bold uppercase tracking-widest text-foreground/40">
                             Cambiar a {replacingPlayer?.name} por otro jugador
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
                         {/* Invitado Section */}
-                        <div className="space-y-4">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary">Opción 1: Crear Invitado</h3>
-                            <div className="grid gap-4 p-6 bg-muted/30 rounded-3xl border border-border/50">
+                        <div className="space-y-3">
+                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Opción 1: Crear Invitado</h3>
+                            <div className="grid gap-3 p-4 bg-muted/30 rounded-2xl border border-border/50">
                                 {isIndividual ? (
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Nombre Completo</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-1">Nombre Completo</label>
                                         <input
                                             type="text"
                                             value={guestName}
                                             onChange={e => setGuestName(e.target.value)}
                                             placeholder="Ej: JUAN PEREZ..."
-                                            className="w-full bg-background/50 border border-border/50 rounded-2xl p-4 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
+                                            className="w-full bg-background/50 border border-border/50 rounded-xl p-3 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
                                         />
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Jugador 1</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-1">Jugador 1</label>
                                                 <div className="relative group">
                                                     <input
                                                         type="text"
                                                         value={guestName}
                                                         onChange={e => setGuestName(e.target.value)}
-                                                        className="w-full bg-background/50 border border-border/50 rounded-2xl p-4 pr-16 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
+                                                        className="w-full bg-background/50 border border-border/50 rounded-xl p-3 pr-14 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
                                                     />
                                                     <button
                                                         onClick={() => replacingPlayer && handleReplaceOneInPair(replacingPlayer, guestName, 1)}
-                                                        className="absolute right-2 top-2 bottom-2 px-3 bg-azul-primary text-white rounded-xl text-[8px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        className="absolute right-1.5 top-1.5 bottom-1.5 px-2 bg-azul-primary text-white rounded-lg text-[7px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
                                                     >
                                                         SOLO P1
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Jugador 2</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-foreground/40 ml-1">Jugador 2</label>
                                                 <div className="relative group">
                                                     <input
                                                         type="text"
                                                         value={guestName2}
                                                         onChange={e => setGuestName2(e.target.value)}
-                                                        className="w-full bg-background/50 border border-border/50 rounded-2xl p-4 pr-16 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
+                                                        className="w-full bg-background/50 border border-border/50 rounded-xl p-3 pr-14 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
                                                     />
                                                     <button
                                                         onClick={() => replacingPlayer && handleReplaceOneInPair(replacingPlayer, guestName2, 2)}
-                                                        className="absolute right-2 top-2 bottom-2 px-3 bg-azul-primary text-white rounded-xl text-[8px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        className="absolute right-1.5 top-1.5 bottom-1.5 px-2 bg-azul-primary text-white rounded-lg text-[7px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
                                                     >
                                                         SOLO P2
                                                     </button>
@@ -335,7 +335,7 @@ export function TournamentModals({
                                 )}
                                 <button
                                     onClick={() => replacingPlayer && handleReplaceWithGuest(replacingPlayer.id)}
-                                    className="w-full py-4 bg-azul-primary text-white rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-azul-primary/20 hover:bg-azul-primary/90 transition-all"
+                                    className="w-full py-3 bg-azul-primary text-white rounded-xl font-black uppercase italic tracking-widest shadow-xl shadow-azul-primary/20 hover:bg-azul-primary/90 transition-all text-[10px]"
                                 >
                                     Reemplazar {isIndividual ? 'Invitado' : 'Pareja Completa'}
                                 </button>
@@ -343,24 +343,24 @@ export function TournamentModals({
                         </div>
 
                         {/* Database Search Section */}
-                        <div className="space-y-4">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-azul-primary">Opción 2: Buscar en la Base</h3>
+                        <div className="space-y-3">
+                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Opción 2: Buscar en la Base</h3>
                             <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20" />
                                 <input
                                     type="text"
                                     placeholder="BUSCAR JUGADOR EXISTENTE..."
                                     value={playerSearchQuery}
                                     onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
+                                    className="w-full bg-muted/30 border border-border/50 rounded-xl py-2.5 pl-10 pr-3 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-azul-primary/20 outline-none"
                                 />
                             </div>
 
-                            <div className="grid gap-2 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                            <div className="grid gap-1.5 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
                                 {isFetchLoading ? (
-                                    <div className="p-12 flex flex-col items-center gap-4 text-foreground/40">
-                                        <RefreshCw className="w-8 h-8 animate-spin" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Cargando base de datos...</span>
+                                    <div className="p-8 flex flex-col items-center gap-3 text-foreground/40">
+                                        <RefreshCw className="w-6 h-6 animate-spin" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Cargando base de datos...</span>
                                     </div>
                                 ) : (
                                     allPotentialPlayers
@@ -370,18 +370,18 @@ export function TournamentModals({
                                             <button
                                                 key={p.id}
                                                 onClick={() => replacingPlayer && handleReplacePlayer(replacingPlayer.id, p)}
-                                                className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all group"
+                                                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all group"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-azul-primary/10 text-azul-primary flex items-center justify-center font-black text-xs uppercase">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-azul-primary/10 text-azul-primary flex items-center justify-center font-black text-[10px] uppercase">
                                                         {p.name.charAt(0)}
                                                     </div>
                                                     <div className="text-left">
-                                                        <div className="text-sm font-black uppercase italic leading-none mb-1 group-hover:text-azul-primary transition-colors">{p.name}</div>
-                                                        <div className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider">{p.category || 'D'}</div>
+                                                        <div className="text-xs font-black uppercase italic leading-none mb-0.5 group-hover:text-azul-primary transition-colors">{p.name}</div>
+                                                        <div className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">{p.category || 'D'}</div>
                                                     </div>
                                                 </div>
-                                                <ArrowRight className="w-4 h-4 text-foreground/20 group-hover:text-azul-primary group-hover:translate-x-1 transition-all" />
+                                                <ArrowRight className="w-3.5 h-3.5 text-foreground/20 group-hover:text-azul-primary group-hover:translate-x-1 transition-all" />
                                             </button>
                                         ))
                                 )}

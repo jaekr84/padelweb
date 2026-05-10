@@ -153,6 +153,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 readOnly={readOnly}
                                 present={present}
                                 togglePresent={togglePresent}
+                                paid={paid}
+                                togglePaid={togglePaid}
                                 handleScoreChange={handleScoreChange}
                                 handleConfirmScore={handleConfirmScore}
                                 handleReopenMatch={handleReopenMatch}
