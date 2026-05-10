@@ -1,0 +1,51 @@
+export interface Player {
+    id: string;
+    name: string;
+    category?: string | null;
+    clubId?: string | null;
+}
+
+export interface Group {
+    id: string;
+    name: string;
+    players: Player[];
+}
+
+export interface Match {
+    id: string;
+    groupId: string;
+    team1: Player;
+    team2: Player;
+    score1?: number;
+    score2?: number;
+    played: boolean;
+    confirmed: boolean;
+    roundIndex?: number;
+    courtNumber?: number;
+}
+
+export type BracketSlot = Player | "BYE" | null;
+
+export interface BracketMatch {
+    id: string;
+    round: number;
+    slot: number;
+    team1: BracketSlot;
+    team2: BracketSlot;
+    score1?: number;
+    score2?: number;
+    confirmed: boolean;
+    winnerId?: string;
+    winnerName?: string;
+}
+
+export interface Standing {
+    playerId: string;
+    player: Player;
+    points: number;
+    matchesPlayed: number;
+    won: number;
+    lost: number;
+    gamesWon: number;
+    gamesLost: number;
+}
