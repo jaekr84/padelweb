@@ -46,6 +46,7 @@ export type SaveFixtureInput = {
     championName?: string;
     modalidad?: any;
     presentPlayerIds?: string[];
+    paidPlayerIds?: string[];
 };
 function slotName(t: BracketSlot): string | null {
     if (!t) return null;
@@ -188,6 +189,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
                 ...(input.modalidad ? { modalidad: input.modalidad } : {}),
                 presentPlayerIds: input.presentPlayerIds || [],
+                paidPlayerIds: input.paidPlayerIds || [],
             })
             .where(eq(tournaments.id, input.tournamentId));
 
@@ -664,4 +666,47 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
         return { ok: false, error: String(err) };
     }
 }
+
+export async function updateTournamentMetadata(input: { 
+    tournamentId: string, 
+    presentPlayerIds?: string[], 
+    paidPlayerIds?: string[],
+    status?: string 
+}) {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const [tournament] = await db
+            .select({ createdByUserId: tournaments.createdByUserId })
+            .from(tournaments)
+            .where(eq(tournaments.id, input.tournamentId))
+            .limit(1);
+
+        if (!tournament) throw new Error("Torneo no encontrado");
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = tournament.createdByUserId === session.userId;
+
+        if (!isAdmin && !isOwner) {
+            throw new Error("No tenés permiso");
+        }
+
+        await db
+            .update(tournaments)
+            .set({
+                ...(input.status ? { status: input.status } : {}),
+                ...(input.presentPlayerIds ? { presentPlayerIds: input.presentPlayerIds } : {}),
+                ...(input.paidPlayerIds ? { paidPlayerIds: input.paidPlayerIds } : {}),
+            })
+            .where(eq(tournaments.id, input.tournamentId));
+
+        revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+        return { ok: true };
+    } catch (err) {
+        console.error("[updateTournamentMetadata]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
 

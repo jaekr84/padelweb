@@ -18,10 +18,10 @@ export function TournamentDashboard({
     handleSimulateResults
 }: TournamentDashboardProps) {
     return (
-        <section className="space-y-6">
-            <div className="text-center space-y-0.5">
-                <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic">Resumen de Fase de Grupos</h2>
-                <p className="text-azul-primary text-[8px] font-black uppercase tracking-[0.3em]">Progreso y Estado General</p>
+        <section className="space-y-4">
+            <div className="text-center">
+                <h2 className="text-base md:text-lg font-black text-foreground tracking-tighter uppercase italic">Resumen de Fase</h2>
+                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Progreso y Estado</p>
             </div>
 
             {/* Progress Bar */}

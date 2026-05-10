@@ -5,6 +5,8 @@ interface AppState {
     // UI state
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
+    sponsorsVisible: boolean;
+    setSponsorsVisible: (visible: boolean) => void;
     
     // Filtering state (example for tournaments)
     tournamentFilter: {
@@ -23,6 +25,8 @@ export const useAppStore = create<AppState>()(
         (set) => ({
             sidebarOpen: false,
             setSidebarOpen: (open) => set({ sidebarOpen: open }),
+            sponsorsVisible: true,
+            setSponsorsVisible: (visible) => set({ sponsorsVisible: visible }),
             
             tournamentFilter: {
                 status: "all",
@@ -49,7 +53,10 @@ export const useAppStore = create<AppState>()(
         {
             name: "padelweb-storage",
             // Only persist UI state, not temporary filters if preferred
-            partialize: (state) => ({ sidebarOpen: state.sidebarOpen }),
+            partialize: (state) => ({ 
+                sidebarOpen: state.sidebarOpen,
+                sponsorsVisible: state.sponsorsVisible 
+            }),
         }
     )
 );

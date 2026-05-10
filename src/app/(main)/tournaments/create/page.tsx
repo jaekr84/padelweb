@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 
 export default async function CreateTournamentPage({ searchParams }: Props) {
     const session = await getSession();
-    if (session?.role !== "superadmin" && session?.role !== "club") {
+    if (session?.role !== "superadmin" && session?.role !== "club" && session?.role !== "admin") {
         redirect("/home");
     }
 

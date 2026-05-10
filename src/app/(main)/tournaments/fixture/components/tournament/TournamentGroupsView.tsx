@@ -31,13 +31,13 @@ export function TournamentGroupsView({
     computeStandings
 }: TournamentGroupsViewProps) {
     return (
-        <section className="space-y-6">
-            <div className="text-center space-y-0.5">
-                <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic">Fase de Grupos</h2>
-                <p className="text-azul-primary text-[8px] font-black uppercase tracking-[0.3em]">Resultados y Clasificación en Tiempo Real</p>
+        <section className="space-y-4">
+            <div className="text-center">
+                <h2 className="text-base md:text-lg font-black text-foreground tracking-tighter uppercase italic">Fase de Grupos</h2>
+                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Resultados y Clasificación</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                 {groups.map((g: Group) => {
                     const standings = computeStandings(g.id);
                     const groupMatches = matches
@@ -106,7 +106,7 @@ export function TournamentGroupsView({
                                                     <td className="px-2 py-1">
                                                         <div className="flex flex-col">
                                                             {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                <span key={i} className={`font-black uppercase italic tracking-tight leading-tight ${i === 0 ? "text-[10px] text-foreground/80" : "text-[8px] text-foreground/50"}`}>
+                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-tight text-[10px] text-foreground/80">
                                                                     {name.trim()}
                                                                 </span>
                                                             ))}
@@ -167,7 +167,7 @@ export function TournamentGroupsView({
                                                             <div className="flex flex-col gap-1.5 min-w-0">
                                                                 <div className="flex flex-col min-w-0">
                                                                     {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
                                                                             {name.trim()}
                                                                         </span>
                                                                     ))}
@@ -176,7 +176,7 @@ export function TournamentGroupsView({
                                                                     <div className="flex items-center gap-1">
                                                                         <input
                                                                             type="number"
-                                                                            value={m.score1 ?? ""}
+                                                                            value={m.score1 ?? 0}
                                                                             onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
                                                                             className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
                                                                             placeholder="0"
@@ -238,7 +238,7 @@ export function TournamentGroupsView({
                                                             <div className="flex flex-col items-end gap-1.5 min-w-0 text-right">
                                                                 <div className="flex flex-col items-end min-w-0">
                                                                     {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
                                                                             {name.trim()}
                                                                         </span>
                                                                     ))}
@@ -251,7 +251,7 @@ export function TournamentGroupsView({
                                                                         </div>
                                                                         <input
                                                                             type="number"
-                                                                            value={m.score2 ?? ""}
+                                                                            value={m.score2 ?? 0}
                                                                             onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
                                                                             className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
                                                                             placeholder="0"

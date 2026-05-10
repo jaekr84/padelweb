@@ -9,12 +9,13 @@ interface TournamentAttendanceProps {
     setSearchQuery: (q: string) => void;
     allPlayers: Player[];
     present: Set<string>;
-    setPresent: (p: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
+    togglePresent: (id: string) => void;
     paid: Set<string>;
-    setPaid: (p: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
+    togglePaid: (id: string) => void;
     setPlayerToDelete: (p: Player | null) => void;
     setReplacingPlayer: (p: Player | null) => void;
     setStep: (s: any) => void;
+    bulkUpdateStatus?: (type: 'present' | 'paid', ids: string[]) => void;
 }
 
 export function TournamentAttendance({
@@ -23,30 +24,16 @@ export function TournamentAttendance({
     setSearchQuery,
     allPlayers,
     present,
-    setPresent,
+    togglePresent,
     paid,
-    setPaid,
+    togglePaid,
     setPlayerToDelete,
     setReplacingPlayer,
-    setStep
+    setStep,
+    bulkUpdateStatus
 }: TournamentAttendanceProps) {
     const filteredPlayers = allPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const handleTogglePaid = (id: string) => {
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-
-    const handleTogglePresent = (id: string) => {
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
 
     return (
         <div className="w-full space-y-4">
@@ -72,7 +59,9 @@ export function TournamentAttendance({
                         <button
                             onClick={() => {
                                 const allIds = allPlayers.map(p => p.id);
-                                setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                if (bulkUpdateStatus) {
+                                    bulkUpdateStatus('paid', paid.size === allIds.length ? [] : allIds);
+                                }
                             }}
                             className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                         >
@@ -81,7 +70,9 @@ export function TournamentAttendance({
                         <button
                             onClick={() => {
                                 const allIds = allPlayers.map(p => p.id);
-                                setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                if (bulkUpdateStatus) {
+                                    bulkUpdateStatus('present', present.size === allIds.length ? [] : allIds);
+                                }
                             }}
                             className="flex-1 md:flex-none px-6 py-4 bg-celeste/10 text-celeste rounded-2xl font-black uppercase text-[9px] tracking-widest border border-celeste/20 hover:bg-celeste hover:text-white transition-all shadow-lg shadow-celeste/5"
                         >
@@ -124,7 +115,7 @@ export function TournamentAttendance({
                                     </td>
                                     <td className="px-4 py-1.5 text-center">
                                         <button
-                                            onClick={() => handleTogglePaid(p.id)}
+                                            onClick={() => togglePaid(p.id)}
                                             disabled={readOnly}
                                             className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPaid
                                                 ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
@@ -157,7 +148,7 @@ export function TournamentAttendance({
                                             )}
 
                                             <button
-                                                onClick={() => handleTogglePresent(p.id)}
+                                                onClick={() => togglePresent(p.id)}
                                                 disabled={readOnly}
                                                 className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPresent
                                                     ? "bg-celeste border-celeste text-white shadow-lg shadow-celeste/20"

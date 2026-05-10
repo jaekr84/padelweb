@@ -39,9 +39,9 @@ export function TournamentHeader({
     ];
 
     return (
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 transition-all shadow-sm">
-            <div className="w-full px-4 md:px-6 lg:px-8 h-14 flex items-center justify-between">
-                <div className="flex items-center gap-6">
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all shadow-sm">
+            <div className="w-full px-3 md:px-4 lg:px-6 h-11 flex items-center justify-between">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
                             if (step === "done" && !readOnly) {
@@ -50,25 +50,25 @@ export function TournamentHeader({
                                 router.back();
                             }
                         }}
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 hover:text-foreground transition-all group"
+                        className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-foreground/60 hover:text-foreground transition-all group"
                     >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                         Volver
                     </button>
 
-                    <div className="h-6 w-[1px] bg-border/50 hidden md:block" />
+                    <div className="h-5 w-[1px] bg-border/40 hidden md:block" />
 
-                    <div className="hidden md:flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
-                        <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[200px]">
+                    <div className="hidden md:flex flex-col min-w-0">
+                        <span className="text-[7px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
+                        <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground/80 leading-none truncate max-w-[120px] lg:max-w-[180px]">
                             {tournamentName}
                         </span>
                     </div>
 
-                    <div className="h-6 w-[1px] bg-border/50 hidden md:block" />
+                    <div className="h-5 w-[1px] bg-border/40 hidden md:block" />
 
                     {/* Navigation Stepper */}
-                    <div className="hidden md:flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
+                    <div className="hidden md:flex items-center gap-1 bg-muted/20 p-1 rounded-xl border border-border/40">
                         {steps.map((s, idx) => {
                             const Icon = s.icon;
                             const isAccessible = s.id === "setup" || s.id === "done";
@@ -78,8 +78,8 @@ export function TournamentHeader({
                                     <button
                                         onClick={() => isAccessible && setStep(s.id as any)}
                                         disabled={!isAccessible}
-                                        className={`flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all ${s.active
-                                            ? "bg-azul-primary text-white shadow-md shadow-azul-primary/20"
+                                        className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${s.active
+                                            ? "bg-azul-primary text-white shadow-sm"
                                             : s.completed
                                                 ? "text-celeste bg-celeste/5 hover:bg-celeste/10"
                                                 : isAccessible
@@ -87,33 +87,33 @@ export function TournamentHeader({
                                                     : "opacity-30 cursor-not-allowed"
                                             }`}
                                     >
-                                        <Icon className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${s.active ? "animate-pulse" : ""}`} />
-                                        <span className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest hidden sm:block">
+                                        <Icon className={`w-3 h-3 ${s.active ? "animate-pulse" : ""}`} />
+                                        <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">
                                             {s.label}
                                         </span>
-                                        {s.completed && <Check className="w-2.5 h-2.5 ml-1 text-celeste" />}
+                                        {s.completed && <Check className="w-2.5 h-2.5 ml-0.5 text-celeste" />}
                                     </button>
-                                    {idx < steps.length - 1 && <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 mx-1 text-border/40" />}
+                                    {idx < steps.length - 1 && <ChevronRight className="w-3 h-3 mx-0.5 text-border/30" />}
                                 </div>
                             );
                         })}
                     </div>
 
-                    <div className="h-8 w-[1px] bg-border/50 hidden md:block" />
+                    <div className="h-6 w-[1px] bg-border/40 hidden md:block" />
                     
                     <button
                         onClick={() => setIsPlayersModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
                     >
-                        <Users2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Jugadores</span>
+                        <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Jugadores</span>
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-celeste/5 border border-celeste/20 text-celeste text-[10px] font-black uppercase tracking-widest">
-                        <div className="w-2 h-2 rounded-full bg-celeste animate-pulse" />
-                        {initialStatus === "finalizado" ? "Torneo Finalizado" : "En Vivo"}
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-celeste/5 border border-celeste/20 text-celeste text-[9px] font-black uppercase tracking-widest">
+                        <div className="w-1.5 h-1.5 rounded-full bg-celeste animate-pulse" />
+                        {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
                     </div>
 
                     {initialStatus === "finalizado" && (
@@ -127,19 +127,19 @@ export function TournamentHeader({
                     {!readOnly && (
                         <Link
                             href={`/tournaments/${tournamentId}/edit`}
-                            className="p-3 rounded-xl bg-muted/50 border border-border/50 text-foreground/60 hover:text-foreground hover:bg-muted transition-all"
+                            className="p-2 rounded-lg bg-muted/40 border border-border/40 text-foreground/50 hover:text-foreground hover:bg-muted transition-all"
                             title="Configuración"
                         >
-                            <Settings className="w-4 h-4" />
+                            <Settings className="w-3.5 h-3.5" />
                         </Link>
                     )}
 
                     <button
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="p-3 rounded-xl bg-muted/50 border border-border/50 text-foreground/60 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                        className="p-2 rounded-lg bg-muted/40 border border-border/40 text-foreground/50 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
                     </button>
                 </div>
             </div>

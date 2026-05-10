@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus, Minus, RotateCcw } from "lucide-react";
+import { Check, Plus, Minus, RotateCcw, RefreshCw, ArrowLeftRight } from "lucide-react";
 import { BracketMatch, BracketSlot, Player } from "./types";
 
 interface TournamentBracketViewProps {
@@ -10,6 +10,9 @@ interface TournamentBracketViewProps {
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
     handleBracketConfirm: (matchId: string) => void;
     handleReopenMatch: (matchId: string) => void;
+    handleGenerateBracket: () => void;
+    handleSwapPlayers: (matchId: string, teamSlot: 1 | 2) => void;
+    swappingPlayer: { matchId: string, teamSlot: 1 | 2 } | null;
     setBracket: (bracket: BracketMatch[] | ((prev: BracketMatch[]) => BracketMatch[])) => void;
     roundLabel: (r: number) => string;
 }
@@ -21,13 +24,28 @@ export function TournamentBracketView({
     handleBracketScore,
     handleBracketConfirm,
     handleReopenMatch,
+    handleGenerateBracket,
+    handleSwapPlayers,
+    swappingPlayer,
     setBracket,
     roundLabel
 }: TournamentBracketViewProps) {
     return (
         <section className="space-y-8">
-            <div className="text-center space-y-1">
-                <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight uppercase">Cuadro del Torneo</h2>
+            <div className="text-center space-y-1 relative group/title">
+                <div className="flex items-center justify-center gap-3">
+                    <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight uppercase">Cuadro del Torneo</h2>
+                    {!readOnly && (
+                        <button
+                            onClick={handleGenerateBracket}
+                            className="p-1.5 rounded-lg bg-azul-primary/5 text-azul-primary hover:bg-azul-primary/10 transition-all border border-azul-primary/10 flex items-center gap-1.5"
+                            title="Regenerar Cuadro"
+                        >
+                            <RefreshCw className="w-3 h-3" />
+                            <span className="text-[8px] font-black uppercase tracking-widest hidden group-hover/title:inline">Regenerar</span>
+                        </button>
+                    )}
+                </div>
                 <div className="flex items-center justify-center gap-2">
                     <div className="h-px w-8 bg-celeste/30" />
                     <p className="text-celeste text-[8px] font-bold uppercase tracking-[0.4em]">Playoffs Pro</p>
@@ -44,7 +62,7 @@ export function TournamentBracketView({
                         const rowSpan = Math.pow(2, maxRounds - round - 1) * 2;
 
                         return (
-                            <div key={round} className="w-[240px] flex flex-col pt-3">
+                            <div key={round} className="w-[280px] flex flex-col pt-3">
                                 <div className="flex-none flex flex-col items-center mb-2">
                                     <span className="px-4 py-1.5 bg-background border border-border/60 rounded-full text-[9px] font-bold uppercase tracking-widest text-muted-foreground shadow-sm">
                                         {roundLabel(round)}
@@ -93,28 +111,44 @@ export function TournamentBracketView({
                                                             <div className="px-2.5 py-1.5 flex flex-col min-h-[90px]">
                                                                 {/* Top Row: Names & VS */}
                                                                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-                                                                    <div className="flex flex-col min-w-0">
-                                                                        {m.team1 === "BYE" ? (
-                                                                            <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
-                                                                        ) : (
-                                                                            (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
-                                                                                    {name.trim()}
-                                                                                </span>
-                                                                            )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                    <div 
+                                                                        onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 1)}
+                                                                        className={`flex items-center gap-1 min-w-0 cursor-pointer p-0.5 rounded transition-all group/player1 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 1 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
+                                                                    >
+                                                                        {!readOnly && !m.confirmed && (
+                                                                            <ArrowLeftRight className="w-2.5 h-2.5 text-azul-primary shrink-0 opacity-0 group-hover/player1:opacity-100 transition-opacity" />
                                                                         )}
+                                                                        <div className="flex flex-col min-w-0">
+                                                                            {m.team1 === "BYE" ? (
+                                                                                <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                            ) : (
+                                                                                (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                    <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                        {name.trim()}
+                                                                                    </span>
+                                                                                )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                     <div className="text-[7px] font-black text-foreground/20 italic tracking-widest px-0.5 pt-2">VS</div>
-                                                                    <div className="flex flex-col items-end min-w-0 text-right">
-                                                                        {m.team2 === "BYE" ? (
-                                                                            <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
-                                                                        ) : (
-                                                                            (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
-                                                                                    {name.trim()}
-                                                                                </span>
-                                                                            )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                    <div 
+                                                                        onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 2)}
+                                                                        className={`flex flex-row-reverse items-center gap-1 min-w-0 text-right cursor-pointer p-0.5 rounded transition-all group/player2 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 2 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
+                                                                    >
+                                                                        {!readOnly && !m.confirmed && (
+                                                                            <ArrowLeftRight className="w-2.5 h-2.5 text-azul-primary shrink-0 opacity-0 group-hover/player2:opacity-100 transition-opacity" />
                                                                         )}
+                                                                        <div className="flex flex-col items-end min-w-0 text-right">
+                                                                            {m.team2 === "BYE" ? (
+                                                                                <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                            ) : (
+                                                                                (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                    <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                        {name.trim()}
+                                                                                    </span>
+                                                                                )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
 

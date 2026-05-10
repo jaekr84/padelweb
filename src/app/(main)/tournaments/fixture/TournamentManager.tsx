@@ -19,6 +19,7 @@ export interface TournamentManagerProps {
     initialBracket: BracketMatch[];
     initialStatus: string;
     initialPresent?: string[];
+    initialPaid?: string[];
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: any;
@@ -74,12 +75,15 @@ export default function TournamentManager(props: TournamentManagerProps) {
         handleGenerateBracket,
         handleBracketScore,
         handleBracketConfirm,
+        handleSwapPlayers,
+        swappingPlayer,
         roundLabel,
-        isIndividual
+        isIndividual,
+        bulkUpdateStatus
     } = useTournamentLogic(props as any);
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="min-h-screen bg-background pb-10">
             <TournamentHeader
                 tournamentId={tournamentId}
                 tournamentName={tournamentName}
@@ -92,13 +96,13 @@ export default function TournamentManager(props: TournamentManagerProps) {
                 setIsPlayersModalOpen={setIsPlayersModalOpen}
             />
 
-            <div className="w-full px-4 md:px-6 lg:px-8 py-4 pb-24">
-                <div className="mb-4 text-center">
-                    <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tight italic uppercase">
+            <div className="w-full px-3 md:px-6 lg:px-10 py-3 pb-16">
+                <div className="mb-3 text-center">
+                    <h1 className="text-lg md:text-xl font-black text-foreground tracking-tight italic uppercase">
                         {tournamentName}
                     </h1>
-                    <p className="mt-2 text-[9px] font-black uppercase tracking-[0.3em] text-foreground/40">
-                        {readOnly ? 'Fixture' : 'Gestión'} de Torneo Round Robin
+                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.25em] text-foreground/30">
+                        {readOnly ? 'Fixture' : 'Gestión'} • Round Robin
                     </p>
                 </div>
 
@@ -109,7 +113,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="space-y-12 pb-20"
+                            className="space-y-6 pb-10"
                         >
                             <TournamentAttendance
                                 readOnly={readOnly}
@@ -117,12 +121,13 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 setSearchQuery={setSearchQuery}
                                 allPlayers={allPlayers}
                                 present={present}
-                                setPresent={setPresent}
+                                togglePresent={togglePresent}
                                 paid={paid}
-                                setPaid={setPaid}
+                                togglePaid={togglePaid}
                                 setPlayerToDelete={setPlayerToDelete}
                                 setReplacingPlayer={setReplacingPlayer}
                                 setStep={setStep}
+                                bulkUpdateStatus={bulkUpdateStatus}
                             />
                         </motion.div>
                     )}
@@ -132,7 +137,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                             key="tournament-flow"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="space-y-10 pb-40"
+                            className="space-y-6 pb-20"
                         >
                             <TournamentDashboard
                                 readOnly={readOnly}
@@ -157,43 +162,46 @@ export default function TournamentManager(props: TournamentManagerProps) {
                             />
 
                             {(bracket.length > 0 || isGroupStageFinished) && (
-                                <div className="relative py-12">
+                                <div className="relative py-6">
                                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div className="w-full border-t border-border/50"></div>
+                                        <div className="w-full border-t border-border/30"></div>
                                     </div>
                                     <div className="relative flex justify-center">
-                                        <span className="bg-background px-8 text-sm font-black italic uppercase tracking-[0.4em] text-foreground/20">Llaves de Eliminación</span>
+                                        <span className="bg-background px-6 text-[10px] font-black italic uppercase tracking-[0.3em] text-foreground/20">Play-offs</span>
                                     </div>
                                 </div>
                             )}
 
                             {bracket.length > 0 ? (
                                 <TournamentBracketView
-                                    bracket={bracket}
-                                    roundsArr={roundsArr}
-                                    readOnly={readOnly}
-                                    handleBracketScore={handleBracketScore}
-                                    handleBracketConfirm={handleBracketConfirm}
-                                    handleReopenMatch={handleReopenMatch}
-                                    setBracket={setBracket}
-                                    roundLabel={roundLabel}
-                                />
+                                     bracket={bracket}
+                                     roundsArr={roundsArr}
+                                     readOnly={readOnly}
+                                     handleBracketScore={handleBracketScore}
+                                     handleBracketConfirm={handleBracketConfirm}
+                                     handleReopenMatch={handleReopenMatch}
+                                     handleGenerateBracket={handleGenerateBracket}
+                                     handleSwapPlayers={handleSwapPlayers}
+                                     swappingPlayer={swappingPlayer}
+                                     setBracket={setBracket}
+                                     roundLabel={roundLabel}
+                                 />
                             ) : isGroupStageFinished && !readOnly ? (
-                                <div className="py-20 text-center space-y-6">
-                                    <div className="w-20 h-20 bg-azul-primary/10 rounded-full flex items-center justify-center mx-auto">
-                                        <Trophy className="w-10 h-10 text-azul-primary animate-bounce" />
+                                <div className="py-12 text-center space-y-4">
+                                    <div className="w-16 h-16 bg-azul-primary/10 rounded-full flex items-center justify-center mx-auto">
+                                        <Trophy className="w-8 h-8 text-azul-primary animate-bounce" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">Fase de Grupos Finalizada</h3>
-                                        <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest max-w-sm mx-auto">
-                                            Todos los partidos han sido confirmados. Presiona el botón para generar las llaves de eliminación directa.
+                                    <div className="space-y-1.5">
+                                        <h3 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Grupos Finalizados</h3>
+                                        <p className="text-foreground/40 text-[9px] font-bold uppercase tracking-widest max-w-sm mx-auto">
+                                            Todos los partidos confirmados. Genera las llaves de eliminación.
                                         </p>
                                     </div>
                                     <button
                                         onClick={handleGenerateBracket}
-                                        className="px-10 py-4 bg-azul-primary text-white rounded-2xl font-black uppercase italic tracking-[0.2em] shadow-2xl shadow-azul-primary/20 hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto text-sm"
+                                        className="px-8 py-3 bg-azul-primary text-white rounded-xl font-black uppercase italic tracking-[0.15em] shadow-xl shadow-azul-primary/10 hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto text-xs"
                                     >
-                                        <Swords className="w-5 h-5" />
+                                        <Swords className="w-4 h-4" />
                                         Generar Play-offs
                                     </button>
                                 </div>

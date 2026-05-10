@@ -26,7 +26,12 @@ export default async function MainLayout({ children }: { children: ReactNode }) 
             <main className={`flex-1 w-full max-w-full overflow-hidden flex flex-col ${session ? "pt-[64px] pb-[80px] md:pt-0 md:pb-0" : "pt-0 pb-0"} relative`}>
                 {children}
             </main>
-            {fullUser && <SponsorSidebar initialSponsors={allSponsors} />}
+            {fullUser && (
+                <SponsorSidebar 
+                    initialSponsors={allSponsors} 
+                    userRole={fullUser.role} 
+                />
+            )}
             {session && <FloatingChat currentUserId={session.userId} />}
             
             {/* Portal for floating chat and global overlays */}

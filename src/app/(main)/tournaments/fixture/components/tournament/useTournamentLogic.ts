@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
-import { saveTournamentFixture } from "../../actions";
+import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "../../actions";
 import { 
     Player, Group, Match, BracketSlot, BracketMatch, Standing 
 } from "./types";
@@ -39,6 +39,7 @@ interface UseTournamentLogicProps {
     initialBracket: BracketMatch[];
     initialStatus: string;
     initialPresent: string[];
+    initialPaid: string[];
     readOnly: boolean;
     modality: any;
 }
@@ -51,6 +52,7 @@ export function useTournamentLogic({
     initialBracket,
     initialStatus,
     initialPresent,
+    initialPaid,
     readOnly,
     modality
 }: UseTournamentLogicProps) {
@@ -77,8 +79,15 @@ export function useTournamentLogic({
             score2: m.score2 ?? 0
         }))
     );
-    const [present, setPresent] = useState<Set<string>>(new Set(initialPresent));
-    const [paid, setPaid] = useState<Set<string>>(new Set());
+    const ensureArray = (val: any) => {
+        if (typeof val === 'string') {
+            try { return JSON.parse(val); } catch { return []; }
+        }
+        return Array.isArray(val) ? val : [];
+    };
+
+    const [present, setPresent] = useState<Set<string>>(new Set(ensureArray(initialPresent)));
+    const [paid, setPaid] = useState<Set<string>>(new Set(ensureArray(initialPaid)));
     const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false);
     const [playerSearchQuery, setPlayerSearchQuery] = useState("");
     const [replacingPlayer, setReplacingPlayer] = useState<Player | null>(null);
@@ -94,6 +103,8 @@ export function useTournamentLogic({
     const [searchQuery, setSearchQuery] = useState("");
     const [qualPerGroup, setQualPerGroup] = useState(2);
     const [qualifierOverrides, setQualifierOverrides] = useState<Record<number, Player | "BYE">>({});
+    const [swappingPlayer, setSwappingPlayer] = useState<{ matchId: string, teamSlot: 1 | 2 } | null>(null);
+    const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
 
     const [confirmModal, setConfirmModal] = useState<{
         open: boolean;
@@ -144,7 +155,21 @@ export function useTournamentLogic({
     };
 
     const togglePresent = (id: string) => {
+        if (readOnly) return;
         const isRemoving = present.has(id);
+        
+        const save = async (updatedPresent: Set<string>) => {
+            lastSavedState.current.present = updatedPresent;
+            try {
+                await updateTournamentMetadata({
+                    tournamentId,
+                    presentPlayerIds: Array.from(updatedPresent),
+                });
+            } catch (e) {
+                console.error("Failed to save presence", e);
+            }
+        };
+
         if (isRemoving) {
             const player = groups.flatMap(g => g.players).find(p => p.id === id);
             const name = player?.name || "este jugador";
@@ -153,30 +178,60 @@ export function useTournamentLogic({
                 title: "Quitar Presencia",
                 description: `¿Estás seguro de que deseas quitar la presencia a ${name}? Esto podría afectar la disponibilidad de sus partidos.`,
                 variant: 'danger',
-                onConfirm: () => {
-                    setPresent(prev => {
-                        const next = new Set(prev);
-                        next.delete(id);
-                        return next;
-                    });
+                onConfirm: async () => {
+                    const next = new Set(present);
+                    next.delete(id);
+                    setPresent(next);
+                    await save(next);
                     setConfirmModal(prev => ({ ...prev, open: false }));
                 }
             });
             return;
         }
-        setPresent(prev => {
-            const next = new Set(prev);
-            next.add(id);
-            return next;
-        });
+        
+        const next = new Set(present);
+        next.add(id);
+        setPresent(next);
+        save(next);
     };
 
     const togglePaid = (id: string) => {
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
+        if (readOnly) return;
+        
+        const next = new Set(paid);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        
+        setPaid(next);
+        lastSavedState.current.paid = next;
+        
+        updateTournamentMetadata({
+            tournamentId,
+            paidPlayerIds: Array.from(next),
+        }).catch(e => console.error("Failed to save payment", e));
+    };
+
+    const bulkUpdateStatus = async (type: 'present' | 'paid', ids: string[]) => {
+        if (readOnly) return;
+        const next = new Set(ids);
+        if (type === 'present') {
+            setPresent(next);
+            lastSavedState.current.present = next;
+        } else {
+            setPaid(next);
+            lastSavedState.current.paid = next;
+        }
+
+        try {
+            await updateTournamentMetadata({
+                tournamentId,
+                presentPlayerIds: type === 'present' ? ids : Array.from(present),
+                paidPlayerIds: type === 'paid' ? ids : Array.from(paid),
+            });
+            toast.success(type === 'present' ? "Asistencia actualizada" : "Pagos actualizados");
+        } catch (e) {
+            toast.error("Error al guardar cambios");
+        }
     };
 
     const handleReplacePlayer = async (oldPlayerId: string, newPlayer: Player) => {
@@ -232,7 +287,8 @@ export function useTournamentLogic({
                     groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
                     matches: updatedMatches,
                     bracket: updatedBracket,
-                    presentPlayerIds: Array.from(present)
+                    presentPlayerIds: Array.from(present),
+                    paidPlayerIds: Array.from(paid)
                 });
                 toast.dismiss(loadingToast);
                 if (res.ok) {
@@ -430,6 +486,7 @@ export function useTournamentLogic({
                 matches: updatedMatches,
                 bracket: bracket,
                 presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
             });
             toast.dismiss(loadingToast);
             if (res.ok) {
@@ -453,9 +510,38 @@ export function useTournamentLogic({
             description: "¿Estás seguro de que deseas reabrir este partido? Se quitará el estado de finalizado y podrás volver a iniciarlo o editar los puntos.",
             variant: 'primary',
             onConfirm: async () => {
-                setMatches(prev => prev.map(m => m.id === id ? { ...m, status: 'pending', confirmed: false } : m));
+                const isBracketMatch = id.startsWith('b_');
+                let newMatches = [...matches];
+                let newBracket = [...bracket];
+
+                if (isBracketMatch) {
+                    // We set status to 'in_progress' to avoid immediate auto-confirmation if it's a BYE match
+                    newBracket = bracket.map(m => m.id === id ? { ...m, status: 'in_progress', confirmed: false, winnerId: undefined, winnerName: undefined, score1: 0, score2: 0 } : m);
+                    const totalRounds = newBracket.length > 0 ? Math.max(...newBracket.map(m => m.round)) + 1 : 0;
+                    newBracket = computeAdvancedBracket(newBracket, totalRounds);
+                    setBracket(newBracket);
+                } else {
+                    newMatches = matches.map(m => m.id === id ? { ...m, status: 'pending', confirmed: false, score1: 0, score2: 0 } : m);
+                    setMatches(newMatches);
+                }
+                
                 setConfirmModal(prev => ({ ...prev, open: false }));
-                toast.success("Partido reabierto correctamente");
+
+                try {
+                    await saveTournamentFixture({
+                        tournamentId,
+                        phase: step === "elim" ? "eliminatorias" : "grupos",
+                        groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                        matches: newMatches,
+                        bracket: newBracket,
+                        presentPlayerIds: Array.from(present),
+                        paidPlayerIds: Array.from(paid),
+                    });
+                    toast.success("Partido reabierto correctamente");
+                } catch (err) {
+                    console.error(err);
+                    toast.error("Error al guardar en el servidor");
+                }
             }
         });
     };
@@ -515,7 +601,8 @@ export function useTournamentLogic({
                         if (isTeam2) nextMatch.team2 = winner as Player || null;
                         else nextMatch.team1 = winner as Player || null;
                         if (nextMatch.team1 && nextMatch.team2) {
-                            if ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE") {
+                            // AUTO-CONFIRM BYEs only if the match is NOT in progress
+                            if (nextMatch.status !== 'in_progress' && ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE")) {
                                 nextMatch.confirmed = true;
                                 const advancingTeam = (nextMatch.team1 as any) !== "BYE" ? nextMatch.team1 : nextMatch.team2;
                                 nextMatch.winnerId = (advancingTeam as Player)?.id || undefined;
@@ -547,16 +634,40 @@ export function useTournamentLogic({
                     newBracket.push({ id: `b_${r}_${s}`, round: r, slot: s, team1: null, team2: null, confirmed: false });
                 }
             }
+            // ── Group Protection Seeding ──
             const seedPositions = getSeedingOrder(bracketSize);
+            const firsts = finalQualifiers.filter(q => q.groupRank === 1);
+            const seconds = finalQualifiers.filter(q => q.groupRank === 2);
+            
+            // Shift seconds by half the number of groups to ensure they don't meet their group-mate
+            const shift = Math.max(1, Math.floor(firsts.length / 2));
+            const shiftedSeconds = [...seconds];
+            for (let i = 0; i < shift; i++) {
+                const item = shiftedSeconds.shift();
+                if (item) shiftedSeconds.push(item);
+            }
+
+            // Corrected Seeding Logic: 1st places get seeds 1..N/2, 2nd places get seeds N/2+1..N
+            const half = bracketSize / 2;
+            const getQualForSeed = (seed: number) => {
+                if (seed <= half) return firsts[seed - 1] || "BYE";
+                // Shifted seconds start from seed half+1
+                return shiftedSeconds[seed - half - 1] || "BYE";
+            };
+
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+            
             firstRoundMatches.forEach((m, idx) => {
                 const s1 = seedPositions[idx * 2];
                 const s2 = seedPositions[idx * 2 + 1];
-                const q1 = finalQualifiers[s1 - 1];
-                const q2 = finalQualifiers[s2 - 1];
-                m.team1 = (q1 && s1 <= totalQuals) ? q1.player : "BYE";
-                m.team2 = (q2 && s2 <= totalQuals) ? q2.player : "BYE";
+                
+                const q1 = getQualForSeed(s1);
+                const q2 = getQualForSeed(s2);
+
+                m.team1 = (q1 === "BYE" ? "BYE" : q1.player) as BracketSlot;
+                m.team2 = (q2 === "BYE" ? "BYE" : q2.player) as BracketSlot;
+
                 if (m.team1 === "BYE" || m.team2 === "BYE") {
                     m.confirmed = true;
                     const winner = m.team1 === "BYE" ? m.team2 : m.team1;
@@ -568,12 +679,79 @@ export function useTournamentLogic({
             });
             newBracket = computeAdvancedBracket(newBracket, numRounds);
             const res = await saveTournamentFixture({
-                tournamentId, phase: "eliminatorias", groups, matches, bracket: newBracket, presentPlayerIds: Array.from(present)
+                tournamentId, phase: "eliminatorias", groups, matches, bracket: newBracket, 
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
             });
             if (res.ok) { setBracket(newBracket); setStep("elim"); toast.success("Cuadro generado"); }
             else toast.error("Error: " + res.error);
         } catch (e) { toast.error("Error al generar cuadro"); }
         finally { setSaving(false); }
+    };
+
+    const handleSwapPlayers = async (matchId: string, teamSlot: 1 | 2) => {
+        if (readOnly) return;
+        
+        if (!swappingPlayer) {
+            setSwappingPlayer({ matchId, teamSlot });
+            toast.info("Seleccionado para intercambiar. Haz clic en otro jugador para completar el cambio.");
+            return;
+        }
+
+        if (swappingPlayer.matchId === matchId && swappingPlayer.teamSlot === teamSlot) {
+            setSwappingPlayer(null);
+            toast.info("Intercambio cancelado");
+            return;
+        }
+
+        const matchA = bracket.find(m => m.id === swappingPlayer.matchId);
+        const matchB = bracket.find(m => m.id === matchId);
+
+        if (!matchA || !matchB) {
+            setSwappingPlayer(null);
+            return;
+        }
+
+        const playerA = swappingPlayer.teamSlot === 1 ? matchA.team1 : matchA.team2;
+        const playerB = teamSlot === 1 ? matchB.team1 : matchB.team2;
+
+        const newBracket = bracket.map(m => {
+            let nm = { ...m };
+            if (m.id === swappingPlayer.matchId) {
+                if (swappingPlayer.teamSlot === 1) nm.team1 = playerB;
+                else nm.team2 = playerB;
+            }
+            if (m.id === matchId) {
+                if (teamSlot === 1) nm.team1 = playerA;
+                else nm.team2 = playerA;
+            }
+            return nm;
+        });
+
+        // Recompute all rounds to handle propagation
+        const totalRounds = newBracket.length > 0 ? Math.max(...newBracket.map(m => m.round)) + 1 : 0;
+        const finalBracket = computeAdvancedBracket(newBracket, totalRounds);
+
+        setBracket(finalBracket);
+        setSwappingPlayer(null);
+
+        const loadingToast = toast.loading("Guardando cambios de posición...");
+        try {
+            await saveTournamentFixture({
+                tournamentId,
+                phase: "eliminatorias",
+                groups,
+                matches,
+                bracket: finalBracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+            });
+            toast.dismiss(loadingToast);
+            toast.success("Posiciones intercambiadas");
+        } catch (err) {
+            toast.dismiss(loadingToast);
+            toast.error("Error al guardar cambios en el servidor");
+        }
     };
 
     const handleBracketScore = (matchId: string, s1: string, s2: string) => {
@@ -619,7 +797,9 @@ export function useTournamentLogic({
             const res = await saveTournamentFixture({
                 tournamentId,
                 phase: isFinal ? "finalizado" : "eliminatorias",
-                groups, matches, bracket: finalBracket, championName, presentPlayerIds: Array.from(present)
+                groups, matches, bracket: finalBracket, championName, 
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
             });
             if (res.ok) {
                 toast.success("Resultado guardado");
@@ -663,12 +843,34 @@ export function useTournamentLogic({
         setGroups(initialGroups);
         setMatches(initialMatches);
         setBracket(initialBracket);
-    }, [initialGroups, initialMatches, initialBracket]);
+        
+        // Only update present/paid if they differ from our last intended state
+        const safePresent = ensureArray(initialPresent);
+        const pArray = Array.from(lastSavedState.current.present);
+        const hasPresentChanged = JSON.stringify(pArray.sort()) !== JSON.stringify([...safePresent].sort());
+        if (hasPresentChanged) {
+            setPresent(new Set(safePresent));
+            lastSavedState.current.present = new Set(safePresent);
+        }
+
+        const safePaid = ensureArray(initialPaid);
+        const paidArray = Array.from(lastSavedState.current.paid);
+        const hasPaidChanged = JSON.stringify(paidArray.sort()) !== JSON.stringify([...safePaid].sort());
+        if (hasPaidChanged) {
+            setPaid(new Set(safePaid));
+            lastSavedState.current.paid = new Set(safePaid);
+        }
+    }, [initialGroups, initialMatches, initialBracket, initialPresent, initialPaid]);
 
     useEffect(() => {
         if (readOnly || step === "setup") return;
         if (finalQualifiers.length < 2) return;
-        const bracketHasStarted = bracket.some(m => m.confirmed && m.team1 !== "BYE" && m.team2 !== "BYE");
+        // Improved check to stop syncing if the bracket has started or if it was manually modified
+        const bracketHasStarted = bracket.some(m => 
+            (m.confirmed && m.team1 !== "BYE" && m.team2 !== "BYE") || 
+            m.status === 'in_progress' ||
+            (m.score1 !== 0 || m.score2 !== 0)
+        );
         if (bracketHasStarted) return;
         
         const totalQuals = finalQualifiers.length;
@@ -694,12 +896,29 @@ export function useTournamentLogic({
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
+            const firsts = finalQualifiers.filter(q => q.groupRank === 1);
+            const seconds = finalQualifiers.filter(q => q.groupRank === 2);
+            
+            // Shift seconds to avoid same-group matches
+            const shift = Math.max(1, Math.floor(firsts.length / 2));
+            const shiftedSeconds = [...seconds];
+            for (let i = 0; i < shift; i++) {
+                const item = shiftedSeconds.shift();
+                if (item) shiftedSeconds.push(item);
+            }
+
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;
-                const q1 = finalQualifiers[seedPositions[i] - 1];
-                const q2 = finalQualifiers[seedPositions[i+1] - 1];
-                const t1 = (q1 && seedPositions[i] <= totalQuals) ? q1.player : "BYE";
-                const t2 = (q2 && seedPositions[i+1] <= totalQuals) ? q2.player : "BYE";
+                const s1 = seedPositions[i];
+                const s2 = seedPositions[i + 1];
+
+                const q1 = s1 <= firsts.length ? firsts[s1 - 1] : null;
+                const s2Idx = s2 - firsts.length - 1;
+                const q2 = (s2Idx >= 0 && s2Idx < shiftedSeconds.length) ? shiftedSeconds[s2Idx] : null;
+
+                const t1 = q1 ? q1.player : "BYE";
+                const t2 = q2 ? q2.player : "BYE";
+
                 const m = firstRoundMatches.find(x => x.slot === mIdx);
                 if (m) {
                     m.team1 = t1 as BracketSlot;
@@ -773,7 +992,10 @@ export function useTournamentLogic({
         handleGenerateBracket,
         handleBracketScore,
         handleBracketConfirm,
+        handleSwapPlayers,
+        swappingPlayer,
         roundLabel,
-        isIndividual
+        isIndividual,
+        bulkUpdateStatus
     };
 }

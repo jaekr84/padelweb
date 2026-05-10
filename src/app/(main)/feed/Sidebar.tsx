@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition, useCallback } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
 import { switchActiveRole } from "@/app/actions/role";
 import { useChatStore } from "@/store/useChatStore";
+import { useAppStore } from "@/store/useAppStore";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -89,6 +90,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     // Global Chat Store integration
     const unreadMessages = useChatStore(s => s.unreadCount);
     const refreshChatUnread = useChatStore(s => s.refreshUnread);
+    const { sponsorsVisible, setSponsorsVisible } = useAppStore();
 
     const pathname = usePathname();
     const router = useRouter();
@@ -279,18 +281,18 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         background: rgba(99, 102, 241, 0.3);
                     }
                 `}</style>
-                <div className={`p-4 flex flex-col gap-4 border-b border-border ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`p-2.5 flex flex-col gap-3 border-b border-border ${isCollapsed ? 'items-center' : ''}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <Link href="/home" className="flex items-center gap-2 group">
-                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={32} height={32} className="rounded-full border border-border shadow-sm" priority />
-                            {!isCollapsed && <span className="text-lg font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={28} height={28} className="rounded-full border border-border shadow-sm" priority />
+                            {!isCollapsed && <span className="text-base font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button
                                 onClick={() => setIsCollapsed(true)}
-                                className="p-2 rounded-xl text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
                             >
-                                <Menu className="w-5 h-5" />
+                                <Menu className="w-4 h-4" />
                             </button>
                         )}
                     </div>
@@ -341,7 +343,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             {userData?.dbRole && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
                                 <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-xl p-3 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60">Cambiar Vista</span>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60">Configuración Vista</span>
                                         <div className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
                                     </div>
                                     <div className="relative group">
@@ -352,7 +354,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                                 await switchActiveRole(newRole);
                                                 window.location.href = "/home";
                                             }}
-                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none"
+                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none mb-1"
                                         >
                                             {["superadmin", "club", "jugador"].filter(r => {
                                                 const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -364,8 +366,22 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                                 </option>
                                             ))}
                                         </select>
-                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-azul-primary pointer-events-none opacity-50" />
+                                        <ChevronDown className="absolute right-3 top-[30%] -translate-y-1/2 w-3.5 h-3.5 text-azul-primary pointer-events-none opacity-50" />
                                     </div>
+                                    
+                                    {userData.role === "superadmin" && (
+                                        <button
+                                            onClick={() => setSponsorsVisible(!sponsorsVisible)}
+                                            className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg border border-azul-primary/10 bg-white/50 hover:bg-white transition-all group/toggle"
+                                        >
+                                            <span className="text-[9px] font-bold text-slate-600 uppercase tracking-tight">Sidebar Banners</span>
+                                            {sponsorsVisible ? (
+                                                <Eye className="w-3 h-3 text-azul-primary group-hover/toggle:scale-110 transition-transform" />
+                                            ) : (
+                                                <EyeOff className="w-3 h-3 text-slate-400 group-hover/toggle:scale-110 transition-transform" />
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -377,7 +393,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     )}
                 </div>
 
-                <nav className="flex-1 flex flex-col gap-1.5 p-4 overflow-y-auto sidebar-scroll">
+                <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto sidebar-scroll">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -386,20 +402,20 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             <Link
                                 key={item.href + item.label}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all group font-semibold text-sm ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all group font-semibold text-[13px] ${isActive ? 'bg-azul-primary text-white shadow-md shadow-azul-primary/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
                                 <div className="relative">
-                                    <Icon className={`w-4 h-4 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                    <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
                                     {isMsgs && unreadMessages > 0 && (
-                                        <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
                                             {unreadMessages > 9 ? "9+" : unreadMessages}
                                         </span>
                                     )}
                                 </div>
                                 {!isCollapsed && <span className="tracking-tight pointer-events-none truncate flex-1">{item.label}</span>}
                                 {!isCollapsed && isMsgs && unreadMessages > 0 && (
-                                    <span className="ml-auto min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                                    <span className="ml-auto min-w-[18px] h-4.5 px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
                                         {unreadMessages > 9 ? "9+" : unreadMessages}
                                     </span>
                                 )}
@@ -428,19 +444,19 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
             {/* MOBILE BOTTOM TAB BAR */}
             <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
-                <div className="flex items-center justify-around px-2 py-2">
+                <div className="flex items-center justify-around px-1 py-1">
                     {navItems.slice(0, 5).map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.label} href={item.href} className="flex flex-col items-center gap-1 p-2 min-w-[64px] rounded-xl relative">
+                            <Link key={item.label} href={item.href} className="flex flex-col items-center gap-0.5 p-1 min-w-[56px] rounded-lg relative">
                                 {isActive && (
-                                    <div className="absolute top-0 w-8 h-1 bg-azul-primary rounded-b-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                    <div className="absolute top-0 w-6 h-0.5 bg-azul-primary rounded-b-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                                 )}
-                                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-azul-primary/10 text-azul-primary' : 'text-slate-400'}`}>
-                                    <Icon className="w-5 h-5" />
+                                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-azul-primary/10 text-azul-primary' : 'text-slate-400'}`}>
+                                    <Icon className="w-4.5 h-4.5" />
                                 </div>
-                                <span className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-azul-primary' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] font-bold tracking-tight transition-colors ${isActive ? 'text-azul-primary' : 'text-slate-400'}`}>
                                     {item.label.split(' ')[0]}
                                 </span>
                             </Link>

@@ -266,7 +266,7 @@ export default async function TournamentsPage({
                             </h1>
                         </div>
 
-                        {(session?.role === 'superadmin') && (
+                        {(session?.role === 'superadmin' || session?.role === 'admin' || session?.role === 'club') && (
                             <Link
                                 href="/tournaments/create"
                                 className="group bg-azul-primary hover:bg-azul-dark text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-primary/20 flex items-center gap-3 shrink-0"

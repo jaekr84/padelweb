@@ -4,9 +4,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getSponsors } from "@/app/actions/sponsors";
-import { ExternalLink, Info } from "lucide-react";
+import { useAppStore } from "@/store/useAppStore";
+import { ExternalLink, Info, EyeOff } from "lucide-react";
 
-export default function SponsorSidebar({ initialSponsors }: { initialSponsors?: any[] }) {
+export default function SponsorSidebar({ 
+    initialSponsors, 
+    userRole 
+}: { 
+    initialSponsors?: any[], 
+    userRole?: string 
+}) {
+    const { sponsorsVisible, setSponsorsVisible } = useAppStore();
     const [sponsors, setSponsors] = useState<any[]>(initialSponsors || []);
     const [loading, setLoading] = useState(!initialSponsors);
 
@@ -54,6 +62,8 @@ export default function SponsorSidebar({ initialSponsors }: { initialSponsors?: 
 
     const { cols, aspect } = getLayoutConfig();
 
+    if (!sponsorsVisible) return null;
+
     if (loading) {
         return (
             <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
@@ -72,9 +82,18 @@ export default function SponsorSidebar({ initialSponsors }: { initialSponsors?: 
 
     return (
         <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1">
-            <div className="p-3 pb-2 flex flex-col border-b border-border/50 mb-3 bg-white/50 backdrop-blur-sm">
+            <div className="p-3 pb-2 flex flex-col border-b border-border/50 mb-3 bg-white/50 backdrop-blur-sm relative group/sidebar">
                 <div className="flex items-center justify-between mb-1">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Publicidad</span>
+                    {userRole === "superadmin" && (
+                        <button
+                            onClick={() => setSponsorsVisible(false)}
+                            className="opacity-0 group-hover/sidebar:opacity-100 p-1 hover:bg-slate-100 rounded-md transition-all text-slate-400 hover:text-red-500"
+                            title="Ocultar Sidebar (Solo Admin)"
+                        >
+                            <EyeOff className="w-3 h-3" />
+                        </button>
+                    )}
                 </div>
                 <h2 className="text-sm font-extrabold tracking-tight text-foreground leading-none uppercase">SPONSORS <span className="text-indigo-600 italic uppercase">A.C.A.P.</span></h2>
             </div>

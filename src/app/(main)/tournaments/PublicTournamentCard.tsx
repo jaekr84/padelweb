@@ -56,7 +56,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     // Strict membership check: superadmins also need to be members if it's members only (per user request)
     const isExplicitClubMember = Boolean(userClubId && tournament.clubId && userClubId === tournament.clubId);
     const isClubMember = isExplicitClubMember; // Removed superadmin bypass for membership check
-    const canManage = userDbRole === "superadmin";
+    const canManage = userDbRole === "superadmin" || userDbRole === "admin" || isCreator || isClubOwner;
 
     let isOpen = false;
     let openDate: string | null = null;

@@ -12,12 +12,13 @@ interface AmericanoAttendanceProps {
     readOnly?: boolean;
     groups: Group[];
     present: Set<string>;
-    setPresent: (updater: (prev: Set<string>) => Set<string>) => void;
+    togglePresent: (id: string) => void;
     paid: Set<string>;
-    setPaid: (updater: (prev: Set<string>) => Set<string>) => void;
+    togglePaid: (id: string) => void;
     setPlayerToDelete: (p: Player) => void;
     setReplacingPlayer: (p: Player) => void;
     setStep: (step: "active") => void;
+    bulkUpdateStatus: (type: 'present' | 'paid', ids: string[]) => void;
 }
 
 export function AmericanoAttendance({
@@ -26,12 +27,13 @@ export function AmericanoAttendance({
     readOnly,
     groups,
     present,
-    setPresent,
+    togglePresent,
     paid,
-    setPaid,
+    togglePaid,
     setPlayerToDelete,
     setReplacingPlayer,
-    setStep
+    setStep,
+    bulkUpdateStatus
 }: AmericanoAttendanceProps) {
     const players = groups[0]?.players || [];
 
@@ -59,7 +61,7 @@ export function AmericanoAttendance({
                         <button
                             onClick={() => {
                                 const allIds = players.map(p => p.id);
-                                setPaid(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                bulkUpdateStatus('paid', allIds);
                             }}
                             className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                         >
@@ -68,7 +70,7 @@ export function AmericanoAttendance({
                         <button
                             onClick={() => {
                                 const allIds = players.map(p => p.id);
-                                setPresent(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
+                                bulkUpdateStatus('present', allIds);
                             }}
                             className="flex-1 md:flex-none px-6 py-4 bg-azul-primary/10 text-azul-primary rounded-2xl font-black uppercase text-[9px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/5"
                         >
@@ -111,11 +113,7 @@ export function AmericanoAttendance({
                                     </td>
                                     <td className="px-4 py-1.5 text-center">
                                         <button
-                                            onClick={() => !readOnly && setPaid(prev => {
-                                                const next = new Set(prev);
-                                                if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                return next;
-                                            })}
+                                            onClick={() => !readOnly && togglePaid(p.id)}
                                             disabled={readOnly}
                                             className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPaid
                                                 ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
@@ -148,11 +146,7 @@ export function AmericanoAttendance({
                                             )}
 
                                             <button
-                                                onClick={() => !readOnly && setPresent(prev => {
-                                                    const next = new Set(prev);
-                                                    if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
-                                                    return next;
-                                                })}
+                                                onClick={() => !readOnly && togglePresent(p.id)}
                                                 disabled={readOnly}
                                                 className={`w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPresent
                                                     ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"

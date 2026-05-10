@@ -96,9 +96,17 @@ export function AmericanoBracket({
                                                                         {[match.team1, match.team2].map((team, tIdx) => (
                                                                             <div key={tIdx} className="flex items-center justify-between gap-4 group/team">
                                                                                 <div className="flex items-center gap-2 overflow-hidden">
-                                                                                    <span className={`font-black uppercase truncate max-w-[150px] transition-all ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-xs") : team === "BYE" ? "text-foreground/20 italic text-xs" : "text-foreground/60 text-xs"}`}>
-                                                                                        {team === "BYE" ? "PASO DIRECTO" : (team as Player)?.name || "Esperando..."}
-                                                                                    </span>
+                                                                                    <div className="flex flex-col min-w-0">
+                                                                                        {team === "BYE" ? (
+                                                                                            <span className="text-foreground/20 italic text-xs font-black uppercase">PASO DIRECTO</span>
+                                                                                        ) : (
+                                                                                            ((team as Player)?.name || "Esperando...").split(/[\/\+]/).map((name, i) => (
+                                                                                                <span key={i} className={`font-black uppercase truncate max-w-[150px] transition-all leading-tight ${match.winnerId === (team as Player)?.id ? (match.round === 0 ? "text-celeste text-sm scale-105" : "text-azul-primary text-xs") : "text-foreground/60 text-[9px]"}`}>
+                                                                                                    {name.trim()}
+                                                                                                </span>
+                                                                                            ))
+                                                                                        )}
+                                                                                    </div>
                                                                                     {team && team !== "BYE" && !match.confirmed && !readOnly && (
                                                                                         <button
                                                                                             onClick={(e) => {
@@ -126,7 +134,7 @@ export function AmericanoBracket({
                                                                                     </button>
                                                                                     <input
                                                                                         type="number"
-                                                                                        value={tIdx === 0 ? (match.score1 ?? "") : (match.score2 ?? "")}
+                                                                                        value={tIdx === 0 ? (match.score1 ?? 0) : (match.score2 ?? 0)}
                                                                                         onChange={(e) => handleBracketScore(match.id, tIdx === 0 ? e.target.value : (match.score1?.toString() || ""), tIdx === 1 ? e.target.value : (match.score2?.toString() || ""))}
                                                                                         disabled={match.confirmed || team === "BYE" || !team || readOnly}
                                                                                         className="w-10 h-full bg-transparent text-center font-black text-sm focus:outline-none no-spin-buttons placeholder:text-foreground/10"

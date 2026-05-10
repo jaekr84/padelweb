@@ -8,9 +8,9 @@ import {
     UserCheck, Zap, Trash2, Search, CreditCard, Plus, Minus, Circle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { saveTournamentFixture, resetTournamentStatus } from "./actions";
+import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "./actions";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
 import { 
@@ -30,6 +30,8 @@ export interface AmericanoManagerProps {
     initialMatches: Match[];
     initialBracket: BracketMatch[];
     initialStatus: string;
+    initialPresent?: string[];
+    initialPaid?: string[];
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: {
@@ -69,6 +71,8 @@ export default function AmericanoManager({
     initialMatches,
     initialBracket,
     initialStatus,
+    initialPresent = [],
+    initialPaid = [],
     readOnly = false,
     isLoggedIn = true,
     modality
@@ -108,7 +112,9 @@ export default function AmericanoManager({
             groups,
             matches,
             bracket,
-            modalidad: { numCourts: newCourts, matchesPerTeam: newMatches, isIndividual }
+            modalidad: { numCourts: newCourts, matchesPerTeam: newMatches, isIndividual },
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -127,8 +133,36 @@ export default function AmericanoManager({
     );
     const [playersTab, setPlayersTab] = useState<"all" | "pending" | "done">("all");
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-    const [present, setPresent] = useState<Set<string>>(new Set((initialGroups[0]?.players || []).map((p: Player) => p.id)));
-    const [paid, setPaid] = useState<Set<string>>(new Set());
+    const ensureArray = (val: any) => {
+        if (typeof val === 'string') {
+            try { return JSON.parse(val); } catch { return []; }
+        }
+        return Array.isArray(val) ? val : [];
+    };
+
+    const [present, setPresent] = useState<Set<string>>(new Set(ensureArray(initialPresent)));
+    const [paid, setPaid] = useState<Set<string>>(new Set(ensureArray(initialPaid)));
+    const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
+    
+    // Sync with initial props
+    useEffect(() => {
+        // Only update present/paid if they differ from our last intended state
+        const safePresent = ensureArray(initialPresent);
+        const pArray = Array.from(lastSavedState.current.present);
+        const hasPresentChanged = JSON.stringify(pArray.sort()) !== JSON.stringify([...safePresent].sort());
+        if (hasPresentChanged) {
+            setPresent(new Set(safePresent));
+            lastSavedState.current.present = new Set(safePresent);
+        }
+
+        const safePaid = ensureArray(initialPaid);
+        const paidArray = Array.from(lastSavedState.current.paid);
+        const hasPaidChanged = JSON.stringify(paidArray.sort()) !== JSON.stringify([...safePaid].sort());
+        if (hasPaidChanged) {
+            setPaid(new Set(safePaid));
+            lastSavedState.current.paid = new Set(safePaid);
+        }
+    }, [initialPresent, initialPaid]);
     const [searchQuery, setSearchQuery] = useState("");
 
     const allRegisteredPlayers = useMemo(() => groups.flatMap(g => g.players), [groups]);
@@ -235,6 +269,8 @@ export default function AmericanoManager({
                     groups: updatedGroups,
                     matches: updatedMatches,
                     bracket: updatedBracket,
+                    presentPlayerIds: Array.from(present),
+                    paidPlayerIds: Array.from(paid),
                 });
                 toast.dismiss(loadingToast);
                 if (res.ok) {
@@ -249,6 +285,57 @@ export default function AmericanoManager({
             }
         } else {
             toast.success("Participante reemplazado");
+        }
+    };
+
+    const togglePresent = async (id: string) => {
+        if (readOnly) return;
+        const next = new Set(present);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        
+        setPresent(next);
+        lastSavedState.current.present = next;
+        
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(next),
+        }).catch(e => console.error("Failed to save presence", e));
+    };
+
+    const togglePaid = async (id: string) => {
+        if (readOnly) return;
+        const next = new Set(paid);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        
+        setPaid(next);
+        lastSavedState.current.paid = next;
+        
+        updateTournamentMetadata({
+            tournamentId,
+            paidPlayerIds: Array.from(next),
+        }).catch(e => console.error("Failed to save payment", e));
+    };
+
+    const bulkUpdateStatus = async (type: 'present' | 'paid', ids: string[]) => {
+        if (readOnly) return;
+        const next = new Set(ids);
+        if (type === 'present') {
+            setPresent(next);
+            lastSavedState.current.present = next;
+        } else {
+            setPaid(next);
+            lastSavedState.current.paid = next;
+        }
+
+        try {
+            await updateTournamentMetadata({
+                tournamentId,
+                presentPlayerIds: type === 'present' ? ids : Array.from(present),
+                paidPlayerIds: type === 'paid' ? ids : Array.from(paid),
+            });
+            toast.success(type === 'present' ? "Asistencia actualizada" : "Pagos actualizados");
+        } catch (e) {
+            toast.error("Error al guardar cambios");
         }
     };
 
@@ -336,7 +423,9 @@ export default function AmericanoManager({
             groups,
             matches: updatedMatches,
             bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual }
+            modalidad: { numCourts, matchesPerTeam, isIndividual },
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -365,7 +454,9 @@ export default function AmericanoManager({
             groups,
             matches: updatedMatches,
             bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual }
+            modalidad: { numCourts, matchesPerTeam, isIndividual },
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -516,7 +607,9 @@ export default function AmericanoManager({
             groups,
             matches: nextMatches,
             bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual }
+            modalidad: { numCourts, matchesPerTeam, isIndividual },
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -714,7 +807,9 @@ export default function AmericanoManager({
             groups,
             matches: updatedMatches,
             bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual }
+            modalidad: { numCourts, matchesPerTeam, isIndividual },
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
         if (res.ok) {
             setMatches(updatedMatches);
@@ -759,6 +854,8 @@ export default function AmericanoManager({
             groups,
             matches: updatedMatches,
             bracket,
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -911,7 +1008,9 @@ export default function AmericanoManager({
             phase: "eliminatorias",
             groups,
             matches,
-            bracket: newBracket
+            bracket: newBracket,
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -963,7 +1062,9 @@ export default function AmericanoManager({
             phase: "eliminatorias",
             groups,
             matches,
-            bracket: updated
+            bracket: updated,
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid)
         });
 
         if (res.ok) {
@@ -1022,6 +1123,8 @@ export default function AmericanoManager({
             groups,
             matches,
             bracket: finalBracket,
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid),
             championName: isFinal ? (winner as Player).name : undefined,
         });
 
@@ -1055,13 +1158,13 @@ export default function AmericanoManager({
                 isRefreshing={isRefreshing}
             />
 
-            <div className="w-full px-3 md:px-4 py-4 pb-32">
-                <div className="mb-4 text-center">
-                    <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tight italic uppercase leading-none">
+            <div className="w-full px-3 md:px-6 py-3 pb-24">
+                <div className="mb-3 text-center">
+                    <h1 className="text-lg md:text-xl font-black text-foreground tracking-tight italic uppercase leading-none">
                         {tournamentName}
                     </h1>
-                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.3em] text-foreground/40">
-                        Gestión de Torneo Americano
+                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.25em] text-foreground/30">
+                        Gestión • Torneo Americano
                     </p>
                 </div>
 
@@ -1072,7 +1175,7 @@ export default function AmericanoManager({
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="space-y-12"
+                            className="space-y-6"
                         >
                             <AmericanoAttendance
                                 searchQuery={searchQuery}
@@ -1080,12 +1183,13 @@ export default function AmericanoManager({
                                 readOnly={readOnly}
                                 groups={groups}
                                 present={present}
-                                setPresent={setPresent}
+                                togglePresent={togglePresent}
                                 paid={paid}
-                                setPaid={setPaid}
+                                togglePaid={togglePaid}
                                 setPlayerToDelete={setPlayerToDelete}
                                 setReplacingPlayer={setReplacingPlayer}
                                 setStep={setStep}
+                                bulkUpdateStatus={bulkUpdateStatus}
                             />
                         </motion.div>
                     )}
@@ -1095,7 +1199,7 @@ export default function AmericanoManager({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="space-y-24"
+                            className="space-y-12 pb-24"
                         >
                             <div className="text-center space-y-4">
                                 <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">Canchas En Vivo</h2>
@@ -1136,32 +1240,6 @@ export default function AmericanoManager({
                                         </div>
                                     );
                                 })()}
-
-                                {!readOnly && (
-                                    <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-                                        <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
-                                            <div className="flex flex-col text-left">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Canchas</span>
-                                                <div className="flex items-center gap-3 mt-1.5">
-                                                    <button onClick={() => handleUpdateConfig(Math.max(1, numCourts - 1), matchesPerTeam)} className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"><Minus className="w-3 h-3 text-foreground/70" /></button>
-                                                    <span className="text-sm font-black italic w-6 text-center">{numCourts}</span>
-                                                    <button onClick={() => handleUpdateConfig(numCourts + 1, matchesPerTeam)} className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"><Plus className="w-3 h-3 text-foreground/70" /></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border border-border/50 rounded-2xl shadow-xl">
-                                            <div className="flex flex-col text-left">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70 leading-none">Ptos / Jugador</span>
-                                                <div className="flex items-center gap-3 mt-1.5">
-                                                    <button onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))} className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"><Minus className="w-3 h-3 text-foreground/70" /></button>
-                                                    <span className="text-sm font-black italic w-6 text-center">{matchesPerTeam}</span>
-                                                    <button onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)} className="w-6 h-6 rounded-lg bg-background border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"><Plus className="w-3 h-3 text-foreground/70" /></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Link href={`/tournaments/${tournamentId}/fixture`} className="px-6 py-5 bg-foreground text-background rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hover:scale-105 transition-all shadow-xl">Pantalla Setup</Link>
-                                    </div>
-                                )}
                             </div>
 
                             <AmericanoCourtGrid
