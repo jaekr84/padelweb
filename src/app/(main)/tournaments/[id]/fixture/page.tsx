@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { tournaments, registrations, users, categoriesTable } from "@/db/schema";
+import { tournaments, registrations, users, categoriesTable, tournamentGroups } from "@/db/schema";
 import { eq, inArray, asc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
@@ -136,12 +136,25 @@ export default async function TournamentFixturePage({ params }: Props) {
         };
     });
 
-    // Fetch all available categories
     const allCategories = await db
         .select()
         .from(categoriesTable)
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
+
+    // Fetch existing groups if any
+    const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
+    const initialGroups = dbGroups.map(g => {
+        const groupPlayers = (typeof g.players === 'string' ? JSON.parse(g.players) : (g.players || [])) as any[];
+        return {
+            id: g.id,
+            name: g.name,
+            players: groupPlayers.map(gp => {
+                const fullPlayer = initialPlayers.find(p => p.id === gp.id);
+                return fullPlayer || gp;
+            }),
+        };
+    });
 
     if (tournament.type === 'americano') {
         return (
@@ -162,6 +175,7 @@ export default async function TournamentFixturePage({ params }: Props) {
             tournamentName={tournament.name}
             initialStatus={tournament.status}
             initialPlayers={initialPlayers}
+            initialGroups={initialGroups}
             categories={allCategories.map(c => c.name)}
             isIndividual={isIndividual}
         />

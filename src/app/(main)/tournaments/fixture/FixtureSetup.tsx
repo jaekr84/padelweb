@@ -6,7 +6,7 @@ import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
     CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap,
+    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
     LayoutDashboard, Swords, BarChart3, Clock, RotateCcw
 } from "lucide-react";
 import { getAllPlayers } from "@/app/actions/players";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/Dialog";
 
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
@@ -29,6 +29,7 @@ export interface FixtureSetupProps {
     tournamentName: string;
     initialStatus: string;
     initialPlayers: Player[];
+    initialGroups?: Group[];
     categories?: string[];
     isIndividual?: boolean;
 }
@@ -78,21 +79,45 @@ export default function FixtureSetup({
     tournamentName,
     initialStatus,
     initialPlayers,
+    initialGroups = [],
     categories = ["A+", "A", "B", "C", "D"], // Default fallback
     isIndividual = false
 }: FixtureSetupProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const urlStep = searchParams.get("step") as "checkin" | "config" | "assign" | null;
+
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin" | "config" | "assign">("checkin");
-    const [paid, setPaid] = useState<Set<string>>(new Set());
-    const [present, setPresent] = useState<Set<string>>(new Set());
+    const [step, setStep] = useState<"checkin" | "config" | "assign">(urlStep || "checkin");
+    
+    // Initialize paid/present based on initialGroups if they exist
+    const [paid, setPaid] = useState<Set<string>>(() => {
+        const set = new Set<string>();
+        if (initialGroups.length > 0) {
+            initialGroups.forEach(g => g.players.forEach(p => {
+                if (isIndividual) set.add(p.id);
+                else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+            }));
+        }
+        return set;
+    });
+    const [present, setPresent] = useState<Set<string>>(() => {
+        const set = new Set<string>();
+        if (initialGroups.length > 0) {
+            initialGroups.forEach(g => g.players.forEach(p => {
+                if (isIndividual) set.add(p.id);
+                else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+            }));
+        }
+        return set;
+    });
 
     // New: Track if randomized at least once
-    const [hasRandomized, setHasRandomized] = useState(false);
+    const [hasRandomized, setHasRandomized] = useState(initialGroups.length > 0);
 
-    const [numGroups, setNumGroups] = useState(4);
-    const [playersPerGroup, setPlayersPerGroup] = useState(3);
-    const [groups, setGroups] = useState<Group[]>([]);
+    const [numGroups, setNumGroups] = useState(initialGroups.length || 4);
+    const [playersPerGroup, setPlayersPerGroup] = useState(initialGroups[0]?.players.length || 3);
+    const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [randomizing, setRandomizing] = useState(false);
     const [drawingPlayer, setDrawingPlayer] = useState<Player | null>(null);
     const [ytUrl, setYtUrl] = useState("");
@@ -101,6 +126,7 @@ export default function FixtureSetup({
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
+    const [firstSelectedPlayerId, setFirstSelectedPlayerId] = useState<string | null>(null);
 
     // Replacement/Deletion state
     const [replacingParticipant, setReplacingParticipant] = useState<{ checkinId: string, displayName: string, pairId: string } | null>(null);
@@ -414,6 +440,127 @@ export default function FixtureSetup({
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
     };
+
+    const handlePlayerClick = useCallback((playerId: string) => {
+        if (!firstSelectedPlayerId) {
+            // First click: select the player
+            setFirstSelectedPlayerId(playerId);
+            setSwappedIds(new Set([playerId]));
+            return;
+        }
+
+        // Second click: swap
+        if (firstSelectedPlayerId === playerId) {
+            // Clicking the same player deselects
+            setFirstSelectedPlayerId(null);
+            setSwappedIds(new Set());
+            return;
+        }
+
+        const id1 = firstSelectedPlayerId;
+        const id2 = playerId;
+
+        setGroups((prev) => {
+            const group1 = prev.find(g => g.players.some(p => p.id === id1));
+            const group2 = prev.find(g => g.players.some(p => p.id === id2));
+
+            // If either player is in the pool (unassigned), handle move instead of swap?
+            // Actually the user specifically said "intercambiar el lugar".
+            
+            if (group1 && group2) {
+                // Swap between two groups
+                const p1 = group1.players.find(p => p.id === id1)!;
+                const p2 = group2.players.find(p => p.id === id2)!;
+
+                toast.info(`Intercambio: ${p1.name} ⇄ ${p2.name}`, {
+                    icon: "🔄",
+                    description: `${group1.name} ⇄ ${group2.name}`,
+                });
+
+                // Visual feedback
+                setSwappedIds(new Set([id1, id2]));
+                setTimeout(() => {
+                    setSwappedIds(new Set());
+                }, 1000);
+                setFirstSelectedPlayerId(null);
+
+                return prev.map(g => {
+                    if (g.id === group1.id && g.id === group2.id) {
+                        // Same group swap
+                        const newPlayers = [...g.players];
+                        const idx1 = newPlayers.findIndex(p => p.id === id1);
+                        const idx2 = newPlayers.findIndex(p => p.id === id2);
+                        [newPlayers[idx1], newPlayers[idx2]] = [newPlayers[idx2], newPlayers[idx1]];
+                        return { ...g, players: newPlayers };
+                    }
+                    if (g.id === group1.id) {
+                        return { ...g, players: g.players.map(p => p.id === id1 ? p2 : p) };
+                    }
+                    if (g.id === group2.id) {
+                        return { ...g, players: g.players.map(p => p.id === id2 ? p1 : p) };
+                    }
+                    return g;
+                });
+            } else if (group1 || group2) {
+                // One is in pool, one is in group
+                const group = group1 || group2;
+                const inGroupId = group1 ? id1 : id2;
+                const inPoolId = group1 ? id2 : id1;
+
+                const pInGroup = group!.players.find(p => p.id === inGroupId)!;
+                const pInPool = PRESENT_PLAYERS.find(p => p.id === inPoolId)!;
+
+                toast.info(`Intercambio: ${pInGroup.name} ⇄ ${pInPool.name}`, {
+                    icon: "🔄",
+                });
+
+                setSwappedIds(new Set([id1, id2]));
+                setTimeout(() => setSwappedIds(new Set()), 1000);
+                setFirstSelectedPlayerId(null);
+
+                return prev.map(g => {
+                    if (g.id === group!.id) {
+                        return { ...g, players: g.players.map(p => p.id === inGroupId ? pInPool : p) };
+                    }
+                    return g;
+                });
+            }
+
+            setFirstSelectedPlayerId(null);
+            setSwappedIds(new Set());
+            return prev;
+        });
+    }, [firstSelectedPlayerId, PRESENT_PLAYERS]);
+
+    const handleEmptySpotClick = useCallback((targetGroupId: string) => {
+        if (!firstSelectedPlayerId) return;
+
+        const playerId = firstSelectedPlayerId;
+        setGroups((prev) => {
+            const sourceGroup = prev.find(g => g.players.some(p => p.id === playerId));
+            const player = sourceGroup ? sourceGroup.players.find(p => p.id === playerId) : PRESENT_PLAYERS.find(p => p.id === playerId);
+            
+            if (!player) return prev;
+
+            const targetGroup = prev.find(g => g.id === targetGroupId);
+            if (!targetGroup || targetGroup.players.length >= playersPerGroup) return prev;
+
+            // Move player to target group
+            const updatedGroups = prev.map(g => ({
+                ...g,
+                players: g.players.filter(p => p.id !== playerId)
+            }));
+
+            setSwappedIds(new Set([playerId]));
+            setTimeout(() => setSwappedIds(new Set()), 1000);
+            setFirstSelectedPlayerId(null);
+
+            return updatedGroups.map(g => {
+                if (g.id !== targetGroupId) return g;
+                return { ...g, players: [...g.players, player] };
+            });
+        });
+    }, [firstSelectedPlayerId, PRESENT_PLAYERS, playersPerGroup]);
 
     const onDropOnGroup = useCallback((e: React.DragEvent, targetGroupId: string) => {
         e.preventDefault();
@@ -931,10 +1078,45 @@ export default function FixtureSetup({
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-8"
                         >
-                            <div className="px-2 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Asignación</h2>
-                                    <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Armá los grupos para el sorteo</p>
+                             <div className="px-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col">
+                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">Asignación</h2>
+                                        <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase mt-1">Armá los grupos para el sorteo</p>
+                                    </div>
+
+                                    {/* MODO INTERCAMBIO INDICATOR */}
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className={`flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+                                            firstSelectedPlayerId 
+                                                ? "bg-azul-primary/10 border-azul-primary/30 shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.1)]" 
+                                                : "bg-muted/30 border-border/50"
+                                        }`}
+                                    >
+                                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-500 ${
+                                            firstSelectedPlayerId ? "bg-azul-primary text-white rotate-12 scale-110" : "bg-foreground/10 text-foreground/40"
+                                        }`}>
+                                            <Zap className={`w-3.5 h-3.5 ${firstSelectedPlayerId ? "animate-pulse" : ""}`} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className={`text-[9px] font-black uppercase tracking-widest leading-none ${firstSelectedPlayerId ? "text-azul-primary" : "text-foreground/40"}`}>
+                                                {firstSelectedPlayerId ? "Modo Intercambio" : "Click para mover"}
+                                            </span>
+                                            <span className="text-[8px] font-bold text-foreground/60 mt-0.5">
+                                                {firstSelectedPlayerId ? "Elegí el destino o pareja" : "Seleccioná un jugador"}
+                                            </span>
+                                        </div>
+                                        {firstSelectedPlayerId && (
+                                            <button 
+                                                onClick={() => { setFirstSelectedPlayerId(null); setSwappedIds(new Set()); }}
+                                                className="ml-2 w-5 h-5 flex items-center justify-center rounded-full bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                    </motion.div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -970,21 +1152,20 @@ export default function FixtureSetup({
                                 <div className="flex flex-wrap gap-2">
                                     <AnimatePresence>
                                         {unassigned.map(p => (
-                                            <motion.button
+                                             <motion.button
                                                 key={p.id}
                                                 layoutId={p.id}
-                                                draggable
-                                                onDragStart={(e) => onDragStart(e as any, p.id)}
-                                                onDragEnd={onDragEnd as any}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.8 }}
-                                                onClick={() => {
-                                                    const firstEmptyGroup = groups.find(g => g.players.length < playersPerGroup);
-                                                    if (firstEmptyGroup) handleAddPlayer(p.id, firstEmptyGroup.id);
-                                                }}
-                                                className="px-4 py-2 bg-muted hover:bg-azul-primary/20 border border-border rounded-xl text-xs font-black uppercase italic tracking-wider transition-all cursor-grab active:cursor-grabbing text-foreground"
+                                                onClick={() => handlePlayerClick(p.id)}
+                                                className={`px-3 py-1.5 border rounded-xl text-[10px] font-black uppercase italic tracking-wider transition-all flex items-center gap-2 ${
+                                                    swappedIds.has(p.id)
+                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                        : "bg-muted hover:bg-azul-primary/10 border-border text-foreground/80"
+                                                }`}
                                             >
+                                                <ArrowRightLeft className={`w-3 h-3 ${swappedIds.has(p.id) ? "animate-pulse" : ""}`} />
                                                 {p.name}
                                             </motion.button>
                                         ))}
@@ -1018,7 +1199,8 @@ export default function FixtureSetup({
                                                         draggable
                                                         onDragStart={(e) => onDragStart(e as any, p.id)}
                                                         onDragEnd={onDragEnd as any}
-                                                        className={`flex items-center justify-between rounded-xl px-4 py-3 group cursor-grab active:cursor-grabbing transition-all duration-500 ${
+                                                        onClick={() => handlePlayerClick(p.id)}
+                                                        className={`flex items-center justify-between rounded-xl px-4 py-3 group cursor-pointer transition-all duration-500 ${
                                                             swappedIds.has(p.id) 
                                                                 ? "bg-azul-primary shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.3)] text-white" 
                                                                 : "bg-muted hover:bg-foreground/5 text-foreground"
@@ -1027,12 +1209,26 @@ export default function FixtureSetup({
                                                         <span className={`text-xs font-bold uppercase italic transition-colors ${
                                                             swappedIds.has(p.id) ? "text-white" : ""
                                                         }`}>{p.name}</span>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
-                                                            className="text-foreground/70 hover:text-rojo transition-colors"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </button>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handlePlayerClick(p.id); }}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
+                                                                    swappedIds.has(p.id) 
+                                                                        ? "bg-white text-azul-primary" 
+                                                                        : "bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white"
+                                                                }`}
+                                                                title="Intercambiar"
+                                                            >
+                                                                <ArrowRightLeft className={`w-3.5 h-3.5 ${swappedIds.has(p.id) ? "animate-pulse" : ""}`} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleRemovePlayer(p.id); }}
+                                                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-rojo/5 text-rojo/40 hover:bg-rojo hover:text-white transition-all"
+                                                                title="Quitar"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </motion.div>
                                                 ))}
                                             </AnimatePresence>
@@ -1040,10 +1236,21 @@ export default function FixtureSetup({
                                             {Array.from({ length: Math.max(0, playersPerGroup - g.players.length) }).map((_, i) => (
                                                 <div 
                                                     key={`empty-${g.id}-${i}`} 
-                                                    className="flex items-center justify-between rounded-xl px-4 py-3 bg-rojo/5 border border-dashed border-rojo/20 animate-pulse mt-2 first:mt-0"
+                                                    onClick={() => handleEmptySpotClick(g.id)}
+                                                    className={`flex items-center justify-between rounded-xl px-4 py-3 border border-dashed animate-pulse mt-2 first:mt-0 cursor-pointer transition-all ${
+                                                        firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
+                                                    }`}
                                                 >
-                                                    <span className="text-[9px] font-black uppercase text-rojo/50 tracking-widest">Cupo disponible</span>
-                                                    <AlertCircle className="w-3.5 h-3.5 text-rojo/30" />
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${
+                                                        firstSelectedPlayerId ? "text-celeste" : "text-rojo/50"
+                                                    }`}>
+                                                        {firstSelectedPlayerId ? "Asignar aquí" : "Cupo disponible"}
+                                                    </span>
+                                                    {firstSelectedPlayerId ? (
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-celeste" />
+                                                    ) : (
+                                                        <AlertCircle className="w-3.5 h-3.5 text-rojo/30" />
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

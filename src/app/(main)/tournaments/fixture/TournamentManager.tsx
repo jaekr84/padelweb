@@ -1046,7 +1046,9 @@ export default function TournamentManager({
                             onClick={() => {
                                 if (step === "elim") setStep("qual");
                                 else if (step === "qual") setStep("done");
-                                else if (step === "done") setStep("setup");
+                                else if (step === "done") {
+                                    router.push(`/tournaments/${tournamentId}/fixture?step=assign`);
+                                }
                                 else router.push("/admin/tournaments");
                             }}
                             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 hover:text-foreground transition-all group"
