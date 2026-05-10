@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
     Trophy, Users2, Swords, Calendar, Clock,
-    CheckCircle2, AlertCircle, ChevronRight,
+    CheckCircle2, AlertCircle, ChevronRight, AlertTriangle,
     ArrowLeft, LayoutDashboard, Settings, Trash2,
     BarChart3, Check, X, RefreshCw, Dice5, Info, Pencil, RotateCcw,
     UserCheck, CreditCard, Search, Plus, Share2, Minus, Zap, MapPin, Circle
@@ -120,14 +120,26 @@ export default function TournamentManager({
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"dashboard" | "groups" | "bracket">("dashboard");
     const [groups, setGroups] = useState<Group[]>(initialGroups);
-    const [matches, setMatches] = useState<Match[]>(() => 
+    const [confirmModal, setConfirmModal] = useState<{
+        open: boolean;
+        title: string;
+        description: string;
+        onConfirm: () => void;
+        variant?: 'danger' | 'primary';
+    }>({
+        open: false,
+        title: "",
+        description: "",
+        onConfirm: () => { },
+    });
+    const [matches, setMatches] = useState<Match[]>(() =>
         initialMatches.map(m => ({
             ...m,
             score1: m.score1 ?? 0,
             score2: m.score2 ?? 0
         }))
     );
-    const [bracket, setBracket] = useState<BracketMatch[]>(() => 
+    const [bracket, setBracket] = useState<BracketMatch[]>(() =>
         initialBracket.map(m => ({
             ...m,
             score1: m.score1 ?? 0,
@@ -170,10 +182,50 @@ export default function TournamentManager({
     const [searchQuery, setSearchQuery] = useState("");
 
     const togglePresent = (id: string) => {
+        const isRemoving = present.has(id);
+
+        if (isRemoving) {
+            const player = groups.flatMap(g => g.players).find(p => p.id === id);
+            const name = player?.name || "este jugador";
+
+            setConfirmModal({
+                open: true,
+                title: "Quitar Presencia",
+                description: `¿Estás seguro de que deseas quitar la presencia a ${name}? Esto podría afectar la disponibilidad de sus partidos.`,
+                variant: 'danger',
+                onConfirm: () => {
+                    setPresent(prev => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                    });
+                    setConfirmModal(prev => ({ ...prev, open: false }));
+                }
+            });
+            return;
+        }
+
+        // Marcar como presente es instantáneo
         setPresent(prev => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
+            next.add(id);
             return next;
+        });
+    };
+
+    const handleReopenMatch = (id: string) => {
+        setConfirmModal({
+            open: true,
+            title: "Reabrir Partido",
+            description: "¿Estás seguro de que deseas reabrir este partido? Se quitará el estado de finalizado y podrás volver a iniciarlo o editar los puntos.",
+            variant: 'primary',
+            onConfirm: () => {
+                setMatches(prev => prev.map(m =>
+                    m.id === id ? { ...m, status: 'pending', confirmed: false } : m
+                ));
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                toast.success("Partido reabierto");
+            }
         });
     };
 
@@ -1053,6 +1105,52 @@ export default function TournamentManager({
 
     return (
         <div className="min-h-screen bg-background pb-20">
+            {/* Modal de Confirmación Estético */}
+            <AnimatePresence>
+                {confirmModal.open && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                            className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-sm bg-card border border-border/50 rounded-3xl shadow-2xl overflow-hidden p-6"
+                        >
+                            <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center ${confirmModal.variant === 'danger' ? "bg-rojo/10 text-rojo" : "bg-azul-primary/10 text-azul-primary"}`}>
+                                <AlertTriangle className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-lg font-black uppercase italic tracking-tight mb-2">
+                                {confirmModal.title}
+                            </h3>
+                            <p className="text-sm text-foreground/60 leading-relaxed mb-8">
+                                {confirmModal.description}
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                                    className="py-3 rounded-xl bg-muted/50 hover:bg-muted text-foreground/60 text-xs font-black uppercase tracking-widest transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmModal.onConfirm}
+                                    className={`py-3 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg ${confirmModal.variant === 'danger'
+                                        ? "bg-rojo hover:bg-rojo/90 shadow-rojo/20"
+                                        : "bg-azul-primary hover:bg-azul-primary/90 shadow-azul-primary/20"}`}
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
             {/* UNIFIED HEADER */}
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 transition-all">
                 <div className="w-full px-4 md:px-8 lg:px-12 h-20 flex items-center justify-between">
@@ -1367,10 +1465,33 @@ export default function TournamentManager({
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {groups.map((g: Group) => {
                                         const standings = computeStandings(g.id);
-                                        const groupMatches = matches.filter(m => m.groupId === g.id);
+                                        const groupMatches = matches
+                                            .filter(m => m.groupId === g.id)
+                                            .sort((a, b) => {
+                                                // 1. En curso (in_progress) primero
+                                                if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
+                                                if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
+
+                                                // 2. Finalizados oficialmente al final
+                                                const aFinished = a.confirmed || a.status === 'finished' || a.status === 'completed';
+                                                const bFinished = b.confirmed || b.status === 'finished' || b.status === 'completed';
+
+                                                if (aFinished && !bFinished) return 1;
+                                                if (!aFinished && bFinished) return -1;
+
+                                                // 3. Listos para jugar (presencia) antes que los no listos
+                                                const aReady = present.has(a.team1.id) && present.has(a.team2.id);
+                                                const bReady = present.has(b.team1.id) && present.has(b.team2.id);
+
+                                                if (aReady && !bReady) return -1;
+                                                if (!aReady && bReady) return 1;
+
+                                                // 4. Desempate estable por ID para evitar saltos aleatorios
+                                                return a.id.localeCompare(b.id);
+                                            });
                                         return (
                                             <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full group/g">
                                                 <div className="bg-muted/50 px-3 py-2 border-b border-border/40 flex items-center justify-between">
@@ -1452,11 +1573,21 @@ export default function TournamentManager({
                                                         <h4 className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/50">Fixture del Grupo</h4>
                                                         <div className="h-px flex-1 bg-border/10 mx-2" />
                                                     </div>
-                                                    <div className="grid gap-1.5">
+                                                    <div className="grid gap-1">
                                                         {groupMatches.map(m => {
                                                             const isReady = present.has(m.team1.id) && present.has(m.team2.id);
                                                             return (
-                                                                <div key={m.id} className={`group/match relative transition-all ${!isReady && !m.confirmed ? "opacity-60 grayscale pointer-events-none" : ""}`}>
+                                                                <div
+                                                                    key={m.id}
+                                                                    className={`group/match relative transition-all ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-60 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.02]" : ""}`}
+                                                                >
+                                                                    {(m.confirmed || m.status === 'finished' || m.status === 'completed') && (
+                                                                        <div className="absolute -top-1.5 -right-1.5 z-20">
+                                                                            <div className="bg-emerald-500 text-white p-1 rounded-full shadow-lg shadow-emerald-500/30">
+                                                                                <Check className="w-3 h-3 stroke-[4]" />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                     {!isReady && !m.confirmed && (
                                                                         <div className="absolute inset-0 flex items-center justify-center z-[20] pointer-events-none">
                                                                             <div className="px-3 py-1 bg-background/90 backdrop-blur-md border border-border/50 rounded-full shadow-2xl">
@@ -1465,9 +1596,11 @@ export default function TournamentManager({
                                                                         </div>
                                                                     )}
                                                                     <div
-                                                                        className={`rounded-2xl border transition-all overflow-hidden min-h-[64px] flex flex-col justify-center ${m.status === 'in_progress'
-                                                                            ? "bg-rojo/[0.03] border-rojo/40 shadow-lg shadow-rojo/5"
-                                                                            : "bg-background/40 border-border/40 hover:border-border/60"
+                                                                        className={`rounded-2xl border transition-all overflow-hidden min-h-[64px] flex flex-col justify-center ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
+                                                                            ? "bg-emerald-500/[0.03] border-emerald-500/40"
+                                                                            : m.status === 'in_progress'
+                                                                                ? "bg-rojo/[0.03] border-rojo/40 shadow-lg shadow-rojo/5"
+                                                                                : "bg-background/40 border-border/40 hover:border-border/60"
                                                                             }`}
                                                                     >
                                                                         {m.status === 'in_progress' && (
@@ -1482,12 +1615,12 @@ export default function TournamentManager({
                                                                                 <div className="flex flex-col gap-1.5 min-w-0">
                                                                                     <div className="flex flex-col min-w-0">
                                                                                         {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                            <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${m.confirmed && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                                            <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
                                                                                                 {name.trim()}
                                                                                             </span>
                                                                                         ))}
                                                                                     </div>
-                                                                                    {!m.confirmed && !readOnly ? (
+                                                                                    {m.status === 'in_progress' && !readOnly ? (
                                                                                         <div className="flex items-center gap-1">
                                                                                             <input
                                                                                                 type="number"
@@ -1502,14 +1635,14 @@ export default function TournamentManager({
                                                                                             </div>
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <span className={`text-[11px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-foreground/40"}`}>{m.score1}</span>
+                                                                                        <span className={`text-[11px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-foreground/40"}`}>{m.score1 ?? 0}</span>
                                                                                     )}
                                                                                 </div>
 
                                                                                 {/* Centro: Acciones */}
                                                                                 <div className="flex flex-col items-center justify-center gap-1.5">
                                                                                     <div className="text-[7px] font-black text-foreground/40 mb-1">VS</div>
-                                                                                    {!m.confirmed && !readOnly && (
+                                                                                    {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
                                                                                         <div className="flex flex-col items-center gap-1 opacity-0 group-hover/match:opacity-100 transition-opacity">
                                                                                             <button
                                                                                                 onClick={() => {
@@ -1528,7 +1661,7 @@ export default function TournamentManager({
                                                                                             <button
                                                                                                 onClick={() => {
                                                                                                     handleConfirmScore(m.id);
-                                                                                                    setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed' } : match));
+                                                                                                    setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed', confirmed: true } : match));
                                                                                                 }}
                                                                                                 className="w-[52px] py-1 rounded-md hover:bg-azul-primary/10 text-azul-primary text-[8px] font-black italic border border-azul-primary/20 flex items-center justify-center"
                                                                                                 title="Finalizar Partido"
@@ -1537,18 +1670,28 @@ export default function TournamentManager({
                                                                                             </button>
                                                                                         </div>
                                                                                     )}
+                                                                                    {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
+                                                                                        <button
+                                                                                            onClick={() => handleReopenMatch(m.id)}
+                                                                                            className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-azul-primary/5 text-azul-primary/30 hover:text-azul-primary transition-all group/reopen"
+                                                                                            title="Reabrir Partido"
+                                                                                        >
+                                                                                            <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
+                                                                                            <span className="text-[7px] font-black uppercase italic tracking-wider">Reabrir</span>
+                                                                                        </button>
+                                                                                    )}
                                                                                 </div>
 
                                                                                 {/* Equipo 2 */}
                                                                                 <div className="flex flex-col items-end gap-1.5 min-w-0 text-right">
                                                                                     <div className="flex flex-col items-end min-w-0">
                                                                                         {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                            <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${m.confirmed && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                                            <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60 mt-0.5"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
                                                                                                 {name.trim()}
                                                                                             </span>
                                                                                         ))}
                                                                                     </div>
-                                                                                    {!m.confirmed && !readOnly ? (
+                                                                                    {m.status === 'in_progress' && !readOnly ? (
                                                                                         <div className="flex items-center gap-1">
                                                                                             <div className="flex flex-col gap-0.5">
                                                                                                 <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Plus className="w-2.5 h-2.5" /></button>
@@ -1563,7 +1706,7 @@ export default function TournamentManager({
                                                                                             />
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <span className={`text-[11px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-foreground/40"}`}>{m.score2}</span>
+                                                                                        <span className={`text-[11px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-foreground/40"}`}>{m.score2 ?? 0}</span>
                                                                                     )}
                                                                                 </div>
                                                                             </div>

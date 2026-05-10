@@ -35,11 +35,23 @@ export const getSession = cache(async (): Promise<Session | null> => {
     if (!payload || !payload.userId || !payload.sessionVersion) return null;
 
     // Verificar contra la base de datos para asegurar login único
-    const [user] = await db
-        .select({ sessionVersion: users.sessionVersion, role: users.role })
-        .from(users)
-        .where(eq(users.id, payload.userId as string))
-        .limit(1);
+    // Verificar contra la base de datos para asegurar login único
+    let user;
+    try {
+        user = await db.query.users.findFirst({
+            where: eq(users.id, payload.userId as string),
+            columns: {
+                sessionVersion: true,
+                role: true
+            }
+        });
+    } catch (dbError: any) {
+        console.error("DEBUG - Database Error in getSession:", {
+            message: dbError.message,
+            code: dbError.code
+        });
+        return null;
+    }
 
     if (!user || user.sessionVersion !== payload.sessionVersion) {
         return null;
