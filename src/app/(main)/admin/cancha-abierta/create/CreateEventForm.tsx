@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { 
-    Calendar, Clock, MapPin, DollarSign, 
-    Users, Trophy, ChevronLeft, Save, Sparkles 
+import {
+    Calendar, Clock, MapPin, DollarSign,
+    Users, Trophy, ChevronLeft, Save, Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { createOpenCourtEventAction } from "../actions";
@@ -52,89 +52,89 @@ export default function CreateEventForm({ categories, clubId }: Props) {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <header className="flex items-center justify-between border-b border-border/40 pb-6">
+            <header className="flex items-center justify-between border-b border-border/40 pb-4">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/cancha-abierta">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground transition-all active:scale-90">
-                            <ChevronLeft className="w-5 h-5" />
+                        <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground transition-all active:scale-90">
+                            <ChevronLeft className="w-4 h-4" />
                         </button>
                     </Link>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary">Nuevo Evento</p>
-                        <h1 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Nuevo Evento</p>
+                        <h1 className="text-xl font-black uppercase italic tracking-tight text-foreground leading-none">
                             Configuración de <span className="text-azul-primary">Cancha Abierta</span>
                         </h1>
                     </div>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-azul-primary/10 flex items-center justify-center text-azul-primary">
-                    <Sparkles className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-full bg-azul-primary/10 flex items-center justify-center text-azul-primary">
+                    <Sparkles className="w-4 h-4" />
                 </div>
             </header>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {/* Section: Básicos */}
-                <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-6">
-                    <div className="grid grid-cols-1 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Nombre del Evento</label>
+                <div className="bg-card/40 border border-border/50 rounded-xl p-4 space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Nombre del Evento</label>
                             <div className="relative">
-                                <Trophy className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
+                                <Trophy className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50" />
                                 <input
                                     {...register("name", { required: true })}
-                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
+                                    className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
                                     placeholder="Ej: Americano Nocturno Viernes"
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Fecha</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Fecha</label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50 pointer-events-none" />
+                                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50 pointer-events-none" />
                                     <input
                                         type="date"
                                         {...register("date", { required: true })}
                                         onClick={(e) => e.currentTarget.showPicker?.()}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Hora</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Hora</label>
                                 <div className="relative">
-                                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50 pointer-events-none" />
+                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50 pointer-events-none" />
                                     <input
                                         type="time"
                                         {...register("time", { required: true })}
                                         onClick={(e) => e.currentTarget.showPicker?.()}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Dirección (Club)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Dirección (Club)</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
+                                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50" />
                                     <input
                                         {...register("address", { required: true })}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none"
                                         placeholder="Calle y número..."
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Localidad / Zona</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Localidad / Zona</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-celeste/50" />
+                                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50" />
                                     <input
                                         {...register("city", { required: true })}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
+                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold placeholder:text-muted-foreground/30 focus:border-celeste/50 transition-all outline-none capitalize"
                                         placeholder="Zona norte, Palermo, etc..."
                                     />
                                 </div>
@@ -144,44 +144,44 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                 </div>
 
                 {/* Section: Logística y Costo */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                            <DollarSign className="w-3.5 h-3.5 text-celeste" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card/40 border border-border/50 rounded-xl p-4 space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <DollarSign className="w-3 h-3 text-celeste" />
                             Costo Inscripción
                         </label>
                         <input
                             type="number"
                             {...register("registrationFee")}
-                            className="w-full bg-transparent border-none text-3xl font-black italic tracking-tighter focus:ring-0 outline-none placeholder:text-muted-foreground/20"
+                            className="w-full bg-transparent border-none text-2xl font-black italic tracking-tighter focus:ring-0 outline-none placeholder:text-muted-foreground/20"
                             placeholder="0"
                         />
-                        <p className="text-[9px] font-medium text-muted-foreground/60 uppercase tracking-widest leading-relaxed">
-                            Valor por persona para confirmar la asistencia.
+                        <p className="text-[8px] font-medium text-muted-foreground/60 uppercase tracking-widest leading-none">
+                            Valor por persona para confirmar.
                         </p>
                     </div>
 
-                    <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                            <Users className="w-3.5 h-3.5 text-celeste" />
+                    <div className="bg-card/40 border border-border/50 rounded-xl p-4 space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <Users className="w-3 h-3 text-celeste" />
                             Cupos Totales
                         </label>
                         <input
                             type="number"
                             {...register("totalSlots")}
-                            className="w-full bg-transparent border-none text-3xl font-black italic tracking-tighter focus:ring-0 outline-none placeholder:text-muted-foreground/20"
+                            className="w-full bg-transparent border-none text-2xl font-black italic tracking-tighter focus:ring-0 outline-none placeholder:text-muted-foreground/20"
                             placeholder="16"
                         />
-                        <p className="text-[9px] font-medium text-muted-foreground/60 uppercase tracking-widest leading-relaxed">
-                            Cantidad máxima de jugadores permitidos.
+                        <p className="text-[8px] font-medium text-muted-foreground/60 uppercase tracking-widest leading-none">
+                            Máximo de jugadores permitidos.
                         </p>
                     </div>
                 </div>
 
                 {/* Section: Categorías */}
-                <div className="bg-card/40 border border-border/50 rounded-3xl p-8 space-y-6">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Categorías Habilitadas</label>
-                    <div className="flex flex-wrap gap-2">
+                <div className="bg-card/40 border border-border/50 rounded-xl p-4 space-y-4">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Categorías Habilitadas</label>
+                    <div className="flex flex-wrap gap-1.5">
                         {categories.map((cat) => (
                             <label key={cat.id} className="relative group cursor-pointer">
                                 <input
@@ -190,7 +190,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                                     {...register("categories")}
                                     className="peer absolute opacity-0"
                                 />
-                                <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste-light group-hover:border-celeste/50">
+                                <div className="px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50 text-[9px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste-light group-hover:border-celeste/50">
                                     {cat.name}
                                 </div>
                             </label>
@@ -202,30 +202,30 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                                 {...register("categories")}
                                 className="peer absolute opacity-0"
                             />
-                            <div className="px-4 py-2 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste group-hover:border-celeste/50">
+                            <div className="px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50 text-[9px] font-black uppercase tracking-widest transition-all peer-checked:bg-celeste peer-checked:text-white peer-checked:border-celeste group-hover:border-celeste/50">
                                 Libre
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2">
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-[0.3em] py-5 rounded-[2rem] shadow-2xl shadow-azul-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                        className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-[0.3em] h-12 rounded-xl shadow-xl shadow-azul-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                     >
                         {isSubmitting ? (
-                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
                             <>
-                                <Save className="w-5 h-5" />
-                                Crear Evento
+                                <Save className="w-4 h-4" />
+                                <span className="text-[10px]">Crear Evento</span>
                             </>
                         )}
                     </button>
-                    <p className="text-center text-[9px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mt-6">
-                        Al crear el evento, se habilitará el panel de gestión dinámica.
+                    <p className="text-center text-[8px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mt-4">
+                        Panel de gestión dinámica habilitado post-creación.
                     </p>
                 </div>
             </form>
