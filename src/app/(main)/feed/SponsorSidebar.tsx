@@ -6,11 +6,13 @@ import Link from "next/link";
 import { getSponsors } from "@/app/actions/sponsors";
 import { ExternalLink, Info } from "lucide-react";
 
-export default function SponsorSidebar() {
-    const [sponsors, setSponsors] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function SponsorSidebar({ initialSponsors }: { initialSponsors?: any[] }) {
+    const [sponsors, setSponsors] = useState<any[]>(initialSponsors || []);
+    const [loading, setLoading] = useState(!initialSponsors);
 
     useEffect(() => {
+        if (initialSponsors) return;
+        
         const fetchSponsors = async () => {
             try {
                 const data = await getSponsors();
@@ -24,7 +26,7 @@ export default function SponsorSidebar() {
         };
 
         fetchSponsors();
-    }, []);
+    }, [initialSponsors]);
 
     const activeSponsors = sponsors.filter((s: any) => s.isActive);
     const activeCount = activeSponsors.length;

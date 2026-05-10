@@ -81,10 +81,10 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
         const session = await getSession();
         if (!session?.userId) throw new Error("No autorizado");
 
-        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = user?.role === 'superadmin';
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = prevT.createdByUserId === session.userId;
 
-        if (prevT.createdByUserId !== session.userId && !isSuperAdmin) {
+        if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 
@@ -209,10 +209,10 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
 
-        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = user?.role === 'superadmin';
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = t.createdByUserId === session.userId;
 
-        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+        if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para eliminar este torneo");
         }
 
@@ -274,10 +274,10 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
         
         if (!tournament) throw new Error("Torneo no encontrado");
 
-        const currentUser = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = currentUser?.role === 'superadmin';
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = tournament.createdByUserId === session.userId;
 
-        if (tournament.createdByUserId !== session.userId && !isSuperAdmin) {
+        if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 
@@ -328,9 +328,10 @@ export async function finalizeTournament(id: string): Promise<{ ok: boolean; err
         if (!session?.userId) throw new Error("No autorizado");
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
-        const user = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = user?.role === 'superadmin';
-        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = t.createdByUserId === session.userId;
+
+        if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para finalizar este torneo");
         }
         if (t.status !== "finalizado") {
@@ -565,10 +566,10 @@ export async function registerManualPlayer(
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
 
-        const currentUser = await db.query.users.findFirst({ where: eq(users.id, session.userId as string) });
-        const isSuperAdmin = currentUser?.role === 'superadmin';
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = t.createdByUserId === session.userId;
 
-        if (t.createdByUserId !== session.userId && !isSuperAdmin) {
+        if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para gestionar este torneo");
         }
 

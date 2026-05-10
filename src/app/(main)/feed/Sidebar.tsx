@@ -82,7 +82,7 @@ function getCookieRole(): string {
 export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const [role, setRole] = useState(initialUser?.role || "jugador");
     const [userData, setUserData] = useState<{ name: string; role: string; dbRole: string; imageUrl?: string | null } | null>(
-        initialUser?.userId ? { name: "", role: initialUser.role, dbRole: initialUser.dbRole, imageUrl: initialUser.imageUrl || null } : null
+        initialUser || null
     );
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -94,22 +94,18 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const router = useRouter();
 
     useEffect(() => {
-        if (!initialUser?.userId) return;
+        if (!initialUser?.name) return;
+        // The unread count is updated by the FloatingChat polling loop
+        // We just need to ensure the store is initialized
         refreshChatUnread();
-        const interval = setInterval(refreshChatUnread, 45000);
-        return () => clearInterval(interval);
-    }, [initialUser?.userId, refreshChatUnread]);
+    }, [initialUser?.name, refreshChatUnread]);
 
     useEffect(() => {
-        if (initialUser?.userId) {
-            getSidebarUser().then(data => {
-                if (data) {
-                    setUserData(data);
-                    if (data.role !== role) setRole(data.role);
-                }
-            });
+        if (initialUser && initialUser !== userData) {
+            setUserData(initialUser);
+            if (initialUser.role !== role) setRole(initialUser.role);
         }
-    }, [initialUser, role]);
+    }, [initialUser, role, userData]);
 
     const [keyboardOpen, setKeyboardOpen] = useState(false);
 

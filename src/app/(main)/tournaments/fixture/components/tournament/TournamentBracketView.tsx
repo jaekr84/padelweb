@@ -1,0 +1,211 @@
+"use client";
+
+import { Check, Plus, Minus, RotateCcw } from "lucide-react";
+import { BracketMatch, BracketSlot, Player } from "./types";
+
+interface TournamentBracketViewProps {
+    bracket: BracketMatch[];
+    roundsArr: number[];
+    readOnly: boolean;
+    handleBracketScore: (matchId: string, s1: string, s2: string) => void;
+    handleBracketConfirm: (matchId: string) => void;
+    handleReopenMatch: (matchId: string) => void;
+    setBracket: (bracket: BracketMatch[] | ((prev: BracketMatch[]) => BracketMatch[])) => void;
+    roundLabel: (r: number) => string;
+}
+
+export function TournamentBracketView({
+    bracket,
+    roundsArr,
+    readOnly,
+    handleBracketScore,
+    handleBracketConfirm,
+    handleReopenMatch,
+    setBracket,
+    roundLabel
+}: TournamentBracketViewProps) {
+    return (
+        <section className="space-y-8">
+            <div className="text-center space-y-1">
+                <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight uppercase">Cuadro del Torneo</h2>
+                <div className="flex items-center justify-center gap-2">
+                    <div className="h-px w-8 bg-celeste/30" />
+                    <p className="text-celeste text-[8px] font-bold uppercase tracking-[0.4em]">Playoffs Pro</p>
+                    <div className="h-px w-8 bg-celeste/30" />
+                </div>
+            </div>
+
+            <div className="overflow-x-auto pb-8 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
+                <div className="min-w-max flex items-stretch justify-center h-[550px] gap-4">
+                    {roundsArr.map((round) => {
+                        const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
+                        const maxRounds = roundsArr.length;
+                        const totalRows = Math.pow(2, maxRounds);
+                        const rowSpan = Math.pow(2, maxRounds - round - 1) * 2;
+
+                        return (
+                            <div key={round} className="w-[240px] flex flex-col pt-3">
+                                <div className="flex-none flex flex-col items-center mb-2">
+                                    <span className="px-4 py-1.5 bg-background border border-border/60 rounded-full text-[9px] font-bold uppercase tracking-widest text-muted-foreground shadow-sm">
+                                        {roundLabel(round)}
+                                    </span>
+                                </div>
+
+                                <div className={`flex-1 grid h-full gap-y-1`} style={{ gridTemplateRows: `repeat(${totalRows}, 1fr)` }}>
+                                    {Array.from({ length: totalRows / rowSpan }).map((_, slotIdx) => {
+                                        const m = matchesInRound.find(m => m.slot === slotIdx);
+                                        if (!m) return <div key={slotIdx} style={{ gridRow: `span ${rowSpan}` }} />;
+
+                                        return (
+                                            <div
+                                                key={m.id}
+                                                className="flex flex-col justify-center px-2"
+                                                style={{
+                                                    gridRowStart: slotIdx * rowSpan + 1,
+                                                    gridRowEnd: `span ${rowSpan}`
+                                                }}
+                                            >
+                                                <div className="relative group/match">
+                                                    <div className={`relative transition-all ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "z-10" : "z-20"}`}>
+                                                        {(m.confirmed || m.status === 'finished' || m.status === 'completed') && (
+                                                            <div className="absolute -top-2 -right-2 z-30">
+                                                                <div className="bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/30 border-2 border-background">
+                                                                    <Check className="w-3.5 h-3.5 stroke-[4]" />
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <div
+                                                            className={`rounded-2xl border transition-all overflow-hidden min-h-[75px] flex flex-col justify-center relative group/match ${
+                                                                (m.confirmed || m.status === 'finished' || m.status === 'completed')
+                                                                    ? "bg-emerald-500/[0.03] border-emerald-500/30"
+                                                                    : m.status === 'in_progress'
+                                                                        ? "bg-rojo/[0.03] border-rojo/40 shadow-xl shadow-rojo/5"
+                                                                        : "bg-background border-border/40 hover:border-border/60 shadow-sm"
+                                                            }`}
+                                                        >
+                                                            {m.status === 'in_progress' && !m.confirmed && (
+                                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-rojo text-white px-2.5 py-0.5 text-[7px] font-black italic rounded-b-lg shadow-lg z-20 animate-pulse tracking-widest uppercase whitespace-nowrap">
+                                                                    VIVO
+                                                                </div>
+                                                            )}
+
+                                                            <div className="px-2.5 py-1.5 flex flex-col min-h-[90px]">
+                                                                {/* Top Row: Names & VS */}
+                                                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+                                                                    <div className="flex flex-col min-w-0">
+                                                                        {m.team1 === "BYE" ? (
+                                                                            <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                        ) : (
+                                                                            (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                    {name.trim()}
+                                                                                </span>
+                                                                            )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="text-[7px] font-black text-foreground/20 italic tracking-widest px-0.5 pt-2">VS</div>
+                                                                    <div className="flex flex-col items-end min-w-0 text-right">
+                                                                        {m.team2 === "BYE" ? (
+                                                                            <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                        ) : (
+                                                                            (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
+                                                                                <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate ${i === 0 ? "text-[9px]" : "text-[7px] opacity-60"} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                    {name.trim()}
+                                                                                </span>
+                                                                            )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Middle Row: Scores */}
+                                                                <div className="flex items-center justify-between mt-1 mb-0.5 px-0.5">
+                                                                    {m.status === 'in_progress' && !readOnly ? (
+                                                                        <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={m.score1 ?? 0}
+                                                                                onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "0")}
+                                                                                className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <div className="flex flex-col gap-1">
+                                                                                <button onClick={() => handleBracketScore(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                                                <button onClick={() => handleBracketScore(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className={`text-xs font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/30"}`}>
+                                                                            {m.score1 ?? 0}
+                                                                        </span>
+                                                                    )}
+
+                                                                    {m.status === 'in_progress' && !readOnly ? (
+                                                                        <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
+                                                                            <div className="flex flex-col gap-1">
+                                                                                <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                                                <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                            </div>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={m.score2 ?? 0}
+                                                                                onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "0", e.target.value)}
+                                                                                className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
+                                                                                placeholder="0"
+                                                                            />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className={`text-xs font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/30"}`}>
+                                                                            {m.score2 ?? 0}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Bottom Row: Actions */}
+                                                                {!m.confirmed && !readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && m.team1 && m.team2 && (
+                                                                    <div className="flex justify-center items-center gap-1.5 pt-1 border-t border-border/5 opacity-0 group-hover/match:opacity-100 transition-opacity mt-auto">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
+                                                                                setBracket(prev => prev.map(bm => bm.id === m.id ? { ...bm, status: nextStatus } : bm));
+                                                                            }}
+                                                                            className={`px-3 py-1 rounded-full text-[8px] font-black italic tracking-wider transition-all border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-azul-primary text-white border-azul-primary shadow-md shadow-azul-primary/10"}`}
+                                                                        >
+                                                                            {m.status === 'in_progress' ? 'PAUSAR' : 'INICIAR'}
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleBracketConfirm(m.id)}
+                                                                            className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[8px] font-black italic tracking-wider border border-emerald-500 shadow-md shadow-emerald-500/10 hover:bg-emerald-600 transition-all"
+                                                                        >
+                                                                            FINALIZAR
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+
+                                                                {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
+                                                                    <div className="flex justify-center pt-1 border-t border-border/5 opacity-0 group-hover/match:opacity-100 transition-opacity mt-auto">
+                                                                        <button
+                                                                            onClick={() => handleReopenMatch(m.id)}
+                                                                            className="flex items-center gap-1 px-3 py-0.5 rounded-full bg-azul-primary/5 text-azul-primary/40 hover:text-azul-primary hover:bg-azul-primary/10 transition-all group/reopen border border-azul-primary/10"
+                                                                        >
+                                                                            <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
+                                                                            <span className="text-[8px] font-black uppercase italic tracking-wider">Reabrir Partido</span>
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+}
