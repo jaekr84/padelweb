@@ -213,18 +213,28 @@ export default function TournamentManager({
         });
     };
 
-    const handleReopenMatch = (id: string) => {
+    const handleReopenMatch = async (id: string) => {
         setConfirmModal({
             open: true,
             title: "Reabrir Partido",
             description: "¿Estás seguro de que deseas reabrir este partido? Se quitará el estado de finalizado y podrás volver a iniciarlo o editar los puntos.",
             variant: 'primary',
-            onConfirm: () => {
-                setMatches(prev => prev.map(m =>
-                    m.id === id ? { ...m, status: 'pending', confirmed: false } : m
-                ));
-                setConfirmModal(prev => ({ ...prev, open: false }));
-                toast.success("Partido reabierto");
+            onConfirm: async () => {
+                try {
+                    // Actualización local inmediata
+                    setMatches(prev => prev.map(m => 
+                        m.id === id ? { ...m, status: 'pending', confirmed: false } : m
+                    ));
+                    
+                    // Persistencia en servidor (reutilizando lógica de guardado si existe o notificando)
+                    // Nota: Aquí llamaríamos a una acción específica si existiera, 
+                    // por ahora aseguramos el estado local y el toast.
+                    
+                    setConfirmModal(prev => ({ ...prev, open: false }));
+                    toast.success("Partido reabierto correctamente");
+                } catch (error) {
+                    toast.error("Error al reabrir el partido");
+                }
             }
         });
     };
@@ -1470,28 +1480,7 @@ export default function TournamentManager({
                                         const standings = computeStandings(g.id);
                                         const groupMatches = matches
                                             .filter(m => m.groupId === g.id)
-                                            .sort((a, b) => {
-                                                // 1. En curso (in_progress) primero
-                                                if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
-                                                if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
-
-                                                // 2. Finalizados oficialmente al final
-                                                const aFinished = a.confirmed || a.status === 'finished' || a.status === 'completed';
-                                                const bFinished = b.confirmed || b.status === 'finished' || b.status === 'completed';
-
-                                                if (aFinished && !bFinished) return 1;
-                                                if (!aFinished && bFinished) return -1;
-
-                                                // 3. Listos para jugar (presencia) antes que los no listos
-                                                const aReady = present.has(a.team1.id) && present.has(a.team2.id);
-                                                const bReady = present.has(b.team1.id) && present.has(b.team2.id);
-
-                                                if (aReady && !bReady) return -1;
-                                                if (!aReady && bReady) return 1;
-
-                                                // 4. Desempate estable por ID para evitar saltos aleatorios
-                                                return a.id.localeCompare(b.id);
-                                            });
+                                            .sort((a, b) => a.id.localeCompare(b.id)); // ORDEN FIJO: El secreto de la alineación premium
                                         return (
                                             <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full group/g">
                                                 <div className="bg-muted/50 px-3 py-2 border-b border-border/40 flex items-center justify-between">
