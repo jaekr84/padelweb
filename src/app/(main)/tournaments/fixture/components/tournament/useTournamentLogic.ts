@@ -474,13 +474,25 @@ export function useTournamentLogic({
     };
 
     const handleConfirmScore = async (matchId: string) => {
+        console.log(">>> [DEBUG] Intentando confirmar partido:", matchId);
         const match = matches.find(m => m.id === matchId);
-        if (!match || match.score1 == null || match.score2 == null) return;
-        if (match.score1 === match.score2) {
+        
+        if (!match) {
+            console.error("No se encontró el partido con ID:", matchId);
+            return;
+        }
+
+        // Check scores - Treat undefined/null as 0
+        const s1 = (match.score1 === undefined || match.score1 === null) ? 0 : match.score1;
+        const s2 = (match.score2 === undefined || match.score2 === null) ? 0 : match.score2;
+
+        if (s1 === s2) {
             toast.error("No se permiten empates en los partidos del torneo");
             return;
         }
-        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, confirmed: true } : m);
+        
+        console.log(">>> [DEBUG] Enviando al servidor:", { score1: s1, score2: s2 });
+        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, score1: s1, score2: s2, confirmed: true } : m);
         const loadingToast = toast.loading("Guardando resultado...");
         setSaving(true);
         try {
@@ -571,25 +583,55 @@ export function useTournamentLogic({
             return players.length > 0;
         });
 
-        activeGroups.forEach(g => {
+        activeGroups.forEach((g, groupIdx) => {
             const finished = isGroupFinished(g.id);
             const groupStandings = computeStandings(g.id);
+            // Sanitize group name for placeholders (avoid UUIDs)
+            const displayGroupName = (g.name && g.name.length < 10) ? g.name.toUpperCase() : String.fromCharCode(65 + groupIdx);
+            const groupLabel = displayGroupName.includes('GRUPO') ? displayGroupName : `GRUPO ${displayGroupName}`;
+
             for (let i = 0; i < qualPerGroup; i++) {
                 if (finished) {
                     if (groupStandings[i]) {
-                        quals.push({ ...groupStandings[i], groupId: g.id, groupRank: i + 1, isPlaceholder: false });
+                        const s = groupStandings[i];
+                        quals.push({ 
+                            playerId: s.playerId,
+                            player: s.player,
+                            name: s.player.name,
+                            groupName: groupLabel,
+                            groupId: g.id, 
+                            groupRank: i + 1, 
+                            isPlaceholder: false,
+                            matchesPlayed: s.matchesPlayed || 0,
+                            won: s.won || 0,
+                            lost: s.lost || 0,
+                            points: s.points || 0,
+                            gamesWon: s.gamesWon || 0,
+                            gamesLost: s.gamesLost || 0
+                        });
                     } else {
-                        quals.push({ playerId: `BYE_${g.id}_${i}`, name: 'BYE', isPlaceholder: false, isBye: true, groupRank: i + 1, groupId: g.id });
+                        quals.push({ 
+                            playerId: `BYE_${g.id}_${i}`, 
+                            name: 'BYE', 
+                            groupName: groupLabel,
+                            isPlaceholder: false, 
+                            isBye: true, 
+                            groupRank: i + 1, 
+                            groupId: g.id,
+                            matchesPlayed: 0, won: 0, lost: 0, points: 0
+                        });
                     }
                 } else {
-                    const groupName = g.name.toUpperCase().includes('GRUPO') ? g.name.toUpperCase() : `GRUPO ${g.name.toUpperCase()}`;
                     quals.push({
                         playerId: `TBD_${g.id}_${i}`,
-                        player: { id: `TBD_${g.id}_${i}`, name: `${i + 1}º ${groupName}`, category: '' },
-                        name: `${i + 1}º ${groupName}`,
+                        player: { id: `TBD_${g.id}_${i}`, name: `${i + 1}º ${groupLabel}`, category: '' },
+                        name: `${i + 1}º ${groupLabel}`,
+                        groupName: groupLabel,
+                        displayGroupName: displayGroupName,
                         groupId: g.id,
                         groupRank: i + 1,
-                        isPlaceholder: true
+                        isPlaceholder: true,
+                        matchesPlayed: 0, won: 0, lost: 0, points: 0
                     });
                 }
             }
@@ -998,6 +1040,7 @@ export function useTournamentLogic({
         searchQuery, setSearchQuery,
         confirmModal, setConfirmModal,
         qualPerGroup, setQualPerGroup,
+        finalQualifiers,
         
         // Memos
         allPlayers,

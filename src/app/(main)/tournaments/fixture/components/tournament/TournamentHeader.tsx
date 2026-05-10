@@ -44,10 +44,10 @@ export function TournamentHeader({
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
-                            if (step === "done" && !readOnly) {
+                            if (step !== "setup" && !readOnly) {
                                 setStep("setup");
                             } else {
-                                router.back();
+                                router.push(`/tournaments/${tournamentId}`);
                             }
                         }}
                         className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-foreground/60 hover:text-foreground transition-all group"

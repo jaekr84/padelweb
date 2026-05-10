@@ -7,6 +7,7 @@ import { TournamentAttendance } from "./components/tournament/TournamentAttendan
 import { TournamentDashboard } from "./components/tournament/TournamentDashboard";
 import { TournamentGroupsView } from "./components/tournament/TournamentGroupsView";
 import { TournamentBracketView } from "./components/tournament/TournamentBracketView";
+import { TournamentQualifiersView } from "./components/tournament/TournamentQualifiersView";
 import { TournamentModals } from "./components/tournament/TournamentModals";
 import { useTournamentLogic } from "./components/tournament/useTournamentLogic";
 import { Group, Match, BracketMatch } from "./components/tournament/types";
@@ -79,7 +80,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
         swappingPlayer,
         roundLabel,
         isIndividual,
-        bulkUpdateStatus
+        bulkUpdateStatus,
+        finalQualifiers
     } = useTournamentLogic(props as any);
 
     return (
@@ -163,6 +165,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 computeStandings={computeStandings}
                             />
 
+                            <TournamentQualifiersView finalQualifiers={finalQualifiers} />
+
                             {(bracket.length > 0 || isGroupStageFinished) && (
                                 <div className="relative py-6">
                                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -176,18 +180,18 @@ export default function TournamentManager(props: TournamentManagerProps) {
 
                             {bracket.length > 0 ? (
                                 <TournamentBracketView
-                                     bracket={bracket}
-                                     roundsArr={roundsArr}
-                                     readOnly={readOnly}
-                                     handleBracketScore={handleBracketScore}
-                                     handleBracketConfirm={handleBracketConfirm}
-                                     handleReopenMatch={handleReopenMatch}
-                                     handleGenerateBracket={handleGenerateBracket}
-                                     handleSwapPlayers={handleSwapPlayers}
-                                     swappingPlayer={swappingPlayer}
-                                     setBracket={setBracket}
-                                     roundLabel={roundLabel}
-                                 />
+                                    bracket={bracket}
+                                    roundsArr={roundsArr}
+                                    readOnly={readOnly}
+                                    handleBracketScore={handleBracketScore}
+                                    handleBracketConfirm={handleBracketConfirm}
+                                    handleReopenMatch={handleReopenMatch}
+                                    handleGenerateBracket={handleGenerateBracket}
+                                    handleSwapPlayers={handleSwapPlayers}
+                                    swappingPlayer={swappingPlayer}
+                                    setBracket={setBracket}
+                                    roundLabel={roundLabel}
+                                />
                             ) : isGroupStageFinished && !readOnly ? (
                                 <div className="py-12 text-center space-y-4">
                                     <div className="w-16 h-16 bg-azul-primary/10 rounded-full flex items-center justify-center mx-auto">

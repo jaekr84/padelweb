@@ -71,132 +71,153 @@ function ensureParsed(val: any) {
 
 export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
     try {
-        console.log(`[saveTournamentFixture] Saving tournament ${input.tournamentId} (Phase: ${input.phase})`);
-        const [prevT] = await db
-            .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId })
-            .from(tournaments)
-            .where(eq(tournaments.id, input.tournamentId));
+        console.log(`\n\n>>> [SERVER] SAVE TOURNAMENT FIXTURE CALLED <<<`);
+        console.log(`>>> ID: ${input.tournamentId} | Phase: ${input.phase} | Matches: ${input.matches?.length || 0} <<<\n`);
+        
+        return await db.transaction(async (tx) => {
+            const [prevT] = await tx
+                .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId })
+                .from(tournaments)
+                .where(eq(tournaments.id, input.tournamentId));
 
-        if (!prevT) throw new Error("Tournament not found");
+            if (!prevT) throw new Error("Tournament not found");
 
-        const session = await getSession();
-        if (!session?.userId) throw new Error("No autorizado");
+            const session = await getSession();
+            if (!session?.userId) throw new Error("No autorizado");
 
-        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
-        const isOwner = prevT.createdByUserId === session.userId;
+            const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+            const isOwner = prevT.createdByUserId === session.userId;
 
-        if (!isAdmin && !isOwner) {
-            throw new Error("No tenés permiso para gestionar este torneo");
-        }
+            if (!isAdmin && !isOwner) {
+                throw new Error("No tenés permiso para gestionar este torneo");
+            }
 
-        // 1. Initial cleanup (Parallelized)
-        await Promise.all([
-            db.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId)),
-            db.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId)),
-            db.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId))
-        ]);
+            // 1. Initial cleanup
+            await tx.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
+            await tx.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
+            await tx.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
 
-        // 2. Insert groups
-        const groupIdMap = new Map<string, string>();
-        for (const g of input.groups) {
-            const idToUse = isUUID(g.id) ? g.id : crypto.randomUUID();
-            await db
-                .insert(tournamentGroups)
-                .values({
-                    id: idToUse,
-                    tournamentId: input.tournamentId,
-                    name: g.name,
-                    players: ensureParsed(g.players),
+            // 2. Insert groups
+            const groupIdMap = new Map<string, string>();
+            for (const g of input.groups) {
+                const idToUse = isUUID(g.id) ? g.id : crypto.randomUUID();
+                await tx
+                    .insert(tournamentGroups)
+                    .values({
+                        id: idToUse,
+                        tournamentId: input.tournamentId,
+                        name: g.name,
+                        players: ensureParsed(g.players),
+                    });
+                groupIdMap.set(g.id, idToUse);
+            }
+
+            // 3. Insert group matches
+            if (input.matches && input.matches.length > 0) {
+                const matchValues = input.matches.map(m => {
+                    const dbGroupId = groupIdMap.get(m.groupId) || m.groupId;
+                    const idToUse = isUUID(m.id) ? m.id : crypto.randomUUID();
+                    
+                    // Explicitly convert to numbers for MySQL tinyint/smallint
+                    const s1 = (m.score1 !== undefined && m.score1 !== null) ? Number(m.score1) : null;
+                    const s2 = (m.score2 !== undefined && m.score2 !== null) ? Number(m.score2) : null;
+                    const isConfirmed = m.confirmed ? 1 : 0;
+
+                    return {
+                        id: idToUse,
+                        tournamentId: input.tournamentId,
+                        groupId: dbGroupId,
+                        team1Id: (m.team1 as any)?.id ?? null,
+                        team2Id: (m.team2 as any)?.id ?? null,
+                        team1Name: m.team1.name || "Equipo 1",
+                        team2Name: m.team2.name || "Equipo 2",
+                        score1: s1,
+                        score2: s2,
+                        confirmed: isConfirmed as any,
+                        status: m.status || (isConfirmed ? "finished" : "pending"),
+                        roundIndex: m.roundIndex !== undefined ? Number(m.roundIndex) : null,
+                        courtNumber: m.courtNumber !== undefined ? Number(m.courtNumber) : null,
+                    };
                 });
-            groupIdMap.set(g.id, idToUse);
-        }
-
-        // 3. Insert group matches
-        if (input.matches.length > 0) {
-            const matchValues = input.matches.map(m => {
-                const dbGroupId = groupIdMap.get(m.groupId) || m.groupId; // Fallback if already mapped
-                const idToUse = isUUID(m.id) ? m.id : crypto.randomUUID();
-                return {
-                    id: idToUse,
-                    tournamentId: input.tournamentId,
-                    groupId: dbGroupId,
-                    team1Id: (m.team1 as any)?.id ?? null,
-                    team2Id: (m.team2 as any)?.id ?? null,
-                    team1Name: m.team1.name,
-                    team2Name: m.team2.name,
-                    score1: m.score1 ?? null,
-                    score2: m.score2 ?? null,
-                    confirmed: m.confirmed,
-                    status: m.status || "pending",
-                    roundIndex: m.roundIndex ?? null,
-                    courtNumber: m.courtNumber ?? null,
-                };
-            });
-            await db.insert(groupMatches).values(matchValues);
-        }
-
-        // 4. Insert bracket matches
-        if (input.bracket.length > 0) {
-            const allPlayers = input.groups.flatMap(g => ensureParsed(g.players));
-            const bracketValues = input.bracket.map(bm => {
-                let winnerName = bm.winnerId
-                    ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
-                    : null;
-
-                if (!winnerName && bm.winnerId && (bm as any).winnerName) {
-                    winnerName = (bm as any).winnerName;
+                
+                if (matchValues.length > 0) {
+                    await tx.insert(groupMatches).values(matchValues);
                 }
+            }
 
-                const idToUse = isUUID(bm.id) ? bm.id : crypto.randomUUID();
+            // 4. Insert bracket matches
+            if (input.bracket && input.bracket.length > 0) {
+                const allPlayers = input.groups.flatMap(g => ensureParsed(g.players));
+                const bracketValues = input.bracket.map(bm => {
+                    let winnerName = bm.winnerId
+                        ? allPlayers.find(p => p.id === bm.winnerId)?.name ?? null
+                        : null;
 
-                return {
-                    id: idToUse,
-                    tournamentId: input.tournamentId,
-                    round: bm.round,
-                    slot: bm.slot,
-                    team1Id: (bm.team1 as any)?.id ?? null,
-                    team2Id: (bm.team2 as any)?.id ?? null,
-                    team1Name: slotName(bm.team1),
-                    team2Name: slotName(bm.team2),
-                    score1: bm.score1 ?? null,
-                    score2: bm.score2 ?? null,
-                    confirmed: bm.confirmed,
-                    status: bm.status || "pending",
-                    winnerId: bm.winnerId ?? null,
-                    winnerName,
-                };
-            });
-            await db.insert(bracketMatches).values(bracketValues);
-        }
+                    if (!winnerName && bm.winnerId && (bm as any).winnerName) {
+                        winnerName = (bm as any).winnerName;
+                    }
 
-        // 5. Update tournament metadata and status
-        const statusMap: Record<SaveFixtureInput["phase"], string> = {
-            grupos: "en_curso",
-            eliminatorias: "en_eliminatorias",
-            finalizado: "finalizado",
-        };
-        const newStatus = statusMap[input.phase];
+                    const idToUse = isUUID(bm.id) ? bm.id : crypto.randomUUID();
+                    const s1 = (bm.score1 !== undefined && bm.score1 !== null) ? Number(bm.score1) : null;
+                    const s2 = (bm.score2 !== undefined && bm.score2 !== null) ? Number(bm.score2) : null;
+                    const isConfirmed = bm.confirmed ? 1 : 0;
 
-        // 6. Assign points if tournament is being finalized for the first time
-        if (input.phase === "finalizado" && prevT.status !== "finalizado") {
-            await awardTournamentPoints(input.tournamentId, input.bracket);
-        }
+                    return {
+                        id: idToUse,
+                        tournamentId: input.tournamentId,
+                        round: Number(bm.round),
+                        slot: Number(bm.slot),
+                        team1Id: (bm.team1 as any)?.id ?? null,
+                        team2Id: (bm.team2 as any)?.id ?? null,
+                        team1Name: slotName(bm.team1),
+                        team2Name: slotName(bm.team2),
+                        score1: s1,
+                        score2: s2,
+                        confirmed: isConfirmed as any,
+                        status: bm.status || (isConfirmed ? "finished" : "pending"),
+                        winnerId: bm.winnerId ?? null,
+                        winnerName,
+                    };
+                });
+                if (bracketValues.length > 0) {
+                    await tx.insert(bracketMatches).values(bracketValues);
+                }
+            }
 
-        await db
-            .update(tournaments)
-            .set({
-                status: newStatus,
-                ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
-                ...(input.modalidad ? { modalidad: input.modalidad } : {}),
-                presentPlayerIds: input.presentPlayerIds || [],
-                paidPlayerIds: input.paidPlayerIds || [],
-            })
-            .where(eq(tournaments.id, input.tournamentId));
+            // 5. Update tournament metadata and status
+            const statusMap: Record<SaveFixtureInput["phase"], string> = {
+                grupos: "en_curso",
+                eliminatorias: "en_eliminatorias",
+                finalizado: "finalizado",
+            };
+            
+            // Protect status: don't go back from eliminatorias to en_curso unless explicitly forced
+            let newStatus = statusMap[input.phase];
+            if (prevT.status === "en_eliminatorias" && input.phase === "grupos") {
+                newStatus = "en_eliminatorias";
+            }
 
-        revalidatePath("/tournaments");
-        revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+            // 6. Assign points if tournament is being finalized for the first time
+            if (input.phase === "finalizado" && prevT.status !== "finalizado") {
+                await awardTournamentPoints(input.tournamentId, input.bracket);
+            }
 
-        return { ok: true, newStatus };
+            await tx
+                .update(tournaments)
+                .set({
+                    status: newStatus,
+                    ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
+                    ...(input.modalidad ? { modalidad: input.modalidad } : {}),
+                    presentPlayerIds: input.presentPlayerIds || [],
+                    paidPlayerIds: input.paidPlayerIds || [],
+                })
+                .where(eq(tournaments.id, input.tournamentId));
+
+            revalidatePath("/tournaments");
+            revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+
+            return { ok: true, newStatus };
+        });
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
         return { ok: false, error: String(err) };

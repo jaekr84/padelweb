@@ -94,7 +94,7 @@ export function TournamentBracketView({
                                                         )}
 
                                                         <div
-                                                            className={`rounded-2xl border transition-all overflow-hidden min-h-[75px] flex flex-col justify-center relative group/match ${
+                                                            className={`rounded-2xl border transition-all min-h-[75px] flex flex-col justify-center relative group/match ${
                                                                 (m.confirmed || m.status === 'finished' || m.status === 'completed')
                                                                     ? "bg-emerald-500/[0.03] border-emerald-500/30"
                                                                     : m.status === 'in_progress'
@@ -127,9 +127,11 @@ export function TournamentBracketView({
                                                                                 </span>
                                                                             ) : (
                                                                                 (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
-                                                                                        {name.trim()}
-                                                                                    </span>
+                                                                                    <div key={i} data-tooltip={name.trim()} className="min-w-0">
+                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                            {name.trim()}
+                                                                                        </span>
+                                                                                    </div>
                                                                                 )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
                                                                             )}
                                                                         </div>
@@ -151,9 +153,11 @@ export function TournamentBracketView({
                                                                                 </span>
                                                                             ) : (
                                                                                 (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                                    <span key={i} className={`font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
-                                                                                        {name.trim()}
-                                                                                    </span>
+                                                                                    <div key={i} data-tooltip={name.trim()} className="min-w-0">
+                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                            {name.trim()}
+                                                                                        </span>
+                                                                                    </div>
                                                                                 )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
                                                                             )}
                                                                         </div>

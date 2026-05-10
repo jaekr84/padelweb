@@ -12,6 +12,7 @@ interface Props {
 }
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TournamentManagePage({ params }: Props) {
     const { id } = await params;
@@ -63,7 +64,11 @@ export default async function TournamentManagePage({ params }: Props) {
     const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
     const dbMatches = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id));
     const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id));
+    
+    console.log(`[TournamentManagePage] Loaded ${dbGroups.length} groups and ${dbMatches.length} matches for ${id}`);
+
     const parsePlayers = (data: any) => {
+        if (!data) return [];
         if (typeof data === 'string') {
             try { return JSON.parse(data); } catch { return []; }
         }
@@ -76,24 +81,27 @@ export default async function TournamentManagePage({ params }: Props) {
         players: parsePlayers(g.players) as { id: string, name: string, clubId?: string | null }[],
     }));
 
-    // Mapping for match teams
-    const allPlayers = initialGroups.flatMap(g => g.players);
+    // Mapping for match teams - Ensure we don't lose data if player not found in current groups
+    const allPlayersInGroups = initialGroups.flatMap(g => g.players);
+    
     const getPlayerByIdOrName = (id: string | null, name: string) => {
         const isUUID = (str: string) => str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
         
         if (id) {
-            const found = allPlayers.find(p => p.id === id);
+            const found = allPlayersInGroups.find(p => p.id === id);
             if (found) return found;
         }
         
-        // If the name we have is a UUID, but we didn't find the player by ID, 
-        // try to see if any player has this 'name' as their ID
         if (isUUID(name)) {
-            const foundByIdAsName = allPlayers.find(p => p.id === name);
+            const foundByIdAsName = allPlayersInGroups.find(p => p.id === name);
             if (foundByIdAsName) return foundByIdAsName;
         }
 
-        return allPlayers.find(p => p.name === name) || { id: id || name, name: isUUID(name) ? "Jugador" : name };
+        // Fallback: create a virtual player object so we don't return null
+        const foundByName = allPlayersInGroups.find(p => p.name === name);
+        if (foundByName) return foundByName;
+
+        return { id: id || name, name: isUUID(name) ? "Jugador" : name };
     };
 
     const mappedMatches = dbMatches.map(m => ({
