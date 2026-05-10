@@ -45,6 +45,7 @@ export type SaveFixtureInput = {
     }[];
     championName?: string;
     modalidad?: any;
+    presentPlayerIds?: string[];
 };
 function slotName(t: BracketSlot): string | null {
     if (!t) return null;
@@ -186,6 +187,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 status: newStatus,
                 ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
                 ...(input.modalidad ? { modalidad: input.modalidad } : {}),
+                presentPlayerIds: input.presentPlayerIds || [],
             })
             .where(eq(tournaments.id, input.tournamentId));
 

@@ -80,6 +80,7 @@ export const tournaments = mysqlTable("tournaments", {
     registrationFee: int("registration_fee"),
     memberRegistrationFee: int("member_registration_fee"),
     isMembersOnly: boolean("is_members_only").default(false),
+    presentPlayerIds: json("present_player_ids"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     createdByIdx: index("tournaments_created_by_idx").on(table.createdByUserId),

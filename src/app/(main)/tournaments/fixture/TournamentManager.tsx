@@ -31,6 +31,7 @@ export interface TournamentManagerProps {
     initialMatches: Match[];
     initialBracket: BracketMatch[];
     initialStatus: string;
+    initialPresent?: string[];
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: any;
@@ -110,6 +111,7 @@ export default function TournamentManager({
     initialMatches,
     initialBracket,
     initialStatus,
+    initialPresent = [],
     readOnly = false,
     isLoggedIn = true,
     modality
@@ -163,7 +165,7 @@ export default function TournamentManager({
     }, [allPlayers]);
     const registeredPlayerIds = useMemo(() => new Set(allPlayers.map(p => p.id)), [allPlayers]);
 
-    const [present, setPresent] = useState<Set<string>>(new Set(allPlayers.map(p => p.id)));
+    const [present, setPresent] = useState<Set<string>>(new Set(initialPresent));
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -258,6 +260,7 @@ export default function TournamentManager({
                     groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
                     matches: updatedMatches,
                     bracket: updatedBracket,
+                    presentPlayerIds: Array.from(present)
                 });
                 toast.dismiss(loadingToast);
                 if (res.ok) {
@@ -700,6 +703,7 @@ export default function TournamentManager({
                 groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
                 matches: updatedMatches,
                 bracket: bracket,
+                presentPlayerIds: Array.from(present),
             });
             toast.dismiss(loadingToast);
             if (res.ok) {
@@ -834,6 +838,7 @@ export default function TournamentManager({
                 groups,
                 matches,
                 bracket: newBracket,
+                presentPlayerIds: Array.from(present)
             });
 
             toast.dismiss(loadingToast);
@@ -958,6 +963,7 @@ export default function TournamentManager({
                 matches,
                 bracket: finalBracket,
                 championName,
+                presentPlayerIds: Array.from(present)
             });
             toast.dismiss(loadingToast);
             if (res.ok) {
@@ -1006,6 +1012,7 @@ export default function TournamentManager({
                 groups,
                 matches,
                 bracket: updated,
+                presentPlayerIds: Array.from(present)
             });
             setBracket(updated);
             toast.success("Partido reabierto para edición");
@@ -1052,12 +1059,11 @@ export default function TournamentManager({
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => {
-                                if (step === "elim") setStep("qual");
-                                else if (step === "qual") setStep("done");
-                                else if (step === "done") {
-                                    router.push(`/tournaments/${tournamentId}/fixture?step=assign`);
+                                if (step === "done" && !readOnly) {
+                                    setStep("setup");
+                                } else {
+                                    router.back();
                                 }
-                                else router.push("/admin/tournaments");
                             }}
                             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 hover:text-foreground transition-all group"
                         >
@@ -1450,7 +1456,14 @@ export default function TournamentManager({
                                                         {groupMatches.map(m => {
                                                             const isReady = present.has(m.team1.id) && present.has(m.team2.id);
                                                             return (
-                                                                <div key={m.id} className={`group/match relative transition-all ${!isReady && !m.confirmed ? "opacity-40 grayscale pointer-events-none" : ""}`}>
+                                                                <div key={m.id} className={`group/match relative transition-all ${!isReady && !m.confirmed ? "opacity-60 grayscale pointer-events-none" : ""}`}>
+                                                                    {!isReady && !m.confirmed && (
+                                                                        <div className="absolute inset-0 flex items-center justify-center z-[20] pointer-events-none">
+                                                                            <div className="px-3 py-1 bg-background/90 backdrop-blur-md border border-border/50 rounded-full shadow-2xl">
+                                                                                <span className="text-[7px] font-black uppercase tracking-widest text-foreground/40 animate-pulse">Esperando Jugadores</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                     <div
                                                                         className={`rounded-2xl border transition-all overflow-hidden min-h-[64px] flex flex-col justify-center ${m.status === 'in_progress'
                                                                             ? "bg-rojo/[0.03] border-rojo/40 shadow-lg shadow-rojo/5"
@@ -1790,7 +1803,7 @@ export default function TournamentManager({
                                                     onClick={async () => {
                                                         setSaving(true);
                                                         const res = await saveTournamentFixture({
-                                                            tournamentId, phase: "finalizado", groups, matches, bracket, championName: finalMatch.winnerName
+                                                            tournamentId, phase: "finalizado", groups, matches, bracket, championName: finalMatch.winnerName, presentPlayerIds: Array.from(present)
                                                         });
                                                         setSaving(false);
                                                         if (res.ok) setShowSuccessModal(true);

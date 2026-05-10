@@ -318,6 +318,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                 initialMatches={mappedMatches}
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
+                initialPresent={(tournament.presentPlayerIds as string[]) || []}
                 readOnly={!canManage}
                 isLoggedIn={isLoggedIn}
             />
