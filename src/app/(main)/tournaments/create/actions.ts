@@ -42,6 +42,7 @@ type TournamentInput = {
     location?: string | null;
     isMembersOnly?: boolean;
     memberRegistrationFee?: number | null;
+    hasPoints?: boolean;
 };
 
 export async function createTournament(data: TournamentInput) {
@@ -129,6 +130,7 @@ export async function createTournament(data: TournamentInput) {
             memberRegistrationFee: data.memberRegistrationFee || null,
             surface: data.surface || null,
             isMembersOnly: !!data.isMembersOnly,
+            hasPoints: data.hasPoints !== undefined ? !!data.hasPoints : true,
         });
 
     revalidatePath("/profiles/club");
@@ -183,6 +185,7 @@ export async function updateTournament(id: string, data: TournamentInput) {
             type: data.type || "round_robin",
             surface: data.surface || null,
             isMembersOnly: data.isMembersOnly !== undefined ? !!data.isMembersOnly : tournament.isMembersOnly,
+            hasPoints: data.hasPoints !== undefined ? !!data.hasPoints : tournament.hasPoints,
         })
         .where(eq(tournaments.id, id));
 

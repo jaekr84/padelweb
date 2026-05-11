@@ -1,0 +1,1 @@
+ALTER TABLE `tournaments` ADD `has_points` boolean DEFAULT true;

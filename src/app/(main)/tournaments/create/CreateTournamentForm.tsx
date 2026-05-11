@@ -23,6 +23,14 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/Select";
+
 
 
 
@@ -48,6 +56,7 @@ export type InitialData = {
     memberRegistrationFee: number | null;
     type?: string | null;
     isMembersOnly?: boolean;
+    hasPoints?: boolean;
 };
 
 
@@ -120,14 +129,17 @@ export default function CreateTournamentForm({
     const [imageUploading, setImageUploading] = useState(false);
     const [compressedFile, setCompressedFile] = useState<File | null>(null);
     const [tournamentType, setTournamentType] = useState<"round_robin" | "americano">((initialData as any)?.type ?? "round_robin");
+    const [hasPoints, setHasPoints] = useState<boolean>(initialData?.hasPoints ?? true);
+
+    const today = new Date().toISOString().split('T')[0];
 
     const [info, setInfo] = useState({
         name: initialData?.name ?? "",
-        startDate: initialData?.startDate ?? "",
-        endDate: initialData?.endDate ?? "",
-        time: initialData?.time ?? "",
-        openDateClub: initialData?.openDateClub ?? "",
-        openDateGeneral: initialData?.openDateGeneral ?? "",
+        startDate: initialData?.startDate ?? today,
+        endDate: initialData?.endDate ?? today,
+        time: initialData?.time ?? "18:00",
+        openDateClub: initialData?.openDateClub ?? today,
+        openDateGeneral: initialData?.openDateGeneral ?? today,
         description: initialData?.description ?? "",
         maxSlots: String(initialData?.maxSlots ?? 0),
         registrationFee: initialData?.registrationFee !== null && initialData?.registrationFee !== undefined ? String(initialData.registrationFee) : "",
@@ -213,6 +225,7 @@ export default function CreateTournamentForm({
                 surface: info.surface,
                 type: tournamentType,
                 isMembersOnly: isMembersOnly,
+                hasPoints: hasPoints,
             };
 
             if (isEditing && initialData) {
@@ -231,597 +244,472 @@ export default function CreateTournamentForm({
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 pt-6 px-4 font-sans selection:bg-azul-primary/30 transition-colors duration-300">
-            <div className="max-w-3xl mx-auto flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-12 pt-4 px-3 md:px-6 font-sans selection:bg-azul-primary/10 transition-colors duration-300">
+            <div className="max-w-6xl mx-auto flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-700">
 
-                {/* Header Superior */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-5">
+                {/* HEADER COMPACTO */}
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={() => router.push(redirectPath)}
-                            className="group w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-azul-primary/50 transition-all active:scale-95"
+                            className="group w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-azul-primary hover:border-azul-primary/30 transition-all shadow-sm active:scale-95"
                         >
-                            <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
+                            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">
-                                {isEditing ? `Editar: ${initialData?.name}` : "Nuevo Torneo"}
+                            <h1 className="text-xl font-black uppercase italic tracking-tighter text-slate-800 leading-none">
+                                {isEditing ? `Editar: ${initialData?.name}` : "Nuevo Evento"}
                             </h1>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-azul-primary/60 transition-colors">Gestión de Competición ACAP</p>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-0.5">Terminal de Administración de Torneos</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Trophy className="w-10 h-10 text-azul-primary opacity-20 hidden md:block" />
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm">
+                            <Activity className="w-3.5 h-3.5 text-azul-primary animate-pulse" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Sistema Online</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-10">
+                {/* GRID PRINCIPAL HIGH DENSITY */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-                    {/* SECCIÓN 0: TIPO DE TORNEO */}
-                    <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-3 px-2">
-                            <div className="w-8 h-8 rounded-lg bg-azul-primary/10 flex items-center justify-center border border-azul-primary/20">
-                                <Layers className="w-4 h-4 text-azul-primary" />
+                    {/* BARRA SUPERIOR DE CONFIGURACIÓN CORE */}
+                    <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* Config: Tipo */}
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <Layers className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">Formato</span>
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Método de Competición</h2>
+                            <Select
+                                value={tournamentType}
+                                onValueChange={value => setTournamentType(value as any)}
+                            >
+                                <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-9 text-[10px] font-bold uppercase shadow-sm">
+                                    <SelectValue placeholder="Formato" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="round_robin">Round Robin</SelectItem>
+                                    <SelectItem value="americano">Americano</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setTournamentType("round_robin")}
-                                className={`group relative p-6 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${tournamentType === "round_robin" ? "bg-azul-primary/5 border-azul-primary/40 shadow-2xl shadow-azul-primary/10 scale-[1.02]" : "bg-card/40 border-border/50 hover:border-azul-primary/30 grayscale opacity-60 hover:grayscale-0 hover:opacity-100"}`}
+                        {/* Config: Ranking */}
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <Star className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">Impacto</span>
+                            </div>
+                            <Select
+                                value={hasPoints ? "oficial" : "amistoso"}
+                                onValueChange={value => setHasPoints(value === "oficial")}
                             >
-                                {tournamentType === "round_robin" && (
-                                    <div className="absolute top-0 right-0 p-4">
-                                        <div className="w-6 h-6 rounded-full bg-azul-primary flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
-                                            <Check className="w-3.5 h-3.5 text-white" />
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="flex flex-col gap-4 relative z-10">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${tournamentType === "round_robin" ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/40" : "bg-muted text-muted-foreground"}`}>
-                                        <Activity className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-lg font-black uppercase italic tracking-tight text-foreground transition-colors">Round Robin</p>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Formato clásico de zonas y eliminación directa</p>
-                                    </div>
-                                </div>
-                                {tournamentType === "round_robin" && (
-                                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-azul-primary/5 rounded-full blur-3xl" />
-                                )}
-                            </button>
+                                <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-9 text-[10px] font-bold uppercase shadow-sm">
+                                    <SelectValue placeholder="Tipo de Impacto" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="oficial">🏆 Oficial (Suma Puntos)</SelectItem>
+                                    <SelectItem value="amistoso">⭐ Amistoso (Sin Puntos)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            <button
-                                type="button"
-                                onClick={() => setTournamentType("americano")}
-                                className={`group relative p-6 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${tournamentType === "americano" ? "bg-azul-primary/5 border-azul-primary/40 shadow-2xl shadow-azul-primary/10 scale-[1.02]" : "bg-card/40 border-border/50 hover:border-azul-primary/30 grayscale opacity-40 hover:grayscale-0 hover:opacity-100"}`}
-                            >
-                                {tournamentType === "americano" && (
-                                    <div className="absolute top-0 right-0 p-4">
-                                        <div className="w-6 h-6 rounded-full bg-azul-primary flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
-                                            <Check className="w-3.5 h-3.5 text-white" />
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="flex flex-col gap-4 relative z-10">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${tournamentType === "americano" ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/40" : "bg-muted text-muted-foreground"}`}>
-                                        <Target className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-lg font-black uppercase italic tracking-tight text-foreground transition-colors">Torneo Americano</p>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">Método de grupo único con ranking por games</p>
-                                    </div>
-                                </div>
-                                {tournamentType === "americano" && (
-                                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-azul-primary/5 rounded-full blur-3xl" />
-                                )}
-                            </button>
+                        {/* Config: Modalidad */}
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <Target className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">Modalidad</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <Select
+                                    value={modalidad.genero}
+                                    onValueChange={value => setModalidad({ ...modalidad, genero: value as any })}
+                                >
+                                    <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-9 text-[10px] font-bold uppercase">
+                                        <SelectValue placeholder="Género" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="mixto">Mixto</SelectItem>
+                                        <SelectItem value="hombre">Hombres</SelectItem>
+                                        <SelectItem value="mujer">Mujeres</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <Select
+                                    value={modalidad.participacion}
+                                    onValueChange={value => setModalidad({ ...modalidad, participacion: value as any })}
+                                >
+                                    <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-9 text-[10px] font-bold uppercase">
+                                        <SelectValue placeholder="Participación" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pareja">Parejas</SelectItem>
+                                        <SelectItem value="individual">Individual</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
 
-                    {/* SECCIÓN 1: IDENTIDAD VISUAL Y GENERAL */}
-                    <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-3 px-2">
-                            <div className="w-8 h-8 rounded-lg bg-azul-primary/10 flex items-center justify-center border border-azul-primary/20">
-                                <Sparkles className="w-4 h-4 text-azul-primary" />
+                    {/* COLUMNA IZQUIERDA: IDENTIDAD Y CONTENIDO (7/12) */}
+                    <div className="lg:col-span-7 flex flex-col gap-4">
+                        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-5">
+                            {/* Banner Compacto y Mapa */}
+                            <div className="grid grid-cols-1 md:grid-cols-10 gap-3">
+                                <div className="md:col-span-7 relative group overflow-hidden rounded-2xl border border-slate-100 aspect-[21/9] md:aspect-auto md:h-32 bg-slate-50 transition-all">
+                                    {imagePreview ? (
+                                        <>
+                                            <img src={imagePreview} className="w-full h-full object-cover opacity-80" alt="Preview" />
+                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                <button onClick={() => setImagePreview(null)} className="p-2 bg-white/20 hover:bg-rojo text-white rounded-full backdrop-blur-md transition-all">
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <label className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-100/50 transition-all">
+                                            <div className="w-8 h-8 rounded-full bg-azul-primary/5 flex items-center justify-center">
+                                                {imageUploading ? <Activity className="w-4 h-4 text-azul-primary animate-spin" /> : <Camera className="w-4 h-4 text-azul-primary" />}
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 leading-tight">Banner del Evento</p>
+                                                <p className="text-[7px] text-slate-400">Dimensión: 1200x450px</p>
+                                            </div>
+                                            <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                                        </label>
+                                    )}
+                                </div>
+                                <div className="md:col-span-3 h-32 rounded-2xl overflow-hidden border border-slate-200 shadow-sm opacity-80 hover:opacity-100 transition-all grayscale hover:grayscale-0 bg-slate-50">
+                                    {info.surface && info.surface.length > 3 ? (
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            style={{ border: 0 }}
+                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(info.surface)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                        ></iframe>
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 text-center">
+                                            <MapPin className="w-5 h-5 text-slate-200" />
+                                            <p className="text-[8px] font-bold uppercase tracking-tighter text-slate-300">Mapa no disponible</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Información Principal</h2>
-                        </div>
 
-                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-8 transition-colors">
-                            {/* Banner Upload */}
-                            <div className="relative group overflow-hidden rounded-3xl border border-border aspect-[21/9] bg-muted/50 transition-colors">
-                                {imagePreview ? (
-                                    <>
-                                        <img src={imagePreview} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" alt="Banner Preview" />
-                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
-                                            <button
-                                                type="button"
-                                                onClick={() => setImagePreview(null)}
-                                                className="w-14 h-14 rounded-full bg-rojo text-white flex items-center justify-center shadow-2xl active:scale-[0.85] transition-all"
-                                            >
-                                                <Trash2 className="h-6 w-6" />
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <label className="w-full h-full flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted transition-all border-2 border-dashed border-border hover:border-azul-primary/30">
-                                        <div className="w-16 h-16 rounded-full bg-azul-primary/10 flex items-center justify-center">
-                                            {imageUploading ? <Activity className="h-8 w-8 text-azul-primary animate-spin" /> : <Camera className="h-8 w-8 text-azul-primary" />}
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subir Banner del Torneo</p>
-                                            <span className="text-[9px] font-medium text-muted-foreground/60">Recomendado: 1200x500px</span>
-                                        </div>
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                                    </label>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-foreground">
-                                <div className="md:col-span-3 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Nombre del Evento</label>
+                            {/* Inputs Identidad */}
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nombre Oficial del Torneo</label>
                                     <input
                                         type="text"
                                         value={info.name}
                                         onChange={e => setInfo({ ...info, name: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground text-lg font-black uppercase italic tracking-tight outline-none focus:border-azul-primary focus:ring-4 focus:ring-azul-primary/10 transition-all placeholder:text-foreground/20"
-                                        placeholder="Ej: MASTER SERIES 2024"
-                                        autoCapitalize="words"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-800 text-base font-black uppercase italic tracking-tight outline-none focus:border-azul-primary focus:ring-4 focus:ring-azul-primary/5 transition-all placeholder:text-slate-300"
+                                        placeholder="Ej: MASTER CUP 2024"
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Fecha de Inicio</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <input
-                                            type="date"
-                                            value={info.startDate}
-                                            onChange={e => setInfo({ ...info, startDate: e.target.value })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all cursor-pointer"
-                                            onClick={(e) => e.currentTarget.showPicker?.()}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Fecha de Finalización</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <input
-                                            type="date"
-                                            value={info.endDate}
-                                            onChange={e => setInfo({ ...info, endDate: e.target.value })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all cursor-pointer"
-                                            onClick={(e) => e.currentTarget.showPicker?.()}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Hora de Inicio</label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <input
-                                            type="time"
-                                            value={info.time}
-                                            onChange={e => setInfo({ ...info, time: e.target.value })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all cursor-pointer"
-                                            onClick={(e) => e.currentTarget.showPicker?.()}
-                                        />
-                                    </div>
-                                </div>
-
-
-                                <div className="md:col-span-3 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Ubicación Exacta / Google Maps</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <input
-                                            type="text"
-                                            value={info.surface}
-                                            onChange={e => setInfo({ ...info, surface: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                            className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-sm font-bold outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
-                                            placeholder="Ej: Av. Principal 123 (o nombre del club)"
-                                            autoCapitalize="sentences"
-                                        />
-                                    </div>
-                                    <p className="text-[9px] text-muted-foreground ml-2 italic">Esto habilitará el botón de GPS para los jugadores.</p>
-
-                                    {info.surface && info.surface.length > 3 && (
-                                        <div className="mt-4 w-full h-48 rounded-3xl overflow-hidden border border-border/50 bg-muted/20 relative group/map animate-in fade-in zoom-in duration-500">
-                                            <iframe
-                                                width="100%"
-                                                height="100%"
-                                                style={{ border: 0, opacity: 0.8 }}
-                                                loading="lazy"
-                                                allowFullScreen
-                                                src={`https://maps.google.com/maps?q=${encodeURIComponent(info.surface)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                                            ></iframe>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Ubicación / Club</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                            <input
+                                                type="text"
+                                                value={info.surface}
+                                                onChange={e => setInfo({ ...info, surface: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none focus:border-azul-primary transition-all placeholder:text-slate-300"
+                                                placeholder="Nombre del Club o Dirección"
+                                            />
                                         </div>
-                                    )}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Hora Predeterminada</label>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-1 flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                <Select
+                                                    value={(() => {
+                                                        const [h] = info.time.split(":");
+                                                        let displayHour = parseInt(h) % 12;
+                                                        if (displayHour === 0) displayHour = 12;
+                                                        return String(displayHour).padStart(2, '0');
+                                                    })()}
+                                                    onValueChange={val => {
+                                                        const [_, m] = info.time.split(":");
+                                                        const hNum = parseInt(info.time.split(":")[0]);
+                                                        const period = hNum >= 12 ? "PM" : "AM";
+                                                        let newH = parseInt(val);
+                                                        if (period === "PM" && newH < 12) newH += 12;
+                                                        if (period === "AM" && newH === 12) newH = 0;
+                                                        setInfo({ ...info, time: `${String(newH).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="border-none bg-transparent h-7 px-1 w-12 shadow-none focus:ring-0">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                                            <SelectItem key={h} value={h}>{h}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <span className="text-slate-300 font-bold">:</span>
+                                                <Select
+                                                    value={info.time.split(":")[1]}
+                                                    onValueChange={val => {
+                                                        const [h] = info.time.split(":");
+                                                        setInfo({ ...info, time: `${h}:${val}` });
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="border-none bg-transparent h-7 px-1 w-12 shadow-none focus:ring-0">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {["00", "15", "30", "45"].map(m => (
+                                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                                <button
+                                                    onClick={() => {
+                                                        const [h, m] = info.time.split(":");
+                                                        let hNum = parseInt(h);
+                                                        if (hNum >= 12) hNum -= 12;
+                                                        setInfo({ ...info, time: `${String(hNum).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[9px] font-black transition-all ${parseInt(info.time.split(":")[0]) < 12 ? "bg-white text-azul-primary shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                                                >
+                                                    AM
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        const [h, m] = info.time.split(":");
+                                                        let hNum = parseInt(h);
+                                                        if (hNum < 12) hNum += 12;
+                                                        setInfo({ ...info, time: `${String(hNum).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[9px] font-black transition-all ${parseInt(info.time.split(":")[0]) >= 12 ? "bg-white text-azul-primary shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                                                >
+                                                    PM
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="md:col-span-3 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Descripción y Premios</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Descripción y Premios</label>
                                     <textarea
                                         value={info.description}
                                         onChange={e => setInfo({ ...info, description: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                         rows={4}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground/80 text-sm font-medium leading-relaxed outline-none focus:border-azul-primary transition-all resize-none placeholder:text-foreground/20"
-                                        placeholder="Detalles sobre el formato del torneo, premios para ganadores, etc..."
-                                        autoCapitalize="sentences"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-700 text-xs font-medium leading-relaxed outline-none focus:border-azul-primary transition-all resize-none placeholder:text-slate-300"
+                                        placeholder="Detalla el formato, premios, sets, etc..."
                                     />
                                 </div>
+                            </div>
+                        </div>
 
-                                <div className="flex flex-col gap-3 pt-4 border-t border-border/50 md:col-span-3">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-azul-primary/60 ml-2 mb-2">Apertura de Inscripciones (Personalizable)</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Jugadores con Club</label>
-                                            <div className="relative">
-                                                <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                                <input
-                                                    type="date"
-                                                    value={info.openDateClub}
-                                                    onChange={e => setInfo({ ...info, openDateClub: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all cursor-pointer"
-                                                    onClick={(e) => e.currentTarget.showPicker?.()}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Público General</label>
-                                            <div className="relative">
-                                                <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                                <input
-                                                    type="date"
-                                                    value={info.openDateGeneral}
-                                                    onChange={e => setInfo({ ...info, openDateGeneral: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-12 pr-5 text-foreground text-xs font-bold outline-none focus:border-azul-primary transition-all cursor-pointer"
-                                                    onClick={(e) => e.currentTarget.showPicker?.()}
-                                                />
-                                            </div>
-                                        </div>
+                    </div>
+
+                    {/* COLUMNA DERECHA: LOGÍSTICA Y REGLAS (5/12) */}
+                    <div className="lg:col-span-5 flex flex-col gap-4">
+                        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-6">
+                            {/* Fechas de Juego */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Calendar className="w-3.5 h-3.5 text-azul-primary" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Cronograma del Evento</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Fecha Inicio</label>
+                                        <input type="date" value={info.startDate} onChange={e => setInfo({ ...info, startDate: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Fecha Fin</label>
+                                        <input type="date" value={info.endDate} onChange={e => setInfo({ ...info, endDate: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="md:col-span-3 space-y-2 pt-4 border-t border-border/50">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-azul-primary/60 ml-2">Cupos / Slots Máximos</label>
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="number"
-                                                value={info.maxSlots}
-                                                onChange={e => setInfo({ ...info, maxSlots: e.target.value })}
-                                                className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground text-sm font-black outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
-                                                placeholder="Ej: 32 (0 para ilimitado)"
-                                            />
-                                        </div>
-                                        <div className="flex-1 text-[10px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60">
-                                            Indica el número máximo de parejas o jugadores que pueden inscribirse.
-                                        </div>
+                            {/* Inscripciones */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <div className="flex items-center gap-2 px-1">
+                                    <Sparkles className="w-3.5 h-3.5 text-celeste" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Apertura Inscripciones</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Socios Club</label>
+                                        <input type="date" value={info.openDateClub} onChange={e => setInfo({ ...info, openDateClub: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Gral. Público</label>
+                                        <input type="date" value={info.openDateGeneral} onChange={e => setInfo({ ...info, openDateGeneral: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* registrationFee input */}
-                                <div className="md:col-span-3 space-y-4 pt-4 border-t border-border/50">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-azul-primary/60 ml-2">Precios de Inscripción (Opcional)</p>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Público General</label>
-                                            <div className="relative">
-                                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
-                                                <input
-                                                    type="number"
-                                                    value={info.registrationFee}
-                                                    onChange={e => setInfo({ ...info, registrationFee: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
-                                                    placeholder="Ej: 5000"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Socios del Club</label>
-                                            <div className="relative">
-                                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black italic">$</div>
-                                                <input
-                                                    type="number"
-                                                    value={info.memberRegistrationFee}
-                                                    onChange={e => setInfo({ ...info, memberRegistrationFee: e.target.value })}
-                                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 pl-10 pr-6 text-foreground text-sm font-black outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
-                                                    placeholder="Ej: 4000"
-                                                />
-                                            </div>
+                            {/* Finanzas y Cupos */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio Gral</label>
+                                        <div className="relative">
+                                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300 font-bold">$</span>
+                                            <input type="number" value={info.registrationFee} onChange={e => setInfo({ ...info, registrationFee: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-6 pr-2 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
                                         </div>
                                     </div>
-                                    <p className="text-[9px] text-muted-foreground ml-2 italic opacity-60">Indica los costos por jugador/pareja. Si es gratuito, deja los campos vacíos.</p>
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Precio Socio</label>
+                                        <div className="relative">
+                                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300 font-bold">$</span>
+                                            <input type="number" value={info.memberRegistrationFee} onChange={e => setInfo({ ...info, memberRegistrationFee: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-6 pr-2 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-bold uppercase tracking-widest text-slate-400 ml-1">Cupos Máx</label>
+                                        <input type="number" value={info.maxSlots} onChange={e => setInfo({ ...info, maxSlots: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[11px] font-bold outline-none focus:border-azul-primary transition-all" />
+                                    </div>
                                 </div>
+                            </div>
 
-                                {/* Privacy Selection */}
-                                <div className="md:col-span-3 pt-4 border-t border-border/50 space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-azul-primary/60 ml-2">Privacidad del Torneo</label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Privacidad & Categorías */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <div className="flex items-center justify-between px-1">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Privacidad del Evento</span>
+                                    <div className="flex gap-2">
                                         <button
-                                            type="button"
                                             onClick={() => setIsMembersOnly(false)}
-                                            className={`flex flex-col gap-3 p-5 rounded-3xl border transition-all text-left ${!isMembersOnly ? "bg-azul-primary/5 border-azul-primary shadow-lg shadow-azul-primary/5" : "bg-muted/30 border-border opacity-60 hover:opacity-100"}`}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[9px] font-black uppercase tracking-widest ${!isMembersOnly ? "bg-azul-primary border-azul-primary text-white shadow-md shadow-azul-primary/10" : "bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-200"}`}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!isMembersOnly ? "bg-azul-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                                                    <Users2 className="w-5 h-5" />
-                                                </div>
-                                                {!isMembersOnly && <CheckCircle2 className="w-5 h-5 text-azul-primary" />}
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-black uppercase tracking-tight">Público</p>
-                                                <p className="text-[9px] font-medium text-muted-foreground leading-relaxed mt-1">Cualquier jugador de la plataforma podrá inscribirse al torneo.</p>
-                                            </div>
+                                            <Users2 className="w-3 h-3" /> Público
                                         </button>
-
                                         <button
-                                            type="button"
                                             onClick={() => setIsMembersOnly(true)}
-                                            className={`flex flex-col gap-3 p-5 rounded-3xl border transition-all text-left ${isMembersOnly ? "bg-azul-primary/5 border-azul-primary shadow-lg shadow-azul-primary/5" : "bg-muted/30 border-border opacity-60 hover:opacity-100"}`}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[9px] font-black uppercase tracking-widest ${isMembersOnly ? "bg-slate-800 border-slate-800 text-white shadow-md" : "bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-200"}`}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMembersOnly ? "bg-azul-primary text-white" : "bg-muted text-muted-foreground"}`}>
-                                                    <Shield className="w-5 h-5" />
-                                                </div>
-                                                {isMembersOnly && <CheckCircle2 className="w-5 h-5 text-azul-primary" />}
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-black uppercase tracking-tight">Solo Miembros</p>
-                                                <p className="text-[9px] font-medium text-muted-foreground leading-relaxed mt-1">Exclusivo para jugadores registrados como miembros del club.</p>
-                                            </div>
+                                            <Shield className="w-3 h-3" /> Solo Miembros
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* SECCIÓN 2: REGLAS Y COMPETICIÓN */}
-                    <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-3 px-2">
-                            <div className="w-8 h-8 rounded-lg bg-azul-primary/10 flex items-center justify-center border border-azul-primary/20">
-                                <Target className="w-4 h-4 text-azul-primary" />
-                            </div>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-foreground/70 italic">Modalidad de Juego</h2>
-                        </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between px-1">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Categorización</span>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => setModalidad({ ...modalidad, mode: "categorias" })} className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${modalidad.mode === "categorias" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-400"}`}>Por Categorías</button>
+                                            <button onClick={() => setModalidad({ ...modalidad, mode: "libre" })} className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${modalidad.mode === "libre" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-400"}`}>Libre</button>
+                                        </div>
+                                    </div>
 
-                        <div className="bg-card/40 border border-border rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 backdrop-blur-sm shadow-2xl space-y-10 transition-colors">
-
-                            {/* Género y Participación */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Género</label>
-                                    <select
-                                        value={modalidad.genero}
-                                        onChange={e => setModalidad({ ...modalidad, genero: e.target.value as any })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-[10px] font-black uppercase tracking-widest outline-none focus:border-azul-primary transition-all appearance-none"
-                                    >
-                                        <option value="mixto">Mixto</option>
-                                        <option value="hombre">Solo Hombres</option>
-                                        <option value="mujer">Solo Mujeres</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Participación</label>
-                                    <select
-                                        value={modalidad.participacion}
-                                        onChange={e => setModalidad({ ...modalidad, participacion: e.target.value as any })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-5 text-foreground text-[10px] font-black uppercase tracking-widest outline-none focus:border-azul-primary transition-all appearance-none"
-                                    >
-                                        <option value="pareja">Parejas</option>
-                                        <option value="individual">Individual</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Toggle Modo */}
-                            <div className="space-y-4 pt-4 border-t border-border">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 ml-2">Formato de Categorización</label>
-                                <div className="bg-muted/30 p-2 rounded-2xl border border-border flex gap-2">
-                                    <button
-                                        onClick={() => setModalidad({ ...modalidad, mode: "categorias" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "categorias" ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-muted-foreground hover:text-foreground"}`}
-                                    >
-                                        <Layers className="w-4 h-4" />
-                                        Por Categoría
-                                    </button>
-                                    <button
-                                        onClick={() => setModalidad({ ...modalidad, mode: "libre" })}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${modalidad.mode === "libre" ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-muted-foreground hover:text-foreground"}`}
-                                    >
-                                        <Activity className="w-4 h-4" />
-                                        Categoría única / Libre
-                                    </button>
-                                </div>
-                            </div>
-
-                            {modalidad.mode === "categorias" && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                                    <p className="text-[10px] font-black uppercase text-azul-primary/60 italic ml-2">Selección de Categorías</p>
-                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                        {allCategoriesFromDb.map((cat, idx) => {
-                                            const isSelected = modalidad.selectedCats.includes(cat);
-                                            return (
-                                                <button
-                                                    key={`${cat}-${idx}`}
-                                                    onClick={() => {
-                                                        const current = modalidad.selectedCats;
-                                                        const next = current.includes(cat)
-                                                            ? current.filter(c => c !== cat)
-                                                            : [...current, cat];
-                                                        setModalidad({ ...modalidad, selectedCats: next });
-                                                    }}
-                                                    className={`py-3.5 rounded-xl border transition-all text-[11px] font-bold uppercase ${isSelected ? "bg-azul-primary border-azul-primary text-white shadow-azul-dark/40" : "bg-muted/30 border-border text-muted-foreground hover:border-azul-primary/50 hover:text-foreground"}`}
-                                                >
-                                                    {cat}
-                                                </button>
-                                            );
-                                        })}
+                                    <div className={`grid grid-cols-5 gap-1.5 transition-all duration-300 ${modalidad.mode !== "categorias" ? "opacity-40 grayscale pointer-events-none" : "opacity-100"}`}>
+                                        {allCategoriesFromDb.map(cat => (
+                                            <button
+                                                key={cat}
+                                                disabled={modalidad.mode !== "categorias"}
+                                                onClick={() => {
+                                                    const next = modalidad.selectedCats.includes(cat) ? modalidad.selectedCats.filter(c => c !== cat) : [...modalidad.selectedCats, cat];
+                                                    setModalidad({ ...modalidad, selectedCats: next });
+                                                }}
+                                                className={`py-2 rounded-lg border text-[10px] font-black transition-all ${modalidad.selectedCats.includes(cat) ? "bg-azul-primary border-azul-primary text-white" : "bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-200"}`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
+
+                        {/* Botón Acción Final */}
+                        <button
+                            onClick={() => setShowReview(true)}
+                            disabled={isLoading}
+                            className="w-full bg-azul-primary hover:bg-azul-dark text-white py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-azul-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 group"
+                        >
+                            {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform text-celeste" />}
+                            <span className="text-sm">Revisar y Publicar</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Botón de Acción Final */}
-                <div className="w-full pt-10 border-t border-border/50">
-                    <button
-                        onClick={() => setShowReview(true)}
-                        disabled={isLoading}
-                        className="w-full shadow-2xl shadow-azul-dark/20 bg-azul-primary hover:bg-azul-dark text-white py-5 sm:py-6 rounded-3xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 group border border-azul-primary/20"
-                    >
-                        {isLoading ? (
-                            <Activity className="h-6 w-6 animate-spin" />
-                        ) : (
-                            <Sparkles className="h-6 w-6 group-hover:scale-110 transition-transform text-celeste" />
-                        )}
-                        <span className="text-lg">
-                            {isEditing ? "Revisar y Guardar" : "Revisar y Publicar"}
-                        </span>
-                    </button>
+                {/* MODAL DE REVISIÓN PREMIUM */}
+                <AnimatePresence>
+                    {showReview && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setShowReview(false)}
+                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-200 overflow-hidden"
+                            >
+                                <div className="p-6 space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-azul-primary/10 flex items-center justify-center">
+                                            <Target className="w-5 h-5 text-azul-primary" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black uppercase italic tracking-tighter text-slate-800">Verificación de Datos</h3>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Paso final de seguridad</p>
+                                        </div>
+                                    </div>
 
-                    <AnimatePresence>
-                        {showReview && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    onClick={() => setShowReview(false)}
-                                    className="absolute inset-0 bg-background/80 backdrop-blur-xl"
-                                />
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    className="relative w-full max-w-lg bg-card border border-border rounded-[3rem] shadow-2xl overflow-hidden"
-                                >
-                                    {/* Modal Header */}
-                                    <div className="p-8 pb-4 flex items-center justify-between border-b border-border/50">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl bg-azul-primary/10 flex items-center justify-center border border-azul-primary/20">
-                                                <Target className="w-5 h-5 text-azul-primary" />
+                                    <div className="space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-100">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Nombre del Evento</p>
+                                            <p className="text-base font-black uppercase italic text-slate-800 tracking-tight leading-tight">{info.name}</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Formato</p>
+                                                <p className="text-[10px] font-bold uppercase text-azul-primary">{tournamentType === 'round_robin' ? 'Round Robin' : 'Americano'}</p>
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-black uppercase italic tracking-tight">Revisión Final</h3>
-                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Verifica los datos antes de publicar</p>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Impacto</p>
+                                                <p className="text-[10px] font-bold uppercase text-celeste">{hasPoints ? 'Suma Puntos' : 'Sin Puntos'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Fecha Inicio</p>
+                                                <p className="text-[10px] font-bold text-slate-700">{info.startDate || 'No definida'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Inscripción</p>
+                                                <p className="text-[10px] font-bold text-slate-700">{info.registrationFee ? `$${info.registrationFee}` : 'Gratis'}</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setShowReview(false)} className="p-2 hover:bg-muted rounded-xl transition-colors">
-                                            <ChevronLeft className="w-5 h-5 rotate-180" />
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={handleSubmit}
+                                            disabled={isLoading}
+                                            className="w-full bg-azul-primary hover:bg-azul-dark text-white h-14 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-azul-primary/20 transition-all hover:scale-[1.02]"
+                                        >
+                                            {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                                            {isEditing ? "Confirmar Cambios" : "Confirmar y Publicar"}
+                                        </button>
+                                        <button
+                                            onClick={() => setShowReview(false)}
+                                            className="w-full text-slate-400 hover:text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] py-2 transition-colors"
+                                        >
+                                            Volver a Corregir
                                         </button>
                                     </div>
-
-                                    {/* Modal Content - Resume Card */}
-                                    <div className="p-8 space-y-8">
-                                        {/* Name & Type */}
-                                        <div className="space-y-4">
-                                            <p className="text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">{info.name}</p>
-                                        </div>
-
-                                        {/* Key Info Grid */}
-                                        <div className="grid grid-cols-2 gap-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Tipo de Torneo</p>
-                                                <p className="text-sm font-black italic uppercase tracking-widest text-azul-primary">
-                                                    {tournamentType === 'round_robin' ? 'Round Robin' : 'Americano'}
-                                                </p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inicio</p>
-                                                <p className="text-sm font-black italic">{info.startDate || "No definida"} {info.time ? `- ${info.time}` : ""}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Participación</p>
-                                                <p className="text-sm font-black italic uppercase tracking-widest text-azul-primary">{modalidad.participacion === 'pareja' ? 'Parejas' : 'Individual'}</p>
-                                            </div>
-                                            <div className="col-span-2 space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Ubicación Google Maps</p>
-                                                <p className="text-[10px] font-black italic truncate">{info.surface || "No definida"}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Categorías</p>
-                                                <p className="text-[10px] font-black italic uppercase tracking-widest">
-                                                    {modalidad.mode === 'libre' ? 'Libre' : modalidad.selectedCats.join(', ') || 'Sin seleccionar'}
-                                                </p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Inscripción</p>
-                                                <p className="text-sm font-black italic">{info.registrationFee ? `$${info.registrationFee}` : "Gratis"}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Cupos Máx.</p>
-                                                <p className="text-sm font-black italic">{info.maxSlots && info.maxSlots !== "0" ? info.maxSlots : "Ilimitados"}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Apertura Club</p>
-                                                <p className="text-[10px] font-black italic">{info.openDateClub || "No definida"}</p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/70">Apertura Gral.</p>
-                                                <p className="text-[10px] font-black italic">{info.openDateGeneral || "No definida"}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Status Badge */}
-                                        {isMembersOnly && (
-                                            <div className="bg-azul-primary/10 border border-azul-primary/20 px-6 py-4 rounded-2xl flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Shield className="w-5 h-5 text-azul-primary" />
-
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-azul-primary italic">Torneo Exclusivo Miembros</span>
-                                                </div>
-                                                <div className="w-2 h-2 rounded-full bg-azul-primary animate-pulse" />
-                                            </div>
-                                        )}
-
-                                        {/* Description & Prizes Section */}
-                                        <div className="space-y-3 bg-azul-primary/5 p-6 rounded-[2rem] border border-azul-primary/10">
-                                            <p className="text-[8px] font-black uppercase tracking-widest text-azul-primary/60">Descripción y Premios</p>
-                                            <p className="text-[10px] font-medium text-foreground/70 leading-relaxed line-clamp-3 italic">
-                                                {info.description || "Sin descripción proporcionada."}
-                                            </p>
-                                        </div>
-
-                                        {/* Action */}
-                                        <div className="flex flex-col gap-4">
-                                            <button
-                                                onClick={handleSubmit}
-                                                disabled={isLoading}
-                                                className="w-full bg-azul-primary hover:bg-azul-dark text-white h-16 rounded-2xl font-black uppercase italic tracking-tighter flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-dark/20"
-                                            >
-                                                {isLoading ? <Activity className="w-6 h-6 animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
-                                                {isEditing ? "Confirmar Cambios" : "Confirmar y Publicar"}
-                                            </button>
-                                            <button
-                                                onClick={() => setShowReview(false)}
-                                                className="w-full text-muted-foreground hover:text-foreground text-[10px] font-black uppercase tracking-[0.3em] py-2 transition-colors"
-                                            >
-                                                Volver a Corregir
-                                            </button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>
-                    <p className="text-center mt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 mb-10">
-                        Al publicar, el torneo será visible para todos los jugadores de la plataforma.
-                    </p>
-                </div>
-
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
