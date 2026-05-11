@@ -1158,13 +1158,13 @@ export default function AmericanoManager({
                 isRefreshing={isRefreshing}
             />
 
-            <div className="w-full px-3 md:px-6 py-3 pb-24">
-                <div className="mb-3 text-center">
-                    <h1 className="text-lg md:text-xl font-black text-foreground tracking-tight italic uppercase leading-none">
+            <div className="w-full px-3 md:px-4 py-2 pb-24">
+                <div className="mb-2 text-center">
+                    <h1 className="text-sm md:text-base font-black text-foreground tracking-tighter italic uppercase leading-none">
                         {tournamentName}
                     </h1>
-                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.25em] text-foreground/30">
-                        Gestión • Torneo Americano
+                    <p className="mt-0.5 text-[6px] font-black uppercase tracking-[0.4em] text-foreground/20">
+                        SISTEMA DE GESTIÓN TÁCTICA • AMERICANO
                     </p>
                 </div>
 
@@ -1199,11 +1199,11 @@ export default function AmericanoManager({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="space-y-12 pb-24"
+                            className="space-y-6 pb-24"
                         >
-                            <div className="text-center space-y-4">
-                                <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">Canchas En Vivo</h2>
-                                <p className="text-azul-primary text-[8px] font-black uppercase tracking-[0.3em]">Gestión de Partidos en Tiempo Real</p>
+                            <div className="text-center space-y-2">
+                                <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic leading-none">Canchas En Vivo</h2>
+                                <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.4em]">Gestión Técnica de Partidos</p>
 
                                 {/* Progress Tracker */}
                                 {(() => {
@@ -1212,22 +1212,22 @@ export default function AmericanoManager({
                                     const progress = totalPossibleMatches > 0 ? (completedMatches / totalPossibleMatches) * 100 : 0;
 
                                     return (
-                                        <div className="max-w-2xl mx-auto mt-4 space-y-2">
+                                        <div className="max-w-xl mx-auto mt-2 space-y-1.5">
                                             <div className="flex items-end justify-between px-1">
                                                 <div className="flex flex-col text-left">
-                                                    <span className="text-[7px] font-black uppercase tracking-[0.4em] text-foreground/30 leading-none mb-1">Progreso Fase de Grupos</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-lg font-black italic text-foreground/80">{completedMatches}</span>
-                                                        <span className="text-[8px] font-black uppercase text-foreground/20 italic">/</span>
-                                                        <span className="text-lg font-black italic text-foreground/80">{totalPossibleMatches}</span>
-                                                        <span className="text-[8px] font-black uppercase text-foreground/20 italic ml-1 tracking-widest">Finalizados</span>
+                                                    <span className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/30 leading-none mb-0.5">Progreso Fase de Grupos</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-base font-black italic text-foreground/80">{completedMatches}</span>
+                                                        <span className="text-[7px] font-black uppercase text-foreground/20 italic">/</span>
+                                                        <span className="text-base font-black italic text-foreground/80">{totalPossibleMatches}</span>
+                                                        <span className="text-[6px] font-black uppercase text-foreground/20 italic ml-1 tracking-widest">Partidos</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <span className="text-2xl font-black italic text-azul-primary leading-none">{Math.round(progress)}<span className="text-sm ml-0.5">%</span></span>
+                                                    <span className="text-xl font-black italic text-azul-primary leading-none">{Math.round(progress)}<span className="text-xs ml-0.5">%</span></span>
                                                 </div>
                                             </div>
-                                            <div className="h-2.5 w-full bg-muted/30 rounded-full overflow-hidden border border-border/40 p-[2px]">
+                                            <div className="h-2 w-full bg-muted/20 rounded-full overflow-hidden border border-border/30 p-[1px]">
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${progress}%` }}

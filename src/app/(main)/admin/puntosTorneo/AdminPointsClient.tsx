@@ -44,21 +44,19 @@ export default function AdminPointsClient({
     };
 
     return (
-        <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-4 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
             {/* Header */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-azul-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                        <Shield className="w-5 h-5 text-azul-primary" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">
+                        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-azul-primary/60 italic leading-none block mb-1">Admin Tactical Console</span>
+                        <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter text-foreground leading-none">
                             Control Global de Torneos
                         </h1>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-azul-primary/60">
-                            Administración Centralizada ACAP
-                        </p>
                     </div>
                 </div>
             </div>
@@ -69,26 +67,26 @@ export default function AdminPointsClient({
                 <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8"
+                    className="bg-card/40 border border-border rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                <Trophy className="w-5 h-5 text-amber-500" />
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                <Trophy className="w-4 h-4 text-amber-500" />
                             </div>
-                            <h2 className="text-lg font-black uppercase italic tracking-tight italic">Sistema de Puntos</h2>
+                            <h2 className="text-sm font-black uppercase italic tracking-tight">Sistema de Puntos</h2>
                         </div>
                         <button
                             onClick={handleSavePoints}
                             disabled={isSaving}
-                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-4 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                         >
                             {isSaving ? <Activity className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                            Guardar Puntos
+                            GUARDAR
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
                             { id: "winner", label: "Campeón", icon: Trophy, color: "text-amber-500" },
                             { id: "finalist", label: "Finalista", icon: Star, color: "text-slate-400" },
@@ -98,10 +96,10 @@ export default function AdminPointsClient({
                             { id: "groupMatchWin", label: "Victoria en Zona", icon: Activity, color: "text-celeste" },
                             { id: "participation", label: "Asistencia", icon: Users, color: "text-celeste" },
                         ].map((item: any) => (
-                            <div key={item.id} className="space-y-2">
-                                <div className="flex items-center gap-2 ml-1">
-                                    <item.icon className={`w-3 h-3 ${item.color}`} />
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">
+                            <div key={item.id} className="space-y-1.5">
+                                <div className="flex items-center gap-2 ml-0.5">
+                                    <item.icon className={`w-2.5 h-2.5 ${item.color}`} />
+                                    <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/80">
                                         {item.label}
                                     </label>
                                 </div>
@@ -109,16 +107,16 @@ export default function AdminPointsClient({
                                     type="number"
                                     value={points[item.id]}
                                     onChange={(e) => setPoints({ ...points, [item.id]: Number(e.target.value) })}
-                                    className="w-full bg-muted/30 border border-border rounded-2xl py-4 px-6 text-foreground font-black text-lg italic outline-none focus:border-azul-primary transition-all"
+                                    className="w-full bg-muted/20 border border-border rounded-lg py-2 px-3 text-foreground font-black text-sm italic outline-none focus:ring-1 focus:ring-azul-primary transition-all"
                                 />
                             </div>
                         ))}
                     </div>
 
-                    <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-2xl p-4 flex gap-3 italic">
-                        <Info className="w-5 h-5 text-azul-primary shrink-0" />
-                        <p className="text-[10px] text-azul-primary/70 leading-relaxed font-medium">
-                            Estos puntos se aplican a todos los torneos nuevos. Los clubes ya no pueden modificar estos valores individualmente para garantizar la integridad del ranking.
+                    <div className="bg-azul-primary/[0.03] border border-azul-primary/10 rounded-xl p-3 flex gap-2.5 italic">
+                        <Info className="w-4 h-4 text-azul-primary shrink-0 mt-0.5" />
+                        <p className="text-[8px] text-azul-primary/70 leading-relaxed font-black uppercase tracking-tight">
+                            INFRAESTRUCTURA DE PUNTOS: ESTOS VALORES SE APLICAN A TODOS LOS TORNEOS NUEVOS PARA GARANTIZAR LA INTEGRIDAD DEL RANKING CENTRALIZADO.
                         </p>
                     </div>
                 </motion.div>
@@ -128,117 +126,111 @@ export default function AdminPointsClient({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-card/40 border border-border rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl space-y-8 h-fit"
+                    className="bg-card/40 border border-border rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5 h-fit"
                 >
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
-                                <Settings2 className="w-5 h-5 text-azul-primary" />
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                <Settings2 className="w-4 h-4 text-azul-primary" />
                             </div>
-                            <h2 className="text-lg font-black uppercase italic tracking-tight italic">Límites de Clubes</h2>
+                            <h2 className="text-sm font-black uppercase italic tracking-tight">Límites de Clubes</h2>
                         </div>
                         <button
                             onClick={handleSaveLimits}
                             disabled={isSaving}
-                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            className="bg-azul-primary hover:bg-azul-primary/90 text-white px-4 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                         >
                             {isSaving ? <Activity className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                            Guardar Límites
+                            GUARDAR
                         </button>
                     </div>
 
                     <div className="space-y-6">
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                    Torneos Abiertos por Club
+                                <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-0.5">
+                                    Torneos Abiertos / Club
                                 </label>
-                                <span className="text-[10px] font-black text-azul-primary bg-azul-primary/10 px-2 py-0.5 rounded-lg border border-azul-primary/20">
-                                    Públicos
+                                <span className="text-[7px] font-black text-azul-primary bg-azul-primary/10 px-1.5 py-0.5 rounded border border-azul-primary/20">
+                                    PÚBLICOS
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <div className="relative flex-1 group">
                                     <input
                                         type="number"
                                         value={limits.openLimit === -1 ? "" : limits.openLimit}
                                         disabled={limits.openLimit === -1}
                                         onChange={(e) => setLimits({ ...limits, openLimit: Number(e.target.value) })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all disabled:opacity-50"
+                                        className="w-full bg-muted/20 border border-border rounded-lg py-2.5 px-4 text-foreground font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
                                         placeholder={limits.openLimit === -1 ? "∞" : "0"}
                                     />
                                     {limits.openLimit === -1 && (
-                                        <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
-                                            <span className="text-3xl font-black text-azul-primary italic">∞</span>
+                                        <div className="absolute inset-0 flex items-center px-4 pointer-events-none">
+                                            <span className="text-2xl font-black text-azul-primary italic">∞</span>
                                         </div>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => setLimits({ ...limits, openLimit: limits.openLimit === -1 ? 3 : -1 })}
-                                    className={`px-6 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border ${
+                                    className={`px-4 py-2.5 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all active:scale-95 border ${
                                         limits.openLimit === -1 
-                                            ? "bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20" 
-                                            : "bg-muted/30 text-muted-foreground border-border hover:border-azul-primary/40"
+                                            ? "bg-azul-primary text-white border-azul-primary shadow-sm" 
+                                            : "bg-muted/20 text-muted-foreground border-border hover:border-azul-primary/40"
                                     }`}
                                 >
                                     {limits.openLimit === -1 ? "Ilimitado" : "Sin Límite"}
                                 </button>
-                                <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
-                                    Máximo de torneos abiertos permitidos por club.
-                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-3 pt-4 border-t border-border/50">
+                        <div className="space-y-2 pt-4 border-t border-border/30">
                             <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                    Torneos Cerrados por Club
+                                <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-0.5">
+                                    Torneos Cerrados / Club
                                 </label>
-                                <span className="text-[10px] font-black text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20">
-                                    Sólo Miembros
+                                <span className="text-[7px] font-black text-purple-500 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                    EXCLUSIVOS
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <div className="relative flex-1 group">
                                     <input
                                         type="number"
                                         value={limits.closedLimit === -1 ? "" : limits.closedLimit}
                                         disabled={limits.closedLimit === -1}
                                         onChange={(e) => setLimits({ ...limits, closedLimit: Number(e.target.value) })}
-                                        className="w-full bg-muted/30 border border-border rounded-2xl py-5 px-6 text-foreground font-black text-2xl italic outline-none focus:border-azul-primary transition-all disabled:opacity-50"
+                                        className="w-full bg-muted/20 border border-border rounded-lg py-2.5 px-4 text-foreground font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
                                         placeholder={limits.closedLimit === -1 ? "∞" : "0"}
                                     />
                                     {limits.closedLimit === -1 && (
-                                        <div className="absolute inset-0 flex items-center px-6 pointer-events-none">
-                                            <span className="text-3xl font-black text-purple-500 italic">∞</span>
+                                        <div className="absolute inset-0 flex items-center px-4 pointer-events-none">
+                                            <span className="text-2xl font-black text-purple-500 italic">∞</span>
                                         </div>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => setLimits({ ...limits, closedLimit: limits.closedLimit === -1 ? 3 : -1 })}
-                                    className={`px-6 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border ${
+                                    className={`px-4 py-2.5 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all active:scale-95 border ${
                                         limits.closedLimit === -1 
-                                            ? "bg-purple-500 text-white border-purple-500 shadow-lg shadow-purple-500/20" 
-                                            : "bg-muted/30 text-muted-foreground border-border hover:border-purple-500/40"
+                                            ? "bg-purple-500 text-white border-purple-500 shadow-sm" 
+                                            : "bg-muted/20 text-muted-foreground border-border hover:border-purple-500/40"
                                     }`}
                                 >
                                     {limits.closedLimit === -1 ? "Ilimitado" : "Sin Límite"}
                                 </button>
-                                <div className="hidden sm:block text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[120px] leading-tight opacity-60">
-                                    Máximo de torneos exclusivos para miembros permitidos.
-                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-[2rem] bg-gradient-to-br from-azul-primary to-azul-primary text-white shadow-xl shadow-azul-primary/20 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                            <Shield className="w-20 h-20" />
+                    <div className="p-4 rounded-xl bg-azul-primary text-white shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform">
+                            <Shield className="w-12 h-12" />
                         </div>
                         <div className="relative z-10">
-                            <h3 className="text-[11px] font-black uppercase tracking-widest mb-1 opacity-80">Estado del Sistema</h3>
-                            <p className="text-xl font-black italic uppercase tracking-tight leading-tight">
-                                Restricciones de seguridad activas.
+                            <h3 className="text-[9px] font-black uppercase tracking-widest mb-0.5 opacity-80">Estado del Sistema</h3>
+                            <p className="text-sm font-black italic uppercase tracking-tight leading-tight">
+                                Restricciones activas.
                             </p>
                         </div>
                     </div>

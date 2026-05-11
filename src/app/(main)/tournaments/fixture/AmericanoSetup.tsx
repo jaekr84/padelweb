@@ -290,98 +290,89 @@ export default function AmericanoSetup({
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
-                <div className="max-w-6xl mx-auto space-y-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
-                                className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                Volver
-                            </button>
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/40 px-4 py-2">
+                <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
+                            className="group flex items-center gap-1.5 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-muted/20 px-2.5 py-1.5 rounded-lg border border-border/40"
+                        >
+                            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
+                            Volver
+                        </button>
 
-                            <div className="h-6 w-px bg-border/50 hidden md:block" />
+                        <div className="h-5 w-px bg-border/40 hidden md:block" />
 
-                            <div className="hidden md:flex flex-col">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60 leading-none mb-1">Torneo</span>
-                                <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
-                                    {tournamentName}
-                                </span>
-                            </div>
-
-                            <div className="h-6 w-[1px] bg-border/50 hidden md:block" />
-
-                            <div className="hidden md:flex items-center gap-1">
-                                {[
-                                    { 
-                                        id: "checkin", 
-                                        icon: UserCheck, 
-                                        label: "Asistencia", 
-                                        active: step === "checkin",
-                                        completed: false
-                                    },
-                                    { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
-                                    { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
-                                ].map((s, idx) => {
-                                    const Icon = s.icon;
-                                    return (
-                                        <div key={s.id} className="flex items-center">
-                                            <button 
-                                                onClick={() => {
-                                                    if (s.disabled) return;
-                                                    if (s.id === "checkin") setStep("checkin");
-                                                }}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${s.active 
-                                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" 
-                                                    : s.completed 
-                                                        ? "text-azul-primary bg-celeste/10 hover:bg-celeste/20"
-                                                        : "text-foreground/70 hover:bg-white/5"}`}
-                                            >
-                                                <Icon className="w-3.5 h-3.5" />
-                                                <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
-                                                {s.completed && <Check className="w-2.5 h-2.5 ml-1" />}
-                                            </button>
-                                            {idx < 3 && (
-                                                <div className="px-1.5 text-foreground/10">
-                                                    <ChevronRight className="w-3.5 h-3.5" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                        <div className="hidden md:flex flex-col">
+                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-azul-primary/60 leading-none mb-0.5">Torneo</span>
+                            <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px]">
+                                {tournamentName}
+                            </span>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="px-4 py-2 bg-azul-primary/5 border border-azul-primary/10 text-azul-primary rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
-                                Método Americano
-                            </div>
-                            {!isIndividual && (
-                                <div className="p-2 rounded-xl bg-celeste/5 border border-celeste/10 text-azul-primary" title="Torneo de Parejas">
-                                    <Users2 className="w-4 h-4" />
-                                </div>
-                            )}
+                        <div className="h-5 w-[1px] bg-border/40 hidden md:block" />
+
+                        <div className="hidden md:flex items-center gap-1">
+                            {[
+                                { 
+                                    id: "checkin", 
+                                    icon: UserCheck, 
+                                    label: "Asistencia", 
+                                    active: step === "checkin",
+                                    completed: false
+                                },
+                                { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
+                                { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
+                            ].map((s, idx) => {
+                                const Icon = s.icon;
+                                return (
+                                    <div key={s.id} className="flex items-center">
+                                        <button 
+                                            disabled={s.disabled}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${s.active 
+                                                ? "bg-azul-primary text-white shadow-sm" 
+                                                : "text-foreground/40"}`}
+                                        >
+                                            <Icon className="w-3 h-3" />
+                                            <span className="text-[8px] font-black uppercase tracking-tight">{s.label}</span>
+                                        </button>
+                                        {idx < 2 && (
+                                            <div className="px-1 text-foreground/10">
+                                                <ChevronRight className="w-3 h-3" />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
+                    <div className="flex items-center gap-3">
+                        <div className="px-3 py-1.5 bg-azul-primary/5 border border-azul-primary/10 text-azul-primary rounded-lg text-[7px] font-black uppercase tracking-[0.2em] italic hidden sm:block">
+                            Método Americano
+                        </div>
+                        {!isIndividual && (
+                            <div className="p-1.5 rounded-lg bg-celeste/5 border border-celeste/10 text-azul-primary">
+                                <Users2 className="w-3.5 h-3.5" />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
+            <main className="max-w-4xl mx-auto px-4 py-6 pb-32">
                 <AnimatePresence mode="wait">
                     {step === "checkin" && (
-                        <motion.div key="checkin" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-6">
-                            <div className="flex items-center justify-between px-2">
+                        <motion.div key="checkin" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
                                 <div>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Asistencia</h2>
-                                    <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Confirmá quiénes están para jugar</p>
+                                    <h2 className="text-sm font-black uppercase italic tracking-tight text-foreground">Asistencia</h2>
+                                    <p className="text-foreground/40 text-[6px] font-black tracking-[0.4em] uppercase">Panel de Control Técnico</p>
                                 </div>
                                 <div className="flex gap-2">
                                         <button
                                             onClick={() => setIsPlayerModalOpen(true)}
-                                            className="px-3 py-1.5 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2"
+                                            className="px-2.5 py-1.5 bg-azul-primary text-white rounded-lg font-black uppercase italic text-[7px] tracking-widest hover:bg-azul-dark shadow-sm transition-all flex items-center gap-1.5"
                                         >
                                             <Plus className="w-3 h-3" />
                                             Inscribir
@@ -389,35 +380,35 @@ export default function AmericanoSetup({
                                 </div>
                             </div>
 
-                            <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
-                                <div className="px-6 py-4 border-b border-border/50 flex flex-col md:flex-row gap-4 bg-muted/20">
+                            <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-xl overflow-hidden shadow-sm">
+                                <div className="px-4 py-2 border-b border-border/40 flex flex-col md:flex-row gap-3 bg-muted/10">
                                     <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
+                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20" />
                                         <input 
                                             type="text" 
                                             placeholder="Filtrar por nombre..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-background border border-border rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-azul-primary transition-all"
+                                            className="w-full bg-muted/20 border border-border/40 rounded-lg py-1.5 pl-9 pr-3 text-[9px] font-bold outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-foreground/20"
                                         />
                                     </div>
                                     <select 
                                         value={categoryFilter}
                                         onChange={(e) => setCategoryFilter(e.target.value)}
-                                        className="bg-background border border-border rounded-xl px-4 py-2 text-[10px] font-black uppercase italic outline-none focus:border-azul-primary appearance-none cursor-pointer"
+                                        className="bg-muted/20 border border-border/40 rounded-lg px-3 py-1.5 text-[8px] font-black uppercase outline-none focus:ring-1 focus:ring-azul-primary cursor-pointer"
                                     >
                                         <option value="all">Categoría (Todas)</option>
                                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                     </select>
                                 </div>
-                                <div className="px-4 py-2.5 flex items-center justify-between">
-                                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Jugadores</span>
-                                    <div className="flex gap-4">
-                                        <button onClick={() => handleCheckAll('paid')} className="text-[8px] font-black uppercase tracking-widest text-azul-primary">Todo Pago</button>
-                                        <button onClick={() => handleCheckAll('present')} className="text-[8px] font-black uppercase tracking-widest text-celeste">Todo Ok</button>
+                                <div className="px-4 py-1.5 flex items-center justify-between bg-muted/5 border-b border-border/30">
+                                    <span className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/20">Lista de Jugadores</span>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => handleCheckAll('paid')} className="text-[7px] font-black uppercase tracking-widest text-azul-primary/60 hover:text-azul-primary transition-colors">Todo Pago</button>
+                                        <button onClick={() => handleCheckAll('present')} className="text-[7px] font-black uppercase tracking-widest text-azul-primary/60 hover:text-azul-primary transition-colors">Todo Ok</button>
                                     </div>
                                 </div>
-                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                <div className="">
                                     {(() => {
                                         const flatPlayers: any[] = [];
                                         players.forEach(p => {
@@ -455,31 +446,31 @@ export default function AmericanoSetup({
                                             const isPresent = present.has(p.checkinId);
 
                                             return (
-                                                <div key={p.checkinId} className={`flex items-center justify-between px-4 py-1.5 transition-all duration-300 ${isPresent ? "bg-celeste/5 border-l-4 border-l-celeste" : "bg-card border-l-4 border-l-transparent"}`}>
+                                                <div key={p.checkinId} className={`flex items-center justify-between px-4 py-1 border-b border-border/30 last:border-0 transition-all duration-300 ${isPresent ? "bg-azul-primary/[0.03]" : "bg-card"}`}>
                                                     <div className="flex flex-col">
-                                                        <p className={`text-xs font-black uppercase italic transition-colors ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
+                                                        <p className={`text-[9px] font-black uppercase transition-colors ${isPresent ? "text-foreground" : "text-foreground/50"}`}>
                                                             {p.displayName}
                                                         </p>
                                                         {!isIndividual && (
-                                                            <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-widest leading-none">
-                                                                Equipo: <span className="text-azul-primary/40">{p.pairName}</span>
+                                                            <p className="text-[6px] text-foreground/20 font-black uppercase tracking-[0.2em] leading-none">
+                                                                Equipo • {p.pairName}
                                                             </p>
                                                         )}
                                                     </div>
                                                     <div className="flex gap-1.5">
                                                         <button 
                                                             onClick={() => togglePaid(p.checkinId)} 
-                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${isPaid ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
-                                                            title="Confirmar Pago"
+                                                            className={`w-6 h-6 rounded flex items-center justify-center border transition-all ${isPaid ? "bg-azul-primary border-azul-primary text-white shadow-sm" : "border-border/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                            title="Pago"
                                                         >
-                                                            <CreditCard className="w-3.5 h-3.5" />
+                                                            <CreditCard className="w-2.5 h-2.5" />
                                                         </button>
                                                         <button 
                                                             onClick={() => togglePresent(p.checkinId)} 
-                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${isPresent ? "bg-celeste border-celeste text-azul-primary shadow-lg shadow-celeste/20" : "border-border text-foreground/20 hover:text-foreground/70"}`}
-                                                            title="Confirmar Presencia"
+                                                            className={`w-6 h-6 rounded flex items-center justify-center border transition-all ${isPresent ? "bg-azul-primary border-azul-primary text-white shadow-sm" : "border-border/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                            title="Presente"
                                                         >
-                                                            <UserCheck className="w-3.5 h-3.5" />
+                                                            <UserCheck className="w-2.5 h-2.5" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -492,14 +483,14 @@ export default function AmericanoSetup({
                             <button
                                 onClick={handleStart}
                                 disabled={PRESENT_PLAYERS.length < 2 || saving}
-                                className="w-full py-6 bg-azul-primary hover:bg-azul-dark text-white rounded-3xl font-black uppercase italic tracking-[0.2em] shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-azul-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
                             >
                                 {saving ? (
-                                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        Iniciar Torneo con {present.size} participantes
-                                        <ArrowRight className="w-5 h-5" />
+                                        Iniciar Torneo Técnico • {present.size} Jugadores
+                                        <ArrowRight className="w-4 h-4" />
                                     </>
                                 )}
                             </button>

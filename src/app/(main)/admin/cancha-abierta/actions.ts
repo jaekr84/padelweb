@@ -154,6 +154,24 @@ export async function createOpenCourtEventAction(data: {
             creatorId: session.userId,
         });
 
+        // Inicializar por defecto 2 canchas
+        await db.insert(openCourtCourts).values([
+            {
+                id: crypto.randomUUID(),
+                eventId: id,
+                courtNumber: 1,
+                isActive: true,
+                status: "available",
+            },
+            {
+                id: crypto.randomUUID(),
+                eventId: id,
+                courtNumber: 2,
+                isActive: true,
+                status: "available",
+            }
+        ]);
+
         revalidatePath("/admin/cancha-abierta");
         return { success: true, id };
     } catch (error) {

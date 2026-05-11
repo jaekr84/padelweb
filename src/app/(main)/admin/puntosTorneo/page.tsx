@@ -10,10 +10,13 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPointsPage() {
     const session = await getSession();
-    if (!session?.userId) redirect("/login");
+    if (!session || !session.dbRole.includes("superadmin")) {
+        redirect("/home");
+    }
 
-    const [user] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
-    if (user?.role !== "superadmin") redirect("/home");
+    if (session.role !== "superadmin") {
+        redirect("/home");
+    }
 
     const points = await getTournamentPointsConfig();
     const limits = await getClubTournamentLimits();

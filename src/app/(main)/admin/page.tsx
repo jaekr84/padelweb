@@ -147,25 +147,25 @@ export default async function AdminDashboardPage() {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16 space-y-16">
+            <div className="relative z-10 max-w-6xl mx-auto px-6 py-6 md:py-8 space-y-8">
 
                 {/* Header */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/40 pb-12 animate-fade-in">
-                    <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/80">{isClub ? "Gestión de Club" : "Administración General"}</p>
-                        <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tight text-foreground leading-[0.9]">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-6 animate-fade-in">
+                    <div className="space-y-0.5">
+                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-emerald-500/80">{isClub ? "Gestión de Club" : "Administración General"}</p>
+                        <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tight text-foreground leading-tight">
                             Panel de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">{isClub ? "Gestión" : "Control"}</span>
                         </h1>
                     </div>
-                    <Link href="/home" className="group flex items-center gap-3 glass-card px-6 py-3.5 rounded-2xl transition-all hover:shadow-lg active:scale-95 relative overflow-hidden">
+                    <Link href="/home" className="group flex items-center gap-2.5 glass-card px-4 py-2.5 rounded-xl transition-all hover:shadow-lg active:scale-95 relative overflow-hidden">
                         <div className="absolute inset-0 bg-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Home className="relative z-10 w-4 h-4 text-muted-foreground transition-colors group-hover:text-emerald-500" />
-                        <span className="relative z-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground">Volver</span>
+                        <Home className="relative z-10 w-3.5 h-3.5 text-muted-foreground transition-colors group-hover:text-emerald-500" />
+                        <span className="relative z-10 text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground">Volver</span>
                     </Link>
                 </header>
 
                 {/* Dashboard Stats */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.1s', opacity: 0 }}>
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '0.1s', opacity: 0 }}>
                     {[
                         { label: 'Torneos', value: tournamentCount, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/5' },
                         { label: 'Jugadores', value: playerCount, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/5' },
@@ -173,43 +173,43 @@ export default async function AdminDashboardPage() {
                     ].map((stat) => (
                         <div
                             key={stat.label}
-                            className="glass-card p-8 rounded-[2rem] flex items-center justify-between group transition-all duration-300 relative overflow-hidden"
+                            className="glass-card p-4 rounded-2xl flex items-center justify-between group transition-all duration-300 relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                            <div className="space-y-1 relative z-10">
-                                <dd className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                            <div className="space-y-0.5 relative z-10">
+                                <dd className="text-[8px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
                                     Total {stat.label}
                                 </dd>
-                                <dt className={`text-4xl font-black tracking-tighter ${stat.color}`}>
+                                <dt className={`text-2xl font-black tracking-tighter ${stat.color}`}>
                                     {stat.value}
                                 </dt>
                             </div>
-                            <div className={`relative z-10 w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity backdrop-blur-sm`}>
-                                <stat.icon className="w-5 h-5 shrink-0" />
+                            <div className={`relative z-10 w-10 h-10 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity backdrop-blur-sm`}>
+                                <stat.icon className="w-4.5 h-4.5 shrink-0" />
                             </div>
                         </div>
                     ))}
                 </section>
 
                 {/* Grid of 8x3 Square Buttons */}
-                <section className="space-y-8 animate-fade-in" style={{ animationDelay: '0.2s', opacity: 0 }}>
-                    <div className="border-l-2 border-emerald-500/40 pl-6 space-y-1">
-                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Accesos Rápidos</h2>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Panel administrativo</p>
+                <section className="space-y-4 animate-fade-in" style={{ animationDelay: '0.2s', opacity: 0 }}>
+                    <div className="border-l-2 border-emerald-500/40 pl-4 space-y-0.5">
+                        <h2 className="text-xl font-black uppercase italic tracking-tight text-foreground">Accesos Rápidos</h2>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Panel administrativo</p>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                         {allItems.map((item, idx) => (
                             <Link
                                 key={item.label + idx}
                                 href={item.href}
-                                className="group glass-card rounded-2xl aspect-square flex flex-col items-center justify-center transition-all duration-300 active:scale-95 shadow-sm hover:shadow-emerald-500/10 relative overflow-hidden"
+                                className="group glass-card rounded-xl aspect-square flex flex-col items-center justify-center transition-all duration-300 active:scale-95 shadow-sm hover:shadow-emerald-500/10 relative overflow-hidden"
                             >
-                                <div className="absolute top-[-20%] right-[-20%] w-16 h-16 bg-blue-500/10 rounded-full blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                <div className={`relative z-10 w-12 h-12 rounded-2xl bg-muted/30 ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform mb-3`}>
-                                    <item.icon className="w-5 h-5" />
+                                <div className="absolute top-[-20%] right-[-20%] w-12 h-12 bg-blue-500/10 rounded-full blur-[15px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                <div className={`relative z-10 w-9 h-9 rounded-xl bg-muted/30 ${item.color} flex items-center justify-center group-hover:scale-110 transition-transform mb-2`}>
+                                    <item.icon className="w-4.5 h-4.5" />
                                 </div>
-                                <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.15em] text-foreground text-center px-2 line-clamp-2">
+                                <span className="relative z-10 text-[8px] font-black uppercase tracking-[0.15em] text-foreground text-center px-2 line-clamp-2">
                                     {item.label}
                                 </span>
                             </Link>
@@ -219,20 +219,20 @@ export default async function AdminDashboardPage() {
 
                 {/* Notifications / Critical Actions Callout */ }
     {(!isClub) && (
-        <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
-            <div className="flex items-center gap-6 relative z-10">
-                <div className="w-14 h-14 bg-foreground border border-border text-background rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                    <MessageSquare className="w-6 h-6" />
+        <section className="glass-card p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in relative overflow-hidden" style={{ animationDelay: '0.3s', opacity: 0 }}>
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none" />
+            <div className="flex items-center gap-4 relative z-10">
+                <div className="w-11 h-11 bg-foreground border border-border text-background rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                    <MessageSquare className="w-5 h-5" />
                 </div>
-                <div className="space-y-1">
-                    <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
-                    <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
+                <div className="space-y-0.5">
+                    <h4 className="text-base font-black uppercase italic tracking-tight text-foreground">Acciones Críticas</h4>
+                    <p className="text-[10px] font-medium text-muted-foreground/80 leading-relaxed max-w-md">Hay solicitudes pendientes que requieren tu validación manual para completar el registro.</p>
                 </div>
             </div>
             <Link
                 href="/admin/requests"
-                className="glow-button relative z-10 w-full md:w-auto px-10 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
+                className="glow-button relative z-10 w-full md:w-auto px-6 bg-foreground hover:bg-foreground/90 text-background flex items-center justify-center py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-900/20 active:scale-95 text-center border border-border"
             >
                 Revisar Ahora
             </Link>

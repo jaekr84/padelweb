@@ -296,7 +296,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20 pt-8 px-4 md:px-8 font-sans selection:bg-indigo-500/30 relative">
+        <div className="min-h-screen bg-background text-foreground pb-10 pt-4 px-4 md:px-6 font-sans selection:bg-indigo-500/30 relative">
             <style>{`
                 @keyframes gradient-x {
                     0% { background-position: 0% 50%; }
@@ -338,30 +338,30 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
             </div>
 
-            <div className="w-full space-y-8 relative z-10">
+            <div className="w-full space-y-4 relative z-10">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-4 mb-2">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                                <Shield className="w-6 h-6 text-indigo-600" />
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                <Shield className="w-5 h-5 text-indigo-600" />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600 italic">Admin Tactical Console</span>
-                                <div className="h-px w-12 bg-indigo-500/30 mt-1" />
+                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-indigo-600 italic">Admin Tactical Console</span>
+                                <div className="h-px w-10 bg-indigo-500/30 mt-0.5" />
                             </div>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-foreground">
+                        <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-none text-foreground">
                             Gestión de <span className="text-gradient-animate">Usuarios</span>
                         </h1>
-                        <p className="text-muted-foreground text-[10px] font-black mt-2 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <Layers className="w-3 h-3" /> Promoción de categorías, asignación de puntos y control de acceso neural
+                        <p className="text-muted-foreground text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <Layers className="w-2.5 h-2.5" /> Promoción de categorías, puntos y control de acceso
                         </p>
                     </div>
                 </div>
 
                 {/* KPI Section */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full">
                     {[
                         { label: "Total Personal", value: stats.total, icon: Users, color: "indigo" },
                         { label: "Tier 1 Admin", value: stats.superadmins, icon: Shield, color: "indigo" },
@@ -373,15 +373,15 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-card border border-border rounded-2xl p-4 shadow-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden"
+                            className="bg-card border border-border rounded-xl p-3 shadow-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden"
                         >
                             <div className="flex items-center gap-3 relative z-10">
-                                <div className={`w-10 h-10 rounded-xl bg-${kpi.color}-500/10 border border-${kpi.color}-500/20 flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                    <kpi.icon className={`w-5 h-5 text-${kpi.color}-600`} />
+                                <div className={`w-8 h-8 rounded-lg bg-${kpi.color}-500/10 border border-${kpi.color}-500/20 flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                    <kpi.icon className={`w-4 h-4 text-${kpi.color}-600`} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{kpi.label}</span>
-                                    <span className="text-xl font-black italic leading-none text-foreground tracking-tighter">{kpi.value}</span>
+                                    <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{kpi.label}</span>
+                                    <span className="text-lg font-black italic leading-none text-foreground tracking-tighter">{kpi.value}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -389,59 +389,59 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 </div>
 
                 {/* Dashboard Controls Row */}
-                <div className="flex flex-col md:flex-row gap-3 items-center bg-card/30 backdrop-blur-md border border-border p-3 rounded-2xl shadow-sm">
+                <div className="flex flex-col md:flex-row gap-2 items-center bg-card/30 backdrop-blur-md border border-border p-2 rounded-xl shadow-sm">
                     {/* Filters Section */}
                     <div className="relative group flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
                             placeholder="BUSCAR USUARIO (EMAIL, NOMBRE)..."
                             value={tournamentFilter.search}
                             onChange={(e) => setTournamentFilter({ search: e.target.value })}
-                            className="pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl w-full text-[9px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all placeholder:text-muted-foreground/60"
+                            className="pl-9 pr-4 py-2 bg-muted/50 border border-border rounded-lg w-full text-[8px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all placeholder:text-muted-foreground/60"
                         />
                     </div>
 
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                        <div className="relative min-w-[100px]">
+                    <div className="flex items-center gap-1.5 w-full md:w-auto">
+                        <div className="relative min-w-[90px]">
                             <select
                                 value={tournamentFilter.status}
                                 onChange={(e) => setTournamentFilter({ status: e.target.value })}
-                                className="px-3 py-2 bg-muted/50 border border-border rounded-lg text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
+                                className="px-2.5 py-1.5 bg-muted/50 border border-border rounded-md text-[8px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
                             >
                                 <option value="all">ESTADOS</option>
                                 <option value="active">ACTIVOS</option>
                                 <option value="disabled">INACTIVOS</option>
                                 <option value="banned">BANEADOS</option>
                             </select>
-                            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                            <Filter className="absolute right-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-muted-foreground pointer-events-none" />
                         </div>
 
-                        <div className="relative min-w-[100px]">
+                        <div className="relative min-w-[90px]">
                             <select
                                 value={tournamentFilter.role}
                                 onChange={(e) => setTournamentFilter({ role: e.target.value })}
-                                className="px-3 py-2 bg-muted/50 border border-border rounded-lg text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
+                                className="px-2.5 py-1.5 bg-muted/50 border border-border rounded-md text-[8px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
                             >
                                 <option value="all">ROLES</option>
                                 <option value="jugador">JUGADOR</option>
                                 <option value="club">CLUB</option>
                                 <option value="superadmin">ADMIN</option>
                             </select>
-                            <UserCog className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                            <UserCog className="absolute right-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-muted-foreground pointer-events-none" />
                         </div>
 
-                        <div className="relative min-w-[100px]">
+                        <div className="relative min-w-[90px]">
                             <select
                                 value={tournamentFilter.gender || "all"}
                                 onChange={(e) => setTournamentFilter({ gender: e.target.value })}
-                                className="px-3 py-2 bg-muted/50 border border-border rounded-lg text-[9px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
+                                className="px-2.5 py-1.5 bg-muted/50 border border-border rounded-md text-[8px] font-black uppercase tracking-widest outline-none appearance-none focus:border-indigo-500/50 transition-all w-full text-foreground"
                             >
                                 <option value="all">GÉNERO</option>
                                 <option value="masculino">MASC.</option>
                                 <option value="femenino">FEM.</option>
                             </select>
-                            <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                            <Users className="absolute right-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-muted-foreground pointer-events-none" />
                         </div>
                     </div>
                 </div>
@@ -514,8 +514,6 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-3 pt-1 relative z-10">
-
-
                                         <div className="grid grid-cols-2 gap-2.5 flex-1">
                                             {banned ? (
                                                 <button
@@ -599,15 +597,15 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                         })}
                     </div>
 
-                    <div className="hidden md:block bg-card border border-border rounded-3xl overflow-hidden shadow-xl relative">
+                    <div className="hidden md:block bg-card border border-border rounded-xl overflow-hidden shadow-sm relative">
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-auto">
                                 <thead>
                                     <tr className="bg-muted/50 border-b border-border">
-                                        <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                                        <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Roles / Acceso</th>
-                                        <th className="px-5 py-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-40">Estado</th>
-                                        <th className="px-5 py-4 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground w-64">Operaciones</th>
+                                        <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
+                                        <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Roles / Acceso</th>
+                                        <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground w-32">Estado</th>
+                                        <th className="px-4 py-2.5 text-right text-[8px] font-black uppercase tracking-widest text-muted-foreground w-56">Operaciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
@@ -622,66 +620,64 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 animate={{ opacity: 1 }}
                                                 className={`group hover:bg-muted/30 transition-colors relative ${isLoading(user.id) ? "opacity-50 pointer-events-none" : ""}`}
                                             >
-                                                <td className="px-5 py-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-black italic text-indigo-600 text-sm shrink-0">
+                                                <td className="px-4 py-2">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-black italic text-indigo-600 text-[11px] shrink-0">
                                                             {(user.firstName || "U").charAt(0)}
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-sm font-black uppercase italic tracking-tight truncate text-foreground">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-[11px] font-black uppercase italic tracking-tight truncate text-foreground">
                                                                     {user.firstName} {user.lastName}
                                                                 </span>
                                                                 {user.documentNumber && (
-                                                                    <span className="text-[8px] font-black text-indigo-500/50 uppercase bg-indigo-500/5 px-1.5 py-0.5 rounded border border-indigo-500/10">
+                                                                    <span className="text-[7px] font-black text-indigo-500/50 uppercase bg-indigo-500/5 px-1 py-0.5 rounded border border-indigo-500/10">
                                                                         {user.documentNumber}
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <span className="text-[9px] font-black text-muted-foreground/60 truncate uppercase tracking-tighter">
+                                                            <span className="text-[8px] font-black text-muted-foreground/60 truncate uppercase tracking-tighter">
                                                                 {user.email}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
-
-                                                <td className="px-5 py-3">
+                                                <td className="px-4 py-2">
                                                     <div className="flex flex-wrap gap-1">
                                                         {user.role.split(',').map(r => (
-                                                            <span key={r} className={`text-[8px] font-black uppercase tracking-tight px-2 py-0.5 rounded border ${r === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-700' : r === 'club' ? 'bg-violet-500/10 border-violet-500/20 text-violet-700' : 'bg-zinc-500/10 border-zinc-500/20 text-muted-foreground'}`}>
+                                                            <span key={r} className={`text-[7px] font-black uppercase tracking-tight px-1.5 py-0.5 rounded border ${r === 'superadmin' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-700' : r === 'club' ? 'bg-violet-500/10 border-violet-500/20 text-violet-700' : 'bg-zinc-500/10 border-zinc-500/20 text-muted-foreground'}`}>
                                                                 {r}
                                                             </span>
                                                         ))}
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3">
+                                                <td className="px-4 py-2">
                                                     <div className="flex flex-col">
                                                         {banned ? (
-                                                            <div className="flex items-center gap-1.5 text-[8px] font-black uppercase text-amber-600 bg-amber-500/5 px-2 py-1 rounded-lg border border-amber-500/20 w-fit">
-                                                                <Clock className="w-3 h-3" /> HASTA {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
+                                                            <div className="flex items-center gap-1 text-[7px] font-black uppercase text-amber-600 bg-amber-500/5 px-1.5 py-0.5 rounded-md border border-amber-500/20 w-fit">
+                                                                <Clock className="w-2.5 h-2.5" /> {format(new Date(user.bannedUntil!), "dd/MM", { locale: es })}
                                                             </div>
                                                         ) : isInactive ? (
-                                                            <div className="flex items-center gap-1.5 text-[8px] font-black uppercase text-rose-600 bg-rose-500/5 px-2 py-1 rounded-lg border border-rose-500/20 w-fit">
-                                                                <XCircle className="w-3 h-3" /> INACTIVO
+                                                            <div className="flex items-center gap-1 text-[7px] font-black uppercase text-rose-600 bg-rose-500/5 px-1.5 py-0.5 rounded-md border border-rose-500/20 w-fit">
+                                                                <XCircle className="w-2.5 h-2.5" /> INACTIVO
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-1.5 text-[8px] font-black uppercase text-emerald-600 bg-emerald-500/5 px-2 py-1 rounded-lg border border-emerald-500/20 w-fit">
+                                                            <div className="flex items-center gap-1 text-[7px] font-black uppercase text-emerald-600 bg-emerald-500/5 px-1.5 py-0.5 rounded-md border border-emerald-500/20 w-fit">
                                                                 <div className="w-1 h-1 rounded-full bg-emerald-600 animate-pulse" /> ACTIVO
                                                             </div>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5">
-
+                                                <td className="px-4 py-2 text-right">
+                                                    <div className="flex items-center justify-end gap-1">
                                                         {banned ? (
                                                             <button
                                                                 onClick={() => handleUnban(user)}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-95"
                                                                 title="HABILITAR"
                                                             >
-                                                                <UserCheck className="w-3.5 h-3.5" />
-                                                                <span className="text-[8px] font-black uppercase">HABILITAR</span>
+                                                                <UserCheck className="w-2.5 h-2.5" />
+                                                                <span className="text-[7px] font-black uppercase">HABILITAR</span>
                                                             </button>
                                                         ) : (
                                                             <button
@@ -689,12 +685,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                     setSelectedUser(user);
                                                                     setIsBanModalOpen(true);
                                                                 }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-border hover:bg-amber-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
+                                                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 text-amber-600 border border-border hover:bg-amber-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
                                                                 title="BAN"
                                                                 disabled={isLoading(user.id)}
                                                             >
-                                                                <Ban className="w-3.5 h-3.5" />
-                                                                <span className="text-[8px] font-black uppercase">BAN</span>
+                                                                <Ban className="w-2.5 h-2.5" />
+                                                                <span className="text-[7px] font-black uppercase">BAN</span>
                                                             </button>
                                                         )}
 
@@ -703,12 +699,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setSelectedUser(user);
                                                                 setResetModal({ isOpen: true, step: 'confirm', userName: user.firstName || user.email, userId: user.id });
                                                             }}
-                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
+                                                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
                                                             disabled={isLoading(user.id)}
                                                             title="Restablecer Contraseña"
                                                         >
-                                                            <Key className="w-3.5 h-3.5" />
-                                                            <span className="text-[8px] font-black uppercase">RESET</span>
+                                                            <Key className="w-2.5 h-2.5" />
+                                                            <span className="text-[7px] font-black uppercase">RESET</span>
                                                         </button>
 
                                                         <button
@@ -717,12 +713,12 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewRoles(user.role.split(',').map(r => r.trim().toLowerCase()));
                                                                 setIsRoleModalOpen(true);
                                                             }}
-                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
+                                                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-20"
                                                             title="ROLES"
                                                             disabled={isLoading(user.id)}
                                                         >
-                                                            <UserCog className="w-3.5 h-3.5" />
-                                                            <span className="text-[8px] font-black uppercase">ROLES</span>
+                                                            <UserCog className="w-2.5 h-2.5" />
+                                                            <span className="text-[7px] font-black uppercase">ROLES</span>
                                                         </button>
 
                                                         <button
@@ -731,27 +727,27 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                 setNewClubId(user.clubId);
                                                                 setIsClubModalOpen(true);
                                                             }}
-                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95"
                                                             title="CLUB"
                                                         >
-                                                            <Shield className="w-3.5 h-3.5" />
-                                                            <span className="text-[8px] font-black uppercase">CLUB</span>
+                                                            <Shield className="w-2.5 h-2.5" />
+                                                            <span className="text-[7px] font-black uppercase">CLUB</span>
                                                         </button>
 
                                                         <button
                                                             onClick={() => handleToggleStatus(user)}
-                                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all border shadow-sm active:scale-95 ${isInactive
+                                                            className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all border shadow-sm active:scale-95 ${isInactive
                                                                 ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-600 hover:text-white"
                                                                 : "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"}`}
                                                             title={isInactive ? "ACTIVAR" : "DESACTIVAR"}
                                                             disabled={isLoading(user.id)}
                                                         >
                                                             {isLoading(user.id) ? (
-                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                <Loader2 className="w-2.5 h-2.5 animate-spin" />
                                                             ) : (
                                                                 <>
-                                                                    {isInactive ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                                                                    <span className="text-[8px] font-black uppercase">{isInactive ? "ACTIVAR" : "DESACTIVAR"}</span>
+                                                                    {isInactive ? <CheckCircle className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+                                                                    <span className="text-[7px] font-black uppercase">{isInactive ? "ACTIVAR" : "DESACTIVAR"}</span>
                                                                 </>
                                                             )}
                                                         </button>
@@ -841,8 +837,6 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     </div>
                 </DialogContent>
             </Dialog>
-
-
 
             <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
                 <DialogContent className="max-w-md bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl p-0 [&>button:last-child]:hidden">
@@ -961,6 +955,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                     </div>
                 </DialogContent>
             </Dialog>
+
             {/* Integrated Reset Password Flow Modal */}
             <Dialog open={resetModal.isOpen} onOpenChange={(open) => setResetModal(prev => ({ ...prev, isOpen: open }))}>
                 <DialogContent className="max-w-md bg-card border border-border p-8 rounded-[2.5rem] shadow-2xl [&>button:last-child]:hidden">

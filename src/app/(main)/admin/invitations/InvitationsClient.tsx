@@ -86,50 +86,50 @@ export default function InvitationsClient() {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] mix-blend-overlay"></div>
             </div>
 
-            <div className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 py-6 md:py-10 space-y-8 font-sans selection:bg-emerald-500/30">
+            <div className="relative z-10 flex-1 w-full max-w-2xl mx-auto px-4 py-4 md:py-6 space-y-4 font-sans selection:bg-emerald-500/30">
                 <motion.header 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-2 border-b border-border/50 pb-6 mb-4"
+                    className="space-y-1.5 border-b border-border/50 pb-4 mb-2"
                 >
-                    <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
                             <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
-                            <User className="relative z-10 w-6 h-6" />
+                            <User className="relative z-10 w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-1">Accesos al sistema</p>
-                            <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tight leading-none text-foreground">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-0.5">Accesos al sistema</p>
+                            <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tight leading-none text-foreground">
                                 Invitación de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Jugadores</span>
                             </h1>
                         </div>
                     </div>
-                <p className="text-muted-foreground/80 text-sm font-medium leading-relaxed pl-[76px]">
-                    Genera links de invitación exclusivos para nuevos jugadores. Los links tienen una validez de 24 horas y permiten el acceso directo al registro.
+                <p className="text-muted-foreground/80 text-[10px] font-medium leading-relaxed pl-[56px]">
+                    Genera links de invitación exclusivos para nuevos jugadores. Validez de 24 horas y acceso directo al registro.
                 </p>
                 </motion.header>
 
-                <form ref={formRef} action={handleSubmit} className="glass-card p-6 md:p-10 rounded-[2.5rem] flex flex-col gap-8 relative overflow-hidden shadow-2xl transition-all group">
+                <form ref={formRef} action={handleSubmit} className="glass-card p-4 md:p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden shadow-xl transition-all group">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                    <div className="flex flex-col gap-4 relative z-10">
-                    <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Configuración del Link</label>
-                    <div className="bg-muted/30 border border-border/50 p-6 rounded-[2rem] flex items-center gap-6">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                            <User className="w-6 h-6" />
+                    <div className="flex flex-col gap-2 relative z-10">
+                    <label className="text-[8px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Configuración del Link</label>
+                    <div className="bg-muted/30 border border-border/50 p-3 rounded-xl flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <User className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[12px] font-black uppercase tracking-wider text-foreground">Rol: Jugador Libre</span>
-                            <span className="text-[9px] font-bold text-muted-foreground opacity-70 leading-tight mt-0.5">Acceso estándar al feed y torneos públicos</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-foreground">Rol: Jugador Libre</span>
+                            <span className="text-[8px] font-bold text-muted-foreground opacity-70 leading-tight">Acceso estándar al feed y torneos públicos</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-6 relative z-10">
-                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-amber-600  flex items-start gap-4">
-                        <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
-                        <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
-                            El link será de uso único y tendrá una <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>. Luego deberá generarse uno nuevo.
+                <div className="flex flex-col gap-4 relative z-10">
+                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-600  flex items-start gap-3">
+                        <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                        <p className="text-[8px] font-bold leading-relaxed uppercase tracking-wide">
+                            Link de uso único con <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>.
                         </p>
                     </div>
 
@@ -137,28 +137,28 @@ export default function InvitationsClient() {
                         <motion.div 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="flex flex-col gap-3 p-2 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 relative overflow-hidden"
+                            className="flex flex-col gap-2 p-1.5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 relative overflow-hidden"
                         >
-                            <label className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-500 ml-4 pt-2 relative z-10">Link Generado</label>
-                            <div className="flex flex-col sm:flex-row gap-2 px-2 pb-2 relative z-10">
-                                <div className="flex-1 bg-muted border border-border rounded-2xl px-5 py-4 text-[11px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 ">
+                            <label className="text-[8px] font-black uppercase tracking-[0.25em] text-emerald-500 ml-3 pt-1 relative z-10">Link Generado</label>
+                            <div className="flex flex-col sm:flex-row gap-1.5 px-1.5 pb-1.5 relative z-10">
+                                <div className="flex-1 bg-muted border border-border rounded-xl px-3 py-2.5 text-[10px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 ">
                                     {generatedLink}
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5">
                                     <button
                                         type="button"
                                         onClick={copyToClipboard}
-                                        className="flex-1 sm:w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center active:scale-90"
+                                        className="flex-1 sm:w-10 h-10 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center active:scale-90"
                                     >
-                                        {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                     </button>
                                     <a
                                         href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te enviamos tu link de invitación para ACAP (válido por 24hs): ${generatedLink}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex-1 sm:w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-90 flex items-center justify-center"
+                                        className="flex-1 sm:w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-90 flex items-center justify-center"
                                     >
-                                        <Send className="w-5 h-5" />
+                                        <Send className="w-4 h-4" />
                                     </a>
                                 </div>
                             </div>
@@ -166,19 +166,19 @@ export default function InvitationsClient() {
                     )}
                 </div>
 
-                <div className="flex justify-end pt-4 relative z-10">
+                <div className="flex justify-end pt-2 relative z-10">
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="glow-button w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background px-12 py-5 rounded-full border border-border text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-emerald-900/30 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.98]"
+                        className="glow-button w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background px-8 py-2.5 rounded-xl border border-border text-[9px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-emerald-900/30 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.98]"
                     >
                         {isPending ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" /> Procesando...
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Procesando...
                             </>
                         ) : (
                             <>
-                                Generar Link <LinkIcon className="w-4 h-4 ml-1" />
+                                Generar Link <LinkIcon className="w-3.5 h-3.5 ml-1" />
                             </>
                         )}
                     </button>

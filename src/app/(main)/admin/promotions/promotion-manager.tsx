@@ -212,42 +212,42 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/5 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
             </div>
 
-            <div className="w-full space-y-10 relative z-10">
+            <div className="w-full space-y-4 relative z-10">
                 {/* ── Header ── */}
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-4 mb-2">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                                <TrendingUp className="w-6 h-6 text-indigo-600" />
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
+                                <TrendingUp className="w-5 h-5 text-indigo-600" />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600 italic">Promoción de Jugadores</span>
-                                <div className="h-px w-12 bg-indigo-500/30 mt-1" />
+                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-indigo-600 italic">Admin Tactical Console</span>
+                                <div className="h-px w-10 bg-indigo-500/30 mt-0.5" />
                             </div>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none text-foreground">
-                            Gestión de <span className="text-indigo-600">Ascensos</span>
+                        <h1 className="text-xl md:text-3xl font-black uppercase italic tracking-tighter leading-none text-foreground">
+                            Gestión de <span className="text-gradient-animate">Ascensos</span>
                         </h1>
-                        <p className="text-muted-foreground text-[10px] font-black mt-2 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <Activity className="w-3 h-3" /> Revisión de méritos y promoción administrativa de categorías
+                        <p className="text-muted-foreground text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <Activity className="w-2.5 h-2.5" /> Revisión de méritos y promoción administrativa de categorías
                         </p>
                     </div>
 
                     {/* ── Tab Switcher ── */}
-                    <div className="flex bg-muted border border-border rounded-[1.5rem] p-1.5 gap-1.5">
+                    <div className="flex bg-muted/50 border border-border rounded-xl p-0.5 gap-0.5 self-end">
                         <button
                             onClick={() => setActiveTab("candidates")}
-                            className={`flex items-center gap-2 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === "candidates" ? "bg-indigo-600 text-white shadow-xl" : "text-muted-foreground hover:bg-card"}`}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "candidates" ? "bg-background text-indigo-600 shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
                         >
-                            <Users className="w-4 h-4" />
+                            <Users className="w-3.5 h-3.5" />
                             Candidatos
                         </button>
                         <button
                             onClick={() => setActiveTab("settings")}
-                            className={`flex items-center gap-2 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-xl" : "text-muted-foreground hover:bg-card"}`}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "settings" ? "bg-background text-indigo-600 shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
                         >
-                            <Shield className="w-4 h-4" />
-                            Configuración
+                            <Shield className="w-3.5 h-3.5" />
+                            Ajustes
                         </button>
                     </div>
                 </div>
@@ -347,7 +347,7 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                             )}
 
                             {/* ── Dashboard Stats ── */}
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+                            <div className="grid grid-cols-3 gap-2 w-full">
                                 {[
                                     { icon: Star, color: 'amber', label: 'ELITE DETECTADA', value: analyzedPlayers.filter(p => p.score > 2).length },
                                     { icon: Trophy, color: 'emerald', label: 'LÍDERES PUNTOS', value: analyzedPlayers.filter(p => p.merits.pointsMet).length },
@@ -358,15 +358,15 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.05 * i }}
-                                        className="bg-card border border-border rounded-2xl p-4 shadow-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden"
+                                        className="bg-card border border-border rounded-xl p-3 shadow-sm group hover:border-indigo-500/30 transition-all relative overflow-hidden"
                                     >
                                         <div className="flex items-center gap-3 relative z-10">
-                                            <div className={`w-10 h-10 rounded-xl bg-${stat.color}-500/10 border border-${stat.color}-500/20 flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+                                            <div className={`w-8 h-8 rounded-lg bg-${stat.color}-500/10 border border-${stat.color}-500/20 flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                                <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</span>
-                                                <span className="text-xl font-black italic leading-none text-foreground tracking-tighter">{stat.value}</span>
+                                                <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+                                                <span className="text-base font-black italic leading-none text-foreground tracking-tighter">{stat.value}</span>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -375,21 +375,21 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
 
 
                             {/* ── Controls ── */}
-                            <div className="flex flex-col md:flex-row gap-5 relative z-10">
+                            <div className="flex flex-col md:flex-row gap-2 relative z-10">
                                 <div className="relative flex-1 group">
-                                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="FILTRAR POR IDENTIDAD O EMAIL..."
+                                        placeholder="BUSCAR JUGADOR (NOMBRE, EMAIL)..."
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
-                                        className="w-full bg-muted border border-border rounded-[1.5rem] py-5 pl-14 pr-6 text-[10px] font-black uppercase tracking-[0.2em] text-foreground outline-none focus:border-indigo-500/50 transition-all shadow-inner placeholder:text-muted-foreground/60"
+                                        className="w-full bg-card/50 border border-border rounded-lg py-2.5 pl-10 pr-4 text-[9px] font-black uppercase tracking-widest text-foreground outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-sm placeholder:text-muted-foreground/50"
                                     />
                                 </div>
-                                <div className="flex bg-muted border border-border rounded-[1.5rem] p-1.5 gap-1.5 overflow-x-auto no-scrollbar">
+                                <div className="flex bg-muted/50 border border-border rounded-lg p-0.5 gap-0.5 overflow-x-auto no-scrollbar">
                                     {[
                                         { id: "all", label: "GENERAL" },
-                                        { id: "pending", label: "PENDIENTES" },
+                                        { id: "pending", label: "ASCENSOS" },
                                         { id: "points", label: "PUNTOS" },
                                         { id: "titles", label: "TÍTULOS" },
                                         { id: "finals", label: "FINALES" },
@@ -397,7 +397,7 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                                         <button
                                             key={f.id}
                                             onClick={() => setFilterBy(f.id as any)}
-                                            className={`px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all shadow-sm ${filterBy === f.id ? "bg-indigo-600 text-white shadow-indigo-500/20" : "text-muted-foreground hover:bg-card hover:text-foreground"}`}
+                                            className={`px-3 py-1.5 rounded-md text-[8px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterBy === f.id ? "bg-background text-indigo-600 shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
                                         >
                                             {f.label}
                                         </button>
@@ -406,16 +406,16 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                             </div>
 
                             {/* ── Player Table ── */}
-                            <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl relative">
+                            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm relative">
                                 <div className="overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left border-collapse table-auto">
                                         <thead>
-                                            <tr className="bg-muted/70 border-b border-border">
-                                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
-                                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Cat / PTS</th>
-                                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Méritos</th>
-                                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Destino</th>
-                                                <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
+                                            <tr className="bg-muted/30 border-b border-border">
+                                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Cat / PTS</th>
+                                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Méritos</th>
+                                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Destino</th>
+                                                <th className="px-4 py-3 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/50">
@@ -432,71 +432,71 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                                                             transition={{ delay: idx * 0.02 }}
                                                             className={`group hover:bg-muted/30 transition-colors ${loading === p.id ? "opacity-50 pointer-events-none" : ""}`}
                                                         >
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-black italic text-indigo-600 text-sm shrink-0">
+                                                            <td className="px-4 py-2.5">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-black italic text-indigo-600 text-xs shrink-0">
                                                                         {(p.firstName || p.name || "U").charAt(0)}
                                                                     </div>
                                                                     <div className="flex flex-col min-w-0">
-                                                                        <span className="text-sm font-black uppercase italic tracking-tight truncate text-foreground">
+                                                                        <span className="text-[11px] font-black uppercase italic tracking-tight truncate text-foreground">
                                                                             {p.name}
                                                                         </span>
-                                                                        <span className="text-[9px] font-black text-muted-foreground/60 truncate uppercase tracking-tighter">
+                                                                        <span className="text-[8px] font-black text-muted-foreground/60 truncate uppercase tracking-tighter">
                                                                             {p.email}
                                                                         </span>
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4 text-center">
+                                                            <td className="px-4 py-2.5 text-center">
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-lg font-black italic text-foreground tracking-tighter leading-none">{p.category}</span>
-                                                                    <span className="text-[9px] font-black text-indigo-600/70 uppercase mt-1">{p.points.toLocaleString()} PTS</span>
+                                                                    <span className="text-sm font-black italic text-foreground tracking-tighter leading-none">{p.category}</span>
+                                                                    <span className="text-[8px] font-black text-indigo-600/70 uppercase mt-0.5">{p.points.toLocaleString()} PTS</span>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex flex-wrap justify-center gap-1.5 max-w-[200px] mx-auto">
+                                                            <td className="px-4 py-2.5">
+                                                                <div className="flex flex-wrap justify-center gap-1 max-w-[140px] mx-auto">
                                                                     {p.merits.pointsMet && (
-                                                                        <span className={`text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${p.merits.pointsExceed ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-700' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700'}`} title="Puntos cumplidos">
-                                                                            PTS +
+                                                                        <span className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${p.merits.pointsExceed ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-700' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700'}`} title="Puntos cumplidos">
+                                                                            PTS+
                                                                         </span>
                                                                     )}
                                                                     {p.titles > 0 && (
-                                                                        <span className="text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-700" title="Títulos obtenidos">
-                                                                            {p.titles} T
+                                                                        <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-700" title="Títulos obtenidos">
+                                                                            {p.titles}T
                                                                         </span>
                                                                     )}
                                                                     {p.finals > 0 && (
-                                                                        <span className="text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-500/10 border border-slate-500/20 text-slate-700" title="Finales jugadas">
-                                                                            {p.finals} F
+                                                                        <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-500/10 border border-slate-500/20 text-slate-700" title="Finales jugadas">
+                                                                            {p.finals}F
                                                                         </span>
                                                                     )}
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex justify-center min-w-[120px]">
+                                                            <td className="px-4 py-2.5">
+                                                                <div className="flex justify-center min-w-[100px]">
                                                                     <select
                                                                         value={selectedCat}
                                                                         onChange={(e) => setSelectedCategoryPerPlayer(prev => ({ ...prev, [p.id]: e.target.value }))}
-                                                                        className="bg-muted/70 border border-border rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer w-full text-center"
+                                                                        className="bg-muted/70 border border-border rounded-lg px-2 py-1.5 text-[8px] font-black uppercase tracking-widest text-foreground outline-none focus:border-indigo-500/50 transition-all appearance-none cursor-pointer w-full text-center"
                                                                     >
-                                                                        <option value="" disabled>CATEGORÍA</option>
+                                                                        <option value="" disabled>CAT</option>
                                                                         {categories.map(c => (
                                                                             <option
                                                                                 key={c.id}
                                                                                 value={c.name}
                                                                                 disabled={c.name === p.category}
                                                                             >
-                                                                                {c.name === p.category ? `ACTUAL` : `${c.name}`}
+                                                                                {c.name === p.category ? `ACT` : `${c.name}`}
                                                                             </option>
                                                                         ))}
                                                                     </select>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <div className="flex items-center justify-end gap-2">
+                                                            <td className="px-4 py-2.5 text-right">
+                                                                <div className="flex items-center justify-end gap-1.5">
                                                                     <button
                                                                         onClick={() => handlePlayerDetails(p)}
-                                                                        className="p-2.5 rounded-xl bg-muted border border-border text-muted-foreground hover:text-indigo-600 hover:border-indigo-500/30 transition-all active:scale-95"
+                                                                        className="p-2 rounded-lg bg-muted border border-border text-muted-foreground hover:text-indigo-600 hover:border-indigo-500/30 transition-all active:scale-95"
                                                                         title="HISTORIAL"
                                                                     >
                                                                         <Activity className="w-3.5 h-3.5" />
@@ -504,9 +504,9 @@ export default function PromotionManager({ initialPlayers, categories, initialMo
                                                                     <button
                                                                         disabled={loading === p.id || !selectedCat}
                                                                         onClick={() => handlePromote(p, selectedCat)}
-                                                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 border ${loading === p.id || !selectedCat ? 'bg-muted text-muted-foreground border-border cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-400/20 shadow-lg shadow-indigo-600/10'}`}
+                                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 border ${loading === p.id || !selectedCat ? 'bg-muted text-muted-foreground border-border cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-500 border-indigo-400/20 shadow-sm'}`}
                                                                     >
-                                                                        {loading === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
+                                                                        {loading === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
                                                                         <span>ASCENDER</span>
                                                                     </button>
                                                                 </div>
