@@ -36,12 +36,12 @@ export function TournamentGroupsView({
 }: TournamentGroupsViewProps) {
     return (
         <section className="space-y-4">
-            <div className="text-center">
-                <h2 className="text-base md:text-lg font-black text-foreground tracking-tighter uppercase italic">Fase de Grupos</h2>
-                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Resultados y Clasificación</p>
+            <div className="flex flex-col items-center">
+                <h2 className="text-sm font-black text-foreground tracking-tighter uppercase italic leading-none">Fase de Grupos</h2>
+                <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.3em] mt-1">Resultados y Clasificación</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-3">
                 {groups.map((g: Group) => {
                     const standings = computeStandings(g.id);
                     const groupMatches = matches
@@ -49,12 +49,12 @@ export function TournamentGroupsView({
                         .sort((a, b) => a.id.localeCompare(b.id));
 
                     return (
-                        <div key={g.id} className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full group/g">
-                            <div className="bg-muted/50 px-3 py-2 border-b border-border/40 flex items-center justify-between">
-                                <div className="flex flex-col gap-1">
+                        <div key={g.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full group/g">
+                            <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between">
+                                <div className="flex flex-col gap-0.5">
                                     {!readOnly && (
-                                        <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-xl border border-border/50 focus-within:border-azul-primary/50 transition-all w-fit">
-                                            <MapPin className="w-2.5 h-2.5 text-azul-primary/50" />
+                                        <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 rounded-lg border border-slate-200 focus-within:border-azul-primary/50 transition-all w-fit shadow-sm">
+                                            <MapPin className="w-2.5 h-2.5 text-azul-primary/40" />
                                             <input
                                                 type="text"
                                                 placeholder="CANCHA..."
@@ -65,68 +65,68 @@ export function TournamentGroupsView({
                                                     );
                                                     setGroups(newGroups);
                                                 }}
-                                                className="w-16 bg-transparent border-none p-0 text-[10px] font-black italic uppercase text-azul-primary/70 placeholder:text-azul-primary/20 focus:ring-0 outline-none"
+                                                className="w-12 bg-transparent border-none p-0 text-[8px] font-black italic uppercase text-azul-primary placeholder:text-slate-300 focus:ring-0 outline-none"
                                             />
                                         </div>
                                     )}
                                     {readOnly && g.courtNumber && (
-                                        <div className="flex items-center gap-2 bg-azul-primary/5 px-3 py-1 rounded-xl border border-azul-primary/10 w-fit">
-                                            <MapPin className="w-3 h-3 text-azul-primary" />
-                                            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-azul-primary">{g.courtNumber}</span>
+                                        <div className="flex items-center gap-1.5 bg-azul-primary/5 px-2 py-0.5 rounded-lg border border-azul-primary/10 w-fit">
+                                            <MapPin className="w-2.5 h-2.5 text-azul-primary" />
+                                            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-azul-primary">{g.courtNumber}</span>
                                         </div>
                                     )}
-                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-azul-primary leading-none mt-1">{g.name}</h3>
+                                    <h3 className="text-base font-black italic uppercase tracking-tighter text-slate-800 leading-none">{g.name}</h3>
                                 </div>
-                                <Users2 className="w-6 h-6 text-foreground/10 group-hover:text-azul-primary/20" />
+                                <Users2 className="w-4 h-4 text-slate-300" />
                             </div>
-                            <div className="px-3 py-2 border-b border-border/30 bg-card/20">
+                            <div className="px-3 py-1 border-b border-slate-100 bg-slate-50/30">
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
-                                    <table className="w-full text-[10px]">
+                                    <table className="w-full text-[9px]">
                                         <thead>
-                                            <tr className="border-b border-border/30">
-                                                <th className="px-1 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">OK</th>
-                                                <th className="px-1 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">$$</th>
-                                                <th className="px-3 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Pos</th>
-                                                <th className="px-2 py-2 text-left font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">Jugador</th>
-                                                <th className="px-3 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">PG</th>
-                                                <th className="px-3 py-2 text-center font-black italic text-foreground/60 uppercase tracking-widest text-[8px]">+/-</th>
+                                            <tr className="border-b border-slate-100">
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">OK</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">$$</th>
+                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[7px]">#</th>
+                                                <th className="px-1 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[7px]">Jugador</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">PG</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">+/-</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {standings.map((s, idx: number) => (
-                                                <tr key={s.playerId} className="border-b border-border/10 hover:bg-muted/20 transition-colors">
-                                                    <td className="px-1 py-1 text-center">
+                                                <tr key={s.playerId} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-0.5 py-0.5 text-center">
                                                         <button
                                                             onClick={() => togglePresent(s.playerId)}
-                                                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary shadow-sm shadow-celeste/20" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-white shadow-sm shadow-celeste/20" : "bg-slate-100 text-slate-300 hover:text-celeste"}`}
                                                         >
-                                                            <UserCheck className="w-3 h-3" />
+                                                            <UserCheck className="w-2.5 h-2.5" />
                                                         </button>
                                                     </td>
-                                                    <td className="px-1 py-1 text-center">
+                                                    <td className="px-0.5 py-0.5 text-center">
                                                         <button
                                                             onClick={() => togglePaid(s.playerId)}
-                                                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white shadow-sm shadow-azul-primary/20" : "bg-muted/50 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white shadow-sm shadow-azul-primary/20" : "bg-slate-100 text-slate-300 hover:text-azul-primary"}`}
                                                         >
-                                                            <CreditCard className="w-3 h-3" />
+                                                            <CreditCard className="w-2.5 h-2.5" />
                                                         </button>
                                                     </td>
-                                                    <td className="px-3 py-1 text-left">
-                                                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-lg font-black italic text-[9px] ${idx === 0 ? "bg-rojo text-white" : "bg-muted text-foreground/40"}`}>
-                                                            #{idx + 1}
+                                                    <td className="px-1.5 py-0.5 text-left">
+                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[8px] ${idx === 0 ? "bg-rojo text-white" : "bg-slate-100 text-slate-400"}`}>
+                                                            {idx + 1}
                                                         </span>
                                                     </td>
-                                                    <td className="px-2 py-1">
+                                                    <td className="px-1 py-0.5">
                                                         <div className="flex flex-col">
                                                             {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-tight text-[10px] text-foreground/80">
+                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-none text-[9px] text-slate-700">
                                                                     {name.trim()}
                                                                 </span>
                                                             ))}
                                                         </div>
                                                     </td>
-                                                    <td className="px-3 py-1 text-center font-black italic text-azul-primary">{s.won}</td>
-                                                    <td className="px-3 py-1 text-center font-black italic text-foreground/60">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                    <td className="px-1 py-0.5 text-center font-black italic text-azul-primary">{s.won}</td>
+                                                    <td className="px-1 py-0.5 text-center font-black italic text-slate-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -144,43 +144,36 @@ export function TournamentGroupsView({
                                         return (
                                             <div
                                                 key={m.id}
-                                                className={`group/match relative transition-all ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-60 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.02]" : ""}`}
+                                                className={`group/match relative transition-all ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
                                             >
                                                 {(m.confirmed || m.status === 'finished' || m.status === 'completed') && (
-                                                    <div className="absolute -top-1.5 -right-1.5 z-20">
-                                                        <div className="bg-emerald-500 text-white p-1 rounded-full shadow-lg shadow-emerald-500/30">
-                                                            <Check className="w-3 h-3 stroke-[4]" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {!isReady && !m.confirmed && (
-                                                    <div className="absolute inset-0 flex items-center justify-center z-[20] pointer-events-none">
-                                                        <div className="px-3 py-1 bg-background/90 backdrop-blur-md border border-border/50 rounded-full shadow-2xl">
-                                                            <span className="text-[7px] font-black uppercase tracking-widest text-foreground/40 animate-pulse">Esperando Jugadores</span>
+                                                    <div className="absolute -top-1 -right-1 z-20">
+                                                        <div className="bg-emerald-500 text-white p-0.5 rounded-full shadow-lg shadow-emerald-500/20">
+                                                            <Check className="w-2.5 h-2.5 stroke-[4]" />
                                                         </div>
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`rounded-2xl border transition-all overflow-hidden min-h-[64px] flex flex-col justify-center ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
-                                                        ? "bg-emerald-500/[0.03] border-emerald-500/40"
+                                                    className={`rounded-xl border transition-all overflow-hidden min-h-[52px] flex flex-col justify-center ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
+                                                        ? "bg-slate-50 border-emerald-500/30"
                                                         : m.status === 'in_progress'
-                                                            ? "bg-rojo/[0.03] border-rojo/40 shadow-lg shadow-rojo/5"
-                                                            : "bg-background/40 border-border/40 hover:border-border/60"
+                                                            ? "bg-rojo/[0.02] border-rojo/30"
+                                                            : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
                                                         }`}
                                                 >
                                                     {m.status === 'in_progress' && (
-                                                        <div className="absolute top-0 left-0 bg-rojo text-white px-2 py-0.5 text-[6px] font-black italic rounded-tl-xl rounded-br-lg shadow-lg z-10 animate-pulse tracking-widest uppercase">
-                                                            VIVO
+                                                        <div className="absolute top-0 left-0 bg-rojo text-white px-1.5 py-0.5 text-[5px] font-black italic rounded-tl-lg rounded-br-md z-10 animate-pulse tracking-widest uppercase">
+                                                            LIVE
                                                         </div>
                                                     )}
-                                                    <div className="px-2 py-2">
-                                                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                                                    <div className="px-2 py-1.5">
+                                                        <div className="grid grid-cols-[1fr_50px_1fr] items-center gap-2">
 
                                                             {/* Equipo 1 */}
-                                                            <div className="flex flex-col gap-1.5 min-w-0">
+                                                            <div className="flex flex-col gap-1 min-w-0">
                                                                 <div className="flex flex-col min-w-0">
                                                                     {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-none truncate text-[8px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-slate-700"}`}>
                                                                             {name.trim()}
                                                                         </span>
                                                                     ))}
@@ -191,22 +184,22 @@ export function TournamentGroupsView({
                                                                             type="number"
                                                                             value={m.score1 ?? 0}
                                                                             onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                            className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
+                                                                            className="w-7 h-5 bg-white border border-slate-200 rounded text-center font-black text-[9px] outline-none focus:border-rojo/50 no-spin-buttons"
                                                                             placeholder="0"
                                                                         />
-                                                                        <div className="flex flex-col gap-0.5">
-                                                                            <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Plus className="w-2.5 h-2.5" /></button>
-                                                                            <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Minus className="w-2.5 h-2.5" /></button>
+                                                                        <div className="flex flex-col">
+                                                                            <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                                            <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <span className={`text-[11px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-foreground/40"}`}>{m.score1 ?? 0}</span>
+                                                                    <span className={`text-[10px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-slate-300"}`}>{m.score1 ?? 0}</span>
                                                                 )}
                                                             </div>
 
                                                             {/* Centro: Acciones */}
-                                                            <div className="flex flex-col items-center justify-center gap-1.5">
-                                                                <div className="text-[7px] font-black text-foreground/40 mb-1">VS</div>
+                                                            <div className="flex flex-col items-center justify-center gap-1">
+                                                                <div className="text-[6px] font-black text-slate-300">VS</div>
                                                                 {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
                                                                     <div className="flex flex-col items-center gap-1 opacity-0 group-hover/match:opacity-100 transition-opacity">
                                                                         <button
@@ -214,22 +207,16 @@ export function TournamentGroupsView({
                                                                                 const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
                                                                                 setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
                                                                             }}
-                                                                            className={`w-[52px] py-1 rounded-md transition-all flex items-center justify-center gap-1 text-[8px] font-black italic border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "hover:bg-rojo/10 text-rojo border-rojo/20"}`}
-                                                                            title={m.status === 'in_progress' ? "Pausar Partido" : "Iniciar Grabación"}
+                                                                            className={`w-full py-0.5 rounded transition-all flex items-center justify-center gap-1 text-[7px] font-black italic border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
                                                                         >
-                                                                            {m.status === 'in_progress' ? (
-                                                                                <><X className="w-2 h-2" /> PAU</>
-                                                                            ) : (
-                                                                                <><Circle className="w-2 h-2 fill-current" /> Go!</>
-                                                                            )}
+                                                                            {m.status === 'in_progress' ? "STOP" : "START"}
                                                                         </button>
                                                                         <button
                                                                             onClick={() => {
                                                                                 handleConfirmScore(m.id);
                                                                                 setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed', confirmed: true } : match));
                                                                             }}
-                                                                            className="w-[52px] py-1 rounded-md hover:bg-azul-primary/10 text-azul-primary text-[8px] font-black italic border border-azul-primary/20 flex items-center justify-center"
-                                                                            title="Finalizar Partido"
+                                                                            className="w-full py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[7px] font-black italic border border-azul-primary/20 flex items-center justify-center"
                                                                         >
                                                                             FIN
                                                                         </button>
@@ -238,40 +225,39 @@ export function TournamentGroupsView({
                                                                 {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
                                                                     <button
                                                                         onClick={() => handleReopenMatch(m.id)}
-                                                                        className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-azul-primary/5 text-azul-primary/30 hover:text-azul-primary transition-all group/reopen"
-                                                                        title="Reabrir Partido"
+                                                                        className="flex items-center gap-0.5 hover:text-azul-primary text-slate-200 transition-all group/reopen"
                                                                     >
-                                                                        <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
-                                                                        <span className="text-[7px] font-black uppercase italic tracking-wider">Reabrir</span>
+                                                                        <RotateCcw className="w-2 h-2 group-hover/reopen:-rotate-45 transition-transform" />
+                                                                        <span className="text-[6px] font-black uppercase italic tracking-wider">REOPEN</span>
                                                                     </button>
                                                                 )}
                                                             </div>
 
                                                             {/* Equipo 2 */}
-                                                            <div className="flex flex-col items-end gap-1.5 min-w-0 text-right">
+                                                            <div className="flex flex-col items-end gap-1 min-w-0 text-right">
                                                                 <div className="flex flex-col items-end min-w-0">
                                                                     {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-tight truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-emerald-500/70" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-foreground/70"}`}>
+                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-none truncate text-[8px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-slate-700"}`}>
                                                                             {name.trim()}
                                                                         </span>
                                                                     ))}
                                                                 </div>
                                                                 {m.status === 'in_progress' && !readOnly ? (
                                                                     <div className="flex items-center gap-1">
-                                                                        <div className="flex flex-col gap-0.5">
-                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Plus className="w-2.5 h-2.5" /></button>
-                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:bg-muted rounded text-foreground/40 hover:text-rojo transition-colors"><Minus className="w-2.5 h-2.5" /></button>
+                                                                        <div className="flex flex-col">
+                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
                                                                         </div>
                                                                         <input
                                                                             type="number"
                                                                             value={m.score2 ?? 0}
                                                                             onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                            className="w-8 h-6 bg-muted/40 border border-border/40 rounded-md text-center font-black text-[10px] outline-none focus:border-rojo/50 no-spin-buttons placeholder:text-foreground/10"
+                                                                            className="w-7 h-5 bg-white border border-slate-200 rounded text-center font-black text-[9px] outline-none focus:border-rojo/50 no-spin-buttons"
                                                                             placeholder="0"
                                                                         />
                                                                     </div>
                                                                 ) : (
-                                                                    <span className={`text-[11px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-foreground/40"}`}>{m.score2 ?? 0}</span>
+                                                                    <span className={`text-[10px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-slate-300"}`}>{m.score2 ?? 0}</span>
                                                                 )}
                                                             </div>
                                                         </div>

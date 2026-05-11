@@ -837,7 +837,7 @@ export default function FixtureSetup({
                                     </div>
                                 </div>
 
-                                <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                                <div className="">
                                     {(() => {
                                         const flatPlayers: any[] = [];
                                         players.forEach(p => {
@@ -989,81 +989,94 @@ export default function FixtureSetup({
                                 <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                                    <div className="flex items-center gap-2 text-azul-primary">
-                                        <Users2 className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {/* Grupos Selector */}
+                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                    <div className="flex items-center gap-2 text-azul-primary/70">
+                                        <Users2 className="w-3 h-3" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
+                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm">
                                         <button
                                             onClick={() => setNumGroups(Math.max(1, numGroups - 1))}
-                                            className="w-12 h-12 rounded-xl bg-card flex items-center justify-center hover:bg-white/10 transition-colors"
+                                            className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
                                         >
-                                            <Minus className="w-5 h-5" />
+                                            <Minus className="w-3.5 h-3.5" />
                                         </button>
-                                        <span className="text-3xl font-black italic">{numGroups}</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xl font-black italic text-slate-800 leading-none">{numGroups}</span>
+                                            <span className="text-[7px] font-bold text-slate-400 uppercase mt-0.5">Grupos</span>
+                                        </div>
                                         <button
                                             onClick={() => setNumGroups(Math.min(16, numGroups + 1))}
-                                            className="w-12 h-12 rounded-xl bg-azul-primary flex items-center justify-center shadow-lg shadow-azul-primary/20"
+                                            className="w-8 h-8 rounded-md bg-azul-primary flex items-center justify-center text-white shadow-sm shadow-azul-primary/20 hover:scale-105 transition-all"
                                         >
-                                            <Plus className="w-5 h-5" />
+                                            <Plus className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                                    <div className="flex items-center gap-2 text-celeste">
-                                        <Users className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Jugadores / Parejas</span>
+                                {/* Jugadores Selector */}
+                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                    <div className="flex items-center gap-2 text-celeste/70">
+                                        <Users className="w-3 h-3" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Integrantes / Grupo</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-muted rounded-2xl p-2">
+                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm">
                                         <button
                                             onClick={() => setPlayersPerGroup(Math.max(2, playersPerGroup - 1))}
-                                            className="w-12 h-12 rounded-xl bg-card flex items-center justify-center hover:bg-white/10 transition-colors"
+                                            className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
                                         >
-                                            <Minus className="w-5 h-5" />
+                                            <Minus className="w-3.5 h-3.5" />
                                         </button>
-                                        <span className="text-3xl font-black italic">{playersPerGroup}</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xl font-black italic text-slate-800 leading-none">{playersPerGroup}</span>
+                                            <span className="text-[7px] font-bold text-slate-400 uppercase mt-0.5">{isIndividual ? "Jugadores" : "Parejas"}</span>
+                                        </div>
                                         <button
                                             onClick={() => setPlayersPerGroup(Math.min(16, playersPerGroup + 1))}
-                                            className="w-12 h-12 rounded-xl bg-celeste flex items-center justify-center shadow-lg shadow-celeste/20"
+                                            className="w-8 h-8 rounded-md bg-celeste flex items-center justify-center text-white shadow-sm shadow-celeste/20 hover:scale-105 transition-all"
                                         >
-                                            <Plus className="w-5 h-5" />
+                                            <Plus className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 {[
-                                    { label: "Check-in", value: isIndividual ? present.size : `${present.size} (${PRESENT_PLAYERS.length} eq.)`, color: "text-azul-primary" },
-                                    { label: "Cupos", value: numGroups * playersPerGroup, color: "text-foreground/60" },
+                                    { label: "Check-in", value: isIndividual ? present.size : `${Math.floor(present.size / 2)} eq.`, detail: `${present.size} jug.`, color: "text-azul-primary" },
+                                    { label: "Cupos", value: numGroups * playersPerGroup, detail: "Disponibilidad", color: "text-slate-600" },
                                     {
-                                        label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Sobran" : "Faltan",
+                                        label: PRESENT_PLAYERS.length > numGroups * playersPerGroup ? "Excedente" : "Pendientes",
                                         value: Math.abs(PRESENT_PLAYERS.length - numGroups * playersPerGroup),
-                                        color: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "text-celeste" : "text-celeste/50"
+                                        detail: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "Match Ideal" : "Diferencia",
+                                        color: PRESENT_PLAYERS.length === numGroups * playersPerGroup ? "text-emerald-500" : "text-celeste"
                                     },
-                                    { label: "Min. Partido", value: "2", color: "text-foreground/70" }
+                                    { label: "Partidos", value: (playersPerGroup * (playersPerGroup - 1) / 2) * numGroups, detail: "Etapa Grupos", color: "text-slate-500" }
                                 ].map((stat, i) => (
-                                    <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/60 block mb-1">{stat.label}</span>
-                                        <span className={`text-xl font-black italic ${stat.color}`}>{stat.value}</span>
+                                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm text-center">
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">{stat.label}</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className={`text-sm font-black italic ${stat.color} leading-none`}>{stat.value}</span>
+                                            <span className="text-[6px] font-bold text-slate-300 uppercase mt-0.5">{stat.detail}</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="flex gap-4">
+                            <div className="flex gap-2 pt-2">
                                 <button
                                     onClick={() => setStep("checkin")}
-                                    className="flex-1 py-5 bg-card hover:bg-white/10 border border-border rounded-3xl font-black uppercase italic tracking-widest transition-all"
+                                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl font-black uppercase italic tracking-widest text-[9px] transition-all text-slate-600"
                                 >
                                     Atrás
                                 </button>
                                 <button
                                     onClick={handleStart}
-                                    className="flex-[2] py-3 bg-azul-primary hover:bg-azul-primary/90 text-white rounded-2xl font-black uppercase italic tracking-widest transition-all shadow-xl shadow-azul-primary/40"
+                                    className="flex-[2] py-2.5 bg-azul-primary hover:bg-azul-primary/90 text-white rounded-xl font-black uppercase italic tracking-widest text-[10px] transition-all shadow-lg shadow-azul-primary/10 flex items-center justify-center gap-2"
                                 >
+                                    <Swords className="w-3.5 h-3.5" />
                                     Configurar Grupos
                                 </button>
                             </div>
@@ -1078,27 +1091,27 @@ export default function FixtureSetup({
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-8"
                         >
-                             <div className="px-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
+                            <div className="px-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
                                     <div className="flex flex-col">
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">Asignación</h2>
-                                        <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase mt-1">Armá los grupos para el sorteo</p>
+                                        <h2 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-none">Asignación</h2>
+                                        <p className="text-foreground/40 text-[7px] font-black tracking-widest uppercase mt-0.5">Armado de grupos y sorteo</p>
                                     </div>
 
                                     {/* MODO INTERCAMBIO INDICATOR */}
                                     <motion.div 
-                                        initial={{ opacity: 0, x: -20 }}
+                                        initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className={`flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 ${
                                             firstSelectedPlayerId 
-                                                ? "bg-azul-primary/10 border-azul-primary/30 shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.1)]" 
-                                                : "bg-muted/30 border-border/50"
+                                                ? "bg-azul-primary/10 border-azul-primary/30" 
+                                                : "bg-slate-50/50 border-slate-200"
                                         }`}
                                     >
-                                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-500 ${
-                                            firstSelectedPlayerId ? "bg-azul-primary text-white rotate-12 scale-110" : "bg-foreground/10 text-foreground/40"
+                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300 ${
+                                            firstSelectedPlayerId ? "bg-azul-primary text-white" : "bg-slate-200 text-slate-400"
                                         }`}>
-                                            <Zap className={`w-3.5 h-3.5 ${firstSelectedPlayerId ? "animate-pulse" : ""}`} />
+                                            <Zap className={`w-3 h-3 ${firstSelectedPlayerId ? "animate-pulse" : ""}`} />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className={`text-[9px] font-black uppercase tracking-widest leading-none ${firstSelectedPlayerId ? "text-azul-primary" : "text-foreground/40"}`}>
@@ -1142,7 +1155,7 @@ export default function FixtureSetup({
 
                             {/* Player Pool */}
                             <div 
-                                className="bg-card border border-border rounded-3xl p-6"
+                                className="bg-slate-50/30 border border-slate-200 rounded-2xl p-4"
                                 onDragOver={onDragOver}
                                 onDrop={onDropOnPool}
                             >
@@ -1182,15 +1195,15 @@ export default function FixtureSetup({
                                 {groups.map(g => (
                                     <div 
                                         key={g.id} 
-                                        className="bg-card border border-border rounded-3xl overflow-hidden flex flex-col"
+                                        className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm"
                                         onDragOver={onDragOver}
                                         onDrop={(e) => onDropOnGroup(e as any, g.id)}
                                     >
-                                        <div className="px-5 py-3 bg-muted border-b border-border/50 flex items-center justify-between">
-                                            <span className="text-xs font-black uppercase italic tracking-[0.2em] text-azul-primary">{g.name}</span>
-                                            <span className="text-[10px] font-black text-foreground/60">{g.players.length} / {playersPerGroup}</span>
+                                        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase italic tracking-[0.15em] text-azul-primary">{g.name}</span>
+                                            <span className="text-[8px] font-black text-slate-400">{g.players.length} / {playersPerGroup}</span>
                                         </div>
-                                        <div className="p-3 space-y-2 flex-1 min-h-[140px]">
+                                        <div className="p-2 space-y-1 flex-1 min-h-[120px]">
                                             <AnimatePresence mode="popLayout">
                                                 {g.players.map(p => (
                                                     <motion.div
