@@ -785,8 +785,8 @@ export default function FixtureSetup({
                         >
                             <div className="flex items-center justify-between px-2">
                                 <div>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Presentismo</h2>
-                                    <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
+                                    <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Presentismo</h2>
+                                    <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-3">
                                     <div className="flex items-center gap-3">
@@ -982,62 +982,62 @@ export default function FixtureSetup({
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="space-y-8"
+                            className="space-y-6"
                         >
                             <div className="px-2">
-                                <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
-                                <p className="text-foreground/60 text-[10px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
+                                <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
+                                <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                                 {/* Grupos Selector */}
-                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
                                     <div className="flex items-center gap-2 text-azul-primary/70">
                                         <Users2 className="w-3 h-3" />
                                         <span className="text-[9px] font-black uppercase tracking-widest">Cantidad de Grupos</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm">
+                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
                                         <button
                                             onClick={() => setNumGroups(Math.max(1, numGroups - 1))}
-                                            className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
+                                            className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
                                         >
-                                            <Minus className="w-3.5 h-3.5" />
+                                            <Minus className="w-3 h-3" />
                                         </button>
                                         <div className="flex flex-col items-center">
-                                            <span className="text-xl font-black italic text-slate-800 leading-none">{numGroups}</span>
+                                            <span className="text-lg font-black italic text-slate-800 leading-none">{numGroups}</span>
                                             <span className="text-[7px] font-bold text-slate-400 uppercase mt-0.5">Grupos</span>
                                         </div>
                                         <button
                                             onClick={() => setNumGroups(Math.min(16, numGroups + 1))}
-                                            className="w-8 h-8 rounded-md bg-azul-primary flex items-center justify-center text-white shadow-sm shadow-azul-primary/20 hover:scale-105 transition-all"
+                                            className="w-7 h-7 rounded-md bg-azul-primary flex items-center justify-center text-white shadow-sm shadow-azul-primary/20 hover:scale-105 transition-all"
                                         >
-                                            <Plus className="w-3.5 h-3.5" />
+                                            <Plus className="w-3 h-3" />
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Jugadores Selector */}
-                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                <div className="bg-slate-50/50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
                                     <div className="flex items-center gap-2 text-celeste/70">
                                         <Users className="w-3 h-3" />
                                         <span className="text-[9px] font-black uppercase tracking-widest">Integrantes / Grupo</span>
                                     </div>
-                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm">
+                                    <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
                                         <button
                                             onClick={() => setPlayersPerGroup(Math.max(2, playersPerGroup - 1))}
-                                            className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
+                                            className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-600"
                                         >
-                                            <Minus className="w-3.5 h-3.5" />
+                                            <Minus className="w-3 h-3" />
                                         </button>
                                         <div className="flex flex-col items-center">
-                                            <span className="text-xl font-black italic text-slate-800 leading-none">{playersPerGroup}</span>
+                                            <span className="text-lg font-black italic text-slate-800 leading-none">{playersPerGroup}</span>
                                             <span className="text-[7px] font-bold text-slate-400 uppercase mt-0.5">{isIndividual ? "Jugadores" : "Parejas"}</span>
                                         </div>
                                         <button
                                             onClick={() => setPlayersPerGroup(Math.min(16, playersPerGroup + 1))}
-                                            className="w-8 h-8 rounded-md bg-celeste flex items-center justify-center text-white shadow-sm shadow-celeste/20 hover:scale-105 transition-all"
+                                            className="w-7 h-7 rounded-md bg-celeste flex items-center justify-center text-white shadow-sm shadow-celeste/20 hover:scale-105 transition-all"
                                         >
-                                            <Plus className="w-3.5 h-3.5" />
+                                            <Plus className="w-3 h-3" />
                                         </button>
                                     </div>
                                 </div>
@@ -1055,10 +1055,10 @@ export default function FixtureSetup({
                                     },
                                     { label: "Partidos", value: (playersPerGroup * (playersPerGroup - 1) / 2) * numGroups, detail: "Etapa Grupos", color: "text-slate-500" }
                                 ].map((stat, i) => (
-                                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm text-center">
+                                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm text-center">
                                         <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">{stat.label}</span>
                                         <div className="flex flex-col items-center">
-                                            <span className={`text-sm font-black italic ${stat.color} leading-none`}>{stat.value}</span>
+                                            <span className={`text-xs md:text-sm font-black italic ${stat.color} leading-none`}>{stat.value}</span>
                                             <span className="text-[6px] font-bold text-slate-300 uppercase mt-0.5">{stat.detail}</span>
                                         </div>
                                     </div>
@@ -1094,8 +1094,8 @@ export default function FixtureSetup({
                             <div className="px-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
                                     <div className="flex flex-col">
-                                        <h2 className="text-lg font-black uppercase italic tracking-tight text-foreground leading-none">Asignación</h2>
-                                        <p className="text-foreground/40 text-[7px] font-black tracking-widest uppercase mt-0.5">Armado de grupos y sorteo</p>
+                                        <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground leading-none">Asignación</h2>
+                                        <p className="text-foreground/40 text-[9px] font-black tracking-widest uppercase mt-0.5">Armado de grupos y sorteo</p>
                                     </div>
 
                                     {/* MODO INTERCAMBIO INDICATOR */}
@@ -1155,11 +1155,11 @@ export default function FixtureSetup({
 
                             {/* Player Pool */}
                             <div 
-                                className="bg-slate-50/30 border border-slate-200 rounded-2xl p-4"
+                                className="bg-slate-50/30 border border-slate-200 rounded-2xl p-3"
                                 onDragOver={onDragOver}
                                 onDrop={onDropOnPool}
                             >
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between mb-3">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Sin Asignar ({unassigned.length})</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -1191,7 +1191,7 @@ export default function FixtureSetup({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-40 md:pb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-40 md:pb-12">
                                 {groups.map(g => (
                                     <div 
                                         key={g.id} 
@@ -1199,11 +1199,11 @@ export default function FixtureSetup({
                                         onDragOver={onDragOver}
                                         onDrop={(e) => onDropOnGroup(e as any, g.id)}
                                     >
-                                        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                        <div className="px-4 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                                             <span className="text-[10px] font-black uppercase italic tracking-[0.15em] text-azul-primary">{g.name}</span>
-                                            <span className="text-[8px] font-black text-slate-400">{g.players.length} / {playersPerGroup}</span>
+                                            <span className="text-[9px] font-black text-slate-400">{g.players.length} / {playersPerGroup}</span>
                                         </div>
-                                        <div className="p-2 space-y-1 flex-1 min-h-[120px]">
+                                        <div className="p-1.5 space-y-1 flex-1 min-h-[120px]">
                                             <AnimatePresence mode="popLayout">
                                                 {g.players.map(p => (
                                                     <motion.div
@@ -1213,13 +1213,13 @@ export default function FixtureSetup({
                                                         onDragStart={(e) => onDragStart(e as any, p.id)}
                                                         onDragEnd={onDragEnd as any}
                                                         onClick={() => handlePlayerClick(p.id)}
-                                                        className={`flex items-center justify-between rounded-xl px-4 py-3 group cursor-pointer transition-all duration-500 ${
+                                                        className={`flex items-center justify-between rounded-xl px-3 py-1.5 group cursor-pointer transition-all duration-500 ${
                                                             swappedIds.has(p.id) 
                                                                 ? "bg-azul-primary shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.3)] text-white" 
                                                                 : "bg-muted hover:bg-foreground/5 text-foreground"
                                                         }`}
                                                     >
-                                                        <span className={`text-xs font-bold uppercase italic transition-colors ${
+                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${
                                                             swappedIds.has(p.id) ? "text-white" : ""
                                                         }`}>{p.name}</span>
                                                         <div className="flex items-center gap-1.5">
@@ -1250,7 +1250,7 @@ export default function FixtureSetup({
                                                 <div 
                                                     key={`empty-${g.id}-${i}`} 
                                                     onClick={() => handleEmptySpotClick(g.id)}
-                                                    className={`flex items-center justify-between rounded-xl px-4 py-3 border border-dashed animate-pulse mt-2 first:mt-0 cursor-pointer transition-all ${
+                                                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 border border-dashed animate-pulse mt-1 first:mt-0 cursor-pointer transition-all ${
                                                         firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
                                                     }`}
                                                 >
@@ -1272,7 +1272,7 @@ export default function FixtureSetup({
                                                 const name = prompt("Nombre del invitado:");
                                                 if (name) handleAddGuest(name, g.id);
                                             }}
-                                            className="p-3 bg-muted/50 text-[9px] font-black uppercase tracking-[0.3em] text-azul-primary hover:bg-azul-primary hover:text-white transition-all border-t border-border/50"
+                                            className="py-1.5 px-3 bg-muted/50 text-[9px] font-black uppercase tracking-[0.3em] text-azul-primary hover:bg-azul-primary hover:text-white transition-all border-t border-border/50"
                                         >
                                             + Invitado
                                         </button>
