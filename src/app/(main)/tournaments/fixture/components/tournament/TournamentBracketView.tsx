@@ -53,8 +53,8 @@ export function TournamentBracketView({
                 </div>
             </div>
 
-            <div className="overflow-x-auto pb-8 custom-scrollbar -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
-                <div className="min-w-max flex items-stretch justify-center h-[850px] gap-4">
+            <div className="pb-8 -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12">
+                <div className="flex items-stretch justify-center h-auto min-h-[600px] gap-4">
                     {roundsArr.map((round) => {
                         const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
                         const maxRounds = roundsArr.length;

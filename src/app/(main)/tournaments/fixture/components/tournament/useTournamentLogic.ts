@@ -101,7 +101,10 @@ export function useTournamentLogic({
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [qualPerGroup, setQualPerGroup] = useState(2);
+    const [qualLimit, setQualLimit] = useState<number>(() => {
+        const activeGroups = initialGroups.filter(g => (g.players || []).length > 0);
+        return activeGroups.length * 2; // Default to 2 per group
+    });
     const [qualifierOverrides, setQualifierOverrides] = useState<Record<number, Player | "BYE">>({});
     const [swappingPlayer, setSwappingPlayer] = useState<{ matchId: string, teamSlot: 1 | 2 } | null>(null);
     const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
@@ -590,7 +593,8 @@ export function useTournamentLogic({
             const displayGroupName = (g.name && g.name.length < 10) ? g.name.toUpperCase() : String.fromCharCode(65 + groupIdx);
             const groupLabel = displayGroupName.includes('GRUPO') ? displayGroupName : `GRUPO ${displayGroupName}`;
 
-            for (let i = 0; i < qualPerGroup; i++) {
+            const maxPlayersInAnyGroup = Math.max(...activeGroups.map(g => g.players.length), 0);
+            for (let i = 0; i < maxPlayersInAnyGroup; i++) {
                 if (finished) {
                     if (groupStandings[i]) {
                         const s = groupStandings[i];
@@ -641,7 +645,7 @@ export function useTournamentLogic({
             if (!a.isPlaceholder && b.isPlaceholder) return -1;
             return (a.groupRank - b.groupRank) || (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon);
         });
-    }, [groups, matches, qualPerGroup, computeStandings, isGroupFinished]);
+    }, [groups, matches, computeStandings, isGroupFinished]);
 
     const finalQualifiers = useMemo(() => {
         return sortedQualifiers.map((q, idx) => {
@@ -689,11 +693,14 @@ export function useTournamentLogic({
     }
 
     const handleGenerateBracket = async () => {
-        if (finalQualifiers.length < 2) {
-            toast.error("Se necesitan al menos 2 clasificados para generar playoffs");
+        // Only use the top N players per group for the bracket, where N = qualPerGroup
+        const actualQualifiers = finalQualifiers.slice(0, qualLimit);
+        const totalQuals = actualQualifiers.length;
+        if (totalQuals < 2) {
+            toast.error("Se necesitan al menos 2 clasificados para generar las llaves");
             return;
         }
-        const totalQuals = finalQualifiers.length;
+
         const numRounds = Math.ceil(Math.log2(totalQuals));
         const bracketSize = Math.pow(2, numRounds);
         setSaving(true);
@@ -706,8 +713,8 @@ export function useTournamentLogic({
             }
             // ── Group Protection Seeding ──
             const seedPositions = getSeedingOrder(bracketSize);
-            const firsts = finalQualifiers.filter(q => q.groupRank === 1);
-            const seconds = finalQualifiers.filter(q => q.groupRank === 2);
+            const firsts = actualQualifiers.filter(q => q.groupRank === 1);
+            const seconds = actualQualifiers.filter(q => q.groupRank === 2);
             
             // Shift seconds by half the number of groups to ensure they don't meet their group-mate
             const shift = Math.max(1, Math.floor(firsts.length / 2));
@@ -943,7 +950,10 @@ export function useTournamentLogic({
         );
         if (bracketHasStarted) return;
         
-        const totalQuals = finalQualifiers.length;
+        const actualQuals = finalQualifiers.slice(0, qualLimit);
+        const totalQuals = actualQuals.length;
+        if (totalQuals < 2) return;
+
         const numRounds = Math.ceil(Math.log2(totalQuals));
         const bracketSize = Math.pow(2, numRounds);
 
@@ -966,8 +976,10 @@ export function useTournamentLogic({
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
-            const firsts = finalQualifiers.filter(q => q.groupRank === 1);
-            const seconds = finalQualifiers.filter(q => q.groupRank === 2);
+            const firsts = actualQuals.filter(q => q.groupRank === 1);
+            const seconds = actualQuals.filter(q => q.groupRank === 2);
+            const thirds = actualQuals.filter(q => q.groupRank === 3);
+            const fourths = actualQuals.filter(q => q.groupRank === 4);
             
             // Shift seconds to avoid same-group matches
             const shift = Math.max(1, Math.floor(firsts.length / 2));
@@ -981,6 +993,8 @@ export function useTournamentLogic({
             let currentSeed = 1;
             firsts.forEach(q => seedMap.set(currentSeed++, q));
             shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
+            thirds.forEach(q => seedMap.set(currentSeed++, q));
+            fourths.forEach(q => seedMap.set(currentSeed++, q));
 
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;
@@ -1015,7 +1029,7 @@ export function useTournamentLogic({
             if (JSON.stringify(finalProcessed) !== JSON.stringify(prev)) return finalProcessed;
             return prev;
         });
-    }, [finalQualifiers, readOnly, step]);
+    }, [finalQualifiers, qualLimit, readOnly, step]);
 
     return {
         // State
@@ -1039,7 +1053,7 @@ export function useTournamentLogic({
         saving,
         searchQuery, setSearchQuery,
         confirmModal, setConfirmModal,
-        qualPerGroup, setQualPerGroup,
+        qualLimit, setQualLimit,
         finalQualifiers,
         
         // Memos

@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy, Swords } from "lucide-react";
+import { Trophy, Swords, Plus, Minus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TournamentHeader } from "./components/tournament/TournamentHeader";
 import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
@@ -81,7 +81,9 @@ export default function TournamentManager(props: TournamentManagerProps) {
         roundLabel,
         isIndividual,
         bulkUpdateStatus,
-        finalQualifiers
+        finalQualifiers,
+        qualLimit,
+        setQualLimit
     } = useTournamentLogic(props as any);
 
     return (
@@ -165,7 +167,35 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 computeStandings={computeStandings}
                             />
 
-                            <TournamentQualifiersView finalQualifiers={finalQualifiers} />
+                            <div className="flex items-center justify-between px-2 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Límite Total de Clasificados</span>
+                                </div>
+                                <div className="flex items-center gap-3 bg-muted/40 p-1.5 rounded-lg border border-border/40">
+                                    <button
+                                        onClick={() => setQualLimit(Math.max(2, qualLimit - 1))}
+                                        className="w-6 h-6 flex items-center justify-center rounded-md bg-background border border-border/40 text-foreground/60 hover:text-azul-primary hover:border-azul-primary/40 transition-all"
+                                    >
+                                        <Minus className="w-3 h-3" />
+                                    </button>
+                                    <div className="flex flex-col items-center min-w-[60px]">
+                                        <span className="text-sm font-black text-azul-primary leading-none">{qualLimit}</span>
+                                        <span className="text-[6px] font-black uppercase tracking-tighter text-foreground/30">Jugadores</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setQualLimit(Math.min(finalQualifiers.length, qualLimit + 1))}
+                                        className="w-6 h-6 flex items-center justify-center rounded-md bg-background border border-border/40 text-foreground/60 hover:text-azul-primary hover:border-azul-primary/40 transition-all"
+                                    >
+                                        <Plus className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <TournamentQualifiersView
+                                finalQualifiers={finalQualifiers}
+                                qualLimit={qualLimit}
+                            />
 
                             {(bracket.length > 0 || isGroupStageFinished) && (
                                 <div className="relative py-6">

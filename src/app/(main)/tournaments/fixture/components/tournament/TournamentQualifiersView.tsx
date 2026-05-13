@@ -16,68 +16,97 @@ interface Qualifier {
 }
 
 interface TournamentQualifiersViewProps {
-    finalQualifiers: Qualifier[];
+    finalQualifiers: any[];
+    qualLimit: number;
 }
 
-export function TournamentQualifiersView({ finalQualifiers }: TournamentQualifiersViewProps) {
-    const firsts = finalQualifiers.filter(q => q.groupRank === 1);
-    const seconds = finalQualifiers.filter(q => q.groupRank === 2);
-
+export function TournamentQualifiersView({ finalQualifiers, qualLimit }: TournamentQualifiersViewProps) {
     if (finalQualifiers.length === 0) return null;
+
+    const advancingIds = finalQualifiers.slice(0, qualLimit).map(x => x.playerId);
+
+    // Group by rank
+    const ranks = Array.from(new Set(finalQualifiers.map(q => q.groupRank))).sort((a, b) => a - b);
 
     return (
         <section className="space-y-4 pt-6 border-t border-border/40">
             <div className="text-center">
-                <h3 className="text-sm md:text-base font-black text-foreground tracking-tighter uppercase italic">Proyección de Clasificados</h3>
-                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Posiciones actuales para Playoffs</p>
+                <h3 className="text-sm md:text-base font-black text-foreground tracking-tighter uppercase italic">Posiciones por Grupo</h3>
+                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Clasificación general de todos los participantes</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1º Puestos */}
-                <div className="space-y-3">
-                    <div className="flex items-center gap-2 px-1">
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                            <Trophy className="w-3 h-3 text-emerald-600" />
-                        </div>
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/80">1º Puestos</h4>
-                    </div>
-                    <div className="grid grid-cols-1 gap-1.5">
-                        {firsts.map((q, idx) => (
-                            <QualifierCard key={q.playerId} q={q} idx={idx} color="emerald" />
-                        ))}
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {ranks.map((rank) => {
+                    const playersInRank = finalQualifiers.filter(q => q.groupRank === rank);
+                    if (playersInRank.length === 0) return null;
 
-                {/* 2º Puestos */}
-                <div className="space-y-3">
-                    <div className="flex items-center gap-2 px-1">
-                        <div className="w-5 h-5 rounded-full bg-azul-primary/10 flex items-center justify-center">
-                            <UserCheck className="w-3 h-3 text-azul-primary" />
+                    const isAdvancingRank = rank === 1; // Simplify header for now, or we can make it more complex
+                    const color = rank === 1 ? 'emerald' : 'slate';
+                    const Icon = rank === 1 ? Trophy : UserCheck;
+
+                    return (
+                        <div key={rank} className="space-y-3">
+                            <div className="flex items-center gap-2 px-1">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                                    isAdvancingRank ? 'bg-emerald-500/20' : 
+                                    'bg-foreground/5'
+                                }`}>
+                                    <Icon className={`w-3 h-3 ${
+                                        isAdvancingRank ? 'text-emerald-500' : 
+                                        'text-foreground/40'
+                                    }`} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/80 leading-tight">
+                                        {rank}º Puestos
+                                    </h4>
+                                    {isAdvancingRank && (
+                                        <span className="text-[6px] font-black text-emerald-500 uppercase tracking-tighter -mt-0.5">Clasifica a Playoffs</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-1.5">
+                                {playersInRank.map((q, idx) => {
+                                    const isAdvancing = advancingIds.includes(q.playerId);
+                                    
+                                    return (
+                                        <QualifierCard 
+                                            key={`${q.playerId}-${idx}`} 
+                                            q={q} 
+                                            idx={idx} 
+                                            color={isAdvancing ? 'emerald' : 'slate'} 
+                                            isAdvancing={isAdvancing} 
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/80">2º Puestos</h4>
-                    </div>
-                    <div className="grid grid-cols-1 gap-1.5">
-                        {seconds.map((q, idx) => (
-                            <QualifierCard key={q.playerId} q={q} idx={idx} color="azul" />
-                        ))}
-                    </div>
-                </div>
+                    );
+                })}
             </div>
         </section>
     );
 }
 
-function QualifierCard({ q, idx, color }: { q: Qualifier; idx: number; color: 'emerald' | 'azul' }) {
+function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: number; color: 'emerald' | 'azul' | 'slate'; isAdvancing: boolean }) {
     const isEmerald = color === 'emerald';
+    const activeColorClass = isEmerald ? 'emerald-500' : 'azul-primary';
     
     return (
-        <div className={`flex items-center justify-between p-2 rounded-xl bg-card/40 border border-border/40 hover:border-${isEmerald ? 'emerald' : 'azul'}-500/30 transition-all shadow-sm group`}>
+        <div className="flex items-center justify-between p-2 rounded-xl bg-card/40 border border-border/40 transition-all shadow-sm group">
             <div className="flex items-center gap-3 min-w-0">
                 <span className={`text-[8px] font-black ${isEmerald ? 'text-emerald-600/40' : 'text-azul-primary/40'} w-4 italic`}>#{idx + 1}</span>
                 <div className="flex flex-col min-w-0">
-                    <span className={`text-[10px] font-black uppercase tracking-tight truncate ${q.isPlaceholder ? "text-foreground/40 italic" : "text-foreground"}`}>
-                        {q.name}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-black uppercase tracking-tight truncate ${q.isPlaceholder ? "text-foreground/40 italic" : "text-foreground"}`}>
+                            {q.name}
+                        </span>
+                        {isAdvancing && !q.isPlaceholder && (
+                            <span className={`text-[6px] font-black px-1 py-0.5 rounded-sm bg-${activeColorClass} text-white uppercase tracking-tighter shadow-sm`}>
+                                CLASIFICA
+                            </span>
+                        )}
+                    </div>
                     <span className="text-[7px] font-bold text-azul-primary/40 uppercase tracking-widest">
                         {q.isPlaceholder ? "Pendiente" : q.groupName}
                     </span>
