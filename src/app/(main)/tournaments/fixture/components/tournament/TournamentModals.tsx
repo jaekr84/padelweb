@@ -29,6 +29,8 @@ interface TournamentModalsProps {
     togglePresent: (id: string) => void;
     paid: Set<string>;
     togglePaid: (id: string) => void;
+    bulkUpdateStatus: (type: 'present' | 'paid', ids: string[]) => void;
+    allPlayers: Player[];
 
     // Success Modal
     showSuccessModal: boolean;
@@ -71,6 +73,8 @@ export function TournamentModals({
     togglePresent,
     paid,
     togglePaid,
+    bulkUpdateStatus,
+    allPlayers,
     showSuccessModal,
     setShowSuccessModal,
     tournamentName,
@@ -171,9 +175,8 @@ export function TournamentModals({
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-
                             {/* Buscador */}
-                            <div className="px-5 py-3">
+                            <div className="px-5 py-3 pb-1">
                                 <div className="relative">
                                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/30" />
                                     <input
@@ -184,6 +187,23 @@ export function TournamentModals({
                                         className="w-full bg-muted/30 border border-border/50 rounded-xl py-2.5 pl-10 pr-3 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="px-5 py-1.5 flex items-center gap-2">
+                                <button
+                                    onClick={() => bulkUpdateStatus('paid', allPlayers.map(p => p.id))}
+                                    className="flex-1 py-2.5 bg-azul-primary/5 hover:bg-azul-primary/10 text-azul-primary border border-azul-primary/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                    <CreditCard className="w-3 h-3" />
+                                    Todos Pagos
+                                </button>
+                                <button
+                                    onClick={() => bulkUpdateStatus('present', allPlayers.map(p => p.id))}
+                                    className="flex-1 py-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                    <UserCheck className="w-3 h-3" />
+                                    Todos Presentes
+                                </button>
                             </div>
 
                             {/* Lista de Jugadores */}

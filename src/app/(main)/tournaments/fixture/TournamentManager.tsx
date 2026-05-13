@@ -249,6 +249,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
                 setPlayerToDelete={setPlayerToDelete}
                 handleDeletePlayer={handleDeletePlayer}
                 isIndividual={isIndividual}
+                bulkUpdateStatus={bulkUpdateStatus}
+                allPlayers={allPlayers}
             />
         </div>
     );

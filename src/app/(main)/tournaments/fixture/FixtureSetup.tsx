@@ -5,9 +5,9 @@ import Link from "next/link";
 import {
     Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
     Dice5, Check, Trash2, Settings, Plus, Minus,
-    CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
-    LayoutDashboard, Swords, BarChart3, Clock, RotateCcw
+    AlertCircle, ChevronRight,
+    Users2, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
+    LayoutDashboard, Swords, BarChart3, Clock
 } from "lucide-react";
 import { getAllPlayers } from "@/app/actions/players";
 import {
@@ -85,30 +85,26 @@ export default function FixtureSetup({
 }: FixtureSetupProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const urlStep = searchParams.get("step") as "checkin" | "config" | "assign" | null;
+    const urlStep = searchParams.get("step") as "config" | "assign" | null;
 
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin" | "config" | "assign">(urlStep || "checkin");
+    const [step, setStep] = useState<"config" | "assign">(urlStep || "config");
     
-    // Initialize paid/present based on initialGroups if they exist
+    // Initialize paid/present assuming all initial players are present since we skip check-in
     const [paid, setPaid] = useState<Set<string>>(() => {
         const set = new Set<string>();
-        if (initialGroups.length > 0) {
-            initialGroups.forEach(g => g.players.forEach(p => {
-                if (isIndividual) set.add(p.id);
-                else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
-            }));
-        }
+        initialPlayers.forEach(p => {
+            if (isIndividual) set.add(p.id);
+            else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+        });
         return set;
     });
     const [present, setPresent] = useState<Set<string>>(() => {
         const set = new Set<string>();
-        if (initialGroups.length > 0) {
-            initialGroups.forEach(g => g.players.forEach(p => {
-                if (isIndividual) set.add(p.id);
-                else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
-            }));
-        }
+        initialPlayers.forEach(p => {
+            if (isIndividual) set.add(p.id);
+            else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+        });
         return set;
     });
 
@@ -123,8 +119,6 @@ export default function FixtureSetup({
     const [ytUrl, setYtUrl] = useState("");
     const [saving, setSaving] = useState(false);
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [categoryFilter, setCategoryFilter] = useState("all");
     const [swappedIds, setSwappedIds] = useState<Set<string>>(new Set());
     const [firstSelectedPlayerId, setFirstSelectedPlayerId] = useState<string | null>(null);
 
@@ -250,40 +244,7 @@ export default function FixtureSetup({
     const allFull = groups.every(g => g.players.length >= 2); // At least 2 per group to play
     const totalAssigned = assignedIds.size;
 
-    const togglePaid = (id: string) => {
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-    const togglePresent = (id: string) => {
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
 
-    const handleCheckAll = (type: 'paid' | 'present') => {
-        let allCheckinIds: string[] = [];
-        players.forEach(p => {
-            if (isIndividual) {
-                allCheckinIds.push(p.id);
-            } else {
-                allCheckinIds.push(`${p.id}_0`);
-                if (p.player2 || p.name.includes(" / ")) allCheckinIds.push(`${p.id}_1`);
-            }
-        });
-
-        if (type === 'paid') {
-            const areAllPaid = allCheckinIds.every(id => paid.has(id));
-            setPaid(areAllPaid ? new Set() : new Set(allCheckinIds));
-        } else {
-            const areAllPresent = allCheckinIds.every(id => present.has(id));
-            setPresent(areAllPresent ? new Set() : new Set(allCheckinIds));
-        }
-    };
 
 
     const handleStart = () => {
@@ -650,7 +611,6 @@ export default function FixtureSetup({
                             <button
                                 onClick={() => {
                                     if (step === "assign") setStep("config");
-                                    else if (step === "config") setStep("checkin");
                                     else router.push(`/tournaments/${tournamentId}/manage`);
                                 }}
                                 className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
@@ -674,13 +634,6 @@ export default function FixtureSetup({
                             <div className="hidden md:flex items-center gap-1">
                                 {[
                                     { 
-                                        id: "checkin", 
-                                        icon: UserCheck, 
-                                        label: "Asistencia", 
-                                        active: step === "checkin",
-                                        completed: step !== "checkin"
-                                    },
-                                    { 
                                         id: "sorteo", 
                                         icon: LayoutDashboard, 
                                         label: "Sorteo", 
@@ -701,7 +654,6 @@ export default function FixtureSetup({
                                             <button 
                                                 onClick={() => {
                                                     if (s.disabled) return;
-                                                    if (s.id === "checkin") setStep("checkin");
                                                     if (s.id === "sorteo") setStep("config");
                                                 }}
                                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${s.active 
@@ -716,7 +668,7 @@ export default function FixtureSetup({
                                                 <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
                                                 {s.completed && <Check className="w-2.5 h-2.5 ml-1 text-celeste" />}
                                             </button>
-                                            {idx < 3 && (
+                                            {idx < 2 && (
                                                 <div className="px-1.5 text-foreground/10">
                                                     <ChevronRight className="w-3.5 h-3.5" />
                                                 </div>
@@ -775,206 +727,7 @@ export default function FixtureSetup({
             <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
 
                 <AnimatePresence mode="wait">
-                    {step === "checkin" && (
-                        <motion.div
-                            key="checkin"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="space-y-6"
-                        >
-                            <div className="flex items-center justify-between px-2">
-                                <div>
-                                    <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Presentismo</h2>
-                                    <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Confirmá asistencia y pagos</p>
-                                </div>
-                                <div className="flex flex-col items-end gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <MonitorPlay className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/40" />
-                                            <input 
-                                                type="text"
-                                                placeholder="Buscar..."
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="bg-muted border border-border rounded-xl py-2 pl-9 pr-3 text-[10px] font-bold placeholder:text-foreground/60 outline-none focus:border-azul-primary transition-all w-32 md:w-48"
-                                            />
-                                        </div>
-                                        <select 
-                                            value={categoryFilter}
-                                            onChange={(e) => setCategoryFilter(e.target.value)}
-                                            className="bg-muted border border-border rounded-xl py-2 px-3 text-[10px] font-black uppercase italic outline-none focus:border-azul-primary/50 appearance-none cursor-pointer"
-                                        >
-                                            <option value="all">Cat.</option>
-                                            {categories.map(cat => (
-                                                <option key={cat} value={cat}>{cat}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setIsPlayerModalOpen(true)}
-                                            className="px-3 py-1.5 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2"
-                                        >
-                                            <Plus className="w-3 h-3" />
-                                            Inscribir Participante
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="bg-card border border-border rounded-3xl overflow-hidden divide-y divide-border shadow-2xl">
-                                <div className="px-6 py-4 bg-card flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70">Lista de Asistencia</span>
-                                        <span className="text-[10px] font-bold text-azul-primary/60 uppercase tracking-widest mt-0.5">
-                                            {isIndividual ? `${players.length} Jugadores` : `${players.length} Parejas (${players.length * 2} Jugadores)`}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <button onClick={() => handleCheckAll('paid')} className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-primary/80 transition-colors">Todo Pago</button>
-                                        <button onClick={() => handleCheckAll('present')} className="text-[10px] font-black uppercase tracking-widest text-celeste hover:text-celeste/80 transition-colors">Todo Ok</button>
-                                    </div>
-                                </div>
-
-                                <div className="">
-                                    {(() => {
-                                        const flatPlayers: any[] = [];
-                                        players.forEach(p => {
-                                            const matchesSearch = !searchQuery || 
-                                                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                                p.id.toLowerCase().includes(searchQuery.toLowerCase());
-                                            
-                                            const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-                                            
-                                            if (matchesSearch && matchesCategory) {
-                                                if (isIndividual) {
-                                                    flatPlayers.push({ ...p, checkinId: p.id, displayName: p.name });
-                                                } else {
-                                                    // Separar en dos si es dobles
-                                                    const names = p.name.split(" / ");
-                                                    flatPlayers.push({ 
-                                                        ...p, 
-                                                        checkinId: `${p.id}_0`, 
-                                                        displayName: p.player1 || names[0] || "Jugador 1",
-                                                        pairName: p.name
-                                                    });
-                                                    flatPlayers.push({ 
-                                                        ...p, 
-                                                        checkinId: `${p.id}_1`, 
-                                                        displayName: p.player2 || names[1] || "Jugador 2",
-                                                        pairName: p.name,
-                                                        isSecond: true
-                                                    });
-                                                }
-                                            }
-                                        });
-
-                                        return flatPlayers.map(p => {
-                                            const isPaid = paid.has(p.checkinId);
-                                            const isPresent = present.has(p.checkinId);
-
-                                            return (
-                                                <div
-                                                    key={p.checkinId}
-                                                    className={`group flex items-center justify-between px-4 py-1.5 transition-all duration-300 ${isPresent 
-                                                        ? "bg-celeste/[0.03] border-l-4 border-l-celeste" 
-                                                        : "bg-card hover:bg-muted/30 border-l-4 border-l-transparent"
-                                                    } ${p.isSecond ? "mt-[-1px]" : ""}`}
-                                                >
-                                                    <div className="flex flex-col">
-                                                        <div className="flex flex-col">
-                                                            <span className={`text-xs font-black uppercase tracking-tight transition-all duration-300 ${isPresent ? "text-foreground" : "text-foreground/60"}`}>
-                                                                {p.displayName}
-                                                            </span>
-                                                            {!isIndividual && (
-                                                                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/40 leading-none">
-                                                                    Equipo: <span className="text-azul-primary/40 ">{p.pairName}</span>
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {(isPaid || isPresent || (p.category && !p.isSecond)) && (
-                                                            <div className="flex gap-1.5 mt-0.5">
-                                                                {isPaid && (
-                                                                    <span className="flex items-center gap-1 text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-azul-primary/10 text-azul-primary rounded-full border border-azul-primary/20">
-                                                                        Pago
-                                                                    </span>
-                                                                )}
-                                                                {isPresent && (
-                                                                    <span className="flex items-center gap-1 text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-celeste/10 text-celeste rounded-full border border-celeste/20">
-                                                                        Ok
-                                                                    </span>
-                                                                )}
-                                                                {p.category && !p.isSecond && (
-                                                                    <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0 bg-muted text-foreground/70 rounded-full border border-border">
-                                                                        {p.category}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex items-center gap-1.5">
-                                                        <button
-                                                            onClick={() => setParticipantToDelete({ id: p.id, name: p.displayName })}
-                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30 border border-border/40 text-foreground/20 hover:text-red-500 hover:border-red-500/50 transition-all transform active:scale-90"
-                                                            title="Eliminar"
-                                                        >
-                                                            <Trash2 className="w-3 h-3" />
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => setReplacingParticipant({ checkinId: p.checkinId, displayName: p.displayName, pairId: p.id })}
-                                                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30 border border-border/40 text-foreground/20 hover:text-azul-primary hover:border-azul-primary/50 transition-all transform active:scale-90"
-                                                            title="Reemplazar"
-                                                        >
-                                                            <RotateCcw className="w-3 h-3" />
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => togglePaid(p.checkinId)}
-                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPaid
-                                                                ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/30 ring-1 ring-azul-primary/20"
-                                                                : "bg-muted/30 border border-border/40 text-foreground/20 hover:text-foreground/70"
-                                                                }`}
-                                                            title="Pago"
-                                                        >
-                                                            <CreditCard className="w-3.5 h-3.5" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => togglePresent(p.checkinId)}
-                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 transform active:scale-90 ${isPresent
-                                                                ? "bg-celeste text-azul-primary shadow-lg shadow-celeste/30 ring-1 ring-celeste/20"
-                                                                : "bg-muted/30 border border-border/40 text-foreground/20 hover:text-foreground/70"
-                                                                }`}
-                                                            title="Ok"
-                                                        >
-                                                            <UserCheck className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        });
-                                    })()}
-                                </div>
-                                </div>
-
-                            <button
-                                onClick={() => setStep("config")}
-                                disabled={present.size === 0}
-                                className={`w-full py-3 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl ${present.size > 0
-                                    ? "bg-azul-primary hover:bg-azul-primary/90 text-white shadow-azul-primary/40 translate-y-0"
-                                    : "bg-card text-foreground/20 cursor-not-allowed border border-border translate-y-2 opacity-60 shadow-none"
-                                    }`}
-                            >
-                                <span className={present.size > 0 ? "opacity-100" : "opacity-40"}>
-                                    Continuar ({isIndividual ? `${present.size} jugadores` : `${present.size} jugadores / ${Math.floor(present.size / 2)} parejas`})
-                                </span>
-                                <ArrowRight className={`w-5 h-5 transition-transform duration-500 ${present.size > 0 ? "translate-x-0" : "-translate-x-4 opacity-0"}`} />
-                            </button>
-                        </motion.div>
-                    )}
 
                     {step === "config" && (
                         <motion.div
@@ -984,9 +737,18 @@ export default function FixtureSetup({
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-6"
                         >
-                            <div className="px-2">
-                                <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
-                                <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
+                             <div className="px-2 flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
+                                    <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsPlayerModalOpen(true)}
+                                    className="px-3 py-1.5 bg-azul-primary/10 text-azul-primary border border-azul-primary/30 rounded-lg font-black uppercase italic text-[8px] tracking-widest hover:bg-azul-primary hover:text-white transition-all flex items-center gap-2"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Inscribir Participante
+                                </button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -1067,10 +829,10 @@ export default function FixtureSetup({
 
                             <div className="flex gap-2 pt-2">
                                 <button
-                                    onClick={() => setStep("checkin")}
+                                    onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
                                     className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl font-black uppercase italic tracking-widest text-[9px] transition-all text-slate-600"
                                 >
-                                    Atrás
+                                    Volver
                                 </button>
                                 <button
                                     onClick={handleStart}
@@ -1284,7 +1046,7 @@ export default function FixtureSetup({
                             <div className="fixed bottom-20 md:bottom-0 left-0 right-0 px-6 pb-4 pt-8 bg-gradient-to-t from-background via-background/95 to-transparent z-50">
                                 <div className="max-w-6xl mx-auto flex gap-4">
                                     <button
-                                        onClick={() => setStep("checkin")}
+                                        onClick={() => setStep("config")}
                                         className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"
                                     >
                                         <ArrowLeft className="w-5 h-5" />
