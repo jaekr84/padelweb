@@ -44,7 +44,14 @@ export function TournamentHeader({
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
-                            if (step !== "setup" && !readOnly) {
+                            if (readOnly) {
+                                router.push(`/tournaments/${tournamentId}`);
+                                return;
+                            }
+                            
+                            if (step === "elim") {
+                                setStep("done");
+                            } else if (step === "done" || step === "qual") {
                                 setStep("setup");
                             } else {
                                 router.push(`/tournaments/${tournamentId}`);

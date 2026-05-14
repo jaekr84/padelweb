@@ -587,7 +587,7 @@ export function useTournamentLogic({
         });
 
         activeGroups.forEach((g, groupIdx) => {
-            const finished = isGroupFinished(g.id);
+            const finished = isGroupFinished(g.id) || isGroupStageFinished;
             const groupStandings = computeStandings(g.id);
             // Sanitize group name for placeholders (avoid UUIDs)
             const displayGroupName = (g.name && g.name.length < 10) ? g.name.toUpperCase() : String.fromCharCode(65 + groupIdx);
@@ -645,7 +645,7 @@ export function useTournamentLogic({
             if (!a.isPlaceholder && b.isPlaceholder) return -1;
             return (a.groupRank - b.groupRank) || (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon);
         });
-    }, [groups, matches, computeStandings, isGroupFinished]);
+    }, [groups, matches, computeStandings, isGroupFinished, isGroupStageFinished]);
 
     const finalQualifiers = useMemo(() => {
         return sortedQualifiers.map((q, idx) => {
@@ -674,17 +674,25 @@ export function useTournamentLogic({
                         }
                         if (isTeam2) nextMatch.team2 = winner as Player || null;
                         else nextMatch.team1 = winner as Player || null;
+
                         if (nextMatch.team1 && nextMatch.team2) {
-                            // AUTO-CONFIRM BYEs only if the match is NOT in progress
                             if (nextMatch.status !== 'in_progress' && ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE")) {
-                                nextMatch.confirmed = true;
-                                const advancingTeam = (nextMatch.team1 as any) !== "BYE" ? nextMatch.team1 : nextMatch.team2;
-                                nextMatch.winnerId = (advancingTeam as Player)?.id || undefined;
-                                nextMatch.winnerName = (advancingTeam as Player)?.name || undefined;
+                                const realTeam = (nextMatch.team1 as any) === "BYE" ? nextMatch.team2 : nextMatch.team1;
+                                const isRealPlayer = realTeam && !(realTeam as any).isPlaceholder && !(realTeam as any).id?.startsWith('TBD');
+                                
+                                if (isRealPlayer) {
+                                    nextMatch.confirmed = true;
+                                    nextMatch.winnerId = (realTeam as Player).id;
+                                    nextMatch.winnerName = (realTeam as Player).name;
+                                }
                             }
                         }
                     } else {
-                        if (isTeam2) nextMatch.team2 = null; else nextMatch.team1 = null;
+                        if (isTeam2) nextMatch.team2 = null;
+                        else nextMatch.team1 = null;
+                        nextMatch.confirmed = false;
+                        nextMatch.winnerId = undefined;
+                        nextMatch.winnerName = undefined;
                     }
                 }
             });
@@ -960,6 +968,7 @@ export function useTournamentLogic({
         setBracket(prev => {
             let newBracket: BracketMatch[] = [];
             const existingRounds = new Set(prev.map(m => m.round));
+            // Force recreation if size changes or if it was empty
             const needsRecreation = prev.length === 0 || (existingRounds.size > 0 && existingRounds.size !== numRounds);
 
             if (needsRecreation) {
@@ -976,25 +985,10 @@ export function useTournamentLogic({
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
-            const firsts = actualQuals.filter(q => q.groupRank === 1);
-            const seconds = actualQuals.filter(q => q.groupRank === 2);
-            const thirds = actualQuals.filter(q => q.groupRank === 3);
-            const fourths = actualQuals.filter(q => q.groupRank === 4);
-            
-            // Shift seconds to avoid same-group matches
-            const shift = Math.max(1, Math.floor(firsts.length / 2));
-            const shiftedSeconds = [...seconds];
-            for (let i = 0; i < shift; i++) {
-                const item = shiftedSeconds.shift();
-                if (item) shiftedSeconds.push(item);
-            }
-
             const seedMap = new Map<number, any>();
-            let currentSeed = 1;
-            firsts.forEach(q => seedMap.set(currentSeed++, q));
-            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
-            thirds.forEach(q => seedMap.set(currentSeed++, q));
-            fourths.forEach(q => seedMap.set(currentSeed++, q));
+            actualQuals.forEach((q, idx) => {
+                seedMap.set(idx + 1, q);
+            });
 
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;
@@ -1004,19 +998,27 @@ export function useTournamentLogic({
                 const q1 = seedMap.get(s1);
                 const q2 = seedMap.get(s2);
 
-                const t1 = q1 ? q1.player : "BYE";
-                const t2 = q2 ? q2.player : "BYE";
+                const t1 = (q1 && !q1.isByeOverride) ? q1.player : "BYE";
+                const t2 = (q2 && !q2.isByeOverride) ? q2.player : "BYE";
 
                 const m = firstRoundMatches.find(x => x.slot === mIdx);
                 if (m) {
                     m.team1 = t1 as BracketSlot;
                     m.team2 = t2 as BracketSlot;
+                    
+                    // Reset or Set confirmation based on BYEs
                     if (m.team1 === "BYE" || m.team2 === "BYE") {
-                        m.confirmed = true;
-                        const winner = m.team1 === "BYE" ? m.team2 : m.team1;
-                        if (winner && winner !== "BYE") {
-                            m.winnerId = (winner as Player).id;
-                            m.winnerName = (winner as Player).name;
+                        const realTeam = m.team1 === "BYE" ? m.team2 : m.team1;
+                        const isRealPlayer = realTeam && !(realTeam as any).isPlaceholder && !(realTeam as any).id?.startsWith('TBD');
+                        
+                        if (isRealPlayer) {
+                            m.confirmed = true;
+                            m.winnerId = (realTeam as Player).id;
+                            m.winnerName = (realTeam as Player).name;
+                        } else {
+                            m.confirmed = false;
+                            m.winnerId = undefined;
+                            m.winnerName = undefined;
                         }
                     } else {
                         m.confirmed = false;
@@ -1025,9 +1027,7 @@ export function useTournamentLogic({
                     }
                 }
             }
-            const finalProcessed = computeAdvancedBracket(newBracket, numRounds);
-            if (JSON.stringify(finalProcessed) !== JSON.stringify(prev)) return finalProcessed;
-            return prev;
+            return computeAdvancedBracket(newBracket, numRounds);
         });
     }, [finalQualifiers, qualLimit, readOnly, step]);
 

@@ -144,123 +144,84 @@ export function TournamentGroupsView({
                                         return (
                                             <div
                                                 key={m.id}
-                                                className={`group/match relative transition-all ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
+                                                className={`group/match relative transition-all text-[8px] ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
                                             >
-                                                {(m.confirmed || m.status === 'finished' || m.status === 'completed') && (
-                                                    <div className="absolute -top-1 -right-1 z-20">
-                                                        <div className="bg-emerald-500 text-white p-0.5 rounded-full shadow-lg shadow-emerald-500/20">
-                                                            <Check className="w-2.5 h-2.5 stroke-[4]" />
-                                                        </div>
-                                                    </div>
-                                                )}
                                                 <div
-                                                    className={`rounded-xl border transition-all overflow-hidden min-h-[52px] flex flex-col justify-center ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
+                                                    className={`rounded border transition-all overflow-hidden flex items-center justify-between px-1.5 py-1 gap-1 ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
                                                         ? "bg-slate-50 border-emerald-500/30"
                                                         : m.status === 'in_progress'
                                                             ? "bg-rojo/[0.02] border-rojo/30"
                                                             : "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
                                                         }`}
                                                 >
-                                                    {m.status === 'in_progress' && (
-                                                        <div className="absolute top-0 left-0 bg-rojo text-white px-1.5 py-0.5 text-[5px] font-black italic rounded-tl-lg rounded-br-md z-10 animate-pulse tracking-widest uppercase">
-                                                            LIVE
+                                                    {/* Equipo 1 */}
+                                                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-slate-700"}`}>
+                                                            {m.team1.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
-                                                    )}
-                                                    <div className="px-2 py-1.5">
-                                                        <div className="grid grid-cols-[1fr_50px_1fr] items-center gap-2">
-
-                                                            {/* Equipo 1 */}
-                                                            <div className="flex flex-col gap-1 min-w-0">
-                                                                <div className="flex flex-col min-w-0">
-                                                                    {m.team1.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-none truncate text-[8px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score1! > m.score2! ? "text-rojo" : "text-slate-700"}`}>
-                                                                            {name.trim()}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                                {m.status === 'in_progress' && !readOnly ? (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={m.score1 ?? 0}
-                                                                            onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")}
-                                                                            className="w-7 h-5 bg-white border border-slate-200 rounded text-center font-black text-[9px] outline-none focus:border-rojo/50 no-spin-buttons"
-                                                                            placeholder="0"
-                                                                        />
-                                                                        <div className="flex flex-col">
-                                                                            <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
-                                                                            <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className={`text-[10px] font-black ${m.score1! > m.score2! ? "text-rojo" : "text-slate-300"}`}>{m.score1 ?? 0}</span>
-                                                                )}
+                                                        {m.status === 'in_progress' && !readOnly ? (
+                                                            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-0.5 shadow-sm">
+                                                                <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                <input type="number" value={m.score1 ?? 0} onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[9px] focus:text-rojo" />
+                                                                <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
+                                                        ) : (
+                                                            <span className={`font-black w-6 text-center ${m.score1! > m.score2! ? "text-rojo" : "text-slate-400"}`}>{m.score1 ?? 0}</span>
+                                                        )}
+                                                    </div>
 
-                                                            {/* Centro: Acciones */}
-                                                            <div className="flex flex-col items-center justify-center gap-1">
-                                                                <div className="text-[6px] font-black text-slate-300">VS</div>
-                                                                {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
-                                                                    <div className="flex flex-col items-center gap-1 opacity-0 group-hover/match:opacity-100 transition-opacity">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
-                                                                                setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
-                                                                            }}
-                                                                            className={`w-full py-0.5 rounded transition-all flex items-center justify-center gap-1 text-[7px] font-black italic border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
-                                                                        >
-                                                                            {m.status === 'in_progress' ? "STOP" : "START"}
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                handleConfirmScore(m.id);
-                                                                                setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed', confirmed: true } : match));
-                                                                            }}
-                                                                            className="w-full py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[7px] font-black italic border border-azul-primary/20 flex items-center justify-center"
-                                                                        >
-                                                                            FIN
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                                {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
-                                                                    <button
-                                                                        onClick={() => handleReopenMatch(m.id)}
-                                                                        className="flex items-center gap-0.5 hover:text-azul-primary text-slate-200 transition-all group/reopen"
-                                                                    >
-                                                                        <RotateCcw className="w-2 h-2 group-hover/reopen:-rotate-45 transition-transform" />
-                                                                        <span className="text-[6px] font-black uppercase italic tracking-wider">REOPEN</span>
-                                                                    </button>
-                                                                )}
-                                                            </div>
+                                                    {/* VS */}
+                                                    <span className="text-[6px] font-black text-slate-300 shrink-0">VS</span>
 
-                                                            {/* Equipo 2 */}
-                                                            <div className="flex flex-col items-end gap-1 min-w-0 text-right">
-                                                                <div className="flex flex-col items-end min-w-0">
-                                                                    {m.team2.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                        <span key={i} className={`font-black uppercase italic tracking-tight leading-none truncate text-[8px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-slate-700"}`}>
-                                                                            {name.trim()}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                                {m.status === 'in_progress' && !readOnly ? (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <div className="flex flex-col">
-                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
-                                                                            <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:bg-slate-100 rounded text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                        </div>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={m.score2 ?? 0}
-                                                                            onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)}
-                                                                            className="w-7 h-5 bg-white border border-slate-200 rounded text-center font-black text-[9px] outline-none focus:border-rojo/50 no-spin-buttons"
-                                                                            placeholder="0"
-                                                                        />
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className={`text-[10px] font-black ${m.score2! > m.score1! ? "text-rojo" : "text-slate-300"}`}>{m.score2 ?? 0}</span>
-                                                                )}
+                                                    {/* Equipo 2 */}
+                                                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                                                        {m.status === 'in_progress' && !readOnly ? (
+                                                            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-0.5 shadow-sm">
+                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                <input type="number" value={m.score2 ?? 0} onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[9px] focus:text-rojo" />
+                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
+                                                        ) : (
+                                                            <span className={`font-black w-6 text-center ${m.score2! > m.score1! ? "text-rojo" : "text-slate-400"}`}>{m.score2 ?? 0}</span>
+                                                        )}
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight text-right ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "text-slate-400" : (m.confirmed || m.status === 'finished' || m.status === 'completed') && m.score2! > m.score1! ? "text-rojo" : "text-slate-700"}`}>
+                                                            {m.team2.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
+                                                    </div>
+
+                                                    {/* Acciones */}
+                                                    <div className="flex items-center gap-1 shrink-0 ml-1">
+                                                        {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
+                                                                        setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
+                                                                    }}
+                                                                    className={`px-1.5 py-0.5 rounded text-[6px] font-black italic border transition-colors ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
+                                                                >
+                                                                    {m.status === 'in_progress' ? "STOP" : "START"}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        handleConfirmScore(m.id);
+                                                                        setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed', confirmed: true } : match));
+                                                                    }}
+                                                                    className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[6px] font-black italic border border-azul-primary/20 transition-colors"
+                                                                >
+                                                                    FIN
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
+                                                            <button
+                                                                onClick={() => handleReopenMatch(m.id)}
+                                                                className="p-0.5 text-slate-300 hover:text-azul-primary transition-colors bg-white border border-slate-200 rounded hover:border-azul-primary/30 group/reopen"
+                                                                title="Reabrir partido"
+                                                            >
+                                                                <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
