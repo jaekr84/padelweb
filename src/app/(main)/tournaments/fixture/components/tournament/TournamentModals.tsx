@@ -257,6 +257,7 @@ export function TournamentModals({
             {/* Success Modal */}
             <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
                 <DialogContent className="max-w-md bg-card border border-border/50 rounded-[2.5rem] p-0 overflow-hidden">
+                    <DialogTitle className="sr-only">Torneo Finalizado</DialogTitle>
                     <div className="relative p-8 text-center space-y-6">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-azul-primary to-transparent" />
                         <div className="w-24 h-24 bg-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto relative group">
@@ -414,6 +415,7 @@ export function TournamentModals({
             {/* Deletion Modal */}
             <Dialog open={!!playerToDelete} onOpenChange={() => setPlayerToDelete(null)}>
                 <DialogContent className="max-w-md bg-card border-border/50 rounded-3xl p-8">
+                    <DialogTitle className="sr-only">Eliminar Participante</DialogTitle>
                     <div className="space-y-6 text-center">
                         <div className="w-20 h-20 bg-rojo/10 rounded-3xl flex items-center justify-center mx-auto">
                             <Trash2 className="w-10 h-10 text-rojo" />

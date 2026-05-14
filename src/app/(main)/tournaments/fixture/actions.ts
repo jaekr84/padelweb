@@ -47,6 +47,7 @@ export type SaveFixtureInput = {
     modalidad?: any;
     presentPlayerIds?: string[];
     paidPlayerIds?: string[];
+    skipRevalidation?: boolean;
 };
 function slotName(t: BracketSlot): string | null {
     if (!t) return null;
@@ -212,9 +213,10 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     paidPlayerIds: input.paidPlayerIds || [],
                 })
                 .where(eq(tournaments.id, input.tournamentId));
-
-            revalidatePath("/tournaments");
-            revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+            if (!input.skipRevalidation) {
+                revalidatePath("/tournaments");
+                revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+            }
 
             return { ok: true, newStatus };
         });

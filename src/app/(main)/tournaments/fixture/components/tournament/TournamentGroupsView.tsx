@@ -38,7 +38,7 @@ export function TournamentGroupsView({
         <section className="space-y-4">
             <div className="flex flex-col items-center">
                 <h2 className="text-sm font-black text-foreground tracking-tighter uppercase italic leading-none">Fase de Grupos</h2>
-                <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.3em] mt-1">Resultados y Clasificación</p>
+                <p className="text-azul-primary text-[10px] font-black uppercase tracking-[0.3em] mt-1">Resultados y Clasificación</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-3">
@@ -65,14 +65,14 @@ export function TournamentGroupsView({
                                                     );
                                                     setGroups(newGroups);
                                                 }}
-                                                className="w-12 bg-transparent border-none p-0 text-[8px] font-black italic uppercase text-azul-primary placeholder:text-slate-300 focus:ring-0 outline-none"
+                                                className="w-12 bg-transparent border-none p-0 text-[10px] font-black italic uppercase text-azul-primary placeholder:text-slate-300 focus:ring-0 outline-none"
                                             />
                                         </div>
                                     )}
                                     {readOnly && g.courtNumber && (
                                         <div className="flex items-center gap-1.5 bg-azul-primary/5 px-2 py-0.5 rounded-lg border border-azul-primary/10 w-fit">
                                             <MapPin className="w-2.5 h-2.5 text-azul-primary" />
-                                            <span className="text-[8px] font-black uppercase tracking-[0.1em] text-azul-primary">{g.courtNumber}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-azul-primary">{g.courtNumber}</span>
                                         </div>
                                     )}
                                     <h3 className="text-base font-black italic uppercase tracking-tighter text-slate-800 leading-none">{g.name}</h3>
@@ -81,15 +81,15 @@ export function TournamentGroupsView({
                             </div>
                             <div className="px-3 py-1 border-b border-slate-100 bg-slate-50/30">
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
-                                    <table className="w-full text-[9px]">
+                                    <table className="w-full text-[11px]">
                                         <thead>
                                             <tr className="border-b border-slate-100">
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">OK</th>
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">$$</th>
-                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[7px]">#</th>
-                                                <th className="px-1 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[7px]">Jugador</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">PG</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[7px]">+/-</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">OK</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">$$</th>
+                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">#</th>
+                                                <th className="px-1 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">Jugador</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">PG</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">+/-</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -112,14 +112,14 @@ export function TournamentGroupsView({
                                                         </button>
                                                     </td>
                                                     <td className="px-1.5 py-0.5 text-left">
-                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[8px] ${idx === 0 ? "bg-rojo text-white" : "bg-slate-100 text-slate-400"}`}>
+                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[10px] ${idx === 0 ? "bg-rojo text-white" : "bg-slate-100 text-slate-400"}`}>
                                                             {idx + 1}
                                                         </span>
                                                     </td>
                                                     <td className="px-1 py-0.5">
                                                         <div className="flex flex-col">
                                                             {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-none text-[9px] text-slate-700">
+                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-none text-[11px] text-slate-700">
                                                                     {name.trim()}
                                                                 </span>
                                                             ))}
@@ -135,7 +135,7 @@ export function TournamentGroupsView({
                             </div>
                             <div className="p-2.5 space-y-1.5">
                                 <div className="flex items-center justify-between px-1">
-                                    <h4 className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/50">Fixture del Grupo</h4>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/50">Fixture del Grupo</h4>
                                     <div className="h-px flex-1 bg-border/10 mx-2" />
                                     {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
                                         <button
@@ -156,7 +156,7 @@ export function TournamentGroupsView({
                                                     });
                                                 }
                                             }}
-                                            className="text-[6px] font-black uppercase italic tracking-wider text-azul-primary hover:text-white bg-azul-primary/10 hover:bg-azul-primary px-1.5 py-0.5 rounded transition-colors border border-azul-primary/20"
+                                            className="text-[10px] font-black uppercase italic tracking-wider text-azul-primary hover:text-white bg-azul-primary/10 hover:bg-azul-primary px-1.5 py-0.5 rounded transition-colors border border-azul-primary/20"
                                         >
                                             GUARDAR TODO
                                         </button>
@@ -168,7 +168,7 @@ export function TournamentGroupsView({
                                         return (
                                             <div
                                                 key={m.id}
-                                                className={`group/match relative transition-all text-[8px] ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
+                                                className={`group/match relative transition-all text-[10px] ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
                                             >
                                                 <div
                                                     className={`rounded border transition-all overflow-hidden flex items-center justify-between px-1.5 py-1 gap-1 ${(m.confirmed || m.status === 'finished' || m.status === 'completed')
@@ -186,7 +186,7 @@ export function TournamentGroupsView({
                                                         {m.status === 'in_progress' && !readOnly ? (
                                                             <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-0.5 shadow-sm">
                                                                 <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                <input type="number" value={m.score1 ?? 0} onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[9px] focus:text-rojo" />
+                                                                <input type="number" value={m.score1 ?? 0} onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] focus:text-rojo" />
                                                                 <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
                                                         ) : (
@@ -195,14 +195,14 @@ export function TournamentGroupsView({
                                                     </div>
 
                                                     {/* VS */}
-                                                    <span className="text-[6px] font-black text-slate-300 shrink-0">VS</span>
+                                                    <span className="text-[10px] font-black text-slate-300 shrink-0">VS</span>
 
                                                     {/* Equipo 2 */}
                                                     <div className="flex items-center gap-1 flex-1 min-w-0">
                                                         {m.status === 'in_progress' && !readOnly ? (
                                                             <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-0.5 shadow-sm">
                                                                 <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                <input type="number" value={m.score2 ?? 0} onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[9px] focus:text-rojo" />
+                                                                <input type="number" value={m.score2 ?? 0} onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] focus:text-rojo" />
                                                                 <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 text-slate-300 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
                                                         ) : (
@@ -222,7 +222,7 @@ export function TournamentGroupsView({
                                                                         const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
                                                                         setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
                                                                     }}
-                                                                    className={`px-1.5 py-0.5 rounded text-[6px] font-black italic border transition-colors ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
+                                                                    className={`px-1.5 py-0.5 rounded text-[10px] font-black italic border transition-colors ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
                                                                 >
                                                                     {m.status === 'in_progress' ? "STOP" : "START"}
                                                                 </button>
@@ -232,7 +232,7 @@ export function TournamentGroupsView({
                                                                         handleConfirmScore(targetId);
                                                                         setMatches(prev => prev.map(match => match.id === targetId ? { ...match, status: 'completed', confirmed: true } : match));
                                                                     }}
-                                                                    className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[6px] font-black italic border border-azul-primary/20 transition-colors"
+                                                                    className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[10px] font-black italic border border-azul-primary/20 transition-colors"
                                                                 >
                                                                     FIN
                                                                 </button>

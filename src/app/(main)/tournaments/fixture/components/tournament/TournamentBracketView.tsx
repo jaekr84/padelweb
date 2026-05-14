@@ -38,7 +38,7 @@ export function TournamentBracketView({
                 </div>
                 <div className="flex items-center justify-center gap-2">
                     <div className="h-px w-8 bg-celeste/30" />
-                    <p className="text-celeste text-[8px] font-bold uppercase tracking-[0.4em]">Playoffs Pro</p>
+                    <p className="text-celeste text-[10px] font-bold uppercase tracking-[0.4em]">Playoffs Pro</p>
                     <div className="h-px w-8 bg-celeste/30" />
                 </div>
             </div>
@@ -54,7 +54,7 @@ export function TournamentBracketView({
                         return (
                             <div key={round} className="w-[280px] flex flex-col pt-3">
                                 <div className="flex-none flex flex-col items-center mb-2">
-                                    <span className="px-4 py-1.5 bg-background border border-border/60 rounded-full text-[9px] font-bold uppercase tracking-widest text-muted-foreground shadow-sm">
+                                    <span className="px-4 py-1.5 bg-background border border-border/60 rounded-full text-[11px] font-bold uppercase tracking-widest text-muted-foreground shadow-sm">
                                         {roundLabel(round)}
                                     </span>
                                 </div>
@@ -93,7 +93,7 @@ export function TournamentBracketView({
                                                             }`}
                                                         >
                                                             {m.status === 'in_progress' && !m.confirmed && (
-                                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-rojo text-white px-2.5 py-0.5 text-[7px] font-black italic rounded-b-lg shadow-lg z-20 animate-pulse tracking-widest uppercase whitespace-nowrap">
+                                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-rojo text-white px-2.5 py-0.5 text-[11px] font-black italic rounded-b-lg shadow-lg z-20 animate-pulse tracking-widest uppercase whitespace-nowrap">
                                                                     VIVO
                                                                 </div>
                                                             )}
@@ -110,23 +110,23 @@ export function TournamentBracketView({
                                                                         )}
                                                                         <div className="flex flex-col min-w-0">
                                                                             {m.team1 === "BYE" ? (
-                                                                                <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                                <span className="text-muted-foreground/30 text-[10px] font-black uppercase italic tracking-tighter">BYE</span>
                                                                             ) : (m.team1 as any)?.id?.startsWith('TBD_') ? (
-                                                                                <span className="text-azul-primary/40 text-[8px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
                                                                                     {(m.team1 as Player).name}
                                                                                 </span>
                                                                             ) : (
                                                                                 (m.team1 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
                                                                                     <div key={i} data-tooltip={name.trim()} className="min-w-0">
-                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[11px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
                                                                                             {name.trim()}
                                                                                         </span>
                                                                                     </div>
-                                                                                )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                                )) || <span className="text-muted-foreground/20 text-[10px] font-black uppercase italic">A definir</span>
                                                                             )}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="text-[7px] font-black text-foreground/20 italic tracking-widest px-0.5 pt-2">VS</div>
+                                                                    <div className="text-[11px] font-black text-foreground/20 italic tracking-widest px-0.5 pt-2">VS</div>
                                                                     <div 
                                                                         onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 2)}
                                                                         className={`flex flex-row-reverse items-center gap-1 min-w-0 text-right cursor-pointer p-0.5 rounded transition-all group/player2 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 2 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
@@ -136,19 +136,19 @@ export function TournamentBracketView({
                                                                         )}
                                                                         <div className="flex flex-col items-end min-w-0 text-right">
                                                                             {m.team2 === "BYE" ? (
-                                                                                <span className="text-muted-foreground/30 text-[8px] font-black uppercase italic tracking-tighter">BYE</span>
+                                                                                <span className="text-muted-foreground/30 text-[10px] font-black uppercase italic tracking-tighter">BYE</span>
                                                                             ) : (m.team2 as any)?.id?.startsWith('TBD_') ? (
-                                                                                <span className="text-azul-primary/40 text-[8px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
                                                                                     {(m.team2 as Player).name}
                                                                                 </span>
                                                                             ) : (
                                                                                 (m.team2 as Player)?.name.split(/[\/\+]/).map((name: string, i: number) => (
                                                                                     <div key={i} data-tooltip={name.trim()} className="min-w-0">
-                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[9px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
+                                                                                        <span className={`block font-black uppercase italic tracking-tight leading-[1.1] truncate text-[11px] ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/70"}`}>
                                                                                             {name.trim()}
                                                                                         </span>
                                                                                     </div>
-                                                                                )) || <span className="text-muted-foreground/20 text-[8px] font-black uppercase italic">A definir</span>
+                                                                                )) || <span className="text-muted-foreground/20 text-[10px] font-black uppercase italic">A definir</span>
                                                                             )}
                                                                         </div>
                                                                     </div>
@@ -205,13 +205,13 @@ export function TournamentBracketView({
                                                                                 const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
                                                                                 setBracket(prev => prev.map(bm => bm.id === m.id ? { ...bm, status: nextStatus } : bm));
                                                                             }}
-                                                                            className={`px-3 py-1 rounded-full text-[8px] font-black italic tracking-wider transition-all border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-azul-primary text-white border-azul-primary shadow-md shadow-azul-primary/10"}`}
+                                                                            className={`px-3 py-1 rounded-full text-[10px] font-black italic tracking-wider transition-all border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-azul-primary text-white border-azul-primary shadow-md shadow-azul-primary/10"}`}
                                                                         >
                                                                             {m.status === 'in_progress' ? 'PAUSAR' : 'INICIAR'}
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleBracketConfirm(m.id)}
-                                                                            className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[8px] font-black italic tracking-wider border border-emerald-500 shadow-md shadow-emerald-500/10 hover:bg-emerald-600 transition-all"
+                                                                            className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-black italic tracking-wider border border-emerald-500 shadow-md shadow-emerald-500/10 hover:bg-emerald-600 transition-all"
                                                                         >
                                                                             FINALIZAR
                                                                         </button>
@@ -225,7 +225,7 @@ export function TournamentBracketView({
                                                                             className="flex items-center gap-1 px-3 py-0.5 rounded-full bg-azul-primary/5 text-azul-primary/40 hover:text-azul-primary hover:bg-azul-primary/10 transition-all group/reopen border border-azul-primary/10"
                                                                         >
                                                                             <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
-                                                                            <span className="text-[8px] font-black uppercase italic tracking-wider">Reabrir Partido</span>
+                                                                            <span className="text-[10px] font-black uppercase italic tracking-wider">Reabrir Partido</span>
                                                                         </button>
                                                                     </div>
                                                                 )}

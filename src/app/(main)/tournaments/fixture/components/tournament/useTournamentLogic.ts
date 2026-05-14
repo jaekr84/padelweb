@@ -879,7 +879,7 @@ export function useTournamentLogic({
             const winner = m.score1! > m.score2! ? m.team1 : m.team2;
             const winnerId = (winner as Player)?.id;
             const winnerName = (winner as Player)?.name;
-            return { ...m, confirmed: true, winnerId, winnerName };
+            return { ...m, confirmed: true, winnerId, winnerName, status: 'completed' };
         });
         const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
         const finalBracket = computeAdvancedBracket(updated, totalRounds);
@@ -956,6 +956,39 @@ export function useTournamentLogic({
             lastSavedState.current.paid = new Set(safePaid);
         }
     }, [initialGroups, initialMatches, initialBracket, initialPresent, initialPaid]);
+
+    const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+    const lastAutoSaveHash = useRef("");
+
+    useEffect(() => {
+        if (readOnly || step === "setup") return;
+        const currentHash = JSON.stringify({ 
+            m: matches.map(m=>[m.id, m.score1, m.score2, m.status, m.confirmed]), 
+            b: bracket.map(b=>[b.id, b.score1, b.score2, b.status, b.confirmed]) 
+        });
+        if (lastAutoSaveHash.current === currentHash) return;
+        
+        // Skip auto-save on the very first render if we just mapped initial data
+        if (!lastAutoSaveHash.current) {
+            lastAutoSaveHash.current = currentHash;
+            return;
+        }
+
+        if (autoSaveTimeout.current) clearTimeout(autoSaveTimeout.current);
+        autoSaveTimeout.current = setTimeout(async () => {
+            try {
+                lastAutoSaveHash.current = currentHash;
+                await saveTournamentFixture({
+                    tournamentId,
+                    phase: step !== "elim" ? "grupos" : "eliminatorias",
+                    groups, matches, bracket,
+                    presentPlayerIds: Array.from(present),
+                    paidPlayerIds: Array.from(paid),
+                    skipRevalidation: true
+                });
+            } catch (e) { console.error("Auto-save failed", e); }
+        }, 1500);
+    }, [matches, bracket, tournamentId, step, groups, present, paid, readOnly]);
 
     useEffect(() => {
         if (readOnly || step === "setup") return;
