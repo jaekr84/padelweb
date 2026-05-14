@@ -12,7 +12,7 @@ interface TournamentGroupsViewProps {
     paid: Set<string>;
     togglePaid: (id: string) => void;
     handleScoreChange: (matchId: string, s1: string, s2: string) => void;
-    handleConfirmScore: (matchId: string) => void;
+    handleConfirmScore: (matchId: string | string[]) => void;
     handleReopenMatch: (matchId: string) => void;
     setGroups: (groups: Group[]) => void;
     setMatches: (matches: Match[] | ((prev: Match[]) => Match[])) => void;
@@ -137,6 +137,30 @@ export function TournamentGroupsView({
                                 <div className="flex items-center justify-between px-1">
                                     <h4 className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/50">Fixture del Grupo</h4>
                                     <div className="h-px flex-1 bg-border/10 mx-2" />
+                                    {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
+                                        <button
+                                            onClick={() => {
+                                                const matchesToConfirm = groupMatches.filter(m => 
+                                                    !m.confirmed && 
+                                                    m.status === 'in_progress' && 
+                                                    m.score1 !== undefined && 
+                                                    m.score2 !== undefined && 
+                                                    m.score1 !== m.score2
+                                                );
+                                                if (matchesToConfirm.length > 0) {
+                                                    const ids = matchesToConfirm.map(m => m.id);
+                                                    handleConfirmScore(ids);
+                                                    setMatches(prev => {
+                                                        if (typeof prev === 'function') return prev;
+                                                        return prev.map(match => ids.includes(match.id) ? { ...match, status: 'completed', confirmed: true } : match);
+                                                    });
+                                                }
+                                            }}
+                                            className="text-[6px] font-black uppercase italic tracking-wider text-azul-primary hover:text-white bg-azul-primary/10 hover:bg-azul-primary px-1.5 py-0.5 rounded transition-colors border border-azul-primary/20"
+                                        >
+                                            GUARDAR TODO
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="grid gap-1">
                                     {groupMatches.map(m => {
@@ -204,8 +228,9 @@ export function TournamentGroupsView({
                                                                 </button>
                                                                 <button
                                                                     onClick={() => {
-                                                                        handleConfirmScore(m.id);
-                                                                        setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'completed', confirmed: true } : match));
+                                                                        const targetId = m.id;
+                                                                        handleConfirmScore(targetId);
+                                                                        setMatches(prev => prev.map(match => match.id === targetId ? { ...match, status: 'completed', confirmed: true } : match));
                                                                     }}
                                                                     className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[6px] font-black italic border border-azul-primary/20 transition-colors"
                                                                 >

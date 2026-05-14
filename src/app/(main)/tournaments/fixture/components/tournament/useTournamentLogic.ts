@@ -476,27 +476,35 @@ export function useTournamentLogic({
         }));
     };
 
-    const handleConfirmScore = async (matchId: string) => {
-        console.log(">>> [DEBUG] Intentando confirmar partido:", matchId);
-        const match = matches.find(m => m.id === matchId);
+    const handleConfirmScore = async (matchIdOrIds: string | string[]) => {
+        const matchIds = Array.isArray(matchIdOrIds) ? matchIdOrIds : [matchIdOrIds];
+        console.log(">>> [DEBUG] Intentando confirmar partidos:", matchIds);
         
-        if (!match) {
-            console.error("No se encontró el partido con ID:", matchId);
-            return;
+        const matchesToConfirm = matches.filter(m => matchIds.includes(m.id));
+        if (matchesToConfirm.length === 0) return;
+
+        let hasTies = false;
+        for (const match of matchesToConfirm) {
+            const s1 = (match.score1 === undefined || match.score1 === null) ? 0 : match.score1;
+            const s2 = (match.score2 === undefined || match.score2 === null) ? 0 : match.score2;
+            if (s1 === s2) {
+                toast.error(`Empate no permitido: ${match.team1?.name.split("/")[0]} vs ${match.team2?.name.split("/")[0]}`);
+                hasTies = true;
+            }
         }
 
-        // Check scores - Treat undefined/null as 0
-        const s1 = (match.score1 === undefined || match.score1 === null) ? 0 : match.score1;
-        const s2 = (match.score2 === undefined || match.score2 === null) ? 0 : match.score2;
-
-        if (s1 === s2) {
-            toast.error("No se permiten empates en los partidos del torneo");
-            return;
-        }
+        if (hasTies) return; // Abort if any ties are found
         
-        console.log(">>> [DEBUG] Enviando al servidor:", { score1: s1, score2: s2 });
-        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, score1: s1, score2: s2, confirmed: true } : m);
-        const loadingToast = toast.loading("Guardando resultado...");
+        const updatedMatches = matches.map(m => {
+            if (matchIds.includes(m.id)) {
+                const s1 = (m.score1 === undefined || m.score1 === null) ? 0 : m.score1;
+                const s2 = (m.score2 === undefined || m.score2 === null) ? 0 : m.score2;
+                return { ...m, score1: s1, score2: s2, confirmed: true, status: 'completed' };
+            }
+            return m;
+        });
+
+        const loadingToast = toast.loading(matchIds.length > 1 ? "Guardando resultados..." : "Guardando resultado...");
         setSaving(true);
         try {
             const res = await saveTournamentFixture({
@@ -511,7 +519,7 @@ export function useTournamentLogic({
             toast.dismiss(loadingToast);
             if (res.ok) {
                 setMatches(updatedMatches);
-                toast.success("Marcador guardado");
+                toast.success(matchIds.length > 1 ? "Marcadores guardados" : "Marcador guardado");
             } else {
                 toast.error("Error al guardar: " + res.error);
             }
@@ -723,6 +731,7 @@ export function useTournamentLogic({
             const seedPositions = getSeedingOrder(bracketSize);
             const firsts = actualQualifiers.filter(q => q.groupRank === 1);
             const seconds = actualQualifiers.filter(q => q.groupRank === 2);
+            const others = actualQualifiers.filter(q => q.groupRank > 2);
             
             // Shift seconds by half the number of groups to ensure they don't meet their group-mate
             const shift = Math.max(1, Math.floor(firsts.length / 2));
@@ -736,6 +745,7 @@ export function useTournamentLogic({
             let currentSeed = 1;
             firsts.forEach(q => seedMap.set(currentSeed++, q));
             shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
+            others.forEach(q => seedMap.set(currentSeed++, q));
 
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
@@ -954,7 +964,7 @@ export function useTournamentLogic({
         const bracketHasStarted = bracket.some(m => 
             (m.confirmed && m.team1 !== "BYE" && m.team2 !== "BYE") || 
             m.status === 'in_progress' ||
-            (m.score1 !== 0 || m.score2 !== 0)
+            ((m.score1 !== undefined && m.score1 !== 0) || (m.score2 !== undefined && m.score2 !== 0))
         );
         if (bracketHasStarted) return;
         
@@ -985,10 +995,23 @@ export function useTournamentLogic({
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
+            const firsts = actualQuals.filter(q => q.groupRank === 1);
+            const seconds = actualQuals.filter(q => q.groupRank === 2);
+            const others = actualQuals.filter(q => q.groupRank > 2);
+            
+            // Shift seconds by half the number of groups to ensure they don't meet their group-mate
+            const shift = Math.max(1, Math.floor(firsts.length / 2));
+            const shiftedSeconds = [...seconds];
+            for (let i = 0; i < shift; i++) {
+                const item = shiftedSeconds.shift();
+                if (item) shiftedSeconds.push(item);
+            }
+
             const seedMap = new Map<number, any>();
-            actualQuals.forEach((q, idx) => {
-                seedMap.set(idx + 1, q);
-            });
+            let currentSeed = 1;
+            firsts.forEach(q => seedMap.set(currentSeed++, q));
+            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
+            others.forEach(q => seedMap.set(currentSeed++, q));
 
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;

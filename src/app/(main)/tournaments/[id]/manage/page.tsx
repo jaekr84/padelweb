@@ -113,6 +113,7 @@ export default async function TournamentManagePage({ params }: Props) {
         score2: m.score2 ?? undefined,
         played: m.confirmed,
         confirmed: m.confirmed,
+        status: m.status || (m.confirmed ? "finished" : "pending"),
         roundIndex: m.roundIndex ?? undefined,
         courtNumber: m.courtNumber ?? undefined,
     }));
