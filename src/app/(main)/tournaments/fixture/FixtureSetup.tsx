@@ -23,6 +23,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
+import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
+import { Player, Group } from "./components/tournament/types";
 
 export interface FixtureSetupProps {
     tournamentId: string;
@@ -34,20 +36,7 @@ export interface FixtureSetupProps {
     isIndividual?: boolean;
 }
 
-type Player = { 
-    id: string; 
-    name: string; 
-    category?: string | null; 
-    email?: string; 
-    gender?: string; 
-    clubId?: string | null; 
-    player1?: string | null; 
-    player2?: string | null;
-    userId?: string;
-    partnerUserId?: string | null;
-};
-type Group = { id: string; name: string; players: Player[] };
-
+// Local types for specific fixture logic
 type Match = {
     id: string;
     groupId: string;
@@ -88,25 +77,36 @@ export default function FixtureSetup({
     const urlStep = searchParams.get("step") as "config" | "assign" | null;
 
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"config" | "assign">(urlStep || "config");
+    const [step, setStep] = useState<"checkin" | "config" | "assign">(urlStep || "checkin");
     
     // Initialize paid/present assuming all initial players are present since we skip check-in
-    const [paid, setPaid] = useState<Set<string>>(() => {
-        const set = new Set<string>();
-        initialPlayers.forEach(p => {
-            if (isIndividual) set.add(p.id);
-            else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+    const [paid, setPaid] = useState<Set<string>>(new Set());
+    const [present, setPresent] = useState<Set<string>>(new Set());
+
+    // ── Attendance Logic ──
+    const togglePresent = (id: string) => {
+        setPresent(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
         });
-        return set;
-    });
-    const [present, setPresent] = useState<Set<string>>(() => {
-        const set = new Set<string>();
-        initialPlayers.forEach(p => {
-            if (isIndividual) set.add(p.id);
-            else { set.add(`${p.id}_0`); set.add(`${p.id}_1`); }
+    };
+
+    const togglePaid = (id: string) => {
+        setPaid(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
         });
-        return set;
-    });
+    };
+
+    const bulkUpdateStatus = (type: 'present' | 'paid', ids: string[]) => {
+        const setter = type === 'present' ? setPresent : setPaid;
+        setter(new Set(ids));
+        toast.success(`Estado de ${type === 'present' ? 'asistencia' : 'pago'} actualizado`);
+    };
 
     // New: Track if randomized at least once
     const [hasRandomized, setHasRandomized] = useState(initialGroups.length > 0);
@@ -696,7 +696,7 @@ export default function FixtureSetup({
 
                     {/* Secondary Navigation (Index) for sub-steps */}
                     <AnimatePresence>
-                        {(step === "config" || step === "assign") && (
+                        {(step === "checkin" || step === "config" || step === "assign") && (
                             <motion.div 
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -704,6 +704,7 @@ export default function FixtureSetup({
                                 className="flex items-center justify-center gap-6 py-2 border-t border-border/30"
                             >
                                 {[
+                                    { id: "checkin", label: "0. Asistencia" },
                                     { id: "config", label: "1. Grupos y Participantes" },
                                     { id: "assign", label: "2. Armado de Grupos (Sorteo)" }
                                 ].map((ss) => (
@@ -727,7 +728,41 @@ export default function FixtureSetup({
             <main className="max-w-6xl mx-auto px-4 py-8 pb-32">
 
                 <AnimatePresence mode="wait">
-
+                    {step === "checkin" && (
+                        <motion.div
+                            key="checkin"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="space-y-6"
+                        >
+                            <TournamentAttendance
+                                readOnly={false}
+                                searchQuery={playerSearchQuery}
+                                setSearchQuery={setPlayerSearchQuery}
+                                allPlayers={players}
+                                present={present}
+                                togglePresent={togglePresent}
+                                paid={paid}
+                                togglePaid={togglePaid}
+                                setPlayerToDelete={(p) => setParticipantToDelete(p ? { id: p.id, name: p.name } : null)}
+                                setReplacingPlayer={(p) => {
+                                    if (p) {
+                                        setReplacingParticipant({
+                                            checkinId: p.id,
+                                            displayName: p.name,
+                                            pairId: p.id
+                                        });
+                                    } else {
+                                        setReplacingParticipant(null);
+                                    }
+                                }}
+                                onContinue={() => setStep("config")}
+                                bulkUpdateStatus={bulkUpdateStatus}
+                                onAddPlayer={() => setIsPlayerModalOpen(true)}
+                            />
+                        </motion.div>
+                    )}
 
                     {step === "config" && (
                         <motion.div

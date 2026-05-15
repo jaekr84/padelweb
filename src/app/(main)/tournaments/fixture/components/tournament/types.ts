@@ -5,7 +5,9 @@ export type Player = {
     club?: string | null; 
     ranking?: number | null; 
     player1?: string; 
-    player2?: string 
+    player2?: string;
+    userId?: string;
+    partnerUserId?: string | null;
 };
 
 export type Group = { 

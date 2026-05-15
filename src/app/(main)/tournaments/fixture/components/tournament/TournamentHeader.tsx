@@ -34,7 +34,7 @@ export function TournamentHeader({
     const router = useRouter();
 
     const steps = [
-        { id: "setup", label: "Participantes", icon: Users2, active: step === "setup", completed: step !== "setup" },
+        { id: "setup", label: "Asistencia", icon: Users2, active: step === "setup", completed: step !== "setup" },
         { id: "done", label: "Torneo en Curso", icon: Swords, active: step === "done" || step === "qual" || step === "elim", completed: initialStatus === "finalizado" },
     ];
 

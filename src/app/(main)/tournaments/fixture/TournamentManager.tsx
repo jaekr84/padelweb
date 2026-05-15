@@ -130,7 +130,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 togglePaid={togglePaid}
                                 setPlayerToDelete={setPlayerToDelete}
                                 setReplacingPlayer={setReplacingPlayer}
-                                setStep={setStep}
+                                onContinue={() => setStep("done")}
                                 bulkUpdateStatus={bulkUpdateStatus}
                             />
                         </motion.div>

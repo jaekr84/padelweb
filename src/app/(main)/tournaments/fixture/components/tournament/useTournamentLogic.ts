@@ -61,7 +61,8 @@ export function useTournamentLogic({
 
     // ── State ──
     const [step, setStep] = useState<"setup" | "done" | "qual" | "elim">(
-        initialStatus === "setup" ? "setup" :
+        (initialStatus === "setup" || (initialGroups.length === 0 && !readOnly))
+            ? "setup" :
             (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done"
     );
     const [groups, setGroups] = useState<Group[]>(initialGroups);
@@ -688,14 +689,21 @@ export function useTournamentLogic({
                         else nextMatch.team1 = winner as Player || null;
 
                         if (nextMatch.team1 && nextMatch.team2) {
-                            if (nextMatch.status !== 'in_progress' && ((nextMatch.team1 as any) === "BYE" || (nextMatch.team2 as any) === "BYE")) {
-                                const realTeam = (nextMatch.team1 as any) === "BYE" ? nextMatch.team2 : nextMatch.team1;
-                                const isRealPlayer = realTeam && !(realTeam as any).isPlaceholder && !(realTeam as any).id?.startsWith('TBD');
+                            // Only auto-confirm if one is a BYE AND the other is a real player (not a TBD or placeholder)
+                            const t1 = nextMatch.team1 as any;
+                            const t2 = nextMatch.team2 as any;
+                            const isT1Bye = t1 === "BYE";
+                            const isT2Bye = t2 === "BYE";
+
+                            if (nextMatch.status !== 'in_progress' && (isT1Bye || isT2Bye)) {
+                                const realTeam = isT1Bye ? t2 : t1;
+                                const isRealPlayer = realTeam && !realTeam.isPlaceholder && !realTeam.id?.startsWith('TBD');
                                 
                                 if (isRealPlayer) {
                                     nextMatch.confirmed = true;
-                                    nextMatch.winnerId = (realTeam as Player).id;
-                                    nextMatch.winnerName = (realTeam as Player).name;
+                                    nextMatch.winnerId = realTeam.id;
+                                    nextMatch.winnerName = realTeam.name;
+                                    nextMatch.status = 'completed';
                                 }
                             }
                         }
@@ -904,24 +912,36 @@ export function useTournamentLogic({
             return;
         }
         const updated = bracket.map(m => {
-            if (m.id !== matchId) return { ...m };
+            if (m.id !== matchId) return m; // Return exactly the same object to preserve status
             const winner = m.score1! > m.score2! ? m.team1 : m.team2;
             const winnerId = (winner as Player)?.id;
             const winnerName = (winner as Player)?.name;
             return { ...m, confirmed: true, winnerId, winnerName, status: 'completed' };
         });
+
         const totalRounds = updated.length > 0 ? Math.max(...updated.map(m => m.round)) + 1 : 0;
         const finalBracket = computeAdvancedBracket(updated, totalRounds);
-        setBracket(finalBracket);
+        
+        // Ensure we preserve the 'in_progress' status of any match that was already started
+        const preservedBracket = finalBracket.map(m => {
+            const original = bracket.find(ob => ob.id === m.id);
+            if (original?.status === 'in_progress' && !m.confirmed) {
+                return { ...m, status: 'in_progress' };
+            }
+            return m;
+        });
+
+        setBracket(preservedBracket);
         setSaving(true);
         const match = finalBracket.find(m => m.id === matchId);
         const isFinal = match?.round === 0;
         const championName = isFinal ? (match?.winnerName || "Campeón") : undefined;
         try {
+            console.log("[useTournamentLogic] Manually saving bracket:", preservedBracket.map(b => ({ id: b.id, status: b.status, confirmed: b.confirmed })));
             const res = await saveTournamentFixture({
                 tournamentId,
                 phase: isFinal ? "finalizado" : "eliminatorias",
-                groups, matches, bracket: finalBracket, championName, 
+                groups, matches, bracket: preservedBracket, championName, 
                 presentPlayerIds: Array.from(present),
                 paidPlayerIds: Array.from(paid)
             });
@@ -971,8 +991,29 @@ export function useTournamentLogic({
 
     useEffect(() => {
         setGroups(initialGroups);
-        setMatches(initialMatches);
-        setBracket(initialBracket);
+        
+        // Intelligent sync for Group matches
+        setMatches(prev => {
+            return initialMatches.map(newM => {
+                const localM = prev.find(pm => pm.id === newM.id);
+                if (localM?.status === 'in_progress' && !newM.confirmed) {
+                    return { ...newM, status: 'in_progress' };
+                }
+                return newM;
+            });
+        });
+        
+        // Intelligent sync: preserve 'in_progress' status for matches currently active in UI
+        setBracket(prev => {
+            return initialBracket.map(newM => {
+                const localM = prev.find(pm => pm.id === newM.id);
+                // If local match is in_progress but server says it's pending/other (not confirmed), keep in_progress
+                if (localM?.status === 'in_progress' && !newM.confirmed) {
+                    return { ...newM, status: 'in_progress' };
+                }
+                return newM;
+            });
+        });
         
         // Only update present/paid if they differ from our last intended state
         const safePresent = ensureArray(initialPresent);
@@ -1013,6 +1054,7 @@ export function useTournamentLogic({
         autoSaveTimeout.current = setTimeout(async () => {
             try {
                 lastAutoSaveHash.current = currentHash;
+                console.log("[useTournamentLogic] Auto-saving bracket state due to change...");
                 await saveTournamentFixture({
                     tournamentId,
                     phase: step !== "elim" ? "grupos" : "eliminatorias",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Users2, CreditCard, UserCheck, Trash2, RotateCcw, ChevronRight } from "lucide-react";
+import { Search, Users2, CreditCard, UserCheck, Trash2, RotateCcw, ChevronRight, Plus } from "lucide-react";
 import { Player } from "./types";
 
 interface TournamentAttendanceProps {
@@ -14,8 +14,9 @@ interface TournamentAttendanceProps {
     togglePaid: (id: string) => void;
     setPlayerToDelete: (p: Player | null) => void;
     setReplacingPlayer: (p: Player | null) => void;
-    setStep: (s: any) => void;
+    onContinue: () => void;
     bulkUpdateStatus?: (type: 'present' | 'paid', ids: string[]) => void;
+    onAddPlayer?: () => void;
 }
 
 export function TournamentAttendance({
@@ -29,8 +30,9 @@ export function TournamentAttendance({
     togglePaid,
     setPlayerToDelete,
     setReplacingPlayer,
-    setStep,
-    bulkUpdateStatus
+    onContinue,
+    bulkUpdateStatus,
+    onAddPlayer
 }: TournamentAttendanceProps) {
     const filteredPlayers = allPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -56,6 +58,15 @@ export function TournamentAttendance({
                 </div>
                 {!readOnly && (
                     <div className="flex items-center gap-2 w-full md:w-auto">
+                        {onAddPlayer && (
+                            <button
+                                onClick={onAddPlayer}
+                                className="flex-1 md:flex-none px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl font-black uppercase text-[8px] tracking-widest border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/5 flex items-center justify-center gap-2"
+                            >
+                                <Plus className="w-3 h-3" />
+                                Agregar Jugador
+                            </button>
+                        )}
                         <button
                             onClick={() => {
                                 const allIds = allPlayers.map(p => p.id);
@@ -167,7 +178,7 @@ export function TournamentAttendance({
             {!readOnly && (
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
                     <button
-                        onClick={() => setStep("done")}
+                        onClick={onContinue}
                         disabled={present.size < 2}
                         className="w-full py-3.5 bg-celeste text-white rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-celeste/30 hover:bg-celeste/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale text-sm"
                     >

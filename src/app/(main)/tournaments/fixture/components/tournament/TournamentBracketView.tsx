@@ -107,9 +107,10 @@ export function TournamentBracketView({
                                                                 </div>
                                                             )}
 
-                                                            <div className="px-2 py-1 flex flex-col min-h-[80px]">
-                                                                {/* Top Row: Names & VS */}
-                                                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+                                                            <div className="flex flex-col py-2 min-h-[110px] justify-between">
+                                                                {/* Names Row - Fixed Height */}
+                                                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 px-2 min-h-[32px]">
+                                                                    {/* Equipo 1 */}
                                                                     <div 
                                                                         onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 1)}
                                                                         className={`flex items-center gap-1 min-w-0 cursor-pointer p-0.5 rounded transition-all group/player1 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 1 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
@@ -121,7 +122,7 @@ export function TournamentBracketView({
                                                                             {m.team1 === "BYE" ? (
                                                                                 <span className="text-muted-foreground/30 text-[10px] font-black uppercase italic tracking-tighter">BYE</span>
                                                                             ) : (m.team1 as any)?.id?.startsWith('TBD_') ? (
-                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02] truncate">
                                                                                     {(m.team1 as Player).name}
                                                                                 </span>
                                                                             ) : (
@@ -135,7 +136,13 @@ export function TournamentBracketView({
                                                                             )}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="absolute left-1/2 -translate-x-1/2 top-[38%] text-[10px] font-black text-foreground/10 italic tracking-[0.2em] pointer-events-none z-0">VS</div>
+
+                                                                    {/* VS central column */}
+                                                                    <div className="flex items-center justify-center px-1">
+                                                                        <span className="text-[10px] font-black text-foreground/10 italic tracking-widest pt-1">VS</span>
+                                                                    </div>
+
+                                                                    {/* Equipo 2 */}
                                                                     <div 
                                                                         onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 2)}
                                                                         className={`flex flex-row-reverse items-center gap-1 min-w-0 text-right cursor-pointer p-0.5 rounded transition-all group/player2 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 2 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
@@ -147,7 +154,7 @@ export function TournamentBracketView({
                                                                             {m.team2 === "BYE" ? (
                                                                                 <span className="text-muted-foreground/30 text-[10px] font-black uppercase italic tracking-tighter">BYE</span>
                                                                             ) : (m.team2 as any)?.id?.startsWith('TBD_') ? (
-                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02]">
+                                                                                <span className="text-azul-primary/40 text-[10px] font-black uppercase italic tracking-tighter border border-dashed border-azul-primary/20 rounded px-1 py-0.5 bg-azul-primary/[0.02] truncate">
                                                                                     {(m.team2 as Player).name}
                                                                                 </span>
                                                                             ) : (
@@ -162,82 +169,87 @@ export function TournamentBracketView({
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                {/* Middle Row: Scores */}
-                                                                <div className="flex items-center justify-between mt-1 mb-0.5 px-0.5">
-                                                                    {m.status === 'in_progress' && !readOnly ? (
-                                                                        <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
-                                                                            <input
-                                                                                type="number"
-                                                                                value={m.score1 ?? 0}
-                                                                                onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "0")}
-                                                                                className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
-                                                                                placeholder="0"
-                                                                            />
-                                                                            <div className="flex flex-col gap-1">
-                                                                                <button onClick={() => handleBracketScore(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
-                                                                                <button onClick={() => handleBracketScore(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                {/* Middle Row: Scores - Fixed Height & Centered */}
+                                                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 px-2 h-8">
+                                                                    <div className="flex justify-center">
+                                                                        {m.status === 'in_progress' && !readOnly ? (
+                                                                            <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={m.score1 ?? 0}
+                                                                                    onChange={e => handleBracketScore(m.id, e.target.value, m.score2?.toString() ?? "0")}
+                                                                                    className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
+                                                                                    placeholder="0"
+                                                                                />
+                                                                                <div className="flex flex-col gap-0.5">
+                                                                                    <button onClick={() => handleBracketScore(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-1.5 h-1.5" /></button>
+                                                                                    <button onClick={() => handleBracketScore(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "0")} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-1.5 h-1.5" /></button>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className={`text-xs font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/30"}`}>
-                                                                            {m.score1 ?? 0}
-                                                                        </span>
-                                                                    )}
+                                                                        ) : (
+                                                                            <span className={`text-sm font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team1 as Player)?.id ? "text-emerald-600" : "text-foreground/40"}`}>
+                                                                                {m.score1 ?? 0}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
 
-                                                                    {m.status === 'in_progress' && !readOnly ? (
-                                                                        <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
-                                                                            <div className="flex flex-col gap-1">
-                                                                                <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
-                                                                                <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        {!readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && !m.confirmed && m.status !== 'completed' && m.status !== 'finished' && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
+                                                                                    setBracket(prev => prev.map(bm => bm.id === m.id ? { ...bm, status: nextStatus } : bm));
+                                                                                }}
+                                                                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase italic tracking-widest border transition-all shadow-sm ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/5 text-rojo border-rojo/20"}`}
+                                                                            >
+                                                                                {m.status === 'in_progress' ? "STOP" : "START"}
+                                                                            </button>
+                                                                        )}
+                                                                        {m.status === 'in_progress' && !readOnly && (
+                                                                            <button
+                                                                                onClick={() => handleBracketConfirm(m.id)}
+                                                                                className="px-3 py-1 rounded-full bg-azul-primary text-white text-[10px] font-black uppercase italic tracking-widest border border-azul-primary shadow-lg shadow-azul-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                                            >
+                                                                                FIN
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="flex justify-center">
+                                                                        {m.status === 'in_progress' && !readOnly ? (
+                                                                            <div className="flex items-center gap-1 bg-muted/20 rounded-md p-0.5 border border-border/10">
+                                                                                <div className="flex flex-col gap-0.5">
+                                                                                    <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", ((m.score2 || 0) + 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Plus className="w-1.5 h-1.5" /></button>
+                                                                                    <button onClick={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 hover:text-rojo transition-colors"><Minus className="w-1.5 h-1.5" /></button>
+                                                                                </div>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={m.score2 ?? 0}
+                                                                                    onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "0", e.target.value)}
+                                                                                    className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
+                                                                                    placeholder="0"
+                                                                                />
                                                                             </div>
-                                                                            <input
-                                                                                type="number"
-                                                                                value={m.score2 ?? 0}
-                                                                                onChange={e => handleBracketScore(m.id, m.score1?.toString() ?? "0", e.target.value)}
-                                                                                className="w-8 h-6 bg-transparent text-center font-black text-xs outline-none no-spin-buttons"
-                                                                                placeholder="0"
-                                                                            />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className={`text-xs font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/30"}`}>
-                                                                            {m.score2 ?? 0}
-                                                                        </span>
-                                                                    )}
+                                                                        ) : (
+                                                                            <span className={`text-sm font-black tabular-nums ${(m.confirmed || m.status === 'finished' || m.status === 'completed') && m.winnerId === (m.team2 as Player)?.id ? "text-emerald-600" : "text-foreground/40"}`}>
+                                                                                {m.score2 ?? 0}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
 
-                                                                {/* Bottom Row: Actions */}
-                                                                {!m.confirmed && !readOnly && m.team1 && m.team2 && (
-                                                                    <div className="flex justify-center items-center gap-1.5 pt-1 border-t border-border/5 opacity-0 group-hover/match:opacity-100 transition-opacity mt-auto">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
-                                                                                setBracket(prev => prev.map(bm => bm.id === m.id ? { ...bm, status: nextStatus } : bm));
-                                                                            }}
-                                                                            className={`px-3 py-1 rounded-full text-[10px] font-black italic tracking-wider transition-all border ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-azul-primary text-white border-azul-primary shadow-md shadow-azul-primary/10"}`}
-                                                                        >
-                                                                            {m.status === 'in_progress' ? 'PAUSAR' : 'INICIAR'}
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleBracketConfirm(m.id)}
-                                                                            className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-black italic tracking-wider border border-emerald-500 shadow-md shadow-emerald-500/10 hover:bg-emerald-600 transition-all"
-                                                                        >
-                                                                            FINALIZAR
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-
-                                                                {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
-                                                                    <div className="flex justify-center pt-1 border-t border-border/5 opacity-0 group-hover/match:opacity-100 transition-opacity mt-auto">
+                                                                {/* Bottom Row: Admin Reopen - Fixed Height */}
+                                                                <div className="flex items-center justify-center h-6 mt-1">
+                                                                    {(m.confirmed || m.status === 'finished' || m.status === 'completed') && !readOnly && (
                                                                         <button
                                                                             onClick={() => handleReopenMatch(m.id)}
-                                                                            className="flex items-center gap-1 px-3 py-0.5 rounded-full bg-azul-primary/5 text-azul-primary/40 hover:text-azul-primary hover:bg-azul-primary/10 transition-all group/reopen border border-azul-primary/10"
+                                                                            className="flex items-center gap-1 px-3 py-0.5 rounded-full bg-azul-primary/5 text-azul-primary/40 hover:text-azul-primary hover:bg-azul-primary/10 transition-all group/reopen border border-azul-primary/10 opacity-0 group-hover/match:opacity-100"
                                                                         >
                                                                             <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />
                                                                             <span className="text-[10px] font-black uppercase italic tracking-wider">Reabrir Partido</span>
                                                                         </button>
-                                                                    </div>
-                                                                )}
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
