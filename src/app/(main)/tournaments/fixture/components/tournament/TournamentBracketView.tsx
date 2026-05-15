@@ -194,18 +194,17 @@ export function TournamentBracketView({
                                                                     </div>
 
                                                                     <div className="flex items-center gap-1.5">
-                                                                        {!readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && !m.confirmed && m.status !== 'completed' && m.status !== 'finished' && (
+                                                                        {!readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && !m.confirmed && m.status !== 'completed' && m.status !== 'finished' && m.status !== 'in_progress' && (
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
-                                                                                    setBracket(prev => prev.map(bm => bm.id === m.id ? { ...bm, status: nextStatus } : bm));
+                                                                                    setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm));
                                                                                 }}
-                                                                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase italic tracking-widest border transition-all shadow-sm ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/5 text-rojo border-rojo/20"}`}
+                                                                                className="px-3 py-1 rounded-full bg-white hover:bg-rojo/5 text-rojo border border-rojo/20 text-[10px] font-black uppercase italic tracking-widest transition-all shadow-sm"
                                                                             >
-                                                                                {m.status === 'in_progress' ? "STOP" : "START"}
+                                                                                START
                                                                             </button>
                                                                         )}
-                                                                        {m.status === 'in_progress' && !readOnly && (
+                                                                        {m.status === 'in_progress' && !readOnly && !m.confirmed && (
                                                                             <button
                                                                                 onClick={() => handleBracketConfirm(m.id)}
                                                                                 className="px-3 py-1 rounded-full bg-azul-primary text-white text-[10px] font-black uppercase italic tracking-widest border border-azul-primary shadow-lg shadow-azul-primary/20 hover:scale-105 active:scale-95 transition-all"

@@ -19,10 +19,6 @@ export function TournamentDashboard({
 }: TournamentDashboardProps) {
     return (
         <section className="space-y-4">
-            <div className="text-center">
-                <h2 className="text-base md:text-lg font-black text-foreground tracking-tighter uppercase italic">Resumen de Fase</h2>
-                <p className="text-azul-primary text-[7px] font-black uppercase tracking-[0.25em]">Progreso y Estado</p>
-            </div>
 
             {/* Progress Bar */}
             <div className="space-y-2 max-w-4xl mx-auto">

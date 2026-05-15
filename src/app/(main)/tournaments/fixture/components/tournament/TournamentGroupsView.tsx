@@ -217,20 +217,21 @@ export function TournamentGroupsView({
                                                     <div className="flex items-center gap-1 shrink-0 ml-1">
                                                         {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
                                                             <>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const nextStatus = m.status === 'in_progress' ? 'pending' : 'in_progress';
-                                                                        setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: nextStatus } : match));
-                                                                    }}
-                                                                    className={`px-1.5 py-0.5 rounded text-[10px] font-black italic border transition-colors ${m.status === 'in_progress' ? "bg-rojo text-white border-rojo" : "bg-white hover:bg-rojo/10 text-rojo border-rojo/20"}`}
-                                                                >
-                                                                    {m.status === 'in_progress' ? "STOP" : "START"}
-                                                                </button>
+                                                                {m.status !== 'in_progress' && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setMatches(prev => (Array.isArray(prev) ? prev : []).map(match => match.id === m.id ? { ...match, status: 'in_progress' } : match));
+                                                                        }}
+                                                                        className="px-1.5 py-0.5 rounded bg-white hover:bg-rojo/10 text-rojo border border-rojo/20 text-[10px] font-black italic transition-colors"
+                                                                    >
+                                                                        START
+                                                                    </button>
+                                                                )}
                                                                 <button
                                                                     onClick={() => {
                                                                         const targetId = m.id;
                                                                         handleConfirmScore(targetId);
-                                                                        setMatches(prev => prev.map(match => match.id === targetId ? { ...match, status: 'completed', confirmed: true } : match));
+                                                                        setMatches(prev => (Array.isArray(prev) ? prev : []).map(match => match.id === targetId ? { ...match, status: 'completed', confirmed: true } : match));
                                                                     }}
                                                                     className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[10px] font-black italic border border-azul-primary/20 transition-colors"
                                                                 >

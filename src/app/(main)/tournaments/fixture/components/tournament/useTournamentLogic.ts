@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
 import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "../../actions";
@@ -65,6 +65,16 @@ export function useTournamentLogic({
             ? "setup" :
             (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done"
     );
+
+    const searchParams = useSearchParams();
+
+    // Sync step with URL
+    useEffect(() => {
+        const s = searchParams.get("step");
+        if (s === "done" || s === "elim" || s === "setup" || s === "qual") {
+            setStep(s as any);
+        }
+    }, [searchParams]);
     const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(() =>
         initialMatches.map(m => ({

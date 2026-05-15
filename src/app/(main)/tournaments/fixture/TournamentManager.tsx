@@ -101,14 +101,6 @@ export default function TournamentManager(props: TournamentManagerProps) {
             />
 
             <div className="w-full px-3 md:px-6 lg:px-10 py-3 pb-16">
-                <div className="mb-3 text-center">
-                    <h1 className="text-lg md:text-xl font-black text-foreground tracking-tight italic uppercase">
-                        {tournamentName}
-                    </h1>
-                    <p className="mt-1 text-[8px] font-black uppercase tracking-[0.25em] text-foreground/30">
-                        {readOnly ? 'Fixture' : 'Gestión'} • Round Robin
-                    </p>
-                </div>
 
                 <AnimatePresence mode="wait">
                     {step === "setup" && (

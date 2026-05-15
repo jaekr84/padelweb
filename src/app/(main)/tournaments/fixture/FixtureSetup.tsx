@@ -9,6 +9,7 @@ import {
     Users2, AlertTriangle, X, ChevronDown, Search, Zap, ArrowRightLeft,
     LayoutDashboard, Swords, BarChart3, Clock
 } from "lucide-react";
+import { TournamentTimeline, TournamentStep } from "./components/tournament/TournamentTimeline";
 import { getAllPlayers } from "@/app/actions/players";
 import {
     Dialog,
@@ -78,7 +79,21 @@ export default function FixtureSetup({
 
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
     const [step, setStep] = useState<"checkin" | "config" | "assign">(urlStep || "checkin");
-    
+
+    const timelineStep: TournamentStep =
+        step === "checkin" ? "attendance" :
+            step === "config" ? "structure" :
+                "draw";
+
+    useEffect(() => {
+        const s = searchParams.get("step");
+        if (s === "config" || s === "assign") {
+            setStep(s);
+        } else if (s === "checkin" || !s) {
+            setStep("checkin");
+        }
+    }, [searchParams]);
+
     // Initialize paid/present assuming all initial players are present since we skip check-in
     const [paid, setPaid] = useState<Set<string>>(new Set());
     const [present, setPresent] = useState<Set<string>>(new Set());
@@ -151,11 +166,11 @@ export default function FixtureSetup({
 
         setPlayers(prev => prev.map(p => {
             if (p.id !== pairId) return p;
-            
+
             const registrationName = p.name;
             const names = registrationName.split(" / ");
             let newRegistrationName = "";
-            
+
             if (isIndividual) {
                 newRegistrationName = newPlayer.name;
             } else {
@@ -195,7 +210,7 @@ export default function FixtureSetup({
 
     const handleDeleteRegistration = (registrationId: string) => {
         setPlayers(prev => prev.filter(p => p.id !== registrationId));
-        
+
         // Cleanup attendance/paid states
         setPresent(prev => {
             const next = new Set(prev);
@@ -211,7 +226,7 @@ export default function FixtureSetup({
             next.delete(`${registrationId}_1`);
             return next;
         });
-        
+
         setParticipantToDelete(null);
         toast.success("Participante eliminado de la lista");
     };
@@ -325,16 +340,16 @@ export default function FixtureSetup({
     const handleRandomize = useCallback(async () => {
         if (PRESENT_PLAYERS.length === 0) return;
         setRandomizing(true);
-        
+
         // Start with empty groups
         let currentGroups = buildGroups(numGroups);
         setGroups(currentGroups);
-        
+
         // Very brief pause to see the clear
         await new Promise(r => setTimeout(r, 200));
 
         const shuffled = shuffle(PRESENT_PLAYERS);
-        
+
         // Target sequence total duration: ~1.2 seconds 
         const delay = Math.max(50, Math.min(150, 1200 / shuffled.length));
 
@@ -353,7 +368,7 @@ export default function FixtureSetup({
             candidates[0].players.push(player);
             setDrawingPlayer(player);
             setGroups([...currentGroups]);
-            
+
             // Fast rhythmic delay based on count
             await new Promise(r => setTimeout(r, delay));
         }
@@ -427,7 +442,7 @@ export default function FixtureSetup({
 
             // If either player is in the pool (unassigned), handle move instead of swap?
             // Actually the user specifically said "intercambiar el lugar".
-            
+
             if (group1 && group2) {
                 // Swap between two groups
                 const p1 = group1.players.find(p => p.id === id1)!;
@@ -500,7 +515,7 @@ export default function FixtureSetup({
         setGroups((prev) => {
             const sourceGroup = prev.find(g => g.players.some(p => p.id === playerId));
             const player = sourceGroup ? sourceGroup.players.find(p => p.id === playerId) : PRESENT_PLAYERS.find(p => p.id === playerId);
-            
+
             if (!player) return prev;
 
             const targetGroup = prev.find(g => g.id === targetGroupId);
@@ -532,7 +547,7 @@ export default function FixtureSetup({
             // 1. Identify player and source group
             const sourceGroup = prev.find(g => g.players.some(p => p.id === playerId));
             let player = sourceGroup ? sourceGroup.players.find(p => p.id === playerId) : PRESENT_PLAYERS.find(p => p.id === playerId);
-            
+
             if (!player) return prev;
 
             const targetGroup = prev.find(g => g.id === targetGroupId);
@@ -545,7 +560,7 @@ export default function FixtureSetup({
                 if (sourceGroup) {
                     // SWAP: Source -> Target, Target[Last] -> Source
                     const playerToSwapOut = targetGroup.players[targetGroup.players.length - 1];
-                    
+
                     toast.info(`Intercambio: ${player.name} ⇄ ${playerToSwapOut.name}`, {
                         icon: "🔄",
                         description: `A ${targetGroup.name} y B ${sourceGroup.name}`,
@@ -557,15 +572,15 @@ export default function FixtureSetup({
 
                     return prev.map(g => {
                         if (g.id === sourceGroup.id) {
-                            return { 
-                                ...g, 
-                                players: g.players.map(p => p.id === playerId ? playerToSwapOut : p) 
+                            return {
+                                ...g,
+                                players: g.players.map(p => p.id === playerId ? playerToSwapOut : p)
                             };
                         }
                         if (g.id === targetGroupId) {
-                            return { 
-                                ...g, 
-                                players: g.players.map(p => p.id === playerToSwapOut.id ? player! : p) 
+                            return {
+                                ...g,
+                                players: g.players.map(p => p.id === playerToSwapOut.id ? player! : p)
                             };
                         }
                         return g;
@@ -619,66 +634,13 @@ export default function FixtureSetup({
                                 Volver
                             </button>
 
-                            <div className="h-6 w-px bg-border/50 hidden md:block" />
 
-                            <div className="hidden md:flex flex-col">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-1">Torneo</span>
-                                <span className="text-xs font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[150px] lg:max-w-[250px]">
-                                    {tournamentName}
-                                </span>
-                            </div>
-
-                            <div className="h-6 w-[1px] bg-border/50 hidden md:block" />
-
-                            {/* Progressive Navbar / Stepper */}
-                            <div className="hidden md:flex items-center gap-1">
-                                {[
-                                    { 
-                                        id: "sorteo", 
-                                        icon: LayoutDashboard, 
-                                        label: "Sorteo", 
-                                        active: step === "config" || step === "assign",
-                                        completed: false,
-                                        subSteps: [
-                                            { id: "config", label: "Ajustes", active: step === "config" },
-                                            { id: "assign", label: "Cuadro", active: step === "assign" }
-                                        ]
-                                    },
-                                    { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
-                                    { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
-                                ].map((s, idx) => {
-                                    const Icon = s.icon;
-
-                                    return (
-                                        <div key={s.id} className="flex items-center">
-                                            <button 
-                                                onClick={() => {
-                                                    if (s.disabled) return;
-                                                    if (s.id === "sorteo") setStep("config");
-                                                }}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${s.active 
-                                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" 
-                                                    : s.completed
-                                                        ? "text-celeste bg-celeste/5 hover:bg-celeste/10"
-                                                        : s.disabled 
-                                                            ? "text-foreground/20 cursor-not-allowed" 
-                                                            : "text-foreground/70 hover:bg-white/5"}`}
-                                            >
-                                                <Icon className="w-3.5 h-3.5" />
-                                                <span className="text-[10px] font-black uppercase tracking-tight hidden lg:block">{s.label}</span>
-                                                {s.completed && <Check className="w-2.5 h-2.5 ml-1 text-celeste" />}
-                                            </button>
-                                            {idx < 2 && (
-                                                <div className="px-1.5 text-foreground/10">
-                                                    <ChevronRight className="w-3.5 h-3.5" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            <TournamentTimeline
+                                tournamentId={tournamentId}
+                                currentStep={timelineStep}
+                                status={initialStatus}
+                            />
                         </div>
-
                         <div className="flex items-center gap-4">
                             <Link
                                 href={`/tournaments/${tournamentId}/edit`}
@@ -694,34 +656,6 @@ export default function FixtureSetup({
                         </div>
                     </div>
 
-                    {/* Secondary Navigation (Index) for sub-steps */}
-                    <AnimatePresence>
-                        {(step === "checkin" || step === "config" || step === "assign") && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="flex items-center justify-center gap-6 py-2 border-t border-border/30"
-                            >
-                                {[
-                                    { id: "checkin", label: "0. Asistencia" },
-                                    { id: "config", label: "1. Grupos y Participantes" },
-                                    { id: "assign", label: "2. Armado de Grupos (Sorteo)" }
-                                ].map((ss) => (
-                                    <button
-                                        key={ss.id}
-                                        onClick={() => setStep(ss.id as any)}
-                                        className={`group flex items-center gap-2 transition-all ${step === ss.id 
-                                            ? "text-azul-primary font-black" 
-                                            : "text-foreground/60 hover:text-foreground/70 font-bold"}`}
-                                    >
-                                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${step === ss.id ? "bg-azul-primary scale-150" : "bg-foreground/20 group-hover:bg-foreground/40"}`} />
-                                        <span className="text-[9px] uppercase tracking-widest">{ss.label}</span>
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </div>
             </header>
 
@@ -772,7 +706,7 @@ export default function FixtureSetup({
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="space-y-6"
                         >
-                             <div className="px-2 flex items-center justify-between">
+                            <div className="px-2 flex items-center justify-between">
                                 <div>
                                     <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
                                     <p className="text-foreground/60 text-[9px] font-black tracking-widest uppercase">Ajustá la configuración de los grupos</p>
@@ -896,18 +830,16 @@ export default function FixtureSetup({
                                     </div>
 
                                     {/* MODO INTERCAMBIO INDICATOR */}
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 ${
-                                            firstSelectedPlayerId 
-                                                ? "bg-azul-primary/10 border-azul-primary/30" 
-                                                : "bg-slate-50/50 border-slate-200"
-                                        }`}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 ${firstSelectedPlayerId
+                                            ? "bg-azul-primary/10 border-azul-primary/30"
+                                            : "bg-slate-50/50 border-slate-200"
+                                            }`}
                                     >
-                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300 ${
-                                            firstSelectedPlayerId ? "bg-azul-primary text-white" : "bg-slate-200 text-slate-400"
-                                        }`}>
+                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300 ${firstSelectedPlayerId ? "bg-azul-primary text-white" : "bg-slate-200 text-slate-400"
+                                            }`}>
                                             <Zap className={`w-3 h-3 ${firstSelectedPlayerId ? "animate-pulse" : ""}`} />
                                         </div>
                                         <div className="flex flex-col">
@@ -919,7 +851,7 @@ export default function FixtureSetup({
                                             </span>
                                         </div>
                                         {firstSelectedPlayerId && (
-                                            <button 
+                                            <button
                                                 onClick={() => { setFirstSelectedPlayerId(null); setSwappedIds(new Set()); }}
                                                 className="ml-2 w-5 h-5 flex items-center justify-center rounded-full bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all"
                                             >
@@ -951,7 +883,7 @@ export default function FixtureSetup({
                             </div>
 
                             {/* Player Pool */}
-                            <div 
+                            <div
                                 className="bg-slate-50/30 border border-slate-200 rounded-2xl p-3"
                                 onDragOver={onDragOver}
                                 onDrop={onDropOnPool}
@@ -962,18 +894,17 @@ export default function FixtureSetup({
                                 <div className="flex flex-wrap gap-2">
                                     <AnimatePresence>
                                         {unassigned.map(p => (
-                                             <motion.button
+                                            <motion.button
                                                 key={p.id}
                                                 layoutId={p.id}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.8 }}
                                                 onClick={() => handlePlayerClick(p.id)}
-                                                className={`px-3 py-1.5 border rounded-xl text-[10px] font-black uppercase italic tracking-wider transition-all flex items-center gap-2 ${
-                                                    swappedIds.has(p.id)
-                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                        : "bg-muted hover:bg-azul-primary/10 border-border text-foreground/80"
-                                                }`}
+                                                className={`px-3 py-1.5 border rounded-xl text-[10px] font-black uppercase italic tracking-wider transition-all flex items-center gap-2 ${swappedIds.has(p.id)
+                                                    ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                    : "bg-muted hover:bg-azul-primary/10 border-border text-foreground/80"
+                                                    }`}
                                             >
                                                 <ArrowRightLeft className={`w-3 h-3 ${swappedIds.has(p.id) ? "animate-pulse" : ""}`} />
                                                 {p.name}
@@ -990,8 +921,8 @@ export default function FixtureSetup({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-40 md:pb-12">
                                 {groups.map(g => (
-                                    <div 
-                                        key={g.id} 
+                                    <div
+                                        key={g.id}
                                         className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm"
                                         onDragOver={onDragOver}
                                         onDrop={(e) => onDropOnGroup(e as any, g.id)}
@@ -1010,23 +941,20 @@ export default function FixtureSetup({
                                                         onDragStart={(e) => onDragStart(e as any, p.id)}
                                                         onDragEnd={onDragEnd as any}
                                                         onClick={() => handlePlayerClick(p.id)}
-                                                        className={`flex items-center justify-between rounded-xl px-3 py-1.5 group cursor-pointer transition-all duration-500 ${
-                                                            swappedIds.has(p.id) 
-                                                                ? "bg-azul-primary shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.3)] text-white" 
-                                                                : "bg-muted hover:bg-foreground/5 text-foreground"
-                                                        }`}
+                                                        className={`flex items-center justify-between rounded-xl px-3 py-1.5 group cursor-pointer transition-all duration-500 ${swappedIds.has(p.id)
+                                                            ? "bg-azul-primary shadow-[0_0_20px_rgba(var(--azul-primary-rgb),0.3)] text-white"
+                                                            : "bg-muted hover:bg-foreground/5 text-foreground"
+                                                            }`}
                                                     >
-                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${
-                                                            swappedIds.has(p.id) ? "text-white" : ""
-                                                        }`}>{p.name}</span>
+                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${swappedIds.has(p.id) ? "text-white" : ""
+                                                            }`}>{p.name}</span>
                                                         <div className="flex items-center gap-1.5">
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handlePlayerClick(p.id); }}
-                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
-                                                                    swappedIds.has(p.id) 
-                                                                        ? "bg-white text-azul-primary" 
-                                                                        : "bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white"
-                                                                }`}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all ${swappedIds.has(p.id)
+                                                                    ? "bg-white text-azul-primary"
+                                                                    : "bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white"
+                                                                    }`}
                                                                 title="Intercambiar"
                                                             >
                                                                 <ArrowRightLeft className={`w-3.5 h-3.5 ${swappedIds.has(p.id) ? "animate-pulse" : ""}`} />
@@ -1044,16 +972,14 @@ export default function FixtureSetup({
                                             </AnimatePresence>
                                             {/* Espacios faltantes */}
                                             {Array.from({ length: Math.max(0, playersPerGroup - g.players.length) }).map((_, i) => (
-                                                <div 
-                                                    key={`empty-${g.id}-${i}`} 
+                                                <div
+                                                    key={`empty-${g.id}-${i}`}
                                                     onClick={() => handleEmptySpotClick(g.id)}
-                                                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 border border-dashed animate-pulse mt-1 first:mt-0 cursor-pointer transition-all ${
-                                                        firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
-                                                    }`}
+                                                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 border border-dashed animate-pulse mt-1 first:mt-0 cursor-pointer transition-all ${firstSelectedPlayerId ? "bg-celeste/10 border-celeste/40 scale-[1.02]" : "bg-rojo/5 border-rojo/20"
+                                                        }`}
                                                 >
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${
-                                                        firstSelectedPlayerId ? "text-celeste" : "text-rojo/50"
-                                                    }`}>
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${firstSelectedPlayerId ? "text-celeste" : "text-rojo/50"
+                                                        }`}>
                                                         {firstSelectedPlayerId ? "Asignar aquí" : "Cupo disponible"}
                                                     </span>
                                                     {firstSelectedPlayerId ? (
@@ -1121,7 +1047,7 @@ export default function FixtureSetup({
 
                             <div className="relative flex flex-col items-center">
                                 {/* Label above the strip */}
-                                <motion.span 
+                                <motion.span
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     className="absolute -top-12 text-azul-primary text-[10px] font-black uppercase tracking-[0.5em] italic"
@@ -1131,14 +1057,14 @@ export default function FixtureSetup({
 
                                 <div className="relative h-20 md:h-24 overflow-hidden flex items-center justify-center px-12">
                                     {/* Minimalist selection arrows */}
-                                    <motion.div 
+                                    <motion.div
                                         animate={{ x: [-5, 0, -5] }}
                                         transition={{ repeat: Infinity, duration: 1 }}
                                         className="absolute left-0 text-azul-primary"
                                     >
                                         <ChevronRight className="w-8 h-8 stroke-[3]" />
                                     </motion.div>
-                                    <motion.div 
+                                    <motion.div
                                         animate={{ x: [5, 0, 5] }}
                                         transition={{ repeat: Infinity, duration: 1 }}
                                         className="absolute right-0 text-azul-primary rotate-180"
@@ -1163,7 +1089,7 @@ export default function FixtureSetup({
 
                                 {/* Subtle Loading Line */}
                                 <div className="absolute -bottom-8 w-48 h-0.5 bg-white/5 rounded-full overflow-hidden">
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ x: "-100%" }}
                                         animate={{ x: "100%" }}
                                         transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
@@ -1176,7 +1102,7 @@ export default function FixtureSetup({
                 </AnimatePresence>
 
                 {/* Player Selection Modal */}
-                <ManualRegistrationModal 
+                <ManualRegistrationModal
                     isOpen={isPlayerModalOpen}
                     onClose={() => setIsPlayerModalOpen(false)}
                     tournamentId={tournamentId}
@@ -1222,7 +1148,7 @@ export default function FixtureSetup({
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Opción 2: Jugador Registrado</span>
                                 </div>
-                                
+
                                 <div className="relative">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
                                     <input
@@ -1242,23 +1168,23 @@ export default function FixtureSetup({
                                     ) : allPotentialPlayers
                                         .filter(p => !playerSearchQuery || p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()))
                                         .slice(0, 10).map((p) => (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => handleReplaceParticipant(p)}
-                                            className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-azul-primary hover:text-white rounded-2xl border border-border/50 transition-all group/p"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
-                                                    <Users2 className="w-4 h-4" />
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handleReplaceParticipant(p)}
+                                                className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-azul-primary hover:text-white rounded-2xl border border-border/50 transition-all group/p"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                        <Users2 className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-sm font-black uppercase italic">{p.name}</p>
+                                                        <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest text-celeste">Cat: {p.category || "D"}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="text-left">
-                                                    <p className="text-sm font-black uppercase italic">{p.name}</p>
-                                                    <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest text-celeste">Cat: {p.category || "D"}</p>
-                                                </div>
-                                            </div>
-                                            <Plus className="w-4 h-4 opacity-0 group-hover/p:opacity-100 transition-opacity" />
-                                        </button>
-                                    ))}
+                                                <Plus className="w-4 h-4 opacity-0 group-hover/p:opacity-100 transition-opacity" />
+                                            </button>
+                                        ))}
                                 </div>
                             </div>
                         </div>
