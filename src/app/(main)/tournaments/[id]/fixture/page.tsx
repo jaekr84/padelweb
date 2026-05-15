@@ -24,6 +24,8 @@ export default async function TournamentFixturePage({ params }: Props) {
             createdByUserId: tournaments.createdByUserId,
             modalidad: tournaments.modalidad,
             type: tournaments.type,
+            presentPlayerIds: tournaments.presentPlayerIds,
+            paidPlayerIds: tournaments.paidPlayerIds,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
@@ -107,13 +109,13 @@ export default async function TournamentFixturePage({ params }: Props) {
                 id: reg.id,
                 name: namePart1,
                 player1: namePart1,
-                player2: null,
+                player2: undefined,
                 category: reg.category || undefined,
                 email: user?.email || undefined,
                 gender: user?.gender || undefined,
-                clubId: user?.clubId || null,
+                club: user?.clubId || null,
                 userId: reg.userId,
-                partnerUserId: null,
+                partnerUserId: undefined,
             };
         }
 
@@ -136,7 +138,7 @@ export default async function TournamentFixturePage({ params }: Props) {
             category: reg.category || undefined,
             email: user?.email || undefined,
             gender: user?.gender || undefined,
-            clubId: user?.clubId || null,
+            club: user?.clubId || null,
         };
     });
 
@@ -145,6 +147,19 @@ export default async function TournamentFixturePage({ params }: Props) {
         .from(categoriesTable)
         .where(eq(categoriesTable.isActive, true))
         .orderBy(asc(categoriesTable.categoryOrder));
+
+    const parseJsonArray = (data: any): string[] => {
+        if (!data) return [];
+        if (typeof data === 'string') {
+            try {
+                const parsed = JSON.parse(data);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+        return Array.isArray(data) ? data : [];
+    };
 
     // Fetch existing groups if any
     const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
@@ -180,6 +195,8 @@ export default async function TournamentFixturePage({ params }: Props) {
             initialStatus={tournament.status}
             initialPlayers={initialPlayers}
             initialGroups={initialGroups}
+            initialPresent={parseJsonArray(tournament.presentPlayerIds)}
+            initialPaid={parseJsonArray(tournament.paidPlayerIds)}
             categories={allCategories.map(c => c.name)}
             isIndividual={isIndividual}
         />

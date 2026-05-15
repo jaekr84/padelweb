@@ -19,7 +19,7 @@ import {
     DialogDescription,
 } from "@/components/ui/Dialog";
 
-import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
+import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer, updateTournamentMetadata } from "./actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -33,6 +33,8 @@ export interface FixtureSetupProps {
     initialStatus: string;
     initialPlayers: Player[];
     initialGroups?: Group[];
+    initialPresent?: string[];
+    initialPaid?: string[];
     categories?: string[];
     isIndividual?: boolean;
 }
@@ -70,6 +72,8 @@ export default function FixtureSetup({
     initialStatus,
     initialPlayers,
     initialGroups = [],
+    initialPresent = [],
+    initialPaid = [],
     categories = ["A+", "A", "B", "C", "D"], // Default fallback
     isIndividual = false
 }: FixtureSetupProps) {
@@ -95,31 +99,40 @@ export default function FixtureSetup({
     }, [searchParams]);
 
     // Initialize paid/present assuming all initial players are present since we skip check-in
-    const [paid, setPaid] = useState<Set<string>>(new Set());
-    const [present, setPresent] = useState<Set<string>>(new Set());
+    const [paid, setPaid] = useState<Set<string>>(new Set(initialPaid));
+    const [present, setPresent] = useState<Set<string>>(new Set(initialPresent));
 
     // ── Attendance Logic ──
     const togglePresent = (id: string) => {
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
+        const next = new Set(present);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        setPresent(next);
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(next),
         });
     };
 
     const togglePaid = (id: string) => {
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
+        const next = new Set(paid);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        setPaid(next);
+        updateTournamentMetadata({
+            tournamentId,
+            paidPlayerIds: Array.from(next),
         });
     };
 
     const bulkUpdateStatus = (type: 'present' | 'paid', ids: string[]) => {
         const setter = type === 'present' ? setPresent : setPaid;
         setter(new Set(ids));
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: type === 'present' ? ids : Array.from(present),
+            paidPlayerIds: type === 'paid' ? ids : Array.from(paid),
+        });
         toast.success(`Estado de ${type === 'present' ? 'asistencia' : 'pago'} actualizado`);
     };
 
@@ -164,7 +177,7 @@ export default function FixtureSetup({
         const { pairId, checkinId } = replacingParticipant;
         const isSecond = checkinId.endsWith("_1");
 
-        setPlayers(prev => prev.map(p => {
+        const updatedPlayers = players.map(p => {
             if (p.id !== pairId) return p;
 
             const registrationName = p.name;
@@ -188,7 +201,31 @@ export default function FixtureSetup({
                 [isSecond ? "partnerUserId" : "userId"]: newPlayer.id,
                 category: newPlayer.category || p.category
             };
-        }));
+        });
+
+        setPlayers(updatedPlayers);
+
+        // SYNC ATTENDANCE
+        const nextPresent = new Set(present);
+        if (nextPresent.has(pairId)) {
+            // Note: If it's a pair, removing the whole pair's presence is safer 
+            // but usually checkinId == pairId for singles, or we just want to reset presence for the new pair.
+            nextPresent.delete(pairId);
+            // We don't automatically add the new one as present, they should check in again.
+        }
+        setPresent(nextPresent);
+
+        const nextPaid = new Set(paid);
+        if (nextPaid.has(pairId)) {
+            nextPaid.delete(pairId);
+        }
+        setPaid(nextPaid);
+
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(nextPresent),
+            paidPlayerIds: Array.from(nextPaid),
+        });
 
         setReplacingParticipant(null);
         setGuestName("");
@@ -211,24 +248,26 @@ export default function FixtureSetup({
     const handleDeleteRegistration = (registrationId: string) => {
         setPlayers(prev => prev.filter(p => p.id !== registrationId));
 
-        // Cleanup attendance/paid states
-        setPresent(prev => {
-            const next = new Set(prev);
-            next.delete(registrationId);
-            next.delete(`${registrationId}_0`);
-            next.delete(`${registrationId}_1`);
-            return next;
-        });
-        setPaid(prev => {
-            const next = new Set(prev);
-            next.delete(registrationId);
-            next.delete(`${registrationId}_0`);
-            next.delete(`${registrationId}_1`);
-            return next;
+        const nextPresent = new Set(present);
+        nextPresent.delete(registrationId);
+        nextPresent.delete(`${registrationId}_0`);
+        nextPresent.delete(`${registrationId}_1`);
+        setPresent(nextPresent);
+
+        const nextPaid = new Set(paid);
+        nextPaid.delete(registrationId);
+        nextPaid.delete(`${registrationId}_0`);
+        nextPaid.delete(`${registrationId}_1`);
+        setPaid(nextPaid);
+
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(nextPresent),
+            paidPlayerIds: Array.from(nextPaid),
         });
 
         setParticipantToDelete(null);
-        toast.success("Participante eliminado de la lista");
+        toast.success("Participante eliminado");
     };
 
 
@@ -293,6 +332,8 @@ export default function FixtureSetup({
             groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
             matches: currentMatches,
             bracket: [],
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid),
         });
 
         if (res.ok) {
