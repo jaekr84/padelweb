@@ -143,7 +143,7 @@ export default async function TournamentManagePage({ params }: Props) {
                 initialStatus={tournament.status}
                 initialPresent={parsePlayers(tournament.presentPlayerIds)}
                 initialPaid={parsePlayers(tournament.paidPlayerIds)}
-                readOnly={tournament.status === "finalizado"}
+                readOnly={false}
                 modality={tournament.modalidad as any}
             />
         );
@@ -159,7 +159,7 @@ export default async function TournamentManagePage({ params }: Props) {
             initialStatus={tournament.status}
             initialPresent={parsePlayers(tournament.presentPlayerIds)}
             initialPaid={parsePlayers(tournament.paidPlayerIds)}
-            readOnly={tournament.status === "finalizado"}
+            readOnly={false}
             modality={tournament.modalidad}
         />
     );

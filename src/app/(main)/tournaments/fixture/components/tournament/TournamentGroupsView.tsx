@@ -168,7 +168,7 @@ export function TournamentGroupsView({
                                         return (
                                             <div
                                                 key={m.id}
-                                                className={`group/match relative transition-all text-[10px] ${!isReady && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
+                                                className={`group/match relative transition-all text-[10px] ${!isReady && readOnly && !(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "opacity-40 grayscale pointer-events-none" : ""} ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "border-emerald-500/20 bg-emerald-500/[0.01]" : ""}`}
                                             >
                                                 <div
                                                     className={`rounded border transition-all overflow-hidden flex items-center justify-between px-1.5 py-1 gap-1 ${(m.confirmed || m.status === 'finished' || m.status === 'completed')

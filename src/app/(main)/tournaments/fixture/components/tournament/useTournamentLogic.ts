@@ -538,7 +538,7 @@ export function useTournamentLogic({
             description: "¿Estás seguro de que deseas reabrir este partido? Se quitará el estado de finalizado y podrás volver a iniciarlo o editar los puntos.",
             variant: 'primary',
             onConfirm: async () => {
-                const isBracketMatch = id.startsWith('b_');
+                const isBracketMatch = bracket.some(m => m.id === id);
                 let newMatches = [...matches];
                 let newBracket = [...bracket];
 
@@ -549,14 +549,14 @@ export function useTournamentLogic({
                     newBracket = computeAdvancedBracket(newBracket, totalRounds);
                     setBracket(newBracket);
                 } else {
-                    newMatches = matches.map(m => m.id === id ? { ...m, status: 'pending', confirmed: false, score1: 0, score2: 0 } : m);
+                    newMatches = matches.map(m => m.id === id ? { ...m, status: 'in_progress', confirmed: false, score1: 0, score2: 0 } : m);
                     setMatches(newMatches);
                 }
                 
                 setConfirmModal(prev => ({ ...prev, open: false }));
 
                 try {
-                    await saveTournamentFixture({
+                    const res = await saveTournamentFixture({
                         tournamentId,
                         phase: step === "elim" ? "eliminatorias" : "grupos",
                         groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -565,7 +565,11 @@ export function useTournamentLogic({
                         presentPlayerIds: Array.from(present),
                         paidPlayerIds: Array.from(paid),
                     });
-                    toast.success("Partido reabierto correctamente");
+                    if (res.ok) {
+                        toast.success("Partido reabierto correctamente");
+                    } else {
+                        toast.error("Error al reabrir partido: " + res.error);
+                    }
                 } catch (err) {
                     console.error(err);
                     toast.error("Error al guardar en el servidor");
@@ -831,8 +835,9 @@ export function useTournamentLogic({
         setSwappingPlayer(null);
 
         const loadingToast = toast.loading("Guardando cambios de posición...");
+        setSaving(true);
         try {
-            await saveTournamentFixture({
+            const res = await saveTournamentFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups,
@@ -842,10 +847,16 @@ export function useTournamentLogic({
                 paidPlayerIds: Array.from(paid),
             });
             toast.dismiss(loadingToast);
-            toast.success("Posiciones intercambiadas");
+            if (res.ok) {
+                toast.success("Posiciones intercambiadas");
+            } else {
+                toast.error("Error al guardar cambios: " + res.error);
+            }
         } catch (err) {
             toast.dismiss(loadingToast);
             toast.error("Error al guardar cambios en el servidor");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -899,9 +910,15 @@ export function useTournamentLogic({
             if (res.ok) {
                 toast.success("Resultado guardado");
                 if (isFinal) setShowSuccessModal(true);
+            } else {
+                toast.error("Error al finalizar: " + res.error);
             }
-        } catch (err) { toast.error("Error al guardar"); }
-        finally { setSaving(false); }
+        } catch (err) { 
+            console.error(err);
+            toast.error("Error al guardar"); 
+        } finally { 
+            setSaving(false); 
+        }
     };
 
     const roundsArr = useMemo(() => {
@@ -991,7 +1008,7 @@ export function useTournamentLogic({
     }, [matches, bracket, tournamentId, step, groups, present, paid, readOnly]);
 
     useEffect(() => {
-        if (readOnly || step === "setup") return;
+        if (readOnly || step === "setup" || step === "elim") return;
         if (finalQualifiers.length < 2) return;
         // Improved check to stop syncing if the bracket has started or if it was manually modified
         const bracketHasStarted = bracket.some(m => 

@@ -76,9 +76,9 @@ export function TournamentBracketView({
                                                 <div className="relative group/match">
                                                     <div className={`relative transition-all ${(m.confirmed || m.status === 'finished' || m.status === 'completed') ? "z-10" : "z-20"}`}>
                                                         {(m.confirmed || m.status === 'finished' || m.status === 'completed') && (
-                                                            <div className="absolute -top-2 -right-2 z-30">
-                                                                <div className="bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/30 border-2 border-background">
-                                                                    <Check className="w-3.5 h-3.5 stroke-[4]" />
+                                                            <div className="absolute -top-1 -right-1 z-30">
+                                                                <div className="bg-emerald-500 text-white p-1 rounded-full shadow-lg shadow-emerald-500/30 border-2 border-background">
+                                                                    <Check className="w-2 h-2 stroke-[4]" />
                                                                 </div>
                                                             </div>
                                                         )}
@@ -126,7 +126,7 @@ export function TournamentBracketView({
                                                                             )}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="text-[11px] font-black text-foreground/20 italic tracking-widest px-0.5 pt-2">VS</div>
+                                                                    <div className="absolute left-1/2 -translate-x-1/2 top-[38%] text-[10px] font-black text-foreground/10 italic tracking-[0.2em] pointer-events-none z-0">VS</div>
                                                                     <div 
                                                                         onClick={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, 2)}
                                                                         className={`flex flex-row-reverse items-center gap-1 min-w-0 text-right cursor-pointer p-0.5 rounded transition-all group/player2 ${swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 2 ? "bg-azul-primary/20 ring-1 ring-azul-primary shadow-sm" : "hover:bg-muted/50"}`}
@@ -198,7 +198,7 @@ export function TournamentBracketView({
                                                                 </div>
 
                                                                 {/* Bottom Row: Actions */}
-                                                                {!m.confirmed && !readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && m.team1 && m.team2 && (
+                                                                {!m.confirmed && !readOnly && m.team1 && m.team2 && (
                                                                     <div className="flex justify-center items-center gap-1.5 pt-1 border-t border-border/5 opacity-0 group-hover/match:opacity-100 transition-opacity mt-auto">
                                                                         <button
                                                                             onClick={() => {
