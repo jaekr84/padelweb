@@ -93,7 +93,7 @@ function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: numb
     const activeColorClass = isEmerald ? 'emerald-500' : 'azul-primary';
     
     return (
-        <div className="flex items-center justify-between p-2 rounded-xl bg-card/40 border border-border/40 transition-all shadow-sm group">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-border transition-all shadow-sm group">
             <div className="flex items-center gap-3 min-w-0">
                 <span className={`text-[8px] font-black ${isEmerald ? 'text-emerald-600/40' : 'text-azul-primary/40'} w-4 italic`}>#{idx + 1}</span>
                 <div className="flex flex-col min-w-0">
@@ -117,7 +117,7 @@ function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: numb
                 <StatItem label="PJ" value={q.matchesPlayed} />
                 <StatItem label="PG" value={q.won} color={isEmerald ? 'emerald' : 'azul'} />
                 <StatItem label="PP" value={q.lost} color="rose" />
-                <div className="flex flex-col items-center min-w-[20px] ml-1 px-1.5 py-0.5 rounded-md bg-azul-primary/5 border border-azul-primary/10">
+                <div className="flex flex-col items-center min-w-[20px] ml-1 px-1.5 py-0.5 rounded-md bg-azul-primary/10 border border-azul-primary/20">
                     <span className="text-[6px] font-bold text-azul-primary/40 uppercase">PTS</span>
                     <span className="text-[9px] font-black text-azul-primary">{q.points || 0}</span>
                 </div>

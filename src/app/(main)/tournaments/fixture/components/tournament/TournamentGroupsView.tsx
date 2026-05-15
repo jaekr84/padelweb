@@ -79,7 +79,7 @@ export function TournamentGroupsView({
                                 </div>
                                 <Users2 className="w-4 h-4 text-slate-300" />
                             </div>
-                            <div className="px-3 py-1 border-b border-slate-100 bg-slate-50/30">
+                            <div className="px-3 py-1 border-b border-slate-100 bg-slate-50">
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-[11px]">
                                         <thead>

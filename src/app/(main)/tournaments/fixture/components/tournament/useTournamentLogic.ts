@@ -56,25 +56,27 @@ export function useTournamentLogic({
     readOnly,
     modality
 }: UseTournamentLogicProps) {
-    const isIndividual = modality?.participacion === "individual" || modality?.isIndividual || false;
-    const router = useRouter();
-
-    // ── State ──
-    const [step, setStep] = useState<"setup" | "done" | "qual" | "elim">(
-        (initialStatus === "setup" || (initialGroups.length === 0 && !readOnly))
-            ? "setup" :
-            (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done"
-    );
-
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const isIndividual = modality?.participacion === "individual" || modality?.isIndividual || false;
 
-    // Sync step with URL
-    useEffect(() => {
+    const step: "setup" | "done" | "qual" | "elim" = useMemo(() => {
         const s = searchParams.get("step");
-        if (s === "done" || s === "elim" || s === "setup" || s === "qual") {
-            setStep(s as any);
+        if (s === "done" || s === "elim" || s === "setup" || s === "qual") return s as any;
+        
+        return (initialStatus === "setup" || (initialGroups.length === 0 && !readOnly))
+            ? "setup" :
+            (initialStatus === "en_eliminatorias" || initialStatus === "finalizado") ? "elim" : "done";
+    }, [searchParams, initialStatus, initialGroups.length, readOnly]);
+
+    const setStep = useCallback((newStep: "setup" | "done" | "qual" | "elim") => {
+        if (readOnly) return;
+        const current = new URLSearchParams(Array.from(searchParams.entries()));
+        if (current.get("step") !== newStep) {
+            current.set("step", newStep);
+            router.replace(`${window.location.pathname}?${current.toString()}`, { scroll: false });
         }
-    }, [searchParams]);
+    }, [readOnly, searchParams, router]);
     const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(() =>
         initialMatches.map(m => ({
@@ -526,6 +528,7 @@ export function useTournamentLogic({
                 bracket: bracket,
                 presentPlayerIds: Array.from(present),
                 paidPlayerIds: Array.from(paid),
+                skipRevalidation: true
             });
             toast.dismiss(loadingToast);
             if (res.ok) {
@@ -575,6 +578,7 @@ export function useTournamentLogic({
                         bracket: newBracket,
                         presentPlayerIds: Array.from(present),
                         paidPlayerIds: Array.from(paid),
+                        skipRevalidation: true
                     });
                     if (res.ok) {
                         toast.success("Partido reabierto correctamente");
@@ -953,7 +957,8 @@ export function useTournamentLogic({
                 phase: isFinal ? "finalizado" : "eliminatorias",
                 groups, matches, bracket: preservedBracket, championName, 
                 presentPlayerIds: Array.from(present),
-                paidPlayerIds: Array.from(paid)
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true // Prevent full refresh and redirect
             });
             if (res.ok) {
                 toast.success("Resultado guardado");

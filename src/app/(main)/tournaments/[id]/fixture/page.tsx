@@ -80,7 +80,8 @@ export default async function TournamentFixturePage({ params }: Props) {
                 firstName: users.firstName, 
                 lastName: users.lastName, 
                 gender: users.gender, 
-                clubId: users.clubId 
+                clubId: users.clubId,
+                imageUrl: users.imageUrl
             })
             .from(users)
             .where(inArray(users.id, allUserIds))
@@ -113,9 +114,9 @@ export default async function TournamentFixturePage({ params }: Props) {
                 category: reg.category || undefined,
                 email: user?.email || undefined,
                 gender: user?.gender || undefined,
-                club: user?.clubId || null,
                 userId: reg.userId,
                 partnerUserId: undefined,
+                image: user?.imageUrl || null,
             };
         }
 
@@ -139,6 +140,8 @@ export default async function TournamentFixturePage({ params }: Props) {
             email: user?.email || undefined,
             gender: user?.gender || undefined,
             club: user?.clubId || null,
+            image: user?.imageUrl || null,
+            partnerImage: (reg.partnerUserId ? dbUsers.find(u => u.id === reg.partnerUserId)?.imageUrl : null) || null,
         };
     });
 

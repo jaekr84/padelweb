@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { users, tournaments, tournamentGroups, groupMatches, bracketMatches } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-server";
 import TournamentManager from "../../fixture/TournamentManager";
@@ -75,10 +75,27 @@ export default async function TournamentManagePage({ params }: Props) {
         return Array.isArray(data) ? data : [];
     };
 
-    const initialGroups = dbGroups.map(g => ({
+    const rawGroups = dbGroups.map(g => ({
         id: g.id,
         name: g.name,
-        players: parsePlayers(g.players) as { id: string, name: string, clubId?: string | null }[],
+        players: parsePlayers(g.players) as any[],
+    }));
+
+    // Enrich players with images from DB if missing
+    const allPlayerIds = [...new Set(rawGroups.flatMap(g => g.players.flatMap(p => [p.userId, p.partnerUserId, p.id].filter(Boolean))))];
+    const dbUsers = allPlayerIds.length > 0
+        ? await db.select({ id: users.id, imageUrl: users.imageUrl }).from(users).where(inArray(users.id, allPlayerIds as string[]))
+        : [];
+    
+    const userImageMap = new Map(dbUsers.map(u => [u.id, u.imageUrl]));
+
+    const initialGroups = rawGroups.map(g => ({
+        ...g,
+        players: g.players.map(p => ({
+            ...p,
+            image: p.image || userImageMap.get(p.userId || p.id) || null,
+            partnerImage: p.partnerImage || (p.partnerUserId ? userImageMap.get(p.partnerUserId) : null) || null,
+        }))
     }));
 
     // Mapping for match teams - Ensure we don't lose data if player not found in current groups

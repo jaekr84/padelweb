@@ -35,6 +35,7 @@ type Player = {
     player2?: string | null;
     userId?: string;
     partnerUserId?: string | null;
+    image?: string | null;
 };
 type Group = { id: string; name: string; players: Player[] };
 

@@ -404,7 +404,7 @@ export default function ManualRegistrationModal({
                     </div>
 
                     {/* Right Column: Search Section */}
-                    <div className="md:col-span-7 bg-muted/10 p-4 md:p-6 flex flex-col space-y-5">
+                    <div className="md:col-span-7 bg-muted/10 p-4 md:p-6 flex flex-col min-h-0 space-y-5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-foreground/70">
                                 <Search className="w-4 h-4 stroke-[3]" />
@@ -470,7 +470,7 @@ export default function ManualRegistrationModal({
                         </div>
 
                         {/* Results List */}
-                        <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 pr-1">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 space-y-2 pr-1">
                             {isLoadingAvailable ? (
                                 <div className="py-20 text-center flex flex-col items-center gap-4">
                                     <div className="w-8 h-8 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin" />

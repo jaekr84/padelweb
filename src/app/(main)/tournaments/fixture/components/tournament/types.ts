@@ -8,6 +8,7 @@ export type Player = {
     player2?: string;
     userId?: string;
     partnerUserId?: string | null;
+    image?: string | null;
 };
 
 export type Group = { 

@@ -199,6 +199,7 @@ export default function FixtureSetup({
                 name: newRegistrationName,
                 [isSecond ? "player2" : "player1"]: newPlayer.name,
                 [isSecond ? "partnerUserId" : "userId"]: newPlayer.id,
+                image: newPlayer.image || p.image,
                 category: newPlayer.category || p.category
             };
         });

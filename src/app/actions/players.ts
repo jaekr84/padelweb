@@ -17,7 +17,7 @@ export interface MatchHistoryItem {
 
 export async function getAllPlayers() {
     try {
-        const allUsers = await db.select().from(users).where(eq(users.role, "jugador"));
+        const allUsers = await db.select().from(users);
         if (!allUsers) return [];
         
         return allUsers.map(u => ({
@@ -29,7 +29,8 @@ export async function getAllPlayers() {
             category: u.category,
             points: u.points,
             gender: u.gender,
-            clubId: u.clubId
+            clubId: u.clubId,
+            image: u.imageUrl
         }));
     } catch (err) {
         console.error("[getAllPlayers]", err);
@@ -44,15 +45,13 @@ export async function getPlayersByClub(clubId: string) {
                 id: users.id,
                 firstName: users.firstName,
                 lastName: users.lastName,
-                imageUrl: users.imageUrl,
+                image: users.imageUrl,
                 category: users.category,
+                role: users.role
             })
             .from(users)
             .where(
-                and(
-                    eq(users.clubId, clubId),
-                    eq(users.role, "jugador")
-                )
+                eq(users.clubId, clubId)
             )
             .orderBy(users.firstName);
 
@@ -73,13 +72,10 @@ export async function searchPlayers(query: string) {
             .select()
             .from(users)
             .where(
-                and(
-                    eq(users.role, "jugador"),
-                    or(
-                        like(users.firstName, `%${query}%`),
-                        like(users.lastName, `%${query}%`),
-                        like(users.email, `%${query}%`)
-                    )
+                or(
+                    like(users.firstName, `%${query}%`),
+                    like(users.lastName, `%${query}%`),
+                    like(users.email, `%${query}%`)
                 )
             )
             .limit(10);
@@ -87,7 +83,7 @@ export async function searchPlayers(query: string) {
         return results.map(u => ({
             id: u.id,
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
-            imageUrl: u.imageUrl,
+            image: u.imageUrl,
             category: u.category
         }));
     } catch (err) {
