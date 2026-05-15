@@ -13,13 +13,15 @@ interface TournamentTimelineProps {
     currentStep: TournamentStep;
     status: string; // 'draft' | 'published' | 'en_curso' | 'en_eliminatorias' | 'finalizado'
     readOnly?: boolean;
+    onStepChange?: (step: TournamentStep) => void;
 }
 
 export function TournamentTimeline({
     tournamentId,
     currentStep,
     status,
-    readOnly = false
+    readOnly = false,
+    onStepChange
 }: TournamentTimelineProps) {
     const router = useRouter();
 
@@ -54,7 +56,7 @@ export function TournamentTimeline({
             icon: Swords,
             path: `/tournaments/${tournamentId}/manage?step=done`,
             isCompleted: ["en_eliminatorias", "finalizado"].includes(status),
-            isAccessible: ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
+            isAccessible: readOnly || ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
         },
         { 
             id: "bracket" as TournamentStep, 
@@ -62,18 +64,26 @@ export function TournamentTimeline({
             icon: Trophy,
             path: `/tournaments/${tournamentId}/manage?step=elim`,
             isCompleted: status === "finalizado",
-            isAccessible: ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
+            isAccessible: readOnly || ["en_curso", "en_eliminatorias", "finalizado"].includes(status)
         }
     ];
 
-    const handleNavigate = (step: typeof steps[0]) => {
-        if (!step.isAccessible) return;
-        router.push(step.path);
+    const handleNavigate = (s: typeof steps[0]) => {
+        if (!s.isAccessible) return;
+        if (readOnly && onStepChange) {
+            onStepChange(s.id);
+            return;
+        }
+        router.push(s.path);
     };
+
+    const filteredSteps = readOnly 
+        ? steps.filter(s => ["groups", "bracket"].includes(s.id))
+        : steps;
 
     return (
         <div className="flex items-center gap-1 bg-muted/10 p-1 rounded-2xl border border-border/40 backdrop-blur-md">
-            {steps.map((s, idx) => {
+            {filteredSteps.map((s, idx) => {
                 const Icon = s.icon;
                 const isActive = s.id === currentStep;
                 

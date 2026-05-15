@@ -70,13 +70,12 @@ export function useTournamentLogic({
     }, [searchParams, initialStatus, initialGroups.length, readOnly]);
 
     const setStep = useCallback((newStep: "setup" | "done" | "qual" | "elim") => {
-        if (readOnly) return;
         const current = new URLSearchParams(Array.from(searchParams.entries()));
         if (current.get("step") !== newStep) {
             current.set("step", newStep);
             router.replace(`${window.location.pathname}?${current.toString()}`, { scroll: false });
         }
-    }, [readOnly, searchParams, router]);
+    }, [searchParams, router]);
     const [groups, setGroups] = useState<Group[]>(initialGroups);
     const [matches, setMatches] = useState<Match[]>(() =>
         initialMatches.map(m => ({

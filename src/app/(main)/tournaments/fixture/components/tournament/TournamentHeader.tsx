@@ -61,13 +61,15 @@ export function TournamentHeader({
             <div className="max-w-6xl mx-auto space-y-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-6">
-                        <button
-                            onClick={handleBack}
-                            className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
-                        >
-                            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                            Volver
-                        </button>
+                        {!readOnly && (
+                            <button
+                                onClick={handleBack}
+                                className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
+                            >
+                                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                                Volver
+                            </button>
+                        )}
 
 
                         <TournamentTimeline
@@ -75,17 +77,27 @@ export function TournamentHeader({
                             currentStep={timelineStep}
                             status={initialStatus}
                             readOnly={readOnly}
+                            onStepChange={(newStep) => {
+                                // Map timeline steps back to Manager steps
+                                const managerStep = 
+                                    newStep === "attendance" ? "setup" :
+                                    newStep === "bracket" ? "elim" :
+                                    "done";
+                                setStep(managerStep);
+                            }}
                         />
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setIsPlayersModalOpen(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
-                        >
-                            <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
-                            <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
-                        </button>
+                        {!readOnly && (
+                            <button
+                                onClick={() => setIsPlayersModalOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
+                            >
+                                <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
+                            </button>
+                        )}
 
                         <div className="flex items-center gap-2">
                             {initialStatus === "finalizado" && (

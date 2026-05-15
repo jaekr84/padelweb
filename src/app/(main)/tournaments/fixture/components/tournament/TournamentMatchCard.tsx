@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import { Check, Plus, Minus, RotateCcw, Trophy, User } from "lucide-react";
+import { Flag, ChevronUp, ChevronDown, RotateCcw, Award, User, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BracketMatch, Player, BracketSlot } from "./types";
-import Image from "next/image";
 
 interface TournamentMatchCardProps {
     match: BracketMatch;
@@ -36,21 +35,19 @@ export function TournamentMatchCard({
         const isWinner = isFinished && m.winnerId === (slot as Player)?.id;
         const isBye = slot === "BYE";
         const isTBD = (slot as any)?.id?.startsWith('TBD_');
-        
+
         let names: string[] = [];
         let images: (string | null)[] = [];
-        
+
         if (!isBye && !isTBD && (slot as Player)?.name) {
             const p = slot as Player;
             names = p.name.split(/[\/\+]/).map(n => n.trim());
-            
-            // Try to get images. If it's a couple, we might have image1/image2 or just image
-            // Fallback to imageUrl for legacy data
+
             const img1 = p.image || (p as any).imageUrl || (p as any).player1Image || null;
             const img2 = (p as any).partnerImage || (p as any).player2Image || null;
-            
+
             images = [img1];
-            if (names.length > 1) images.push(img2); 
+            if (names.length > 1) images.push(img2);
         } else {
             const label = isBye ? "DESCANSO" : isTBD ? ((slot as Player).name || "TBD") : "A DEFINIR";
             names = !isIndividual ? [label, label] : [label];
@@ -58,9 +55,9 @@ export function TournamentMatchCard({
         }
 
         return (
-            <div className={`flex flex-row gap-1 ${side === 'left' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`flex flex-row gap-2 ${side === 'left' ? 'justify-end' : 'justify-start'}`}>
                 {names.map((name, i) => (
-                    <MiniProfileCard 
+                    <MiniProfileCard
                         key={i}
                         name={name}
                         image={images[i]}
@@ -72,20 +69,6 @@ export function TournamentMatchCard({
                         isTBD={isTBD}
                         isInProgress={isInProgress}
                         isFinished={isFinished}
-                        score={teamIndex === 1 ? m.score1 : m.score2}
-                        showScore={i === (side === 'left' ? names.length - 1 : 0)} 
-                        onScoreChange={(val) => {
-                            if (teamIndex === 1) handleBracketScore(m.id, val, m.score2?.toString() ?? "0");
-                            else handleBracketScore(m.id, m.score1?.toString() ?? "0", val);
-                        }}
-                        onIncrement={() => {
-                            if (teamIndex === 1) handleBracketScore(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "0");
-                            else handleBracketScore(m.id, m.score1?.toString() ?? "0", ((m.score2 || 0) + 1).toString());
-                        }}
-                        onDecrement={() => {
-                            if (teamIndex === 1) handleBracketScore(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "0");
-                            else handleBracketScore(m.id, m.score1?.toString() ?? "0", Math.max(0, (m.score2 || 0) - 1).toString());
-                        }}
                         onSwap={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, teamIndex)}
                         isSwapping={swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === teamIndex}
                         readOnly={readOnly}
@@ -96,69 +79,163 @@ export function TournamentMatchCard({
     };
 
     return (
-        <div className="relative group/match py-6 px-2">
-            {/* Live Indicator */}
-            <AnimatePresence>
-                {isInProgress && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-1 left-1/2 -translate-x-1/2 z-40"
-                    >
-                        <div className="bg-rojo text-white px-3 py-0.5 rounded-full text-[7px] font-black italic shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-pulse tracking-[0.15em] border border-white/10">
-                            VIVO
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+        <div className="relative group/match px-1">
+            <div className="flex items-center gap-0.5 transition-all">
 
-            <div className="flex items-center gap-3">
-                {/* Team 1 (Left) */}
-                <div className="flex-1 flex justify-end min-w-0">
+                {/* Team 1 Score Module */}
+                <div className="flex-shrink-0">
+                    <ScoreControl
+                        score={m.score1}
+                        isWinner={isFinished && m.winnerId === (m.team1 as Player)?.id}
+                        isInProgress={isInProgress}
+                        readOnly={readOnly}
+                        onIncrement={() => handleBracketScore(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "0")}
+                        onDecrement={() => handleBracketScore(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "0")}
+                    />
+                </div>
+
+                {/* Team 1 Profile */}
+                <motion.div
+                    initial={false}
+                    animate={{ opacity: isFinished && m.winnerId !== (m.team1 as Player)?.id ? 0.4 : 1 }}
+                    className="flex-shrink-0"
+                >
                     {renderTeam(m.team1, "left", 1)}
+                </motion.div>
+
+                {/* Central Command Hub */}
+                <div className="flex-1 flex flex-col items-center justify-center min-w-[40px] gap-1 px-1 border-x border-white/5">
+                    {!readOnly && (
+                        <>
+                            {/* START MATCH: Not started yet */}
+                            {!isInProgress && !isFinished && m.team1 !== "BYE" && m.team2 !== "BYE" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm))}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
+                                    title="Iniciar Partido"
+                                >
+                                    <Zap className="w-5 h-5 fill-current" />
+                                </motion.button>
+                            )}
+
+                            {/* FINISH MATCH: In progress */}
+                            {isInProgress && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => handleBracketConfirm(m.id)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_20px_rgba(10,185,129,0.4)] border border-white/20 hover:bg-emerald-600 transition-all"
+                                    title="Finalizar Partido"
+                                >
+                                    <Flag className="w-5 h-5 stroke-[2.5]" />
+                                </motion.button>
+                            )}
+
+                            {/* REOPEN MATCH: Already finished */}
+                            {isFinished && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1, rotate: -45 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => handleReopenMatch(m.id)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-rojo text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] border border-white/20 hover:bg-red-700 transition-all"
+                                    title="Re-abrir Partido"
+                                >
+                                    <RotateCcw className="w-5 h-5" />
+                                </motion.button>
+                            )}
+                        </>
+                    )}
+
+                    <span className="text-[10px] font-black italic text-rojo tracking-[0.2em] select-none mt-1">VS</span>
+
+                    {isInProgress && (
+                        <span className="text-[7px] font-black italic text-rojo animate-pulse tracking-[0.1em] select-none uppercase">LIVE</span>
+                    )}
                 </div>
 
-                {/* VS Center */}
-                <div className="flex flex-col items-center justify-center gap-2 px-1 min-w-[50px]">
-                    <div className="relative">
-                        <span className="text-2xl font-black italic text-foreground/5 tracking-tighter select-none">VS</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                        {!readOnly && m.team1 !== "BYE" && m.team2 !== "BYE" && !m.confirmed && m.status !== 'completed' && m.status !== 'finished' && !isInProgress && (
-                            <button
-                                onClick={() => setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm))}
-                                className="w-10 h-10 rounded-full bg-azul-primary text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all group/start border-2 border-background z-20"
-                            >
-                                <span className="text-[9px] font-black italic">GO</span>
-                            </button>
-                        )}
-
-                        {isInProgress && !readOnly && (
-                            <button
-                                onClick={() => handleBracketConfirm(m.id)}
-                                className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all group/fin border-2 border-background z-20"
-                            >
-                                <Check className="w-5 h-5 stroke-[4]" />
-                            </button>
-                        )}
-
-                        {isFinished && !readOnly && (
-                            <button
-                                onClick={() => handleReopenMatch(m.id)}
-                                className="p-1.5 rounded-lg bg-muted/30 text-muted-foreground hover:bg-azul-primary/20 hover:text-azul-primary transition-all opacity-0 group-hover/match:opacity-100 border border-border/30"
-                            >
-                                <RotateCcw className="w-3 h-3" />
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Team 2 (Right) */}
-                <div className="flex-1 flex justify-start min-w-0">
+                {/* Team 2 Profile */}
+                <motion.div
+                    initial={false}
+                    animate={{ opacity: isFinished && m.winnerId !== (m.team2 as Player)?.id ? 0.4 : 1 }}
+                    className="flex-shrink-0"
+                >
                     {renderTeam(m.team2, "right", 2)}
+                </motion.div>
+
+                {/* Team 2 Score Module */}
+                <div className="flex-shrink-0">
+                    <ScoreControl
+                        score={m.score2}
+                        isWinner={isFinished && m.winnerId === (m.team2 as Player)?.id}
+                        isInProgress={isInProgress}
+                        readOnly={readOnly}
+                        onIncrement={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", ((m.score2 || 0) + 1).toString())}
+                        onDecrement={() => handleBracketScore(m.id, m.score1?.toString() ?? "0", Math.max(0, (m.score2 || 0) - 1).toString())}
+                    />
                 </div>
             </div>
+        </div>
+    );
+}
+
+function ScoreControl({
+    score,
+    isWinner,
+    isInProgress,
+    readOnly,
+    onIncrement,
+    onDecrement
+}: {
+    score: number | undefined;
+    isWinner: boolean;
+    isInProgress: boolean;
+    readOnly: boolean;
+    onIncrement: () => void;
+    onDecrement: () => void;
+}) {
+    return (
+        <div className="flex flex-col items-center gap-1 min-w-[44px]">
+            {/* Increment Button */}
+            {isInProgress && !readOnly ? (
+                <button
+                    onClick={onIncrement}
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-lg group/plus"
+                >
+                    <ChevronUp className="w-4 h-4 stroke-[3] group-hover/plus:scale-125 transition-transform" />
+                </button>
+            ) : <div className="h-7" />}
+
+            {/* Score Display */}
+            <motion.div
+                key={score}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className={`
+                    w-10 h-10 flex items-center justify-center rounded-lg transition-all relative overflow-hidden border-2
+                    ${isWinner
+                        ? 'bg-emerald-500 border-white/40 shadow-lg'
+                        : 'bg-white/5 border-white/5 shadow-inner'}
+                `}
+            >
+                <span className={`
+                    text-xl font-black italic tabular-nums tracking-tighter relative z-10
+                    ${isWinner ? 'text-black' : score && score > 0 ? 'text-black' : 'text-black'}
+                `}>
+                    {score ?? 0}
+                </span>
+            </motion.div>
+
+            {/* Decrement Button */}
+            {isInProgress && !readOnly ? (
+                <button
+                    onClick={onDecrement}
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-rojo/10 hover:bg-rojo text-rojo hover:text-white transition-all border border-rojo/20 shadow-lg group/minus"
+                >
+                    <ChevronDown className="w-4 h-4 stroke-[3] group-hover/minus:scale-125 transition-transform" />
+                </button>
+            ) : <div className="h-7" />}
         </div>
     );
 }
@@ -174,11 +251,6 @@ interface MiniProfileCardProps {
     isTBD: boolean;
     isInProgress: boolean;
     isFinished: boolean;
-    score: number | undefined;
-    showScore: boolean;
-    onScoreChange: (val: string) => void;
-    onIncrement: () => void;
-    onDecrement: () => void;
     onSwap: () => void;
     isSwapping: boolean;
     readOnly: boolean;
@@ -195,90 +267,80 @@ function MiniProfileCard({
     isTBD,
     isInProgress,
     isFinished,
-    score,
-    showScore,
-    onScoreChange,
-    onIncrement,
-    onDecrement,
     onSwap,
     isSwapping,
     readOnly
 }: MiniProfileCardProps) {
     const isGuest = name.toUpperCase().includes("INVITADO");
-    
-    const theme = {
-        bg: isWinner ? "bg-emerald-950/90" : "bg-slate-950/90",
-        border: isWinner ? "border-emerald-500/50" : isInProgress ? "border-azul-primary/50" : "border-white/5",
-    };
 
     const cardStyle = {
         clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)'
     };
 
     return (
-        <div 
+        <div
             onClick={onSwap}
             className={`
-                relative group/card cursor-pointer transition-all duration-300 w-[85px]
-                ${isSwapping ? "scale-105 z-20" : "hover:scale-[1.05] hover:z-10"}
+                relative group/card cursor-pointer transition-all duration-500 w-[80px]
+                ${isSwapping ? "scale-110 z-20" : "hover:scale-[1.1] hover:z-10"}
             `}
         >
-            <div 
+            {/* Holographic Border Effect */}
+            <div
                 className={`
-                    p-[1px] transition-all duration-500
-                    ${isSwapping ? "bg-azul-primary" : isWinner ? "bg-emerald-500" : "bg-white/10"}
-                    ${isWinner ? "shadow-md shadow-emerald-500/20" : "shadow-md"}
+                    p-[1px] transition-all duration-700 relative
+                    ${isSwapping ? "bg-azul-primary shadow-lg" : isWinner ? "bg-emerald-500 shadow-lg" : "bg-white/20"}
                 `}
                 style={cardStyle}
             >
-                <div 
-                    className={`relative h-[125px] overflow-hidden ${theme.bg} flex flex-col`}
+                <div
+                    className={`relative h-[120px] overflow-hidden bg-[#020617] flex flex-col`}
                     style={cardStyle}
                 >
-                    {/* Background Player Image or Logo */}
+                    {/* Background Player Image */}
                     <div className="absolute inset-0 z-0">
                         {image ? (
-                            <img 
-                                src={image} 
+                            <img
+                                src={image}
                                 alt={name}
-                                className="w-full h-full object-cover transition-all duration-500"
+                                className="w-full h-full object-cover transition-all duration-700 group-hover/card:scale-110"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center p-4 group-hover/card:opacity-100 transition-opacity">
-                                <img 
-                                    src="/img/acap%20logo%20svg%20blanco%20sombra.svg" 
+                            <div className="w-full h-full flex items-center justify-center p-5 bg-[#0f172a]">
+                                <img
+                                    src="/img/acap%20logo%20svg%20blanco%20sombra.svg"
                                     alt="ACAP"
-                                    className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+                                    className="w-full h-full object-contain filter drop-shadow-xl opacity-20"
                                 />
                             </div>
                         )}
+                        <div className="absolute inset-0 bg-[#020617]/20 group-hover/card:bg-transparent transition-colors duration-500" />
                     </div>
 
-                    {/* Grid Background */}
-                    <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] invert bg-[size:10px:10px] z-1" />
-                    
-                    {/* Category Overlay */}
+                    {/* HUD Elements */}
                     {!isBye && !isTBD && category && (
-                        <div className="absolute top-1 right-2 opacity-10 font-black italic text-sm select-none z-10">
-                            {category.replace(/[^0-9]/g, '')}
+                        <div className="absolute top-2 right-2 flex flex-col items-end opacity-40 group-hover/card:opacity-100 transition-opacity z-10">
+                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white">CAT</span>
+                            <span className="text-sm font-black italic text-white leading-none">
+                                {category.replace(/[^0-9]/g, '') || '5'}
+                            </span>
                         </div>
                     )}
 
                     {/* Guest Badge */}
                     {isGuest && (
-                        <div className="absolute top-1.5 left-2 flex items-center gap-1 z-20">
-                            <div className="w-1 h-1 rounded-full bg-azul-primary animate-pulse" />
-                            <span className="text-[4px] font-black italic text-azul-primary uppercase tracking-[0.1em]">INV</span>
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-azul-primary border border-white/20 rounded-sm">
+                            <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                            <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
                         </div>
                     )}
 
-                    {/* Main Content */}
-                    <div className="mt-auto p-1.5 z-10 space-y-1">
-                        {/* Rank Info */}
+                    {/* Bottom Info Module */}
+                    <div className="mt-auto p-1 z-10 space-y-0.5 bg-[#020617]">
                         {!isBye && !isTBD && ranking && (
-                            <div className="flex items-center gap-1 opacity-40 ml-0.5">
-                                <span className="text-[4px] font-black italic uppercase tracking-widest text-white">
-                                    RK <span className="text-azul-primary">{ranking}</span>
+                            <div className="flex items-center gap-1 px-1 py-0.5 bg-[#1e293b] rounded-sm border border-white/5 w-fit">
+                                <span className="text-[5px] font-black italic uppercase text-white/60 tracking-widest">
+                                    RANK <span className="text-azul-primary">#{ranking}</span>
                                 </span>
                             </div>
                         )}
@@ -286,13 +348,13 @@ function MiniProfileCard({
                         {/* Name Plate */}
                         <div className="relative">
                             <div className={`
-                                py-1 px-1.5 transform -skew-x-12 relative border-r-2
-                                ${isWinner ? "bg-emerald-500 border-white" : "bg-white border-azul-primary"}
+                                py-1 px-2 transform -skew-x-12 relative border-r-2
+                                ${isWinner ? "bg-emerald-500 border-white shadow-lg" : "bg-white border-azul-primary shadow-lg"}
                             `}>
                                 <div className="transform skew-x-12 text-center">
                                     <span className={`
-                                        block text-[7px] font-black uppercase italic leading-none truncate
-                                        ${isWinner ? "text-white" : "text-slate-900"}
+                                        block text-[8px] font-black uppercase italic leading-none truncate
+                                        ${isWinner ? "text-white" : "text-slate-950"}
                                     `}>
                                         {name.replace(/INVITADO/gi, "").trim() || "PLAYER"}
                                     </span>
@@ -301,52 +363,9 @@ function MiniProfileCard({
                         </div>
                     </div>
 
-                    {/* Score Ribbon */}
-                    {showScore && (
-                        <div className={`
-                            absolute top-0 ${side === 'left' ? 'left-0' : 'right-0'} w-10 h-10 flex items-center justify-center z-30
-                        `}>
-                            <div className={`
-                                absolute inset-0 ${isWinner ? 'bg-emerald-500' : 'bg-white/10 backdrop-blur-md border border-white/20'}
-                                ${side === 'left' ? 'rounded-br-xl' : 'rounded-bl-xl'}
-                            `} />
-                            
-                            <div className="relative">
-                                {isInProgress && !readOnly ? (
-                                    <div className="flex flex-col items-center -space-y-0.5">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); onIncrement(); }}
-                                            className="text-white hover:text-emerald-400 p-1"
-                                        >
-                                            <Plus className="w-3 h-3 stroke-[3]" />
-                                        </button>
-                                        <span className="text-xs font-black italic leading-none tabular-nums text-white">{score ?? 0}</span>
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); onDecrement(); }}
-                                            className="text-white hover:text-rojo p-1"
-                                        >
-                                            <Minus className="w-3 h-3 stroke-[3]" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <span className={`
-                                        text-base font-black italic tabular-nums
-                                        ${isWinner ? 'text-white' : 'text-white/60'}
-                                    `}>
-                                        {score ?? 0}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Winner Badge */}
-                    {isWinner && showScore && (
-                        <div className={`absolute top-0 ${side === 'left' ? 'right-0' : 'left-0'} p-1 z-40`}>
-                             <div className="bg-emerald-500 text-white p-0.5 rounded-full shadow-lg border border-white">
-                                <Check className="w-1.5 h-1.5 stroke-[5]" />
-                            </div>
-                        </div>
+                    {/* Winner Badge Removed to preserve HUD aesthetic */}
+                    {isWinner && isFinished && (
+                        <div className="absolute inset-0 pointer-events-none ring-2 ring-emerald-500/50 rounded-xl" />
                     )}
                 </div>
             </div>
