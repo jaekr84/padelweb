@@ -33,8 +33,17 @@ export function TournamentBracketView({
     return (
         <section className="space-y-8">
             <div className="text-center space-y-1 relative group/title">
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-3 relative">
                     <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight uppercase">Cuadro del Torneo</h2>
+                    {!readOnly && (
+                        <button
+                            onClick={handleGenerateBracket}
+                            className="p-2 rounded-full bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all shadow-lg shadow-azul-primary/10 group/reg"
+                            title="Regenerar llaves desde cero"
+                        >
+                            <RefreshCw className="w-4 h-4 group-hover/reg:rotate-180 transition-transform duration-500" />
+                        </button>
+                    )}
                 </div>
                 <div className="flex items-center justify-center gap-2">
                     <div className="h-px w-8 bg-celeste/30" />

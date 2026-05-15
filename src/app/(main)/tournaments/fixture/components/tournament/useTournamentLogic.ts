@@ -713,79 +713,97 @@ export function useTournamentLogic({
     }
 
     const handleGenerateBracket = async () => {
-        // Only use the top N players per group for the bracket, where N = qualPerGroup
-        const actualQualifiers = finalQualifiers.slice(0, qualLimit);
-        const totalQuals = actualQualifiers.length;
-        if (totalQuals < 2) {
-            toast.error("Se necesitan al menos 2 clasificados para generar las llaves");
-            return;
-        }
-
-        const numRounds = Math.ceil(Math.log2(totalQuals));
-        const bracketSize = Math.pow(2, numRounds);
-        setSaving(true);
-        try {
-            let newBracket: BracketMatch[] = [];
-            for (let r = 0; r < numRounds; r++) {
-                for (let s = 0; s < Math.pow(2, r); s++) {
-                    newBracket.push({ id: `b_${r}_${s}`, round: r, slot: s, team1: null, team2: null, confirmed: false });
+        setConfirmModal({
+            open: true,
+            title: "Regenerar Cuadro",
+            description: "¿Estás seguro de que deseas regenerar las llaves? Se perderán todos los resultados actuales del cuadro y se armará uno nuevo con los clasificados actuales.",
+            variant: 'danger',
+            onConfirm: async () => {
+                const actualQualifiers = finalQualifiers.slice(0, qualLimit);
+                const totalQuals = actualQualifiers.length;
+                if (totalQuals < 2) {
+                    toast.error("Se necesitan al menos 2 clasificados para generar las llaves");
+                    return;
                 }
-            }
-            // ── Group Protection Seeding ──
-            const seedPositions = getSeedingOrder(bracketSize);
-            const firsts = actualQualifiers.filter(q => q.groupRank === 1);
-            const seconds = actualQualifiers.filter(q => q.groupRank === 2);
-            const others = actualQualifiers.filter(q => q.groupRank > 2);
-            
-            // Shift seconds by half the number of groups to ensure they don't meet their group-mate
-            const shift = Math.max(1, Math.floor(firsts.length / 2));
-            const shiftedSeconds = [...seconds];
-            for (let i = 0; i < shift; i++) {
-                const item = shiftedSeconds.shift();
-                if (item) shiftedSeconds.push(item);
-            }
 
-            const seedMap = new Map<number, any>();
-            let currentSeed = 1;
-            firsts.forEach(q => seedMap.set(currentSeed++, q));
-            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
-            others.forEach(q => seedMap.set(currentSeed++, q));
+                const numRounds = Math.ceil(Math.log2(totalQuals));
+                const bracketSize = Math.pow(2, numRounds);
+                setSaving(true);
+                setConfirmModal(prev => ({ ...prev, open: false }));
 
-            const firstRoundIdx = numRounds - 1;
-            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
-            
-            firstRoundMatches.forEach((m, idx) => {
-                const s1 = seedPositions[idx * 2];
-                const s2 = seedPositions[idx * 2 + 1];
-                
-                const q1 = seedMap.get(s1);
-                const q2 = seedMap.get(s2);
-
-                const t1 = q1 ? q1.player : "BYE";
-                const t2 = q2 ? q2.player : "BYE";
-
-                m.team1 = t1 as BracketSlot;
-                m.team2 = t2 as BracketSlot;
-
-                if (m.team1 === "BYE" || m.team2 === "BYE") {
-                    m.confirmed = true;
-                    const winner = m.team1 === "BYE" ? m.team2 : m.team1;
-                    if (winner && winner !== "BYE") {
-                        m.winnerId = (winner as Player).id;
-                        m.winnerName = (winner as Player).name;
+                try {
+                    let newBracket: BracketMatch[] = [];
+                    for (let r = 0; r < numRounds; r++) {
+                        for (let s = 0; s < Math.pow(2, r); s++) {
+                            newBracket.push({ id: `b_${r}_${s}`, round: r, slot: s, team1: null, team2: null, confirmed: false });
+                        }
                     }
+
+                    // ── Group Protection Seeding ──
+                    const seedPositions = getSeedingOrder(bracketSize);
+                    const firsts = actualQualifiers.filter(q => q.groupRank === 1);
+                    const seconds = actualQualifiers.filter(q => q.groupRank === 2);
+                    const others = actualQualifiers.filter(q => q.groupRank > 2);
+                    
+                    const shift = Math.max(1, Math.floor(firsts.length / 2));
+                    const shiftedSeconds = [...seconds];
+                    for (let i = 0; i < shift; i++) {
+                        const item = shiftedSeconds.shift();
+                        if (item) shiftedSeconds.push(item);
+                    }
+
+                    const seedMap = new Map<number, any>();
+                    let currentSeed = 1;
+                    firsts.forEach(q => seedMap.set(currentSeed++, q));
+                    shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
+                    others.forEach(q => seedMap.set(currentSeed++, q));
+
+                    const firstRoundIdx = numRounds - 1;
+                    const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+                    
+                    firstRoundMatches.forEach((m, idx) => {
+                        const s1 = seedPositions[idx * 2];
+                        const s2 = seedPositions[idx * 2 + 1];
+                        const q1 = seedMap.get(s1);
+                        const q2 = seedMap.get(s2);
+                        const t1 = q1 ? q1.player : "BYE";
+                        const t2 = q2 ? q2.player : "BYE";
+
+                        m.team1 = t1 as BracketSlot;
+                        m.team2 = t2 as BracketSlot;
+
+                        if (m.team1 === "BYE" || m.team2 === "BYE") {
+                            m.confirmed = true;
+                            const winner = m.team1 === "BYE" ? m.team2 : m.team1;
+                            if (winner && winner !== "BYE") {
+                                m.winnerId = (winner as Player).id;
+                                m.winnerName = (winner as Player).name;
+                            }
+                        }
+                    });
+
+                    const finalBracket = computeAdvancedBracket(newBracket, numRounds);
+                    const res = await saveTournamentFixture({
+                        tournamentId, phase: "eliminatorias", groups, matches, bracket: finalBracket, 
+                        presentPlayerIds: Array.from(present),
+                        paidPlayerIds: Array.from(paid)
+                    });
+
+                    if (res.ok) {
+                        setBracket(finalBracket);
+                        setStep("elim");
+                        toast.success("Cuadro generado correctamente");
+                    } else {
+                        toast.error("Error al guardar: " + res.error);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    toast.error("Error al generar cuadro");
+                } finally {
+                    setSaving(false);
                 }
-            });
-            newBracket = computeAdvancedBracket(newBracket, numRounds);
-            const res = await saveTournamentFixture({
-                tournamentId, phase: "eliminatorias", groups, matches, bracket: newBracket, 
-                presentPlayerIds: Array.from(present),
-                paidPlayerIds: Array.from(paid)
-            });
-            if (res.ok) { setBracket(newBracket); setStep("elim"); toast.success("Cuadro generado"); }
-            else toast.error("Error: " + res.error);
-        } catch (e) { toast.error("Error al generar cuadro"); }
-        finally { setSaving(false); }
+            }
+        });
     };
 
     const handleSwapPlayers = async (matchId: string, teamSlot: 1 | 2) => {
