@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
+import { finalizeTournament } from "../../actions";
 
 interface AmericanoHeaderProps {
     tournamentId: string;
@@ -32,6 +33,23 @@ export function AmericanoHeader({
     isRefreshing
 }: AmericanoHeaderProps) {
     const router = useRouter();
+
+    const handleFinalize = async () => {
+        const ok = window.confirm("¿Estás seguro de que deseas finalizar este torneo americano? Esto calculará las posiciones finales y cerrará el torneo.");
+        if (!ok) return;
+
+        try {
+            const res = await finalizeTournament(tournamentId);
+            if (res.ok) {
+                alert("Torneo finalizado con éxito.");
+                router.push("/tournaments");
+            } else {
+                alert(`Error al finalizar el torneo: ${res.error}`);
+            }
+        } catch (err) {
+            alert(`Error inesperado: ${err}`);
+        }
+    };
 
     return (
         <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-border/40">
@@ -112,6 +130,16 @@ export function AmericanoHeader({
                             tournamentName={tournamentName}
                             variant="management"
                         />
+                    )}
+
+                    {!readOnly && initialStatus !== "finalizado" && (
+                        <button
+                            onClick={handleFinalize}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all group border border-rojo/20 text-[8px] font-black uppercase tracking-widest"
+                        >
+                            <Check className="w-3 h-3 group-hover:scale-105 transition-transform" />
+                            <span>Finalizar</span>
+                        </button>
                     )}
 
                     {!readOnly && (

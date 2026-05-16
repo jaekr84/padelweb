@@ -100,7 +100,7 @@ export default function TournamentFiltersClient({
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Estado</span>
                     <Select.Root value={currentFilter} onValueChange={(value) => updateQuery("filter", value)}>
                         <Select.Trigger className={triggerStyles} aria-label="Seleccionar estado">
-                            <Select.Value placeholder="Activos" />
+                            <Select.Value placeholder="Todos" />
                             <Select.Icon>
                                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
                             </Select.Icon>
@@ -109,7 +109,7 @@ export default function TournamentFiltersClient({
                             <Select.Content className={contentStyles} position="popper" sideOffset={8}>
                                 <Select.Viewport className={viewportStyles}>
                                     {[
-                                        { value: "todos", label: "Activos" },
+                                        { value: "todos", label: "Todos" },
                                         { value: "abiertas", label: "Inscripción" },
                                         { value: "envivo", label: "En Vivo" },
                                         { value: "clubes", label: "Clubes" },

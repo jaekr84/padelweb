@@ -682,6 +682,7 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
         revalidatePath(`/tournaments/${id}`);
         revalidatePath(`/tournaments/${id}/fixture`);
         revalidatePath(`/tournaments/${id}/manage`);
+        revalidatePath("/tournaments");
 
         return { ok: true };
     } catch (err) {

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
 import { TournamentTimeline, TournamentStep } from "./TournamentTimeline";
+import { finalizeTournament } from "../../actions";
 
 interface TournamentHeaderProps {
     tournamentId: string;
@@ -56,6 +57,23 @@ export function TournamentHeader({
         }
     };
 
+    const handleFinalize = async () => {
+        const ok = window.confirm("¿Estás seguro de que deseas finalizar este torneo? Esto repartirá los puntos de ranking y cerrará el torneo de forma definitiva.");
+        if (!ok) return;
+
+        try {
+            const res = await finalizeTournament(tournamentId);
+            if (res.ok) {
+                alert("Torneo finalizado con éxito.");
+                router.push("/tournaments");
+            } else {
+                alert(`Error al finalizar el torneo: ${res.error}`);
+            }
+        } catch (err) {
+            alert(`Error inesperado: ${err}`);
+        }
+    };
+
     return (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
             <div className="max-w-6xl mx-auto space-y-4">
@@ -96,6 +114,16 @@ export function TournamentHeader({
                             >
                                 <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
                                 <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
+                            </button>
+                        )}
+
+                        {!readOnly && initialStatus !== "finalizado" && (
+                            <button
+                                onClick={handleFinalize}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all group shadow-sm border border-rojo/20 font-bold text-[9px] uppercase tracking-widest"
+                            >
+                                <Check className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+                                <span>Finalizar Torneo</span>
                             </button>
                         )}
 

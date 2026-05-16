@@ -957,7 +957,7 @@ export function useTournamentLogic({
                 groups, matches, bracket: preservedBracket, championName, 
                 presentPlayerIds: Array.from(present),
                 paidPlayerIds: Array.from(paid),
-                skipRevalidation: true // Prevent full refresh and redirect
+                skipRevalidation: !isFinal // Revalidate when the tournament is finalized to update status in lists
             });
             if (res.ok) {
                 toast.success("Resultado guardado");

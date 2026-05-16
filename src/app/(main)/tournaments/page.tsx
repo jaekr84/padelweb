@@ -167,7 +167,7 @@ export default async function TournamentsPage({
     });
     openC = registrable.length;
 
-    const active = allTournaments.filter(t => t.status !== "finalizado" && t.status !== "draft");
+    const active = allTournaments.filter(t => t.status !== "draft");
     totalActiveC = active.length;
 
     // Apply Filter Pipeline
