@@ -953,17 +953,16 @@ export function useTournamentLogic({
             console.log("[useTournamentLogic] Manually saving bracket:", preservedBracket.map(b => ({ id: b.id, status: b.status, confirmed: b.confirmed })));
             const res = await saveTournamentFixture({
                 tournamentId,
-                phase: isFinal ? "finalizado" : "eliminatorias",
+                phase: "eliminatorias",
                 groups, matches, bracket: preservedBracket, championName, 
                 presentPlayerIds: Array.from(present),
                 paidPlayerIds: Array.from(paid),
-                skipRevalidation: !isFinal // Revalidate when the tournament is finalized to update status in lists
+                skipRevalidation: true // Keep it on the dashboard without automatic redirects
             });
             if (res.ok) {
                 toast.success("Resultado guardado");
-                if (isFinal) setShowSuccessModal(true);
             } else {
-                toast.error("Error al finalizar: " + res.error);
+                toast.error("Error al guardar: " + res.error);
             }
         } catch (err) { 
             console.error(err);

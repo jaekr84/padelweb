@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
     ArrowLeft, Users2, Swords, ChevronRight,
     Check, RefreshCw, Settings
@@ -9,6 +10,7 @@ import { useRouter } from "next/navigation";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
 import { TournamentTimeline, TournamentStep } from "./TournamentTimeline";
 import { finalizeTournament } from "../../actions";
+import FinalizeTournamentModal from "./FinalizeTournamentModal";
 
 interface TournamentHeaderProps {
     tournamentId: string;
@@ -34,6 +36,7 @@ export function TournamentHeader({
     setIsPlayersModalOpen
 }: TournamentHeaderProps) {
     const router = useRouter();
+    const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 
     const timelineStep: TournamentStep =
         step === "setup" ? "attendance" :
@@ -57,106 +60,104 @@ export function TournamentHeader({
         }
     };
 
-    const handleFinalize = async () => {
-        const ok = window.confirm("¿Estás seguro de que deseas finalizar este torneo? Esto repartirá los puntos de ranking y cerrará el torneo de forma definitiva.");
-        if (!ok) return;
-
-        try {
-            const res = await finalizeTournament(tournamentId);
-            if (res.ok) {
-                alert("Torneo finalizado con éxito.");
-                router.push("/tournaments");
-            } else {
-                alert(`Error al finalizar el torneo: ${res.error}`);
-            }
-        } catch (err) {
-            alert(`Error inesperado: ${err}`);
-        }
+    const handleFinalizeConfirm = async (): Promise<boolean> => {
+        const res = await finalizeTournament(tournamentId);
+        return res.ok;
     };
 
     return (
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
-            <div className="max-w-6xl mx-auto space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-6">
-                        {!readOnly && (
-                            <button
-                                onClick={handleBack}
-                                className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                Volver
-                            </button>
-                        )}
-
-
-                        <TournamentTimeline
-                            tournamentId={tournamentId}
-                            currentStep={timelineStep}
-                            status={initialStatus}
-                            readOnly={readOnly}
-                            onStepChange={(newStep) => {
-                                // Map timeline steps back to Manager steps
-                                const managerStep = 
-                                    newStep === "attendance" ? "setup" :
-                                    newStep === "bracket" ? "elim" :
-                                    "done";
-                                setStep(managerStep);
-                            }}
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        {!readOnly && (
-                            <button
-                                onClick={() => setIsPlayersModalOpen(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
-                            >
-                                <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
-                                <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
-                            </button>
-                        )}
-
-                        {!readOnly && initialStatus !== "finalizado" && (
-                            <button
-                                onClick={handleFinalize}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all group shadow-sm border border-rojo/20 font-bold text-[9px] uppercase tracking-widest"
-                            >
-                                <Check className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
-                                <span>Finalizar Torneo</span>
-                            </button>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                            {initialStatus === "finalizado" && (
-                                <TournamentPublishButton
-                                    tournamentId={tournamentId}
-                                    tournamentName={tournamentName}
-                                    variant="management"
-                                />
-                            )}
-
+        <>
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
+                <div className="max-w-6xl mx-auto space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-6">
                             {!readOnly && (
-                                <Link
-                                    href={`/tournaments/${tournamentId}/edit`}
-                                    className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all"
-                                    title="Configuración"
+                                <button
+                                    onClick={handleBack}
+                                    className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
                                 >
-                                    <Settings className="w-3.5 h-3.5" />
-                                </Link>
+                                    <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                                    Volver
+                                </button>
                             )}
 
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isRefreshing}
-                                className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
-                            >
-                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-                            </button>
+
+                            <TournamentTimeline
+                                tournamentId={tournamentId}
+                                currentStep={timelineStep}
+                                status={initialStatus}
+                                readOnly={readOnly}
+                                onStepChange={(newStep) => {
+                                    // Map timeline steps back to Manager steps
+                                    const managerStep =
+                                        newStep === "attendance" ? "setup" :
+                                            newStep === "bracket" ? "elim" :
+                                                "done";
+                                    setStep(managerStep);
+                                }}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            {!readOnly && (
+                                <button
+                                    onClick={() => setIsPlayersModalOpen(true)}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
+                                >
+                                    <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
+                                </button>
+                            )}
+
+                            {!readOnly && initialStatus !== "finalizado" && (
+                                <button
+                                    onClick={() => setIsFinalizeModalOpen(true)}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all group shadow-sm border border-rojo/20 font-bold text-[9px] uppercase tracking-widest"
+                                >
+                                    <Check className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+                                    <span>Finalizar Torneo</span>
+                                </button>
+                            )}
+
+                            <div className="flex items-center gap-2">
+                                {initialStatus === "finalizado" && (
+                                    <TournamentPublishButton
+                                        tournamentId={tournamentId}
+                                        tournamentName={tournamentName}
+                                        variant="management"
+                                    />
+                                )}
+
+                                {!readOnly && (
+                                    <Link
+                                        href={`/tournaments/${tournamentId}/edit`}
+                                        className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all"
+                                        title="Configuración"
+                                    >
+                                        <Settings className="w-3.5 h-3.5" />
+                                    </Link>
+                                )}
+
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                                >
+                                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </header>
-    );
+            </header>
+
+            <FinalizeTournamentModal
+                isOpen={isFinalizeModalOpen}
+                onClose={() => setIsFinalizeModalOpen(false)}
+                onConfirm={handleFinalizeConfirm}
+                tournamentName={tournamentName}
+                onRedirect={() => window.location.href = "/admin/tournaments"}
+            />
+        </>
+    );;
 }

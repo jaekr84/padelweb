@@ -1119,7 +1119,7 @@ export default function AmericanoManager({
         const isFinal = target.round === 0;
         const res = await saveTournamentFixture({
             tournamentId,
-            phase: isFinal ? "finalizado" : "eliminatorias",
+            phase: "eliminatorias",
             groups,
             matches,
             bracket: finalBracket,
@@ -1131,7 +1131,6 @@ export default function AmericanoManager({
         if (res.ok) {
             setBracket(finalBracket);
             toast.success("Resultado guardado");
-            if (isFinal) setShowSuccessModal(true);
         } else {
             toast.error("Error: " + res.error);
         }

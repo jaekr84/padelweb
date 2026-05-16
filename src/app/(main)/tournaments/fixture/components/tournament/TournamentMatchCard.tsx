@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Flag, ChevronUp, ChevronDown, RotateCcw, Award, User, Zap } from "lucide-react";
+import { Flag, ChevronUp, ChevronDown, RotateCcw, Award, User, Zap, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BracketMatch, Player, BracketSlot } from "./types";
 
@@ -30,6 +30,10 @@ export function TournamentMatchCard({
 }: TournamentMatchCardProps) {
     const isFinished = m.confirmed || m.status === 'finished' || m.status === 'completed';
     const isInProgress = m.status === 'in_progress' && !m.confirmed;
+
+    const isTeam1Defined = m.team1 !== null && m.team1 !== undefined && m.team1 !== "BYE" && !(m.team1 as any)?.id?.startsWith('TBD_');
+    const isTeam2Defined = m.team2 !== null && m.team2 !== undefined && m.team2 !== "BYE" && !(m.team2 as any)?.id?.startsWith('TBD_');
+    const canStartMatch = isTeam1Defined && isTeam2Defined;
 
     const renderTeam = (slot: BracketSlot, side: "left" | "right", teamIndex: 1 | 2) => {
         const isWinner = isFinished && m.winnerId === (slot as Player)?.id;
@@ -108,17 +112,28 @@ export function TournamentMatchCard({
                     {!readOnly && (
                         <>
                             {/* START MATCH: Not started yet */}
-                            {!isInProgress && !isFinished && m.team1 !== "BYE" && m.team2 !== "BYE" && (
-                                <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm))}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
-                                    title="Iniciar Partido"
-                                >
-                                    <Zap className="w-5 h-5 fill-current" />
-                                </motion.button>
-                            )}
+                             {!isInProgress && !isFinished && m.team1 !== "BYE" && m.team2 !== "BYE" && (
+                                 <>
+                                     {canStartMatch ? (
+                                         <motion.button
+                                             whileHover={{ scale: 1.1 }}
+                                             whileTap={{ scale: 0.9 }}
+                                             onClick={() => setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm))}
+                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
+                                             title="Iniciar Partido"
+                                         >
+                                             <Zap className="w-5 h-5 fill-current animate-pulse" />
+                                         </motion.button>
+                                     ) : (
+                                         <div
+                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-slate-500 border border-white/5 cursor-not-allowed"
+                                             title="Esperando que se definan los participantes de los partidos anteriores"
+                                         >
+                                             <Lock className="w-4 h-4 stroke-[1.5]" />
+                                         </div>
+                                     )}
+                                 </>
+                             )}
 
                             {/* FINISH MATCH: In progress */}
                             {isInProgress && (
