@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronLeft, MapPin, Calendar, Clock, Trophy, Users, CheckCircle2, XCircle, ArrowRight, ShieldCheck, Zap, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { ChevronRight, Trophy, Users, CheckCircle2, XCircle, ArrowRight, ShieldCheck, Zap, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -20,362 +20,343 @@ interface EventJoinClientProps {
     matches: any[];
 }
 
-export default function EventJoinClient({
-    event,
-    club,
-    participants,
-    isLoggedIn,
-    currentUserId,
-    userRegistration,
-    defaultSidePreference,
-    matches = []
-}: EventJoinClientProps) {
+export default function EventJoinClient({ event, club, participants, isLoggedIn, currentUserId, userRegistration, defaultSidePreference, matches = [] }: EventJoinClientProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+    const isFull = event.totalSlots && participants.length >= event.totalSlots;
+    const isCompleted = event.status === "completed";
+    const [activeTab, setActiveTab] = useState<"results" | "players">(isCompleted ? "results" : "players");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const handleJoin = async () => {
-        if (!isLoggedIn) {
-            toast.error("Debes iniciar sesión para inscribirte");
-            return;
-        }
-
+        if (!isLoggedIn) { toast.error("Debes iniciar sesión para inscribirte"); return; }
         startTransition(async () => {
             const res = await joinOpenCourtEventAction(event.id, defaultSidePreference);
-            if (res.success) {
-                toast.success("¡Inscripción exitosa! Te esperamos.");
-                router.refresh();
-            } else {
-                toast.error(res.error || "Error al inscribirse");
-            }
+            if (res.success) { toast.success("¡Inscripción exitosa!"); router.refresh(); }
+            else toast.error(res.error || "Error al inscribirse");
         });
     };
 
     const handleLeave = async () => {
-        if (!confirm("¿Seguro que deseas cancelar tu inscripción?")) return;
-
+        if (!confirm("¿Cancelar inscripción?")) return;
         startTransition(async () => {
             const res = await leaveOpenCourtEventAction(event.id);
-            if (res.success) {
-                toast.success("Inscripción cancelada");
-                router.refresh();
-            } else {
-                toast.error(res.error || "Error al cancelar");
-            }
+            if (res.success) { toast.success("Inscripción cancelada"); router.refresh(); }
+            else toast.error(res.error || "Error al cancelar");
         });
     };
 
-    const isFull = event.totalSlots && participants.length >= event.totalSlots;
-    const isCompleted = event.status === "completed";
-    const [activeTab, setActiveTab] = useState<'results' | 'players'>(isCompleted ? 'results' : 'players');
-    const [searchQuery, setSearchQuery] = useState("");
-
-    // Helper to get player name by id
     const getPlayerName = (id: string) => {
         const p = participants.find(p => p.userId === id);
         return p ? p.name : "Invitado";
     };
 
-    const highlightQuery = (name: string, query: string) => {
-        if (!query.trim()) return name;
-        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(`(${escaped})`, "gi");
-        return name.split(regex).map((part, index) =>
-            part.toLowerCase() === query.toLowerCase() ? (
-                <span key={index} className="bg-celeste/10 text-celeste rounded px-0.5">
-                    {part}
-                </span>
-            ) : (
-                <span key={index}>{part}</span>
-            )
-        );
+    const q = searchQuery.trim().toLowerCase();
+
+    const highlightQuery = (name: string) => {
+        if (!q) return <>{name}</>;
+        const parts = name.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
+        return <>{parts.map((part, i) => part.toLowerCase() === q ? <span key={i} className="bg-celeste/20 text-celeste rounded px-0.5">{part}</span> : <span key={i}>{part}</span>)}</>;
     };
 
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    const matchingPlayerIds = normalizedQuery
-        ? new Set(participants
-            .filter(p => p.name.toLowerCase().includes(normalizedQuery))
-            .map(p => p.userId))
-        : new Set<string>();
+    const matchingIds = q ? new Set(participants.filter(p => p.name.toLowerCase().includes(q)).map(p => p.userId)) : new Set<string>();
 
-    const filteredMatches = normalizedQuery
-        ? matches.filter(match => {
-            const players = [
-                getPlayerName(match.team1Player1Id),
-                getPlayerName(match.team1Player2Id),
-                getPlayerName(match.team2Player1Id),
-                getPlayerName(match.team2Player2Id),
-            ];
-            return players.some(name => name.toLowerCase().includes(normalizedQuery));
-        })
+    const filteredMatches = q
+        ? matches.filter(m => [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id].some(id => getPlayerName(id).toLowerCase().includes(q)))
         : matches;
 
-    const playerSearchStats = {
-        played: 0,
-        won: 0,
-        lost: 0,
-        drawn: 0,
-    };
-
-    if (normalizedQuery && matchingPlayerIds.size > 0) {
-        matches.forEach(match => {
-            const team1Ids = [match.team1Player1Id, match.team1Player2Id];
-            const team2Ids = [match.team2Player1Id, match.team2Player2Id];
-            const team1HasMatch = team1Ids.some(id => matchingPlayerIds.has(id));
-            const team2HasMatch = team2Ids.some(id => matchingPlayerIds.has(id));
-
-            if (!team1HasMatch && !team2HasMatch) return;
-
-            playerSearchStats.played += 1;
-            const score1 = Number(match.score1 ?? 0);
-            const score2 = Number(match.score2 ?? 0);
-
-            if (score1 === score2) {
-                playerSearchStats.drawn += 1;
-            } else if ((team1HasMatch && score1 > score2) || (team2HasMatch && score2 > score1)) {
-                playerSearchStats.won += 1;
-            } else {
-                playerSearchStats.lost += 1;
-            }
+    const stats = { played: 0, won: 0, lost: 0, drawn: 0 };
+    if (q && matchingIds.size > 0) {
+        matches.forEach(m => {
+            const t1 = [m.team1Player1Id, m.team1Player2Id].some(id => matchingIds.has(id));
+            const t2 = [m.team2Player1Id, m.team2Player2Id].some(id => matchingIds.has(id));
+            if (!t1 && !t2) return;
+            stats.played++;
+            const s1 = Number(m.score1 ?? 0), s2 = Number(m.score2 ?? 0);
+            if (s1 === s2) stats.drawn++;
+            else if ((t1 && s1 > s2) || (t2 && s2 > s1)) stats.won++;
+            else stats.lost++;
         });
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-                <div className="lg:col-span-5">
-                    <div className="sticky top-24 space-y-6">
-                        <div className={`bg-card border-2 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group transition-all ${isCompleted ? 'border-azul-primary/20' : 'border-border/50'}`}>
-                            <div className={`absolute top-0 right-0 w-32 h-32 -translate-y-16 translate-x-16 rounded-full blur-2xl transition-all duration-700 ${isCompleted ? 'bg-azul-primary/10' : 'bg-celeste/5 group-hover:bg-celeste/10'}`} />
-                            
-                            {/* Right Column: Enrollment or Event Info */}
-                            <div className="relative z-10 space-y-8">
-                                <div className="text-center space-y-2">
-                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">
-                                        {isCompleted ? "Evento Finalizado" : (userRegistration ? "¡Estás Inscripto!" : (isFull ? "Lista de Espera" : "Reserva tu Lugar"))}
-                                    </h3>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                        {isCompleted ? "Gracias por participar en esta jornada" : (userRegistration ? "Nos vemos en la cancha el " + event.date : "Confirmá tu asistencia al evento")}
-                                    </p>
-                                </div>
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-                                {isCompleted ? (
-                                    <div className="space-y-6">
-                                        <div className="bg-azul-primary/10 rounded-2xl p-6 border border-azul-primary/20 flex flex-col items-center gap-3 text-center">
-                                            <Trophy className="w-10 h-10 text-azul-primary" />
-                                            <p className="text-xs font-bold text-azul-primary uppercase italic leading-relaxed">
-                                                Este evento ya ha concluido. Podés consultar los resultados históricos.
-                                            </p>
-                                        </div>
-                                        <Link
-                                            href="/cancha-abierta"
-                                            className="w-full bg-foreground text-background font-black uppercase tracking-widest text-[9px] py-5 rounded-[1.5rem] flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all"
-                                        >
-                                            Ver otros eventos
-                                            <ChevronRight className="w-3 h-3" />
-                                        </Link>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {userRegistration ? (
-                                            <div className="space-y-6">
-                                                <div className="bg-celeste/10 rounded-2xl p-6 border border-celeste/20 flex flex-col items-center gap-3">
-                                                    <CheckCircle2 className="w-10 h-10 text-celeste" />
-                                                    <p className="text-xs font-bold text-celeste uppercase italic text-center leading-relaxed">
-                                                        Tu lugar está asegurado. Recordá llegar 15 minutos antes.
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={handleLeave}
-                                                    disabled={isPending}
-                                                    className="w-full text-muted-foreground/40 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors py-4 flex items-center justify-center gap-2 group/leave"
-                                                >
-                                                    <XCircle className="w-3 h-3 opacity-0 group-hover/leave:opacity-100 transition-opacity" />
-                                                    Cancelar Inscripción
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-6">
-                                                <div className="bg-muted/30 rounded-2xl p-6 border border-border/40 space-y-2 text-center">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Preferencia de Lado</p>
-                                                    <p className="text-sm font-black uppercase italic text-foreground tracking-tighter">
-                                                        Jugás de: <span className="text-celeste">{defaultSidePreference}</span>
-                                                    </p>
-                                                    <p className="text-[8px] font-bold text-muted-foreground/30 uppercase leading-none mt-2">
-                                                        (De tu perfil de jugador)
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={handleJoin}
-                                                    disabled={isPending || isFull}
-                                                    className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-widest text-sm py-6 rounded-[2rem] shadow-xl shadow-azul-primary/20 active:scale-95 transition-all flex items-center justify-center gap-3 group/btn"
-                                                >
-                                                    {isPending ? "Procesando..." : (isFull ? "Lista de Espera" : "Inscribirme")}
-                                                    <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
+            {/* Enrollment / Status Panel */}
+            <div className="relative bg-card border border-border/80 rounded-xl p-5 overflow-hidden shadow-md">
+                {/* HUD corners */}
+                <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-celeste pointer-events-none" />
+                <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-celeste pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-celeste pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-celeste pointer-events-none" />
+
+                <div className="space-y-1 mb-4">
+                    <span className="text-[7px] font-black uppercase tracking-[0.3em] text-celeste">Estado de Inscripción</span>
+                    <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">
+                        {isCompleted ? "Evento Finalizado" : userRegistration ? "¡Estás Inscripto!" : isFull ? "Lista de Espera" : "Reserva tu Lugar"}
+                    </h3>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                        {isCompleted ? "Gracias por participar en esta jornada" : userRegistration ? `Nos vemos el ${event.date}` : "Confirmá tu asistencia al evento"}
+                    </p>
+                </div>
+
+                {isCompleted ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3 bg-azul-primary/8 border border-azul-primary/20 rounded-lg px-4 py-3">
+                            <Trophy className="w-4 h-4 text-azul-primary shrink-0" />
+                            <p className="text-[9px] font-bold text-azul-primary uppercase italic leading-relaxed">Este evento ya ha concluido. Podés consultar los resultados históricos.</p>
                         </div>
+                        <Link href="/cancha-abierta" className="w-full bg-foreground text-background font-black uppercase tracking-widest text-[8px] py-3 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                            Ver otros eventos <ChevronRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+                ) : userRegistration ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3 bg-celeste/8 border border-celeste/20 rounded-lg px-4 py-3">
+                            <CheckCircle2 className="w-4 h-4 text-celeste shrink-0" />
+                            <p className="text-[9px] font-bold text-celeste uppercase italic">Tu lugar está asegurado. Recordá llegar 15 minutos antes.</p>
+                        </div>
+                        <button onClick={handleLeave} disabled={isPending} className="w-full text-muted-foreground/40 hover:text-rojo font-black uppercase tracking-widest text-[8px] transition-colors py-2.5 flex items-center justify-center gap-1.5 group/leave">
+                            <XCircle className="w-3 h-3 opacity-0 group-hover/leave:opacity-100 transition-opacity" />
+                            Cancelar Inscripción
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="bg-muted/30 border border-border/40 rounded-lg px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Preferencia de Lado</span>
+                            <span className="text-[10px] font-black uppercase italic text-celeste">{defaultSidePreference}</span>
+                        </div>
+                        <button onClick={handleJoin} disabled={isPending || !!isFull}
+                            className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-widest text-[9px] py-3.5 rounded-lg shadow-lg shadow-azul-primary/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group/btn">
+                            {isPending ? "Procesando..." : isFull ? "Lista de Espera" : "Inscribirme"}
+                            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                        </button>
+                    </div>
+                )}
 
-                        {!isLoggedIn && (
-                            <div className="bg-rojo/5 border border-rojo/20 rounded-2xl p-6 flex items-start gap-4">
-                                <ShieldCheck className="w-5 h-5 text-rojo shrink-0" />
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase text-rojo">Inicio de Sesión Requerido</p>
-                                    <p className="text-[9px] font-medium text-rojo/40 uppercase italic leading-tight">Debes estar registrado para participar.</p>
-                                </div>
-                            </div>
-                        )}
+                {!isLoggedIn && (
+                    <div className="mt-3 flex items-start gap-2.5 bg-rojo/5 border border-rojo/20 rounded-lg px-3 py-2.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-rojo shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-[8px] font-black uppercase text-rojo">Inicio de Sesión Requerido</p>
+                            <p className="text-[7px] font-bold text-rojo/50 uppercase italic mt-0.5">Debes estar registrado para participar.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Data Panel: Tabs + Content */}
+            <div className="relative bg-card border border-border/80 rounded-xl overflow-hidden shadow-md">
+                <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-muted-foreground/30 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-muted-foreground/30 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-muted-foreground/30 pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-muted-foreground/30 pointer-events-none" />
+
+                {/* Tab Bar */}
+                <div className="flex items-center border-b border-border/70 bg-muted/20 px-1 pt-1">
+                    {(["results", "players"] as const).map(tab => (
+                        <button key={tab} onClick={() => setActiveTab(tab)}
+                            className={`relative px-5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === tab ? "text-foreground" : "text-muted-foreground/60 hover:text-muted-foreground"}`}>
+                            {tab === "results" ? "Resultados" : "Jugadores"}
+                            {activeTab === tab && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-azul-primary rounded-full" />}
+                        </button>
+                    ))}
+                    <div className="ml-auto pr-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 font-mono">
+                        {activeTab === "results" ? `${matches.length} partidos` : `${participants.length} jugadores`}
                     </div>
                 </div>
 
-                {/* Left Column: Match History (If completed) or Participants */}
-                <div className="lg:col-span-12 space-y-12">
-                    <div className="bg-card border border-border/50 rounded-[2.5rem] shadow-2xl p-6">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-2 bg-muted/70 rounded-full p-1">
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('results')}
-                                    className={`px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition ${activeTab === 'results' ? 'bg-foreground text-background shadow-lg' : 'text-muted-foreground hover:text-foreground'}`}
-                                >
-                                    Resultados
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('players')}
-                                    className={`px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition ${activeTab === 'players' ? 'bg-foreground text-background shadow-lg' : 'text-muted-foreground hover:text-foreground'}`}
-                                >
-                                    Jugadores
-                                </button>
-                            </div>
-                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-                                {activeTab === 'results'
-                                    ? isCompleted
-                                        ? `${matches.length} partidos` : 'Resultados disponibles cuando termine el evento'
-                                    : `${participants.length} jugadores`}
-                            </div>
-                        </div>
+                <div className="p-4">
+                    <AnimatePresence mode="wait">
+                        {activeTab === "results" ? (
+                            <motion.div key="results" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+                                {/* Search */}
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/50" />
+                                    <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                                        placeholder="Buscar por jugador..."
+                                        className="w-full rounded-lg border border-border/60 bg-muted/20 pl-8 pr-3 py-2 text-[9px] font-bold uppercase tracking-widest text-foreground focus:outline-none focus:ring-1 focus:ring-azul-primary/30 placeholder-muted-foreground/40 transition-all" />
+                                </div>
 
-                        <div className="mt-6">
-                            {activeTab === 'results' ? (
-                                <>
-                                    <div className="mb-6">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Buscar por jugador</label>
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Apellido o nombre"
-                                            className="w-full rounded-2xl border border-border/40 bg-muted px-4 py-3 text-sm font-bold text-foreground outline-none transition focus:border-celeste focus:ring-2 focus:ring-celeste/20"
-                                        />
+                                {/* Player stats widget */}
+                                {q && matchingIds.size > 0 && (
+                                    <div className="grid grid-cols-4 gap-1.5 p-2 bg-azul-primary/5 border border-azul-primary/15 rounded-lg">
+                                        {[
+                                            { label: "Jugados", val: stats.played, color: "text-foreground" },
+                                            { label: "Ganados", val: stats.won, color: "text-emerald-400" },
+                                            { label: "Perdidos", val: stats.lost, color: "text-rojo" },
+                                            { label: "Empates", val: stats.drawn, color: "text-orange-400" },
+                                        ].map(s => (
+                                            <div key={s.label} className="text-center py-1.5">
+                                                <p className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">{s.label}</p>
+                                                <p className={`text-base font-black font-mono ${s.color}`}>{s.val}</p>
+                                            </div>
+                                        ))}
                                     </div>
+                                )}
 
-                                    {normalizedQuery && (
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                                            <div className="rounded-3xl border border-border/40 bg-muted p-4 text-center">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Jugados</p>
-                                                <p className="text-2xl font-black text-foreground">{playerSearchStats.played}</p>
-                                            </div>
-                                            <div className="rounded-3xl border border-border/40 bg-muted p-4 text-center">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Ganados</p>
-                                                <p className="text-2xl font-black text-foreground">{playerSearchStats.won}</p>
-                                            </div>
-                                            <div className="rounded-3xl border border-border/40 bg-muted p-4 text-center">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Perdidos</p>
-                                                <p className="text-2xl font-black text-foreground">{playerSearchStats.lost}</p>
-                                            </div>
-                                            <div className="rounded-3xl border border-border/40 bg-muted p-4 text-center">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Empatados</p>
-                                                <p className="text-2xl font-black text-foreground">{playerSearchStats.drawn}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {isCompleted ? (
-                                        filteredMatches.length > 0 ? (
-                                            <div className="space-y-4">
-                                                {filteredMatches.map((match, i) => (
-                                                    <div key={match.id} className="bg-card border border-border/40 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                                        <div className="bg-muted/30 px-6 py-2 border-b border-border/20 flex justify-between items-center">
-                                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">Cancha {match.courtId || (i + 1)}</span>
-                                                            <span className="text-[8px] font-black uppercase tracking-widest text-azul-primary italic">Oficial</span>
+                                {/* Match cards */}
+                                {!isCompleted ? (
+                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                        <Trophy className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Los resultados aparecerán cuando finalice el evento.</p>
+                                    </div>
+                                ) : filteredMatches.length === 0 ? (
+                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                        <Search className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Sin partidos que coincidan con «{searchQuery}».</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {filteredMatches.map((match, i) => {
+                                            const s1 = match.score1 ?? 0, s2 = match.score2 ?? 0;
+                                            const t1wins = s1 > s2, t2wins = s2 > s1;
+                                            return (
+                                                <div key={match.id} className="relative bg-card/60 border border-border/60 rounded-lg overflow-hidden"
+                                                    style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+                                                    <div className="flex items-center justify-between px-3 py-1 border-b border-border/40 bg-muted/15">
+                                                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-1">
+                                                            <Zap className="w-2 h-2 text-orange-400" /> Cancha {i + 1}
+                                                        </span>
+                                                        {match.finishedAt && (
+                                                            <span className="text-[6px] font-mono text-muted-foreground/40">
+                                                                {new Date(match.finishedAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })} HS
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="grid grid-cols-3 items-center gap-2 px-3 py-2.5">
+                                                        {/* Team 1 */}
+                                                        <div className={`space-y-0.5 ${t1wins ? "opacity-100" : "opacity-60"}`}>
+                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team1Player1Id))}</p>
+                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team1Player2Id))}</p>
                                                         </div>
-                                                        <div className="p-6 grid grid-cols-3 items-center gap-4 text-center">
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] font-black uppercase tracking-tighter truncate">{highlightQuery(getPlayerName(match.team1Player1Id), searchQuery)}</p>
-                                                                <p className="text-[10px] font-black uppercase tracking-tighter truncate">{highlightQuery(getPlayerName(match.team1Player2Id), searchQuery)}</p>
+                                                        {/* Score plate */}
+                                                        <div className="flex items-center justify-center">
+                                                            <div className="bg-slate-900 border border-slate-700/60 px-3 py-1 skew-x-[-10deg] flex items-center gap-2 shadow-inner">
+                                                                <span className={`text-sm font-black font-mono ${t1wins ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" : "text-slate-400"}`}>{s1}</span>
+                                                                <span className="text-[8px] text-slate-600">:</span>
+                                                                <span className={`text-sm font-black font-mono ${t2wins ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" : "text-slate-400"}`}>{s2}</span>
                                                             </div>
-                                                            <div className="bg-foreground text-background rounded-2xl py-3 px-4 flex flex-col items-center justify-center shadow-lg">
-                                                                <span className="text-[7px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Score</span>
-                                                                <span className="text-2xl font-black italic tracking-tighter font-mono">
-                                                                    {match.score1 ?? 0} <span className="text-azul-primary">:</span> {match.score2 ?? 0}
+                                                        </div>
+                                                        {/* Team 2 */}
+                                                        <div className={`space-y-0.5 text-right ${t2wins ? "opacity-100" : "opacity-60"}`}>
+                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team2Player1Id))}</p>
+                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team2Player2Id))}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : (
+                            <motion.div key="players" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                                {participants.length === 0 ? (
+                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                        <Users className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Todavía no hay jugadores inscriptos.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {participants.map((p, idx) => {
+                                            const isMe = p.userId === currentUserId;
+                                            const sideLabel = p.side === "reves" ? "REVÉS" : p.side === "drive" ? "DRIVE" : "AMBOS";
+                                            const initials = p.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+                                            const nameParts = p.name.trim().split(" ");
+                                            const firstName = nameParts[0] || p.name;
+                                            const lastName = nameParts.slice(1).join(" ") || "";
+
+                                            return (
+                                                <motion.div
+                                                    key={p.id}
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: idx * 0.04 }}
+                                                    className="relative group"
+                                                >
+                                                    {/* Outer gradient border */}
+                                                    <div
+                                                        className={`relative z-10 w-full p-[2px] transition-all duration-300 ${isMe
+                                                                ? "bg-red-500"
+                                                                : "bg-gradient-to-br from-azul-primary via-celeste to-azul-primary"
+                                                            }`}
+                                                        style={{ clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)" }}
+                                                    >
+                                                        <div
+                                                            className="relative w-full overflow-hidden"
+                                                            style={{
+                                                                backgroundColor: "#030712",
+                                                                clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)",
+                                                                aspectRatio: "3/4"
+                                                            }}
+                                                        >
+                                                            {/* Grid texture */}
+                                                            <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')] invert pointer-events-none" />
+
+                                                            {/* Top gradient overlay */}
+                                                            <div className={`absolute top-0 inset-x-0 h-20 bg-gradient-to-b ${isMe ? "from-celeste/30" : "from-azul-primary/30"} to-transparent z-20 pointer-events-none`} />
+
+                                                            {/* Branding */}
+                                                            <div className="absolute top-3 left-3 z-40 flex flex-col leading-none">
+                                                                <span className="text-[8px] font-black italic text-white tracking-tighter">
+                                                                    PADEL<span className={isMe ? "text-celeste" : "text-celeste"}>WEB</span>
                                                                 </span>
+                                                                <span className="text-[5px] font-black text-white/30 tracking-[0.2em] uppercase">Series 2026</span>
                                                             </div>
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] font-black uppercase tracking-tighter truncate">{highlightQuery(getPlayerName(match.team2Player1Id), searchQuery)}</p>
-                                                                <p className="text-[10px] font-black uppercase tracking-tighter truncate">{highlightQuery(getPlayerName(match.team2Player2Id), searchQuery)}</p>
+
+                                                            {/* Side ribbon top-right */}
+                                                            <div className="absolute top-2 right-2 z-40">
+                                                                <div className={`px-1.5 py-0.5 transform skew-x-[-15deg] border ${isMe ? "bg-celeste border-celeste/50 shadow-[0_0_12px_rgba(14,165,233,0.7)]" : "bg-azul-primary border-celeste/30 shadow-[0_0_10px_rgba(30,64,175,0.4)]"}`}>
+                                                                    <span className="text-[7px] font-black text-white uppercase tracking-widest inline-block transform skew-x-[15deg]">
+                                                                        {sideLabel}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Avatar — full bleed */}
+                                                            <div className="absolute inset-0 z-10">
+                                                                {p.image ? (
+                                                                    <Image src={p.image} alt={p.name} fill className="object-cover object-top" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center bg-slate-900/50">
+                                                                        <span className={`text-4xl font-black italic ${isMe ? "text-celeste/40" : "text-celeste/25"}`}>{initials}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="absolute inset-0 bg-black/20 z-10" />
+                                                            </div>
+
+                                                            {/* Bottom info area */}
+                                                            <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-slate-950 via-slate-900 to-transparent pt-8 px-3 pb-3">
+                                                                {/* Name plate */}
+                                                                <div className="relative mb-1.5">
+                                                                    <div className={`bg-white py-1 transform -skew-x-12 shadow-xl border-r-4 ${isMe ? "border-celeste" : "border-azul-primary"}`}>
+                                                                        <p className="text-[9px] font-black uppercase italic tracking-tighter text-slate-950 text-center transform skew-x-12 truncate px-2">
+                                                                            {firstName} <span className={isMe ? "text-celeste" : "text-azul-primary"}>{lastName}</span>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Status */}
+                                                                <div className="flex justify-center">
+                                                                    <span className="text-[6px] font-black uppercase tracking-widest text-white/40">
+                                                                        {isCompleted ? "✓ Finalizó" : "● Confirmado"}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="rounded-[2rem] border border-border/40 bg-muted/50 p-8 text-center text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                                                No se encontraron partidos que coincidan con "{searchQuery}".
-                                            </div>
-                                        )
-                                    ) : (
-                                        <div className="rounded-[2rem] border border-border/40 bg-muted/50 p-8 text-center text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                                            Los resultados se mostrarán cuando el evento finalice.
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="space-y-3">
-                                    {participants.map((p, idx) => (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            key={p.id}
-                                            className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${p.userId === currentUserId ? 'bg-celeste/5 border-celeste/20 ring-1 ring-celeste/10' : 'bg-card border-border/40 hover:border-border hover:shadow-md'}`}
-                                        >
-                                            <div className="flex items-center gap-4 min-w-0">
-                                                <div className="w-12 h-12 rounded-2xl bg-muted overflow-hidden relative border border-border/20 shrink-0 shadow-sm">
-                                                    {p.image ? (
-                                                        <Image src={p.image} alt={p.name} fill className="object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-xs font-black text-muted-foreground/40">
-                                                            {p.name.split(' ').map((n: any) => n[0]).join('')}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-black uppercase italic tracking-tight text-foreground truncate">{p.name}</p>
-                                                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">
-                                                        {isCompleted ? 'Finalizó Jornada' : 'Jugador Confirmado'}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-3">
-                                                <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${p.side === 'drive' ? 'bg-celeste/10 border-celeste/20 text-celeste' :
-                                                    p.side === 'reves' ? 'bg-azul-primary/10 border-azul-primary/20 text-azul-primary' :
-                                                        'bg-celeste/10 border-celeste/20 text-celeste'
-                                                    }`}>
-                                                    {p.side}
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-
             </div>
+        </div>
     );
 }

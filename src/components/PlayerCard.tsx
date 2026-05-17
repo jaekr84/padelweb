@@ -23,27 +23,30 @@ interface PlayerCardProps {
         trofeos: number;
         subcampeonatos?: number;
     };
+    isCurrentUser?: boolean;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser }) => {
     const isFemale = player.gender === 'femenino';
 
     // Theme Colors
     const theme = {
-        primary: isFemale ? 'rojo' : 'azul-primary',
-        accent: isFemale ? 'rosa' : 'celeste',
-        gradient: isFemale ? 'from-rojo via-rosa to-rojo' : 'from-azul-primary via-celeste to-azul-primary',
-        shadow: isFemale ? 'shadow-[0_0_40px_rgba(239,68,68,0.3)]' : 'shadow-[0_0_40px_rgba(0,119,255,0.3)]',
-        accentShadow: isFemale ? 'shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'shadow-[0_0_15px_rgba(30,64,175,0.5)]',
-        glow: isFemale ? 'bg-rojo/40' : 'bg-azul-primary/40',
-        ribbonGradient: isFemale
-            ? 'from-rojo/90 via-rojo/40 to-transparent'
-            : 'from-azul-primary/90 via-azul-primary/40 to-transparent',
-        ribbonBorder: isFemale ? 'border-rosa' : 'border-celeste',
-        trophyShadow: isFemale ? 'drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]' : 'drop-shadow-[0_0_8px_rgba(14,165,233,0.6)]',
-        cardBg: isFemale ? '#0d0102' : '#030712',
-        statsBg: isFemale ? 'from-[#2d0a0b] via-[#1a0506]' : 'from-slate-950 via-slate-900',
-        statBoxBg: isFemale ? 'bg-rojo border-rojo' : 'bg-azul-primary border-azul-primary'
+        primary: isCurrentUser ? 'rojo' : isFemale ? 'rojo' : 'azul-primary',
+        accent: isCurrentUser ? 'rojo' : isFemale ? 'rosa' : 'celeste',
+        gradient: isCurrentUser ? 'from-rojo via-red-500 to-rojo' : isFemale ? 'from-rojo via-rosa to-rojo' : 'from-azul-primary via-celeste to-azul-primary',
+        shadow: isCurrentUser ? 'shadow-[0_0_40px_rgba(239,68,68,0.45)] border-red-500' : isFemale ? 'shadow-[0_0_40px_rgba(239,68,68,0.3)]' : 'shadow-[0_0_40px_rgba(0,119,255,0.3)]',
+        accentShadow: isCurrentUser ? 'shadow-[0_0_15px_rgba(239,68,68,0.5)]' : isFemale ? 'shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'shadow-[0_0_15px_rgba(30,64,175,0.5)]',
+        glow: isCurrentUser ? 'bg-red-500/40' : isFemale ? 'bg-rojo/40' : 'bg-azul-primary/40',
+        ribbonGradient: isCurrentUser
+            ? 'from-red-500/90 via-red-500/40 to-transparent'
+            : isFemale
+                ? 'from-rojo/90 via-rojo/40 to-transparent'
+                : 'from-azul-primary/90 via-azul-primary/40 to-transparent',
+        ribbonBorder: isCurrentUser ? 'border-red-400' : isFemale ? 'border-rosa' : 'border-celeste',
+        trophyShadow: isCurrentUser ? 'drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]' : isFemale ? 'drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]' : 'drop-shadow-[0_0_8px_rgba(14,165,233,0.6)]',
+        cardBg: isCurrentUser ? '#0a0102' : isFemale ? '#0d0102' : '#030712',
+        statsBg: isCurrentUser ? 'from-[#2a0809] via-[#150405]' : isFemale ? 'from-[#2d0a0b] via-[#1a0506]' : 'from-slate-950 via-slate-900',
+        statBoxBg: isCurrentUser ? 'bg-rojo border-rojo' : isFemale ? 'bg-rojo border-rojo' : 'bg-azul-primary border-azul-primary'
     };
 
     const sideLabel = player.side === 'reves' ? 'REVÉS' : player.side === 'drive' ? 'DRIVE' : 'AMBOS';

@@ -547,3 +547,71 @@ export async function leaveOpenCourtEventAction(eventId: string) {
         return { success: false, error: String(error) };
     }
 }
+
+export async function getOpenCourtRegistrationsAction(eventId: string) {
+    try {
+        const regs = await db
+            .select({
+                id: openCourtRegistrations.id,
+                userId: openCourtRegistrations.userId,
+                guestName: openCourtRegistrations.guestName,
+                sidePreference: openCourtRegistrations.sidePreference,
+                status: openCourtRegistrations.status,
+                hasPaid: openCourtRegistrations.hasPaid,
+                userName: users.firstName,
+                userLastName: users.lastName,
+                userImage: users.imageUrl,
+            })
+            .from(openCourtRegistrations)
+            .where(eq(openCourtRegistrations.eventId, eventId))
+            .leftJoin(users, eq(openCourtRegistrations.userId, users.id));
+
+        const formatted = regs.map(r => ({
+            id: r.id,
+            userId: r.userId,
+            name: r.userId ? `${r.userName || ''} ${r.userLastName || ''}`.trim() : (r.guestName || "Invitado"),
+            image: r.userImage,
+            side: r.sidePreference,
+            status: r.status,
+            hasPaid: r.hasPaid
+        }));
+
+        return { success: true, registrations: formatted };
+    } catch (error) {
+        console.error("Error fetching registrations:", error);
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function getOpenCourtMatchesAction(eventId: string) {
+    try {
+        const matches = await db.query.openCourtMatches.findMany({
+            where: (m, { eq }) => eq(m.eventId, eventId),
+            orderBy: (m, { desc }) => [desc(m.startedAt)]
+        });
+
+        const regs = await db
+            .select({
+                userId: openCourtRegistrations.userId,
+                guestName: openCourtRegistrations.guestName,
+                userName: users.firstName,
+                userLastName: users.lastName,
+                userImage: users.imageUrl,
+            })
+            .from(openCourtRegistrations)
+            .where(eq(openCourtRegistrations.eventId, eventId))
+            .leftJoin(users, eq(openCourtRegistrations.userId, users.id));
+
+        const formattedRegs = regs.map(r => ({
+            userId: r.userId,
+            name: r.userId ? `${r.userName || ''} ${r.userLastName || ''}`.trim() : (r.guestName || "Invitado"),
+            image: r.userImage,
+        }));
+
+        return { success: true, matches, registrations: formattedRegs };
+    } catch (error) {
+        console.error("Error fetching event matches:", error);
+        return { success: false, error: String(error) };
+    }
+}
+

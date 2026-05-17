@@ -22,10 +22,10 @@ type Props = {
     availableClubs: { id: string; name: string }[];
 };
 
-const triggerStyles = "w-full rounded-2xl border border-border/70 bg-muted/90 px-4 py-3 text-sm font-semibold uppercase tracking-tight text-foreground outline-none transition-colors shadow-sm hover:border-azul-primary/30 focus:border-azul-primary focus:ring-4 focus:ring-azul-primary/10 flex items-center justify-between gap-2";
-const contentStyles = "z-50 overflow-hidden rounded-3xl border border-border/80 bg-background shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-200";
+const triggerStyles = "w-full rounded-xl border border-border/50 bg-muted/95 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-foreground outline-none transition-all shadow-sm hover:border-azul-primary/30 focus:border-azul-primary focus:ring-2 focus:ring-azul-primary/10 flex items-center justify-between gap-1.5 h-9";
+const contentStyles = "z-50 overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150";
 const viewportStyles = "p-1";
-const itemStyles = "relative flex cursor-default select-none items-center rounded-xl pl-4 pr-10 py-2.5 text-sm font-bold normal-case tracking-tight text-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/5 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/10 data-[state=checked]:text-azul-primary";
+const itemStyles = "relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold normal-case tracking-tight text-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/5 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/10 data-[state=checked]:text-azul-primary";
 
 export default function TournamentFiltersClient({
     userId,
@@ -49,34 +49,34 @@ export default function TournamentFiltersClient({
     }, [pathname, router, searchParams]);
 
     return (
-        <div className="flex flex-col gap-6 mb-8">
+        <div className="flex flex-col gap-3 mb-4">
             {userId && (
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-1">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
                     <button
                         type="button"
                         onClick={() => updateQuery("filter", "mios")}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 border h-8 ${
                             currentFilter === "mios"
-                                ? "bg-azul-primary text-white border-azul-primary shadow-xl shadow-azul-primary/20 scale-[1.02]"
-                                : "bg-white/50 backdrop-blur-sm border-border text-muted-foreground hover:border-azul-primary/50 hover:text-azul-primary"
+                                ? "bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20 scale-[1.01]"
+                                : "bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-border text-muted-foreground hover:border-azul-primary/50 hover:text-azul-primary"
                         }`}
                     >
-                        <User className="w-3.5 h-3.5" />
+                        <User className="w-3 h-3" />
                         Mis Torneos
                     </button>
                     {userClubId && (
                         <button
                             type="button"
                             onClick={() => updateQuery("filter", "mi_club")}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 border h-8 ${
                                 currentFilter === "mi_club"
-                                    ? "bg-celeste text-white border-celeste shadow-xl shadow-celeste/20 scale-[1.02]"
-                                    : "bg-white/50 backdrop-blur-sm border-border text-muted-foreground hover:border-celeste/50 hover:text-celeste"
-                            }`}
-                        >
-                            <Trophy className="w-3.5 h-3.5" />
-                            Mi Club
-                        </button>
+                                    ? "bg-celeste text-white border-celeste shadow-lg shadow-celeste/20 scale-[1.01]"
+                                    : "bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-border text-muted-foreground hover:border-celeste/50 hover:text-celeste"
+                        }`}
+                    >
+                        <Trophy className="w-3 h-3" />
+                        Mi Club
+                    </button>
                     )}
                     {currentFilter !== "todos" && (
                         <button
@@ -88,16 +88,16 @@ export default function TournamentFiltersClient({
                                 params.set("club", "todos");
                                 router.push(`${pathname}?${params.toString()}`, { scroll: false });
                             }}
-                            className="flex items-center gap-2 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-rojo transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-rojo transition-colors h-8"
                         >
                             Limpiar
                         </button>
                     )}
                 </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
-                <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Estado</span>
+            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
+                <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Estado</span>
                     <Select.Root value={currentFilter} onValueChange={(value) => updateQuery("filter", value)}>
                         <Select.Trigger className={triggerStyles} aria-label="Seleccionar estado">
                             <Select.Value placeholder="Todos" />
@@ -129,8 +129,8 @@ export default function TournamentFiltersClient({
                     </Select.Root>
                 </div>
 
-                <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Categoría</span>
+                <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Categoría</span>
                     <Select.Root value={selectedCategory} onValueChange={(value) => updateQuery("category", value)}>
                         <Select.Trigger className={triggerStyles} aria-label="Seleccionar categoria">
                             <Select.Value placeholder="Todas las Categorías" />
@@ -161,42 +161,8 @@ export default function TournamentFiltersClient({
                     </Select.Root>
                 </div>
 
-                {/* Filtro de Localidad comentado
-                <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Localidad</span>
-                    <Select.Root value={selectedLocation} onValueChange={(value) => updateQuery("location", value)}>
-                        <Select.Trigger className={triggerStyles} aria-label="Seleccionar localidad">
-                            <Select.Value placeholder="Todas las Localidades" />
-                            <Select.Icon>
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            </Select.Icon>
-                        </Select.Trigger>
-                        <Select.Portal>
-                            <Select.Content className={contentStyles} position="popper" sideOffset={8}>
-                                <Select.Viewport className={viewportStyles}>
-                                    <Select.Item value="todas" className={itemStyles}>
-                                        <Select.ItemText>Todas las Localidades</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                            <Check className="w-4 h-4" />
-                                        </Select.ItemIndicator>
-                                    </Select.Item>
-                                    {availableLocations.map((loc) => (
-                                        <Select.Item key={loc} value={loc} className={itemStyles}>
-                                            <Select.ItemText>{loc}</Select.ItemText>
-                                            <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                                <Check className="w-4 h-4" />
-                                            </Select.ItemIndicator>
-                                        </Select.Item>
-                                    ))}
-                                </Select.Viewport>
-                            </Select.Content>
-                        </Select.Portal>
-                    </Select.Root>
-                </div>
-                */}
-
-                <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Club</span>
+                <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Club</span>
                     <Select.Root value={selectedClub} onValueChange={(value) => updateQuery("club", value)}>
                         <Select.Trigger className={triggerStyles} aria-label="Seleccionar club">
                             <Select.Value placeholder="Todos los Clubes" />
@@ -230,7 +196,7 @@ export default function TournamentFiltersClient({
                 <button
                     type="button"
                     onClick={() => router.push(`${pathname}?${searchParams.toString()}`)}
-                    className="w-full rounded-2xl bg-azul-primary hover:bg-azul-dark px-6 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all active:scale-[0.98] shadow-xl shadow-azul-primary/20"
+                    className="w-full rounded-xl bg-azul-primary hover:bg-azul-dark px-4 text-[9px] font-black uppercase tracking-[0.2em] text-white transition-all active:scale-[0.98] shadow-lg shadow-azul-primary/10 h-9 flex items-center justify-center"
                 >
                     Filtrar
                 </button>

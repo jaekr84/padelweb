@@ -237,7 +237,7 @@ export default async function TournamentsPage({
                 {/* Public Header */}
                 {!userId && (
                     <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
-                        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                        <div className="w-full max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
                             <Link href="/" className="flex items-center gap-2 group">
                                 <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
                                     <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
@@ -252,13 +252,13 @@ export default async function TournamentsPage({
                     </div>
                 )}
 
-                <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${!userId ? "pt-6" : "pt-6"}`}>
+                <div className={`relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 ${!userId ? "pt-6" : "pt-6"}`}>
 
                     {/* ── Header ── */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-4">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary">ACAP</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary animate-pulse">ACAP CONSOLE</span>
                                 <div className="h-px w-8 bg-azul-primary/30" />
                             </div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
@@ -269,32 +269,32 @@ export default async function TournamentsPage({
                         {(session?.role === 'superadmin' || session?.role === 'admin' || session?.role === 'club') && (
                             <Link
                                 href="/tournaments/create"
-                                className="group bg-azul-primary hover:bg-azul-dark text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-primary/20 flex items-center gap-3 shrink-0"
+                                className="group bg-azul-primary hover:bg-azul-dark text-white px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-primary/20 flex items-center gap-2 shrink-0 h-9"
                             >
                                 <span className="hidden sm:inline">Crear Torneo</span>
-                                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                                    <Plus className="w-4 h-4" />
-                                </div>
+                                <Plus className="w-3.5 h-3.5" />
                             </Link>
                         )}
                     </div>
 
-                    {/* ── Stats pills ── */}
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <Trophy className="w-4 h-4 text-azul-primary" />
-                            <span className="text-xl font-black text-foreground">{totalC}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
+                    {/* ── High-Density KPI Pill Bar ── */}
+                    <div className="inline-flex flex-wrap items-center gap-2 md:gap-4 px-3 py-1.5 bg-slate-900/60 border border-white/5 backdrop-blur-md rounded-xl mb-4 text-[10px] font-black uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                            <Trophy className="w-3.5 h-3.5 text-azul-primary" />
+                            <span className="text-white/40">Total:</span>
+                            <span className="text-white font-extrabold">{totalC}</span>
                         </div>
-                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <Zap className="w-4 h-4 text-rojo" />
-                            <span className="text-xl font-black text-foreground">{liveC}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">En Vivo</span>
+                        <div className="h-3 w-px bg-white/10" />
+                        <div className="flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-rojo" />
+                            <span className="text-white/40">En Vivo:</span>
+                            <span className="text-white font-extrabold">{liveC}</span>
                         </div>
-                        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col items-center gap-1 shadow-sm">
-                            <CheckCircle className="w-4 h-4 text-celeste" />
-                            <span className="text-xl font-black text-foreground">{openC}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Abiertos</span>
+                        <div className="h-3 w-px bg-white/10" />
+                        <div className="flex items-center gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5 text-celeste" />
+                            <span className="text-white/40">Abiertos:</span>
+                            <span className="text-white font-extrabold">{openC}</span>
                         </div>
                     </div>
 
@@ -359,7 +359,7 @@ export default async function TournamentsPage({
                                             </h2>
                                             <div className="h-px flex-1 bg-border" />
                                         </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                                 {groups[month].map((t) => (
                                                     <PublicTournamentCard
                                                         key={t.id}
