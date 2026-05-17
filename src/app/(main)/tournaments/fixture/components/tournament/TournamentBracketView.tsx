@@ -33,6 +33,9 @@ export function TournamentBracketView({
     roundLabel,
     isIndividual
 }: TournamentBracketViewProps) {
+    // Set isSingleBracket strictly to isIndividual to preserve spacious couples columns
+    const isSingleBracket = isIndividual;
+
     return (
         <section className="space-y-8 relative">
             <div className="text-center space-y-1 relative group/title">
@@ -56,7 +59,7 @@ export function TournamentBracketView({
             </div>
 
             <div className="pb-8 -mx-4 md:-mx-8 lg:-mx-12 px-4 md:px-8 lg:px-12 overflow-x-auto custom-scrollbar">
-                <div className="flex items-stretch justify-start min-w-max h-auto gap-32 px-2">
+                <div className={`flex items-stretch justify-start min-w-max h-auto px-2 ${isSingleBracket ? "gap-12 md:gap-16" : "gap-32"}`}>
                     {roundsArr.map((round) => {
                         const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
                         const maxRounds = roundsArr.length;
@@ -64,7 +67,7 @@ export function TournamentBracketView({
                         const rowSpan = Math.pow(2, maxRounds - round - 1) * 2;
 
                         return (
-                            <div key={round} className="w-[450px] flex flex-col pt-3">
+                            <div key={round} className={`${isSingleBracket ? "w-[320px]" : "w-[450px]"} flex flex-col pt-3`}>
                                 <div className="flex-none flex flex-col items-center mb-4">
                                     <span className="px-5 py-2 bg-slate-900 border border-white/10 rounded-xl text-[10px] font-black uppercase italic tracking-[0.2em] text-white shadow-xl">
                                         {roundLabel(round)}
@@ -94,7 +97,7 @@ export function TournamentBracketView({
                                                     handleSwapPlayers={handleSwapPlayers}
                                                     swappingPlayer={swappingPlayer}
                                                     setBracket={setBracket}
-                                                    isIndividual={isIndividual}
+                                                    isIndividual={isSingleBracket}
                                                 />
                                             </div>
                                         );

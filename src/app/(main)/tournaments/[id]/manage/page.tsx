@@ -149,6 +149,16 @@ export default async function TournamentManagePage({ params }: Props) {
         winnerName: bm.winnerName ?? undefined,
     }));
 
+    // Safely parse tournament.modalidad if it is a JSON string
+    let parsedModalidad: any = tournament.modalidad;
+    try {
+        if (typeof tournament.modalidad === 'string' && tournament.modalidad.trim().startsWith('{')) {
+            parsedModalidad = JSON.parse(tournament.modalidad);
+        }
+    } catch (e) {
+        console.error("Error parsing tournament.modalidad in TournamentManagePage:", e);
+    }
+
     if (tournament.type === 'americano') {
         return (
             <AmericanoManager
@@ -161,7 +171,7 @@ export default async function TournamentManagePage({ params }: Props) {
                 initialPresent={parsePlayers(tournament.presentPlayerIds)}
                 initialPaid={parsePlayers(tournament.paidPlayerIds)}
                 readOnly={false}
-                modality={tournament.modalidad as any}
+                modality={parsedModalidad}
             />
         );
     }
@@ -177,7 +187,7 @@ export default async function TournamentManagePage({ params }: Props) {
             initialPresent={parsePlayers(tournament.presentPlayerIds)}
             initialPaid={parsePlayers(tournament.paidPlayerIds)}
             readOnly={false}
-            modality={tournament.modalidad}
+            modality={parsedModalidad}
         />
     );
 }

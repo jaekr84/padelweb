@@ -58,7 +58,20 @@ export function useTournamentLogic({
 }: UseTournamentLogicProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const isIndividual = modality?.participacion === "individual" || modality?.isIndividual || false;
+    // Safely parse modality inside the hook if it is passed as a string
+    const parsedModality = useMemo(() => {
+        if (typeof modality === "string") {
+            try {
+                return JSON.parse(modality);
+            } catch (e) {
+                console.error("Error parsing modality inside useTournamentLogic:", e);
+                return null;
+            }
+        }
+        return modality;
+    }, [modality]);
+
+    const isIndividual = parsedModality?.participacion === "individual" || parsedModality?.isIndividual || false;
 
     const step: "setup" | "done" | "qual" | "elim" = useMemo(() => {
         const s = searchParams.get("step");

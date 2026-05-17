@@ -47,7 +47,14 @@ export default function ManualRegistrationModal({
 
     // Auto Fill State
     const [autoFillCount, setAutoFillCount] = useState<number | "">("");
+    const [autoFillMode, setAutoFillMode] = useState<"individual" | "pareja">(
+        isIndividual ? "individual" : "pareja"
+    );
     const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+    useEffect(() => {
+        setAutoFillMode(isIndividual ? "individual" : "pareja");
+    }, [isIndividual]);
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState("");
@@ -165,32 +172,86 @@ export default function ManualRegistrationModal({
             return;
         }
 
-        const toInscribe = availablePool
-            .sort(() => Math.random() - 0.5)
-            .slice(0, Math.min(count, availablePool.length));
-
         setIsAutoFilling(true);
-        toast.loading(`Inscribiendo ${toInscribe.length} jugadores...`, { id: 'autofill' });
-        
         const cat = manualCategory || undefined;
-        const promises = toInscribe.map(p => quickInscribePlayer(tournamentId, p.id, (cat || p.category) ?? undefined));
 
-        try {
-            const results = await Promise.all(promises);
-            let successCount = 0;
-            for (let r of results) {
-                if (r.ok && r.player) {
-                    onSuccess(r.player);
-                    successCount++;
-                }
-            }
+        if (autoFillMode === "individual") {
+            const toInscribe = availablePool
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.min(count, availablePool.length));
+
+            toast.loading(`Inscribiendo ${toInscribe.length} jugadores...`, { id: 'autofill' });
             
-            toast.success(`Se inscribieron ${successCount} jugadores existentes`, { id: 'autofill' });
-            setAutoFillCount("");
-            queryClient.invalidateQueries({ queryKey: ["players"] });
-        } catch (err) {
-            console.error(err);
-            toast.error("Error en la inscripción masiva", { id: 'autofill' });
+            const promises = toInscribe.map(p => quickInscribePlayer(tournamentId, p.id, (cat || p.category) ?? undefined));
+
+            try {
+                const results = await Promise.all(promises);
+                let successCount = 0;
+                for (let r of results) {
+                    if (r.ok && r.player) {
+                        onSuccess(r.player);
+                        successCount++;
+                    }
+                }
+                
+                toast.success(`Se inscribieron ${successCount} jugadores existentes`, { id: 'autofill' });
+                setAutoFillCount("");
+                queryClient.invalidateQueries({ queryKey: ["players"] });
+            } catch (err) {
+                console.error(err);
+                toast.error("Error en la inscripción masiva", { id: 'autofill' });
+            }
+        } else {
+            // Modo Parejas
+            const neededCount = count * 2;
+            const shuffled = availablePool.sort(() => Math.random() - 0.5);
+            const actualCount = Math.min(neededCount, shuffled.length);
+            const evenCount = Math.floor(actualCount / 2) * 2;
+            
+            if (evenCount < 2) {
+                toast.error("No hay suficientes jugadores disponibles para armar al menos una pareja", { id: 'autofill' });
+                setIsAutoFilling(false);
+                return;
+            }
+
+            const toInscribe = shuffled.slice(0, evenCount);
+            const couplesCount = evenCount / 2;
+
+            toast.loading(`Inscribiendo ${couplesCount} parejas (${evenCount} jugadores)...`, { id: 'autofill' });
+
+            const promises = [];
+            for (let i = 0; i < toInscribe.length; i += 2) {
+                const p1 = toInscribe[i];
+                const p2 = toInscribe[i + 1];
+                const cat1 = cat || p1.category || "D";
+                const cat2 = cat || p2.category || "D";
+
+                promises.push(
+                    registerManualPlayer(
+                        tournamentId,
+                        { userId: p1.id, category: cat1 },
+                        { userId: p2.id, category: cat2 }
+                    )
+                );
+            }
+
+            try {
+                const results = await Promise.all(promises);
+                let successCount = 0;
+                for (let r of results) {
+                    if (r.ok && r.player) {
+                        onSuccess(r.player);
+                        successCount++;
+                    }
+                }
+                
+                toast.success(`Se inscribieron ${successCount} parejas correctamente`, { id: 'autofill' });
+                setAutoFillCount("");
+                queryClient.invalidateQueries({ queryKey: ["players"] });
+            } catch (err) {
+                console.error(err);
+                toast.error("Error en la inscripción masiva", { id: 'autofill' });
+            }
         }
 
         setIsAutoFilling(false);
@@ -376,14 +437,33 @@ export default function ManualRegistrationModal({
                                 <Users2 className="w-3 h-3" />
                                 Inscripción Masiva (Base de Datos)
                             </div>
+                            
+                            {/* Toggle Switch */}
+                            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-sm text-[8px] font-black uppercase italic">
+                                <button
+                                    type="button"
+                                    onClick={() => setAutoFillMode("individual")}
+                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "individual" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                >
+                                    Individual
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setAutoFillMode("pareja")}
+                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "pareja" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                >
+                                    En Parejas
+                                </button>
+                            </div>
+
                             <div className="flex gap-1.5">
                                 <input 
                                     type="number"
                                     min="1"
-                                    placeholder="Cant..."
+                                    placeholder={autoFillMode === "individual" ? "Jugadores" : "Parejas"}
                                     value={autoFillCount}
                                     onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                                    className="w-16 bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all"
+                                    className="w-16 bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-[10px] font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-center"
                                 />
                                 <button 
                                     onClick={handleAutoFill}

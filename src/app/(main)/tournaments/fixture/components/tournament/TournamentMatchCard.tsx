@@ -35,6 +35,23 @@ export function TournamentMatchCard({
     const isTeam2Defined = m.team2 !== null && m.team2 !== undefined && m.team2 !== "BYE" && !(m.team2 as any)?.id?.startsWith('TBD_');
     const canStartMatch = isTeam1Defined && isTeam2Defined;
 
+    // Detect if this is single player mode (individual)
+    const isSingleLayout = isIndividual || (() => {
+        const t1Name = m.team1 && typeof m.team1 !== "string" ? (m.team1 as Player).name : "";
+        const t2Name = m.team2 && typeof m.team2 !== "string" ? (m.team2 as Player).name : "";
+        
+        const hasT1Slash = t1Name && (t1Name.includes("/") || t1Name.includes("+"));
+        const hasT2Slash = t2Name && (t2Name.includes("/") || t2Name.includes("+"));
+        
+        if (t1Name && t2Name) {
+            return !hasT1Slash && !hasT2Slash;
+        }
+        if (t1Name) return !hasT1Slash;
+        if (t2Name) return !hasT2Slash;
+        
+        return false;
+    })();
+
     const renderTeam = (slot: BracketSlot, side: "left" | "right", teamIndex: 1 | 2) => {
         const isWinner = isFinished && m.winnerId === (slot as Player)?.id;
         const isBye = slot === "BYE";
@@ -54,7 +71,7 @@ export function TournamentMatchCard({
             if (names.length > 1) images.push(img2);
         } else {
             const label = isBye ? "DESCANSO" : isTBD ? ((slot as Player).name || "TBD") : "A DEFINIR";
-            names = !isIndividual ? [label, label] : [label];
+            names = !isSingleLayout ? [label, label] : [label];
             images = names.map(() => null);
         }
 
@@ -83,8 +100,8 @@ export function TournamentMatchCard({
     };
 
     return (
-        <div className="relative group/match px-1">
-            <div className="flex items-center gap-0.5 transition-all">
+        <div className={`relative group/match px-1 ${isSingleLayout ? "max-w-[304px] mx-auto w-full" : ""}`}>
+            <div className={`flex items-center gap-0.5 transition-all ${isSingleLayout ? "justify-center" : ""}`}>
 
                 {/* Team 1 Score Module */}
                 <div className="flex-shrink-0">
@@ -108,7 +125,7 @@ export function TournamentMatchCard({
                 </motion.div>
 
                 {/* Central Command Hub */}
-                <div className="flex-1 flex flex-col items-center justify-center min-w-[40px] gap-1 px-1 border-x border-white/5">
+                <div className={`flex flex-col items-center justify-center gap-1 px-1 border-x border-white/5 ${isSingleLayout ? "w-14 flex-none" : "flex-1 min-w-[40px]"}`}>
                     {!readOnly && (
                         <>
                             {/* START MATCH: Not started yet */}
