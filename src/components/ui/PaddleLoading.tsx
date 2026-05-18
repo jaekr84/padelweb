@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface PaddleLoadingProps {
   size?: "sm" | "md" | "lg";
@@ -8,134 +8,93 @@ interface PaddleLoadingProps {
 }
 
 export function PaddleLoading({ size = "md", className = "" }: PaddleLoadingProps) {
-  const containerSizes = {
-    sm: "w-24 h-12",
-    md: "w-40 h-20",
-    lg: "w-64 h-32",
-  };
-
-  const ballSizes = {
-    sm: "w-3 h-3",
-    md: "w-4 h-4",
-    lg: "w-6 h-6",
-  };
-
-  // Ball animation variants
-  const ballVariants: Variants = {
-    animate: {
-      x: ["0%", "100%", "0%"],
-      y: ["0%", "-40%", "0%", "-40%", "0%"], // Parabolic effect
-      scale: [1, 1.1, 1, 1.1, 1], // Impact effect
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-        times: [0, 0.5, 1],
-      },
+  // Dimensional metrics mapped for High Density alignments
+  const sizeMap = {
+    sm: {
+      container: "w-24 h-24",
+      logo: "w-10 h-10",
+      outerRing: "w-16 h-16",
+      techGlow: "w-18 h-18",
     },
-  };
-
-  const paddleLeftVariants: Variants = {
-    animate: {
-      rotate: [0, -25, 15, 0],
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-        times: [0, 0.1, 0.2, 1],
-      },
+    md: {
+      container: "w-40 h-40",
+      logo: "w-18 h-18",
+      outerRing: "w-28 h-28",
+      techGlow: "w-32 h-32",
     },
-  };
-
-  const paddleRightVariants: Variants = {
-    animate: {
-      rotate: [0, 25, -15, 0],
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-        times: [0.4, 0.5, 0.6, 1],
-      },
+    lg: {
+      container: "w-56 h-56",
+      logo: "w-28 h-28",
+      outerRing: "w-44 h-44",
+      techGlow: "w-48 h-48",
     },
   };
 
   return (
-    <div className={`relative flex items-center justify-center ${containerSizes[size]} ${className}`}>
-      {/* Left Paddle */}
-      <motion.div
-        className="absolute left-0 h-full flex items-center"
-        variants={paddleLeftVariants}
-        animate="animate"
-        style={{ originX: 0.5, originY: 1 }}
-      >
-        <svg
-          viewBox="0 0 100 150"
-          className={size === "sm" ? "w-8 h-12" : size === "md" ? "w-12 h-18" : "w-16 h-24"}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Handle */}
-          <rect x="42" y="100" width="16" height="50" rx="4" fill="#334155" />
-          {/* Head */}
-          <path
-            d="M50 100C22.3858 100 0 77.6142 0 50C0 22.3858 22.3858 0 50 0C77.6142 0 100 22.3858 100 50C100 77.6142 77.6142 100 50 100Z"
-            fill="var(--color-azul-primary)"
-          />
-          {/* Surface holes (Padel style) */}
-          <circle cx="30" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="30" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="30" cy="70" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="70" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="70" r="4" fill="white" fillOpacity="0.2" />
-        </svg>
-      </motion.div>
+    <div className={`relative flex flex-col items-center justify-center ${sizeMap[size].container} ${className}`}>
+      
+      {/* 1. PULSING CYBERNETIC BACKDROP GLOW */}
+      <div className={`absolute ${sizeMap[size].techGlow} rounded-full bg-azul-primary/10 blur-[30px] animate-pulse pointer-events-none`} />
 
-      {/* Ball Track */}
-      <div className="relative w-[70%] h-full flex items-center justify-center">
+      {/* 2. DYNAMIC CORNER HUD BRACKETS */}
+      {size !== "sm" && (
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          {/* Top Left Bracket */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-azul-primary/40 rounded-tl-[3px]" />
+          {/* Top Right Bracket */}
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-azul-primary/40 rounded-tr-[3px]" />
+          {/* Bottom Left Bracket */}
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-azul-primary/40 rounded-bl-[3px]" />
+          {/* Bottom Right Bracket */}
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-azul-primary/40 rounded-br-[3px]" />
+        </div>
+      )}
+
+      {/* 3. DENSE CONCENTRIC SPATIAL RINGS */}
+      <div className="relative flex items-center justify-center w-full h-full">
+        
+        {/* Sweeping Diagnostic Scanner Ring (High-Tech Sweep) */}
         <motion.div
-            className={`${ballSizes[size]} bg-[#ccff00] rounded-full shadow-[0_0_15px_rgba(204,255,0,0.6)]`}
-            variants={ballVariants}
-            animate="animate"
+          className={`absolute ${sizeMap[size].outerRing} rounded-full border border-dashed border-azul-primary/20`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         />
-      </div>
 
-      {/* Right Paddle */}
-      <motion.div
-        className="absolute right-0 h-full flex items-center"
-        variants={paddleRightVariants}
-        animate="animate"
-        style={{ originX: 0.5, originY: 1 }}
-      >
-        <svg
-          viewBox="0 0 100 150"
-          className={size === "sm" ? "w-8 h-12" : size === "md" ? "w-12 h-18" : "w-16 h-24"}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ transform: "scaleX(-1)" }}
-        >
-          {/* Handle */}
-          <rect x="42" y="100" width="16" height="50" rx="4" fill="#334155" />
-          {/* Head */}
-          <path
-            d="M50 100C22.3858 100 0 77.6142 0 50C0 22.3858 22.3858 0 50 0C77.6142 0 100 22.3858 100 50C100 77.6142 77.6142 100 50 100Z"
-            fill="var(--color-azul-primary)"
-          />
-          {/* Surface holes */}
-          <circle cx="30" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="30" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="30" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="50" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="30" cy="70" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="50" cy="70" r="4" fill="white" fillOpacity="0.2" />
-          <circle cx="70" cy="70" r="4" fill="white" fillOpacity="0.2" />
-        </svg>
-      </motion.div>
+        {/* Outer Tech Sweep Glow Ring */}
+        <motion.div
+          className={`absolute ${sizeMap[size].outerRing} rounded-full border border-t-2 border-r-2 border-b-transparent border-l-transparent border-celeste shadow-[0_0_15px_rgba(56,189,248,0.2)]`}
+          animate={{ rotate: -360 }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Inner Tech Ring (Reverse Fast sweep) */}
+        <motion.div
+          className={`absolute ${sizeMap[size].logo} rounded-full border-2 border-t-transparent border-r-transparent border-b-2 border-l-transparent border-azul-primary opacity-60`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* 4. THE CORE LOGO CONTAINER (CLIPPED & NEON RING) */}
+        <div className={`relative ${sizeMap[size].logo} rounded-full overflow-hidden border border-white/10 bg-slate-950 p-[3px] shadow-[0_0_20px_rgba(var(--color-azul-primary),0.3)] z-10 group`}>
+          <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-900 border border-white/5 flex items-center justify-center">
+            {/* The Logo Image */}
+            <img
+              src="/img/stickers 1.jpg"
+              alt="A.C.A.P. Sticker Logo"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-full"
+            />
+            {/* Glossy overlay sheen */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/15 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Dynamic telemetry diagnostic values positioned inside card */}
+        {size === "lg" && (
+          <div className="absolute bottom-1 text-[6.5px] font-black text-azul-primary/45 uppercase tracking-[0.2em] font-mono leading-none animate-pulse">
+            DIAG.SYS // CONNECTING
+          </div>
+        )}
+      </div>
     </div>
   );
 }

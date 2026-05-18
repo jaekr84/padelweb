@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { getCurrentUser, checkSuperadmin } from "@/lib/auth";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/Providers";
+import { GlobalNavigationLoader } from "@/components/ui/GlobalNavigationLoader";
 
 import "./globals.css";
 
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Providers>
           {children}
           <Toaster position="bottom-right" closeButton richColors />
+          <GlobalNavigationLoader />
         </Providers>
       </body>
     </html>
