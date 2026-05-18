@@ -212,27 +212,27 @@ export function SidebarProfileConsole({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: isCollapsed ? 10 : 8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className={`absolute z-[999] bg-slate-950/95 dark:bg-slate-900/98 backdrop-blur-xl border border-white/10 rounded-[1.25rem] shadow-2xl p-2 flex flex-col gap-1 w-48 ${
+            className={`absolute z-[999] bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-[1.25rem] shadow-xl p-2 flex flex-col gap-1 w-48 ${
               isCollapsed 
                 ? "left-16 bottom-4" 
                 : "left-4 right-4 bottom-[calc(100%+8px)]"
             }`}
           >
             {/* Top tiny diagnostic header inside dropdown */}
-            <div className="px-2.5 py-1.5 border-b border-white/5 flex items-center justify-between">
-              <span className="text-[7.5px] font-black tracking-[0.25em] text-white/40 uppercase">
+            <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
+              <span className="text-[7.5px] font-black tracking-[0.25em] text-slate-400 uppercase">
                 {isCollapsed ? "Menú Usuario" : "Configurar Vista"}
               </span>
-              <Settings className="w-2.5 h-2.5 text-white/30" />
+              <Settings className="w-2.5 h-2.5 text-slate-350" />
             </div>
 
             {/* If collapsed, show basic user header details inside popover */}
             {isCollapsed && (
-              <div className="px-2.5 py-2 border-b border-white/5 flex flex-col gap-0.5">
-                <span className="text-[10px] font-black text-white truncate leading-none">
+              <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col gap-0.5">
+                <span className="text-[10px] font-black text-slate-900 truncate leading-none">
                   {userData.name}
                 </span>
-                <span className="text-[8px] font-medium text-white/45 truncate">
+                <span className="text-[8px] font-medium text-slate-450 truncate">
                   Asociado ACAP
                 </span>
               </div>
@@ -258,11 +258,11 @@ export function SidebarProfileConsole({
                         onClick={() => handleRoleSelect(r)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[10px] font-bold uppercase tracking-wider transition-all active:scale-98 group/item ${
                           isSelected 
-                            ? "bg-azul-primary/20 text-white border border-azul-primary/30" 
-                            : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent"
+                            ? "bg-azul-primary/10 text-azul-primary border border-azul-primary/20" 
+                            : "text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent"
                         }`}
                       >
-                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-celeste" : "text-white/40 group-hover/item:text-white/70"}`} />
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-celeste" : "text-slate-400 group-hover/item:text-slate-600"}`} />
                         <span className="flex-1 truncate">{config.label}</span>
                         {isSelected && <Check className="w-3.5 h-3.5 text-celeste shrink-0 animate-scaleIn" />}
                       </button>
@@ -273,7 +273,7 @@ export function SidebarProfileConsole({
 
             {/* If collapsed, inject quick action toggles inside popover */}
             {isCollapsed && (
-              <div className="flex flex-col gap-1 border-t border-white/5 pt-1 mt-1">
+              <div className="flex flex-col gap-1 border-t border-slate-100 pt-1 mt-1">
                 {/* Banners diagnostic view toggle inside popover */}
                 {userData.role === "superadmin" && (
                   <button
@@ -283,7 +283,7 @@ export function SidebarProfileConsole({
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider transition-all ${
                       sponsorsVisible 
                         ? "text-azul-primary bg-azul-primary/10 border border-azul-primary/20" 
-                        : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent"
+                        : "text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent"
                     }`}
                   >
                     {sponsorsVisible ? (
@@ -304,16 +304,16 @@ export function SidebarProfileConsole({
                 <Link
                   href={profileUrl}
                   onClick={() => setIsDropdownOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/5 border border-transparent transition-all"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent transition-all"
                 >
-                  <User className="w-3.5 h-3.5 shrink-0 text-white/40" />
+                  <User className="w-3.5 h-3.5 shrink-0 text-slate-400" />
                   <span>Mi Perfil</span>
                 </Link>
 
                 {/* Logout button inside popover */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent transition-all"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-red-500 hover:text-red-600 hover:bg-red-50 border border-transparent transition-all"
                 >
                   <LogOut className="w-3.5 h-3.5 shrink-0" />
                   <span>Cerrar Sesión</span>

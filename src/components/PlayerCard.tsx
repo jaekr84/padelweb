@@ -13,6 +13,7 @@ interface PlayerCardProps {
         points?: number;
         clubName?: string | null;
         gender?: string | null;
+        rank?: number;
     };
     stats: {
         pj: number;
@@ -51,6 +52,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
 
     const sideLabel = player.side === 'reves' ? 'REVÉS' : player.side === 'drive' ? 'DRIVE' : 'AMBOS';
 
+    const rankGradient = player.rank === 1
+        ? 'from-yellow-300 via-yellow-400 to-amber-500'
+        : player.rank === 2
+            ? 'from-slate-200 via-slate-350 to-slate-450'
+            : player.rank === 3
+                ? 'from-amber-600 via-amber-700 to-amber-900'
+                : isFemale
+                    ? 'from-rosa to-rojo'
+                    : 'from-white to-celeste';
+
+    const rankGlow = player.rank === 1
+        ? 'bg-yellow-500/40'
+        : player.rank === 2
+            ? 'bg-slate-400/30'
+            : player.rank === 3
+                ? 'bg-amber-700/30'
+                : theme.glow;
+
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -68,13 +87,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                             clipPath: 'polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)'
                         }}>
 
-                        {/* 1. BRANDING CORPORATIVO */}
-                        <div className="absolute top-5 left-7 z-40">
-                            <div className="flex flex-col justify-center">
-                                <span className="text-sm font-black italic text-white leading-none tracking-tighter">
-                                    A.C.A.P.<span className={isFemale ? "text-rosa" : "text-celeste"}></span>
-                                </span>
-                            </div>
+                        {/* 1. BRANDING CORPORATIVO Y PUESTO */}
+                        <div className="absolute top-[20px] left-[45px] z-40 flex flex-col items-start">
+                            {player.rank ? (
+                                <>
+                                    <span className={`text-[60px] font-black italic leading-[0.9] py-1 text-transparent bg-clip-text bg-gradient-to-b ${rankGradient} drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]`}>
+                                        #{player.rank}
+                                    </span>
+                                    <span className="text-[12px] font-black italic text-white/90 tracking-[0.22em] uppercase mt-1 block leading-none">
+                                        A.C.A.P.
+                                    </span>
+                                </>
+                            ) : (
+                                <div className="flex flex-col justify-center mt-2">
+                                    <span className="text-lg font-black italic text-white leading-none tracking-tighter">
+                                        A.C.A.P.<span className={isFemale ? "text-rosa" : "text-celeste"}></span>
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* 2. SECTOR SUPERIOR DERECHA: CATEGORÍA */}

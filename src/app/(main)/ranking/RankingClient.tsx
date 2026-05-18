@@ -367,7 +367,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     <AnimatePresence mode="popLayout">
                         {paginatedPlayers.length > 0 ? (
                             <>
-                                <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-6 md:gap-6 justify-items-center">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-10 justify-items-center">
                                     {paginatedPlayers.map((player) => {
                                         return (
                                             <motion.div
@@ -381,19 +381,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                 className="relative cursor-pointer group transition-all duration-300 hover:scale-[1.03] select-none flex justify-center w-full overflow-visible transition-shadow duration-300 rounded-xl"
                                             >
                                                 {/* Scaled Responsive Container */}
-                                                <div className="w-[156px] h-[254px] min-[380px]:w-[174px] min-[380px]:h-[282px] md:w-[192px] md:h-[310px] relative shrink-0 overflow-visible">
-                                                    <div className="absolute top-0 left-0 origin-top-left scale-[0.45] min-[380px]:scale-[0.5] md:scale-[0.55] pointer-events-auto">
-
-                                                        {/* Floating Rank Badge (scaled inside the card, positioned below the logo to not cover it) */}
-                                                        <div className="absolute top-[68px] left-[28px] z-40 flex items-center gap-2 bg-black/90 backdrop-blur-md px-4.5 py-2.5 rounded-2xl border border-white/15 shadow-[0_6px_16px_rgba(0,0,0,0.6)]">
-                                                            {player._rank === 1 ? <Crown className="w-4 h-4 text-yellow-400 animate-bounce" /> :
-                                                                player._rank === 2 ? <Medal className="w-4 h-4 text-slate-200" /> :
-                                                                    player._rank === 3 ? <Medal className="w-4 h-4 text-amber-500" /> :
-                                                                        <Hash className="w-3.5 h-3.5 text-celeste" />}
-                                                            <span className="text-[12px] sm:text-xs font-black italic tracking-wider text-white">
-                                                                RANK {player._rank}
-                                                            </span>
-                                                        </div>
+                                                <div className="w-[156px] h-[254px] min-[380px]:w-[174px] min-[380px]:h-[282px] md:w-[180px] md:h-[292px] relative shrink-0 overflow-visible">
+                                                    <div className="absolute top-0 left-0 origin-top-left scale-[0.45] min-[380px]:scale-[0.5] md:scale-[0.52] pointer-events-auto">
 
                                                         <PlayerCard
                                                             player={{
@@ -404,7 +393,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                                 side: player.side || "ambos",
                                                                 points: player.points || 0,
                                                                 clubName: player.club?.name,
-                                                                gender: player.gender
+                                                                gender: player.gender,
+                                                                rank: player._rank
                                                             }}
                                                             stats={player.stats}
                                                             isCurrentUser={player.id === currentUserId}
@@ -455,8 +445,8 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                                                             window.scrollTo({ top: 300, behavior: 'smooth' });
                                                         }}
                                                         className={`w-9 h-9 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-90 flex items-center justify-center border cursor-pointer ${isActive
-                                                                ? "bg-azul-primary text-white border-azul-primary shadow-[0_0_12px_rgba(0,119,255,0.3)]"
-                                                                : "bg-background text-muted-foreground hover:text-foreground hover:border-azul-primary/30 border-border"
+                                                            ? "bg-azul-primary text-white border-azul-primary shadow-[0_0_12px_rgba(0,119,255,0.3)]"
+                                                            : "bg-background text-muted-foreground hover:text-foreground hover:border-azul-primary/30 border-border"
                                                             }`}
                                                     >
                                                         {pageNum}

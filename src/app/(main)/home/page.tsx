@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { posts, users, postComments, tournaments, registrations, openCourtEvents, clubs, openCourtRegistrations } from "@/db/schema";
 import { eq, desc, inArray, gte, and, not, sql } from "drizzle-orm";
 import HomeClient from "./HomeClient";
+import { getPlayerProfileData } from "@/app/actions/players";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function HomePage() {
         };
 
         // Start multiple independent data fetches in parallel
-        const [userResults, postRows, upcomingTournaments, ongoingTournaments, upcomingOpenCourts] = await Promise.all([
+        const [userResults, postRows, upcomingTournaments, ongoingTournaments, upcomingOpenCourts, playerProfileData] = await Promise.all([
             userId ? db.select().from(users).where(eq(users.id, userId)).limit(1) : Promise.resolve([]),
             db.select({ post: posts, user: users })
                 .from(posts)
@@ -96,7 +97,8 @@ export default async function HomePage() {
             .leftJoin(clubs, eq(openCourtEvents.clubId, clubs.id))
             .where(eq(openCourtEvents.status, 'active'))
             .orderBy(openCourtEvents.date, openCourtEvents.time)
-            .limit(5)
+            .limit(5),
+            userId ? getPlayerProfileData(userId) : Promise.resolve(null)
         ]);
 
         if (userId && userResults.length > 0) {
@@ -164,6 +166,7 @@ export default async function HomePage() {
                 upcomingTournaments={upcomingTournaments as any}
                 ongoingTournaments={ongoingTournaments as any}
                 upcomingOpenCourts={upcomingOpenCourts as any}
+                playerProfileData={playerProfileData}
             />
         );
     } catch (e) {
@@ -176,6 +179,7 @@ export default async function HomePage() {
                 upcomingTournaments={[]}
                 ongoingTournaments={[]}
                 upcomingOpenCourts={[]}
+                playerProfileData={null}
             />
         );
     }

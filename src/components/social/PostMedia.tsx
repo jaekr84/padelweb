@@ -185,18 +185,18 @@ export function PostMedia({ images, fallbackUrl }: PostMediaProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative bg-slate-900 rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center p-4 group/carousel"
+            className="relative bg-slate-100 rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center p-4 group/carousel border border-slate-200"
           >
             {/* Back to Grid Button */}
             <button
               onClick={() => setViewMode("grid")}
-              className="absolute top-4 left-4 z-20 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-white/10"
+              className="absolute top-4 left-4 z-20 px-4 py-2 bg-white/80 hover:bg-white text-slate-800 rounded-xl backdrop-blur-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-slate-200/50 shadow-sm"
             >
               <ChevronLeft className="w-3 h-3" /> Volver
             </button>
 
             {/* Image Counter */}
-            <div className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/40 backdrop-blur-md text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">
+            <div className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-white/80 backdrop-blur-md text-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200/50 shadow-sm">
               {carouselIndex + 1} / {count}
             </div>
 
@@ -224,7 +224,7 @@ export function PostMedia({ images, fallbackUrl }: PostMediaProps) {
                     e.stopPropagation();
                     prev();
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center backdrop-blur-md shadow-md transition-all z-20"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -233,7 +233,7 @@ export function PostMedia({ images, fallbackUrl }: PostMediaProps) {
                     e.stopPropagation();
                     next();
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-slate-900 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-20"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center backdrop-blur-md shadow-md transition-all z-20"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
