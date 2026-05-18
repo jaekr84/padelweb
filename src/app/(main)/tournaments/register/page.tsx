@@ -93,7 +93,7 @@ export default async function RegisterPage({ searchParams }: Props) {
     }
 
     // Open date check
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).split(',')[0];
     const hasClub = !!dbUser.clubId;
 
     let isOpen = false;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
     Trophy, Medal, Crown, Shield, User, Users, X, Activity,
-    Calendar as CalendarIcon, Hash, ChevronRight, Search,
+    Calendar as CalendarIcon, Hash, ChevronRight, ChevronLeft, Search,
     Filter, Star, TrendingUp, Zap, Loader2
 } from "lucide-react";
 import { type Category } from "@/db/schema";
@@ -29,6 +29,14 @@ interface RankingUser {
         name: string;
         logoUrl: string | null;
     } | null;
+    stats: {
+        pj: number;
+        pg: number;
+        pp: number;
+        wr: number;
+        trofeos: number;
+        subcampeonatos: number;
+    };
 }
 
 interface TournamentCounts {
@@ -53,10 +61,16 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [activeTab, setActiveTab] = useState<'perfil' | 'mural'>('perfil');
     const [selectedPlayer, setSelectedPlayer] = useState<RankingUser | null>(null);
     const [matches, setMatches] = useState<any[]>([]);
     const [loadingMatches, setLoadingMatches] = useState(false);
+
+    // Reset page to 1 when search or filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [genderFilter, categoryFilter, searchQuery]);
 
     // Prevent body scroll when modal is open
     useEffect(() => {
@@ -130,6 +144,28 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         return rankedList;
     }, [users, genderFilter, categoryFilter, searchQuery]);
 
+    const ITEMS_PER_PAGE = 18; // 6 columns x 3 rows grid
+    const totalPages = Math.ceil(filteredPlayers.length / ITEMS_PER_PAGE);
+
+    const paginatedPlayers = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        return filteredPlayers.slice(start, end);
+    }, [filteredPlayers, currentPage]);
+
+    const currentUserGlobalRank = useMemo(() => {
+        if (!isLoggedIn || !currentUserId) return null;
+        const sortedAll = [...users].sort((a, b) => (b.points || 0) - (a.points || 0));
+        const index = sortedAll.findIndex(u => u.id === currentUserId);
+        return index !== -1 ? index + 1 : null;
+    }, [users, isLoggedIn, currentUserId]);
+
+    const currentUserFilteredRank = useMemo(() => {
+        if (!isLoggedIn || !currentUserId) return null;
+        const index = filteredPlayers.findIndex(u => u.id === currentUserId);
+        return index !== -1 ? filteredPlayers[index]._rank : null;
+    }, [filteredPlayers, isLoggedIn, currentUserId]);
+
     return (
         <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-azul-primary/30 overflow-x-hidden pb-32">
             <style>{`
@@ -183,11 +219,69 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                         <p className="text-[9px] font-black uppercase tracking-[0.4em] text-celeste mb-1 px-1">Clasificación Oficial</p>
                         <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-tight">
-                            <span className="text-gradient-animate">Ranking</span><br />
+                            <span className="text-gradient-animate">Ranking</span>
                             <span className="text-foreground/90 font-black">General</span>
                         </h1>
                     </motion.div>
                 </div>
+
+                {/* User Rank positioning widget */}
+                {isLoggedIn && currentUserId && currentUserGlobalRank !== null && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-6 bg-gradient-to-r from-azul-primary/20 via-celeste/10 to-transparent backdrop-blur-xl border border-azul-primary/20 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_20px_-10px_rgba(14,165,233,0.3)]"
+                    >
+                        <div className="flex items-center gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-azul-primary/20 border border-azul-primary/40 flex items-center justify-center relative shrink-0">
+                                <Trophy className="w-6 h-6 text-celeste animate-pulse" />
+                                <div className="absolute inset-0 bg-celeste/20 rounded-2xl blur-md -z-10" />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-wider text-celeste mb-0.5">TU POSICIÓN EN LA ACAP</p>
+                                <h4 className="text-sm font-black uppercase italic tracking-tighter text-foreground">
+                                    Estás en la posición <span className="text-celeste text-lg font-black italic tracking-tighter ml-1">#{currentUserGlobalRank}</span> del Ranking General
+                                </h4>
+                                {categoryFilter !== "all" && currentUserFilteredRank !== null && (
+                                    <p className="text-[10px] font-bold text-muted-foreground/80 mt-0.5">
+                                        Puesto <span className="text-foreground font-black font-mono">#{currentUserFilteredRank}</span> en la categoría <span className="text-azul-primary font-black uppercase">Cat {categoryFilter}</span>
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Interactive trigger to scroll to the current user's card */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                // Find player index in filtered list
+                                const idx = filteredPlayers.findIndex(u => u.id === currentUserId);
+                                if (idx !== -1) {
+                                    // Calculate page
+                                    const pageOfUser = Math.ceil((idx + 1) / ITEMS_PER_PAGE);
+                                    setCurrentPage(pageOfUser);
+
+                                    // Smooth scroll to card
+                                    setTimeout(() => {
+                                        const userCardEl = document.getElementById(`player-card-${currentUserId}`);
+                                        if (userCardEl) {
+                                            userCardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            // Trigger minor click highlight
+                                            userCardEl.classList.add('ring-4', 'ring-celeste/50');
+                                            setTimeout(() => {
+                                                userCardEl.classList.remove('ring-4', 'ring-celeste/50');
+                                            }, 2000);
+                                        }
+                                    }, 200);
+                                }
+                            }}
+                            className="px-4 py-2 bg-slate-900 border border-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 active:scale-95 transition-all shadow-md shrink-0 cursor-pointer flex items-center gap-1.5"
+                        >
+                            <User className="w-3 h-3 text-celeste" />
+                            Ver mi tarjeta
+                        </button>
+                    </motion.div>
+                )}
 
                 {/* Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
@@ -268,98 +362,123 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     </div>
                 </div>
 
-                {/* Leaderboard */}
-                <div className="flex flex-col gap-4">
+                {/* Leaderboard Grid */}
+                <div className="mt-8">
                     <AnimatePresence mode="popLayout">
-                        {filteredPlayers.length > 0 ? (
-                            filteredPlayers.map((player) => {
-                                const isTop3 = player._rank <= 3;
-                                const points = player.points || 0;
-                                return (
-                                    <motion.div
-                                        key={player.id}
-                                        layout
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        onClick={() => handlePlayerClick(player)}
-                                        className={`group relative border rounded-xl overflow-hidden cursor-pointer transition-all duration-500 hover:translate-x-1 shadow-sm hover:shadow-md 
-                                            ${player.id === currentUserId ? 'bg-azul-primary/10 border-azul-primary/30 ring-1 ring-azul-primary/10' : 'bg-card border-border'}
-                                        `}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-azul-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {paginatedPlayers.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-x-4 gap-y-6 md:gap-6 justify-items-center">
+                                    {paginatedPlayers.map((player) => {
+                                        return (
+                                            <motion.div
+                                                key={player.id}
+                                                id={`player-card-${player.id}`}
+                                                layout
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                onClick={() => handlePlayerClick(player)}
+                                                className="relative cursor-pointer group transition-all duration-300 hover:scale-[1.03] select-none flex justify-center w-full overflow-visible transition-shadow duration-300 rounded-xl"
+                                            >
+                                                {/* Scaled Responsive Container */}
+                                                <div className="w-[156px] h-[254px] min-[380px]:w-[174px] min-[380px]:h-[282px] md:w-[192px] md:h-[310px] relative shrink-0 overflow-visible">
+                                                    <div className="absolute top-0 left-0 origin-top-left scale-[0.45] min-[380px]:scale-[0.5] md:scale-[0.55] pointer-events-auto">
 
-                                        {player.id === currentUserId && (
-                                            <div className="absolute top-0 right-12 bg-azul-primary text-[8px] font-black uppercase tracking-widest text-white px-3 py-1 rounded-b-xl shadow-lg z-20">
-                                                Vos
-                                            </div>
-                                        )}
+                                                        {/* Floating Rank Badge (scaled inside the card, positioned below the logo to not cover it) */}
+                                                        <div className="absolute top-[68px] left-[28px] z-40 flex items-center gap-2 bg-black/90 backdrop-blur-md px-4.5 py-2.5 rounded-2xl border border-white/15 shadow-[0_6px_16px_rgba(0,0,0,0.6)]">
+                                                            {player._rank === 1 ? <Crown className="w-4 h-4 text-yellow-400 animate-bounce" /> :
+                                                                player._rank === 2 ? <Medal className="w-4 h-4 text-slate-200" /> :
+                                                                    player._rank === 3 ? <Medal className="w-4 h-4 text-amber-500" /> :
+                                                                        <Hash className="w-3.5 h-3.5 text-celeste" />}
+                                                            <span className="text-[12px] sm:text-xs font-black italic tracking-wider text-white">
+                                                                RANK {player._rank}
+                                                            </span>
+                                                        </div>
 
-                                        <div className="p-3 md:p-3.5 flex items-center gap-4 relative z-10">
-                                            {/* Rank */}
-                                            <div className="w-12 flex flex-col items-center justify-center shrink-0 border-r border-border pr-3">
-                                                {player._rank === 1 ? <Crown className="w-4 h-4 text-yellow-500 mb-0.5" /> :
-                                                    player._rank === 2 ? <Medal className="w-4 h-4 text-slate-400 mb-0.5" /> :
-                                                        player._rank === 3 ? <Medal className="w-4 h-4 text-orange-500 mb-0.5" /> : null}
-                                                <span className={`text-sm font-black italic tracking-tighter ${player._rank <= 3 ? "text-foreground" : "text-muted-foreground/60"}`}>
-                                                    #{player._rank}
-                                                </span>
-                                            </div>
-
-                                            {/* Profile Image / Avatar */}
-                                            <div className="w-9 h-9 shrink-0 relative">
-                                                <div className="w-full h-full rounded-full border border-border overflow-hidden bg-muted group-hover:border-azul-primary/30 transition-all shadow-inner flex items-center justify-center relative">
-                                                    {player.imageUrl ? (
-                                                        <Image
-                                                            src={player.imageUrl}
-                                                            alt={player.name || "Jugador"}
-                                                            fill
-                                                            className="object-cover rounded-full"
+                                                        <PlayerCard
+                                                            player={{
+                                                                firstName: player.firstName || player.name?.split(' ')[0] || "",
+                                                                lastName: player.lastName || player.name?.split(' ').slice(1).join(' ') || "",
+                                                                imageUrl: player.imageUrl,
+                                                                category: player.category || "D",
+                                                                side: player.side || "ambos",
+                                                                points: player.points || 0,
+                                                                clubName: player.club?.name,
+                                                                gender: player.gender
+                                                            }}
+                                                            stats={player.stats}
+                                                            isCurrentUser={player.id === currentUserId}
                                                         />
-                                                    ) : (
-                                                        <User className="w-3.5 h-3.5 text-muted-foreground/70" />
-                                                    )}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
 
-                                            {/* Info - Combined Row */}
-                                            <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
-                                                <h3 className="text-sm font-black uppercase italic tracking-tighter truncate group-hover:text-azul-primary transition-colors">
-                                                    {player.name || "Jugador"}
-                                                </h3>
-                                                <div className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-muted-foreground/70 shrink-0">
-                                                    <span className="text-muted-foreground/50 font-black">@{getUserHandle(player.email)}</span>
-                                                    <span className="w-0.5 h-0.5 bg-border rounded-full" />
-                                                    <span className="text-celeste/70">{tournamentCounts[player.id] || 0} TORNEOS</span>
-                                                    {player.club && (
-                                                        <>
-                                                            <span className="w-0.5 h-0.5 bg-border rounded-full" />
-                                                            <div className="flex items-center gap-1 text-azul-primary/70">
-                                                                <Shield className="w-2 h-2" />
-                                                                {player.club.name}
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
+                                {/* Premium HUD Pagination Bar */}
+                                {totalPages > 1 && (
+                                    <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/40 backdrop-blur-md px-6 py-4 rounded-2xl border border-border shadow-lg">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                                            Mostrando <span className="text-foreground">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a <span className="text-foreground">{Math.min(currentPage * ITEMS_PER_PAGE, filteredPlayers.length)}</span> de <span className="text-foreground">{filteredPlayers.length}</span> jugadores
+                                        </span>
 
-                                            {/* Category Column */}
-                                            <div className="hidden sm:flex flex-col items-center justify-center shrink-0 w-16 border-l border-border px-3">
-                                                <span className="text-lg font-black italic tracking-tighter text-foreground leading-none">{player.category || "-"}</span>
-                                                <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/70 mt-0.5">Cat</span>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={currentPage === 1}
+                                                onClick={() => {
+                                                    setCurrentPage(prev => Math.max(1, prev - 1));
+                                                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                                                }}
+                                                className="p-2 rounded-xl bg-background border border-border text-muted-foreground hover:text-foreground hover:border-azul-primary/40 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90 cursor-pointer"
+                                            >
+                                                <ChevronLeft className="w-4 h-4" />
+                                            </button>
 
-                                            {/* Points */}
-                                            <div className="text-right shrink-0 border-l border-border pl-4 pr-1">
-                                                <div className={`text-lg font-black tracking-tighter italic ${isTop3 ? "text-foreground" : "text-muted-foreground/60"}`}>
-                                                    {points.toLocaleString()}
-                                                </div>
-                                                <div className="text-[8px] font-black uppercase tracking-widest text-celeste">Pts</div>
-                                            </div>
+                                            {Array.from({ length: totalPages }).map((_, idx) => {
+                                                const pageNum = idx + 1;
+                                                if (totalPages > 5 && Math.abs(currentPage - pageNum) > 2 && pageNum !== 1 && pageNum !== totalPages) {
+                                                    if (pageNum === 2 || pageNum === totalPages - 1) {
+                                                        return <span key={pageNum} className="text-muted-foreground/40 px-1 text-xs select-none">...</span>;
+                                                    }
+                                                    return null;
+                                                }
+
+                                                const isActive = currentPage === pageNum;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCurrentPage(pageNum);
+                                                            window.scrollTo({ top: 300, behavior: 'smooth' });
+                                                        }}
+                                                        className={`w-9 h-9 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-90 flex items-center justify-center border cursor-pointer ${isActive
+                                                                ? "bg-azul-primary text-white border-azul-primary shadow-[0_0_12px_rgba(0,119,255,0.3)]"
+                                                                : "bg-background text-muted-foreground hover:text-foreground hover:border-azul-primary/30 border-border"
+                                                            }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+
+                                            <button
+                                                type="button"
+                                                disabled={currentPage === totalPages}
+                                                onClick={() => {
+                                                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                                                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                                                }}
+                                                className="p-2 rounded-xl bg-background border border-border text-muted-foreground hover:text-foreground hover:border-azul-primary/40 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90 cursor-pointer"
+                                            >
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                    </motion.div>
-                                );
-                            })
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-32 opacity-20 select-none">
                                 <Trophy className="w-20 h-20 mb-4" />

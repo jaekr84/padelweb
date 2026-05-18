@@ -6,12 +6,16 @@ import { useRouter } from "next/navigation";
 import {
     Calendar, MapPin, Trophy, Zap,
     CheckCircle, Clock, User, Users2, DollarSign, LayoutGrid, Plus, Shield,
-    Edit3, LayoutDashboard, Settings
+    Edit3, LayoutDashboard, Settings, X, MessageSquare, Info, Activity
 } from "lucide-react";
 import ClubEnrollmentModal from "./ClubEnrollmentModal";
 import AccessDeniedModal from "./AccessDeniedModal";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
 import RegisterTournamentModal from "./RegisterTournamentModal";
+import { getPlayerProfileData } from "@/app/actions/players";
+import PlayerCard from "@/components/PlayerCard";
+import { motion, AnimatePresence } from "framer-motion";
+import { startConversation } from "@/app/(main)/mensajes/actions";
 
 interface PublicTournamentCardProps {
     tournament: any;
@@ -32,6 +36,22 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         message: ""
     });
     const [showRegModal, setShowRegModal] = useState(false);
+    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<any>(null);
+    const [loadingProfile, setLoadingProfile] = useState(false);
+
+    const handleShowProfile = async (id: string) => {
+        setSelectedPlayerId(id);
+        setLoadingProfile(true);
+        try {
+            const data = await getPlayerProfileData(id);
+            setProfileData(data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
 
     const hasImage = tournament.imageUrl &&
         tournament.imageUrl !== "" &&
@@ -47,7 +67,14 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
     }
 
     const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    const today = new Date().toISOString().split("T")[0];
+    const today = (() => {
+        const now = new Date();
+        return [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            String(now.getDate()).padStart(2, '0')
+        ].join('-');
+    })();
 
     // Permissions for the management buttons
     const isCreator = Boolean(currentUserId && tournament.createdByUserId && currentUserId === tournament.createdByUserId);
@@ -505,15 +532,32 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                 key={reg.id}
                                                 className="flex items-center justify-between border-b border-border/10 pb-0.5 group/p"
                                             >
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-[9px] font-black text-foreground truncate uppercase tracking-tight leading-normal">
+                                                <div className="min-w-0 flex-1 flex flex-wrap items-center gap-1">
+                                                    <span 
+                                                        onClick={() => {
+                                                            if (reg.userId) {
+                                                                handleShowProfile(reg.userId);
+                                                            }
+                                                        }}
+                                                        className={`text-[9px] font-black text-foreground uppercase tracking-tight leading-normal ${reg.userId ? "cursor-pointer hover:underline hover:text-azul-primary transition-all duration-300" : ""}`}
+                                                    >
                                                         {reg.user?.firstName} {reg.user?.lastName?.charAt(0)}.
-                                                        {reg.partnerName && (
-                                                            <span className="text-muted-foreground font-bold italic ml-1 lowercase tracking-normal">
-                                                                + {reg.partnerName.split(' ')[0]}
-                                                            </span>
-                                                        )}
-                                                    </p>
+                                                    </span>
+                                                    {reg.partnerName && (
+                                                        <span className="text-muted-foreground font-bold italic ml-1 lowercase tracking-normal text-[8.5px] flex items-center gap-0.5">
+                                                            +{" "}
+                                                            {reg.partnerUserId ? (
+                                                                <span
+                                                                    onClick={() => handleShowProfile(reg.partnerUserId)}
+                                                                    className="cursor-pointer hover:underline hover:text-azul-primary text-muted-foreground transition-all duration-300 font-bold italic tracking-normal"
+                                                                >
+                                                                    {reg.partnerName.split(' ')[0]}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{reg.partnerName.split(' ')[0]}</span>
+                                                            )}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="shrink-0 ml-1">
                                                     <span className="text-[7px] font-black text-azul-primary uppercase">
@@ -561,6 +605,161 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                     router.refresh();
                 }}
             />
+
+            {/* Profile Modal */}
+            <AnimatePresence>
+                {selectedPlayerId && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedPlayerId(null)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative z-10 w-full max-w-3xl"
+                        >
+                            <button
+                                onClick={() => setSelectedPlayerId(null)}
+                                className="absolute top-3 right-3 w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white border border-white/5 backdrop-blur-md transition-all z-50 animate-fade-in"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            {loadingProfile ? (
+                                <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl p-14 flex flex-col items-center justify-center border border-white/10">
+                                    <div className="w-9 h-9 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin mb-3" />
+                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Cargando Perfil...</p>
+                                </div>
+                            ) : profileData ? (
+                                <div className={`bg-slate-950/95 backdrop-blur-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[540px] transition-all duration-500 ${profileData.player.userId === currentUserId ? 'border-red-500/80 shadow-red-500/10' : 'border-white/10'}`}>
+                                    {/* Modal Header */}
+                                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/5 bg-white/5 shrink-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/90">Resumen del Jugador</span>
+                                        </div>
+                                        <div className="hidden sm:flex items-center gap-3 pr-8">
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest leading-none mb-[2px]">Nivel Proyectado</span>
+                                                <span className="text-[9px] font-black text-celeste italic leading-none">CATEGORÍA {profileData.player.category}</span>
+                                            </div>
+                                            <div className="w-7 h-7 rounded-lg bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
+                                                <Zap className="w-3.5 h-3.5 text-azul-primary" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 overflow-y-auto md:overflow-hidden flex-1 min-h-0 flex flex-col">
+                                        <div className="flex flex-col md:flex-row gap-6 items-center md:items-stretch flex-1 min-h-0">
+                                            {/* Player Card (High Density Scaled) */}
+                                            <div className="shrink-0 flex items-center justify-center scale-[0.82] origin-center -my-11 -mx-7 md:-my-10 md:-mx-6">
+                                                <PlayerCard player={profileData.player} stats={profileData.stats} isCurrentUser={profileData.player.userId === currentUserId} />
+                                            </div>
+
+                                            {/* Summary KPIs */}
+                                            <div className="flex-1 space-y-3 py-1 w-full flex flex-col justify-between min-h-0">
+                                                <div className="space-y-3 min-h-0 flex flex-col">
+                                                    {/* KPIs grid */}
+                                                    <div className="grid grid-cols-2 gap-2.5 shrink-0">
+                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">PJ Totales</p>
+                                                            <p className="text-xl font-black text-white italic leading-none">{profileData.stats.pj}</p>
+                                                        </div>
+                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">Win Rate</p>
+                                                            <p className="text-xl font-black text-blue-400 italic leading-none">{profileData.stats.wr}%</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Últimos Resultados (Horizontal capsule bar) */}
+                                                    <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-2.5 w-full shrink-0">
+                                                        <h4 className="text-[7.5px] font-black text-white/30 uppercase tracking-[0.25em] leading-none">Últimos Resultados</h4>
+                                                        <div className="flex gap-2">
+                                                            {profileData.history.slice(0, 5).map((h: any, i: number) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className={`flex-1 h-7 rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${h.isWin === true ? 'bg-green-500/20 border border-green-500/30 text-green-400' : h.isWin === false ? 'bg-red-500/20 border border-red-500/30 text-red-400' : 'bg-white/5 border border-white/10 text-white/30'}`}
+                                                                    title={h.tournament}
+                                                                >
+                                                                    {h.isWin === true ? 'G' : h.isWin === false ? 'P' : '-'}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Dense Últimos 10 Partidos List */}
+                                                    <div className="space-y-1.5 min-h-0 flex flex-col flex-1">
+                                                        <h4 className="text-[7.5px] font-black text-white/45 uppercase tracking-[0.2em] px-1 shrink-0">Últimos 10 Partidos</h4>
+                                                        <div className="space-y-1.5 overflow-y-auto max-h-[250px] pr-1 no-scrollbar flex-1">
+                                                            {profileData.history.slice(0, 10).map((m: any) => (
+                                                                <div key={m.id} className="group relative bg-white/3 hover:bg-white/6 border border-white/5 p-2 rounded-xl flex items-center justify-between transition-all">
+                                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-slate-500'}`}>
+                                                                            {m.type === 'Torneo' ? <Zap className="w-3 h-3" /> : m.type === 'Cancha Abierta' ? <Users2 className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
+                                                                        </div>
+                                                                        <div className="flex flex-col min-w-0">
+                                                                            <div className="flex items-center gap-1 leading-none">
+                                                                                <span className={`text-[5.5px] font-black px-1 py-[0.1px] rounded uppercase tracking-widest ${m.isWin === true ? 'bg-green-500/20 text-green-400' : m.isWin === false ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/30'}`}>
+                                                                                    {m.isWin === true ? 'G' : m.isWin === false ? 'P' : '-'}
+                                                                                </span>
+                                                                                <span className="text-[6px] font-black text-white/20 uppercase tracking-widest truncate">{m.type} • {m.subType}</span>
+                                                                            </div>
+                                                                            <h4 className="text-[10px] font-black text-white truncate italic uppercase tracking-tight leading-none my-1">{m.tournament}</h4>
+                                                                            <p className="text-[6.5px] font-bold text-white/40 uppercase tracking-tight leading-none">vs {m.opponent}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right shrink-0 pr-1 leading-none">
+                                                                        <div className="text-xs font-black italic text-white leading-none mb-0.5 tracking-tighter">{m.score}</div>
+                                                                        {m.isWin === true ? (
+                                                                            <span className="text-[6.5px] font-black uppercase text-green-400 tracking-widest italic">Win</span>
+                                                                        ) : m.isWin === false ? (
+                                                                            <span className="text-[6.5px] font-black uppercase text-red-400 tracking-widest italic">Loss</span>
+                                                                        ) : (
+                                                                            <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest italic">Fin</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+
+                                                            {profileData.history.length === 0 && (
+                                                                <div className="flex flex-col items-center justify-center py-6 opacity-30">
+                                                                    <Info className="w-5 h-5 mb-1.5 text-white/40" />
+                                                                    <p className="text-[6.5px] font-black uppercase tracking-widest text-white/40">Sin partidos registrados</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Message Button */}
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const { conversationId } = await startConversation(selectedPlayerId!);
+                                                            router.push(`/mensajes?conv=${conversationId}`);
+                                                        } catch (e) {
+                                                            alert("Error al iniciar conversación");
+                                                        }
+                                                    }}
+                                                    className="w-full h-9 bg-azul-primary/10 border border-azul-primary/30 text-azul-primary hover:bg-azul-primary hover:text-white rounded-xl text-[8.5px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0"
+                                                >
+                                                    <MessageSquare className="w-3 h-3" />
+                                                    Enviar Mensaje
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { Flag, ChevronUp, ChevronDown, RotateCcw, Award, User, Zap, Lock } from "lucide-react";
+import { Flag, ChevronUp, ChevronDown, RotateCcw, Award, User, Zap, Lock, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BracketMatch, Player, BracketSlot } from "./types";
+import PlayerCard from "@/components/PlayerCard";
+import { getPlayerProfileData } from "@/app/actions/players";
 
 interface TournamentMatchCardProps {
     match: BracketMatch;
@@ -28,6 +30,55 @@ export function TournamentMatchCard({
     setBracket,
     isIndividual
 }: TournamentMatchCardProps) {
+    const [selectedPlayer, setSelectedPlayer] = React.useState<{
+        id: string;
+        name: string;
+        imageUrl: string | null;
+        category?: string | null;
+        club?: string | null;
+        ranking?: number | null;
+    } | null>(null);
+
+    const [loadedProfile, setLoadedProfile] = React.useState<any>(null);
+    const [loadingProfile, setLoadingProfile] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!selectedPlayer) {
+            setLoadedProfile(null);
+            return;
+        }
+
+        const isRealUser = selectedPlayer.id && 
+                           !selectedPlayer.id.startsWith("guest_") && 
+                           !selectedPlayer.id.startsWith("second_") &&
+                           selectedPlayer.id.length > 20;
+
+        if (!isRealUser) {
+            setLoadedProfile(null);
+            return;
+        }
+
+        let isMounted = true;
+        const load = async () => {
+            setLoadingProfile(true);
+            try {
+                const data = await getPlayerProfileData(selectedPlayer.id);
+                if (isMounted) {
+                    setLoadedProfile(data);
+                }
+            } catch (err) {
+                console.error("Error loading player profile", err);
+            } finally {
+                if (isMounted) setLoadingProfile(false);
+            }
+        };
+
+        load();
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedPlayer]);
+
     const isFinished = m.confirmed || m.status === 'finished' || m.status === 'completed';
     const isInProgress = m.status === 'in_progress' && !m.confirmed;
 
@@ -77,24 +128,42 @@ export function TournamentMatchCard({
 
         return (
             <div className={`flex flex-row gap-2 ${side === 'left' ? 'justify-end' : 'justify-start'}`}>
-                {names.map((name, i) => (
-                    <MiniProfileCard
-                        key={i}
-                        name={name}
-                        image={images[i]}
-                        category={(slot as Player)?.category ?? undefined}
-                        ranking={(slot as Player)?.ranking ?? undefined}
-                        isWinner={isWinner}
-                        side={side}
-                        isBye={isBye}
-                        isTBD={isTBD}
-                        isInProgress={isInProgress}
-                        isFinished={isFinished}
-                        onSwap={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, teamIndex)}
-                        isSwapping={swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === teamIndex}
-                        readOnly={readOnly}
-                    />
-                ))}
+                {names.map((name, i) => {
+                    const handleClick = () => {
+                        if (isBye || isTBD) return;
+                        const p = slot as Player;
+                        const isSecondPlayer = i === 1;
+                        const activeId = isSecondPlayer ? (p.partnerUserId || `second_${p.id}`) : (p.userId || p.id);
+                        setSelectedPlayer({
+                            id: activeId,
+                            name: name,
+                            imageUrl: images[i],
+                            category: p.category,
+                            club: p.club,
+                            ranking: p.ranking
+                        });
+                    };
+
+                    return (
+                        <MiniProfileCard
+                            key={i}
+                            name={name}
+                            image={images[i]}
+                            category={(slot as Player)?.category ?? undefined}
+                            ranking={(slot as Player)?.ranking ?? undefined}
+                            isWinner={isWinner}
+                            side={side}
+                            isBye={isBye}
+                            isTBD={isTBD}
+                            isInProgress={isInProgress}
+                            isFinished={isFinished}
+                            onSwap={() => !readOnly && !m.confirmed && handleSwapPlayers(m.id, teamIndex)}
+                            onCardClick={handleClick}
+                            isSwapping={swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === teamIndex}
+                            readOnly={readOnly}
+                        />
+                    );
+                })}
             </div>
         );
     };
@@ -208,6 +277,77 @@ export function TournamentMatchCard({
                     />
                 </div>
             </div>
+
+            {/* Modal de Ficha Completa del Jugador */}
+            <AnimatePresence>
+                {selectedPlayer && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedPlayer(null)}
+                            className="absolute inset-0 bg-black/75 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-sm bg-slate-950 border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col items-center justify-center shadow-2xl z-10"
+                        >
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setSelectedPlayer(null)}
+                                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:scale-105 active:scale-95 transition-all z-50 text-white"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            {/* Ficha Title */}
+                            <div className="text-center mb-4 shrink-0 z-10 mt-2">
+                                <span className="text-[9px] font-black text-celeste uppercase tracking-[0.3em]">Coleccionable Oficial</span>
+                                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter mt-1">{selectedPlayer.name}</h2>
+                            </div>
+
+                            {/* Card Display Area */}
+                            <div className="w-full flex justify-center py-2 relative z-10">
+                                {loadingProfile ? (
+                                    <div className="h-[420px] w-[280px] flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-2xl relative shadow-inner">
+                                        <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-4 animate-pulse">Cargando Ficha...</span>
+                                    </div>
+                                ) : (
+                                    <div className="scale-[0.82] sm:scale-90 origin-center">
+                                        <PlayerCard
+                                            player={
+                                                loadedProfile?.player || {
+                                                    firstName: selectedPlayer.name.split(" ")[0] || "Jugador",
+                                                    lastName: selectedPlayer.name.split(" ").slice(1).join(" ") || "",
+                                                    imageUrl: selectedPlayer.imageUrl,
+                                                    category: selectedPlayer.category || "5TA",
+                                                    side: "ambos",
+                                                    points: selectedPlayer.ranking ? selectedPlayer.ranking * 100 : 1200,
+                                                    clubName: selectedPlayer.club || "Socio Independiente",
+                                                    gender: "masculino"
+                                                }
+                                            }
+                                            stats={
+                                                loadedProfile?.stats || {
+                                                    pj: 0,
+                                                    pg: 0,
+                                                    pp: 0,
+                                                    wr: 0,
+                                                    trofeos: 0
+                                                }
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -284,6 +424,7 @@ interface MiniProfileCardProps {
     isInProgress: boolean;
     isFinished: boolean;
     onSwap: () => void;
+    onCardClick: () => void;
     isSwapping: boolean;
     readOnly: boolean;
 }
@@ -300,6 +441,7 @@ function MiniProfileCard({
     isInProgress,
     isFinished,
     onSwap,
+    onCardClick,
     isSwapping,
     readOnly
 }: MiniProfileCardProps) {
@@ -311,12 +453,33 @@ function MiniProfileCard({
 
     return (
         <div
-            onClick={onSwap}
+            onClick={onCardClick}
             className={`
                 relative group/card cursor-pointer transition-all duration-500 w-[80px]
                 ${isSwapping ? "scale-110 z-20" : "hover:scale-[1.1] hover:z-10"}
             `}
         >
+            {/* Floating Swap Button */}
+            {!readOnly && !isFinished && !isBye && !isTBD && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation(); // Evita que se abra el modal al intercambiar
+                        onSwap();
+                    }}
+                    className={`
+                        absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full
+                        border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)]
+                        ${isSwapping 
+                            ? "bg-azul-primary text-white border-white/40 scale-110 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]" 
+                            : "bg-slate-900 text-slate-300 border-white/10 hover:bg-azul-primary hover:text-white hover:border-white/20 hover:scale-105 active:scale-95"}
+                    `}
+                    title="Intercambiar Jugador"
+                >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l-4-4M17 20l4-4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </button>
+            )}
             {/* Holographic Border Effect */}
             <div
                 className={`

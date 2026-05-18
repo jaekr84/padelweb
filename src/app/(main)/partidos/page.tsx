@@ -7,10 +7,10 @@ import PartidosClient from "./PartidosClient";
 export default async function PartidosPage() {
     const session = await getSession();
     
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
+    // Get today's date in Argentina local YYYY-MM-DD format
+    const today = new Date().toLocaleString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).split(',')[0];
 
-    // Fetch matches with creator info
+    // Fetch matches with creator info (both open and full)
     const matchesData = await db
         .select({
             match: publicMatches,
@@ -26,7 +26,7 @@ export default async function PartidosPage() {
         .leftJoin(users, eq(publicMatches.creatorId, users.id))
         .where(
             and(
-                eq(publicMatches.status, "open"),
+                inArray(publicMatches.status, ["open", "full"]),
                 gte(publicMatches.date, today)
             )
         )

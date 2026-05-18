@@ -401,8 +401,8 @@ interface PartidosClientProps {
 }
 
 export default function PartidosClient({ initialMatches, isLoggedIn, currentUserId, cities, categories }: PartidosClientProps) {
-    const [searchCity, setSearchCity] = useState("");
-    const [filterCategory, setFilterCategory] = useState("");
+    const [searchCity, setSearchCity] = useState("all");
+    const [filterCategory, setFilterCategory] = useState("all");
     const [showMyMatches, setShowMyMatches] = useState(false);
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
@@ -548,19 +548,25 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
                         <span className="text-[7.5px] font-black uppercase tracking-widest text-muted-foreground/60 shrink-0">Zona:</span>
                         <Select.Root value={searchCity} onValueChange={setSearchCity}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-muted/40">
                                 <Select.Value placeholder="Todas las zonas" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60 transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content className="z-[9999] bg-popover border border-border rounded-xl overflow-hidden shadow-2xl">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
-                                        <Select.Item value="all" className="p-2.5 text-[9px] font-black uppercase text-popover-foreground outline-none hover:bg-primary/10 cursor-pointer">
+                                        <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las zonas</Select.ItemText>
+                                            <Select.ItemIndicator className="absolute right-2 inline-flex items-center text-azul-primary">
+                                                <Check className="w-3.5 h-3.5" />
+                                            </Select.ItemIndicator>
                                         </Select.Item>
                                         {cities.map(city => (
-                                            <Select.Item key={city} value={city} className="p-2.5 text-[9px] font-black uppercase text-popover-foreground outline-none hover:bg-primary/10 cursor-pointer">
+                                            <Select.Item key={city} value={city} className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                                 <Select.ItemText>{city}</Select.ItemText>
+                                                <Select.ItemIndicator className="absolute right-2 inline-flex items-center text-azul-primary">
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </Select.ItemIndicator>
                                             </Select.Item>
                                         ))}
                                     </Select.Viewport>
@@ -573,19 +579,25 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
                         <span className="text-[7.5px] font-black uppercase tracking-widest text-muted-foreground/60 shrink-0">Categoría:</span>
                         <Select.Root value={filterCategory} onValueChange={setFilterCategory}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-muted/40">
                                 <Select.Value placeholder="Todas las categorías" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60 transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content className="z-[9999] bg-popover border border-border rounded-xl overflow-hidden shadow-2xl">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
-                                        <Select.Item value="all" className="p-2.5 text-[9px] font-black uppercase text-popover-foreground outline-none hover:bg-primary/10 cursor-pointer">
+                                        <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las categorías</Select.ItemText>
+                                            <Select.ItemIndicator className="absolute right-2 inline-flex items-center text-azul-primary">
+                                                <Check className="w-3.5 h-3.5" />
+                                            </Select.ItemIndicator>
                                         </Select.Item>
                                         {categories.map(cat => (
-                                            <Select.Item key={cat} value={cat} className="p-2.5 text-[9px] font-black uppercase text-popover-foreground outline-none hover:bg-primary/10 cursor-pointer">
+                                            <Select.Item key={cat} value={cat} className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                                 <Select.ItemText>{cat === "Libre" ? "Libre" : `Categoría ${cat}`}</Select.ItemText>
+                                                <Select.ItemIndicator className="absolute right-2 inline-flex items-center text-azul-primary">
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </Select.ItemIndicator>
                                             </Select.Item>
                                         ))}
                                     </Select.Viewport>

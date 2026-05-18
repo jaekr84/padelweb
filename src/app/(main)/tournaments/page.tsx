@@ -153,7 +153,7 @@ export default async function TournamentsPage({
 
     const published = allTournaments.filter(t => t.status === "published");
     const registrable = published.filter(t => {
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toLocaleString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).split(',')[0];
         const hasClub = dbUser?.clubId != null;
 
         if (hasClub && t.openDateClub) {

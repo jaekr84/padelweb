@@ -114,8 +114,15 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                                     unoptimized
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-900/50">
-                                    <User size={180} className={`text-${theme.accent}/20`} />
+                                <div className="w-full h-full flex items-center justify-center bg-slate-950 relative">
+                                    <div className={`absolute -inset-10 ${theme.glow} opacity-[0.15] blur-2xl rounded-full`} />
+                                    <div className="relative w-48 h-48 opacity-35 select-none pointer-events-none transition-all duration-500 group-hover:scale-105 group-hover:opacity-45 transform -translate-y-14">
+                                        <img
+                                            src="/img/acap logo svg blanco sombra.svg"
+                                            alt="ACAP Logo"
+                                            className="w-full h-full object-contain filter drop-shadow-[0_8px_24px_rgba(255,255,255,0.1)]"
+                                        />
+                                    </div>
                                 </div>
                             )}
                             {/* Overlay sutil para mejorar legibilidad general */}
