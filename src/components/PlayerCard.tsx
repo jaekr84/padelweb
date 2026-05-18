@@ -72,9 +72,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                         <div className="absolute top-5 left-7 z-40">
                             <div className="flex flex-col justify-center">
                                 <span className="text-sm font-black italic text-white leading-none tracking-tighter">
-                                    PADEL<span className={isFemale ? "text-rosa" : "text-celeste"}>WEB</span>
+                                    A.C.A.P.<span className={isFemale ? "text-rosa" : "text-celeste"}></span>
                                 </span>
-                                <span className="text-[8px] font-black text-white/40 tracking-[0.2em] uppercase">Series 2026</span>
                             </div>
                         </div>
 

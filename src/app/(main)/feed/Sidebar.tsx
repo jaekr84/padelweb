@@ -9,6 +9,7 @@ import { logoutAction, getSidebarUser } from "@/app/login/actions";
 import { switchActiveRole } from "@/app/actions/role";
 import { useChatStore } from "@/store/useChatStore";
 import { useAppStore } from "@/store/useAppStore";
+import { SidebarProfileConsole } from "@/components/ui/SidebarProfileConsole";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -300,97 +301,13 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     {isCollapsed && (
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-2 -mt-4 rounded-xl text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
+                            className="p-1.5 mt-2 rounded-lg text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all active:scale-95"
                         >
-                            <Menu className="w-5 h-5" />
+                            <Menu className="w-4 h-4" />
                         </button>
                     )}
 
-                    {!isCollapsed && (
-                        <>
-                            <div className="flex items-center justify-between mt-2">
-                                <div className="flex items-center gap-3 w-full group">
-                                    <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
-                                        <User className="w-4 h-4 text-muted-foreground" />
-                                    </div>
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                        {userData ? (
-                                            <>
-                                                <span className="text-sm font-bold truncate text-foreground">{userData.name}</span>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-semibold">
-                                                        {ROLE_LABELS[userData.role] || userData.role}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="flex flex-col gap-1.5 py-1">
-                                                <div className="h-3.5 w-24 bg-muted animate-pulse rounded-full" />
-                                                <div className="h-2.5 w-16 bg-muted/50 animate-pulse rounded-full" />
-                                            </div>
-                                        )}
-                                        <button
-                                            onClick={handleLogout}
-                                            className="text-[10px] font-black uppercase text-azul-primary hover:text-celeste transition-colors text-left mt-0.5"
-                                        >
-                                            Cerrar Sesión
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* ROLE SIMULATOR BLOCK */}
-                            {userData?.dbRole && (userData.dbRole.includes(",") || userData.dbRole === "superadmin") && (
-                                <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-xl p-3 flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary/60">Configuración Vista</span>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
-                                    </div>
-                                    <div className="relative group">
-                                        <select
-                                            value={userData.role}
-                                            onChange={async (e) => {
-                                                const newRole = e.target.value;
-                                                await switchActiveRole(newRole);
-                                                window.location.href = "/home";
-                                            }}
-                                            className="w-full bg-background border border-azul-primary/20 text-foreground text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl appearance-none cursor-pointer hover:border-azul-primary/40 transition-all outline-none mb-1"
-                                        >
-                                            {["superadmin", "club", "jugador"].filter(r => {
-                                                const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
-                                                if (userRoles.includes('superadmin')) return true;
-                                                return userRoles.includes(r);
-                                            }).map(r => (
-                                                <option key={r} value={r}>
-                                                    {r === "superadmin" ? "🛡️ Administrador" : r === "club" ? "🏟️ Modo Club" : "🎾 Modo Jugador"}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-3 top-[30%] -translate-y-1/2 w-3.5 h-3.5 text-azul-primary pointer-events-none opacity-50" />
-                                    </div>
-                                    
-                                    {userData.role === "superadmin" && (
-                                        <button
-                                            onClick={() => setSponsorsVisible(!sponsorsVisible)}
-                                            className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg border border-azul-primary/10 bg-white/50 hover:bg-white transition-all group/toggle"
-                                        >
-                                            <span className="text-[9px] font-bold text-slate-600 uppercase tracking-tight">Sidebar Banners</span>
-                                            {sponsorsVisible ? (
-                                                <Eye className="w-3 h-3 text-azul-primary group-hover/toggle:scale-110 transition-transform" />
-                                            ) : (
-                                                <EyeOff className="w-3 h-3 text-slate-400 group-hover/toggle:scale-110 transition-transform" />
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl border border-slate-100 text-xs focus-within:border-azul-primary/50 transition-all shadow-sm">
-                                <Search className="w-4 h-4 text-muted-foreground" />
-                                <input type="text" placeholder="Buscar..." className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground font-medium" />
-                            </div>
-                        </>
-                    )}
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto sidebar-scroll">
@@ -424,22 +341,15 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     })}
                 </nav>
 
-                {isCollapsed && (
-                    <div className="p-4 mt-auto border-t border-border flex flex-col items-center gap-4">
-                        <Link href={profileUrl} title="Perfil">
-                            <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-azul-primary/10 hover:text-azul-primary transition-colors">
-                                <User className="w-5 h-5" />
-                            </div>
-                        </Link>
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
-                            title="Cerrar Sesión"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </button>
-                    </div>
-                )}
+                <SidebarProfileConsole
+                    userData={userData}
+                    sponsorsVisible={sponsorsVisible}
+                    setSponsorsVisible={setSponsorsVisible}
+                    isCollapsed={isCollapsed}
+                    handleLogout={handleLogout}
+                    profileUrl={profileUrl}
+                    switchActiveRole={switchActiveRole}
+                />
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}
