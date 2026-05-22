@@ -499,6 +499,7 @@ export default function AmericanoPlayoffs({
                             handleBracketConfirm={handleBracketConfirm}
                             handleBracketEdit={handleBracketEdit}
                             standings={[]}
+                            isIndividual={isIndividual}
                         />
                     </div>
                 </div>

@@ -863,8 +863,8 @@ export default function AmericanoManager({
                     const next = newBracket.find(nm => nm.round === r - 1 && nm.slot === Math.floor(bm.slot / 2));
                     if (next) {
                         const winner = [bm.team1, bm.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player)?.id === bm.winnerId);
-                        if (bm.slot % 2 === 0) next.team1 = winner ? { ...winner } : null;
-                        else next.team2 = winner ? { ...winner } : null;
+                        if (bm.slot % 2 === 0) next.team1 = winner ? { ...(winner as any) } : null;
+                        else next.team2 = winner ? { ...(winner as any) } : null;
                     }
                 }
             });
