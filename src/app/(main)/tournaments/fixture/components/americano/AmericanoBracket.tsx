@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { 
     Trophy, Zap, RotateCcw, Minus, Plus, Pencil, Check, Circle 
 } from "lucide-react";
@@ -8,6 +9,7 @@ import { BracketMatch, Player, Standing } from "./types";
 interface AmericanoBracketProps {
     bracket: BracketMatch[];
     setBracket: (b: BracketMatch[]) => void;
+    onResetBracket?: () => void;
     readOnly?: boolean;
     setReplacingPlayer: (p: Player) => void;
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
@@ -19,6 +21,7 @@ interface AmericanoBracketProps {
 export function AmericanoBracket({
     bracket,
     setBracket,
+    onResetBracket,
     readOnly,
     setReplacingPlayer,
     handleBracketScore,
@@ -26,6 +29,44 @@ export function AmericanoBracket({
     handleBracketEdit,
     standings
 }: AmericanoBracketProps) {
+    const maxRound = useMemo(() => {
+        if (!bracket || bracket.length === 0) return 0;
+        return Math.max(...bracket.map(m => m.round), 0);
+    }, [bracket]);
+
+    const rounds = useMemo(() => {
+        return Array.from({ length: maxRound + 1 }, (_, i) => maxRound - i);
+    }, [maxRound]);
+
+    const totalGridRows = useMemo(() => {
+        return Math.pow(2, maxRound) * 2;
+    }, [maxRound]);
+
+    const heightStyle = useMemo(() => {
+        const heights: Record<number, string> = {
+            0: "250px",
+            1: "450px",
+            2: "800px",
+            3: "1400px",
+            4: "2800px",
+            5: "5600px",
+        };
+        const heightVal = heights[maxRound] || `${Math.pow(2, maxRound) * 175}px`;
+        return { height: heightVal };
+    }, [maxRound]);
+
+    const getRoundTitle = (roundNum: number) => {
+        switch (roundNum) {
+            case 0: return "🏆 FINAL";
+            case 1: return "SEMIFINALES";
+            case 2: return "CUARTOS";
+            case 3: return "OCTAVOS";
+            case 4: return "16AVOS";
+            case 5: return "32AVOS";
+            default: return `RONDA DE ${Math.pow(2, roundNum + 1)}`;
+        }
+    };
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-border/40 pt-12 mt-12">
             <div className="lg:col-span-12 flex flex-col gap-6">
@@ -46,7 +87,15 @@ export function AmericanoBracket({
                         </div>
                         {bracket.length > 0 && !readOnly && (
                             <button
-                                onClick={() => { if (confirm("¿Borrar y reiniciar cuadro?")) setBracket([]); }}
+                                onClick={() => {
+                                    if (confirm("¿Borrar y reiniciar cuadro?")) {
+                                        if (onResetBracket) {
+                                            onResetBracket();
+                                        } else {
+                                            setBracket([]);
+                                        }
+                                    }
+                                }}
                                 className="p-1.5 rounded bg-rojo/5 text-rojo hover:bg-rojo hover:text-white transition-all"
                                 title="Reiniciar Cuadro"
                             >
@@ -59,21 +108,27 @@ export function AmericanoBracket({
                 {bracket.length > 0 ? (
                     <div className="relative">
                         <div className="w-full relative overflow-x-auto pb-12 no-scrollbar px-1">
-                            <div className="min-w-max flex gap-8 items-stretch justify-center h-[1800px]">
-                                {[3, 2, 1, 0].map((round) => {
+                            <div 
+                                style={heightStyle}
+                                className="min-w-max flex gap-8 items-stretch justify-center"
+                            >
+                                {rounds.map((round) => {
                                     const matchesInRound = bracket.filter(m => m.round === round).sort((a, b) => a.slot - b.slot);
-                                    const rowSpan = Math.pow(2, 4 - round - 1) * 2;
+                                    const rowSpan = Math.pow(2, maxRound - round) * 2;
 
                                     return (
                                         <div key={round} className="w-[240px] flex flex-col pt-6">
                                             <div className="flex-none flex flex-col items-center gap-2 mb-6">
                                                 <span className="px-4 py-1 bg-foreground text-background rounded text-[8px] font-black uppercase tracking-[0.2em] italic">
-                                                    {round === 0 ? "🏆 FINAL" : round === 1 ? "SEMIFINALES" : round === 2 ? "CUARTOS" : "PLAY-IN"}
+                                                    {getRoundTitle(round)}
                                                 </span>
                                             </div>
 
-                                            <div className="flex-1 grid grid-rows-[repeat(16,1fr)] h-full gap-y-4">
-                                                {Array.from({ length: 16 / rowSpan }).map((_, slotIdx) => {
+                                            <div 
+                                                className="flex-1 grid gap-y-4 h-full"
+                                                style={{ gridTemplateRows: `repeat(${totalGridRows}, minmax(0, 1fr))` }}
+                                            >
+                                                {Array.from({ length: totalGridRows / rowSpan }).map((_, slotIdx) => {
                                                     const match = matchesInRound.find(m => m.slot === slotIdx);
 
                                                     return (

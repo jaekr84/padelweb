@@ -3,6 +3,14 @@ export interface Player {
     name: string;
     category?: string | null;
     clubId?: string | null;
+    club?: string | null;
+    userId?: string;
+    partnerUserId?: string | null;
+    image?: string | null;
+    partnerImage?: string | null;
+    ranking?: number | null;
+    player1?: string | null;
+    player2?: string | null;
 }
 
 export interface Group {

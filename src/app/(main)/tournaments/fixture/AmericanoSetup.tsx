@@ -50,6 +50,7 @@ type Match = {
     courtNumber?: number;
 };
 
+
 export default function AmericanoSetup({
     tournamentId,
     tournamentName,
@@ -90,6 +91,20 @@ export default function AmericanoSetup({
             return present.has(p.id) || (present.has(`${p.id}_0`) && present.has(`${p.id}_1`));
         }),
         [players, present, isIndividual]);
+
+    const maxLimit = useMemo(() => {
+        const len = PRESENT_PLAYERS.length;
+        if (len < 2) return 0;
+        return len % 2 === 0 ? len : len - 1;
+    }, [PRESENT_PLAYERS]);
+
+    const [bracketSize, setBracketSize] = useState(8);
+
+    useEffect(() => {
+        if (bracketSize < 2 || bracketSize % 2 !== 0) {
+            setBracketSize(8);
+        }
+    }, []);
 
     const togglePaid = (id: string) => {
         setPaid(prev => {
@@ -268,7 +283,8 @@ export default function AmericanoSetup({
             modalidad: {
                 numCourts,
                 matchesPerTeam,
-                isIndividual
+                isIndividual,
+                bracketSize
             }
         });
 
@@ -478,6 +494,119 @@ export default function AmericanoSetup({
                                             );
                                         });
                                     })()}
+                                </div>
+                            </div>
+
+                            {/* Tarjeta de Configuración de Formato */}
+                            <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-xl p-4 shadow-sm space-y-4">
+                                <div className="flex items-center justify-between border-b border-border/20 pb-2">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground flex items-center gap-1.5">
+                                            <Settings className="w-3.5 h-3.5 text-azul-primary" />
+                                            Configuración de Formato
+                                        </span>
+                                        <span className="text-foreground/40 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Ajustes del Sistema de Partidos</span>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Cantidad de Canchas */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/10 border border-border/20">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black uppercase text-foreground">Cantidad de Canchas</span>
+                                            <span className="text-[6px] text-foreground/40 font-black uppercase tracking-wider">Canchas simultáneas a usar</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setNumCourts(prev => Math.max(1, prev - 1))}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer"
+                                            >
+                                                <Minus className="w-3.5 h-3.5" />
+                                            </button>
+                                            <span className="w-6 text-center text-xs font-black italic">{numCourts}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNumCourts(prev => prev + 1)}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Partidos por Jugador */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/10 border border-border/20">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black uppercase text-foreground">
+                                                {isIndividual ? "Partidos por Jugador" : "Partidos por Pareja"}
+                                            </span>
+                                            <span className="text-[6px] text-foreground/40 font-black uppercase tracking-wider">Objetivo de partidos mínimos</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setMatchesPerTeam(prev => Math.max(1, prev - 1))}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer"
+                                            >
+                                                <Minus className="w-3.5 h-3.5" />
+                                            </button>
+                                            <span className="w-6 text-center text-xs font-black italic">{matchesPerTeam}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setMatchesPerTeam(prev => prev + 1)}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Clasificados a Llaves */}
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/10 border border-border/20">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black uppercase text-foreground">Clasificados a Llaves</span>
+                                            <span className="text-[6px] text-foreground/40 font-black uppercase tracking-wider">Cantidad que avanza a eliminatorias</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setBracketSize(prev => Math.max(2, prev - 2));
+                                                }}
+                                                disabled={bracketSize <= 2}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
+                                            >
+                                                <Minus className="w-3.5 h-3.5" />
+                                            </button>
+                                            <input
+                                                type="number"
+                                                value={bracketSize || ""}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value, 10);
+                                                    setBracketSize(isNaN(val) ? 0 : val);
+                                                }}
+                                                onBlur={() => {
+                                                    let cleanVal = bracketSize;
+                                                    if (cleanVal < 2) cleanVal = 2;
+                                                    if (cleanVal % 2 !== 0) {
+                                                        cleanVal = Math.floor(cleanVal / 2) * 2;
+                                                        if (cleanVal < 2) cleanVal = 2;
+                                                    }
+                                                    setBracketSize(cleanVal);
+                                                }}
+                                                className="w-8 bg-transparent text-center text-xs font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-border/20 focus:border-azul-primary"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setBracketSize(prev => prev + 2);
+                                                }}
+                                                className="w-7 h-7 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

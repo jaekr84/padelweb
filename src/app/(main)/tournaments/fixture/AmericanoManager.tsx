@@ -3,9 +3,9 @@
 import Link from "next/link";
 import {
     Trophy, Users2, Swords,
-    CheckCircle2, ChevronRight,
+    CheckCircle2, ChevronRight, ArrowRight,
     RefreshCw, Pencil, RotateCcw,
-    UserCheck, Zap, Trash2, Search, CreditCard, Plus, Minus, Circle
+    UserCheck, Zap, Trash2, Search, CreditCard, Plus, Minus, Circle, Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "./actions";
@@ -87,6 +87,16 @@ export default function AmericanoManager({
             played: m.played || m.confirmed // If it was confirmed, it was played.
         }))
     );
+
+    const matchesRef = useRef<Match[]>(matches);
+    useEffect(() => {
+        matchesRef.current = matches;
+    }, [matches]);
+
+    const updateMatchesState = useCallback((newMatches: Match[]) => {
+        matchesRef.current = newMatches;
+        setMatches(newMatches);
+    }, []);
     const [bracket, setBracket] = useState<BracketMatch[]>(() => 
         initialBracket.map(m => ({
             ...m,
@@ -101,18 +111,39 @@ export default function AmericanoManager({
     const [matchesPerTeam, setMatchesPerTeam] = useState(modality?.matchesPerTeam || 2);
     const isIndividual = modality?.isIndividual || false;
 
-    const handleUpdateConfig = async (newCourts: number, newMatches: number) => {
-        setNumCourts(newCourts);
-        setMatchesPerTeam(newMatches);
+    const maxLimit = useMemo(() => {
+        const total = groups[0]?.players.length || 0;
+        if (total < 2) return 0;
+        return total % 2 === 0 ? total : total - 1;
+    }, [groups]);
+
+    const [bracketSize, setBracketSize] = useState(() => {
+        return (modality as any)?.bracketSize || 8;
+    });
+
+    useEffect(() => {
+        if (bracketSize < 2 || bracketSize % 2 !== 0) {
+            setBracketSize(8);
+        }
+    }, []);
+
+    const handleUpdateConfig = async (newCourts: number, newMatches: number, newBracketSize?: number) => {
+        const nextCourts = newCourts;
+        const nextMatches = newMatches;
+        const nextBracketSize = newBracketSize ?? bracketSize;
+
+        setNumCourts(nextCourts);
+        setMatchesPerTeam(nextMatches);
+        setBracketSize(nextBracketSize);
 
         setSaving(true);
         const res = await saveTournamentFixture({
             tournamentId,
-            phase: "grupos",
+            phase: bracket.length > 0 ? "eliminatorias" : "grupos",
             groups,
-            matches,
+            matches: matchesRef.current,
             bracket,
-            modalidad: { numCourts: newCourts, matchesPerTeam: newMatches, isIndividual },
+            modalidad: { numCourts: nextCourts, matchesPerTeam: nextMatches, isIndividual, bracketSize: nextBracketSize },
             presentPlayerIds: Array.from(present),
             paidPlayerIds: Array.from(paid)
         });
@@ -216,7 +247,7 @@ export default function AmericanoManager({
             players: group.players.map(p => p.id === oldPlayerId ? { ...newPlayer } : p)
         }));
 
-        const updatedMatches = matches.map(m => ({
+        const updatedMatches = matchesRef.current.map(m => ({
             ...m,
             team1: m.team1.id === oldPlayerId ? { ...newPlayer } : m.team1,
             team2: m.team2.id === oldPlayerId ? { ...newPlayer } : m.team2,
@@ -229,7 +260,7 @@ export default function AmericanoManager({
         }));
 
         setGroups(updatedGroups);
-        setMatches(updatedMatches);
+        updateMatchesState(updatedMatches);
         setBracket(updatedBracket);
 
         // Update attendance/paid sets
@@ -391,10 +422,10 @@ export default function AmericanoManager({
             players: group.players.filter(p => p.id !== playerId)
         })));
 
-        // Remove from matches if they were generated
-        setMatches(prevMatches => prevMatches.filter(m =>
+        const updatedMatches = matchesRef.current.filter(m =>
             m.team1.id !== playerId && m.team2.id !== playerId
-        ));
+        );
+        updateMatchesState(updatedMatches);
 
         // Update counts
         setPresent(prev => {
@@ -415,30 +446,53 @@ export default function AmericanoManager({
     const handleDeleteMatch = async (matchId: string) => {
         if (!confirm("¿Seguro que querés eliminar este partido? Los jugadores volverán a estar disponibles.")) return;
 
-        const updatedMatches = matches.filter(m => m.id !== matchId);
-        setSaving(true);
-        const res = await saveTournamentFixture({
-            tournamentId,
-            phase: "grupos",
-            groups,
-            matches: updatedMatches,
-            bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual },
-            presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
-        });
+        const currentMatches = matchesRef.current;
+        const matchToDelete = currentMatches.find(m => m.id === matchId);
+        if (!matchToDelete) return;
 
-        if (res.ok) {
-            setMatches(updatedMatches);
-            toast.success("Partido eliminado");
-        } else {
-            toast.error("Error al eliminar: " + res.error);
+        const originalIndex = currentMatches.findIndex(m => m.id === matchId);
+        const updatedMatches = currentMatches.filter(m => m.id !== matchId);
+
+        updateMatchesState(updatedMatches);
+        setSaving(true);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: updatedMatches,
+                bracket,
+                modalidad: { numCourts, matchesPerTeam, isIndividual },
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
+
+            if (res.ok) {
+                toast.success("Partido eliminado");
+            } else {
+                const restored = [...matchesRef.current];
+                restored.splice(originalIndex, 0, matchToDelete);
+                updateMatchesState(restored);
+                toast.error("Error al eliminar: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            const restored = [...matchesRef.current];
+            restored.splice(originalIndex, 0, matchToDelete);
+            updateMatchesState(restored);
+            toast.error("Error al eliminar el partido");
+            throw error;
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleUpdateMatchPlayer = async (matchId: string, playerIndex: 1 | 2, newPlayer: Player) => {
-        const updatedMatches = matches.map(m => {
+        const currentMatches = matchesRef.current;
+        const originalMatch = currentMatches.find(m => m.id === matchId);
+        if (!originalMatch) return;
+
+        const updatedMatches = currentMatches.map(m => {
             if (m.id !== matchId) return m;
             return {
                 ...m,
@@ -447,26 +501,35 @@ export default function AmericanoManager({
             };
         });
 
+        updateMatchesState(updatedMatches);
         setSaving(true);
-        const res = await saveTournamentFixture({
-            tournamentId,
-            phase: "grupos",
-            groups,
-            matches: updatedMatches,
-            bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual },
-            presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
-        });
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: updatedMatches,
+                bracket,
+                modalidad: { numCourts, matchesPerTeam, isIndividual },
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
 
-        if (res.ok) {
-            setMatches(updatedMatches);
-            toast.success("Jugador actualizado en el partido");
-            setEditingMatchPlayer(null);
-        } else {
-            toast.error("Error al actualizar jugador: " + res.error);
+            if (res.ok) {
+                toast.success("Jugador actualizado en el partido");
+                setEditingMatchPlayer(null);
+            } else {
+                updateMatchesState(matchesRef.current.map(m => m.id === matchId ? originalMatch : m));
+                toast.error("Error al actualizar jugador: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            updateMatchesState(matchesRef.current.map(m => m.id === matchId ? originalMatch : m));
+            toast.error("Error al actualizar jugador");
+            throw error;
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
 
@@ -520,12 +583,13 @@ export default function AmericanoManager({
     }, [groups, matches]);
 
     const generateNextMatch = async (courtNum: number) => {
+        const currentMatches = matchesRef.current;
         const players = groups[0]?.players || [];
         if (players.length < 2) return;
 
         // 1. Identify currently playing players
         const currentlyPlaying = new Set(
-            matches
+            currentMatches
                 .filter(m => !m.confirmed)
                 .flatMap(m => [m.team1.id, m.team2.id])
         );
@@ -533,7 +597,7 @@ export default function AmericanoManager({
         // 2. Count matches per player
         const playerMatchCounts = new Map<string, number>();
         players.forEach(p => playerMatchCounts.set(p.id, 0));
-        matches.filter(m => m.confirmed).forEach(m => {
+        currentMatches.filter(m => m.confirmed).forEach(m => {
             playerMatchCounts.set(m.team1.id, (playerMatchCounts.get(m.team1.id) || 0) + 1);
             playerMatchCounts.set(m.team2.id, (playerMatchCounts.get(m.team2.id) || 0) + 1);
         });
@@ -561,7 +625,7 @@ export default function AmericanoManager({
 
         // Track who p1 has already played against
         const playedAgainstP1 = new Set(
-            matches
+            currentMatches
                 .filter(m => (m.team1.id === p1.id || m.team2.id === p1.id))
                 .map(m => m.team1.id === p1.id ? m.team2.id : m.team1.id)
         );
@@ -596,188 +660,41 @@ export default function AmericanoManager({
             played: true,
             confirmed: false,
             courtNumber: courtNum,
-            roundIndex: Math.floor(matches.length / numCourts) // Rough round estimate
+            roundIndex: Math.floor(currentMatches.length / numCourts) // Rough round estimate
         };
 
-        const nextMatches = [...matches, newMatch];
+        const nextMatches = [...currentMatches, newMatch];
+        updateMatchesState(nextMatches);
         setSaving(true);
-        const res = await saveTournamentFixture({
-            tournamentId,
-            phase: "grupos",
-            groups,
-            matches: nextMatches,
-            bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual },
-            presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
-        });
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: nextMatches,
+                bracket,
+                modalidad: { numCourts, matchesPerTeam, isIndividual },
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
 
-        if (res.ok) {
-            setMatches(nextMatches);
-            toast.success(`Partido generado en Cancha ${courtNum}`);
-        } else {
-            toast.error("Error al generar partido: " + res.error);
+            if (res.ok) {
+                toast.success(`Partido generado en Cancha ${courtNum}`);
+            } else {
+                updateMatchesState(matchesRef.current.filter(m => m.id !== newMatch.id));
+                toast.error("Error al generar partido: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            updateMatchesState(matchesRef.current.filter(m => m.id !== newMatch.id));
+            toast.error("Error al generar partido");
+            throw error;
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const standings = useMemo(() => computeStandings(), [computeStandings]);
-
-    // AUTO-SYNC BRACKET EFFECT
-    useEffect(() => {
-        if (!standings.length || readOnly) return;
-
-        // If bracket doesn't exist, create it
-        if (bracket.length === 0) {
-            const numRounds = Math.ceil(Math.log2(standings.length));
-            const bracketSize = Math.pow(2, numRounds);
-            const seedPositions = getSeedingOrder(bracketSize);
-
-            let newBracket: BracketMatch[] = [];
-            for (let r = 0; r < numRounds; r++) {
-                const matchesInRound = Math.pow(2, r);
-                for (let s = 0; s < matchesInRound; s++) {
-                    newBracket.push({
-                        id: `b_${r}_${s}`,
-                        round: r,
-                        slot: s,
-                        team1: null,
-                        team2: null,
-                        confirmed: false,
-                    });
-                }
-            }
-
-            // Initial map
-            const firstRoundIdx = numRounds - 1;
-            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
-            const topPlayers = standings;
-
-            for (let i = 0; i < seedPositions.length; i += 2) {
-                const mIdx = i / 2;
-                const s1 = seedPositions[i];
-                const s2 = seedPositions[i + 1];
-                const match = firstRoundMatches[mIdx];
-                if (match) {
-                    match.team1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
-                    match.team2 = (topPlayers[s2 - 1]?.player || "BYE") as BracketSlot;
-                    if (match.team1 === "BYE" || match.team2 === "BYE") {
-                        match.confirmed = true;
-                        const winner = match.team1 === "BYE" ? match.team2 : match.team1;
-                        if (winner && winner !== "BYE") {
-                            match.winnerId = (winner as Player).id;
-                            match.winnerName = (winner as Player).name;
-                        }
-                    }
-                }
-            }
-            setBracket(newBracket);
-            return;
-        }
-
-        // If bracket exists, sync unconfirmed matches with standings
-        const bracketHasStarted = bracket.some(m => m.confirmed && m.team1 !== "BYE" && m.team2 !== "BYE");
-        if (bracketHasStarted) return; // Stop auto-sync once a real playoff match is confirmed
-
-        const targetCount = standings.length;
-        const topPlayers = standings;
-
-        setBracket(prev => {
-            const next = [...prev];
-            let changed = false;
-
-            if (targetCount === 10) {
-                // SPECIAL SYNC FOR 10 PLAYERS
-                const firstRoundMatches = next.filter(m => m.round === 3);
-                const pairings = [
-                    { s1: 0, s2: -1 }, // P1 vs BYE (Slot 0)
-                    { s1: 8, s2: 9 },  // P9 vs P10 (Slot 1)
-                    { s1: 5, s2: -1 }, // P6 vs BYE (Slot 2)
-                    { s1: 2, s2: -1 }, // P3 vs BYE (Slot 3)
-                    { s1: 1, s2: -1 }, // P2 vs BYE (Slot 4)
-                    { s1: 7, s2: 6 },  // P8 vs P7  (Slot 5)
-                    { s1: 4, s2: -1 }, // P5 vs BYE (Slot 6)
-                    { s1: 3, s2: -1 }, // P4 vs BYE (Slot 7)
-                ];
-
-                pairings.forEach((p, i) => {
-                    const match = firstRoundMatches.find(m => m.slot === i);
-                    if (match) {
-                        const t1 = topPlayers[p.s1].player;
-                        const t2 = p.s2 === -1 ? "BYE" : topPlayers[p.s2].player;
-
-                        if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
-                            match.team1 = t1;
-                            match.team2 = t2 as BracketSlot;
-
-                            // Essential fix: If it's not a BYE anymore, it shouldn't be confirmed
-                            match.confirmed = t2 === "BYE";
-                            if (t2 === "BYE") {
-                                match.winnerId = t1.id;
-                                match.winnerName = t1.name;
-                            } else {
-                                match.winnerId = undefined;
-                                match.winnerName = undefined;
-                            }
-                            changed = true;
-                        }
-                    }
-                });
-
-                // Re-sync advances for BYEs in R2
-                if (changed) {
-                    next.filter(m => m.round === 3 && m.confirmed).forEach(m => {
-                        const nextM = next.find(nm => nm.round === 2 && nm.slot === Math.floor(m.slot / 2));
-                        if (nextM) {
-                            if (m.slot % 2 === 0) nextM.team1 = { ...m.team1 as Player };
-                            else nextM.team2 = { ...m.team1 as Player };
-                        }
-                    });
-                }
-            } else {
-                // STANDARD SYNC LOGIC
-                const numRounds = Math.ceil(Math.log2(targetCount));
-                const bracketSize = Math.pow(2, numRounds);
-                const seedPositions = getSeedingOrder(bracketSize);
-                const firstRoundIdx = numRounds - 1;
-                const firstRoundMatches = next.filter(m => m.round === firstRoundIdx);
-
-                for (let i = 0; i < seedPositions.length; i += 2) {
-                    const mIdx = i / 2;
-                    const s1 = seedPositions[i];
-                    const s2 = seedPositions[i + 1];
-                    const match = firstRoundMatches[mIdx];
-
-                    // Essential fix: Allow update if it's unconfirmed OR if it's a BYE (to handle transition to real match)
-                    if (match && (!match.confirmed || match.team1 === "BYE" || match.team2 === "BYE")) {
-                        const t1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
-                        const t2 = (topPlayers[s2 - 1]?.player || "BYE") as BracketSlot;
-
-                        if (JSON.stringify(match.team1) !== JSON.stringify(t1) || JSON.stringify(match.team2) !== JSON.stringify(t2)) {
-                            match.team1 = t1;
-                            match.team2 = t2;
-
-                            // Reset confirmation if no longer a BYE
-                            match.confirmed = (t1 === "BYE" || t2 === "BYE");
-                            if (match.confirmed) {
-                                const winner = t1 === "BYE" ? t2 : t1;
-                                if (winner && winner !== "BYE") {
-                                    match.winnerId = (winner as Player).id;
-                                    match.winnerName = (winner as Player).name;
-                                }
-                            } else {
-                                match.winnerId = undefined;
-                                match.winnerName = undefined;
-                            }
-                            changed = true;
-                        }
-                    }
-                }
-            }
-            return changed ? [...next] : prev;
-        });
-
-    }, [standings, readOnly, bracket.length]);
 
     const playingIds = useMemo(() => new Set(
         matches
@@ -792,40 +709,51 @@ export default function AmericanoManager({
     }, [standings, playersTab, matchesPerTeam]);
 
     const handleConfirmScore = async (matchId: string) => {
-        const match = matches.find(m => m.id === matchId);
+        const currentMatches = matchesRef.current;
+        const match = currentMatches.find(m => m.id === matchId);
         if (!match) return;
 
         // Default to 0 if scores are missing
         const s1 = match.score1 ?? 0;
         const s2 = match.score2 ?? 0;
 
-        const updatedMatches = matches.map(m => m.id === matchId ? { ...m, score1: s1, score2: s2, confirmed: true } : m);
+        const originalMatch = match;
+        const updatedMatches = currentMatches.map(m => m.id === matchId ? { ...m, score1: s1, score2: s2, confirmed: true } : m);
+        updateMatchesState(updatedMatches);
         setSaving(true);
-        const res = await saveTournamentFixture({
-            tournamentId,
-            phase: "grupos",
-            groups,
-            matches: updatedMatches,
-            bracket,
-            modalidad: { numCourts, matchesPerTeam, isIndividual },
-            presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
-        });
-        if (res.ok) {
-            setMatches(updatedMatches);
-            toast.success("Marcador guardado");
-        } else {
-            toast.error("Error al guardar: " + res.error);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: updatedMatches,
+                bracket,
+                modalidad: { numCourts, matchesPerTeam, isIndividual },
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
+            if (res.ok) {
+                toast.success("Marcador guardado");
+            } else {
+                updateMatchesState(matchesRef.current.map(m => m.id === matchId ? originalMatch : m));
+                toast.error("Error al guardar: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            updateMatchesState(matchesRef.current.map(m => m.id === matchId ? originalMatch : m));
+            toast.error("Error al guardar marcador");
+            throw error;
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleEditScore = (matchId: string) => {
-        setMatches(matches.map(m => m.id === matchId ? { ...m, confirmed: false } : m));
+        updateMatchesState(matchesRef.current.map(m => m.id === matchId ? { ...m, confirmed: false } : m));
     };
 
     const handleScoreChange = (matchId: string, s1: string, s2: string) => {
-        setMatches(matches.map(m => {
+        updateMatchesState(matchesRef.current.map(m => {
             if (m.id !== matchId) return m;
             return {
                 ...m,
@@ -839,7 +767,8 @@ export default function AmericanoManager({
     const handleSimulateScores = async () => {
         if (!confirm("¿Simular resultados aleatorios (puntos 1-7) para todos los partidos sin confirmar?")) return;
 
-        const updatedMatches = matches.map(m => {
+        const currentMatches = matchesRef.current;
+        const updatedMatches = currentMatches.map(m => {
             if (m.confirmed) return m;
             let s1 = Math.floor(Math.random() * 7) + 1;
             let s2 = Math.floor(Math.random() * 7) + 1;
@@ -847,24 +776,33 @@ export default function AmericanoManager({
             return { ...m, score1: s1, score2: s2, played: true, confirmed: true };
         });
 
+        updateMatchesState(updatedMatches);
         setSaving(true);
-        const res = await saveTournamentFixture({
-            tournamentId,
-            phase: "grupos",
-            groups,
-            matches: updatedMatches,
-            bracket,
-            presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
-        });
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: updatedMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
 
-        if (res.ok) {
-            setMatches(updatedMatches);
-            toast.success("Resultados simulados correctamente");
-        } else {
-            toast.error("Error al simular: " + res.error);
+            if (res.ok) {
+                toast.success("Resultados simulados correctamente");
+            } else {
+                updateMatchesState(currentMatches);
+                toast.error("Error al simular: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            updateMatchesState(currentMatches);
+            toast.error("Error al simular resultados");
+            throw error;
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const generateBracket = async (count?: number) => {
@@ -877,129 +815,59 @@ export default function AmericanoManager({
 
         let newBracket: BracketMatch[] = [];
 
-        // SPECIAL CASE: 10 PLAYERS (Full Tree with Visual BYEs)
-        if (targetCount === 10) {
-            // Round 3: Octavos (8 slots to show everyone)
-            const pairings = [
-                { s1: 0, s2: -1 }, // P1 vs BYE (Slot 0)
-                { s1: 8, s2: 9 },  // P9 vs P10 (Slot 1)
-                { s1: 5, s2: -1 }, // P6 vs BYE (Slot 2)
-                { s1: 2, s2: -1 }, // P3 vs BYE (Slot 3)
-                { s1: 1, s2: -1 }, // P2 vs BYE (Slot 4)
-                { s1: 7, s2: 6 },  // P8 vs P7  (Slot 5)
-                { s1: 4, s2: -1 }, // P5 vs BYE (Slot 6)
-                { s1: 3, s2: -1 }, // P4 vs BYE (Slot 7)
-            ];
+        // STANDARD LOGIC FOR ALL COUNTS
+        const numRounds = Math.ceil(Math.log2(targetCount));
+        const bSize = Math.pow(2, numRounds);
+        const seedPositions = getSeedingOrder(bSize);
 
-            pairings.forEach((p, i) => {
-                const t1 = topPlayers[p.s1].player;
-                const t2 = p.s2 === -1 ? "BYE" : topPlayers[p.s2].player;
-                const isBye = t2 === "BYE";
-
+        for (let r = 0; r < numRounds; r++) {
+            const matchesInRound = Math.pow(2, r);
+            for (let s = 0; s < matchesInRound; s++) {
                 newBracket.push({
-                    id: `b_3_${i}`,
-                    round: 3,
-                    slot: i,
-                    team1: t1,
-                    team2: t2 as BracketSlot,
-                    confirmed: isBye,
-                    winnerId: isBye ? t1.id : undefined,
-                    winnerName: isBye ? t1.name : undefined
+                    id: `b_${r}_${s}`,
+                    round: r,
+                    slot: s,
+                    team1: null,
+                    team2: null,
+                    confirmed: false,
                 });
-            });
-
-            // Round 2 (Cuartos), Round 1 (Semis), Round 0 (Final)
-            [2, 1, 0].forEach(r => {
-                const numMatches = Math.pow(2, r);
-                for (let s = 0; s < numMatches; s++) {
-                    newBracket.push({
-                        id: `b_${r}_${s}`,
-                        round: r,
-                        slot: s,
-                        team1: null,
-                        team2: null,
-                        confirmed: false
-                    });
-                }
-            });
-
-            // 1. Auto-advance the BYEs from Octavos to Cuartos
-            newBracket.filter(m => m.round === 3 && m.confirmed).forEach(m => {
-                const next = newBracket.find(nm => nm.round === 2 && nm.slot === Math.floor(m.slot / 2));
-                if (next) {
-                    const player = m.team1 as Player;
-                    if (m.slot % 2 === 0) next.team1 = { ...player }; // Deep copy to trigger state
-                    else next.team2 = { ...player };
-                }
-            });
-
-            // 2. Further auto-advance if Cuartos now has matches where BOTH are BYEs (like Q2 and Q4)
-            // This ensures Semis are also populated if possible
-            [2, 1].forEach(r => {
-                const currentRoundMatches = newBracket.filter(m => m.round === r);
-                currentRoundMatches.forEach(m => {
-                    if (m.team1 && m.team2 && (m.team1 as any) !== "BYE" && (m.team2 as any) !== "BYE") {
-                        // All good, match is ready to be played
-                    } else if (m.team1 && (m.team2 as any) === "BYE") {
-                        // Handled by standard confirmed logic if we mark it
-                    }
-                });
-            });
-        } else {
-            // STANDARD LOGIC FOR OTHER COUNTS
-            const numRounds = Math.ceil(Math.log2(targetCount));
-            const bracketSize = Math.pow(2, numRounds);
-            const seedPositions = getSeedingOrder(bracketSize);
-
-            for (let r = 0; r < numRounds; r++) {
-                const matchesInRound = Math.pow(2, r);
-                for (let s = 0; s < matchesInRound; s++) {
-                    newBracket.push({
-                        id: `b_${r}_${s}`,
-                        round: r,
-                        slot: s,
-                        team1: null,
-                        team2: null,
-                        confirmed: false,
-                    });
-                }
             }
+        }
 
-            const firstRoundIdx = numRounds - 1;
-            const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
-            for (let i = 0; i < seedPositions.length; i += 2) {
-                const mIdx = i / 2;
-                const s1 = seedPositions[i];
-                const s2 = seedPositions[i + 1];
-                const match = firstRoundMatches[mIdx];
-                if (match) {
-                    match.team1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
-                    match.team2 = (topPlayers[s2 - 1]?.player || "BYE") as BracketSlot;
-                    if ((match.team1 as any) === "BYE" || (match.team2 as any) === "BYE") {
-                        match.confirmed = true;
-                        const winner = (match.team1 as any) === "BYE" ? match.team2 : match.team1;
-                        if (winner && winner !== "BYE") {
-                            match.winnerId = (winner as Player).id;
-                            match.winnerName = (winner as Player).name;
-                        }
+        const firstRoundIdx = numRounds - 1;
+        const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
+        for (let i = 0; i < seedPositions.length; i += 2) {
+            const mIdx = i / 2;
+            const s1 = seedPositions[i];
+            const s2 = seedPositions[i + 1];
+            const match = firstRoundMatches[mIdx];
+            if (match) {
+                match.team1 = (topPlayers[s1 - 1]?.player || "BYE") as BracketSlot;
+                match.team2 = (topPlayers[s2 - 1]?.player || "BYE") as BracketSlot;
+                if ((match.team1 as any) === "BYE" || (match.team2 as any) === "BYE") {
+                    match.confirmed = true;
+                    const winner = (match.team1 as any) === "BYE" ? match.team2 : match.team1;
+                    if (winner && winner !== "BYE") {
+                        match.winnerId = (winner as Player).id;
+                        match.winnerName = (winner as Player).name;
                     }
                 }
             }
+        }
 
-            // Auto-advance BYEs
-            for (let r = firstRoundIdx; r > 0; r--) {
-                const currentRound = newBracket.filter(bm => bm.round === r);
-                currentRound.forEach(bm => {
-                    if (bm.confirmed && bm.winnerId) {
-                        const next = newBracket.find(nm => nm.round === r - 1 && nm.slot === Math.floor(bm.slot / 2));
-                        if (next) {
-                            const winner = [bm.team1, bm.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player)?.id === bm.winnerId);
-                            if (bm.slot % 2 === 0) next.team1 = winner as Player;
-                            else next.team2 = winner as Player;
-                        }
+        // Auto-advance BYEs
+        for (let r = firstRoundIdx; r > 0; r--) {
+            const currentRound = newBracket.filter(bm => bm.round === r);
+            currentRound.forEach(bm => {
+                if (bm.confirmed && bm.winnerId) {
+                    const next = newBracket.find(nm => nm.round === r - 1 && nm.slot === Math.floor(bm.slot / 2));
+                    if (next) {
+                        const winner = [bm.team1, bm.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player)?.id === bm.winnerId);
+                        if (bm.slot % 2 === 0) next.team1 = winner ? { ...winner } : null;
+                        else next.team2 = winner ? { ...winner } : null;
                     }
-                });
-            }
+                }
+            });
         }
 
         setSaving(true);
@@ -1007,15 +875,17 @@ export default function AmericanoManager({
             tournamentId,
             phase: "eliminatorias",
             groups,
-            matches,
+            matches: matchesRef.current,
             bracket: newBracket,
             presentPlayerIds: Array.from(present),
-            paidPlayerIds: Array.from(paid)
+            paidPlayerIds: Array.from(paid),
+            modalidad: { numCourts, matchesPerTeam, isIndividual, bracketSize: targetCount }
         });
 
         if (res.ok) {
             setBracket(newBracket);
             toast.success("Cuadro generado correctamente");
+            router.push(`/tournaments/${tournamentId}/manage/playoffs`);
         } else {
             toast.error("Error al generar: " + res.error);
         }
@@ -1061,7 +931,7 @@ export default function AmericanoManager({
             tournamentId,
             phase: "eliminatorias",
             groups,
-            matches,
+            matches: matchesRef.current,
             bracket: updated,
             presentPlayerIds: Array.from(present),
             paidPlayerIds: Array.from(paid)
@@ -1121,7 +991,7 @@ export default function AmericanoManager({
             tournamentId,
             phase: "eliminatorias",
             groups,
-            matches,
+            matches: matchesRef.current,
             bracket: finalBracket,
             presentPlayerIds: Array.from(present),
             paidPlayerIds: Array.from(paid),
@@ -1236,6 +1106,85 @@ export default function AmericanoManager({
                                                     <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]" />
                                                 </motion.div>
                                             </div>
+
+                                             {!readOnly && (
+                                                <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[8px] font-black uppercase tracking-wider text-foreground/60 bg-muted/5 border border-border/20 py-1.5 px-3 rounded-lg w-fit mx-auto shadow-sm">
+                                                    <span className="flex items-center gap-1">
+                                                        <Settings className="w-3 h-3 text-azul-primary" />
+                                                        Configuración:
+                                                    </span>
+                                                    <div className="flex items-center gap-1.5 border-l border-border/30 pl-3">
+                                                        <span>{isIndividual ? "Partidos por Jugador:" : "Partidos por Pareja:"}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
+                                                            disabled={saving}
+                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            <Minus className="w-2.5 h-2.5" />
+                                                        </button>
+                                                        <span className="font-black italic text-foreground text-[10px] w-4 text-center">{matchesPerTeam}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
+                                                            disabled={saving}
+                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            <Plus className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    </div>
+                                                    <div 
+                                                        className={`flex items-center gap-1.5 border-l border-border/30 pl-3 ${bracket.length > 0 ? "opacity-50" : ""}`}
+                                                        title={bracket.length > 0 ? "Las eliminatorias están activas. Reinicia el cuadro para modificar." : ""}
+                                                    >
+                                                        <span>Clasificados a Llaves:</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newVal = Math.max(2, bracketSize - 2);
+                                                                handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                            }}
+                                                            disabled={saving || bracketSize <= 2 || bracket.length > 0}
+                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            <Minus className="w-2.5 h-2.5" />
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            value={bracketSize || ""}
+                                                            disabled={saving || bracket.length > 0}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value, 10);
+                                                                setBracketSize(isNaN(val) ? 0 : val);
+                                                            }}
+                                                            onBlur={() => {
+                                                                let cleanVal = bracketSize;
+                                                                if (cleanVal < 2) cleanVal = 2;
+                                                                if (cleanVal % 2 !== 0) {
+                                                                    cleanVal = Math.floor(cleanVal / 2) * 2;
+                                                                    if (cleanVal < 2) cleanVal = 2;
+                                                                }
+                                                                handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
+                                                            }}
+                                                            className="w-8 bg-transparent text-center font-black italic text-foreground text-[10px] focus:outline-none rounded no-spin-buttons border-b border-border/20 focus:border-azul-primary disabled:cursor-not-allowed"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newVal = bracketSize + 2;
+                                                                handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                            }}
+                                                            disabled={saving || bracket.length > 0}
+                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            <Plus className="w-2.5 h-2.5" />
+                                                        </button>
+                                                        {bracket.length > 0 && (
+                                                            <span className="text-[6px] text-foreground/40 font-bold uppercase ml-1 italic">(Reinicia el cuadro para modificar)</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })()}
@@ -1250,6 +1199,8 @@ export default function AmericanoManager({
                                 handleConfirmScore={handleConfirmScore}
                                 generateNextMatch={generateNextMatch}
                                 saving={saving}
+                                onUpdateCourts={(newCount) => handleUpdateConfig(newCount, matchesPerTeam)}
+                                isIndividual={isIndividual}
                             />
 
                             <AmericanoStandingsTable
@@ -1266,16 +1217,141 @@ export default function AmericanoManager({
                                 setReplacingPlayer={setReplacingPlayer}
                             />
 
-                            <AmericanoBracket
-                                bracket={bracket}
-                                setBracket={setBracket}
-                                readOnly={readOnly}
-                                setReplacingPlayer={setReplacingPlayer}
-                                handleBracketScore={handleBracketScore}
-                                handleBracketConfirm={handleBracketConfirm}
-                                handleBracketEdit={handleBracketEdit}
-                                standings={standings}
-                            />
+                            {/* Panel de Control de Eliminatorias */}
+                            <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-xl p-6 shadow-lg space-y-6 mt-6">
+                                <div className="flex items-center justify-between border-b border-border/20 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-azul-primary/10 border border-azul-primary/20 text-azul-primary">
+                                            <Trophy className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Fase de Eliminatorias (Playoffs)</h3>
+                                            <span className="text-foreground/40 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Gestión y avance del torneo</span>
+                                        </div>
+                                    </div>
+                                    <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider border ${
+                                        bracket.length > 0
+                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                            : isGroupStageFinished
+                                                ? "bg-azul-primary/10 border-azul-primary/20 text-azul-primary animate-pulse"
+                                                : "bg-muted/30 border-border/40 text-foreground/40"
+                                    }`}>
+                                        {bracket.length > 0 ? "Activa" : isGroupStageFinished ? "Lista para Generar" : "En Espera"}
+                                    </span>
+                                </div>
+
+                                {bracket.length > 0 ? (
+                                    <div className="space-y-4">
+                                        <p className="text-xs text-foreground/70 leading-relaxed">
+                                            Las eliminatorias del torneo ya han sido configuradas y están activas. Toda la gestión de las llaves, carga de resultados y asignación de campeones se realiza en la sección dedicada.
+                                        </p>
+                                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                                            <button
+                                                onClick={() => router.push(readOnly ? `/tournaments/${tournamentId}/playoffs` : `/tournaments/${tournamentId}/manage/playoffs`)}
+                                                className="px-5 py-3 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-azul-primary/20 cursor-pointer"
+                                            >
+                                                <Trophy className="w-4 h-4" />
+                                                {readOnly ? "Ver Cuadro de Eliminatorias" : "Gestionar Eliminatorias"}
+                                                <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {isGroupStageFinished ? (
+                                            <p className="text-xs text-foreground/70 leading-relaxed">
+                                                ¡Fase de grupos completada! Todos los partidos programados se han jugado y confirmado. Define la cantidad de jugadores/parejas que clasificarán a las llaves y genera el cuadro para iniciar la fase eliminatoria.
+                                            </p>
+                                        ) : (
+                                            <p className="text-xs text-foreground/50 leading-relaxed">
+                                                La fase de grupos está actualmente en juego ({confirmedGroupMatches} de {totalExpectedMatches} partidos completados). Una vez finalizados todos los partidos, podrás configurar y generar las llaves eliminatorias aquí. Mientras tanto, puedes elegir la cantidad de clasificados.
+                                            </p>
+                                        )}
+
+                                        {!readOnly && (
+                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-muted/10 border border-border/20">
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[10px] font-black uppercase text-foreground">Cantidad de Clasificados</span>
+                                                     <span className="text-[7px] text-foreground/40 font-black uppercase tracking-wider mt-0.5">Clasificarán los mejores {bracketSize} de la tabla general</span>
+                                                 </div>
+                                                 <div className="flex items-center gap-2">
+                                                     <button
+                                                         type="button"
+                                                         onClick={() => {
+                                                             const newVal = Math.max(2, bracketSize - 2);
+                                                             handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                         }}
+                                                         disabled={saving || bracketSize <= 2}
+                                                         className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                     >
+                                                         <Minus className="w-4 h-4" />
+                                                     </button>
+                                                     <input
+                                                         type="number"
+                                                         value={bracketSize || ""}
+                                                         onChange={(e) => {
+                                                             const val = parseInt(e.target.value, 10);
+                                                             setBracketSize(isNaN(val) ? 0 : val);
+                                                         }}
+                                                         onBlur={() => {
+                                                             let cleanVal = bracketSize;
+                                                             if (cleanVal < 2) cleanVal = 2;
+                                                             if (cleanVal % 2 !== 0) {
+                                                                 cleanVal = Math.floor(cleanVal / 2) * 2;
+                                                                 if (cleanVal < 2) cleanVal = 2;
+                                                             }
+                                                             handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
+                                                         }}
+                                                         className="w-10 bg-transparent text-center text-sm font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-border/20 focus:border-azul-primary"
+                                                     />
+                                                     <button
+                                                         type="button"
+                                                         onClick={() => {
+                                                             const newVal = bracketSize + 2;
+                                                             handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                         }}
+                                                         disabled={saving}
+                                                         className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                     >
+                                                         <Plus className="w-4 h-4" />
+                                                     </button>
+                                                 </div>
+                                             </div>
+                                         )}
+
+                                        {isGroupStageFinished ? (
+                                            !readOnly ? (
+                                                <button
+                                                    onClick={() => generateBracket(bracketSize)}
+                                                    disabled={saving}
+                                                    className="w-full py-3.5 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-azul-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
+                                                >
+                                                    {saving ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            Generar Cuadro de Eliminatorias • Top {bracketSize}
+                                                            <Zap className="w-4 h-4 fill-white" />
+                                                        </>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <p className="text-xs text-amber-400 italic">
+                                                    Esperando que el administrador genere el cuadro de eliminatorias.
+                                                </p>
+                                            )
+                                        ) : (
+                                            <div className="w-full bg-muted/10 border border-border/20 rounded-xl p-4 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black uppercase text-foreground/60">Progreso Fase de Grupos</span>
+                                                    <span className="text-[6px] text-foreground/30 font-black uppercase tracking-wider mt-0.5">Partidos jugados: {confirmedGroupMatches} / {totalExpectedMatches}</span>
+                                                </div>
+                                                <span className="text-xs font-black italic text-azul-primary">{Math.round(progressPercent)}%</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
