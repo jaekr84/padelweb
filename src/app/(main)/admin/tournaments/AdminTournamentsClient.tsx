@@ -128,14 +128,14 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
             {/* List View - Optimized for Admin - Responsive High Density */}
             <div className="bg-card/40 border border-border/50 rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+                    <table className="w-full text-left border-collapse min-w-[880px]">
                         <thead>
                             <tr className="bg-muted/30 border-b border-border/50 text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
                                 <th className="px-3 py-1.5 w-[90px]">Estado</th>
                                 <th className="px-3 py-1.5">Torneo / Club</th>
                                 <th className="px-3 py-1.5 w-[160px]">Info Técnica</th>
                                 <th className="px-3 py-1.5 w-[120px]">Inscripciones</th>
-                                <th className="px-3 py-1.5 w-[160px] text-right">Acciones</th>
+                                <th className="px-3 py-1.5 w-[240px] text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -254,10 +254,18 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                         </button>
                     </Link>
                     {isFinished && (
-                        <TournamentPublishButton 
-                            tournamentId={tournament.id} 
-                            tournamentName={tournament.name} 
-                        />
+                        <>
+                            <Link href={`/tournaments/${tournament.id}`}>
+                                <button className="h-7 flex items-center justify-center gap-1 px-2.5 bg-azul-primary hover:bg-azul-dark text-white border border-azul-primary/20 rounded-lg transition-all active:scale-95 group/btn shadow-sm" title="Ver Resultados">
+                                    <Trophy className="w-2.5 h-2.5" />
+                                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">Resultados</span>
+                                </button>
+                            </Link>
+                            <TournamentPublishButton 
+                                tournamentId={tournament.id} 
+                                tournamentName={tournament.name} 
+                            />
+                        </>
                     )}
                     <div className={isFinished ? "hidden" : "block"}>
                         <DeleteTournamentButton

@@ -1025,6 +1025,7 @@ export default function AmericanoManager({
                 readOnly={readOnly}
                 handleRefresh={handleRefresh}
                 isRefreshing={isRefreshing}
+                hasBracket={bracket.length > 0}
             />
 
             <div className="w-full px-3 md:px-4 py-2 pb-24">
@@ -1070,138 +1071,142 @@ export default function AmericanoManager({
                             exit={{ opacity: 0, y: -10 }}
                             className="space-y-6 pb-24"
                         >
-                            <div className="text-center space-y-2">
-                                <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic leading-none">Canchas En Vivo</h2>
-                                <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.4em]">Gestión Técnica de Partidos</p>
+                            {initialStatus !== "finalizado" && (
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic leading-none">Canchas En Vivo</h2>
+                                    <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.4em]">Gestión Técnica de Partidos</p>
 
-                                {/* Progress Tracker */}
-                                {(() => {
-                                    const totalPossibleMatches = Math.ceil(((groups[0]?.players?.length || 0) * matchesPerTeam) / 2);
-                                    const completedMatches = matches.filter(m => m.confirmed).length;
-                                    const progress = totalPossibleMatches > 0 ? (completedMatches / totalPossibleMatches) * 100 : 0;
+                                    {/* Progress Tracker */}
+                                    {(() => {
+                                        const totalPossibleMatches = Math.ceil(((groups[0]?.players?.length || 0) * matchesPerTeam) / 2);
+                                        const completedMatches = matches.filter(m => m.confirmed).length;
+                                        const progress = totalPossibleMatches > 0 ? (completedMatches / totalPossibleMatches) * 100 : 0;
 
-                                    return (
-                                        <div className="max-w-xl mx-auto mt-2 space-y-1.5">
-                                            <div className="flex items-end justify-between px-1">
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/30 leading-none mb-0.5">Progreso Fase de Grupos</span>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-base font-black italic text-foreground/80">{completedMatches}</span>
-                                                        <span className="text-[7px] font-black uppercase text-foreground/20 italic">/</span>
-                                                        <span className="text-base font-black italic text-foreground/80">{totalPossibleMatches}</span>
-                                                        <span className="text-[6px] font-black uppercase text-foreground/20 italic ml-1 tracking-widest">Partidos</span>
+                                        return (
+                                            <div className="max-w-xl mx-auto mt-2 space-y-1.5">
+                                                <div className="flex items-end justify-between px-1">
+                                                    <div className="flex flex-col text-left">
+                                                        <span className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/30 leading-none mb-0.5">Progreso Fase de Grupos</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-base font-black italic text-foreground/80">{completedMatches}</span>
+                                                            <span className="text-[7px] font-black uppercase text-foreground/20 italic">/</span>
+                                                            <span className="text-base font-black italic text-foreground/80">{totalPossibleMatches}</span>
+                                                            <span className="text-[6px] font-black uppercase text-foreground/20 italic ml-1 tracking-widest">Partidos</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-xl font-black italic text-azul-primary leading-none">{Math.round(progress)}<span className="text-xs ml-0.5">%</span></span>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-xl font-black italic text-azul-primary leading-none">{Math.round(progress)}<span className="text-xs ml-0.5">%</span></span>
-                                                </div>
-                                            </div>
-                                            <div className="h-2 w-full bg-muted/20 rounded-full overflow-hidden border border-border/30 p-[1px]">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${progress}%` }}
-                                                    transition={{ duration: 1.5, ease: "circOut" }}
-                                                    className="h-full rounded-full bg-gradient-to-r from-azul-primary via-celeste to-azul-dark relative"
-                                                >
-                                                    <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]" />
-                                                </motion.div>
-                                            </div>
-
-                                             {!readOnly && (
-                                                <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[8px] font-black uppercase tracking-wider text-foreground/60 bg-muted/5 border border-border/20 py-1.5 px-3 rounded-lg w-fit mx-auto shadow-sm">
-                                                    <span className="flex items-center gap-1">
-                                                        <Settings className="w-3 h-3 text-azul-primary" />
-                                                        Configuración:
-                                                    </span>
-                                                    <div className="flex items-center gap-1.5 border-l border-border/30 pl-3">
-                                                        <span>{isIndividual ? "Partidos por Jugador:" : "Partidos por Pareja:"}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
-                                                            disabled={saving}
-                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
-                                                        >
-                                                            <Minus className="w-2.5 h-2.5" />
-                                                        </button>
-                                                        <span className="font-black italic text-foreground text-[10px] w-4 text-center">{matchesPerTeam}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
-                                                            disabled={saving}
-                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
-                                                        >
-                                                            <Plus className="w-2.5 h-2.5" />
-                                                        </button>
-                                                    </div>
-                                                    <div 
-                                                        className={`flex items-center gap-1.5 border-l border-border/30 pl-3 ${bracket.length > 0 ? "opacity-50" : ""}`}
-                                                        title={bracket.length > 0 ? "Las eliminatorias están activas. Reinicia el cuadro para modificar." : ""}
+                                                <div className="h-2 w-full bg-muted/20 rounded-full overflow-hidden border border-border/30 p-[1px]">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${progress}%` }}
+                                                        transition={{ duration: 1.5, ease: "circOut" }}
+                                                        className="h-full rounded-full bg-gradient-to-r from-azul-primary via-celeste to-azul-dark relative"
                                                     >
-                                                        <span>Clasificados a Llaves:</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newVal = Math.max(2, bracketSize - 2);
-                                                                handleUpdateConfig(numCourts, matchesPerTeam, newVal);
-                                                            }}
-                                                            disabled={saving || bracketSize <= 2 || bracket.length > 0}
-                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
-                                                        >
-                                                            <Minus className="w-2.5 h-2.5" />
-                                                        </button>
-                                                        <input
-                                                            type="number"
-                                                            value={bracketSize || ""}
-                                                            disabled={saving || bracket.length > 0}
-                                                            onChange={(e) => {
-                                                                const val = parseInt(e.target.value, 10);
-                                                                setBracketSize(isNaN(val) ? 0 : val);
-                                                            }}
-                                                            onBlur={() => {
-                                                                let cleanVal = bracketSize;
-                                                                if (cleanVal < 2) cleanVal = 2;
-                                                                if (cleanVal % 2 !== 0) {
-                                                                    cleanVal = Math.floor(cleanVal / 2) * 2;
-                                                                    if (cleanVal < 2) cleanVal = 2;
-                                                                }
-                                                                handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
-                                                            }}
-                                                            className="w-8 bg-transparent text-center font-black italic text-foreground text-[10px] focus:outline-none rounded no-spin-buttons border-b border-border/20 focus:border-azul-primary disabled:cursor-not-allowed"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newVal = bracketSize + 2;
-                                                                handleUpdateConfig(numCourts, matchesPerTeam, newVal);
-                                                            }}
-                                                            disabled={saving || bracket.length > 0}
-                                                            className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
-                                                        >
-                                                            <Plus className="w-2.5 h-2.5" />
-                                                        </button>
-                                                        {bracket.length > 0 && (
-                                                            <span className="text-[6px] text-foreground/40 font-bold uppercase ml-1 italic">(Reinicia el cuadro para modificar)</span>
-                                                        )}
-                                                    </div>
+                                                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]" />
+                                                    </motion.div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
-                            </div>
 
-                            <AmericanoCourtGrid
-                                numCourts={numCourts}
-                                matches={matches}
-                                readOnly={readOnly}
-                                handleDeleteMatch={handleDeleteMatch}
-                                handleScoreChange={handleScoreChange}
-                                handleConfirmScore={handleConfirmScore}
-                                generateNextMatch={generateNextMatch}
-                                saving={saving}
-                                onUpdateCourts={(newCount) => handleUpdateConfig(newCount, matchesPerTeam)}
-                                isIndividual={isIndividual}
-                            />
+                                                 {!readOnly && (
+                                                    <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[8px] font-black uppercase tracking-wider text-foreground/60 bg-muted/5 border border-border/20 py-1.5 px-3 rounded-lg w-fit mx-auto shadow-sm">
+                                                        <span className="flex items-center gap-1">
+                                                            <Settings className="w-3 h-3 text-azul-primary" />
+                                                            Configuración:
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5 border-l border-border/30 pl-3">
+                                                            <span>{isIndividual ? "Partidos por Jugador:" : "Partidos por Pareja:"}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
+                                                                disabled={saving}
+                                                                className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                <Minus className="w-2.5 h-2.5" />
+                                                            </button>
+                                                            <span className="font-black italic text-foreground text-[10px] w-4 text-center">{matchesPerTeam}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
+                                                                disabled={saving}
+                                                                className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                <Plus className="w-2.5 h-2.5" />
+                                                            </button>
+                                                        </div>
+                                                        <div 
+                                                            className={`flex items-center gap-1.5 border-l border-border/30 pl-3 ${bracket.length > 0 ? "opacity-50" : ""}`}
+                                                            title={bracket.length > 0 ? "Las eliminatorias están activas. Reinicia el cuadro para modificar." : ""}
+                                                        >
+                                                            <span>Clasificados a Llaves:</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newVal = Math.max(2, bracketSize - 2);
+                                                                    handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                                }}
+                                                                disabled={saving || bracketSize <= 2 || bracket.length > 0}
+                                                                className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                <Minus className="w-2.5 h-2.5" />
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                value={bracketSize || ""}
+                                                                disabled={saving || bracket.length > 0}
+                                                                onChange={(e) => {
+                                                                    const val = parseInt(e.target.value, 10);
+                                                                    setBracketSize(isNaN(val) ? 0 : val);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    let cleanVal = bracketSize;
+                                                                    if (cleanVal < 2) cleanVal = 2;
+                                                                    if (cleanVal % 2 !== 0) {
+                                                                        cleanVal = Math.floor(cleanVal / 2) * 2;
+                                                                        if (cleanVal < 2) cleanVal = 2;
+                                                                    }
+                                                                    handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
+                                                                }}
+                                                                className="w-8 bg-transparent text-center font-black italic text-foreground text-[10px] focus:outline-none rounded no-spin-buttons border-b border-border/20 focus:border-azul-primary disabled:cursor-not-allowed"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newVal = bracketSize + 2;
+                                                                    handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                                }}
+                                                                disabled={saving || bracket.length > 0}
+                                                                className="w-4.5 h-4.5 rounded bg-muted/20 hover:bg-muted/40 border border-border/30 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                <Plus className="w-2.5 h-2.5" />
+                                                            </button>
+                                                            {bracket.length > 0 && (
+                                                                <span className="text-[6px] text-foreground/40 font-bold uppercase ml-1 italic">(Reinicia el cuadro para modificar)</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                 )}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {initialStatus !== "finalizado" && (
+                                <AmericanoCourtGrid
+                                    numCourts={numCourts}
+                                    matches={matches}
+                                    readOnly={readOnly}
+                                    handleDeleteMatch={handleDeleteMatch}
+                                    handleScoreChange={handleScoreChange}
+                                    handleConfirmScore={handleConfirmScore}
+                                    generateNextMatch={generateNextMatch}
+                                    saving={saving}
+                                    onUpdateCourts={(newCount) => handleUpdateConfig(newCount, matchesPerTeam)}
+                                    isIndividual={isIndividual}
+                                />
+                            )}
 
                             <AmericanoStandingsTable
                                 standings={standings}
@@ -1218,140 +1223,142 @@ export default function AmericanoManager({
                             />
 
                             {/* Panel de Control de Eliminatorias */}
-                            <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-xl p-6 shadow-lg space-y-6 mt-6">
-                                <div className="flex items-center justify-between border-b border-border/20 pb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-azul-primary/10 border border-azul-primary/20 text-azul-primary">
-                                            <Trophy className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Fase de Eliminatorias (Playoffs)</h3>
-                                            <span className="text-foreground/40 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Gestión y avance del torneo</span>
-                                        </div>
-                                    </div>
-                                    <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider border ${
-                                        bracket.length > 0
-                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                            : isGroupStageFinished
-                                                ? "bg-azul-primary/10 border-azul-primary/20 text-azul-primary animate-pulse"
-                                                : "bg-muted/30 border-border/40 text-foreground/40"
-                                    }`}>
-                                        {bracket.length > 0 ? "Activa" : isGroupStageFinished ? "Lista para Generar" : "En Espera"}
-                                    </span>
-                                </div>
-
-                                {bracket.length > 0 ? (
-                                    <div className="space-y-4">
-                                        <p className="text-xs text-foreground/70 leading-relaxed">
-                                            Las eliminatorias del torneo ya han sido configuradas y están activas. Toda la gestión de las llaves, carga de resultados y asignación de campeones se realiza en la sección dedicada.
-                                        </p>
-                                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                                            <button
-                                                onClick={() => router.push(readOnly ? `/tournaments/${tournamentId}/playoffs` : `/tournaments/${tournamentId}/manage/playoffs`)}
-                                                className="px-5 py-3 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-azul-primary/20 cursor-pointer"
-                                            >
-                                                <Trophy className="w-4 h-4" />
-                                                {readOnly ? "Ver Cuadro de Eliminatorias" : "Gestionar Eliminatorias"}
-                                                <ArrowRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        {isGroupStageFinished ? (
-                                            <p className="text-xs text-foreground/70 leading-relaxed">
-                                                ¡Fase de grupos completada! Todos los partidos programados se han jugado y confirmado. Define la cantidad de jugadores/parejas que clasificarán a las llaves y genera el cuadro para iniciar la fase eliminatoria.
-                                            </p>
-                                        ) : (
-                                            <p className="text-xs text-foreground/50 leading-relaxed">
-                                                La fase de grupos está actualmente en juego ({confirmedGroupMatches} de {totalExpectedMatches} partidos completados). Una vez finalizados todos los partidos, podrás configurar y generar las llaves eliminatorias aquí. Mientras tanto, puedes elegir la cantidad de clasificados.
-                                            </p>
-                                        )}
-
-                                        {!readOnly && (
-                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-muted/10 border border-border/20">
-                                                 <div className="flex flex-col">
-                                                     <span className="text-[10px] font-black uppercase text-foreground">Cantidad de Clasificados</span>
-                                                     <span className="text-[7px] text-foreground/40 font-black uppercase tracking-wider mt-0.5">Clasificarán los mejores {bracketSize} de la tabla general</span>
-                                                 </div>
-                                                 <div className="flex items-center gap-2">
-                                                     <button
-                                                         type="button"
-                                                         onClick={() => {
-                                                             const newVal = Math.max(2, bracketSize - 2);
-                                                             handleUpdateConfig(numCourts, matchesPerTeam, newVal);
-                                                         }}
-                                                         disabled={saving || bracketSize <= 2}
-                                                         className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
-                                                     >
-                                                         <Minus className="w-4 h-4" />
-                                                     </button>
-                                                     <input
-                                                         type="number"
-                                                         value={bracketSize || ""}
-                                                         onChange={(e) => {
-                                                             const val = parseInt(e.target.value, 10);
-                                                             setBracketSize(isNaN(val) ? 0 : val);
-                                                         }}
-                                                         onBlur={() => {
-                                                             let cleanVal = bracketSize;
-                                                             if (cleanVal < 2) cleanVal = 2;
-                                                             if (cleanVal % 2 !== 0) {
-                                                                 cleanVal = Math.floor(cleanVal / 2) * 2;
-                                                                 if (cleanVal < 2) cleanVal = 2;
-                                                             }
-                                                             handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
-                                                         }}
-                                                         className="w-10 bg-transparent text-center text-sm font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-border/20 focus:border-azul-primary"
-                                                     />
-                                                     <button
-                                                         type="button"
-                                                         onClick={() => {
-                                                             const newVal = bracketSize + 2;
-                                                             handleUpdateConfig(numCourts, matchesPerTeam, newVal);
-                                                         }}
-                                                         disabled={saving}
-                                                         className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
-                                                     >
-                                                         <Plus className="w-4 h-4" />
-                                                     </button>
-                                                 </div>
-                                             </div>
-                                         )}
-
-                                        {isGroupStageFinished ? (
-                                            !readOnly ? (
-                                                <button
-                                                    onClick={() => generateBracket(bracketSize)}
-                                                    disabled={saving}
-                                                    className="w-full py-3.5 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-azul-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
-                                                >
-                                                    {saving ? (
-                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            Generar Cuadro de Eliminatorias • Top {bracketSize}
-                                                            <Zap className="w-4 h-4 fill-white" />
-                                                        </>
-                                                    )}
-                                                </button>
-                                            ) : (
-                                                <p className="text-xs text-amber-400 italic">
-                                                    Esperando que el administrador genere el cuadro de eliminatorias.
-                                                </p>
-                                            )
-                                        ) : (
-                                            <div className="w-full bg-muted/10 border border-border/20 rounded-xl p-4 flex items-center justify-between">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black uppercase text-foreground/60">Progreso Fase de Grupos</span>
-                                                    <span className="text-[6px] text-foreground/30 font-black uppercase tracking-wider mt-0.5">Partidos jugados: {confirmedGroupMatches} / {totalExpectedMatches}</span>
-                                                </div>
-                                                <span className="text-xs font-black italic text-azul-primary">{Math.round(progressPercent)}%</span>
+                            {!readOnly && (
+                                <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-xl p-6 shadow-lg space-y-6 mt-6">
+                                    <div className="flex items-center justify-between border-b border-border/20 pb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 rounded-lg bg-azul-primary/10 border border-azul-primary/20 text-azul-primary">
+                                                <Trophy className="w-5 h-5" />
                                             </div>
-                                        )}
+                                            <div className="flex flex-col">
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Fase de Eliminatorias (Playoffs)</h3>
+                                                <span className="text-foreground/40 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Gestión y avance del torneo</span>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider border ${
+                                            bracket.length > 0
+                                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                                : isGroupStageFinished
+                                                    ? "bg-azul-primary/10 border-azul-primary/20 text-azul-primary animate-pulse"
+                                                    : "bg-muted/30 border-border/40 text-foreground/40"
+                                        }`}>
+                                            {bracket.length > 0 ? "Activa" : isGroupStageFinished ? "Lista para Generar" : "En Espera"}
+                                        </span>
                                     </div>
-                                )}
-                            </div>
+
+                                    {bracket.length > 0 ? (
+                                        <div className="space-y-4">
+                                            <p className="text-xs text-foreground/70 leading-relaxed">
+                                                Las eliminatorias del torneo ya han sido configuradas y están activas. Toda la gestión de las llaves, carga de resultados y asignación de campeones se realiza en la sección dedicada.
+                                            </p>
+                                            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                                                <button
+                                                    onClick={() => router.push(readOnly ? `/tournaments/${tournamentId}/playoffs` : `/tournaments/${tournamentId}/manage/playoffs`)}
+                                                    className="px-5 py-3 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-azul-primary/20 cursor-pointer"
+                                                >
+                                                    <Trophy className="w-4 h-4" />
+                                                    {readOnly ? "Ver Cuadro de Eliminatorias" : "Gestionar Eliminatorias"}
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            {isGroupStageFinished ? (
+                                                <p className="text-xs text-foreground/70 leading-relaxed">
+                                                    ¡Fase de grupos completada! Todos los partidos programados se han jugado y confirmado. Define la cantidad de jugadores/parejas que clasificarán a las llaves y genera el cuadro para iniciar la fase eliminatoria.
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-foreground/50 leading-relaxed">
+                                                    La fase de grupos está actualmente en juego ({confirmedGroupMatches} de {totalExpectedMatches} partidos completados). Una vez finalizados todos los partidos, podrás configurar y generar las llaves eliminatorias aquí. Mientras tanto, puedes elegir la cantidad de clasificados.
+                                                </p>
+                                            )}
+
+                                            {!readOnly && (
+                                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-muted/10 border border-border/20">
+                                                     <div className="flex flex-col">
+                                                         <span className="text-[10px] font-black uppercase text-foreground">Cantidad de Clasificados</span>
+                                                         <span className="text-[7px] text-foreground/40 font-black uppercase tracking-wider mt-0.5">Clasificarán los mejores {bracketSize} de la tabla general</span>
+                                                     </div>
+                                                     <div className="flex items-center gap-2">
+                                                         <button
+                                                             type="button"
+                                                             onClick={() => {
+                                                                 const newVal = Math.max(2, bracketSize - 2);
+                                                                 handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                             }}
+                                                             disabled={saving || bracketSize <= 2}
+                                                             className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                         >
+                                                             <Minus className="w-4 h-4" />
+                                                         </button>
+                                                         <input
+                                                             type="number"
+                                                             value={bracketSize || ""}
+                                                             onChange={(e) => {
+                                                                 const val = parseInt(e.target.value, 10);
+                                                                 setBracketSize(isNaN(val) ? 0 : val);
+                                                             }}
+                                                             onBlur={() => {
+                                                                 let cleanVal = bracketSize;
+                                                                 if (cleanVal < 2) cleanVal = 2;
+                                                                 if (cleanVal % 2 !== 0) {
+                                                                     cleanVal = Math.floor(cleanVal / 2) * 2;
+                                                                     if (cleanVal < 2) cleanVal = 2;
+                                                                 }
+                                                                 handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
+                                                             }}
+                                                             className="w-10 bg-transparent text-center text-sm font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-border/20 focus:border-azul-primary"
+                                                         />
+                                                         <button
+                                                             type="button"
+                                                             onClick={() => {
+                                                                 const newVal = bracketSize + 2;
+                                                                 handleUpdateConfig(numCourts, matchesPerTeam, newVal);
+                                                             }}
+                                                             disabled={saving}
+                                                             className="w-8 h-8 rounded-lg border border-border/40 flex items-center justify-center hover:bg-muted/30 transition-all text-foreground/75 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                         >
+                                                             <Plus className="w-4 h-4" />
+                                                         </button>
+                                                     </div>
+                                                 </div>
+                                             )}
+
+                                            {isGroupStageFinished ? (
+                                                !readOnly ? (
+                                                    <button
+                                                        onClick={() => generateBracket(bracketSize)}
+                                                        disabled={saving}
+                                                        className="w-full py-3.5 bg-azul-primary hover:bg-azul-dark text-white rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-azul-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
+                                                    >
+                                                        {saving ? (
+                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                Generar Cuadro de Eliminatorias • Top {bracketSize}
+                                                                <Zap className="w-4 h-4 fill-white" />
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    <p className="text-xs text-amber-400 italic">
+                                                        Esperando que el administrador genere el cuadro de eliminatorias.
+                                                    </p>
+                                                )
+                                            ) : (
+                                                <div className="w-full bg-muted/10 border border-border/20 rounded-xl p-4 flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black uppercase text-foreground/60">Progreso Fase de Grupos</span>
+                                                        <span className="text-[6px] text-foreground/30 font-black uppercase tracking-wider mt-0.5">Partidos jugados: {confirmedGroupMatches} / {totalExpectedMatches}</span>
+                                                    </div>
+                                                    <span className="text-xs font-black italic text-azul-primary">{Math.round(progressPercent)}%</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

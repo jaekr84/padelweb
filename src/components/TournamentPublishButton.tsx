@@ -78,15 +78,15 @@ export default function TournamentPublishButton({ tournamentId, tournamentName, 
         <button
             onClick={handlePublish}
             disabled={loading}
-            className="w-full h-8 flex items-center justify-center gap-1.5 px-3 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 rounded-lg transition-all active:scale-95 group/btn disabled:opacity-50"
+            className="h-7 flex items-center justify-center gap-1 px-2.5 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 rounded-lg transition-all active:scale-95 group/btn disabled:opacity-50 shadow-sm"
             title="Publicar resultados en el feed"
         >
             {loading ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
             ) : (
-                <Share2 className="w-3 h-3" />
+                <Share2 className="w-2.5 h-2.5" />
             )}
-            <span className="text-[8px] font-black uppercase tracking-widest leading-none">
+            <span className="text-[7px] font-black uppercase tracking-widest leading-none">
                 {loading ? "Publicando..." : "Publicar Feed"}
             </span>
         </button>

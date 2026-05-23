@@ -21,6 +21,7 @@ interface AmericanoHeaderProps {
     readOnly?: boolean;
     handleRefresh: () => void;
     isRefreshing: boolean;
+    hasBracket?: boolean;
 }
 
 export function AmericanoHeader({
@@ -32,7 +33,8 @@ export function AmericanoHeader({
     isGroupStageFinished,
     readOnly,
     handleRefresh,
-    isRefreshing
+    isRefreshing,
+    hasBracket
 }: AmericanoHeaderProps) {
     const router = useRouter();
     const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
@@ -72,10 +74,28 @@ export function AmericanoHeader({
                         {/* DESKTOP STEPPER */}
                         <div className="hidden lg:flex items-center gap-1">
                             {(() => {
-                                const steps = [
+                                const steps: {
+                                    id: string;
+                                    label: string;
+                                    icon: any;
+                                    active: boolean;
+                                    completed: boolean;
+                                    href?: string;
+                                }[] = [
                                     { id: "setup", label: "Asistencia", icon: Users2, active: step === "setup", completed: step !== "setup" },
-                                    { id: "active", label: "En Vivo", icon: SwitchedIcon, active: step === "active", completed: initialStatus === "finalizado" },
+                                    { id: "active", label: "Grupos", icon: SwitchedIcon, active: step === "active", completed: initialStatus === "finalizado" },
                                 ];
+
+                                if (readOnly && hasBracket) {
+                                    steps.push({
+                                        id: "playoffs",
+                                        label: "Fase de Llaves",
+                                        icon: Trophy,
+                                        active: false,
+                                        completed: false,
+                                        href: `/tournaments/${tournamentId}/playoffs`
+                                    });
+                                }
 
                                 function SwitchedIcon(props: any) {
                                     return isGroupStageFinished ? <Trophy {...props} /> : <Swords {...props} />;
@@ -85,24 +105,39 @@ export function AmericanoHeader({
                                     const Icon = s.icon;
                                     const isAccessible = true;
 
+                                    const buttonContent = (
+                                        <>
+                                            <Icon className={`w-3 h-3 ${s.active ? "animate-pulse" : ""}`} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">
+                                                {s.label}
+                                            </span>
+                                            {s.completed && <Check className="w-2 h-2 ml-0.5" />}
+                                        </>
+                                    );
+
+                                    const className = `flex items-center gap-1 px-2.5 py-0.5 rounded-md transition-all ${
+                                        s.active
+                                            ? "bg-azul-primary text-white shadow-sm"
+                                            : s.completed
+                                                ? "text-azul-primary bg-azul-primary/5 hover:bg-azul-primary/10"
+                                                : "text-foreground/60 hover:bg-muted/80"
+                                    }`;
+
                                     return (
                                         <div key={s.id} className="flex items-center">
-                                            <button
-                                                onClick={() => isAccessible && setStep(s.id as any)}
-                                                className={`flex items-center gap-1 px-2.5 py-0.5 rounded-md transition-all ${s.active
-                                                    ? "bg-azul-primary text-white shadow-sm"
-                                                    : s.completed
-                                                        ? "text-azul-primary bg-azul-primary/5 hover:bg-azul-primary/10"
-                                                        : "text-foreground/60 hover:bg-muted/80"
-                                                    }`}
-                                            >
-                                                <Icon className={`w-3 h-3 ${s.active ? "animate-pulse" : ""}`} />
-                                                <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">
-                                                    {s.label}
-                                                </span>
-                                                {s.completed && <Check className="w-2 h-2 ml-0.5" />}
-                                            </button>
-                                            {idx < 1 && <ChevronRight className="w-3 h-3 mx-0 text-border/20" />}
+                                            {s.href ? (
+                                                <Link href={s.href} className={className}>
+                                                    {buttonContent}
+                                                </Link>
+                                            ) : (
+                                                <button
+                                                    onClick={() => isAccessible && setStep(s.id as any)}
+                                                    className={className}
+                                                >
+                                                    {buttonContent}
+                                                </button>
+                                            )}
+                                            {idx < steps.length - 1 && <ChevronRight className="w-3 h-3 mx-0 text-border/20" />}
                                         </div>
                                     );
                                 });
@@ -115,6 +150,15 @@ export function AmericanoHeader({
                             <div className="w-1 h-1 rounded-full bg-azul-primary animate-pulse" />
                             {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
                         </div>
+
+                        {readOnly && hasBracket && (
+                            <Link href={`/tournaments/${tournamentId}/playoffs`} className="lg:hidden">
+                                <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-azul-primary/10 border border-azul-primary/20 text-azul-primary hover:bg-azul-primary hover:text-white transition-all text-[8px] font-black uppercase tracking-widest shadow-sm">
+                                    <Trophy className="w-3 h-3" />
+                                    <span>Llaves</span>
+                                </button>
+                            </Link>
+                        )}
 
                         {initialStatus === "finalizado" && (
                             <TournamentPublishButton

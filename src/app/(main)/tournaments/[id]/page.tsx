@@ -290,6 +290,9 @@ export default async function TournamentDisplayPage({ params }: Props) {
         winnerName: bm.winnerName ?? undefined,
     }));
 
+    const isFinished = tournament.status === "finalizado";
+    const isReadOnly = !canManage || isFinished;
+
     if (tournament.type === 'americano') {
         return (
             <>
@@ -301,7 +304,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                     initialMatches={mappedMatches}
                     initialBracket={mappedBracket}
                     initialStatus={tournament.status}
-                    readOnly={!canManage}
+                    readOnly={isReadOnly}
                     isLoggedIn={isLoggedIn}
                 />
             </>
@@ -319,7 +322,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
                 initialPresent={(tournament.presentPlayerIds as string[]) || []}
-                readOnly={!canManage}
+                readOnly={isReadOnly}
                 isLoggedIn={isLoggedIn}
             />
         </>
