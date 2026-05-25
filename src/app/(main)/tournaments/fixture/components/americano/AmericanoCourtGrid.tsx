@@ -199,7 +199,7 @@ export function AmericanoCourtGrid({
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {Array.from({ length: numCourts }).map((_, courtIdx) => {
                 const courtNumber = courtIdx + 1;
                 const activeMatch = matches.find(m => m.courtNumber === courtNumber && !m.confirmed);

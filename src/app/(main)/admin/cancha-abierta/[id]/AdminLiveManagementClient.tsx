@@ -6,7 +6,7 @@ import {
     Plus, Minus, RefreshCw, Trophy, Activity,
     Calendar, DollarSign, UserCheck, ShieldCheck,
     ChevronRight, ArrowLeft, LayoutGrid, ListFilter,
-    Trash2, Flag
+    Trash2, Flag, ChevronUp, ChevronDown, Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -142,6 +142,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         const reg = registrations.find(r => r.userId === id || r.id === id);
         if (!reg) return null;
         return reg.sidePreference || (reg.user?.side) || "ambos";
+    };
+    const getPlayerImage = (id: string) => {
+        const reg = registrations.find(r => r.userId === id || r.id === id);
+        return reg?.user?.imageUrl || null;
     };
 
     const updateInlineScore = (matchId: string, team: 1 | 2, delta: number) => {
@@ -763,143 +767,114 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        className="grid grid-cols-1 lg:grid-cols-4 gap-8"
+                        className="space-y-4"
                     >
-                        {/* Persistent Search Sidebar */}
-                        <div className="lg:col-span-1 space-y-3">
-                            <div className="bg-card/40 border border-celeste/20 p-4 rounded-xl sticky top-8">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-7 h-7 rounded-lg bg-celeste/10 flex items-center justify-center text-celeste">
-                                        <Plus className="w-3.5 h-3.5" />
-                                    </div>
-                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-celeste">Inscribir Jugador</h3>
+                        {/* Inscription bar — single row above table */}
+                        <div className="bg-card/40 border border-celeste/20 rounded-xl p-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {/* Mode toggle */}
+                                <div className="flex gap-1 bg-muted/20 p-1 rounded-lg shrink-0">
+                                    <button
+                                        onClick={() => { setIsGuestMode(false); setSideSelector(null); }}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${!isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
+                                    >
+                                        Registrado
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsGuestMode(true); setSideSelector({ userId: "guest", name: "Invitado", isGuest: true }); }}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
+                                    >
+                                        Invitado
+                                    </button>
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="flex gap-1.5 bg-muted/20 p-1 rounded-lg">
-                                        <button
-                                            onClick={() => { setIsGuestMode(false); setSideSelector(null); }}
-                                            className={`flex-1 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${!isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
-                                        >
-                                            Registrado
-                                        </button>
-                                        <button
-                                            onClick={() => { setIsGuestMode(true); setSideSelector({ userId: "guest", name: "Invitado", isGuest: true }); }}
-                                            className={`flex-1 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${isGuestMode ? 'bg-celeste text-white shadow-md' : 'text-muted-foreground'}`}
-                                        >
-                                            Invitado
-                                        </button>
-                                    </div>
 
-                                    {/* Selector de Género para registro */}
-                                    <div className="flex gap-1.5 bg-muted/20 p-1 rounded-lg">
-                                        <button
-                                            onClick={() => setSelectedGender("masculino")}
-                                            className={`flex-1 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedGender === "masculino" ? 'bg-azul-primary text-white shadow-md' : 'text-muted-foreground'}`}
-                                        >
-                                            Hombre
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedGender("femenino")}
-                                            className={`flex-1 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedGender === "femenino" ? 'bg-rojo text-white shadow-md' : 'text-muted-foreground'}`}
-                                        >
-                                            Mujer
-                                        </button>
-                                    </div>
+                                {/* Gender toggle */}
+                                <div className="flex gap-1 bg-muted/20 p-1 rounded-lg shrink-0">
+                                    <button
+                                        onClick={() => setSelectedGender("masculino")}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedGender === "masculino" ? 'bg-azul-primary text-white shadow-md' : 'text-muted-foreground'}`}
+                                    >
+                                        Hombre
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedGender("femenino")}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedGender === "femenino" ? 'bg-rojo text-white shadow-md' : 'text-muted-foreground'}`}
+                                    >
+                                        Mujer
+                                    </button>
+                                </div>
 
-                                    {!isGuestMode ? (
-                                        <>
-                                            <div className="relative">
-                                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-celeste/50" />
-                                                <input
-                                                    type="text"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    placeholder="Buscar..."
-                                                    className="w-full bg-muted/30 border border-border/50 rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold focus:border-celeste/50 transition-all outline-none"
-                                                />
-                                            </div>
-
-                                            {filteredPlayers.length > 0 && (
-                                                <div className="mt-2 space-y-1.5 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
-                                                    {filteredPlayers.map(p => (
-                                                        <button
-                                                            key={p.id}
-                                                            onClick={() => handleRegisterPlayer(p.id, p.name, p.category)}
-                                                            className="w-full flex items-center justify-between p-2 bg-muted/20 hover:bg-celeste/10 border border-border/40 hover:border-celeste/30 rounded-lg group transition-all"
-                                                        >
-                                                            <div className="flex flex-col items-start overflow-hidden text-left">
-                                                                <span className="text-[9px] font-black uppercase italic truncate w-full">{p.name}</span>
-                                                                <span className="text-[7px] font-medium text-muted-foreground truncate w-full">{p.email}</span>
-                                                            </div>
-                                                            <ChevronRight className="w-2.5 h-2.5 text-celeste group-hover:translate-x-1 transition-transform" />
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                                            <div className="relative">
-                                                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-celeste/50" />
-                                                <input
-                                                    type="text"
-                                                    value={guestName}
-                                                    onChange={(e) => setGuestName(e.target.value)}
-                                                    placeholder="Nombre Invitado..."
-                                                    className="w-full bg-muted/30 border border-border/50 rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold focus:border-celeste/50 transition-all outline-none"
-                                                />
-                                            </div>
+                                {/* Search / Guest name input */}
+                                <div className="relative flex-1 min-w-[180px]">
+                                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-celeste/50" />
+                                    <input
+                                        type="text"
+                                        value={isGuestMode ? guestName : searchQuery}
+                                        onChange={(e) => isGuestMode ? setGuestName(e.target.value) : setSearchQuery(e.target.value)}
+                                        placeholder={isGuestMode ? "Nombre del invitado..." : "Buscar jugador..."}
+                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold focus:border-celeste/50 transition-all outline-none"
+                                    />
+                                    {!isGuestMode && filteredPlayers.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border border-border/50 rounded-xl shadow-2xl overflow-hidden">
+                                            {filteredPlayers.map(p => (
+                                                <button
+                                                    key={p.id}
+                                                    onClick={() => handleRegisterPlayer(p.id, p.name, p.category)}
+                                                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-celeste/10 transition-all text-left border-b border-border/10 last:border-0"
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black uppercase italic">{p.name}</span>
+                                                        <span className="text-[7px] font-medium text-muted-foreground">{p.email}</span>
+                                                    </div>
+                                                    <ChevronRight className="w-2.5 h-2.5 text-celeste shrink-0" />
+                                                </button>
+                                            ))}
                                         </div>
                                     )}
-
-                                    <AnimatePresence>
-                                        {sideSelector && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: "auto" }}
-                                                exit={{ opacity: 0, height: 0 }}
-                                                className="pt-3 border-t border-border/40 space-y-3"
-                                            >
-                                                <div className="text-center">
-                                                    <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1.5 block">Lado de juego</span>
-                                                    <div className="flex gap-1.5">
-                                                        {[
-                                                            { id: 'drive', label: 'Drive' },
-                                                            { id: 'reves', label: 'Revés' },
-                                                            { id: 'ambos', label: 'Ambos' }
-                                                        ].map(side => (
-                                                            <button
-                                                                key={side.id}
-                                                                onClick={() => setSelectedSide(side.id as any)}
-                                                                className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${selectedSide === side.id ? 'bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20 scale-105' : 'bg-muted/30 border-border/50 text-muted-foreground'}`}
-                                                            >
-                                                                {side.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <button
-                                                    onClick={confirmRegistrationWithSide}
-                                                    className="w-full py-2.5 bg-celeste text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-celeste/20 hover:scale-[1.02] active:scale-95 transition-all"
-                                                >
-                                                    {isGuestMode ? "Registrar Invitado" : `Registrar ${sideSelector.name.split(' ')[0]}`}
-                                                </button>
-
-                                                <button
-                                                    onClick={() => { setSideSelector(null); setIsGuestMode(false); }}
-                                                    className="w-full py-0.5 text-[7px] font-black uppercase text-muted-foreground/50 hover:text-rojo transition-colors"
-                                                >
-                                                    Cancelar
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
                                 </div>
+
+                                {/* Side selector — visible when player selected or in guest mode */}
+                                {sideSelector && (
+                                    <div className="flex gap-1 bg-muted/20 p-1 rounded-lg shrink-0">
+                                        {[
+                                            { id: 'drive', label: 'Drive' },
+                                            { id: 'reves', label: 'Revés' },
+                                            { id: 'ambos', label: 'Ambos' }
+                                        ].map(side => (
+                                            <button
+                                                key={side.id}
+                                                onClick={() => setSelectedSide(side.id as any)}
+                                                className={`px-2.5 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedSide === side.id ? 'bg-azul-primary text-white shadow-md' : 'text-muted-foreground'}`}
+                                            >
+                                                {side.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Register button */}
+                                {sideSelector && (
+                                    <button
+                                        onClick={confirmRegistrationWithSide}
+                                        className="px-4 py-2 bg-celeste text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-celeste/20 hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                                    >
+                                        {isGuestMode ? "Registrar Invitado" : `Registrar ${sideSelector.name.split(' ')[0]}`}
+                                    </button>
+                                )}
+
+                                {sideSelector && (
+                                    <button
+                                        onClick={() => { setSideSelector(null); setIsGuestMode(false); setSearchQuery(""); setGuestName(""); }}
+                                        className="text-[7px] font-black uppercase text-muted-foreground/40 hover:text-rojo transition-colors shrink-0"
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
                             </div>
                         </div>
 
-                        <div className="lg:col-span-3">
+                        {/* Header + table */}
+                        <div>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                                 <div className="flex items-center gap-2">
                                     <ListFilter className="w-3.5 h-3.5 text-celeste" />
@@ -1064,7 +1039,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-3">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                                 {activeCourts.map(court => {
                                     const currentMatch = event.matches.find(m => m.courtId === court.id && m.status === "in_progress");
                                     const scores = currentMatch ? (liveScores[currentMatch.id] || { s1: 0, s2: 0 }) : { s1: 0, s2: 0 };
@@ -1132,110 +1107,77 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between px-6 py-1 bg-transparent relative">
+                                            {/* Court Body — Card-based Match Layout */}
+                                            <div className="flex items-center justify-center gap-3 px-4 py-4">
+                                                {/* Team 2 Score */}
+                                                <CourtScoreControl
+                                                    score={scores.s2}
+                                                    isActive={isOccupied && !!currentMatch}
+                                                    onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, 1)}
+                                                    onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, -1)}
+                                                />
 
-                                                <div className="flex-1 flex justify-start">
+                                                {/* Team 2 Players */}
+                                                <div className="flex gap-2">
                                                     {isOccupied && currentMatch ? (
-                                                        <div className="flex items-center gap-6">
-                                                            {[
-                                                                { id: 'team2Player1Id', label: 'Drive' },
-                                                                { id: 'team2Player2Id', label: 'Revés' }
-                                                            ].map(pos => {
-                                                                const pid = currentMatch[pos.id as keyof typeof currentMatch] as string;
-                                                                return (
-                                                                    <button
-                                                                        key={pos.id}
-                                                                        onClick={() => setSelectingFor({ courtId: court.id, slot: pos.id as any })}
-                                                                        className="flex flex-col items-start group/player transition-all"
-                                                                    >
-                                                                        <span className="text-[11px] font-black uppercase italic tracking-tighter text-foreground group-hover/player:text-rojo transition-all">
-                                                                            {getPlayerName(pid)}
-                                                                        </span>
-                                                                        <div className="flex items-center gap-1">
-                                                                            <span className={`text-[6px] font-black uppercase tracking-widest px-1 py-0.5 rounded-sm bg-rojo/10 text-rojo/60`}>
-                                                                                {(() => {
-                                                                                    const side = getPlayerSide(pid);
-                                                                                    return side === 'ambos' ? 'AMBOS' : (side || pos.label);
-                                                                                })()}
-                                                                            </span>
-                                                                        </div>
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
+                                                        <>
+                                                            {(['team2Player1Id', 'team2Player2Id'] as const).map(slot => (
+                                                                <CourtPlayerCard
+                                                                    key={slot}
+                                                                    name={getPlayerName(currentMatch[slot])}
+                                                                    image={getPlayerImage(currentMatch[slot])}
+                                                                    side={getPlayerSide(currentMatch[slot])}
+                                                                    onSwap={() => setSelectingFor({ courtId: court.id, slot })}
+                                                                />
+                                                            ))}
+                                                        </>
                                                     ) : (
-                                                        <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-10">Esperando</span>
+                                                        <>
+                                                            <EmptyPlayerCard />
+                                                            <EmptyPlayerCard />
+                                                        </>
                                                     )}
                                                 </div>
 
-                                                <div className="flex-shrink-0 w-[320px] mx-4 relative h-12">
+                                                {/* Center: VS + Lock */}
+                                                <div className="flex flex-col items-center justify-center gap-1 w-14 flex-none">
+                                                    {!isOccupied && (
+                                                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-slate-500 border border-white/5">
+                                                            <Lock className="w-4 h-4 stroke-[1.5]" />
+                                                        </div>
+                                                    )}
+                                                    <span className="text-[10px] font-black italic text-rojo tracking-[0.2em] select-none">VS</span>
+                                                </div>
+
+                                                {/* Team 1 Players */}
+                                                <div className="flex gap-2">
                                                     {isOccupied && currentMatch ? (
-                                                        <div className="absolute inset-0 bg-foreground shadow-[0_5px_20px_rgba(0,0,0,0.5)] border-y border-white/10" style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)' }}>
-                                                            <div className="h-full flex items-center text-background px-6">
-                                                                <div className="flex-1 flex items-center justify-start gap-3">
-                                                                    <div className="flex flex-col gap-0.5">
-                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 2, 1)} className="w-4 h-4 rounded-sm bg-background/10 hover:bg-rojo flex items-center justify-center transition-all"><Plus className="w-2.5 h-2.5 text-white" /></button>
-                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 2, -1)} className="w-4 h-4 rounded-sm bg-background/10 hover:bg-rojo/50 flex items-center justify-center transition-all"><Minus className="w-2.5 h-2.5 text-white" /></button>
-                                                                    </div>
-                                                                    <span className="text-2xl font-black italic tabular-nums leading-none tracking-tighter">{scores.s2}</span>
-                                                                </div>
-
-                                                                <div className="flex-shrink-0 flex flex-col items-center justify-center">
-                                                                    <span className="text-2xl font-black italic tracking-[0.05em] text-rojo leading-none">VS</span>
-                                                                    <div className="w-5 h-[1px] bg-rojo/20 mt-0.5" />
-                                                                </div>
-
-                                                                <div className="flex-1 flex items-center justify-end gap-3">
-                                                                    <span className="text-2xl font-black italic tabular-nums leading-none tracking-tighter">{scores.s1}</span>
-                                                                    <div className="flex flex-col gap-0.5">
-                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 1, 1)} className="w-4 h-4 rounded-sm bg-background/10 hover:bg-celeste flex items-center justify-center transition-all"><Plus className="w-2.5 h-2.5 text-white" /></button>
-                                                                        <button onClick={() => updateInlineScore(currentMatch.id, 1, -1)} className="w-4 h-4 rounded-sm bg-background/10 hover:bg-celeste/50 flex items-center justify-center transition-all"><Minus className="w-2.5 h-2.5 text-white" /></button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        <>
+                                                            {(['team1Player1Id', 'team1Player2Id'] as const).map(slot => (
+                                                                <CourtPlayerCard
+                                                                    key={slot}
+                                                                    name={getPlayerName(currentMatch[slot])}
+                                                                    image={getPlayerImage(currentMatch[slot])}
+                                                                    side={getPlayerSide(currentMatch[slot])}
+                                                                    onSwap={() => setSelectingFor({ courtId: court.id, slot })}
+                                                                />
+                                                            ))}
+                                                        </>
                                                     ) : (
-                                                        <div className="absolute inset-0 bg-white/5 border border-white/10" style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)' }}>
-                                                            <div className="h-full flex items-center justify-center">
-                                                                <span className="text-[7px] font-black uppercase tracking-[0.8em] opacity-20">Inactivo</span>
-                                                            </div>
-                                                        </div>
+                                                        <>
+                                                            <EmptyPlayerCard />
+                                                            <EmptyPlayerCard />
+                                                        </>
                                                     )}
                                                 </div>
 
-                                                <div className="flex-1 flex justify-end">
-                                                    {isOccupied && currentMatch ? (
-                                                        <div className="flex items-center gap-6 text-right">
-                                                            {[
-                                                                { id: 'team1Player2Id', label: 'Revés' },
-                                                                { id: 'team1Player1Id', label: 'Drive' }
-                                                            ].map(pos => {
-                                                                const pid = currentMatch[pos.id as keyof typeof currentMatch] as string;
-                                                                return (
-                                                                    <button
-                                                                        key={pos.id}
-                                                                        onClick={() => setSelectingFor({ courtId: court.id, slot: pos.id as any })}
-                                                                        className="flex flex-col items-end group/player transition-all"
-                                                                    >
-                                                                        <span className="text-[11px] font-black uppercase italic tracking-tighter text-foreground group-hover/player:text-celeste transition-all">
-                                                                            {getPlayerName(pid)}
-                                                                        </span>
-                                                                        <div className="flex items-center gap-1">
-                                                                            <span className={`text-[6px] font-black uppercase tracking-widest px-1 py-0.5 rounded-sm bg-celeste/10 text-celeste/60`}>
-                                                                                {(() => {
-                                                                                    const side = getPlayerSide(pid);
-                                                                                    return side === 'ambos' ? 'AMBOS' : (side || pos.label);
-                                                                                })()}
-                                                                            </span>
-                                                                        </div>
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-10">Libre</span>
-                                                    )}
-                                                </div>
+                                                {/* Team 1 Score */}
+                                                <CourtScoreControl
+                                                    score={scores.s1}
+                                                    isActive={isOccupied && !!currentMatch}
+                                                    onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, 1)}
+                                                    onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, -1)}
+                                                />
                                             </div>
                                         </div>
                                     );
@@ -1264,6 +1206,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Jugador</th>
                                             <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Lado</th>
                                             <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Partidos</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Pago</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Presente</th>
                                             <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Prioridad</th>
                                         </tr>
                                     </thead>
@@ -1340,6 +1284,31 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             </td>
                                                             <td className="px-4 py-1.5 text-center">
                                                                 <span className="text-[10px] font-black italic">{played}</span>
+                                                            </td>
+                                                            <td className="px-4 py-1.5">
+                                                                <div className="flex justify-center">
+                                                                    <button
+                                                                        onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
+                                                                        className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid
+                                                                            ? 'bg-celeste/10 border-celeste/30 text-celeste'
+                                                                            : 'bg-muted/30 border-border/50 text-muted-foreground/40 hover:border-celeste/40'
+                                                                            }`}
+                                                                    >
+                                                                        <DollarSign className={`w-2.5 h-2.5 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
+                                                                        <span className="text-[7px] font-black uppercase tracking-widest">{reg.hasPaid ? 'Pago' : 'Pend.'}</span>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-1.5">
+                                                                <div className="flex justify-center">
+                                                                    <button
+                                                                        onClick={() => handleTogglePresence(reg.id, reg.status)}
+                                                                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-muted/50 text-muted-foreground opacity-30 hover:opacity-100'
+                                                                            }`}
+                                                                    >
+                                                                        <CheckCircle className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                             <td className="px-4 py-1.5 text-right">
                                                                 <span className={`text-[7px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-muted-foreground/40'
@@ -1580,5 +1549,144 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 )}
             </AnimatePresence>
         </div >
+    );
+}
+
+// ─── Court subcomponents ───────────────────────────────────────────────────
+
+function CourtScoreControl({
+    score,
+    isActive,
+    onIncrement,
+    onDecrement,
+}: {
+    score: number;
+    isActive: boolean;
+    onIncrement: () => void;
+    onDecrement: () => void;
+}) {
+    return (
+        <div className="flex flex-col items-center gap-1 min-w-[44px]">
+            {isActive ? (
+                <button
+                    onClick={onIncrement}
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white transition-all border border-emerald-500/20 group/plus"
+                >
+                    <ChevronUp className="w-4 h-4 stroke-[3] group-hover/plus:scale-125 transition-transform" />
+                </button>
+            ) : <div className="h-7" />}
+
+            <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 border-2 border-white/5 shadow-inner">
+                <span className="text-xl font-black italic tabular-nums tracking-tighter">{score ?? 0}</span>
+            </div>
+
+            {isActive ? (
+                <button
+                    onClick={onDecrement}
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-rojo/10 hover:bg-rojo text-rojo hover:text-white transition-all border border-rojo/20 group/minus"
+                >
+                    <ChevronDown className="w-4 h-4 stroke-[3] group-hover/minus:scale-125 transition-transform" />
+                </button>
+            ) : <div className="h-7" />}
+        </div>
+    );
+}
+
+function CourtPlayerCard({
+    name,
+    image,
+    side,
+    onSwap,
+}: {
+    name: string;
+    image: string | null;
+    side: string | null;
+    onSwap: () => void;
+}) {
+    const cardStyle = { clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' };
+    const isGuest = name.toUpperCase().includes("INVITADO");
+
+    return (
+        <div className="relative group/card cursor-pointer transition-all duration-500 w-[80px] hover:scale-[1.1] hover:z-10">
+            {/* Swap button */}
+            <button
+                onClick={(e) => { e.stopPropagation(); onSwap(); }}
+                className="absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)] bg-slate-900 text-slate-300 border-white/10 hover:bg-azul-primary hover:text-white hover:border-white/20 hover:scale-105 active:scale-95"
+                title="Cambiar Jugador"
+            >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l-4-4M17 20l4-4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </button>
+
+            {/* Card border */}
+            <div className="p-[1px] bg-white/20 transition-all duration-700" style={cardStyle}>
+                <div className="relative h-[120px] overflow-hidden bg-[#020617] flex flex-col" style={cardStyle}>
+                    {/* Background image */}
+                    <div className="absolute inset-0 z-0">
+                        {image ? (
+                            <img src={image} alt={name} className="w-full h-full object-cover transition-all duration-700 group-hover/card:scale-110" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center p-5 bg-[#0f172a]">
+                                <img src="/img/acap%20logo%20svg%20blanco%20sombra.svg" alt="logo" className="w-full h-full object-contain opacity-20" />
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-[#020617]/20 group-hover/card:bg-transparent transition-colors duration-500" />
+                    </div>
+
+                    {/* Side badge */}
+                    {side && side !== 'ambos' && (
+                        <div className="absolute top-2 right-2 z-10 opacity-40 group-hover/card:opacity-100 transition-opacity">
+                            <span className={`text-[6px] font-black uppercase tracking-[0.2em] ${side === 'drive' ? 'text-celeste' : 'text-rojo'}`}>
+                                {side === 'drive' ? 'DRV' : 'RVS'}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Guest badge */}
+                    {isGuest && (
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1 px-1.5 py-0.5 bg-azul-primary border border-white/20 rounded-sm">
+                            <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                            <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
+                        </div>
+                    )}
+
+                    {/* Name plate */}
+                    <div className="mt-auto p-1 z-10 bg-[#020617]">
+                        <div className="py-1 px-2 transform -skew-x-12 relative border-r-2 bg-white border-azul-primary shadow-lg">
+                            <div className="transform skew-x-12 text-center">
+                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-slate-950">
+                                    {name.replace(/INVITADO/gi, "").trim() || "PLAYER"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function EmptyPlayerCard() {
+    const cardStyle = { clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' };
+    return (
+        <div className="relative w-[80px]">
+            <div className="p-[1px] bg-white/5" style={cardStyle}>
+                <div className="relative h-[120px] overflow-hidden bg-[#0f172a] flex flex-col" style={cardStyle}>
+                    <div className="flex-1 flex items-center justify-center p-5">
+                        <img src="/img/acap%20logo%20svg%20blanco%20sombra.svg" alt="logo" className="w-full h-full object-contain opacity-10" />
+                    </div>
+                    <div className="p-1 bg-[#020617]">
+                        <div className="py-1 px-2 transform -skew-x-12 bg-white/10 border-r-2 border-white/10">
+                            <div className="transform skew-x-12 text-center">
+                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-white/30">
+                                    A DEFINIR
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
