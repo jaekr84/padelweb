@@ -33,9 +33,6 @@ export default async function MainLayout({ children }: { children: ReactNode }) 
                 />
             )}
             {session && <FloatingChat currentUserId={session.userId} />}
-            
-            {/* Portal for floating chat and global overlays */}
-            <div id="chat-portal" />
         </div>
     );
 }

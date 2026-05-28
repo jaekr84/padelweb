@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { useEffect, useState, useTransition, useCallback } from "react";
 import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -20,7 +20,6 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/partidos", icon: Users, label: "Partidos" },
-        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -34,7 +33,6 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/club/tournaments", icon: Trophy, label: "Mis Torneos" },
         { href: "/club/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/partidos", icon: Users, label: "Partidos" },
-        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profiles/club", icon: User, label: "Mi Club" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -45,7 +43,6 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
-        { href: "/mensajes", icon: MessageSquare, label: "Mensajes" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
         { href: "/ranking", icon: Star, label: "Ranking" },
@@ -88,12 +85,13 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const [userData, setUserData] = useState<{ name: string; role: string; dbRole: string; imageUrl?: string | null } | null>(
         initialUser || null
     );
-    const [isCollapsed, setIsCollapsed] = useState(false);
-
     // Global Chat Store integration
     const unreadMessages = useChatStore(s => s.unreadCount);
     const refreshChatUnread = useChatStore(s => s.refreshUnread);
-    const { sponsorsVisible, setSponsorsVisible } = useAppStore();
+    const isExpanded = useChatStore(s => s.isExpanded);
+    const setExpanded = useChatStore(s => s.setExpanded);
+    const { sponsorsVisible, setSponsorsVisible, sidebarCollapsed: isCollapsed, setSidebarCollapsed } = useAppStore();
+    const setIsCollapsed = setSidebarCollapsed;
 
     // Pending admin requests badge
     const [pendingRequests, setPendingRequests] = useState(0);
@@ -329,12 +327,35 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto sidebar-scroll">
-                    {navItems.map((item) => {
+                    {navItems.map((item, idx) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
-                        const isMsgs = item.href === "/mensajes";
                         const isRequests = item.href === "/admin/requests";
+
                         return (
+                            <React.Fragment key={item.href + item.label}>
+                            {idx === 1 && (
+                                <button
+                                    onClick={() => setExpanded(!isExpanded)}
+                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all font-semibold text-[13px] ${isExpanded ? 'bg-azul-primary text-white shadow-md shadow-azul-primary/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                    title={isCollapsed ? "Mensajes" : ""}
+                                >
+                                    <div className="relative shrink-0">
+                                        <MessageSquare className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'scale-110' : 'opacity-80'}`} />
+                                        {unreadMessages > 0 && (
+                                            <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                                                {unreadMessages > 9 ? "9+" : unreadMessages}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {!isCollapsed && <span className="tracking-tight truncate flex-1 text-left">Mensajes</span>}
+                                    {!isCollapsed && unreadMessages > 0 && (
+                                        <span className="ml-auto min-w-[18px] px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                                            {unreadMessages > 9 ? "9+" : unreadMessages}
+                                        </span>
+                                    )}
+                                </button>
+                            )}
                             <Link
                                 key={item.href + item.label}
                                 href={item.href}
@@ -343,11 +364,6 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             >
                                 <div className="relative">
                                     <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
-                                    {isMsgs && unreadMessages > 0 && (
-                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
-                                            {unreadMessages > 9 ? "9+" : unreadMessages}
-                                        </span>
-                                    )}
                                     {isRequests && pendingRequests > 0 && (
                                         <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
                                             {pendingRequests > 9 ? "9+" : pendingRequests}
@@ -355,19 +371,16 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     )}
                                 </div>
                                 {!isCollapsed && <span className="tracking-tight pointer-events-none truncate flex-1">{item.label}</span>}
-                                {!isCollapsed && isMsgs && unreadMessages > 0 && (
-                                    <span className="ml-auto min-w-[18px] h-4.5 px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
-                                        {unreadMessages > 9 ? "9+" : unreadMessages}
-                                    </span>
-                                )}
                                 {!isCollapsed && isRequests && pendingRequests > 0 && (
                                     <span className="ml-auto min-w-[18px] h-4.5 px-1 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
                                         {pendingRequests > 9 ? "9+" : pendingRequests}
                                     </span>
                                 )}
                             </Link>
+                            </React.Fragment>
                         );
                     })}
+
                 </nav>
 
                 <SidebarProfileConsole

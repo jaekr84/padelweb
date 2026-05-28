@@ -5,14 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSponsors } from "@/app/actions/sponsors";
 import { useAppStore } from "@/store/useAppStore";
-import { Info, EyeOff } from "lucide-react";
+import { EyeOff, Plus } from "lucide-react";
 
-export default function SponsorSidebar({ 
-    initialSponsors, 
-    userRole 
-}: { 
-    initialSponsors?: any[], 
-    userRole?: string 
+export default function SponsorSidebar({
+    initialSponsors,
+    userRole
+}: {
+    initialSponsors?: any[],
+    userRole?: string
 }) {
     const { sponsorsVisible, setSponsorsVisible } = useAppStore();
     const [sponsors, setSponsors] = useState<any[]>(initialSponsors || []);
@@ -20,11 +20,9 @@ export default function SponsorSidebar({
 
     useEffect(() => {
         if (initialSponsors) return;
-        
         const fetchSponsors = async () => {
             try {
                 const data = await getSponsors();
-                // Solo mostrar sponsors activos
                 setSponsors(data.filter((s: any) => s.isActive));
             } catch (error) {
                 console.error("Error fetching sponsors for sidebar:", error);
@@ -32,64 +30,33 @@ export default function SponsorSidebar({
                 setLoading(false);
             }
         };
-
         fetchSponsors();
     }, [initialSponsors]);
 
     const activeSponsors = sponsors.filter((s: any) => s.isActive);
     const activeCount = activeSponsors.length;
 
-    // Lógica dinámica: Si hay menos de 10, mostramos los activos + 1 placeholder
-    // Si hay muchos, mostramos todos sin placeholders extras
+    const PLACEHOLDER = (n: number) => ({
+        id: `placeholder-${n}`,
+        name: "Espacio disponible",
+        imageUrl: "",
+        link: "https://www.instagram.com/acaparg",
+        isActive: true,
+        isPlaceholder: true,
+    });
+
     const displaySponsors = activeCount < 10
-        ? [
-            ...activeSponsors,
-            {
-                id: "placeholder-invite",
-                name: "Espacio Disponible",
-                imageUrl: "",
-                link: "https://www.instagram.com/acaparg",
-                isActive: true,
-                isPlaceholder: true
-            },
-            {
-                id: "placeholder-invite-2",
-                name: "Espacio Disponible",
-                imageUrl: "",
-                link: "https://www.instagram.com/acaparg",
-                isActive: true,
-                isPlaceholder: true
-            },
-            {
-                id: "placeholder-invite-3",
-                name: "Espacio Disponible",
-                imageUrl: "",
-                link: "https://www.instagram.com/acaparg",
-                isActive: true,
-                isPlaceholder: true
-            }
-        ]
+        ? [...activeSponsors, PLACEHOLDER(1), PLACEHOLDER(2), PLACEHOLDER(3)]
         : activeSponsors;
-
-    // Configuración de layout dinámica
-    const getLayoutConfig = () => {
-        return { cols: "grid-cols-1", aspect: "aspect-[2/1]" };
-    };
-
-    const { cols, aspect } = getLayoutConfig();
 
     if (!sponsorsVisible) return null;
 
     if (loading) {
         return (
-            <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 animate-pulse">
-                <div className="p-5 pb-3 flex flex-col border-b border-border/50 mb-4 items-center">
-                    <div className="h-3 w-16 bg-muted rounded mb-2" />
-                    <div className="h-6 w-32 bg-muted rounded" />
-                </div>
-                <div className="px-4 space-y-3">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="aspect-[2/1] w-full bg-muted rounded-2xl" />
+            <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-slate-100 bg-white">
+                <div className="flex-1 flex flex-col min-h-0">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="flex-1 min-h-0 w-full bg-slate-100 animate-pulse border-b border-white" />
                     ))}
                 </div>
             </aside>
@@ -97,61 +64,55 @@ export default function SponsorSidebar({
     }
 
     return (
-        <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1 relative group/sidebar">
+        <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-slate-100 bg-white group/sidebar relative overflow-hidden">
+
+            {/* Banners — sin contenedores, directo borde a borde */}
+            <div className="flex-1 flex flex-col min-h-0">
+                {displaySponsors.map((s: any) => (
+                    s.imageUrl ? (
+                        <Link
+                            key={s.id}
+                            href={s.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group/card relative flex-1 min-h-0 overflow-hidden border-b border-slate-100 last:border-0"
+                        >
+                            <Image
+                                src={s.imageUrl}
+                                alt={s.name}
+                                fill
+                                className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                sizes="176px"
+                                priority={activeCount <= 4}
+                            />
+                        </Link>
+                    ) : (
+                        <a
+                            key={s.id}
+                            href="https://www.instagram.com/acaparg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group/ph relative flex-1 min-h-0 border-b border-dashed border-slate-100 last:border-0 bg-slate-50/50 hover:bg-indigo-50/30 transition-colors flex flex-col items-center justify-center gap-1"
+                        >
+                            <Plus className="w-3 h-3 text-slate-300 group-hover/ph:text-indigo-400 transition-colors" />
+                            <span className="text-[7px] font-bold uppercase tracking-widest text-slate-300 group-hover/ph:text-indigo-400 transition-colors">
+                                Tu marca
+                            </span>
+                        </a>
+                    )
+                ))}
+            </div>
+
+            {/* Botón ocultar — solo superadmin, visible al hover */}
             {userRole === "superadmin" && (
                 <button
                     onClick={() => setSponsorsVisible(false)}
-                    className="absolute top-2 right-2 z-10 opacity-0 group-hover/sidebar:opacity-100 p-1 hover:bg-slate-100 rounded-md transition-all text-slate-400 hover:text-red-500"
-                    title="Ocultar Sidebar (Solo Admin)"
+                    className="absolute bottom-2 right-2 opacity-0 group-hover/sidebar:opacity-100 p-1 rounded-md text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all"
+                    title="Ocultar sidebar"
                 >
                     <EyeOff className="w-3 h-3" />
                 </button>
             )}
-
-            <div className="flex-1 px-2.5 py-2 overflow-y-auto scrollbar-hide">
-                <div className={`grid ${cols} gap-2 pb-4`}>
-                    {displaySponsors.map((s: any) => (
-                        <div key={s.id} className="group relative">
-                            {s.imageUrl ? (
-                                <Link
-                                    href={s.link || "#"}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`block relative ${aspect} w-full rounded-2xl overflow-hidden border border-border bg-white/[0.02] transition-all duration-300 hover:border-indigo-500/30 hover:shadow-xl group-hover:-translate-y-1 shadow-sm`}
-                                >
-                                    <Image
-                                        src={s.imageUrl}
-                                        alt={s.name}
-                                        fill
-                                        className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                                        sizes="(max-width: 1280px) 0px, 300px"
-                                        priority={activeCount <= 4}
-                                    />
-                                    <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors" />
-                                </Link>
-                            ) : (
-                                <a
-                                    href="https://www.instagram.com/acaparg"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`block relative ${aspect} w-full rounded-2xl border-2 border-dashed border-border/30 bg-muted/5 hover:bg-indigo-50/10 transition-all group-hover:border-indigo-500/20 group-hover:shadow-lg group-hover:-translate-y-1`}
-                                >
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
-                                        <div className="w-6 h-6 rounded-full bg-muted/20 flex items-center justify-center mb-2 group-hover:bg-indigo-500/10 group-hover:scale-110 transition-all">
-                                            <Info className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-indigo-500 transition-colors" />
-                                        </div>
-                                        <div className="space-y-0.5">
-                                            <span className="block text-[8px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">Espacio</span>
-                                            <span className="block text-[10px] font-black uppercase text-indigo-600/40 tracking-widest">Disponible</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            )}
-                        </div>
-                    ))}
-                </div>
-
-            </div>
         </aside>
     );
 }

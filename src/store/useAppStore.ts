@@ -5,6 +5,8 @@ interface AppState {
     // UI state
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
+    sidebarCollapsed: boolean;
+    setSidebarCollapsed: (collapsed: boolean) => void;
     sponsorsVisible: boolean;
     setSponsorsVisible: (visible: boolean) => void;
     
@@ -25,6 +27,8 @@ export const useAppStore = create<AppState>()(
         (set) => ({
             sidebarOpen: false,
             setSidebarOpen: (open) => set({ sidebarOpen: open }),
+            sidebarCollapsed: false,
+            setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
             sponsorsVisible: true,
             setSponsorsVisible: (visible) => set({ sponsorsVisible: visible }),
             
@@ -53,9 +57,10 @@ export const useAppStore = create<AppState>()(
         {
             name: "padelweb-storage",
             // Only persist UI state, not temporary filters if preferred
-            partialize: (state) => ({ 
+            partialize: (state) => ({
                 sidebarOpen: state.sidebarOpen,
-                sponsorsVisible: state.sponsorsVisible 
+                sidebarCollapsed: state.sidebarCollapsed,
+                sponsorsVisible: state.sponsorsVisible
             }),
         }
     )
