@@ -214,6 +214,18 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
         return found ? found.name : "Invitado";
     };
 
+    const getResultsPlayerImage = (id: string | null): string | null => {
+        if (!id) return null;
+        const found = resultsPlayers.find((p) => p.userId === id);
+        return found?.image ?? null;
+    };
+
+    const getResultsPlayerSide = (id: string | null): string | null => {
+        if (!id) return null;
+        const found = resultsPlayers.find((p) => p.userId === id);
+        return found?.side ?? null;
+    };
+
     const highlightText = (text: string, query: string) => {
         if (!query) return text;
         const parts = text.split(new RegExp(`(${query})`, "gi"));
@@ -1069,34 +1081,49 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                                                         )}
                                                     </div>
 
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        {/* Team 1 Players */}
-                                                        <div className="flex-1 min-w-0 text-left">
-                                                            <p className="text-[9px] font-black uppercase italic truncate text-foreground/80 leading-tight">
-                                                                {highlightText(getResultsPlayerName(match.team1Player1Id), resultsSearchQuery)}
-                                                            </p>
-                                                            <p className="text-[9px] font-black uppercase italic truncate text-foreground/80 mt-1 leading-tight">
-                                                                {highlightText(getResultsPlayerName(match.team1Player2Id), resultsSearchQuery)}
-                                                            </p>
+                                                    {/* Profile Cards Layout */}
+                                                    <div className="flex items-center gap-2">
+                                                        {/* Team 1 */}
+                                                        <div className="flex flex-1 gap-1.5 justify-end">
+                                                            <ResultsMatchPlayerCard
+                                                                name={getResultsPlayerName(match.team1Player1Id)}
+                                                                image={getResultsPlayerImage(match.team1Player1Id)}
+                                                                side={getResultsPlayerSide(match.team1Player1Id)}
+                                                                isWinner={(match.score1 ?? 0) > (match.score2 ?? 0)}
+                                                            />
+                                                            <ResultsMatchPlayerCard
+                                                                name={getResultsPlayerName(match.team1Player2Id)}
+                                                                image={getResultsPlayerImage(match.team1Player2Id)}
+                                                                side={getResultsPlayerSide(match.team1Player2Id)}
+                                                                isWinner={(match.score1 ?? 0) > (match.score2 ?? 0)}
+                                                            />
                                                         </div>
 
-                                                        {/* Slanted Neon Score Plate */}
-                                                        <div
-                                                            className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-700/60 px-3.5 py-1 text-xs font-black font-mono skew-x-[-12deg] shadow-inner text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)] shrink-0 min-w-[70px] h-8"
-                                                        >
-                                                            <span>{match.score1 ?? 0}</span>
-                                                            <span className="text-[9px] text-slate-500">:</span>
-                                                            <span>{match.score2 ?? 0}</span>
+                                                        {/* Score Plate */}
+                                                        <div className="flex flex-col items-center shrink-0 gap-0.5">
+                                                            <div
+                                                                className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-700/60 px-3 py-1 text-xs font-black font-mono skew-x-[-12deg] shadow-inner text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)] min-w-[60px] h-7"
+                                                            >
+                                                                <span>{match.score1 ?? 0}</span>
+                                                                <span className="text-[9px] text-slate-500">:</span>
+                                                                <span>{match.score2 ?? 0}</span>
+                                                            </div>
                                                         </div>
 
-                                                        {/* Team 2 Players */}
-                                                        <div className="flex-1 min-w-0 text-right">
-                                                            <p className="text-[9px] font-black uppercase italic truncate text-foreground/80 leading-tight">
-                                                                {highlightText(getResultsPlayerName(match.team2Player1Id), resultsSearchQuery)}
-                                                            </p>
-                                                            <p className="text-[9px] font-black uppercase italic truncate text-foreground/80 mt-1 leading-tight">
-                                                                {highlightText(getResultsPlayerName(match.team2Player2Id), resultsSearchQuery)}
-                                                            </p>
+                                                        {/* Team 2 */}
+                                                        <div className="flex flex-1 gap-1.5 justify-start">
+                                                            <ResultsMatchPlayerCard
+                                                                name={getResultsPlayerName(match.team2Player1Id)}
+                                                                image={getResultsPlayerImage(match.team2Player1Id)}
+                                                                side={getResultsPlayerSide(match.team2Player1Id)}
+                                                                isWinner={(match.score2 ?? 0) > (match.score1 ?? 0)}
+                                                            />
+                                                            <ResultsMatchPlayerCard
+                                                                name={getResultsPlayerName(match.team2Player2Id)}
+                                                                image={getResultsPlayerImage(match.team2Player2Id)}
+                                                                side={getResultsPlayerSide(match.team2Player2Id)}
+                                                                isWinner={(match.score2 ?? 0) > (match.score1 ?? 0)}
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1130,6 +1157,84 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
                     </div>
                 )}
             </AnimatePresence>
+        </div>
+    );
+}
+
+function ResultsMatchPlayerCard({
+    name,
+    image,
+    side,
+    isWinner,
+}: {
+    name: string;
+    image: string | null;
+    side: string | null;
+    isWinner: boolean;
+}) {
+    const cardStyle = { clipPath: "polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)" };
+    const firstName = name.split(" ")[0] ?? name;
+    const lastName = name.split(" ").slice(1).join(" ");
+
+    return (
+        <div className="flex flex-col items-center gap-1 w-[68px] shrink-0">
+            <div
+                className="relative w-[68px] h-[80px] overflow-hidden"
+                style={{
+                    ...cardStyle,
+                    border: isWinner
+                        ? "1.5px solid rgba(52,211,153,0.7)"
+                        : "1.5px solid rgba(255,255,255,0.08)",
+                    boxShadow: isWinner ? "0 0 12px rgba(52,211,153,0.25)" : "none",
+                    background: "#020617",
+                }}
+            >
+                {image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ filter: isWinner ? "none" : "grayscale(30%)" }}
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                        <span className="text-xl font-black text-slate-600 uppercase">{name[0]}</span>
+                    </div>
+                )}
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/90 via-[#020617]/20 to-transparent" />
+                {/* Side badge */}
+                {side && (
+                    <div className="absolute top-1 right-1 px-1 py-0.5 bg-black/70 border border-white/10 rounded text-[6px] font-black uppercase tracking-wider text-slate-300">
+                        {side}
+                    </div>
+                )}
+                {/* Winner star */}
+                {isWinner && (
+                    <div className="absolute top-1 left-1 w-3 h-3 rounded-full bg-emerald-500/90 flex items-center justify-center">
+                        <span className="text-[7px] text-white font-black">★</span>
+                    </div>
+                )}
+                {/* Name plate */}
+                <div
+                    className="absolute bottom-0 left-0 right-0 px-1 py-0.5"
+                    style={{
+                        background: isWinner
+                            ? "linear-gradient(135deg, rgba(52,211,153,0.85) 0%, rgba(16,185,129,0.75) 100%)"
+                            : "linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.85) 100%)",
+                        transform: "skewX(-6deg)",
+                    }}
+                >
+                    <p className="text-[7px] font-black uppercase tracking-wider text-white truncate leading-none" style={{ transform: "skewX(6deg)" }}>
+                        {firstName}
+                    </p>
+                    {lastName && (
+                        <p className="text-[6px] font-bold uppercase tracking-wider text-white/70 truncate leading-none mt-0.5" style={{ transform: "skewX(6deg)" }}>
+                            {lastName}
+                        </p>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

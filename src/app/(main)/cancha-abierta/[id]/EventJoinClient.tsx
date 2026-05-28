@@ -51,6 +51,16 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
         return p ? p.name : "Invitado";
     };
 
+    const getPlayerImage = (id: string): string | null => {
+        const p = participants.find(p => p.userId === id);
+        return p?.image ?? null;
+    };
+
+    const getPlayerSide = (id: string): string | null => {
+        const p = participants.find(p => p.userId === id);
+        return p?.side ?? null;
+    };
+
     const q = searchQuery.trim().toLowerCase();
 
     const highlightQuery = (name: string) => {
@@ -208,16 +218,16 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Sin partidos que coincidan con «{searchQuery}».</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {filteredMatches.map((match, i) => {
                                             const s1 = match.score1 ?? 0, s2 = match.score2 ?? 0;
                                             const t1wins = s1 > s2, t2wins = s2 > s1;
                                             return (
-                                                <div key={match.id} className="relative bg-card/60 border border-border/60 rounded-lg overflow-hidden"
-                                                    style={{ clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
-                                                    <div className="flex items-center justify-between px-3 py-1 border-b border-border/40 bg-muted/15">
+                                                <div key={match.id} className="bg-[#020617] border border-white/8 rounded-xl overflow-hidden shadow-xl">
+                                                    {/* Header */}
+                                                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/5 bg-white/[0.02]">
                                                         <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-1">
-                                                            <Zap className="w-2 h-2 text-orange-400" /> Cancha {i + 1}
+                                                            <Zap className="w-2 h-2 text-orange-400" /> Partido {i + 1}
                                                         </span>
                                                         {match.finishedAt && (
                                                             <span className="text-[6px] font-mono text-muted-foreground/40">
@@ -225,24 +235,52 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <div className="grid grid-cols-3 items-center gap-2 px-3 py-2.5">
+                                                    {/* Match body */}
+                                                    <div className="flex items-center justify-between gap-2 px-3 py-3">
                                                         {/* Team 1 */}
-                                                        <div className={`space-y-0.5 ${t1wins ? "opacity-100" : "opacity-60"}`}>
-                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team1Player1Id))}</p>
-                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team1Player2Id))}</p>
+                                                        <div className={`flex gap-2 transition-opacity ${t1wins ? "opacity-100" : "opacity-50"}`}>
+                                                            <MatchPlayerCard
+                                                                name={getPlayerName(match.team1Player1Id)}
+                                                                image={getPlayerImage(match.team1Player1Id)}
+                                                                side={getPlayerSide(match.team1Player1Id)}
+                                                                isWinner={t1wins}
+                                                                highlight={q ? getPlayerName(match.team1Player1Id).toLowerCase().includes(q) : false}
+                                                            />
+                                                            <MatchPlayerCard
+                                                                name={getPlayerName(match.team1Player2Id)}
+                                                                image={getPlayerImage(match.team1Player2Id)}
+                                                                side={getPlayerSide(match.team1Player2Id)}
+                                                                isWinner={t1wins}
+                                                                highlight={q ? getPlayerName(match.team1Player2Id).toLowerCase().includes(q) : false}
+                                                            />
                                                         </div>
-                                                        {/* Score plate */}
-                                                        <div className="flex items-center justify-center">
-                                                            <div className="bg-slate-900 border border-slate-700/60 px-3 py-1 skew-x-[-10deg] flex items-center gap-2 shadow-inner">
-                                                                <span className={`text-sm font-black font-mono ${t1wins ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" : "text-slate-400"}`}>{s1}</span>
-                                                                <span className="text-[8px] text-slate-600">:</span>
-                                                                <span className={`text-sm font-black font-mono ${t2wins ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" : "text-slate-400"}`}>{s2}</span>
+
+                                                        {/* Score */}
+                                                        <div className="flex flex-col items-center gap-1 shrink-0">
+                                                            <div className="bg-slate-900 border border-slate-700/60 px-3 py-1.5 skew-x-[-8deg] flex items-center gap-2 shadow-inner">
+                                                                <span className={`text-base font-black font-mono ${t1wins ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]" : "text-slate-400"}`}>{s1}</span>
+                                                                <span className="text-[8px] text-slate-600 font-black">:</span>
+                                                                <span className={`text-base font-black font-mono ${t2wins ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]" : "text-slate-400"}`}>{s2}</span>
                                                             </div>
+                                                            <span className="text-[7px] font-black uppercase tracking-widest text-rojo italic">VS</span>
                                                         </div>
+
                                                         {/* Team 2 */}
-                                                        <div className={`space-y-0.5 text-right ${t2wins ? "opacity-100" : "opacity-60"}`}>
-                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team2Player1Id))}</p>
-                                                            <p className="text-[8px] font-black uppercase italic truncate">{highlightQuery(getPlayerName(match.team2Player2Id))}</p>
+                                                        <div className={`flex gap-2 transition-opacity ${t2wins ? "opacity-100" : "opacity-50"}`}>
+                                                            <MatchPlayerCard
+                                                                name={getPlayerName(match.team2Player1Id)}
+                                                                image={getPlayerImage(match.team2Player1Id)}
+                                                                side={getPlayerSide(match.team2Player1Id)}
+                                                                isWinner={t2wins}
+                                                                highlight={q ? getPlayerName(match.team2Player1Id).toLowerCase().includes(q) : false}
+                                                            />
+                                                            <MatchPlayerCard
+                                                                name={getPlayerName(match.team2Player2Id)}
+                                                                image={getPlayerImage(match.team2Player2Id)}
+                                                                side={getPlayerSide(match.team2Player2Id)}
+                                                                isWinner={t2wins}
+                                                                highlight={q ? getPlayerName(match.team2Player2Id).toLowerCase().includes(q) : false}
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -355,6 +393,82 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                             </motion.div>
                         )}
                     </AnimatePresence>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Match Player Card ────────────────────────────────────────────────────────
+
+function MatchPlayerCard({
+    name,
+    image,
+    side,
+    isWinner,
+    highlight,
+}: {
+    name: string;
+    image: string | null;
+    side: string | null;
+    isWinner: boolean;
+    highlight: boolean;
+}) {
+    const cardStyle = { clipPath: "polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)" };
+    const isGuest = name.toUpperCase().includes("INVITADO");
+    const shortName = name.replace(/INVITADO/gi, "").trim() || "PLAYER";
+
+    return (
+        <div className="relative group/card transition-all duration-300 w-[68px] hover:scale-105 hover:z-10">
+            <div
+                className={`p-[1px] transition-all duration-500 ${isWinner ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]" : highlight ? "bg-azul-primary shadow-[0_0_10px_rgba(30,64,175,0.4)]" : "bg-white/15"}`}
+                style={cardStyle}
+            >
+                <div className="relative h-[100px] overflow-hidden bg-[#020617] flex flex-col" style={cardStyle}>
+                    {/* Background image */}
+                    <div className="absolute inset-0 z-0">
+                        {image ? (
+                            <img src={image} alt={name} className="w-full h-full object-cover transition-all duration-500 group-hover/card:scale-110" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center p-4 bg-[#0f172a]">
+                                <img src="/img/acap%20logo%20svg%20blanco%20sombra.svg" alt="logo" className="w-full h-full object-contain opacity-20" />
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-[#020617]/20 group-hover/card:bg-transparent transition-colors duration-500" />
+                    </div>
+
+                    {/* Side badge */}
+                    {side && side !== "ambos" && (
+                        <div className="absolute top-1.5 right-1.5 z-10 opacity-50 group-hover/card:opacity-100 transition-opacity">
+                            <span className={`text-[5px] font-black uppercase tracking-[0.2em] ${side === "drive" ? "text-celeste" : "text-rojo"}`}>
+                                {side === "drive" ? "DRV" : "RVS"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Guest badge */}
+                    {isGuest && (
+                        <div className="absolute top-1.5 left-1.5 z-20 px-1 py-0.5 bg-azul-primary border border-white/20 rounded-sm flex items-center gap-0.5">
+                            <div className="w-1 h-1 rounded-full bg-white" />
+                            <span className="text-[4px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
+                        </div>
+                    )}
+
+                    {/* Winner glow ring */}
+                    {isWinner && (
+                        <div className="absolute inset-0 pointer-events-none ring-1 ring-emerald-500/60 z-20" style={cardStyle} />
+                    )}
+
+                    {/* Name plate */}
+                    <div className="mt-auto p-1 z-10 bg-[#020617]">
+                        <div className={`py-0.5 px-1.5 transform -skew-x-12 border-r-2 shadow-lg ${isWinner ? "bg-emerald-500 border-white" : "bg-white border-azul-primary"}`}>
+                            <div className="transform skew-x-12 text-center">
+                                <span className={`block text-[7px] font-black uppercase italic leading-none truncate ${isWinner ? "text-white" : "text-slate-950"}`}>
+                                    {shortName}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

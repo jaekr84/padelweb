@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
     ArrowLeft, Users2, Swords, ChevronRight,
-    Check, RefreshCw, Settings
+    Check, RefreshCw, Settings, Eye
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -137,6 +137,15 @@ export function TournamentHeader({
                                         <Settings className="w-3.5 h-3.5" />
                                     </Link>
                                 )}
+
+                                <Link
+                                    href={`/tournaments/${tournamentId}/resultados`}
+                                    target="_blank"
+                                    className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all"
+                                    title="Ver resultados públicos"
+                                >
+                                    <Eye className="w-3.5 h-3.5" />
+                                </Link>
 
                                 <button
                                     onClick={handleRefresh}

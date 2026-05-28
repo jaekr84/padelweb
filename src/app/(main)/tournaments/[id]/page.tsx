@@ -290,41 +290,39 @@ export default async function TournamentDisplayPage({ params }: Props) {
         winnerName: bm.winnerName ?? undefined,
     }));
 
+    // Non-managers (jugadores, público) ven la página de resultados pública
+    if (!canManage) {
+        redirect(`/tournaments/${id}/resultados`);
+    }
+
     const isFinished = tournament.status === "finalizado";
-    const isReadOnly = !canManage || isFinished;
 
     if (tournament.type === 'americano') {
         return (
-            <>
-                {publicHeader}
-                <AmericanoManager
-                    tournamentId={tournament.id}
-                    tournamentName={tournament.name}
-                    initialGroups={initialGroups}
-                    initialMatches={mappedMatches}
-                    initialBracket={mappedBracket}
-                    initialStatus={tournament.status}
-                    readOnly={isReadOnly}
-                    isLoggedIn={isLoggedIn}
-                />
-            </>
-        );
-    }
-
-    return (
-        <>
-            {publicHeader}
-            <TournamentManager
+            <AmericanoManager
                 tournamentId={tournament.id}
                 tournamentName={tournament.name}
                 initialGroups={initialGroups}
                 initialMatches={mappedMatches}
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
-                initialPresent={(tournament.presentPlayerIds as string[]) || []}
-                readOnly={isReadOnly}
+                readOnly={isFinished}
                 isLoggedIn={isLoggedIn}
             />
-        </>
+        );
+    }
+
+    return (
+        <TournamentManager
+            tournamentId={tournament.id}
+            tournamentName={tournament.name}
+            initialGroups={initialGroups}
+            initialMatches={mappedMatches}
+            initialBracket={mappedBracket}
+            initialStatus={tournament.status}
+            initialPresent={(tournament.presentPlayerIds as string[]) || []}
+            readOnly={isFinished}
+            isLoggedIn={isLoggedIn}
+        />
     );
 }
