@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSponsors } from "@/app/actions/sponsors";
 import { useAppStore } from "@/store/useAppStore";
-import { ExternalLink, Info, EyeOff } from "lucide-react";
+import { Info, EyeOff } from "lucide-react";
 
 export default function SponsorSidebar({ 
     initialSponsors, 
@@ -51,6 +51,22 @@ export default function SponsorSidebar({
                 link: "https://www.instagram.com/acaparg",
                 isActive: true,
                 isPlaceholder: true
+            },
+            {
+                id: "placeholder-invite-2",
+                name: "Espacio Disponible",
+                imageUrl: "",
+                link: "https://www.instagram.com/acaparg",
+                isActive: true,
+                isPlaceholder: true
+            },
+            {
+                id: "placeholder-invite-3",
+                name: "Espacio Disponible",
+                imageUrl: "",
+                link: "https://www.instagram.com/acaparg",
+                isActive: true,
+                isPlaceholder: true
             }
         ]
         : activeSponsors;
@@ -81,22 +97,16 @@ export default function SponsorSidebar({
     }
 
     return (
-        <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1">
-            <div className="p-3 pb-2 flex flex-col border-b border-border/50 mb-3 bg-white/50 backdrop-blur-sm relative group/sidebar">
-                <div className="flex items-center justify-between mb-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Publicidad</span>
-                    {userRole === "superadmin" && (
-                        <button
-                            onClick={() => setSponsorsVisible(false)}
-                            className="opacity-0 group-hover/sidebar:opacity-100 p-1 hover:bg-slate-100 rounded-md transition-all text-slate-400 hover:text-red-500"
-                            title="Ocultar Sidebar (Solo Admin)"
-                        >
-                            <EyeOff className="w-3 h-3" />
-                        </button>
-                    )}
-                </div>
-                <h2 className="text-sm font-extrabold tracking-tight text-foreground leading-none uppercase">SPONSORS <span className="text-indigo-600 italic uppercase">A.C.A.P.</span></h2>
-            </div>
+        <aside className="hidden xl:flex w-40 border-l border-border bg-background flex-col h-screen sticky top-0 z-40 translate-x-1 relative group/sidebar">
+            {userRole === "superadmin" && (
+                <button
+                    onClick={() => setSponsorsVisible(false)}
+                    className="absolute top-2 right-2 z-10 opacity-0 group-hover/sidebar:opacity-100 p-1 hover:bg-slate-100 rounded-md transition-all text-slate-400 hover:text-red-500"
+                    title="Ocultar Sidebar (Solo Admin)"
+                >
+                    <EyeOff className="w-3 h-3" />
+                </button>
+            )}
 
             <div className="flex-1 px-2.5 py-2 overflow-y-auto scrollbar-hide">
                 <div className={`grid ${cols} gap-2 pb-4`}>
@@ -141,28 +151,6 @@ export default function SponsorSidebar({
                     ))}
                 </div>
 
-                {/* Promotional CTA */}
-                <div className="px-0.5 mb-6">
-                    <a
-                        href="https://www.instagram.com/acaparg"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block group relative overflow-hidden rounded-xl p-3 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 transition-all hover:translate-y-[-2px] hover:shadow-indigo-600/30 active:translate-y-0"
-                    >
-                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
-                        <div className="flex items-center justify-between relative z-10">
-                            <div className="flex flex-col">
-                                <h3 className="text-[11px] font-black uppercase tracking-tight leading-none mb-1">Tu marca aquí</h3>
-                                <p className="text-[9px] text-indigo-100/80 leading-tight font-medium">
-                                    Únete a la red ACAP
-                                </p>
-                            </div>
-                            <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                                <ExternalLink className="w-3 h-3 text-white" />
-                            </div>
-                        </div>
-                    </a>
-                </div>
             </div>
         </aside>
     );

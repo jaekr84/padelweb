@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition, useCallback } from "react";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -10,6 +10,7 @@ import { switchActiveRole } from "@/app/actions/role";
 import { useChatStore } from "@/store/useChatStore";
 import { useAppStore } from "@/store/useAppStore";
 import { SidebarProfileConsole } from "@/components/ui/SidebarProfileConsole";
+import { getPendingRequestsCount } from "@/app/(main)/admin/requests/actions";
 
 type NavItem = { href: string; icon: any; label: string };
 
@@ -50,11 +51,12 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/ranking", icon: Star, label: "Ranking" },
         { href: "/reglamento", icon: BookOpen, label: "Reglamento" },
         { href: "/directory", icon: FolderOpen, label: "Clubes" },
-        { href: "/admin", icon: LayoutDashboard, label: "Administración" },
+        { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/admin/invitations", icon: UserPlus, label: "Invitaciones" },
         { href: "/admin/users", icon: Users, label: "Usuarios" },
         { href: "/admin/requests", icon: MessageSquare, label: "Solicitudes" },
         { href: "/admin/promotions", icon: TrendingUp, label: "Promociones" },
+        { href: "/admin/sponsors", icon: BadgeDollarSign, label: "Sponsors" },
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
         { href: "/admin/puntosTorneo", icon: Zap, label: "Puntos" },
     ],
@@ -93,6 +95,9 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     const refreshChatUnread = useChatStore(s => s.refreshUnread);
     const { sponsorsVisible, setSponsorsVisible } = useAppStore();
 
+    // Pending admin requests badge
+    const [pendingRequests, setPendingRequests] = useState(0);
+
     const pathname = usePathname();
     const router = useRouter();
 
@@ -102,6 +107,19 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
         // We just need to ensure the store is initialized
         refreshChatUnread();
     }, [initialUser?.name, refreshChatUnread]);
+
+    // Pending requests badge: refresca al cambiar de ruta y al recuperar foco (sin polling)
+    useEffect(() => {
+        if (role !== "superadmin") return;
+        getPendingRequestsCount().then(setPendingRequests);
+    }, [pathname, role]);
+
+    useEffect(() => {
+        if (role !== "superadmin") return;
+        const onFocus = () => getPendingRequestsCount().then(setPendingRequests);
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, [role]);
 
     useEffect(() => {
         if (initialUser && initialUser !== userData) {
@@ -315,6 +333,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         const isMsgs = item.href === "/mensajes";
+                        const isRequests = item.href === "/admin/requests";
                         return (
                             <Link
                                 key={item.href + item.label}
@@ -329,11 +348,21 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                             {unreadMessages > 9 ? "9+" : unreadMessages}
                                         </span>
                                     )}
+                                    {isRequests && pendingRequests > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
+                                            {pendingRequests > 9 ? "9+" : pendingRequests}
+                                        </span>
+                                    )}
                                 </div>
                                 {!isCollapsed && <span className="tracking-tight pointer-events-none truncate flex-1">{item.label}</span>}
                                 {!isCollapsed && isMsgs && unreadMessages > 0 && (
                                     <span className="ml-auto min-w-[18px] h-4.5 px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
                                         {unreadMessages > 9 ? "9+" : unreadMessages}
+                                    </span>
+                                )}
+                                {!isCollapsed && isRequests && pendingRequests > 0 && (
+                                    <span className="ml-auto min-w-[18px] h-4.5 px-1 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
+                                        {pendingRequests > 9 ? "9+" : pendingRequests}
                                     </span>
                                 )}
                             </Link>

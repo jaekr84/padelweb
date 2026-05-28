@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { registrationRequests, contactMessages } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, or, count } from "drizzle-orm";
 import { checkAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
@@ -63,4 +63,24 @@ export async function deleteMessageAction(id: string) {
 
     await db.delete(contactMessages).where(eq(contactMessages.id, id));
     revalidatePath("/admin/requests");
+}
+
+// Badge count: pending registration requests + unread contact messages
+export async function getPendingRequestsCount(): Promise<number> {
+    try {
+        if (!(await checkAdmin())) return 0;
+
+        const [regResult, msgResult] = await Promise.all([
+            db.select({ value: count() })
+                .from(registrationRequests)
+                .where(eq(registrationRequests.status, "pendiente")),
+            db.select({ value: count() })
+                .from(contactMessages)
+                .where(eq(contactMessages.status, "pendiente")),
+        ]);
+
+        return (regResult[0]?.value ?? 0) + (msgResult[0]?.value ?? 0);
+    } catch {
+        return 0;
+    }
 }

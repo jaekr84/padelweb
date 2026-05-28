@@ -8,8 +8,9 @@ import {
     Image as ImageIcon, X, MessageSquare, Loader2,
     Check, Users2, Trophy, Clock,
     ChevronLeft, ChevronRight, Plus,
-    Activity, Zap, Compass, Share2
+    Activity, Zap, Compass, Share2, Megaphone, Send
 } from "lucide-react";
+import { submitContactForm } from "@/app/actions/contact";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -146,6 +147,48 @@ export default function HomeClient({
     const [selectedImages, setSelectedImages] = useState<{ id: string, file: File, preview: string }[]>([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [postState, setPostState] = useState<ActionState>('idle');
+
+    // Banner/sponsor modal state
+    const [bannerModalOpen, setBannerModalOpen] = useState(false);
+    const [bannerForm, setBannerForm] = useState({
+        name: currentUser?.name || "",
+        email: "",
+        message: "Hola, me gustaría consultar sobre la posibilidad de colocar un banner publicitario en la plataforma de A.C.A.P."
+    });
+    const [bannerSending, setBannerSending] = useState(false);
+    const [bannerSent, setBannerSent] = useState(false);
+
+    const handleBannerSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!bannerForm.name || !bannerForm.email || !bannerForm.message) {
+            toast.error("Completá todos los campos");
+            return;
+        }
+        setBannerSending(true);
+        try {
+            const result = await submitContactForm({
+                name: bannerForm.name,
+                email: bannerForm.email,
+                subject: "Solicitud de banner publicitario",
+                message: bannerForm.message,
+            });
+            if (result.success) {
+                setBannerSent(true);
+                toast.success("¡Mensaje enviado! Los admins lo recibirán pronto.");
+                setTimeout(() => {
+                    setBannerModalOpen(false);
+                    setBannerSent(false);
+                    setBannerForm(f => ({ ...f, email: "", message: "Hola, me gustaría consultar sobre la posibilidad de colocar un banner publicitario en la plataforma de A.C.A.P." }));
+                }, 2000);
+            } else {
+                toast.error(result.error || "Error al enviar el mensaje");
+            }
+        } catch {
+            toast.error("Error al enviar el mensaje");
+        } finally {
+            setBannerSending(false);
+        }
+    };
 
     // Memoize permission check
     const canPost = useMemo(() =>
@@ -301,6 +344,110 @@ export default function HomeClient({
                     </div>
                 </div>
             </div>
+
+            {/* Sponsor Banner Row */}
+            <div className="sticky top-[73px] z-20 bg-indigo-600/95 backdrop-blur-sm border-b border-indigo-700/50 px-4">
+                <div className="max-w-[1300px] mx-auto flex items-center justify-between gap-3 py-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Megaphone className="w-3.5 h-3.5 text-indigo-200 shrink-0" />
+                        <p className="text-[11px] font-semibold text-indigo-100 truncate">
+                            ¿Querés aparecer como sponsor en la plataforma? Contactá a los admins de A.C.A.P.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setBannerModalOpen(true)}
+                        className="shrink-0 text-[10px] font-black uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 border border-white/30 rounded-lg px-3 py-1 transition-all active:scale-95"
+                    >
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+
+            {/* Banner Request Modal */}
+            <AnimatePresence>
+                {bannerModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                        onClick={(e) => { if (e.target === e.currentTarget) setBannerModalOpen(false); }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="bg-indigo-600 px-5 py-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Megaphone className="w-4 h-4 text-indigo-200" />
+                                    <h2 className="text-sm font-black uppercase tracking-tight text-white">Solicitar espacio publicitario</h2>
+                                </div>
+                                <button onClick={() => setBannerModalOpen(false)} className="p-1 rounded-lg text-indigo-200 hover:text-white hover:bg-white/10 transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {bannerSent ? (
+                                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                                        <Check className="w-6 h-6 text-emerald-600" />
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-800">¡Mensaje enviado!</p>
+                                    <p className="text-xs text-slate-500">Los admins lo revisarán pronto.</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleBannerSubmit} className="p-5 flex flex-col gap-4">
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Tu mensaje llegará al buzón de los administradores en <span className="font-semibold text-indigo-600">/admin/requests</span>. Te contactaremos a la brevedad.
+                                    </p>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Nombre / Empresa</label>
+                                        <input
+                                            type="text"
+                                            value={bannerForm.name}
+                                            onChange={e => setBannerForm(f => ({ ...f, name: e.target.value }))}
+                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            placeholder="Tu nombre o empresa"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Email de contacto</label>
+                                        <input
+                                            type="email"
+                                            value={bannerForm.email}
+                                            onChange={e => setBannerForm(f => ({ ...f, email: e.target.value }))}
+                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            placeholder="tu@email.com"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Mensaje</label>
+                                        <textarea
+                                            value={bannerForm.message}
+                                            onChange={e => setBannerForm(f => ({ ...f, message: e.target.value }))}
+                                            rows={3}
+                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
+                                            required
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={bannerSending}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black uppercase tracking-wider hover:bg-indigo-700 transition-colors disabled:opacity-60 active:scale-[0.98]"
+                                    >
+                                        {bannerSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                        {bannerSending ? "Enviando..." : "Enviar solicitud"}
+                                    </button>
+                                </form>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="relative z-10 w-full max-w-[1300px] mx-auto flex flex-col xl:flex-row pt-6 px-3 sm:px-6 gap-8 justify-center">
 

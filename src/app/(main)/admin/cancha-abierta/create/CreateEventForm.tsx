@@ -10,6 +10,9 @@ import {
 import Link from "next/link";
 import { createOpenCourtEventAction } from "../actions";
 
+const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 7).padStart(2, "0")); // 07–23
+const MINUTES = ["00", "30"];
+
 interface Props {
     categories: any[];
     clubId: string;
@@ -17,18 +20,22 @@ interface Props {
 
 export default function CreateEventForm({ categories, clubId }: Props) {
     const router = useRouter();
-    const { register, handleSubmit, formState: { isSubmitting } } = useForm({
+    const { register, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm({
         defaultValues: {
             name: "",
             date: "",
             time: "",
             address: "",
             city: "",
-            registrationFee: 0,
+            registrationFee: "" as any,
             totalSlots: 16,
             categories: [] as string[],
         }
     });
+
+    const selectedTime = watch("time");
+    const selectedHour = selectedTime?.split(":")[0] ?? "";
+    const selectedMinute = selectedTime?.split(":")[1] ?? "";
 
     const onSubmit = async (data: any) => {
         try {
@@ -103,15 +110,51 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Hora</label>
-                                <div className="relative">
-                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-celeste/50 pointer-events-none" />
-                                    <input
-                                        type="time"
-                                        {...register("time", { required: true })}
-                                        onClick={(e) => e.currentTarget.showPicker?.()}
-                                        className="w-full bg-muted/30 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-xs font-bold focus:border-celeste/50 transition-all outline-none [color-scheme:dark] cursor-pointer"
-                                    />
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 flex items-center gap-1.5">
+                                    <Clock className="w-3 h-3 text-celeste/50" />
+                                    Hora
+                                    {selectedTime && (
+                                        <span className="ml-auto text-celeste font-black">{selectedTime}</span>
+                                    )}
+                                </label>
+                                <input type="hidden" {...register("time", { required: true })} />
+                                <div className="bg-muted/30 border border-border/50 rounded-lg p-2.5 space-y-2">
+                                    {/* Hour row */}
+                                    <div className="overflow-x-auto no-scrollbar">
+                                        <div className="flex gap-1 w-max">
+                                            {HOURS.map(h => (
+                                                <button
+                                                    key={h}
+                                                    type="button"
+                                                    onClick={() => setValue("time", `${h}:${selectedMinute || "00"}`, { shouldValidate: true })}
+                                                    className={`w-9 h-8 rounded-md text-[10px] font-black transition-all shrink-0 ${
+                                                        selectedHour === h
+                                                            ? "bg-celeste text-white shadow-lg shadow-celeste/30"
+                                                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                    }`}
+                                                >
+                                                    {h}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {/* Minute row */}
+                                    <div className="flex gap-1.5">
+                                        {MINUTES.map(m => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() => setValue("time", `${selectedHour || "08"}:${m}`, { shouldValidate: true })}
+                                                className={`flex-1 h-7 rounded-md text-[10px] font-black transition-all ${
+                                                    selectedMinute === m
+                                                        ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                }`}
+                                            >
+                                                :{m}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -153,6 +196,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         <input
                             type="number"
                             {...register("registrationFee")}
+                            onFocus={(e) => e.target.select()}
                             className="w-full bg-transparent border-none text-2xl font-black italic tracking-tighter focus:ring-0 outline-none placeholder:text-muted-foreground/20"
                             placeholder="0"
                         />

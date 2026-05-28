@@ -1108,20 +1108,18 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             </div>
 
                                             {/* Court Body — Card-based Match Layout */}
-                                            <div className="flex items-center justify-center gap-3 px-4 py-4">
-                                                {/* Team 2 Score */}
-                                                <CourtScoreControl
-                                                    score={scores.s2}
-                                                    isActive={isOccupied && !!currentMatch}
-                                                    onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, 1)}
-                                                    onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, -1)}
-                                                />
-
-                                                {/* Team 2 Players */}
-                                                <div className="flex gap-2">
-                                                    {isOccupied && currentMatch ? (
-                                                        <>
-                                                            {(['team2Player1Id', 'team2Player2Id'] as const).map(slot => (
+                                            <div className="flex flex-col md:flex-row items-center justify-center gap-3 px-4 py-4">
+                                                {/* Team 2: score + players */}
+                                                <div className="flex items-center gap-2 justify-center">
+                                                    <CourtScoreControl
+                                                        score={scores.s2}
+                                                        isActive={isOccupied && !!currentMatch}
+                                                        onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, 1)}
+                                                        onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 2, -1)}
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        {isOccupied && currentMatch ? (
+                                                            (['team2Player1Id', 'team2Player2Id'] as const).map(slot => (
                                                                 <CourtPlayerCard
                                                                     key={slot}
                                                                     name={getPlayerName(currentMatch[slot])}
@@ -1129,14 +1127,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                     side={getPlayerSide(currentMatch[slot])}
                                                                     onSwap={() => setSelectingFor({ courtId: court.id, slot })}
                                                                 />
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <EmptyPlayerCard />
-                                                            <EmptyPlayerCard />
-                                                        </>
-                                                    )}
+                                                            ))
+                                                        ) : (
+                                                            <><EmptyPlayerCard /><EmptyPlayerCard /></>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 {/* Center: VS + Lock */}
@@ -1149,11 +1144,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <span className="text-[10px] font-black italic text-rojo tracking-[0.2em] select-none">VS</span>
                                                 </div>
 
-                                                {/* Team 1 Players */}
-                                                <div className="flex gap-2">
-                                                    {isOccupied && currentMatch ? (
-                                                        <>
-                                                            {(['team1Player1Id', 'team1Player2Id'] as const).map(slot => (
+                                                {/* Team 1: players + score */}
+                                                <div className="flex items-center gap-2 justify-center">
+                                                    <div className="flex gap-2">
+                                                        {isOccupied && currentMatch ? (
+                                                            (['team1Player1Id', 'team1Player2Id'] as const).map(slot => (
                                                                 <CourtPlayerCard
                                                                     key={slot}
                                                                     name={getPlayerName(currentMatch[slot])}
@@ -1161,23 +1156,18 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                     side={getPlayerSide(currentMatch[slot])}
                                                                     onSwap={() => setSelectingFor({ courtId: court.id, slot })}
                                                                 />
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <EmptyPlayerCard />
-                                                            <EmptyPlayerCard />
-                                                        </>
-                                                    )}
+                                                            ))
+                                                        ) : (
+                                                            <><EmptyPlayerCard /><EmptyPlayerCard /></>
+                                                        )}
+                                                    </div>
+                                                    <CourtScoreControl
+                                                        score={scores.s1}
+                                                        isActive={isOccupied && !!currentMatch}
+                                                        onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, 1)}
+                                                        onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, -1)}
+                                                    />
                                                 </div>
-
-                                                {/* Team 1 Score */}
-                                                <CourtScoreControl
-                                                    score={scores.s1}
-                                                    isActive={isOccupied && !!currentMatch}
-                                                    onIncrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, 1)}
-                                                    onDecrement={() => currentMatch && updateInlineScore(currentMatch.id, 1, -1)}
-                                                />
                                             </div>
                                         </div>
                                     );

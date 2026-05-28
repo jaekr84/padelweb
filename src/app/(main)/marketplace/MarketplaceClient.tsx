@@ -85,7 +85,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const [isCompressing, setIsCompressing] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
-    const isSuperAdmin = session?.user?.role === 'superadmin';
+    const isLoggedIn = !!session?.userId;
 
     const [formData, setFormData] = useState({
         title: "",
@@ -354,7 +354,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(14,165,233,0.3)]">Marketplace</span>
                                 </h1>
                             </motion.div>
-                            {isSuperAdmin && (
+                            {isLoggedIn && (
                                 <motion.button 
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
