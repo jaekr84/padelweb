@@ -1,7 +1,7 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
-import { Check, ChevronDown, Trophy, User } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -22,10 +22,20 @@ type Props = {
     availableClubs: { id: string; name: string }[];
 };
 
-const triggerStyles = "w-full rounded-xl border border-border/50 bg-muted/95 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-foreground outline-none transition-all shadow-sm hover:border-azul-primary/30 focus:border-azul-primary focus:ring-2 focus:ring-azul-primary/10 flex items-center justify-between gap-1.5 h-9";
-const contentStyles = "z-50 overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150";
-const viewportStyles = "p-1";
-const itemStyles = "relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold normal-case tracking-tight text-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/5 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/10 data-[state=checked]:text-azul-primary";
+const STATUS_TABS = [
+    { value: "todos",      label: "Todos" },
+    { value: "abiertas",   label: "Inscripción" },
+    { value: "envivo",     label: "En Vivo" },
+    { value: "clubes",     label: "Clubes" },
+    { value: "terminados", label: "Cerrados" },
+];
+
+const selectTrigger =
+    "flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 text-[9px] font-black uppercase tracking-widest outline-none hover:border-azul-primary/40 hover:text-azul-primary transition-all min-w-[110px] max-w-[160px] shadow-sm";
+const selectContent =
+    "z-50 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150";
+const selectItem =
+    "relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[10px] font-bold text-slate-700 outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/15 data-[state=checked]:text-azul-primary";
 
 export default function TournamentFiltersClient({
     userId,
@@ -48,142 +58,107 @@ export default function TournamentFiltersClient({
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }, [pathname, router, searchParams]);
 
-    return (
-        <div className="flex flex-col gap-3 mb-4">
-            {userId && (
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
-                    <button
-                        type="button"
-                        onClick={() => updateQuery("filter", "mios")}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 border h-8 ${
-                            currentFilter === "mios"
-                                ? "bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20 scale-[1.01]"
-                                : "bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-border text-muted-foreground hover:border-azul-primary/50 hover:text-azul-primary"
-                        }`}
-                    >
-                        <User className="w-3 h-3" />
-                        Mis Torneos
-                    </button>
-                    {userClubId && (
-                        <button
-                            type="button"
-                            onClick={() => updateQuery("filter", "mi_club")}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 border h-8 ${
-                                currentFilter === "mi_club"
-                                    ? "bg-celeste text-white border-celeste shadow-lg shadow-celeste/20 scale-[1.01]"
-                                    : "bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-border text-muted-foreground hover:border-celeste/50 hover:text-celeste"
-                        }`}
-                    >
-                        <Trophy className="w-3 h-3" />
-                        Mi Club
-                    </button>
-                    )}
-                    {currentFilter !== "todos" && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const params = new URLSearchParams(searchParams.toString());
-                                params.set("filter", "todos");
-                                params.set("category", "todas");
-                                params.set("club", "todos");
-                                router.push(`${pathname}?${params.toString()}`, { scroll: false });
-                            }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-rojo transition-colors h-8"
-                        >
-                            Limpiar
-                        </button>
-                    )}
-                </div>
-            )}
-            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
-                <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Estado</span>
-                    <Select.Root value={currentFilter} onValueChange={(value) => updateQuery("filter", value)}>
-                        <Select.Trigger className={triggerStyles} aria-label="Seleccionar estado">
-                            <Select.Value placeholder="Todos" />
-                            <Select.Icon>
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            </Select.Icon>
-                        </Select.Trigger>
-                        <Select.Portal>
-                            <Select.Content className={contentStyles} position="popper" sideOffset={8}>
-                                <Select.Viewport className={viewportStyles}>
-                                    {[
-                                        { value: "todos", label: "Todos" },
-                                        { value: "abiertas", label: "Inscripción" },
-                                        { value: "envivo", label: "En Vivo" },
-                                        { value: "clubes", label: "Clubes" },
-                                        ...(userId ? [{ value: "mios", label: "Mis Torneos" }] : []),
-                                        { value: "terminados", label: "Finalizados" },
-                                    ].map((item) => (
-                                        <Select.Item key={item.value} value={item.value} className={itemStyles}>
-                                            <Select.ItemText>{item.label}</Select.ItemText>
-                                            <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                                <Check className="w-4 h-4" />
-                                            </Select.ItemIndicator>
-                                        </Select.Item>
-                                    ))}
-                                </Select.Viewport>
-                            </Select.Content>
-                        </Select.Portal>
-                    </Select.Root>
-                </div>
+    const clearAll = () => {
+        const params = new URLSearchParams();
+        params.set("filter", "todos");
+        params.set("category", "todas");
+        params.set("club", "todos");
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    };
 
-                <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Categoría</span>
-                    <Select.Root value={selectedCategory} onValueChange={(value) => updateQuery("category", value)}>
-                        <Select.Trigger className={triggerStyles} aria-label="Seleccionar categoria">
-                            <Select.Value placeholder="Todas las Categorías" />
-                            <Select.Icon>
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            </Select.Icon>
-                        </Select.Trigger>
-                        <Select.Portal>
-                            <Select.Content className={contentStyles} position="popper" sideOffset={8}>
-                                <Select.Viewport className={viewportStyles}>
-                                    <Select.Item value="todas" className={itemStyles}>
-                                        <Select.ItemText>Todas las Categorías</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                            <Check className="w-4 h-4" />
+    const hasActiveFilters =
+        currentFilter !== "todos" ||
+        selectedCategory !== "todas" ||
+        selectedClub !== "todos";
+
+    const allTabs = [
+        ...STATUS_TABS,
+        ...(userId ? [{ value: "mios", label: "Mis Torneos" }] : []),
+        ...(userClubId ? [{ value: "mi_club", label: "Mi Club" }] : []),
+    ];
+
+    const getTabStyle = (value: string) => {
+        const isActive = currentFilter === value;
+        if (!isActive) return "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700 shadow-sm";
+        if (value === "envivo")   return "bg-rojo text-white border-transparent shadow-lg shadow-rojo/30";
+        if (value === "mi_club")  return "bg-celeste text-white border-transparent shadow-lg shadow-celeste/30";
+        if (value === "abiertas") return "bg-green-600 text-white border-transparent shadow-lg shadow-green-600/30";
+        return "bg-azul-primary text-white border-transparent shadow-lg shadow-azul-primary/30";
+    };
+
+    return (
+        <div className="space-y-2.5 mb-5">
+
+            {/* ── Status pill strip ── */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                {allTabs.map(tab => (
+                    <button
+                        key={tab.value}
+                        type="button"
+                        onClick={() => updateQuery("filter", tab.value)}
+                        className={`shrink-0 px-3.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.1em] transition-all duration-200 h-8 border ${getTabStyle(tab.value)}`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* ── Secondary filters row ── */}
+            <div className="flex flex-wrap items-center gap-2">
+
+                {/* Category */}
+                <Select.Root value={selectedCategory} onValueChange={(v) => updateQuery("category", v)}>
+                    <Select.Trigger className={selectTrigger} aria-label="Categoría">
+                        <Select.Value placeholder="Categoría" />
+                        <Select.Icon className="ml-auto">
+                            <ChevronDown className="w-3 h-3 text-slate-500" />
+                        </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                        <Select.Content className={selectContent} position="popper" sideOffset={6}>
+                            <Select.Viewport className="p-1">
+                                <Select.Item value="todas" className={selectItem}>
+                                    <Select.ItemText>Todas las categorías</Select.ItemText>
+                                    <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                        <Check className="w-3 h-3" />
+                                    </Select.ItemIndicator>
+                                </Select.Item>
+                                {availableCategories.map((cat) => (
+                                    <Select.Item key={cat.id} value={cat.name} className={selectItem}>
+                                        <Select.ItemText>{cat.name}</Select.ItemText>
+                                        <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                            <Check className="w-3 h-3" />
                                         </Select.ItemIndicator>
                                     </Select.Item>
-                                    {availableCategories.map((cat) => (
-                                        <Select.Item key={cat.id} value={cat.name} className={itemStyles}>
-                                            <Select.ItemText>{cat.name}</Select.ItemText>
-                                            <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                                <Check className="w-4 h-4" />
-                                            </Select.ItemIndicator>
-                                        </Select.Item>
-                                    ))}
-                                </Select.Viewport>
-                            </Select.Content>
-                        </Select.Portal>
-                    </Select.Root>
-                </div>
+                                ))}
+                            </Select.Viewport>
+                        </Select.Content>
+                    </Select.Portal>
+                </Select.Root>
 
-                <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Club</span>
-                    <Select.Root value={selectedClub} onValueChange={(value) => updateQuery("club", value)}>
-                        <Select.Trigger className={triggerStyles} aria-label="Seleccionar club">
-                            <Select.Value placeholder="Todos los Clubes" />
-                            <Select.Icon>
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                {/* Club */}
+                {availableClubs.length > 0 && (
+                    <Select.Root value={selectedClub} onValueChange={(v) => updateQuery("club", v)}>
+                        <Select.Trigger className={selectTrigger} aria-label="Club">
+                            <Select.Value placeholder="Club" />
+                            <Select.Icon className="ml-auto">
+                                <ChevronDown className="w-3 h-3 text-slate-500" />
                             </Select.Icon>
                         </Select.Trigger>
                         <Select.Portal>
-                            <Select.Content className={contentStyles} position="popper" sideOffset={8}>
-                                <Select.Viewport className={viewportStyles}>
-                                    <Select.Item value="todos" className={itemStyles}>
-                                        <Select.ItemText>Todos los Clubes</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                            <Check className="w-4 h-4" />
+                            <Select.Content className={selectContent} position="popper" sideOffset={6}>
+                                <Select.Viewport className="p-1">
+                                    <Select.Item value="todos" className={selectItem}>
+                                        <Select.ItemText>Todos los clubes</Select.ItemText>
+                                        <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                            <Check className="w-3 h-3" />
                                         </Select.ItemIndicator>
                                     </Select.Item>
                                     {availableClubs.map((club) => (
-                                        <Select.Item key={club.id} value={club.id} className={itemStyles}>
+                                        <Select.Item key={club.id} value={club.id} className={selectItem}>
                                             <Select.ItemText>{club.name}</Select.ItemText>
-                                            <Select.ItemIndicator className="absolute right-3 inline-flex items-center text-azul-primary">
-                                                <Check className="w-4 h-4" />
+                                            <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                                <Check className="w-3 h-3" />
                                             </Select.ItemIndicator>
                                         </Select.Item>
                                     ))}
@@ -191,15 +166,19 @@ export default function TournamentFiltersClient({
                             </Select.Content>
                         </Select.Portal>
                     </Select.Root>
-                </div>
+                )}
 
-                <button
-                    type="button"
-                    onClick={() => router.push(`${pathname}?${searchParams.toString()}`)}
-                    className="w-full rounded-xl bg-azul-primary hover:bg-azul-dark px-4 text-[9px] font-black uppercase tracking-[0.2em] text-white transition-all active:scale-[0.98] shadow-lg shadow-azul-primary/10 h-9 flex items-center justify-center"
-                >
-                    Filtrar
-                </button>
+                {/* Clear */}
+                {hasActiveFilters && (
+                    <button
+                        type="button"
+                        onClick={clearAll}
+                        className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-slate-200 bg-transparent text-slate-500 text-[9px] font-black uppercase tracking-widest hover:border-rojo/60 hover:text-rojo hover:bg-rojo/5 transition-all"
+                    >
+                        <X className="w-3 h-3" />
+                        Limpiar
+                    </button>
+                )}
             </div>
         </div>
     );

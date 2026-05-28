@@ -4,16 +4,37 @@ import { db } from "@/db";
 import { tournaments, registrations, users, clubs } from "@/db/schema";
 
 import Link from "next/link";
-import {
-    Plus, Trophy,
-    Zap, CheckCircle
-} from "lucide-react";
+import { Plus, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
 import PublicTournamentCard from "./PublicTournamentCard";
 import TournamentFiltersClient from "./TournamentFiltersClient";
 
 export const dynamic = "force-dynamic";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
+function getMonthLabel(monthStr: string): string {
+    const [year, month] = monthStr.split("-").map(Number);
+    const d = new Date(year, month - 1, 1);
+    return d.toLocaleString("es-ES", { month: "long", year: "numeric" });
+}
+
+function shiftMonth(monthStr: string, delta: number): string {
+    const [year, month] = monthStr.split("-").map(Number);
+    const d = new Date(year, month - 1 + delta, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function buildMonthUrl(
+    sp: Record<string, string | string[] | undefined>,
+    month: string
+): string {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(sp)) {
+        if (typeof value === "string" && key !== "month") params.set(key, value);
+    }
+    params.set("month", month);
+    return `/tournaments?${params.toString()}`;
+}
+
 function formatDate(dateStr: string | null) {
     if (!dateStr) return "Por confirmar";
     if (typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
@@ -36,6 +57,11 @@ export default async function TournamentsPage({
     const selectedCategory = typeof sp.category === "string" ? sp.category : "todas";
     const selectedLocation = typeof sp.location === "string" ? sp.location : "todas";
     const selectedClub = typeof sp.club === "string" ? sp.club : "todos";
+
+    // Default to current month in Argentina timezone
+    const nowAR = new Date().toLocaleString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).split(",")[0];
+    const currentYearMonth = nowAR.slice(0, 7); // "YYYY-MM"
+    const selectedMonth = typeof sp.month === "string" ? sp.month : currentYearMonth;
 
     let userId: string | null = null;
     let dbUser: any = null;
@@ -83,7 +109,7 @@ export default async function TournamentsPage({
             })
             .from(tournaments)
             .leftJoin(clubs, eq(tournaments.clubId, clubs.id))
-            .orderBy(desc(tournaments.createdAt));
+            .orderBy(desc(tournaments.startDate));
 
         // Map to the structure expected by the component
         const userRegs = userId ? await db.select({ tournamentId: registrations.tournamentId }).from(registrations).where(eq(registrations.userId, userId)) : [];
@@ -224,77 +250,102 @@ export default async function TournamentsPage({
         filteredTournaments = filteredTournaments.filter(t => t.clubId === selectedClub);
     }
 
+    // 5. Month Filter (skip for "en vivo" and "mios" — those cross month boundaries)
+    const skipMonthFilter = currentFilter === "envivo" || currentFilter === "mios";
+    if (!skipMonthFilter && selectedMonth && selectedMonth !== "todos") {
+        filteredTournaments = filteredTournaments.filter(t => {
+            if (!t.startDate || typeof t.startDate !== "string") return false;
+            return t.startDate.startsWith(selectedMonth);
+        });
+    }
+
+    // Navigation helpers
+    const prevMonthStr = shiftMonth(selectedMonth !== "todos" ? selectedMonth : currentYearMonth, -1);
+    const nextMonthStr = shiftMonth(selectedMonth !== "todos" ? selectedMonth : currentYearMonth, 1);
+    const prevMonthUrl = buildMonthUrl(sp, prevMonthStr);
+    const nextMonthUrl = buildMonthUrl(sp, nextMonthStr);
+    const currentMonthUrl = buildMonthUrl(sp, currentYearMonth);
+    const allMonthsUrl = buildMonthUrl(sp, "todos");
+    const isMonthView = selectedMonth !== "todos" && !skipMonthFilter;
+
     return (
         <>
             <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-azul-primary/30">
 
-                {/* ── Ambient glow ── */}
-                <div className="pointer-events-none fixed inset-0 overflow-hidden -z-0">
-                    <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[120px]" />
-                    <div className="absolute top-[10%] right-[-15%] w-[400px] h-[400px] bg-celeste/8 rounded-full blur-[100px]" />
-                </div>
-
-                {/* Public Header */}
+                {/* Public Header (unauthenticated) */}
                 {!userId && (
-                    <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
-                        <div className="w-full max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200">
+                        <div className="w-full max-w-[1800px] mx-auto px-6 h-14 flex items-center justify-between">
                             <Link href="/" className="flex items-center gap-2 group">
-                                <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
+                                <div className="w-7 h-7 rounded-full border border-azul-primary/40 overflow-hidden shrink-0">
                                     <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                                 </div>
-                                <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
+                                <span className="font-black italic tracking-tighter text-sm uppercase text-slate-900">A.C.A.P.</span>
                             </Link>
-                            <div className="flex items-center gap-4">
-                                <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-                                <Link href="/" className="px-4 py-2 bg-azul-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Volver</Link>
+                            <div className="flex items-center gap-3">
+                                <Link href="/login" className="text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">Login</Link>
+                                <Link href="/" className="px-3.5 py-1.5 bg-azul-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-azul-dark transition-all">Volver</Link>
                             </div>
                         </div>
                     </div>
                 )}
 
-                <div className={`relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 ${!userId ? "pt-6" : "pt-6"}`}>
+                <div className="relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
 
-                    {/* ── Header ── */}
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-azul-primary animate-pulse">ACAP CONSOLE</span>
-                                <div className="h-px w-8 bg-azul-primary/30" />
+                    {/* ── HERO HEADER (light) ── */}
+                    <div className="relative mb-5 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+                        {/* Glow orbs */}
+                        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-azul-primary/8 blur-3xl pointer-events-none" />
+                        <div className="absolute bottom-0 -left-10 w-56 h-40 rounded-full bg-celeste/8 blur-3xl pointer-events-none" />
+                        {/* Top accent stripe */}
+                        <div className="absolute top-0 left-0 h-1 w-32 bg-gradient-to-r from-azul-primary to-celeste rounded-tl-2xl" />
+
+                        <div className="relative px-5 pt-5 pb-4">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-[3px] h-5 bg-azul-primary rounded-full" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-azul-primary">A.C.A.P.</span>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">· Circuito Oficial</span>
+                                    </div>
+                                    <h1 className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+                                        Torneos
+                                    </h1>
+                                </div>
+
+                                {(session?.role === 'superadmin' || session?.role === 'admin' || session?.role === 'club') && (
+                                    <Link
+                                        href="/tournaments/create"
+                                        className="shrink-0 flex items-center gap-1.5 bg-azul-primary hover:bg-azul-dark text-white px-3.5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-azul-primary/20 h-9 mt-1"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">Crear Torneo</span>
+                                    </Link>
+                                )}
                             </div>
-                            <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground">
-                                Torneos
-                            </h1>
-                        </div>
 
-                        {(session?.role === 'superadmin' || session?.role === 'admin' || session?.role === 'club') && (
-                            <Link
-                                href="/tournaments/create"
-                                className="group bg-azul-primary hover:bg-azul-dark text-white px-3 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-azul-primary/20 flex items-center gap-2 shrink-0 h-9"
-                            >
-                                <span className="hidden sm:inline">Crear Torneo</span>
-                                <Plus className="w-3.5 h-3.5" />
-                            </Link>
-                        )}
-                    </div>
-
-                    {/* ── High-Density KPI Pill Bar ── */}
-                    <div className="inline-flex flex-wrap items-center gap-2 md:gap-4 px-3 py-1.5 bg-slate-900/60 border border-white/5 backdrop-blur-md rounded-xl mb-4 text-[10px] font-black uppercase tracking-wider">
-                        <div className="flex items-center gap-1.5">
-                            <Trophy className="w-3.5 h-3.5 text-azul-primary" />
-                            <span className="text-white/40">Total:</span>
-                            <span className="text-white font-extrabold">{totalC}</span>
-                        </div>
-                        <div className="h-3 w-px bg-white/10" />
-                        <div className="flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5 text-rojo" />
-                            <span className="text-white/40">En Vivo:</span>
-                            <span className="text-white font-extrabold">{liveC}</span>
-                        </div>
-                        <div className="h-3 w-px bg-white/10" />
-                        <div className="flex items-center gap-1.5">
-                            <CheckCircle className="w-3.5 h-3.5 text-celeste" />
-                            <span className="text-white/40">Abiertos:</span>
-                            <span className="text-white font-extrabold">{openC}</span>
+                            {/* KPI strip */}
+                            <div className="flex items-center gap-5 md:gap-8 mt-4 pt-4 border-t border-slate-200">
+                                <div>
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-slate-400 leading-none mb-1.5">Total</p>
+                                    <p className="text-2xl font-black text-slate-900 italic leading-none">{totalC}</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div>
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-rojo/70 leading-none mb-1.5">En Vivo</p>
+                                    <p className={`text-2xl font-black italic leading-none ${liveC > 0 ? 'text-rojo' : 'text-slate-300'}`}>{liveC}</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div>
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-green-600/70 leading-none mb-1.5">Inscripción</p>
+                                    <p className={`text-2xl font-black italic leading-none ${openC > 0 ? 'text-green-600' : 'text-slate-300'}`}>{openC}</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div>
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-slate-400 leading-none mb-1.5">Finalizados</p>
+                                    <p className="text-2xl font-black text-slate-300 italic leading-none">{finishedC}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -311,68 +362,143 @@ export default async function TournamentsPage({
                         availableClubs={availableClubs}
                     />
 
-                    {/* ── Tournament list grouped by month ── */}
-                    {filteredTournaments.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <div className="w-16 h-16 bg-card border border-border rounded-3xl flex items-center justify-center mb-5">
-                                <Trophy className="w-8 h-8 text-muted-foreground/60" />
+                    {/* ── Month Navigator ── */}
+                    <div className="flex items-center justify-between mb-4">
+                        {isMonthView ? (
+                            <>
+                                {/* Prev / current label / Next */}
+                                <div className="flex items-center gap-1">
+                                    <Link
+                                        href={prevMonthUrl}
+                                        className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-azul-primary/50 hover:text-azul-primary hover:bg-azul-primary/5 transition-all shadow-sm"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </Link>
+                                    <div className="px-3 h-8 rounded-lg border border-azul-primary/30 bg-azul-primary/5 flex items-center">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-azul-primary capitalize">
+                                            {getMonthLabel(selectedMonth)}
+                                        </span>
+                                    </div>
+                                    <Link
+                                        href={nextMonthUrl}
+                                        className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-azul-primary/50 hover:text-azul-primary hover:bg-azul-primary/5 transition-all shadow-sm"
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </Link>
+                                </div>
+                                {/* Ver todos link */}
+                                <Link
+                                    href={allMonthsUrl}
+                                    className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-azul-primary transition-colors"
+                                >
+                                    Ver todos
+                                </Link>
+                            </>
+                        ) : (
+                            /* "Todos" mode: show link to go back to current month */
+                            <div className="flex items-center gap-3 w-full">
+                                <div className="w-[3px] h-4 bg-azul-primary/60 rounded-full shrink-0" />
+                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                    Todos los torneos
+                                </span>
+                                <div className="h-px flex-1 bg-slate-200" />
+                                <Link
+                                    href={currentMonthUrl}
+                                    className="text-[9px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-dark transition-colors shrink-0"
+                                >
+                                    Mes actual
+                                </Link>
                             </div>
-                            <h3 className="text-lg font-black uppercase italic text-muted-foreground mb-2">Sin torneos</h3>
-                            <p className="text-slate-600 text-sm max-w-[220px] leading-relaxed">
-                                No encontramos torneos {selectedCategory !== "todas" ? `en la categoría ${selectedCategory}` : ""} con los filtros actuales.
+                        )}
+                    </div>
+
+                    {/* ── Tournament list ── */}
+                    {filteredTournaments.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                                <Trophy className="w-6 h-6 text-slate-300" />
+                            </div>
+                            <h3 className="text-sm font-black uppercase italic text-slate-500 mb-1.5 tracking-tight">Sin torneos</h3>
+                            <p className="text-slate-400 text-xs max-w-[200px] leading-relaxed mb-4">
+                                {isMonthView
+                                    ? `No hay torneos en ${getMonthLabel(selectedMonth)}.`
+                                    : `No hay torneos con estos filtros.`}
                             </p>
+                            {isMonthView && (
+                                <div className="flex items-center gap-2">
+                                    <Link href={prevMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-azul-primary/40 hover:text-azul-primary transition-all shadow-sm">
+                                        <ChevronLeft className="w-3 h-3" /> Anterior
+                                    </Link>
+                                    <Link href={nextMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-azul-primary/40 hover:text-azul-primary transition-all shadow-sm">
+                                        Siguiente <ChevronRight className="w-3 h-3" />
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    ) : isMonthView ? (
+                        /* ── Flat grid for specific month ── */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {filteredTournaments.map((t) => (
+                                <PublicTournamentCard
+                                    key={t.id}
+                                    tournament={t}
+                                    userClubId={dbUser?.clubId}
+                                    userDbRole={session?.role}
+                                    userGender={dbUser?.gender}
+                                    userCategory={dbUser?.category}
+                                    currentUserId={session?.userId}
+                                    isUserRegistered={t.isRegistered}
+                                />
+                            ))}
                         </div>
                     ) : (
+                        /* ── Grouped by month for "todos" view ── */
                         <div className="space-y-8">
                             {(() => {
-                                // Group by month logic
                                 const groups: { [key: string]: any[] } = {};
                                 filteredTournaments.forEach(t => {
                                     const dateStr = t.startDate;
                                     let monthKey = "Próximamente / Fecha a definir";
-
-                                    if (dateStr && typeof dateStr === 'string' && dateStr.includes("-") && dateStr.length === 10) {
+                                    if (dateStr && typeof dateStr === "string" && dateStr.includes("-") && dateStr.length === 10) {
                                         const [year, month, day] = dateStr.split("-").map(Number);
                                         const d = new Date(year, month - 1, day);
-                                        monthKey = d.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                                        monthKey = d.toLocaleString("es-ES", { month: "long", year: "numeric" });
                                     }
-
                                     if (!groups[monthKey]) groups[monthKey] = [];
                                     groups[monthKey].push(t);
                                 });
 
-                                // Sort months chronologically
                                 const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
                                     if (a.includes("definir")) return 1;
                                     if (b.includes("definir")) return -1;
                                     const dateA = new Date(groups[a][0].startDate);
                                     const dateB = new Date(groups[b][0].startDate);
-                                    return dateA.getTime() - dateB.getTime();
+                                    return dateB.getTime() - dateA.getTime(); // newest first
                                 });
 
                                 return sortedMonthKeys.map(month => (
                                     <div key={month} className="space-y-4">
-                                        <div className="flex items-center gap-3 px-2">
-                                            <div className="h-px flex-1 bg-border" />
-                                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 whitespace-nowrap">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-[3px] h-4 bg-azul-primary/60 rounded-full shrink-0" />
+                                            <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap capitalize">
                                                 {month}
                                             </h2>
-                                            <div className="h-px flex-1 bg-border" />
+                                            <div className="h-px flex-1 bg-slate-200" />
                                         </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                                {groups[month].map((t) => (
-                                                    <PublicTournamentCard
-                                                        key={t.id}
-                                                        tournament={t}
-                                                        userClubId={dbUser?.clubId}
-                                                        userDbRole={session?.role}
-                                                        userGender={dbUser?.gender}
-                                                        userCategory={dbUser?.category}
-                                                        currentUserId={session?.userId}
-                                                        isUserRegistered={t.isRegistered}
-                                                    />
-                                                ))}
-                                            </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                            {groups[month].map((t) => (
+                                                <PublicTournamentCard
+                                                    key={t.id}
+                                                    tournament={t}
+                                                    userClubId={dbUser?.clubId}
+                                                    userDbRole={session?.role}
+                                                    userGender={dbUser?.gender}
+                                                    userCategory={dbUser?.category}
+                                                    currentUserId={session?.userId}
+                                                    isUserRegistered={t.isRegistered}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 ));
                             })()}
