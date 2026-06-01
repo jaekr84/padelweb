@@ -317,8 +317,15 @@ export function AmericanoCourtGrid({
                 const score1Key = `s1_wrap_${courtNumber}`;
                 const score2Key = `s2_wrap_${courtNumber}`;
 
+                const isSwapOpen = swapMatchId === activeMatch?.id;
+
                 return (
-                    <div key={courtNumber} className="relative group">
+                    <div
+                        key={courtNumber}
+                        className="relative group"
+                        ref={isSwapOpen ? swapRef : undefined}
+                        style={{ zIndex: isSwapOpen ? 50 : undefined }}
+                    >
                         <div className="absolute -top-2 left-2 flex items-center gap-1.5 z-10">
                             <div className="px-2 py-0.5 bg-background border border-border/40 backdrop-blur-md rounded text-[6px] font-black uppercase tracking-[0.2em] shadow-sm">
                                 CANCHA {courtNumber}
@@ -483,144 +490,155 @@ export function AmericanoCourtGrid({
                                 </div>
                             </div>
 
-                            {/* ── Swap-Team Footer ── */}
+                            {/* ── Swap toggle button (stays inside card) ── */}
                             {activeMatch && !readOnly && onSwapTeam && (
-                                <div ref={swapMatchId === activeMatch.id ? swapRef : undefined}>
-                                    {/* Toggle button */}
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (swapMatchId === activeMatch.id) {
-                                                setSwapMatchId(null);
-                                            } else {
-                                                setSwapMatchId(activeMatch.id);
-                                                setSwapSlot(1);
-                                            }
-                                        }}
-                                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-t transition-all cursor-pointer
-                                            ${swapMatchId === activeMatch.id
-                                                ? "border-azul-primary/40 bg-azul-primary/10 text-azul-primary"
-                                                : "border-border/10 text-foreground/30 hover:text-azul-primary hover:border-azul-primary/20 hover:bg-azul-primary/5"
-                                            }`}
-                                    >
-                                        <ArrowLeftRight className="w-3 h-3" />
-                                        <span className="text-[7px] font-black uppercase tracking-[0.2em]">
-                                            {swapMatchId === activeMatch.id ? "Cerrar" : "Cambiar Pareja"}
-                                        </span>
-                                    </button>
-
-                                    {/* Dropdown panel */}
-                                    <AnimatePresence>
-                                        {swapMatchId === activeMatch.id && (() => {
-                                            const candidates = getSwapCandidates(activeMatch.id, swapSlot);
-                                            const team1Name = activeMatch.team1?.name ?? "Equipo 1";
-                                            const team2Name = activeMatch.team2?.name ?? "Equipo 2";
-
-                                            return (
-                                                <motion.div
-                                                    key="swap-panel"
-                                                    initial={{ opacity: 0, height: 0 }}
-                                                    animate={{ opacity: 1, height: "auto" }}
-                                                    exit={{ opacity: 0, height: 0 }}
-                                                    transition={{ duration: 0.22, ease: "easeOut" }}
-                                                    className="overflow-hidden border-t border-azul-primary/20 bg-background/95 backdrop-blur-sm"
-                                                >
-                                                    <div className="p-3 space-y-2.5">
-                                                        {/* Slot Tabs */}
-                                                        <div className="flex gap-1 p-0.5 bg-muted/30 rounded-lg border border-border/30">
-                                                            {([1, 2] as const).map(slot => {
-                                                                const name = slot === 1 ? team1Name : team2Name;
-                                                                const label = name.split(/[\/\+]/)[0]?.trim() ?? `Equipo ${slot}`;
-                                                                return (
-                                                                    <button
-                                                                        key={slot}
-                                                                        type="button"
-                                                                        onClick={() => setSwapSlot(slot)}
-                                                                        className={`flex-1 py-1.5 px-2 rounded-md text-[7px] font-black uppercase tracking-widest transition-all cursor-pointer truncate
-                                                                            ${swapSlot === slot
-                                                                                ? "bg-azul-primary text-white shadow-sm"
-                                                                                : "text-foreground/50 hover:text-foreground/80"
-                                                                            }`}
-                                                                    >
-                                                                        {label}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-
-                                                        {/* Legend */}
-                                                        <div className="flex items-center gap-3 px-0.5">
-                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
-                                                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Ideal
-                                                            </span>
-                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
-                                                                <Info className="w-2.5 h-2.5 text-yellow-400" /> Mismo club
-                                                            </span>
-                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
-                                                                <AlertCircle className="w-2.5 h-2.5 text-orange-400" /> Ya jugaron
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Candidates list */}
-                                                        {candidates.length === 0 ? (
-                                                            <div className="py-3 text-center">
-                                                                <p className="text-[8px] font-black uppercase tracking-widest text-foreground/30">
-                                                                    Sin jugadores disponibles
-                                                                </p>
-                                                                <p className="text-[7px] text-foreground/20 mt-0.5">
-                                                                    Todos están jugando o completaron sus partidos.
-                                                                </p>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-0.5">
-                                                                {candidates.map(({ player: c, matchCount, quality }) => {
-                                                                    const iconEl = quality === "ideal"
-                                                                        ? <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                                                                        : quality === "ok"
-                                                                        ? <Info className="w-3 h-3 text-yellow-400 shrink-0" />
-                                                                        : <AlertCircle className="w-3 h-3 text-orange-400 shrink-0" />;
-
-                                                                    const badgeColor = quality === "ideal"
-                                                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                                        : quality === "ok"
-                                                                        ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                                                                        : "bg-orange-500/10 text-orange-400 border-orange-500/20";
-
-                                                                    return (
-                                                                        <motion.button
-                                                                            key={c.id}
-                                                                            type="button"
-                                                                            whileTap={{ scale: 0.97 }}
-                                                                            disabled={swapSaving}
-                                                                            onClick={() => handleSwapClick(activeMatch.id, swapSlot, c)}
-                                                                            className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-card/50 hover:bg-azul-primary/10 hover:border-azul-primary/40 transition-all group/cand cursor-pointer disabled:opacity-50 text-left"
-                                                                        >
-                                                                            {swapSaving
-                                                                                ? <Loader2 className="w-3 h-3 animate-spin text-azul-primary shrink-0" />
-                                                                                : iconEl
-                                                                            }
-                                                                            <span className="text-[9px] font-black uppercase italic flex-1 truncate text-foreground group-hover/cand:text-azul-primary transition-colors">
-                                                                                {c.name}
-                                                                            </span>
-                                                                            <div className="flex items-center gap-1.5 shrink-0">
-                                                                                <span className={`text-[6px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded border ${badgeColor}`}>
-                                                                                    {matchCount}P
-                                                                                </span>
-                                                                                <ArrowLeftRight className="w-3 h-3 text-foreground/20 group-hover/cand:text-azul-primary transition-colors" />
-                                                                            </div>
-                                                                        </motion.button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        })()}
-                                    </AnimatePresence>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (isSwapOpen) {
+                                            setSwapMatchId(null);
+                                        } else {
+                                            setSwapMatchId(activeMatch.id);
+                                            setSwapSlot(1);
+                                        }
+                                    }}
+                                    className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-t transition-all cursor-pointer
+                                        ${isSwapOpen
+                                            ? "border-azul-primary/40 bg-azul-primary/10 text-azul-primary"
+                                            : "border-border/10 text-foreground/30 hover:text-azul-primary hover:border-azul-primary/20 hover:bg-azul-primary/5"
+                                        }`}
+                                >
+                                    <ArrowLeftRight className="w-3 h-3" />
+                                    <span className="text-[7px] font-black uppercase tracking-[0.2em]">
+                                        {isSwapOpen ? "Cerrar" : "Cambiar Pareja"}
+                                    </span>
+                                </button>
                             )}
                         </div>
+
+                        {/* ── Swap dropdown — floating overlay, outside the card ── */}
+                        <AnimatePresence>
+                            {isSwapOpen && activeMatch && (() => {
+                                const candidates = getSwapCandidates(activeMatch.id, swapSlot);
+                                const team1Name = activeMatch.team1?.name ?? "Equipo 1";
+                                const team2Name = activeMatch.team2?.name ?? "Equipo 2";
+
+                                return (
+                                    <motion.div
+                                        key="swap-panel"
+                                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                        transition={{ duration: 0.18, ease: "easeOut" }}
+                                        className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-lg border border-azul-primary/30 bg-card/98 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden"
+                                    >
+                                        <div className="p-3 space-y-2.5">
+                                            {/* Header */}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/40">
+                                                    Reemplazar pareja
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSwapMatchId(null)}
+                                                    className="w-5 h-5 rounded-full bg-muted/40 flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                                                >
+                                                    <X className="w-3 h-3 text-foreground/50" />
+                                                </button>
+                                            </div>
+
+                                            {/* Slot Tabs */}
+                                            <div className="flex gap-1 p-0.5 bg-muted/30 rounded-lg border border-border/30">
+                                                {([1, 2] as const).map(slot => {
+                                                    const name = slot === 1 ? team1Name : team2Name;
+                                                    const label = name.split(/[\/\+]/)[0]?.trim() ?? `Equipo ${slot}`;
+                                                    return (
+                                                        <button
+                                                            key={slot}
+                                                            type="button"
+                                                            onClick={() => setSwapSlot(slot)}
+                                                            className={`flex-1 py-1.5 px-2 rounded-md text-[7px] font-black uppercase tracking-widest transition-all cursor-pointer truncate
+                                                                ${swapSlot === slot
+                                                                    ? "bg-azul-primary text-white shadow-sm"
+                                                                    : "text-foreground/50 hover:text-foreground/80"
+                                                                }`}
+                                                        >
+                                                            {label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Legend */}
+                                            <div className="flex items-center gap-3 px-0.5">
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                    <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Ideal
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                    <Info className="w-2.5 h-2.5 text-yellow-400" /> Mismo club
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                    <AlertCircle className="w-2.5 h-2.5 text-orange-400" /> Ya jugaron
+                                                </span>
+                                            </div>
+
+                                            {/* Candidates list */}
+                                            {candidates.length === 0 ? (
+                                                <div className="py-3 text-center">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-foreground/30">
+                                                        Sin jugadores disponibles
+                                                    </p>
+                                                    <p className="text-[7px] text-foreground/20 mt-0.5">
+                                                        Todos están jugando o completaron sus partidos.
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1 max-h-[200px] overflow-y-auto custom-scrollbar pr-0.5">
+                                                    {candidates.map(({ player: c, matchCount, quality }) => {
+                                                        const iconEl = quality === "ideal"
+                                                            ? <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                                            : quality === "ok"
+                                                            ? <Info className="w-3 h-3 text-yellow-400 shrink-0" />
+                                                            : <AlertCircle className="w-3 h-3 text-orange-400 shrink-0" />;
+
+                                                        const badgeColor = quality === "ideal"
+                                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                            : quality === "ok"
+                                                            ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                                            : "bg-orange-500/10 text-orange-400 border-orange-500/20";
+
+                                                        return (
+                                                            <motion.button
+                                                                key={c.id}
+                                                                type="button"
+                                                                whileTap={{ scale: 0.97 }}
+                                                                disabled={swapSaving}
+                                                                onClick={() => handleSwapClick(activeMatch.id, swapSlot, c)}
+                                                                className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-card/50 hover:bg-azul-primary/10 hover:border-azul-primary/40 transition-all group/cand cursor-pointer disabled:opacity-50 text-left"
+                                                            >
+                                                                {swapSaving
+                                                                    ? <Loader2 className="w-3 h-3 animate-spin text-azul-primary shrink-0" />
+                                                                    : iconEl
+                                                                }
+                                                                <span className="text-[9px] font-black uppercase italic flex-1 truncate text-foreground group-hover/cand:text-azul-primary transition-colors">
+                                                                    {c.name}
+                                                                </span>
+                                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                                    <span className={`text-[6px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                                                                        {matchCount}P
+                                                                    </span>
+                                                                    <ArrowLeftRight className="w-3 h-3 text-foreground/20 group-hover/cand:text-azul-primary transition-colors" />
+                                                                </div>
+                                                            </motion.button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })()}
+                        </AnimatePresence>
                     </div>
                 );
             })}
