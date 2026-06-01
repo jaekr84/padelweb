@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { users, groupMatches, bracketMatches, tournaments, registrations, openCourtMatches, openCourtEvents, publicMatches, publicMatchRegistrations } from "@/db/schema";
-import { eq, and, or, like, desc, inArray } from "drizzle-orm";
+import { eq, and, or, like, not, desc, inArray } from "drizzle-orm";
 
 export interface MatchHistoryItem {
     id: string;
@@ -17,7 +17,8 @@ export interface MatchHistoryItem {
 
 export async function getAllPlayers() {
     try {
-        const allUsers = await db.select().from(users);
+        const allUsers = await db.select().from(users)
+            .where(not(like(users.email, '%@manual.test')));
         if (!allUsers) return [];
         
         return allUsers.map(u => ({

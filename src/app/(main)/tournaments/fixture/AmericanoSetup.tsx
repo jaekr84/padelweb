@@ -240,7 +240,7 @@ export default function AmericanoSetup({
             // Asignar Canchas y Ronda
             roundMatches.forEach((m, idx) => {
                 scheduledMatches.push({
-                    id: `m_g0_${currentRound}_${idx}_${Date.now()}_${Math.random()}`,
+                    id: crypto.randomUUID(),
                     groupId: 'g0',
                     team1: m.team1,
                     team2: m.team2,

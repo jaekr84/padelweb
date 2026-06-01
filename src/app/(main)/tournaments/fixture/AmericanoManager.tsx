@@ -263,23 +263,21 @@ export default function AmericanoManager({
         updateMatchesState(updatedMatches);
         setBracket(updatedBracket);
 
-        // Update attendance/paid sets
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(oldPlayerId)) {
-                next.delete(oldPlayerId);
-                next.add(newPlayer.id);
-            }
-            return next;
-        });
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(oldPlayerId)) {
-                next.delete(oldPlayerId);
-                next.add(newPlayer.id);
-            }
-            return next;
-        });
+        // Update attendance/paid sets — compute new sets synchronously so the save uses updated values
+        const updatedPresent = new Set(present);
+        if (updatedPresent.has(oldPlayerId)) {
+            updatedPresent.delete(oldPlayerId);
+            updatedPresent.add(newPlayer.id);
+        }
+        const updatedPaid = new Set(paid);
+        if (updatedPaid.has(oldPlayerId)) {
+            updatedPaid.delete(oldPlayerId);
+            updatedPaid.add(newPlayer.id);
+        }
+        setPresent(updatedPresent);
+        lastSavedState.current.present = updatedPresent;
+        setPaid(updatedPaid);
+        lastSavedState.current.paid = updatedPaid;
 
         setReplacingPlayer(null);
         setGuestName("");
@@ -290,7 +288,6 @@ export default function AmericanoManager({
         if (step !== "setup") {
             const loadingToast = toast.loading("Actualizando participantes...");
             try {
-                // Determine current phase based on if we are in playoffs or grupos
                 const hasBracket = updatedBracket.length > 0;
                 const currentPhase = hasBracket ? "eliminatorias" : "grupos";
 
@@ -300,8 +297,8 @@ export default function AmericanoManager({
                     groups: updatedGroups,
                     matches: updatedMatches,
                     bracket: updatedBracket,
-                    presentPlayerIds: Array.from(present),
-                    paidPlayerIds: Array.from(paid),
+                    presentPlayerIds: Array.from(updatedPresent),
+                    paidPlayerIds: Array.from(updatedPaid),
                 });
                 toast.dismiss(loadingToast);
                 if (res.ok) {
@@ -416,31 +413,46 @@ export default function AmericanoManager({
         await handleReplacePlayer(oldPlayerId, guestPlayer);
     };
 
-    const handleDeletePlayer = (playerId: string) => {
-        setGroups(prevGroups => prevGroups.map(group => ({
+    const handleDeletePlayer = async (playerId: string) => {
+        const updatedGroups = groups.map(group => ({
             ...group,
             players: group.players.filter(p => p.id !== playerId)
-        })));
-
+        }));
         const updatedMatches = matchesRef.current.filter(m =>
             m.team1.id !== playerId && m.team2.id !== playerId
         );
+        const updatedPresent = new Set(present);
+        updatedPresent.delete(playerId);
+        const updatedPaid = new Set(paid);
+        updatedPaid.delete(playerId);
+
+        setGroups(updatedGroups);
         updateMatchesState(updatedMatches);
-
-        // Update counts
-        setPresent(prev => {
-            const next = new Set(prev);
-            next.delete(playerId);
-            return next;
-        });
-        setPaid(prev => {
-            const next = new Set(prev);
-            next.delete(playerId);
-            return next;
-        });
-
+        setPresent(updatedPresent);
+        lastSavedState.current.present = updatedPresent;
+        setPaid(updatedPaid);
+        lastSavedState.current.paid = updatedPaid;
         setPlayerToDelete(null);
         toast.success("Participante eliminado");
+
+        if (step !== "setup") {
+            setSaving(true);
+            try {
+                const res = await saveTournamentFixture({
+                    tournamentId,
+                    phase: bracket.length > 0 ? "eliminatorias" : "grupos",
+                    groups: updatedGroups,
+                    matches: updatedMatches,
+                    bracket,
+                    modalidad: { numCourts, matchesPerTeam, isIndividual },
+                    presentPlayerIds: Array.from(updatedPresent),
+                    paidPlayerIds: Array.from(updatedPaid)
+                });
+                if (!res.ok) toast.error("Error al guardar cambios: " + res.error);
+            } finally {
+                setSaving(false);
+            }
+        }
     };
 
     const handleDeleteMatch = async (matchId: string) => {
@@ -651,7 +663,7 @@ export default function AmericanoManager({
         })[0]!;
 
         const newMatch: Match = {
-            id: `dym_${Date.now()}_${courtNum}`,
+            id: crypto.randomUUID(),
             groupId: groups[0]?.id || "g0",
             team1: p1,
             team2: p2,
@@ -964,7 +976,6 @@ export default function AmericanoManager({
 
         // Auto-advance
         const totalRounds = Math.max(...updated.map(m => m.round)) + 1;
-        const is10Player = standings.length === 10;
         let finalBracket = [...updated];
 
         for (let r = totalRounds - 1; r > 0; r--) {

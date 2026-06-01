@@ -250,68 +250,6 @@ export async function setPlayerPresenceAction(registrationId: string, status: "w
     }
 }
 
-export async function createMatchAction(data: {
-    eventId: string;
-    courtId: string;
-    t1p1Id: string;
-    t1p2Id: string;
-    t2p1Id: string;
-    t2p2Id: string;
-}) {
-    if (!(await verifyEventOwnership(data.eventId))) return { success: false, error: "No autorizado" };
-    try {
-        const id = crypto.randomUUID();
-        await db.insert(openCourtMatches).values({
-            id,
-            eventId: data.eventId,
-            courtId: data.courtId,
-            team1Player1Id: data.t1p1Id,
-            team1Player2Id: data.t1p2Id,
-            team2Player1Id: data.t2p1Id,
-            team2Player2Id: data.t2p2Id,
-            status: "in_progress",
-            startedAt: new Date(),
-        });
-
-        // Update court status
-        await db.update(openCourtCourts)
-            .set({ status: "occupied" })
-            .where(eq(openCourtCourts.id, data.courtId));
-
-        revalidatePath(`/admin/cancha-abierta/${data.eventId}`);
-        return { success: true, id };
-    } catch (error) {
-        return { success: false, error: String(error) };
-    }
-}
-
-export async function finishMatchAction(matchId: string, score1: number, score2: number) {
-    const [match] = await db.select().from(openCourtMatches).where(eq(openCourtMatches.id, matchId)).limit(1);
-    if (!match) throw new Error("Match not found");
-    if (!(await verifyEventOwnership(match.eventId))) return { success: false, error: "No autorizado" };
-    try {
-
-        await db.update(openCourtMatches)
-            .set({
-                score1,
-                score2,
-                status: "completed",
-                finishedAt: new Date()
-            })
-            .where(eq(openCourtMatches.id, matchId));
-
-        if (match.courtId) {
-            await db.update(openCourtCourts)
-                .set({ status: "available" })
-                .where(eq(openCourtCourts.id, match.courtId));
-        }
-
-        revalidatePath(`/admin/cancha-abierta/${match.eventId}`);
-        return { success: true };
-    } catch (error) {
-        return { success: false, error: String(error) };
-    }
-}
 
 const VALID_MATCH_SLOTS = ["team1Player1Id", "team1Player2Id", "team2Player1Id", "team2Player2Id"] as const;
 type MatchSlot = typeof VALID_MATCH_SLOTS[number];

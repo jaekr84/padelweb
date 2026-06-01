@@ -2,7 +2,10 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import crypto from "crypto";
 
+let initialized = false;
+
 export async function initializeOpenCourtTables() {
+    if (initialized) return { success: true };
     console.log("Iniciando creación de tablas de Cancha Abierta...");
 
     try {
@@ -146,6 +149,7 @@ export async function initializeOpenCourtTables() {
             )
         `);
 
+        initialized = true;
         console.log("Tablas creadas exitosamente.");
         return { success: true };
     } catch (error) {

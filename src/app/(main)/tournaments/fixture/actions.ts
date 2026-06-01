@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { tournaments, tournamentGroups, groupMatches, bracketMatches, registrations, users, categoriesTable } from "@/db/schema";
-import { eq, sql, inArray, and } from "drizzle-orm";
+import { eq, sql, inArray, and, not, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth-server";
 
@@ -259,10 +259,11 @@ export async function deleteTournament(id: string): Promise<{ ok: boolean; error
 
 export async function getAvailablePlayers(tournamentId: string) {
     try {
-        const allUsers = await db.select().from(users);
-        const existingRegs = await db.select({ 
-            u1: registrations.userId, 
-            u2: registrations.partnerUserId 
+        const allUsers = await db.select().from(users)
+            .where(not(like(users.email, '%@manual.test')));
+        const existingRegs = await db.select({
+            u1: registrations.userId,
+            u2: registrations.partnerUserId
         }).from(registrations).where(eq(registrations.tournamentId, tournamentId));
         
         const registeredIds = new Set();
@@ -311,7 +312,16 @@ export async function quickInscribePlayer(tournamentId: string, userId: string, 
             if (typeof mod === 'string' && mod.trim().startsWith('{')) mod = JSON.parse(mod);
         } catch (e) { }
 
-        // Admin bypass
+        // Check for duplicate registration
+        const [existing] = await db.select({ id: registrations.id })
+            .from(registrations)
+            .where(and(
+                eq(registrations.tournamentId, tournamentId),
+                eq(registrations.userId, userId)
+            ))
+            .limit(1);
+
+        if (existing) return { ok: false, error: "El jugador ya está inscripto en este torneo" };
 
         const newId = crypto.randomUUID();
         await db.insert(registrations).values({
@@ -383,6 +393,12 @@ export async function awardTournamentPoints(tournamentId: string, providedBracke
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
         if (!t || !t.pointsConfig) {
             console.log(`[awardTournamentPoints] No se encontró el torneo o puntosConfig para ${tournamentId}`);
+            return;
+        }
+
+        // Guard against double execution: if tournament is already finalized, points were already awarded
+        if (t.status === "finalizado") {
+            console.log(`[awardTournamentPoints] Torneo ya finalizado — puntos ya otorgados, abortando.`);
             return;
         }
 
@@ -677,6 +693,10 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
 
         const [t] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
         if (!t) throw new Error("Torneo no encontrado");
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = t.createdByUserId === session.userId;
+        if (!isAdmin && !isOwner) throw new Error("No tenés permiso para resetear este torneo");
 
         await db.update(tournaments).set({ status: "pendiente" }).where(eq(tournaments.id, id));
         revalidatePath(`/tournaments/${id}`);
