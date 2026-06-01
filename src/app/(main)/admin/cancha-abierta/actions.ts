@@ -313,17 +313,21 @@ export async function finishMatchAction(matchId: string, score1: number, score2:
     }
 }
 
+const VALID_MATCH_SLOTS = ["team1Player1Id", "team1Player2Id", "team2Player1Id", "team2Player2Id"] as const;
+type MatchSlot = typeof VALID_MATCH_SLOTS[number];
+
 export async function updateMatchPlayerAction(matchId: string, slot: string, newPlayerId: string) {
+    if (!VALID_MATCH_SLOTS.includes(slot as MatchSlot)) {
+        return { success: false, error: "Slot inválido" };
+    }
+
     const [match] = await db.select().from(openCourtMatches).where(eq(openCourtMatches.id, matchId)).limit(1);
     if (!match) return { success: false, error: "Match not found" };
     if (!(await verifyEventOwnership(match.eventId))) return { success: false, error: "No autorizado" };
 
     try {
-        const updateData: any = {};
-        updateData[slot] = newPlayerId;
-
         await db.update(openCourtMatches)
-            .set(updateData)
+            .set({ [slot]: newPlayerId })
             .where(eq(openCourtMatches.id, matchId));
 
         revalidatePath(`/admin/cancha-abierta/${match.eventId}`);
@@ -336,6 +340,16 @@ export async function updateMatchPlayerAction(matchId: string, slot: string, new
 export async function registerPlayerManualAction(eventId: string, userId: string, sidePreference: string = "ambos", gender?: "masculino" | "femenino") {
     if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
     try {
+        const existing = await db.select({ id: openCourtRegistrations.id })
+            .from(openCourtRegistrations)
+            .where(and(
+                eq(openCourtRegistrations.eventId, eventId),
+                eq(openCourtRegistrations.userId, userId)
+            ))
+            .limit(1);
+
+        if (existing.length > 0) return { success: false, error: "El jugador ya está inscripto en este evento" };
+
         const id = crypto.randomUUID();
         await db.insert(openCourtRegistrations).values({
             id,
@@ -346,6 +360,18 @@ export async function registerPlayerManualAction(eventId: string, userId: string
             status: "waiting",
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function removeRegistrationAction(registrationId: string) {
+    const [reg] = await db.select({ eventId: openCourtRegistrations.eventId }).from(openCourtRegistrations).where(eq(openCourtRegistrations.id, registrationId)).limit(1);
+    if (!reg || !(await verifyEventOwnership(reg.eventId))) return { success: false, error: "No autorizado" };
+    try {
+        await db.delete(openCourtRegistrations).where(eq(openCourtRegistrations.id, registrationId));
+        revalidatePath(`/admin/cancha-abierta/${reg.eventId}`);
         return { success: true };
     } catch (error) {
         return { success: false, error: String(error) };
@@ -532,13 +558,18 @@ export async function leaveOpenCourtEventAction(eventId: string) {
     if (!session?.userId) return { success: false, error: "Debes iniciar sesión" };
 
     try {
-        await db.delete(openCourtRegistrations).where(
-            and(
+        const existing = await db.select({ id: openCourtRegistrations.id, status: openCourtRegistrations.status })
+            .from(openCourtRegistrations)
+            .where(and(
                 eq(openCourtRegistrations.eventId, eventId),
-                eq(openCourtRegistrations.userId, session.userId),
-                sql`${openCourtRegistrations.status} IN ('waiting', 'absent')`
-            )
-        );
+                eq(openCourtRegistrations.userId, session.userId)
+            ))
+            .limit(1);
+
+        if (existing.length === 0) return { success: false, error: "No estás inscripto en este evento" };
+        if (existing[0].status === "playing") return { success: false, error: "No podés salir mientras estás jugando un partido" };
+
+        await db.delete(openCourtRegistrations).where(eq(openCourtRegistrations.id, existing[0].id));
 
         revalidatePath(`/cancha-abierta/${eventId}`);
         revalidatePath("/cancha-abierta");

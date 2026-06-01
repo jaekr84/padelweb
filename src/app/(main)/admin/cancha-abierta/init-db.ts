@@ -106,6 +106,21 @@ export async function initializeOpenCourtTables() {
             await db.execute(sql`ALTER TABLE open_court_registrations ADD COLUMN gender varchar(20)`);
         }
 
+        // Unique constraint para evitar duplicados (event_id + user_id)
+        // Se ignora si ya existe o si hay datos duplicados previos que impidan crearlo
+        try {
+            await db.execute(sql`
+                ALTER TABLE open_court_registrations
+                ADD UNIQUE INDEX oc_reg_event_user_uniq (event_id, user_id)
+            `);
+            console.log("Unique index oc_reg_event_user_uniq creado.");
+        } catch (e: any) {
+            // 1061 = Duplicate key name (ya existe), 1062 = Duplicate entry (hay datos duplicados)
+            if (!String(e).includes("Duplicate key name") && !String(e).includes("1061") && !String(e).includes("1062")) {
+                console.warn("No se pudo crear el unique index:", e);
+            }
+        }
+
         // Reset de partidos si los nombres de columnas no coinciden
         try {
             await db.execute(sql`SELECT t1_p1_id from open_court_matches LIMIT 1`);

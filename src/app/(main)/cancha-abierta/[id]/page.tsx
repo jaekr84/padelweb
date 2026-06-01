@@ -65,7 +65,9 @@ export default async function EventJoinPage({ params }: { params: Promise<{ id: 
                 participants={registrations.map(r => ({
                     id: r.reg.id,
                     userId: r.reg.userId,
-                    name: `${r.userName} ${r.userLastName}`,
+                    name: r.reg.userId
+                        ? `${r.userName || ''} ${r.userLastName || ''}`.trim() || 'Jugador'
+                        : (r.reg.guestName || 'Invitado'),
                     image: r.userImage,
                     side: r.reg.sidePreference,
                     status: r.reg.status

@@ -27,7 +27,8 @@ import {
     createOpenCourtMatchAction,
     finishOpenCourtEventAction,
     updateCourtSettingsAction,
-    updateMatchPlayerAction
+    updateMatchPlayerAction,
+    removeRegistrationAction
 } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -110,6 +111,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     const [selectedGender, setSelectedGender] = useState<"masculino" | "femenino">("masculino");
     const [isGuestMode, setIsGuestMode] = useState(false);
     const [guestName, setGuestName] = useState("");
+    const [isSubmittingReg, setIsSubmittingReg] = useState(false);
 
     const handleUpdatePlayer = async (courtId: string, slot: string, newPlayerId: string) => {
         const isOccupied = event.courts.find(c => c.id === courtId)?.status !== "available";
@@ -199,17 +201,23 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
 
     const confirmRegistrationWithSide = async () => {
-        if (!sideSelector) return;
+        if (!sideSelector || isSubmittingReg) return;
 
+        if (sideSelector.isGuest && !guestName.trim()) {
+            toast.error("El nombre del invitado es obligatorio");
+            return;
+        }
+
+        setIsSubmittingReg(true);
         let res;
-        if (sideSelector.isGuest) {
-            if (!guestName.trim()) {
-                toast.error("El nombre del invitado es obligatorio");
-                return;
+        try {
+            if (sideSelector.isGuest) {
+                res = await registerGuestManualAction(event.id, guestName.trim(), selectedSide, selectedGender);
+            } else {
+                res = await registerPlayerManualAction(event.id, sideSelector.userId, selectedSide, selectedGender);
             }
-            res = await registerGuestManualAction(event.id, guestName.trim(), selectedSide, selectedGender);
-        } else {
-            res = await registerPlayerManualAction(event.id, sideSelector.userId, selectedSide, selectedGender);
+        } finally {
+            setIsSubmittingReg(false);
         }
 
         if (res.success) {
@@ -222,7 +230,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 router.refresh();
             });
         } else {
-            toast.error("Error: " + res.error);
+            toast.error(res.error || "Error al registrar");
         }
     };
 
@@ -700,6 +708,20 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
         }
     };
 
+    const handleRemoveRegistration = async (regId: string) => {
+        if (!confirm("¿Eliminar este inscripto del evento?")) return;
+
+        setRegistrations(prev => prev.filter(r => r.id !== regId));
+
+        const res = await removeRegistrationAction(regId);
+        if (!res.success) {
+            toast.error("Error al eliminar inscripto");
+            startTransition(() => { router.refresh(); });
+        } else {
+            toast.success("Inscripto eliminado");
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto space-y-4 animate-fade-in pb-12">
             {/* Header Area */}
@@ -856,9 +878,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 {sideSelector && (
                                     <button
                                         onClick={confirmRegistrationWithSide}
-                                        className="px-4 py-2 bg-celeste text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-celeste/20 hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                                        disabled={isSubmittingReg}
+                                        className="px-4 py-2 bg-celeste text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-celeste/20 hover:scale-[1.02] active:scale-95 transition-all shrink-0 disabled:opacity-50 disabled:pointer-events-none"
                                     >
-                                        {isGuestMode ? "Registrar Invitado" : `Registrar ${sideSelector.name.split(' ')[0]}`}
+                                        {isSubmittingReg ? "Registrando..." : isGuestMode ? "Registrar Invitado" : `Registrar ${sideSelector.name.split(' ')[0]}`}
                                     </button>
                                 )}
 
@@ -917,7 +940,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Categoría</th>
                                                 <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Lado</th>
                                                 <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Pago</th>
-                                                <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Asistencia</th>
+                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Asistencia</th>
+                                                <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/10">
@@ -969,13 +993,24 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-1.5">
-                                                        <div className="flex justify-end">
+                                                        <div className="flex justify-center">
                                                             <button
                                                                 onClick={() => handleTogglePresence(reg.id, reg.status)}
                                                                 className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-muted/50 text-muted-foreground opacity-30 hover:opacity-100'
                                                                     }`}
                                                             >
                                                                 <CheckCircle className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-1.5">
+                                                        <div className="flex justify-end">
+                                                            <button
+                                                                onClick={() => handleRemoveRegistration(reg.id)}
+                                                                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/30 hover:bg-rojo/10 hover:text-rojo transition-all"
+                                                                title="Eliminar inscripto"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -1081,10 +1116,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     {!isOccupied ? (
                                                         <button
                                                             onClick={() => generateNextMatch(court.id)}
-                                                            className="flex items-center gap-1.5 px-3 py-1 bg-celeste text-white font-black uppercase tracking-widest text-[8px] rounded-md shadow-md shadow-celeste/20 hover:scale-105 active:scale-95 transition-all"
+                                                            disabled={isGenerating}
+                                                            className="flex items-center gap-1.5 px-3 py-1 bg-celeste text-white font-black uppercase tracking-widest text-[8px] rounded-md shadow-md shadow-celeste/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none"
                                                         >
                                                             <Trophy className="w-2.5 h-2.5" />
-                                                            Armar Parejas
+                                                            {isGenerating ? "Generando..." : "Armar Parejas"}
                                                         </button>
                                                     ) : (
                                                         <button

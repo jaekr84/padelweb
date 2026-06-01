@@ -1,4 +1,4 @@
-import { mysqlTable, text, timestamp, varchar, json, boolean, int, smallint, index, datetime } from "drizzle-orm/mysql-core";
+import { mysqlTable, text, timestamp, varchar, json, boolean, int, smallint, index, uniqueIndex, datetime } from "drizzle-orm/mysql-core";
 import { sql } from "drizzle-orm";
 
 export const users = mysqlTable("users", {
@@ -340,6 +340,9 @@ export const openCourtRegistrations = mysqlTable("open_court_registrations", {
 }, (table) => ({
     eventIdIdx: index("oc_reg_event_id_idx").on(table.eventId),
     userIdIdx: index("oc_reg_user_id_idx").on(table.userId),
+    // Prevents the same user from registering twice in the same event.
+    // NULL userId (guests) are exempt — MySQL treats NULL != NULL in unique indexes.
+    eventUserUniq: uniqueIndex("oc_reg_event_user_uniq").on(table.eventId, table.userId),
 }));
 
 export const openCourtCourts = mysqlTable("open_court_courts", {
