@@ -102,6 +102,21 @@
     animation: shine-multi 6s linear infinite;
   }
 
+  /* Animated gradient text */
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .text-gradient-animate {
+    background: linear-gradient(to right, #1e40af, #0ea5e9, #1e40af);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-x 6s ease infinite;
+  }
+
   /* Premium Buttons */
   .glow-button {
     position: relative;
