@@ -243,6 +243,7 @@ export async function setPlayerPresenceAction(registrationId: string, status: "w
         await db.update(openCourtRegistrations)
             .set({ status })
             .where(eq(openCourtRegistrations.id, registrationId));
+        revalidatePath(`/admin/cancha-abierta/${reg.eventId}`);
         revalidatePath("/admin/cancha-abierta");
         return { success: true };
     } catch (error) {
@@ -295,7 +296,7 @@ export async function registerPlayerManualAction(eventId: string, userId: string
             userId,
             sidePreference,
             gender: gender || null,
-            status: "waiting",
+            status: "absent", // requiere check-in manual en el tab Asistencia
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
         return { success: true };
@@ -326,7 +327,7 @@ export async function registerGuestManualAction(eventId: string, guestName: stri
             guestName,
             sidePreference,
             gender: gender || null,
-            status: "waiting",
+            status: "absent", // requiere check-in manual en el tab Asistencia
         });
         revalidatePath(`/admin/cancha-abierta/${eventId}`);
         return { success: true };
@@ -341,17 +342,20 @@ export async function togglePaymentStatusAction(registrationId: string, hasPaid:
         await db.update(openCourtRegistrations)
             .set({ hasPaid })
             .where(eq(openCourtRegistrations.id, registrationId));
+        revalidatePath(`/admin/cancha-abierta/${reg.eventId}`);
         return { success: true };
     } catch (error) {
         return { success: false, error: String(error) };
     }
 }
+
 export async function bulkMarkAllAsPaidAction(eventId: string) {
     if (!(await verifyEventOwnership(eventId))) return { success: false, error: "No autorizado" };
     try {
         await db.update(openCourtRegistrations)
             .set({ hasPaid: true })
             .where(eq(openCourtRegistrations.eventId, eventId));
+        revalidatePath(`/admin/cancha-abierta/${eventId}`);
         return { success: true };
     } catch (error) {
         return { success: false, error: String(error) };
@@ -364,6 +368,7 @@ export async function bulkMarkAllAsPresentAction(eventId: string) {
         await db.update(openCourtRegistrations)
             .set({ status: 'waiting' })
             .where(eq(openCourtRegistrations.eventId, eventId));
+        revalidatePath(`/admin/cancha-abierta/${eventId}`);
         return { success: true };
     } catch (error) {
         return { success: false, error: String(error) };
@@ -471,14 +476,14 @@ export async function joinOpenCourtEventAction(eventId: string, sidePreference: 
             return { success: false, error: "Este evento ya está completo" };
         }
 
-        // 3. Crear inscripción
+        // 3. Crear inscripción — empieza como "absent" hasta que el admin confirme asistencia
         const id = crypto.randomUUID();
         await db.insert(openCourtRegistrations).values({
             id,
             eventId,
             userId: session.userId,
             sidePreference,
-            status: "waiting",
+            status: "absent",
             hasPaid: false
         });
 

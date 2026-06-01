@@ -66,15 +66,6 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     const [event, setEvent] = useState(initialEvent);
     const [registrations, setRegistrations] = useState(initialRegistrations);
 
-    // Synchronize local states with props when they change (e.g. after router.refresh())
-    useEffect(() => {
-        setRegistrations(initialRegistrations);
-    }, [initialRegistrations]);
-
-    useEffect(() => {
-        setEvent(initialEvent);
-    }, [initialEvent]);
-
     // Determine initial tab based on URL param or event status
     const initialTab = useMemo(() => {
         const tabParam = searchParams.get('tab');
@@ -945,8 +936,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/10">
-                                            {registrations.map(reg => (
-                                                <tr key={reg.id} className="group hover:bg-celeste/[0.02] transition-colors">
+                                            {registrations.map(reg => {
+                                                const isAbsent = reg.status !== 'waiting';
+                                                return (
+                                                <tr key={reg.id} className={`group transition-colors ${isAbsent ? 'opacity-50 hover:opacity-80' : 'hover:bg-celeste/[0.02]'}`}>
                                                     <td className="px-4 py-1.5">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground overflow-hidden">
@@ -961,7 +954,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                     {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
                                                                 </span>
                                                                 <span className="text-[7px] font-medium text-muted-foreground/60">
-                                                                    {reg.guestName ? "Invitado" : reg.user?.email}
+                                                                    {isAbsent
+                                                                        ? <span className="text-amber-500/80 font-black uppercase tracking-widest">Sin confirmar</span>
+                                                                        : reg.guestName ? "Invitado" : reg.user?.email}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -1015,7 +1010,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            ))}
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -1248,7 +1244,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 });
                                             });
 
-                                            return [...registrations]
+                                            const activePlayers = [...registrations]
                                                 .filter(r => r.status !== 'absent')
                                                 .sort((a, b) => {
                                                     const idA = a.userId || a.id;
@@ -1263,88 +1259,121 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     const timeA = lastMatchTime.get(idA) || 0;
                                                     const timeB = lastMatchTime.get(idB) || 0;
                                                     return timeA - timeB;
-                                                })
-                                                .map(reg => {
-                                                    const pid = reg.userId || reg.id;
-                                                    const isPlaying = playingPlayersIds.has(pid);
-                                                    const played = matchesPlayedCount.get(pid) || 0;
-                                                    const side = reg.sidePreference || (reg.user?.side) || "ambos";
-
-                                                    return (
-                                                        <tr
-                                                            key={reg.id}
-                                                            className={`border-b border-border/10 transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-celeste/5' : ''
-                                                                }`}
-                                                        >
-                                                            <td className="px-4 py-1.5">
-                                                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit ${isPlaying ? 'bg-celeste/10 text-celeste' : 'bg-muted/50 text-muted-foreground/40'
-                                                                    }`}>
-                                                                    <div className={`w-1 h-1 rounded-full ${isPlaying ? 'bg-celeste animate-pulse' : 'bg-muted-foreground/40'}`} />
-                                                                    <span className="text-[7px] font-black uppercase tracking-widest">{isPlaying ? 'En Juego' : 'Espera'}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-1.5">
-                                                                <div className="flex flex-col">
-                                                                    <span className="text-[10px] font-black uppercase italic tracking-tight">
-                                                                        {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
-                                                                    </span>
-                                                                    <div className="flex gap-1 mt-0.5">
-                                                                        <span className={`text-[6px] font-black uppercase px-1.5 py-0.5 rounded-sm ${(reg.gender || reg.user?.gender) === 'masculino'
-                                                                            ? 'bg-azul-primary/10 text-azul-primary'
-                                                                            : 'bg-rojo/10 text-rojo'
-                                                                            }`}>
-                                                                            {(reg.gender || reg.user?.gender) === 'femenino' ? 'MUJER' : 'HOMBRE'}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-1.5">
-                                                                <div className="flex justify-center">
-                                                                    <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-celeste/20 text-celeste border border-celeste/20' :
-                                                                        side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' :
-                                                                            'bg-azul-primary/20 text-azul-primary border border-azul-primary/20'
-                                                                        }`}>
-                                                                        {side === 'drive' ? 'Drive' : side === 'reves' ? 'Revés' : 'Ambos'}
-                                                                    </span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-1.5 text-center">
-                                                                <span className="text-[10px] font-black italic">{played}</span>
-                                                            </td>
-                                                            <td className="px-4 py-1.5">
-                                                                <div className="flex justify-center">
-                                                                    <button
-                                                                        onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
-                                                                        className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid
-                                                                            ? 'bg-celeste/10 border-celeste/30 text-celeste'
-                                                                            : 'bg-muted/30 border-border/50 text-muted-foreground/40 hover:border-celeste/40'
-                                                                            }`}
-                                                                    >
-                                                                        <DollarSign className={`w-2.5 h-2.5 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
-                                                                        <span className="text-[7px] font-black uppercase tracking-widest">{reg.hasPaid ? 'Pago' : 'Pend.'}</span>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-1.5">
-                                                                <div className="flex justify-center">
-                                                                    <button
-                                                                        onClick={() => handleTogglePresence(reg.id, reg.status)}
-                                                                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-white shadow-lg shadow-celeste/20' : 'bg-muted/50 text-muted-foreground opacity-30 hover:opacity-100'
-                                                                            }`}
-                                                                    >
-                                                                        <CheckCircle className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-1.5 text-right">
-                                                                <span className={`text-[7px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-muted-foreground/40'
-                                                                    }`}>
-                                                                    {played === 0 ? 'T1' : (isPlaying ? '-' : 'Cola')}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
                                                 });
+
+                                            const absentPlayers = registrations.filter(r => r.status === 'absent');
+
+                                            const activeRows = activePlayers.map(reg => {
+                                                const pid = reg.userId || reg.id;
+                                                const isPlaying = playingPlayersIds.has(pid);
+                                                const played = matchesPlayedCount.get(pid) || 0;
+                                                const side = reg.sidePreference || (reg.user?.side) || "ambos";
+
+                                                return (
+                                                    <tr
+                                                        key={reg.id}
+                                                        className={`border-b border-border/10 transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-celeste/5' : ''}`}
+                                                    >
+                                                        <td className="px-4 py-1.5">
+                                                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit ${isPlaying ? 'bg-celeste/10 text-celeste' : 'bg-muted/50 text-muted-foreground/40'}`}>
+                                                                <div className={`w-1 h-1 rounded-full ${isPlaying ? 'bg-celeste animate-pulse' : 'bg-muted-foreground/40'}`} />
+                                                                <span className="text-[7px] font-black uppercase tracking-widest">{isPlaying ? 'En Juego' : 'Espera'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] font-black uppercase italic tracking-tight">
+                                                                    {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
+                                                                </span>
+                                                                <div className="flex gap-1 mt-0.5">
+                                                                    <span className={`text-[6px] font-black uppercase px-1.5 py-0.5 rounded-sm ${(reg.gender || reg.user?.gender) === 'masculino' ? 'bg-azul-primary/10 text-azul-primary' : 'bg-rojo/10 text-rojo'}`}>
+                                                                        {(reg.gender || reg.user?.gender) === 'femenino' ? 'MUJER' : 'HOMBRE'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex justify-center">
+                                                                <span className={`px-2 py-0.5 rounded-md text-[6px] font-black uppercase tracking-wider ${side === 'drive' ? 'bg-celeste/20 text-celeste border border-celeste/20' : side === 'reves' ? 'bg-rojo/20 text-rojo border border-rojo/20' : 'bg-azul-primary/20 text-azul-primary border border-azul-primary/20'}`}>
+                                                                    {side === 'drive' ? 'Drive' : side === 'reves' ? 'Revés' : 'Ambos'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5 text-center">
+                                                            <span className="text-[10px] font-black italic">{played}</span>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex justify-center">
+                                                                <button
+                                                                    onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
+                                                                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid ? 'bg-celeste/10 border-celeste/30 text-celeste' : 'bg-muted/30 border-border/50 text-muted-foreground/40 hover:border-celeste/40'}`}
+                                                                >
+                                                                    <DollarSign className={`w-2.5 h-2.5 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
+                                                                    <span className="text-[7px] font-black uppercase tracking-widest">{reg.hasPaid ? 'Pago' : 'Pend.'}</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex justify-center">
+                                                                <button
+                                                                    onClick={() => handleTogglePresence(reg.id, reg.status)}
+                                                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-celeste text-white shadow-lg shadow-celeste/20"
+                                                                >
+                                                                    <CheckCircle className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5 text-right">
+                                                            <span className={`text-[7px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-muted-foreground/40'}`}>
+                                                                {played === 0 ? 'T1' : (isPlaying ? '-' : 'Cola')}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            });
+
+                                            // Separador + ausentes (para check-in tardío)
+                                            const absentRows = absentPlayers.length > 0 ? [
+                                                <tr key="__absent_separator__">
+                                                    <td colSpan={7} className="px-4 py-1.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-px flex-1 bg-border/20" />
+                                                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
+                                                                Ausentes · {absentPlayers.length}
+                                                            </span>
+                                                            <div className="h-px flex-1 bg-border/20" />
+                                                        </div>
+                                                    </td>
+                                                </tr>,
+                                                ...absentPlayers.map(reg => (
+                                                    <tr key={reg.id} className="border-b border-border/5 opacity-40 hover:opacity-70 transition-opacity">
+                                                        <td className="px-4 py-1.5">
+                                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit bg-muted/30 text-muted-foreground/40">
+                                                                <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                                                <span className="text-[7px] font-black uppercase tracking-widest">Ausente</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
+                                                            <span className="text-[10px] font-black uppercase italic tracking-tight text-muted-foreground">
+                                                                {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
+                                                            </span>
+                                                        </td>
+                                                        <td colSpan={4} />
+                                                        <td className="px-4 py-1.5 text-right">
+                                                            <button
+                                                                onClick={() => handleTogglePresence(reg.id, reg.status)}
+                                                                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 transition-all text-[7px] font-black uppercase tracking-widest ml-auto"
+                                                                title="Marcar como presente"
+                                                            >
+                                                                <CheckCircle className="w-3 h-3" />
+                                                                Llegó
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ] : [];
+
+                                            return [...activeRows, ...absentRows];
                                         })()}
                                     </tbody>
                                 </table>
