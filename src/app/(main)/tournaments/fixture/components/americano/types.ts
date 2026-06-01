@@ -43,6 +43,7 @@ export interface BracketMatch {
     score1?: number;
     score2?: number;
     confirmed: boolean;
+    status?: string; // 'pending' | 'live' | 'finished'
     winnerId?: string;
     winnerName?: string;
 }

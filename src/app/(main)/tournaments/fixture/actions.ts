@@ -175,7 +175,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                         score1: s1,
                         score2: s2,
                         confirmed: isConfirmed as any,
-                        status: bm.status || (isConfirmed ? "finished" : "pending"),
+                        status: isConfirmed ? "finished" : (bm.status || "pending"),
                         winnerId: bm.winnerId ?? null,
                         winnerName,
                     };

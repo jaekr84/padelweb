@@ -14,6 +14,7 @@ interface AmericanoBracketProps {
     readOnly?: boolean;
     setReplacingPlayer: (p: Player) => void;
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
+    handleBracketStart: (matchId: string) => void;
     handleBracketConfirm: (matchId: string) => void;
     handleBracketEdit: (matchId: string) => void;
     standings: Standing[];
@@ -27,6 +28,7 @@ export function AmericanoBracket({
     readOnly,
     setReplacingPlayer,
     handleBracketScore,
+    handleBracketStart,
     handleBracketConfirm,
     handleBracketEdit,
     standings,
@@ -155,6 +157,7 @@ export function AmericanoBracket({
                                                                     match={match}
                                                                     readOnly={readOnly || false}
                                                                     handleBracketScore={handleBracketScore}
+                                                                    handleBracketStart={handleBracketStart}
                                                                     handleBracketConfirm={handleBracketConfirm}
                                                                     handleBracketEdit={handleBracketEdit}
                                                                     setReplacingPlayer={setReplacingPlayer}

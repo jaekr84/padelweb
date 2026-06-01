@@ -20,7 +20,6 @@ import { AmericanoHeader } from "./components/americano/AmericanoHeader";
 import { AmericanoAttendance } from "./components/americano/AmericanoAttendance";
 import { AmericanoCourtGrid } from "./components/americano/AmericanoCourtGrid";
 import { AmericanoStandingsTable } from "./components/americano/AmericanoStandingsTable";
-import { AmericanoBracket } from "./components/americano/AmericanoBracket";
 import { AmericanoModals } from "./components/americano/AmericanoModals";
 
 export interface AmericanoManagerProps {

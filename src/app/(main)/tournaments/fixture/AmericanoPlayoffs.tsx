@@ -242,6 +242,29 @@ export default function AmericanoPlayoffs({
         await handleReplacePlayer(oldPlayerId, guestPlayer);
     };
 
+    const handleBracketStart = async (matchId: string) => {
+        const updated = bracket.map(m => m.id === matchId ? { ...m, status: "live" } : m);
+        setBracket(updated);
+        setSaving(true);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "eliminatorias",
+                groups,
+                matches,
+                bracket: updated,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+            });
+            if (!res.ok) {
+                setBracket(bracket);
+                toast.error("Error al iniciar partido: " + res.error);
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleBracketScore = (matchId: string, s1: string, s2: string) => {
         const match = bracket.find(m => m.id === matchId);
         if (match?.confirmed || readOnly) return;
@@ -265,7 +288,7 @@ export default function AmericanoPlayoffs({
 
         const updated = bracket.map(m => {
             if (m.id === matchId) {
-                return { ...m, confirmed: false, winnerId: undefined, winnerName: undefined };
+                return { ...m, confirmed: false, status: "live", winnerId: undefined, winnerName: undefined };
             }
             if (m.round === target.round - 1 && m.slot === Math.floor(target.slot / 2)) {
                 if (target.slot % 2 === 0) return { ...m, team1: null };
@@ -306,6 +329,7 @@ export default function AmericanoPlayoffs({
         const updated = bracket.map(m => m.id === matchId ? {
             ...m,
             confirmed: true,
+            status: "finished",
             winnerId: (winner as Player).id,
             winnerName: (winner as Player).name
         } : m);
@@ -496,6 +520,7 @@ export default function AmericanoPlayoffs({
                             readOnly={readOnly}
                             setReplacingPlayer={setReplacingPlayer}
                             handleBracketScore={handleBracketScore}
+                            handleBracketStart={handleBracketStart}
                             handleBracketConfirm={handleBracketConfirm}
                             handleBracketEdit={handleBracketEdit}
                             standings={[]}

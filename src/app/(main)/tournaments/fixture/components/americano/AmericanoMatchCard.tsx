@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Flag, ChevronUp, ChevronDown, RotateCcw, Lock, X, Loader2 } from "lucide-react";
+import { Flag, ChevronUp, ChevronDown, RotateCcw, Lock, X, Loader2, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BracketMatch, Player, BracketSlot } from "./types";
 import PlayerCard from "@/components/PlayerCard";
@@ -11,6 +11,7 @@ interface AmericanoMatchCardProps {
     match: BracketMatch;
     readOnly: boolean;
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
+    handleBracketStart: (matchId: string) => void;
     handleBracketConfirm: (matchId: string) => void;
     handleBracketEdit: (matchId: string) => void;
     setReplacingPlayer: (p: Player) => void;
@@ -21,6 +22,7 @@ export function AmericanoMatchCard({
     match: m,
     readOnly,
     handleBracketScore,
+    handleBracketStart,
     handleBracketConfirm,
     handleBracketEdit,
     setReplacingPlayer,
@@ -80,7 +82,9 @@ export function AmericanoMatchCard({
     const isTeam1Defined = m.team1 !== null && m.team1 !== undefined && m.team1 !== "BYE" && !(m.team1 as any)?.id?.startsWith('TBD_');
     const isTeam2Defined = m.team2 !== null && m.team2 !== undefined && m.team2 !== "BYE" && !(m.team2 as any)?.id?.startsWith('TBD_');
     const canStartMatch = isTeam1Defined && isTeam2Defined;
-    const isInProgress = !isFinished && !isBye && canStartMatch;
+    const isLive = m.status === 'live' && !isFinished && !isBye;
+    const isReadyToStart = canStartMatch && !isFinished && !isBye && !isLive;
+    const isInProgress = isLive;
 
     // Detect if this is single player mode (individual)
     const isSingleLayout = isIndividual || (() => {
@@ -192,8 +196,8 @@ export function AmericanoMatchCard({
                 <div className={`flex flex-col items-center justify-center gap-1 px-1 border-x border-white/5 ${isSingleLayout ? "w-14 flex-none" : "flex-1 min-w-[40px]"}`}>
                     {!readOnly && (
                         <>
-                            {/* LOCKED MATCH: Waiting for previous round */}
-                            {!isInProgress && !isFinished && m.team1 !== "BYE" && m.team2 !== "BYE" && (
+                            {/* LOCKED: esperando que se definan los equipos */}
+                            {!isReadyToStart && !isLive && !isFinished && !isBye && (
                                 <div
                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-slate-500 border border-white/5 cursor-not-allowed"
                                     title="Esperando que se definan los participantes de los partidos anteriores"
@@ -202,8 +206,21 @@ export function AmericanoMatchCard({
                                 </div>
                             )}
 
-                            {/* CONFIRM MATCH: Active */}
-                            {isInProgress && (
+                            {/* PLAY: listo para iniciar */}
+                            {isReadyToStart && (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => handleBracketStart(m.id)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
+                                    title="Iniciar Partido"
+                                >
+                                    <Play className="w-5 h-5 fill-current" />
+                                </motion.button>
+                            )}
+
+                            {/* CONFIRM: en vivo */}
+                            {isLive && (
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
@@ -215,7 +232,7 @@ export function AmericanoMatchCard({
                                 </motion.button>
                             )}
 
-                            {/* REOPEN MATCH: Already finished */}
+                            {/* REOPEN: ya finalizado */}
                             {isFinished && !isBye && (
                                 <motion.button
                                     whileHover={{ scale: 1.1, rotate: -45 }}
@@ -230,6 +247,9 @@ export function AmericanoMatchCard({
                         </>
                     )}
 
+                    {isLive && (
+                        <span className="text-[6px] font-black italic text-rojo animate-pulse tracking-[0.1em] select-none uppercase">VIVO</span>
+                    )}
                     <span className="text-[10px] font-black italic text-rojo tracking-[0.2em] select-none mt-1">VS</span>
                 </div>
 
