@@ -1,11 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Plus, Minus, ChevronUp, ChevronDown, Check, Loader2, X } from "lucide-react";
+import { Trash2, Plus, Minus, ChevronUp, ChevronDown, Check, Loader2, X, ArrowLeftRight, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { Match, Player } from "./types";
 import PlayerCard from "@/components/PlayerCard";
 import { getPlayerProfileData } from "@/app/actions/players";
+
+// ── Swap candidate type ──
+type SwapCandidate = {
+    player: Player;
+    matchCount: number;
+    hasPlayedOpponent: boolean;
+    sameClub: boolean;
+    quality: "ideal" | "ok" | "repeated";
+};
 
 interface AmericanoCourtGridProps {
     numCourts: number;
@@ -18,6 +27,10 @@ interface AmericanoCourtGridProps {
     saving: boolean;
     onUpdateCourts?: (newCount: number) => void | Promise<any>;
     isIndividual?: boolean;
+    // Swap-team props
+    allGroupPlayers?: Player[];
+    matchesPerTeam?: number;
+    onSwapTeam?: (matchId: string, teamSlot: 1 | 2, newPlayer: Player) => Promise<any>;
 }
 
 export function AmericanoCourtGrid({
@@ -30,8 +43,92 @@ export function AmericanoCourtGrid({
     generateNextMatch,
     saving,
     onUpdateCourts,
-    isIndividual
+    isIndividual,
+    allGroupPlayers = [],
+    matchesPerTeam = 2,
+    onSwapTeam
 }: AmericanoCourtGridProps) {
+    // ── Swap-menu state ──
+    const [swapMatchId, setSwapMatchId] = useState<string | null>(null);
+    const [swapSlot, setSwapSlot] = useState<1 | 2>(1);
+    const [swapSaving, setSwapSaving] = useState(false);
+    const swapRef = useRef<HTMLDivElement>(null);
+
+    // Close on outside click
+    useEffect(() => {
+        if (!swapMatchId) return;
+        const handler = (e: MouseEvent) => {
+            if (swapRef.current && !swapRef.current.contains(e.target as Node)) {
+                setSwapMatchId(null);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [swapMatchId]);
+
+    /** Compute eligible swap candidates for a given match + slot */
+    const getSwapCandidates = (matchId: string, teamSlot: 1 | 2): SwapCandidate[] => {
+        const targetMatch = matches.find(m => m.id === matchId);
+        if (!targetMatch || !allGroupPlayers.length) return [];
+
+        const swappedOut = teamSlot === 1 ? targetMatch.team1 : targetMatch.team2;
+        const opponent   = teamSlot === 1 ? targetMatch.team2 : targetMatch.team1;
+
+        // Players currently in an unconfirmed match (excluding this one)
+        const currentlyPlaying = new Set(
+            matches
+                .filter(m => !m.confirmed && m.id !== matchId)
+                .flatMap(m => [m.team1.id, m.team2.id])
+        );
+
+        // Confirmed match counts per player
+        const matchCounts = new Map<string, number>();
+        allGroupPlayers.forEach(p => matchCounts.set(p.id, 0));
+        matches.filter(m => m.confirmed).forEach(m => {
+            matchCounts.set(m.team1.id, (matchCounts.get(m.team1.id) ?? 0) + 1);
+            matchCounts.set(m.team2.id, (matchCounts.get(m.team2.id) ?? 0) + 1);
+        });
+
+        // Who has the opponent already played?
+        const opponentPlayed = new Set(
+            matches
+                .filter(m => m.id !== matchId && (m.team1.id === opponent.id || m.team2.id === opponent.id))
+                .map(m => m.team1.id === opponent.id ? m.team2.id : m.team1.id)
+        );
+
+        return allGroupPlayers
+            .filter(p =>
+                p.id !== swappedOut.id &&
+                p.id !== opponent.id &&
+                !currentlyPlaying.has(p.id) &&
+                (matchCounts.get(p.id) ?? 0) < matchesPerTeam
+            )
+            .map(p => {
+                const hasPlayedOpponent = opponentPlayed.has(p.id);
+                const sameClub = !!(p.clubId && opponent.clubId && p.clubId === opponent.clubId);
+                const matchCount = matchCounts.get(p.id) ?? 0;
+
+                let quality: SwapCandidate["quality"] = "ideal";
+                if (hasPlayedOpponent) quality = "repeated";
+                else if (sameClub) quality = "ok";
+
+                // Sort score (lower = better)
+                const score = matchCount + (hasPlayedOpponent ? 20 : 0) + (sameClub ? 5 : 0);
+                return { player: p, matchCount, hasPlayedOpponent, sameClub, quality, _score: score } as SwapCandidate & { _score: number };
+            })
+            .sort((a, b) => (a as any)._score - (b as any)._score);
+    };
+
+    const handleSwapClick = async (matchId: string, teamSlot: 1 | 2, candidate: Player) => {
+        if (!onSwapTeam) return;
+        setSwapSaving(true);
+        try {
+            await onSwapTeam(matchId, teamSlot, candidate);
+            setSwapMatchId(null);
+        } finally {
+            setSwapSaving(false);
+        }
+    };
     const [selectedPlayer, setSelectedPlayer] = useState<{
         id: string;
         name: string;
@@ -385,6 +482,144 @@ export function AmericanoCourtGrid({
                                     </motion.div>
                                 </div>
                             </div>
+
+                            {/* ── Swap-Team Footer ── */}
+                            {activeMatch && !readOnly && onSwapTeam && (
+                                <div ref={swapMatchId === activeMatch.id ? swapRef : undefined}>
+                                    {/* Toggle button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (swapMatchId === activeMatch.id) {
+                                                setSwapMatchId(null);
+                                            } else {
+                                                setSwapMatchId(activeMatch.id);
+                                                setSwapSlot(1);
+                                            }
+                                        }}
+                                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-t transition-all cursor-pointer
+                                            ${swapMatchId === activeMatch.id
+                                                ? "border-azul-primary/40 bg-azul-primary/10 text-azul-primary"
+                                                : "border-border/10 text-foreground/30 hover:text-azul-primary hover:border-azul-primary/20 hover:bg-azul-primary/5"
+                                            }`}
+                                    >
+                                        <ArrowLeftRight className="w-3 h-3" />
+                                        <span className="text-[7px] font-black uppercase tracking-[0.2em]">
+                                            {swapMatchId === activeMatch.id ? "Cerrar" : "Cambiar Pareja"}
+                                        </span>
+                                    </button>
+
+                                    {/* Dropdown panel */}
+                                    <AnimatePresence>
+                                        {swapMatchId === activeMatch.id && (() => {
+                                            const candidates = getSwapCandidates(activeMatch.id, swapSlot);
+                                            const team1Name = activeMatch.team1?.name ?? "Equipo 1";
+                                            const team2Name = activeMatch.team2?.name ?? "Equipo 2";
+
+                                            return (
+                                                <motion.div
+                                                    key="swap-panel"
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    transition={{ duration: 0.22, ease: "easeOut" }}
+                                                    className="overflow-hidden border-t border-azul-primary/20 bg-background/95 backdrop-blur-sm"
+                                                >
+                                                    <div className="p-3 space-y-2.5">
+                                                        {/* Slot Tabs */}
+                                                        <div className="flex gap-1 p-0.5 bg-muted/30 rounded-lg border border-border/30">
+                                                            {([1, 2] as const).map(slot => {
+                                                                const name = slot === 1 ? team1Name : team2Name;
+                                                                const label = name.split(/[\/\+]/)[0]?.trim() ?? `Equipo ${slot}`;
+                                                                return (
+                                                                    <button
+                                                                        key={slot}
+                                                                        type="button"
+                                                                        onClick={() => setSwapSlot(slot)}
+                                                                        className={`flex-1 py-1.5 px-2 rounded-md text-[7px] font-black uppercase tracking-widest transition-all cursor-pointer truncate
+                                                                            ${swapSlot === slot
+                                                                                ? "bg-azul-primary text-white shadow-sm"
+                                                                                : "text-foreground/50 hover:text-foreground/80"
+                                                                            }`}
+                                                                    >
+                                                                        {label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        {/* Legend */}
+                                                        <div className="flex items-center gap-3 px-0.5">
+                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Ideal
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                                <Info className="w-2.5 h-2.5 text-yellow-400" /> Mismo club
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                                <AlertCircle className="w-2.5 h-2.5 text-orange-400" /> Ya jugaron
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Candidates list */}
+                                                        {candidates.length === 0 ? (
+                                                            <div className="py-3 text-center">
+                                                                <p className="text-[8px] font-black uppercase tracking-widest text-foreground/30">
+                                                                    Sin jugadores disponibles
+                                                                </p>
+                                                                <p className="text-[7px] text-foreground/20 mt-0.5">
+                                                                    Todos están jugando o completaron sus partidos.
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-1 max-h-[180px] overflow-y-auto custom-scrollbar pr-0.5">
+                                                                {candidates.map(({ player: c, matchCount, quality }) => {
+                                                                    const iconEl = quality === "ideal"
+                                                                        ? <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                                                        : quality === "ok"
+                                                                        ? <Info className="w-3 h-3 text-yellow-400 shrink-0" />
+                                                                        : <AlertCircle className="w-3 h-3 text-orange-400 shrink-0" />;
+
+                                                                    const badgeColor = quality === "ideal"
+                                                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                                        : quality === "ok"
+                                                                        ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                                                        : "bg-orange-500/10 text-orange-400 border-orange-500/20";
+
+                                                                    return (
+                                                                        <motion.button
+                                                                            key={c.id}
+                                                                            type="button"
+                                                                            whileTap={{ scale: 0.97 }}
+                                                                            disabled={swapSaving}
+                                                                            onClick={() => handleSwapClick(activeMatch.id, swapSlot, c)}
+                                                                            className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-card/50 hover:bg-azul-primary/10 hover:border-azul-primary/40 transition-all group/cand cursor-pointer disabled:opacity-50 text-left"
+                                                                        >
+                                                                            {swapSaving
+                                                                                ? <Loader2 className="w-3 h-3 animate-spin text-azul-primary shrink-0" />
+                                                                                : iconEl
+                                                                            }
+                                                                            <span className="text-[9px] font-black uppercase italic flex-1 truncate text-foreground group-hover/cand:text-azul-primary transition-colors">
+                                                                                {c.name}
+                                                                            </span>
+                                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                                <span className={`text-[6px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                                                                                    {matchCount}P
+                                                                                </span>
+                                                                                <ArrowLeftRight className="w-3 h-3 text-foreground/20 group-hover/cand:text-azul-primary transition-colors" />
+                                                                            </div>
+                                                                        </motion.button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })()}
+                                    </AnimatePresence>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );

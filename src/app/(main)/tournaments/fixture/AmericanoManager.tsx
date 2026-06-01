@@ -1215,6 +1215,9 @@ export default function AmericanoManager({
                                     saving={saving}
                                     onUpdateCourts={(newCount) => handleUpdateConfig(newCount, matchesPerTeam)}
                                     isIndividual={isIndividual}
+                                    allGroupPlayers={groups[0]?.players ?? []}
+                                    matchesPerTeam={matchesPerTeam}
+                                    onSwapTeam={handleUpdateMatchPlayer}
                                 />
                             )}
 
