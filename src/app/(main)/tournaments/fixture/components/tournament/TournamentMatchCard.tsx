@@ -10,24 +10,24 @@ import { getPlayerProfileData } from "@/app/actions/players";
 interface TournamentMatchCardProps {
     match: BracketMatch;
     readOnly: boolean;
+    handleBracketStart: (matchId: string) => void;
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
     handleBracketConfirm: (matchId: string) => void;
     handleReopenMatch: (matchId: string) => void;
     handleSwapPlayers: (matchId: string, teamSlot: 1 | 2) => void;
     swappingPlayer: { matchId: string, teamSlot: 1 | 2 } | null;
-    setBracket: (bracket: BracketMatch[] | ((prev: BracketMatch[]) => BracketMatch[])) => void;
     isIndividual: boolean;
 }
 
 export function TournamentMatchCard({
     match: m,
     readOnly,
+    handleBracketStart,
     handleBracketScore,
     handleBracketConfirm,
     handleReopenMatch,
     handleSwapPlayers,
     swappingPlayer,
-    setBracket,
     isIndividual
 }: TournamentMatchCardProps) {
     const [selectedPlayer, setSelectedPlayer] = React.useState<{
@@ -204,7 +204,7 @@ export function TournamentMatchCard({
                                          <motion.button
                                              whileHover={{ scale: 1.1 }}
                                              whileTap={{ scale: 0.9 }}
-                                             onClick={() => setBracket(prev => (Array.isArray(prev) ? prev : []).map(bm => bm.id === m.id ? { ...bm, status: 'in_progress' } : bm))}
+                                             onClick={() => handleBracketStart(m.id)}
                                              className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
                                              title="Iniciar Partido"
                                          >

@@ -38,7 +38,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
         step, setStep,
         groups, setGroups,
         matches, setMatches,
-        bracket, setBracket,
+        bracket,
         present, setPresent,
         paid, setPaid,
         isPlayersModalOpen, setIsPlayersModalOpen,
@@ -74,6 +74,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
         handleReopenMatch,
         handleSimulateResults,
         handleGenerateBracket,
+        handleBracketStart,
         handleBracketScore,
         handleBracketConfirm,
         handleSwapPlayers,
@@ -241,13 +242,13 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             bracket={bracket}
                                             roundsArr={roundsArr}
                                             readOnly={readOnly}
+                                            handleBracketStart={handleBracketStart}
                                             handleBracketScore={handleBracketScore}
                                             handleBracketConfirm={handleBracketConfirm}
                                             handleReopenMatch={handleReopenMatch}
                                             handleGenerateBracket={handleGenerateBracket}
                                             handleSwapPlayers={handleSwapPlayers}
                                             swappingPlayer={swappingPlayer}
-                                            setBracket={setBracket}
                                             roundLabel={roundLabel}
                                             isIndividual={isIndividual}
                                         />

@@ -3,7 +3,7 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { tournaments, users, registrations, categoriesTable } from "@/db/schema";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 
 export type RegistrationContext = {
     tournament: any;
@@ -162,4 +162,3 @@ export async function getRegistrationContext(tournamentId: string): Promise<Regi
     };
 }
 
-import { sql } from "drizzle-orm";

@@ -57,8 +57,6 @@ export default async function TournamentManagePage({ params }: Props) {
     const dbGroups = await db.select().from(tournamentGroups).where(eq(tournamentGroups.tournamentId, id));
     const dbMatches = await db.select().from(groupMatches).where(eq(groupMatches.tournamentId, id));
     const dbBracket = await db.select().from(bracketMatches).where(eq(bracketMatches.tournamentId, id));
-    
-    console.log(`[TournamentManagePage] Loaded ${dbGroups.length} groups and ${dbMatches.length} matches for ${id}`);
 
     const parsePlayers = (data: any) => {
         if (!data) return [];

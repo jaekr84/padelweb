@@ -8,13 +8,13 @@ interface TournamentBracketViewProps {
     bracket: BracketMatch[];
     roundsArr: number[];
     readOnly: boolean;
+    handleBracketStart: (matchId: string) => void;
     handleBracketScore: (matchId: string, s1: string, s2: string) => void;
     handleBracketConfirm: (matchId: string) => void;
     handleReopenMatch: (matchId: string) => void;
     handleGenerateBracket: () => void;
     handleSwapPlayers: (matchId: string, teamSlot: 1 | 2) => void;
     swappingPlayer: { matchId: string, teamSlot: 1 | 2 } | null;
-    setBracket: (bracket: BracketMatch[] | ((prev: BracketMatch[]) => BracketMatch[])) => void;
     roundLabel: (r: number) => string;
     isIndividual: boolean;
 }
@@ -23,13 +23,13 @@ export function TournamentBracketView({
     bracket,
     roundsArr,
     readOnly,
+    handleBracketStart,
     handleBracketScore,
     handleBracketConfirm,
     handleReopenMatch,
     handleGenerateBracket,
     handleSwapPlayers,
     swappingPlayer,
-    setBracket,
     roundLabel,
     isIndividual
 }: TournamentBracketViewProps) {
@@ -91,12 +91,12 @@ export function TournamentBracketView({
                                                 <TournamentMatchCard
                                                     match={m}
                                                     readOnly={readOnly}
+                                                    handleBracketStart={handleBracketStart}
                                                     handleBracketScore={handleBracketScore}
                                                     handleBracketConfirm={handleBracketConfirm}
                                                     handleReopenMatch={handleReopenMatch}
                                                     handleSwapPlayers={handleSwapPlayers}
                                                     swappingPlayer={swappingPlayer}
-                                                    setBracket={setBracket}
                                                     isIndividual={isSingleBracket}
                                                 />
                                             </div>

@@ -140,20 +140,15 @@ export function TournamentGroupsView({
                                     {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
                                         <button
                                             onClick={() => {
-                                                const matchesToConfirm = groupMatches.filter(m => 
-                                                    !m.confirmed && 
-                                                    m.status === 'in_progress' && 
-                                                    m.score1 !== undefined && 
-                                                    m.score2 !== undefined && 
+                                                const matchesToConfirm = groupMatches.filter(m =>
+                                                    !m.confirmed &&
+                                                    m.status === 'in_progress' &&
+                                                    m.score1 !== undefined &&
+                                                    m.score2 !== undefined &&
                                                     m.score1 !== m.score2
                                                 );
                                                 if (matchesToConfirm.length > 0) {
-                                                    const ids = matchesToConfirm.map(m => m.id);
-                                                    handleConfirmScore(ids);
-                                                    setMatches(prev => {
-                                                        if (typeof prev === 'function') return prev;
-                                                        return prev.map(match => ids.includes(match.id) ? { ...match, status: 'completed', confirmed: true } : match);
-                                                    });
+                                                    handleConfirmScore(matchesToConfirm.map(m => m.id));
                                                 }
                                             }}
                                             className="text-[10px] font-black uppercase italic tracking-wider text-azul-primary hover:text-white bg-azul-primary/10 hover:bg-azul-primary px-1.5 py-0.5 rounded transition-colors border border-azul-primary/20"
@@ -219,20 +214,14 @@ export function TournamentGroupsView({
                                                             <>
                                                                 {m.status !== 'in_progress' && (
                                                                     <button
-                                                                        onClick={() => {
-                                                                            setMatches(prev => (Array.isArray(prev) ? prev : []).map(match => match.id === m.id ? { ...match, status: 'in_progress' } : match));
-                                                                        }}
+                                                                        onClick={() => setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'in_progress' } : match))}
                                                                         className="px-1.5 py-0.5 rounded bg-white hover:bg-rojo/10 text-rojo border border-rojo/20 text-[10px] font-black italic transition-colors"
                                                                     >
                                                                         START
                                                                     </button>
                                                                 )}
                                                                 <button
-                                                                    onClick={() => {
-                                                                        const targetId = m.id;
-                                                                        handleConfirmScore(targetId);
-                                                                        setMatches(prev => (Array.isArray(prev) ? prev : []).map(match => match.id === targetId ? { ...match, status: 'completed', confirmed: true } : match));
-                                                                    }}
+                                                                    onClick={() => handleConfirmScore(m.id)}
                                                                     className="px-1.5 py-0.5 rounded bg-white hover:bg-azul-primary/10 text-azul-primary text-[10px] font-black italic border border-azul-primary/20 transition-colors"
                                                                 >
                                                                     FIN

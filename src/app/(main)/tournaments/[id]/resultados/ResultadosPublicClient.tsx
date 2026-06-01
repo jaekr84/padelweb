@@ -362,13 +362,13 @@ export default function ResultadosPublicClient({
                     bracket={initialBracket}
                     roundsArr={roundsArr}
                     readOnly={true}
+                    handleBracketStart={noop}
                     handleBracketScore={noop}
                     handleBracketConfirm={noop}
                     handleReopenMatch={noop}
                     handleGenerateBracket={noop}
                     handleSwapPlayers={noop}
                     swappingPlayer={null}
-                    setBracket={noop}
                     roundLabel={roundLabel}
                     isIndividual={isIndividual}
                 />

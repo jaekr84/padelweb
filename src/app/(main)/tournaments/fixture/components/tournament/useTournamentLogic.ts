@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
@@ -122,7 +122,7 @@ export function useTournamentLogic({
     const [guestName, setGuestName] = useState("");
     const [guestName2, setGuestName2] = useState("");
     const [replaceSlot, setReplaceSlot] = useState<1 | 2>(1);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isRefreshing, startRefreshTransition] = useTransition();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -177,9 +177,9 @@ export function useTournamentLogic({
 
     // ── Handlers ──
     const handleRefresh = () => {
-        setIsRefreshing(true);
-        router.refresh();
-        setTimeout(() => setIsRefreshing(false), 500);
+        startRefreshTransition(() => {
+            router.refresh();
+        });
     };
 
     const togglePresent = (id: string) => {
@@ -284,22 +284,20 @@ export function useTournamentLogic({
         setMatches(updatedMatches);
         setBracket(updatedBracket);
 
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(oldPlayerId)) {
-                next.delete(oldPlayerId);
-                next.add(newPlayer.id);
-            }
-            return next;
-        });
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(oldPlayerId)) {
-                next.delete(oldPlayerId);
-                next.add(newPlayer.id);
-            }
-            return next;
-        });
+        const updatedPresent = new Set(present);
+        if (updatedPresent.has(oldPlayerId)) {
+            updatedPresent.delete(oldPlayerId);
+            updatedPresent.add(newPlayer.id);
+        }
+        const updatedPaid = new Set(paid);
+        if (updatedPaid.has(oldPlayerId)) {
+            updatedPaid.delete(oldPlayerId);
+            updatedPaid.add(newPlayer.id);
+        }
+        setPresent(updatedPresent);
+        lastSavedState.current.present = updatedPresent;
+        setPaid(updatedPaid);
+        lastSavedState.current.paid = updatedPaid;
 
         setReplacingPlayer(null);
         setGuestName("");
@@ -315,8 +313,8 @@ export function useTournamentLogic({
                     groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
                     matches: updatedMatches,
                     bracket: updatedBracket,
-                    presentPlayerIds: Array.from(present),
-                    paidPlayerIds: Array.from(paid)
+                    presentPlayerIds: Array.from(updatedPresent),
+                    paidPlayerIds: Array.from(updatedPaid)
                 });
                 toast.dismiss(loadingToast);
                 if (res.ok) {
@@ -381,26 +379,45 @@ export function useTournamentLogic({
         await handleReplacePlayer(oldPlayerId, guestPlayer);
     };
 
-    const handleDeletePlayer = (playerId: string) => {
-        setGroups(prevGroups => prevGroups.map(group => ({
+    const handleDeletePlayer = async (playerId: string) => {
+        const updatedGroups = groups.map(group => ({
             ...group,
             players: group.players.filter(p => p.id !== playerId)
-        })));
-        setMatches(prevMatches => prevMatches.filter(m =>
+        }));
+        const updatedMatches = matches.filter(m =>
             m.team1.id !== playerId && m.team2.id !== playerId
-        ));
-        setPresent(prev => {
-            const next = new Set(prev);
-            next.delete(playerId);
-            return next;
-        });
-        setPaid(prev => {
-            const next = new Set(prev);
-            next.delete(playerId);
-            return next;
-        });
+        );
+        const updatedPresent = new Set(present);
+        updatedPresent.delete(playerId);
+        const updatedPaid = new Set(paid);
+        updatedPaid.delete(playerId);
+
+        setGroups(updatedGroups);
+        setMatches(updatedMatches);
+        setPresent(updatedPresent);
+        lastSavedState.current.present = updatedPresent;
+        setPaid(updatedPaid);
+        lastSavedState.current.paid = updatedPaid;
         setPlayerToDelete(null);
         toast.success("Participante eliminado");
+
+        if (step !== "setup") {
+            setSaving(true);
+            try {
+                const res = await saveTournamentFixture({
+                    tournamentId,
+                    phase: step === "elim" ? "eliminatorias" : "grupos",
+                    groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                    matches: updatedMatches,
+                    bracket,
+                    presentPlayerIds: Array.from(updatedPresent),
+                    paidPlayerIds: Array.from(updatedPaid),
+                });
+                if (!res.ok) toast.error("Error al guardar cambios: " + res.error);
+            } finally {
+                setSaving(false);
+            }
+        }
     };
 
     const computeStandings = useCallback((groupId: string) => {
@@ -503,8 +520,6 @@ export function useTournamentLogic({
 
     const handleConfirmScore = async (matchIdOrIds: string | string[]) => {
         const matchIds = Array.isArray(matchIdOrIds) ? matchIdOrIds : [matchIdOrIds];
-        console.log(">>> [DEBUG] Intentando confirmar partidos:", matchIds);
-        
         const matchesToConfirm = matches.filter(m => matchIds.includes(m.id));
         if (matchesToConfirm.length === 0) return;
 
@@ -605,16 +620,35 @@ export function useTournamentLogic({
         });
     };
 
-    const handleSimulateResults = () => {
+    const handleSimulateResults = async () => {
         const newMatches = matches.map(m => {
             if (m.confirmed) return m;
             let s1 = Math.floor(Math.random() * 8);
             let s2 = Math.floor(Math.random() * 8);
             if (s1 === s2) s2 = s1 === 7 ? 6 : s1 + 1;
-            return { ...m, score1: s1, score2: s2, played: true, confirmed: true };
+            return { ...m, score1: s1, score2: s2, played: true, confirmed: true, status: 'completed' };
         });
         setMatches(newMatches);
-        toast.success("Resultados simulados. ¡No olvides guardar!");
+        setSaving(true);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                matches: newMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true
+            });
+            if (res.ok) {
+                toast.success("Resultados simulados y guardados");
+            } else {
+                toast.error("Error al guardar resultados simulados: " + res.error);
+            }
+        } finally {
+            setSaving(false);
+        }
     };
 
     const sortedQualifiers = useMemo(() => {
@@ -912,6 +946,28 @@ export function useTournamentLogic({
         }
     };
 
+    const handleBracketStart = async (matchId: string) => {
+        const updated = bracket.map(m => m.id === matchId ? { ...m, status: 'in_progress' } : m);
+        setBracket(updated);
+        setSaving(true);
+        try {
+            const res = await saveTournamentFixture({
+                tournamentId,
+                phase: "eliminatorias",
+                groups, matches, bracket: updated,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true
+            });
+            if (!res.ok) {
+                setBracket(bracket);
+                toast.error("Error al iniciar partido: " + res.error);
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleBracketScore = (matchId: string, s1: string, s2: string) => {
         if (readOnly) return;
         setBracket(prev => prev.map(m => {
@@ -963,7 +1019,6 @@ export function useTournamentLogic({
         const isFinal = match?.round === 0;
         const championName = isFinal ? (match?.winnerName || "Campeón") : undefined;
         try {
-            console.log("[useTournamentLogic] Manually saving bracket:", preservedBracket.map(b => ({ id: b.id, status: b.status, confirmed: b.confirmed })));
             const res = await saveTournamentFixture({
                 tournamentId,
                 phase: "eliminatorias",
@@ -1064,9 +1119,10 @@ export function useTournamentLogic({
 
     useEffect(() => {
         if (readOnly || step === "setup") return;
-        const currentHash = JSON.stringify({ 
-            m: matches.map(m=>[m.id, m.score1, m.score2, m.status, m.confirmed]), 
-            b: bracket.map(b=>[b.id, b.score1, b.score2, b.status, b.confirmed]) 
+        const currentHash = JSON.stringify({
+            m: matches.map(m=>[m.id, m.score1, m.score2, m.status, m.confirmed]),
+            b: bracket.map(b=>[b.id, b.score1, b.score2, b.status, b.confirmed]),
+            g: groups.map(g => (g as any).courtNumber || null)
         });
         if (lastAutoSaveHash.current === currentHash) return;
         
@@ -1080,7 +1136,6 @@ export function useTournamentLogic({
         autoSaveTimeout.current = setTimeout(async () => {
             try {
                 lastAutoSaveHash.current = currentHash;
-                console.log("[useTournamentLogic] Auto-saving bracket state due to change...");
                 await saveTournamentFixture({
                     tournamentId,
                     phase: step !== "elim" ? "grupos" : "eliminatorias",
@@ -1238,6 +1293,7 @@ export function useTournamentLogic({
         handleReopenMatch,
         handleSimulateResults,
         handleGenerateBracket,
+        handleBracketStart,
         handleBracketScore,
         handleBracketConfirm,
         handleSwapPlayers,
