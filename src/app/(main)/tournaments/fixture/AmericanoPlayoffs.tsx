@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -26,6 +26,7 @@ export interface AmericanoPlayoffsProps {
     initialStatus: string;
     initialPresent?: string[];
     initialPaid?: string[];
+    initialUpdatedAt?: string;
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: {
@@ -45,6 +46,7 @@ export default function AmericanoPlayoffs({
     initialStatus,
     initialPresent = [],
     initialPaid = [],
+    initialUpdatedAt,
     readOnly = false,
     isLoggedIn = true,
     modality
@@ -84,6 +86,21 @@ export default function AmericanoPlayoffs({
     const [replaceSlot, setReplaceSlot] = useState<1 | 2>(1);
 
     const isIndividual = modality?.isIndividual || false;
+
+    const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
+    const saveFixture = useCallback(async (input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
+        const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
+        if (res.ok && res.newUpdatedAt) {
+            fixtureVersionRef.current = res.newUpdatedAt;
+        }
+        if (!res.ok && res.conflictError) {
+            toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
+                duration: 10000,
+                action: { label: "Recargar", onClick: () => window.location.reload() }
+            });
+        }
+        return res;
+    }, []);
 
     // Computed lists for player search
     const allRegisteredPlayers = useMemo(() => groups.flatMap(g => g.players), [groups]);
@@ -174,7 +191,7 @@ export default function AmericanoPlayoffs({
 
         const loadingToast = toast.loading("Actualizando participantes...");
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups: updatedGroups,
@@ -247,7 +264,7 @@ export default function AmericanoPlayoffs({
         setBracket(updated);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups,
@@ -298,7 +315,7 @@ export default function AmericanoPlayoffs({
         });
 
         setSaving(true);
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "eliminatorias",
             groups,
@@ -357,7 +374,7 @@ export default function AmericanoPlayoffs({
 
         setSaving(true);
         const isFinal = target.round === 0;
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "eliminatorias",
             groups,
@@ -379,7 +396,7 @@ export default function AmericanoPlayoffs({
 
     const handleResetBracket = async () => {
         setSaving(true);
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "grupos",
             groups,

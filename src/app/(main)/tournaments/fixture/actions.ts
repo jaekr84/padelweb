@@ -13,6 +13,8 @@ export type SaveFixtureInput = {
     tournamentId: string;
     /** Which phase triggered this save — determines the new tournament status */
     phase: "grupos" | "eliminatorias" | "finalizado";
+    /** ISO string of the updatedAt the client last saw. If provided and mismatches DB, save is rejected. */
+    lastKnownUpdatedAt?: string;
     youtubeUrl?: string;
     groups: {
         id: string;
@@ -70,14 +72,14 @@ function ensureParsed(val: any) {
     return val;
 }
 
-export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; error?: string }> {
+export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ ok: boolean; newStatus?: string; newUpdatedAt?: string; conflictError?: boolean; error?: string }> {
     try {
         console.log(`\n\n>>> [SERVER] SAVE TOURNAMENT FIXTURE CALLED <<<`);
         console.log(`>>> ID: ${input.tournamentId} | Phase: ${input.phase} | Matches: ${input.matches?.length || 0} <<<\n`);
         
         return await db.transaction(async (tx) => {
             const [prevT] = await tx
-                .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId })
+                .select({ status: tournaments.status, pointsConfig: tournaments.pointsConfig, createdByUserId: tournaments.createdByUserId, updatedAt: tournaments.updatedAt })
                 .from(tournaments)
                 .where(eq(tournaments.id, input.tournamentId));
 
@@ -91,6 +93,15 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
 
             if (!isAdmin && !isOwner) {
                 throw new Error("No tenés permiso para gestionar este torneo");
+            }
+
+            // Optimistic locking: reject if another admin saved in between
+            if (input.lastKnownUpdatedAt && prevT.updatedAt) {
+                const dbTs = new Date(prevT.updatedAt).getTime();
+                const clientTs = new Date(input.lastKnownUpdatedAt).getTime();
+                if (Math.abs(dbTs - clientTs) > 1000) {
+                    return { ok: false, conflictError: true, error: "CONFLICT" };
+                }
             }
 
             // 1. Initial cleanup
@@ -203,10 +214,12 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 await awardTournamentPoints(input.tournamentId, input.bracket);
             }
 
+            const saveTime = new Date();
             await tx
                 .update(tournaments)
                 .set({
                     status: newStatus,
+                    updatedAt: saveTime,
                     ...(input.youtubeUrl ? { youtubeUrl: input.youtubeUrl } : {}),
                     ...(input.modalidad ? { modalidad: input.modalidad } : {}),
                     presentPlayerIds: input.presentPlayerIds || [],
@@ -218,7 +231,7 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 revalidatePath(`/tournaments/${input.tournamentId}/manage`);
             }
 
-            return { ok: true, newStatus };
+            return { ok: true, newStatus, newUpdatedAt: saveTime.toISOString() };
         });
     } catch (err) {
         console.error("[saveTournamentFixture]", err);
@@ -593,6 +606,8 @@ export type ManualPlayerData = {
     name?: string;
     category?: string;
     gender?: string;
+    side?: string;
+    clubId?: string | null;
 }
 
 export async function registerManualPlayer(
@@ -630,7 +645,22 @@ export async function registerManualPlayer(
                 const [existing] = await db.select().from(users).where(eq(users.id, data.userId)).limit(1);
                 if (!existing) throw new Error(`User ${data.userId} not found`);
                 const name = [existing.firstName, existing.lastName].filter(Boolean).join(" ") || existing.email.split("@")[0];
-                return { id: existing.id, name, clubId: existing.clubId };
+
+                // Allow updating side/club/category/gender from the registration screen (pre-filled with the player's current data)
+                const updates: { side?: string | null; clubId?: string | null; category?: string; gender?: string } = {};
+                if (data.side !== undefined && (data.side || null) !== existing.side) updates.side = data.side || null;
+                if (data.clubId !== undefined && (data.clubId || null) !== existing.clubId) updates.clubId = data.clubId || null;
+                if (data.category && data.category !== existing.category) updates.category = data.category;
+                if (data.gender && data.gender !== existing.gender) updates.gender = data.gender;
+                if (Object.keys(updates).length > 0) {
+                    await db.update(users).set(updates).where(eq(users.id, existing.id));
+                }
+
+                return {
+                    id: existing.id,
+                    name,
+                    clubId: 'clubId' in updates ? updates.clubId ?? null : existing.clubId
+                };
             }
             if (!data.name) throw new Error("Nombre es obligatorio para registro manual");
 
@@ -643,9 +673,11 @@ export async function registerManualPlayer(
                 role: "jugador",
                 category: data.category || "D",
                 gender: data.gender || "masculino",
+                side: data.side || null,
+                clubId: data.clubId || null,
                 isActive: true
             });
-            return { id: fakeUserId, name: data.name };
+            return { id: fakeUserId, name: data.name, clubId: data.clubId || null };
         };
 
         const u1 = await getOrCreateUser(player1);

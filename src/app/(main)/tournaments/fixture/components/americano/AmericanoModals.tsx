@@ -13,7 +13,7 @@ import { Player, Group, Match } from "./types";
 
 interface AmericanoModalsProps {
     // No players modal
-    noPlayersData: { finished: number; playing: number; waiting: number } | null;
+    noPlayersData: { finished: number; playing: number; waiting: number; reserved?: number } | null;
     setNoPlayersData: (data: null) => void;
     
     // Success modal
@@ -51,6 +51,7 @@ interface AmericanoModalsProps {
     groups: Group[];
     matches: Match[];
     handleUpdateMatchPlayer: (matchId: string, idx: 1 | 2, p: Player) => void;
+    presentIds?: Set<string>;
 }
 
 export function AmericanoModals({
@@ -83,7 +84,8 @@ export function AmericanoModals({
     setEditingMatchPlayer,
     groups,
     matches,
-    handleUpdateMatchPlayer
+    handleUpdateMatchPlayer,
+    presentIds
 }: AmericanoModalsProps) {
     return (
         <>
@@ -125,6 +127,19 @@ export function AmericanoModals({
                                         <span className="text-[7px] font-black uppercase tracking-widest text-foreground/60">Esperando</span>
                                     </div>
                                 </div>
+
+                                {(noPlayersData.reserved ?? 0) > 0 && (
+                                    <div className="w-full p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl">
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 leading-relaxed">
+                                            {noPlayersData.reserved === 1
+                                                ? "Hay 1 jugador ausente con partidos pendientes."
+                                                : `Hay ${noPlayersData.reserved} jugadores ausentes con partidos pendientes.`}
+                                        </p>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-foreground/50 mt-1.5 leading-relaxed">
+                                            Sus cupos quedan reservados para cuando lleguen. Si no van a venir, eliminalos de la lista para liberar los partidos.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <button
                                     onClick={() => setNoPlayersData(null)}
@@ -353,12 +368,14 @@ export function AmericanoModals({
                             .filter(p => p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()))
                             .map((p) => {
                                 const isAlreadyInMatch = matches.find(m => m.id === editingMatchPlayer?.matchId && (m.team1.id === p.id || m.team2.id === p.id));
+                                const isAbsent = !!presentIds && !presentIds.has(p.id);
+                                const isDisabled = !!isAlreadyInMatch || isAbsent;
                                 return (
                                     <button
                                         key={p.id}
                                         onClick={() => editingMatchPlayer && handleUpdateMatchPlayer(editingMatchPlayer.matchId, editingMatchPlayer.playerIndex, p)}
-                                        disabled={!!isAlreadyInMatch}
-                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isAlreadyInMatch
+                                        disabled={isDisabled}
+                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isDisabled
                                             ? "bg-muted/50 border-transparent opacity-50 cursor-not-allowed"
                                             : "bg-card border-border/50 hover:border-azul-primary hover:bg-azul-primary/[0.02]"}`}
                                     >
@@ -370,6 +387,8 @@ export function AmericanoModals({
                                         </div>
                                         {isAlreadyInMatch ? (
                                             <span className="text-[8px] font-black uppercase text-foreground/30">Ya en el partido</span>
+                                        ) : isAbsent ? (
+                                            <span className="text-[8px] font-black uppercase text-amber-500">Ausente</span>
                                         ) : (
                                             <ChevronRight className="w-4 h-4 text-azul-primary" />
                                         )}

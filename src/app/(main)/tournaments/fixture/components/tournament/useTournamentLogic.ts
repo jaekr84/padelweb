@@ -40,6 +40,7 @@ interface UseTournamentLogicProps {
     initialStatus: string;
     initialPresent: string[];
     initialPaid: string[];
+    initialUpdatedAt?: string;
     readOnly: boolean;
     modality: any;
 }
@@ -53,6 +54,7 @@ export function useTournamentLogic({
     initialStatus,
     initialPresent,
     initialPaid,
+    initialUpdatedAt,
     readOnly,
     modality
 }: UseTournamentLogicProps) {
@@ -133,6 +135,21 @@ export function useTournamentLogic({
     const [qualifierOverrides, setQualifierOverrides] = useState<Record<number, Player | "BYE">>({});
     const [swappingPlayer, setSwappingPlayer] = useState<{ matchId: string, teamSlot: 1 | 2 } | null>(null);
     const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
+    const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
+
+    const saveFixture = useCallback(async (input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
+        const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
+        if (res.ok && res.newUpdatedAt) {
+            fixtureVersionRef.current = res.newUpdatedAt;
+        }
+        if (!res.ok && res.conflictError) {
+            toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
+                duration: 10000,
+                action: { label: "Recargar", onClick: () => window.location.reload() }
+            });
+        }
+        return res;
+    }, []);
 
     const [confirmModal, setConfirmModal] = useState<{
         open: boolean;
@@ -307,7 +324,7 @@ export function useTournamentLogic({
         if (step !== "setup") {
             const loadingToast = toast.loading("Actualizando participantes...");
             try {
-                const res = await saveTournamentFixture({
+                const res = await saveFixture({
                     tournamentId,
                     phase: step === "elim" ? "eliminatorias" : "grupos",
                     groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -404,7 +421,7 @@ export function useTournamentLogic({
         if (step !== "setup") {
             setSaving(true);
             try {
-                const res = await saveTournamentFixture({
+                const res = await saveFixture({
                     tournamentId,
                     phase: step === "elim" ? "eliminatorias" : "grupos",
                     groups: updatedGroups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -547,7 +564,7 @@ export function useTournamentLogic({
         const loadingToast = toast.loading(matchIds.length > 1 ? "Guardando resultados..." : "Guardando resultado...");
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -597,7 +614,7 @@ export function useTournamentLogic({
                 setConfirmModal(prev => ({ ...prev, open: false }));
 
                 try {
-                    const res = await saveTournamentFixture({
+                    const res = await saveFixture({
                         tournamentId,
                         phase: step === "elim" ? "eliminatorias" : "grupos",
                         groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -631,7 +648,7 @@ export function useTournamentLogic({
         setMatches(newMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
@@ -851,7 +868,7 @@ export function useTournamentLogic({
                     });
 
                     const finalBracket = computeAdvancedBracket(newBracket, numRounds);
-                    const res = await saveTournamentFixture({
+                    const res = await saveFixture({
                         tournamentId, phase: "eliminatorias", groups, matches, bracket: finalBracket, 
                         presentPlayerIds: Array.from(present),
                         paidPlayerIds: Array.from(paid)
@@ -923,7 +940,7 @@ export function useTournamentLogic({
         const loadingToast = toast.loading("Guardando cambios de posición...");
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups,
@@ -951,7 +968,7 @@ export function useTournamentLogic({
         setBracket(updated);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups, matches, bracket: updated,
@@ -1019,7 +1036,7 @@ export function useTournamentLogic({
         const isFinal = match?.round === 0;
         const championName = isFinal ? (match?.winnerName || "Campeón") : undefined;
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "eliminatorias",
                 groups, matches, bracket: preservedBracket, championName, 
@@ -1136,7 +1153,7 @@ export function useTournamentLogic({
         autoSaveTimeout.current = setTimeout(async () => {
             try {
                 lastAutoSaveHash.current = currentHash;
-                await saveTournamentFixture({
+                await saveFixture({
                     tournamentId,
                     phase: step !== "elim" ? "grupos" : "eliminatorias",
                     groups, matches, bracket,

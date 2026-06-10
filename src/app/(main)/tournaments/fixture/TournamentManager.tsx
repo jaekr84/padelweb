@@ -21,6 +21,7 @@ export interface TournamentManagerProps {
     initialStatus: string;
     initialPresent?: string[];
     initialPaid?: string[];
+    initialUpdatedAt?: string;
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: any;

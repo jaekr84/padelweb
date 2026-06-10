@@ -31,6 +31,7 @@ export interface AmericanoManagerProps {
     initialStatus: string;
     initialPresent?: string[];
     initialPaid?: string[];
+    initialUpdatedAt?: string;
     readOnly?: boolean;
     isLoggedIn?: boolean;
     modality?: {
@@ -72,6 +73,7 @@ export default function AmericanoManager({
     initialStatus,
     initialPresent = [],
     initialPaid = [],
+    initialUpdatedAt,
     readOnly = false,
     isLoggedIn = true,
     modality
@@ -95,6 +97,21 @@ export default function AmericanoManager({
     const updateMatchesState = useCallback((newMatches: Match[]) => {
         matchesRef.current = newMatches;
         setMatches(newMatches);
+    }, []);
+
+    const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
+    const saveFixture = useCallback(async (input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
+        const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
+        if (res.ok && res.newUpdatedAt) {
+            fixtureVersionRef.current = res.newUpdatedAt;
+        }
+        if (!res.ok && res.conflictError) {
+            toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
+                duration: 10000,
+                action: { label: "Recargar", onClick: () => window.location.reload() }
+            });
+        }
+        return res;
     }, []);
     const [bracket, setBracket] = useState<BracketMatch[]>(() => 
         initialBracket.map(m => ({
@@ -136,7 +153,7 @@ export default function AmericanoManager({
         setBracketSize(nextBracketSize);
 
         setSaving(true);
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: bracket.length > 0 ? "eliminatorias" : "grupos",
             groups,
@@ -157,7 +174,7 @@ export default function AmericanoManager({
 
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [noPlayersData, setNoPlayersData] = useState<{ finished: number, playing: number, waiting: number } | null>(null);
+    const [noPlayersData, setNoPlayersData] = useState<{ finished: number, playing: number, waiting: number, reserved?: number } | null>(null);
     const [step, setStep] = useState<"setup" | "active">(
         initialStatus === "setup" ? "setup" : "active"
     );
@@ -290,7 +307,7 @@ export default function AmericanoManager({
                 const hasBracket = updatedBracket.length > 0;
                 const currentPhase = hasBracket ? "eliminatorias" : "grupos";
 
-                const res = await saveTournamentFixture({
+                const res = await saveFixture({
                     tournamentId,
                     phase: currentPhase,
                     groups: updatedGroups,
@@ -437,7 +454,7 @@ export default function AmericanoManager({
         if (step !== "setup") {
             setSaving(true);
             try {
-                const res = await saveTournamentFixture({
+                const res = await saveFixture({
                     tournamentId,
                     phase: bracket.length > 0 ? "eliminatorias" : "grupos",
                     groups: updatedGroups,
@@ -455,8 +472,6 @@ export default function AmericanoManager({
     };
 
     const handleDeleteMatch = async (matchId: string) => {
-        if (!confirm("¿Seguro que querés eliminar este partido? Los jugadores volverán a estar disponibles.")) return;
-
         const currentMatches = matchesRef.current;
         const matchToDelete = currentMatches.find(m => m.id === matchId);
         if (!matchToDelete) return;
@@ -467,7 +482,7 @@ export default function AmericanoManager({
         updateMatchesState(updatedMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups,
@@ -515,7 +530,7 @@ export default function AmericanoManager({
         updateMatchesState(updatedMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups,
@@ -613,15 +628,42 @@ export default function AmericanoManager({
             playerMatchCounts.set(m.team2.id, (playerMatchCounts.get(m.team2.id) || 0) + 1);
         });
 
-        // 3. Find available players (not playing and matches < target)
-        const available = players.filter(p => !currentlyPlaying.has(p.id) && (playerMatchCounts.get(p.id) || 0) < matchesPerTeam);
+        // 3. Find available players (present, not playing and matches < target)
+        const available = players.filter(p => present.has(p.id) && !currentlyPlaying.has(p.id) && (playerMatchCounts.get(p.id) || 0) < matchesPerTeam);
+
+        // Effective counts include in-progress (unconfirmed) matches: they will consume quota
+        const effectiveCounts = new Map<string, number>();
+        players.forEach(p => effectiveCounts.set(p.id, 0));
+        currentMatches.forEach(m => {
+            effectiveCounts.set(m.team1.id, (effectiveCounts.get(m.team1.id) || 0) + 1);
+            effectiveCounts.set(m.team2.id, (effectiveCounts.get(m.team2.id) || 0) + 1);
+        });
+
+        // Absent players keep their quota reserved: a match is only allowed if afterwards
+        // every player (absent included) can still complete matchesPerTeam.
+        // Feasible iff no player needs more matches than all the others can provide combined.
+        const isFeasibleAfter = (id1: string, id2: string) => {
+            let sum = 0, max = 0;
+            players.forEach(p => {
+                let rem = matchesPerTeam - (effectiveCounts.get(p.id) || 0);
+                if (p.id === id1 || p.id === id2) rem -= 1;
+                if (rem <= 0) return;
+                sum += rem;
+                if (rem > max) max = rem;
+            });
+            return max <= sum - max;
+        };
+
+        const absentWithPending = players.filter(p =>
+            !present.has(p.id) && (effectiveCounts.get(p.id) || 0) < matchesPerTeam
+        ).length;
 
         if (available.length < 2) {
             const finishedCount = players.filter(p => (playerMatchCounts.get(p.id) || 0) >= matchesPerTeam).length;
             const playingCount = currentlyPlaying.size;
             const waitingCount = available.length;
 
-            setNoPlayersData({ finished: finishedCount, playing: playingCount, waiting: waitingCount });
+            setNoPlayersData({ finished: finishedCount, playing: playingCount, waiting: waitingCount, reserved: absentWithPending });
             return;
         }
 
@@ -642,7 +684,7 @@ export default function AmericanoManager({
         );
 
         // Pick best p2 based on multiple criteria
-        const p2 = candidateP2s.sort((a, b) => {
+        const rankedP2s = candidateP2s.sort((a, b) => {
             // Priority 1: Fewer matches played (stick to the main sorting)
             const countA = playerMatchCounts.get(a.id) || 0;
             const countB = playerMatchCounts.get(b.id) || 0;
@@ -659,7 +701,17 @@ export default function AmericanoManager({
             if (playedA !== playedB) return playedA ? 1 : -1;
 
             return 0;
-        })[0]!;
+        });
+
+        const p2 = rankedP2s.find(c => isFeasibleAfter(p1.id, c.id));
+
+        if (!p2) {
+            // Every possible pairing would leave an absent player without enough
+            // opponents to complete their quota — keep those matches reserved.
+            const finishedCount = players.filter(p => (playerMatchCounts.get(p.id) || 0) >= matchesPerTeam).length;
+            setNoPlayersData({ finished: finishedCount, playing: currentlyPlaying.size, waiting: available.length, reserved: absentWithPending });
+            return;
+        }
 
         const newMatch: Match = {
             id: crypto.randomUUID(),
@@ -678,7 +730,7 @@ export default function AmericanoManager({
         updateMatchesState(nextMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups,
@@ -733,7 +785,7 @@ export default function AmericanoManager({
         updateMatchesState(updatedMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups,
@@ -790,7 +842,7 @@ export default function AmericanoManager({
         updateMatchesState(updatedMatches);
         setSaving(true);
         try {
-            const res = await saveTournamentFixture({
+            const res = await saveFixture({
                 tournamentId,
                 phase: "grupos",
                 groups,
@@ -882,7 +934,7 @@ export default function AmericanoManager({
         }
 
         setSaving(true);
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "eliminatorias",
             groups,
@@ -938,7 +990,7 @@ export default function AmericanoManager({
         });
 
         setSaving(true);
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "eliminatorias",
             groups,
@@ -997,7 +1049,7 @@ export default function AmericanoManager({
 
         setSaving(true);
         const isFinal = target.round === 0;
-        const res = await saveTournamentFixture({
+        const res = await saveFixture({
             tournamentId,
             phase: "eliminatorias",
             groups,
@@ -1217,6 +1269,7 @@ export default function AmericanoManager({
                                     isIndividual={isIndividual}
                                     allGroupPlayers={groups[0]?.players ?? []}
                                     matchesPerTeam={matchesPerTeam}
+                                    presentIds={present}
                                     onSwapTeam={handleUpdateMatchPlayer}
                                 />
                             )}
@@ -1408,6 +1461,7 @@ export default function AmericanoManager({
                 groups={groups}
                 matches={matches}
                 handleUpdateMatchPlayer={handleUpdateMatchPlayer}
+                presentIds={present}
             />
         </div>
     );

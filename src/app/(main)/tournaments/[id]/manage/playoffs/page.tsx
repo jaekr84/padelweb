@@ -25,6 +25,7 @@ export default async function AmericanoManagePlayoffsPage({ params }: Props) {
             modalidad: tournaments.modalidad,
             presentPlayerIds: tournaments.presentPlayerIds,
             paidPlayerIds: tournaments.paidPlayerIds,
+            updatedAt: tournaments.updatedAt,
         })
         .from(tournaments)
         .where(eq(tournaments.id, id))
@@ -162,6 +163,7 @@ export default async function AmericanoManagePlayoffsPage({ params }: Props) {
             initialStatus={tournament.status}
             initialPresent={parsePlayers(tournament.presentPlayerIds)}
             initialPaid={parsePlayers(tournament.paidPlayerIds)}
+            initialUpdatedAt={tournament.updatedAt?.toISOString()}
             readOnly={false}
             modality={parsedModalidad}
         />

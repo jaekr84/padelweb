@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Plus, Minus, ChevronUp, ChevronDown, Check, Loader2, X, ArrowLeftRight, CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { Trash2, Plus, Minus, ChevronUp, ChevronDown, Check, Loader2, X, ArrowLeftRight, CheckCircle2, AlertCircle, Info, Flag, AlertTriangle } from "lucide-react";
 import { Match, Player } from "./types";
 import PlayerCard from "@/components/PlayerCard";
 import { getPlayerProfileData } from "@/app/actions/players";
@@ -30,6 +30,7 @@ interface AmericanoCourtGridProps {
     // Swap-team props
     allGroupPlayers?: Player[];
     matchesPerTeam?: number;
+    presentIds?: Set<string>;
     onSwapTeam?: (matchId: string, teamSlot: 1 | 2, newPlayer: Player) => Promise<any>;
 }
 
@@ -46,8 +47,17 @@ export function AmericanoCourtGrid({
     isIndividual,
     allGroupPlayers = [],
     matchesPerTeam = 2,
+    presentIds,
     onSwapTeam
 }: AmericanoCourtGridProps) {
+    // ── Confirmation modal state (start / finish / cancel match) ──
+    const [confirmAction, setConfirmAction] = useState<
+        | { type: "start"; courtNum: number }
+        | { type: "finish"; match: Match }
+        | { type: "cancel"; match: Match }
+        | null
+    >(null);
+
     // ── Swap-menu state ──
     const [swapMatchId, setSwapMatchId] = useState<string | null>(null);
     const [swapSlot, setSwapSlot] = useState<1 | 2>(1);
@@ -100,6 +110,7 @@ export function AmericanoCourtGrid({
             .filter(p =>
                 p.id !== swappedOut.id &&
                 p.id !== opponent.id &&
+                (!presentIds || presentIds.has(p.id)) &&
                 !currentlyPlaying.has(p.id) &&
                 (matchCounts.get(p.id) ?? 0) < matchesPerTeam
             )
@@ -382,7 +393,7 @@ export function AmericanoCourtGrid({
                                                         <motion.button
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
-                                                            onClick={() => onConfirmClick(activeMatch.id)}
+                                                            onClick={() => setConfirmAction({ type: "finish", match: activeMatch })}
                                                             disabled={isMatchSaving}
                                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_15px_rgba(10,185,129,0.4)] border border-white/20 hover:bg-emerald-600 transition-all disabled:opacity-55"
                                                             title="Confirmar Resultado"
@@ -402,7 +413,7 @@ export function AmericanoCourtGrid({
                                                         <motion.button
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
-                                                            onClick={() => onDeleteClick(activeMatch.id)}
+                                                            onClick={() => setConfirmAction({ type: "cancel", match: activeMatch })}
                                                             disabled={isMatchSaving}
                                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-rojo/10 text-rojo border border-rojo/20 hover:bg-rojo hover:text-white transition-all active:scale-95 shadow-[0_0_10px_rgba(239,68,68,0.1)] disabled:opacity-55"
                                                             title="Eliminar Partido"
@@ -424,7 +435,7 @@ export function AmericanoCourtGrid({
                                                         <motion.button
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
-                                                            onClick={() => onGenerateClick(courtNumber)}
+                                                            onClick={() => setConfirmAction({ type: "start", courtNum: courtNumber })}
                                                             disabled={isCourtSaving}
                                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_15px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all disabled:opacity-55"
                                                             title="Generar Partido"
@@ -656,6 +667,110 @@ export function AmericanoCourtGrid({
                     </span>
                 </button>
             )}
+
+            {/* Modal de Confirmación: Iniciar / Finalizar / Cancelar Partido */}
+            <AnimatePresence>
+                {confirmAction && (() => {
+                    const config = confirmAction.type === "start"
+                        ? {
+                            icon: <Plus className="w-6 h-6 stroke-[3]" />,
+                            iconBox: "bg-azul-primary/10 border-azul-primary/30 text-azul-primary",
+                            title: "Vas a iniciar un partido",
+                            description: `Se generará un nuevo partido en la Cancha ${confirmAction.courtNum} con los jugadores disponibles.`,
+                            confirmLabel: "Iniciar Partido",
+                            confirmClass: "bg-azul-primary hover:bg-azul-dark shadow-azul-primary/20"
+                        }
+                        : confirmAction.type === "finish"
+                        ? {
+                            icon: <Flag className="w-6 h-6" />,
+                            iconBox: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+                            title: "Vas a finalizar el partido",
+                            description: "El resultado quedará confirmado y se sumará a la tabla de posiciones.",
+                            confirmLabel: "Finalizar Partido",
+                            confirmClass: "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+                        }
+                        : {
+                            icon: <AlertTriangle className="w-6 h-6" />,
+                            iconBox: "bg-rojo/10 border-rojo/30 text-rojo",
+                            title: "Vas a cancelar el partido",
+                            description: "El partido se eliminará sin registrar resultado y los jugadores volverán a estar disponibles.",
+                            confirmLabel: "Cancelar Partido",
+                            confirmClass: "bg-rojo hover:bg-red-600 shadow-rojo/20"
+                        };
+
+                    const match = confirmAction.type !== "start" ? confirmAction.match : null;
+
+                    const handleConfirm = () => {
+                        const action = confirmAction;
+                        setConfirmAction(null);
+                        if (action.type === "start") onGenerateClick(action.courtNum);
+                        else if (action.type === "finish") onConfirmClick(action.match.id);
+                        else onDeleteClick(action.match.id);
+                    };
+
+                    return (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setConfirmAction(null)}
+                                className="absolute inset-0 bg-black/75 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.92, opacity: 0, y: 10 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.92, opacity: 0, y: 10 }}
+                                className="relative w-full max-w-sm bg-card border border-border/40 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                            >
+                                <div className={`w-14 h-14 rounded-full border flex items-center justify-center ${config.iconBox}`}>
+                                    {config.icon}
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
+                                        {config.title}
+                                    </h3>
+                                    <p className="text-xs text-foreground/60 leading-relaxed">
+                                        {config.description}
+                                    </p>
+                                </div>
+
+                                {match && (
+                                    <div className="w-full bg-muted/20 border border-border/30 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
+                                        <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-right">
+                                            {match.team1?.name}
+                                        </span>
+                                        <span className="text-sm font-black italic tabular-nums text-foreground shrink-0">
+                                            {match.score1 ?? 0} - {match.score2 ?? 0}
+                                        </span>
+                                        <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-left">
+                                            {match.team2?.name}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="w-full flex gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmAction(null)}
+                                        className="flex-1 py-3 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 text-foreground/70 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                    >
+                                        Volver
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleConfirm}
+                                        className={`flex-1 py-3 rounded-xl text-white font-black uppercase italic text-[10px] tracking-wider transition-all shadow-lg cursor-pointer ${config.confirmClass}`}
+                                    >
+                                        {config.confirmLabel}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    );
+                })()}
+            </AnimatePresence>
 
             {/* Modal de Ficha Completa del Jugador */}
             <AnimatePresence>

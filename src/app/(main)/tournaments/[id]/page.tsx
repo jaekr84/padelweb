@@ -297,6 +297,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
 
     const isFinished = tournament.status === "finalizado";
 
+    const initialUpdatedAt = tournament.updatedAt?.toISOString() ?? new Date().toISOString();
+
     if (tournament.type === 'americano') {
         return (
             <AmericanoManager
@@ -306,6 +308,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
                 initialMatches={mappedMatches}
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
+                initialUpdatedAt={initialUpdatedAt}
                 readOnly={isFinished}
                 isLoggedIn={isLoggedIn}
             />
@@ -321,6 +324,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
             initialBracket={mappedBracket}
             initialStatus={tournament.status}
             initialPresent={(tournament.presentPlayerIds as string[]) || []}
+            initialUpdatedAt={initialUpdatedAt}
             readOnly={isFinished}
             isLoggedIn={isLoggedIn}
         />

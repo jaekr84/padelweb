@@ -84,6 +84,7 @@ export const tournaments = mysqlTable("tournaments", {
     paidPlayerIds: json("paid_player_ids"),
     hasPoints: boolean("has_points").default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
     createdByIdx: index("tournaments_created_by_idx").on(table.createdByUserId),
     clubIdIdx: index("tournaments_club_id_idx").on(table.clubId),

@@ -15,10 +15,12 @@ export interface MatchHistoryItem {
     subType: string;
 }
 
-export async function getAllPlayers() {
+export async function getAllPlayers(includeManual: boolean = false) {
     try {
-        const allUsers = await db.select().from(users)
-            .where(not(like(users.email, '%@manual.test')));
+        const allUsers = includeManual
+            ? await db.select().from(users)
+            : await db.select().from(users)
+                .where(not(like(users.email, '%@manual.test')));
         if (!allUsers) return [];
         
         return allUsers.map(u => ({
@@ -31,6 +33,7 @@ export async function getAllPlayers() {
             points: u.points,
             gender: u.gender,
             clubId: u.clubId,
+            side: u.side,
             image: u.imageUrl
         }));
     } catch (err) {

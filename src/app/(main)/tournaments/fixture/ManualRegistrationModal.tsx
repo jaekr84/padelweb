@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { registerManualPlayer, quickInscribePlayer } from "./actions";
 import { usePlayers } from "@/hooks/use-players";
+import { useClubs } from "@/hooks/use-clubs";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
@@ -33,7 +34,8 @@ export default function ManualRegistrationModal({
     onSuccess,
     existingPlayerIds = new Set()
 }: ManualRegistrationModalProps) {
-    const { players: allPlayers, isLoading: isLoadingAvailable, refetch, isFetching } = usePlayers();
+    const { players: allPlayers, isLoading: isLoadingAvailable, refetch, isFetching } = usePlayers({ includeManual: true });
+    const { clubs } = useClubs();
     const queryClient = useQueryClient();
 
     // Form State
@@ -43,6 +45,14 @@ export default function ManualRegistrationModal({
     const [selectedPlayer2, setSelectedPlayer2] = useState<any | null>(null);
     const [manualCategory, setManualCategory] = useState("");
     const [manualGender, setManualGender] = useState("masculino");
+    const [manualSide1, setManualSide1] = useState("");
+    const [manualClub1, setManualClub1] = useState("");
+    const [manualSide2, setManualSide2] = useState("");
+    const [manualClub2, setManualClub2] = useState("");
+    const [manualCategory1, setManualCategory1] = useState("");
+    const [manualGender1, setManualGender1] = useState("masculino");
+    const [manualCategory2, setManualCategory2] = useState("");
+    const [manualGender2, setManualGender2] = useState("masculino");
     const [isCreatingManual, setIsCreatingManual] = useState(false);
 
     // Auto Fill State
@@ -114,26 +124,34 @@ export default function ManualRegistrationModal({
 
         setIsCreatingManual(true);
         
-        const p1Data = selectedPlayer1 
-            ? { userId: selectedPlayer1.id }
-            : { name: manualName, category: manualCategory || (categories[0] || "D"), gender: manualGender };
-        
-        const p2Data = !isIndividual 
-            ? (selectedPlayer2 
-                ? { userId: selectedPlayer2.id }
-                : { name: manualName2, category: manualCategory || (categories[0] || "D"), gender: manualGender })
+        const p1Data = selectedPlayer1
+            ? { userId: selectedPlayer1.id, side: manualSide1 || undefined, clubId: manualClub1 || undefined, category: manualCategory1 || undefined, gender: manualGender1 || undefined }
+            : { name: manualName, category: manualCategory1 || (categories[0] || "D"), gender: manualGender1, side: manualSide1 || undefined, clubId: manualClub1 || undefined };
+
+        const p2Data = !isIndividual
+            ? (selectedPlayer2
+                ? { userId: selectedPlayer2.id, side: manualSide2 || undefined, clubId: manualClub2 || undefined, category: manualCategory2 || undefined, gender: manualGender2 || undefined }
+                : { name: manualName2, category: manualCategory2 || (categories[0] || "D"), gender: manualGender2, side: manualSide2 || undefined, clubId: manualClub2 || undefined })
             : undefined;
 
         const res = await registerManualPlayer(tournamentId, p1Data, p2Data);
-        
+
         if (res.ok && res.player) {
             onSuccess(res.player);
-            
+
             // Clean up
             setManualName("");
             setManualName2("");
             setSelectedPlayer1(null);
             setSelectedPlayer2(null);
+            setManualSide1("");
+            setManualClub1("");
+            setManualSide2("");
+            setManualClub2("");
+            setManualCategory1("");
+            setManualGender1("masculino");
+            setManualCategory2("");
+            setManualGender2("masculino");
             toast.success("Inscripción realizada correctamente");
             
             // Invalidate cache to get the new manual player in future searches
@@ -276,6 +294,23 @@ export default function ManualRegistrationModal({
         return matchesSearch && matchesCategory && matchesGender && !isSelected && !isAlreadyRegistered;
     });
 
+    // Search-as-you-type matches for the manual Jugador 1 / Jugador 2 inputs
+    const player1Matches = (manualName.length > 1 && !selectedPlayer1)
+        ? allPlayers
+            .filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
+            .filter(p => !selectedPlayer2 || p.id !== selectedPlayer2.id)
+            .filter(p => !existingPlayerIds.has(p.id))
+            .slice(0, 5)
+        : [];
+
+    const player2Matches = (manualName2.length > 1 && !selectedPlayer2)
+        ? allPlayers
+            .filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
+            .filter(p => !selectedPlayer1 || p.id !== selectedPlayer1.id)
+            .filter(p => !existingPlayerIds.has(p.id))
+            .slice(0, 5)
+        : [];
+
     if (!isOpen) return null;
 
     return (
@@ -333,6 +368,13 @@ export default function ManualRegistrationModal({
                                         placeholder="Nombre o buscar..."
                                         value={selectedPlayer1 ? selectedPlayer1.name : manualName}
                                         onChange={(e) => {
+                                            if (selectedPlayer1) {
+                                                // Clear pre-loaded data from the previously selected player
+                                                setManualSide1("");
+                                                setManualClub1("");
+                                                setManualCategory1("");
+                                                setManualGender1("masculino");
+                                            }
                                             setSelectedPlayer1(null);
                                             setManualName(e.target.value);
                                             setShowResults1(true);
@@ -342,25 +384,85 @@ export default function ManualRegistrationModal({
                                     />
                                     {manualName.length > 1 && !selectedPlayer1 && showResults1 && (
                                         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                                            {allPlayers
-                                                .filter(p => p.name.toLowerCase().includes(manualName.toLowerCase()))
-                                                .filter(p => !selectedPlayer2 || p.id !== selectedPlayer2.id)
-                                                .filter(p => !existingPlayerIds.has(p.id))
-                                                .slice(0, 5).map(p => (
-                                                <button 
+                                            {player1Matches.length > 0 ? player1Matches.map(p => (
+                                                <button
                                                     key={p.id}
-                                                    onClick={() => { 
-                                                        setSelectedPlayer1(p); 
-                                                        setManualName(p.name); 
+                                                    onClick={() => {
+                                                        setSelectedPlayer1(p);
+                                                        setManualName(p.name);
+                                                        // Pre-load the player's existing side/club/category/gender so the admin can review or adjust them
+                                                        setManualSide1(p.side || "");
+                                                        setManualClub1(p.clubId || "");
+                                                        setManualCategory1(p.category || "");
+                                                        setManualGender1(p.gender || "masculino");
                                                         setShowResults1(false);
                                                     }}
                                                     className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-azul-primary hover:text-white transition-colors border-b border-border/50 last:border-0"
                                                 >
                                                     {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
                                                 </button>
-                                            ))}
+                                            )) : (
+                                                <div className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-wide text-foreground/40 text-center">
+                                                    Sin coincidencias — se registrará como jugador nuevo
+                                                </div>
+                                            )}
                                         </div>
                                     )}
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <Select
+                                            value={manualSide1}
+                                            onValueChange={(val) => setManualSide1(val)}
+                                        >
+                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectValue placeholder="Lado..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="z-[9999]">
+                                                <SelectItem value="drive">Drive</SelectItem>
+                                                <SelectItem value="reves">Revés</SelectItem>
+                                                <SelectItem value="ambos">Ambidextro</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Select
+                                            value={manualClub1}
+                                            onValueChange={(val) => setManualClub1(val)}
+                                        >
+                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectValue placeholder="Club..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="z-[9999]">
+                                                {clubs.map(c => (
+                                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <Select
+                                            value={manualCategory1}
+                                            onValueChange={(val) => setManualCategory1(val)}
+                                        >
+                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectValue placeholder="Categoría..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="z-[9999]">
+                                                {categories.map(cat => (
+                                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select
+                                            value={manualGender1}
+                                            onValueChange={(val) => setManualGender1(val)}
+                                        >
+                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectValue placeholder="Género..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="z-[9999]">
+                                                <SelectItem value="masculino">Masculino</SelectItem>
+                                                <SelectItem value="femenino">Femenino</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 {/* Player 2 Input (if doubles) */}
@@ -372,6 +474,13 @@ export default function ManualRegistrationModal({
                                             placeholder="Nombre o buscar..."
                                             value={selectedPlayer2 ? selectedPlayer2.name : manualName2}
                                             onChange={(e) => {
+                                                if (selectedPlayer2) {
+                                                    // Clear pre-loaded data from the previously selected player
+                                                    setManualSide2("");
+                                                    setManualClub2("");
+                                                    setManualCategory2("");
+                                                    setManualGender2("masculino");
+                                                }
                                                 setSelectedPlayer2(null);
                                                 setManualName2(e.target.value);
                                                 setShowResults2(true);
@@ -381,54 +490,97 @@ export default function ManualRegistrationModal({
                                         />
                                         {manualName2.length > 1 && !selectedPlayer2 && showResults2 && (
                                             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                                                {allPlayers
-                                                    .filter(p => p.name.toLowerCase().includes(manualName2.toLowerCase()))
-                                                    .filter(p => !selectedPlayer1 || p.id !== selectedPlayer1.id)
-                                                    .filter(p => !existingPlayerIds.has(p.id))
-                                                    .slice(0, 5).map(p => (
-                                                    <button 
+                                                {player2Matches.length > 0 ? player2Matches.map(p => (
+                                                    <button
                                                         key={p.id}
-                                                        onClick={() => { 
-                                                            setSelectedPlayer2(p); 
-                                                            setManualName2(p.name); 
+                                                        onClick={() => {
+                                                            setSelectedPlayer2(p);
+                                                            setManualName2(p.name);
+                                                            // Pre-load the player's existing side/club/category/gender so the admin can review or adjust them
+                                                            setManualSide2(p.side || "");
+                                                            setManualClub2(p.clubId || "");
+                                                            setManualCategory2(p.category || "");
+                                                            setManualGender2(p.gender || "masculino");
                                                             setShowResults2(false);
                                                         }}
                                                         className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-azul-primary hover:text-white transition-colors border-b border-border/50 last:border-0"
                                                     >
                                                         {p.name} <span className="text-[8px] opacity-60">({p.category})</span>
                                                     </button>
-                                                ))}
+                                                )) : (
+                                                    <div className="px-4 py-2.5 text-[9px] font-bold uppercase tracking-wide text-foreground/40 text-center">
+                                                        Sin coincidencias — se registrará como jugador nuevo
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <Select
+                                                value={manualSide2}
+                                                onValueChange={(val) => setManualSide2(val)}
+                                            >
+                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                    <SelectValue placeholder="Lado..." />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]">
+                                                    <SelectItem value="drive">Drive</SelectItem>
+                                                    <SelectItem value="reves">Revés</SelectItem>
+                                                    <SelectItem value="ambos">Ambidextro</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Select
+                                                value={manualClub2}
+                                                onValueChange={(val) => setManualClub2(val)}
+                                            >
+                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                    <SelectValue placeholder="Club..." />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]">
+                                                    {clubs.map(c => (
+                                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <Select
+                                                value={manualCategory2}
+                                                onValueChange={(val) => setManualCategory2(val)}
+                                            >
+                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                    <SelectValue placeholder="Categoría..." />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]">
+                                                    {categories.map(cat => (
+                                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select
+                                                value={manualGender2}
+                                                onValueChange={(val) => setManualGender2(val)}
+                                            >
+                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                    <SelectValue placeholder="Género..." />
+                                                </SelectTrigger>
+                                                <SelectContent className="z-[9999]">
+                                                    <SelectItem value="masculino">Masculino</SelectItem>
+                                                    <SelectItem value="femenino">Femenino</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                 )}
 
-                                <div className="flex gap-2">
-                                    <div className="flex-1">
-                                        <Select 
-                                            value={manualCategory}
-                                            onValueChange={(val) => setManualCategory(val)}
-                                        >
-                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
-                                                <SelectValue placeholder="Categoría..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {categories.map(cat => (
-                                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <button 
-                                        onClick={handleManualRegister}
-                                        disabled={isCreatingManual || (!manualName.trim() && !selectedPlayer1)}
-                                        className="bg-azul-primary hover:bg-azul-dark text-white rounded-lg px-4 text-[9px] font-black uppercase italic transition-all disabled:opacity-50 shadow-md shadow-azul-primary/20 active:scale-95 flex items-center justify-center min-w-[100px] h-8"
-                                    >
-                                        {isCreatingManual ? (
-                                            <RefreshCw className="w-3 h-3 animate-spin" />
-                                        ) : isIndividual ? "Inscribir" : "Inscribir Pareja"}
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleManualRegister}
+                                    disabled={isCreatingManual || (!manualName.trim() && !selectedPlayer1)}
+                                    className="w-full bg-azul-primary hover:bg-azul-dark text-white rounded-lg px-4 text-[9px] font-black uppercase italic transition-all disabled:opacity-50 shadow-md shadow-azul-primary/20 active:scale-95 flex items-center justify-center h-9"
+                                >
+                                    {isCreatingManual ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                    ) : isIndividual ? "Inscribir" : "Inscribir Pareja"}
+                                </button>
                             </div>
                         </div>
 
@@ -454,6 +606,34 @@ export default function ManualRegistrationModal({
                                 >
                                     En Parejas
                                 </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <Select
+                                    value={manualCategory}
+                                    onValueChange={(val) => setManualCategory(val)}
+                                >
+                                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                        <SelectValue placeholder="Categoría (Opcional)..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[9999]">
+                                        {categories.map(cat => (
+                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Select
+                                    value={manualGender}
+                                    onValueChange={(val) => setManualGender(val)}
+                                >
+                                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                        <SelectValue placeholder="Género (Opcional)..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[9999]">
+                                        <SelectItem value="masculino">Masculino</SelectItem>
+                                        <SelectItem value="femenino">Femenino</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="flex gap-1.5">
@@ -525,7 +705,7 @@ export default function ManualRegistrationModal({
                                     <SelectTrigger className="bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Cat. (Todas)" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[9999]">
                                         <SelectItem value="all">Todas las Categorías</SelectItem>
                                         {categories.map(cat => (
                                             <SelectItem key={cat} value={cat}>{cat}</SelectItem>
@@ -540,7 +720,7 @@ export default function ManualRegistrationModal({
                                     <SelectTrigger className="bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Género (Todos)" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[9999]">
                                         <SelectItem value="all">Todos los Géneros</SelectItem>
                                         <SelectItem value="masculino">Masculino</SelectItem>
                                         <SelectItem value="femenino">Femenino</SelectItem>
