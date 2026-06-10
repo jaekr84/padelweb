@@ -55,6 +55,20 @@ export default function ManualRegistrationModal({
     const [manualGender2, setManualGender2] = useState("masculino");
     const [isCreatingManual, setIsCreatingManual] = useState(false);
 
+    // "search" inscribes registered players (with guest fallback); "guest" skips the
+    // user search entirely and always creates guest players with their own config
+    const [registerMode, setRegisterMode] = useState<"search" | "guest">("search");
+
+    const switchRegisterMode = (mode: "search" | "guest") => {
+        if (mode === registerMode) return;
+        setRegisterMode(mode);
+        // Drop any selected registered players; keep typed names and config
+        setSelectedPlayer1(null);
+        setSelectedPlayer2(null);
+        setShowResults1(false);
+        setShowResults2(false);
+    };
+
     // Auto Fill State
     const [autoFillCount, setAutoFillCount] = useState<number | "">("");
     const [autoFillMode, setAutoFillMode] = useState<"individual" | "pareja">(
@@ -104,18 +118,22 @@ export default function ManualRegistrationModal({
 
 
     const handleManualRegister = async () => {
-        if (!manualName.trim() && !selectedPlayer1) {
+        // In guest mode never use a selected registered player
+        const player1Sel = registerMode === "guest" ? null : selectedPlayer1;
+        const player2Sel = registerMode === "guest" ? null : selectedPlayer2;
+
+        if (!manualName.trim() && !player1Sel) {
             toast.error("El nombre del primer jugador es obligatorio");
             return;
         }
-        if (!isIndividual && !manualName2.trim() && !selectedPlayer2) {
+        if (!isIndividual && !manualName2.trim() && !player2Sel) {
             toast.error("El nombre del segundo jugador es obligatorio");
             return;
         }
 
         if (!isIndividual) {
-            const p1 = selectedPlayer1?.id || manualName.trim();
-            const p2 = selectedPlayer2?.id || manualName2.trim();
+            const p1 = player1Sel?.id || manualName.trim();
+            const p2 = player2Sel?.id || manualName2.trim();
             if (p1 === p2) {
                 toast.error("La pareja no puede estar integrada por la misma persona");
                 return;
@@ -123,14 +141,14 @@ export default function ManualRegistrationModal({
         }
 
         setIsCreatingManual(true);
-        
-        const p1Data = selectedPlayer1
-            ? { userId: selectedPlayer1.id, side: manualSide1 || undefined, clubId: manualClub1 || undefined, category: manualCategory1 || undefined, gender: manualGender1 || undefined }
+
+        const p1Data = player1Sel
+            ? { userId: player1Sel.id, side: manualSide1 || undefined, clubId: manualClub1 || undefined, category: manualCategory1 || undefined, gender: manualGender1 || undefined }
             : { name: manualName, category: manualCategory1 || (categories[0] || "D"), gender: manualGender1, side: manualSide1 || undefined, clubId: manualClub1 || undefined };
 
         const p2Data = !isIndividual
-            ? (selectedPlayer2
-                ? { userId: selectedPlayer2.id, side: manualSide2 || undefined, clubId: manualClub2 || undefined, category: manualCategory2 || undefined, gender: manualGender2 || undefined }
+            ? (player2Sel
+                ? { userId: player2Sel.id, side: manualSide2 || undefined, clubId: manualClub2 || undefined, category: manualCategory2 || undefined, gender: manualGender2 || undefined }
                 : { name: manualName2, category: manualCategory2 || (categories[0] || "D"), gender: manualGender2, side: manualSide2 || undefined, clubId: manualClub2 || undefined })
             : undefined;
 
@@ -356,16 +374,42 @@ export default function ManualRegistrationModal({
                                 <Users2 className="w-4 h-4 stroke-[3]" />
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Registro Manual</span>
                             </div>
-                            
+
+                            {/* Registered vs Guest toggle */}
+                            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-sm text-[8px] font-black uppercase italic">
+                                <button
+                                    type="button"
+                                    onClick={() => switchRegisterMode("search")}
+                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "search" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                >
+                                    Jugadores Registrados
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => switchRegisterMode("guest")}
+                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "guest" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                >
+                                    Invitados
+                                </button>
+                            </div>
+
+                            {registerMode === "guest" && (
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-foreground/40 leading-relaxed -mt-3">
+                                    Inscribí personas sin cuenta. Configurá lado, género, club y categoría de cada invitado.
+                                </p>
+                            )}
+
                             <div className="space-y-4">
                                 {/* Player 1 Input */}
                                 <div className="relative" ref={containerRef1}>
                                     <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">
-                                        {isIndividual ? "Jugador" : "Jugador 1"}
+                                        {registerMode === "guest"
+                                            ? (isIndividual ? "Invitado" : "Invitado 1")
+                                            : (isIndividual ? "Jugador" : "Jugador 1")}
                                     </div>
-                                    <input 
+                                    <input
                                         type="text"
-                                        placeholder="Nombre o buscar..."
+                                        placeholder={registerMode === "guest" ? "Nombre del invitado..." : "Nombre o buscar..."}
                                         value={selectedPlayer1 ? selectedPlayer1.name : manualName}
                                         onChange={(e) => {
                                             if (selectedPlayer1) {
@@ -377,12 +421,12 @@ export default function ManualRegistrationModal({
                                             }
                                             setSelectedPlayer1(null);
                                             setManualName(e.target.value);
-                                            setShowResults1(true);
+                                            setShowResults1(registerMode === "search");
                                         }}
-                                        onFocus={() => setShowResults1(true)}
+                                        onFocus={() => setShowResults1(registerMode === "search")}
                                         className="w-full bg-slate-50/50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-slate-800"
                                     />
-                                    {manualName.length > 1 && !selectedPlayer1 && showResults1 && (
+                                    {registerMode === "search" && manualName.length > 1 && !selectedPlayer1 && showResults1 && (
                                         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                             {player1Matches.length > 0 ? player1Matches.map(p => (
                                                 <button
@@ -468,10 +512,10 @@ export default function ManualRegistrationModal({
                                 {/* Player 2 Input (if doubles) */}
                                 {!isIndividual && (
                                     <div className="relative" ref={containerRef2}>
-                                        <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">Jugador 2</div>
-                                        <input 
+                                        <div className="text-[8px] font-black uppercase text-foreground/70 mb-1 ml-1">{registerMode === "guest" ? "Invitado 2" : "Jugador 2"}</div>
+                                        <input
                                             type="text"
-                                            placeholder="Nombre o buscar..."
+                                            placeholder={registerMode === "guest" ? "Nombre del invitado..." : "Nombre o buscar..."}
                                             value={selectedPlayer2 ? selectedPlayer2.name : manualName2}
                                             onChange={(e) => {
                                                 if (selectedPlayer2) {
@@ -483,12 +527,12 @@ export default function ManualRegistrationModal({
                                                 }
                                                 setSelectedPlayer2(null);
                                                 setManualName2(e.target.value);
-                                                setShowResults2(true);
+                                                setShowResults2(registerMode === "search");
                                             }}
-                                            onFocus={() => setShowResults2(true)}
+                                            onFocus={() => setShowResults2(registerMode === "search")}
                                             className="w-full bg-slate-50/50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-slate-800"
                                         />
-                                        {manualName2.length > 1 && !selectedPlayer2 && showResults2 && (
+                                        {registerMode === "search" && manualName2.length > 1 && !selectedPlayer2 && showResults2 && (
                                             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                                 {player2Matches.length > 0 ? player2Matches.map(p => (
                                                     <button
@@ -579,7 +623,9 @@ export default function ManualRegistrationModal({
                                 >
                                     {isCreatingManual ? (
                                         <RefreshCw className="w-3 h-3 animate-spin" />
-                                    ) : isIndividual ? "Inscribir" : "Inscribir Pareja"}
+                                    ) : registerMode === "guest"
+                                        ? (isIndividual ? "Inscribir Invitado" : "Inscribir Pareja Invitada")
+                                        : (isIndividual ? "Inscribir" : "Inscribir Pareja")}
                                 </button>
                             </div>
                         </div>

@@ -91,7 +91,8 @@ export function AmericanoAttendance({
                             <th className="px-2.5 py-1">Jugador</th>
                             <th className="px-2.5 py-1">Cat</th>
                             <th className="px-2.5 py-1 text-center">Pago</th>
-                            <th className="px-2.5 py-1 text-center">Estado</th>
+                            <th className="px-2.5 py-1 text-center">Presente</th>
+                            {!readOnly && <th className="px-2.5 py-1 text-center">Acciones</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
@@ -153,50 +154,50 @@ export function AmericanoAttendance({
                                         )}
                                     </td>
                                     <td className="px-2.5 py-1 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            {!readOnly && (
-                                                <>
+                                        {isPair ? (
+                                            <div className="flex flex-col items-center gap-1">
+                                                {([1, 2] as const).map(slot => (
                                                     <button
-                                                        onClick={() => setPlayerToDelete(p)}
-                                                        className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-95"
-                                                        title="Eliminar"
+                                                        key={slot}
+                                                        onClick={() => !readOnly && togglePresent(memberKey(p.id, slot))}
+                                                        disabled={readOnly}
+                                                        title={`Presente: ${memberNames[slot - 1]}`}
+                                                        className={paidBtnClass(isMemberChecked(present, p.id, slot))}
                                                     >
-                                                        <Trash2 className="w-2.5 h-2.5" />
+                                                        <UserCheck className="w-2.5 h-2.5" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => setReplacingPlayer(p)}
-                                                        className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-95"
-                                                        title="Reemplazar"
-                                                    >
-                                                        <RotateCcw className="w-2.5 h-2.5" />
-                                                    </button>
-                                                </>
-                                            )}
-                                            {isPair ? (
-                                                <div className="flex flex-col items-center gap-1">
-                                                    {([1, 2] as const).map(slot => (
-                                                        <button
-                                                            key={slot}
-                                                            onClick={() => !readOnly && togglePresent(memberKey(p.id, slot))}
-                                                            disabled={readOnly}
-                                                            title={`Presente: ${memberNames[slot - 1]}`}
-                                                            className={paidBtnClass(isMemberChecked(present, p.id, slot))}
-                                                        >
-                                                            <UserCheck className="w-2.5 h-2.5" />
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => !readOnly && togglePresent(p.id)}
-                                                    disabled={readOnly}
-                                                    className={paidBtnClass(isPresent)}
-                                                >
-                                                    <UserCheck className="w-2.5 h-2.5" />
-                                                </button>
-                                            )}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => !readOnly && togglePresent(p.id)}
+                                                disabled={readOnly}
+                                                className={paidBtnClass(isPresent)}
+                                            >
+                                                <UserCheck className="w-2.5 h-2.5" />
+                                            </button>
+                                        )}
                                     </td>
+                                    {!readOnly && (
+                                        <td className="px-2.5 py-1 text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={() => setPlayerToDelete(p)}
+                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-95"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 className="w-2.5 h-2.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setReplacingPlayer(p)}
+                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-95"
+                                                    title="Reemplazar"
+                                                >
+                                                    <RotateCcw className="w-2.5 h-2.5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             );
                         })}
