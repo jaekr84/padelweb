@@ -62,9 +62,15 @@ export function AmericanoBracketMirror({
         return final?.confirmed ? final.winnerName ?? null : null;
     }, [bracket]);
 
-    // Shared column height: driven by the densest (outermost) column
+    // Shared column height: driven by the densest (outermost) column.
+    // 120px per cell leaves vertical clearance so brick-overlapped columns interlock without touching.
     const cellsPerOuterCol = Math.max(Math.pow(2, Math.max(maxRound - 1, 0)), 1);
-    const colHeight = Math.max(cellsPerOuterCol * 80, 260);
+    const colHeight = Math.max(cellsPerOuterCol * 120, 300);
+
+    // Brick layout: same-side neighbor columns overlap 50% horizontally — their cells
+    // interlock vertically. Across the center (semi → final → semi) both cells are
+    // vertically centered, so those columns don't overlap.
+    const COL_WIDTH = 185;
 
     if (bracket.length === 0) return null;
 
@@ -95,15 +101,26 @@ export function AmericanoBracketMirror({
             </div>
 
             <div className="bg-card/30 backdrop-blur-xl border border-border/30 rounded-xl p-4 overflow-x-auto custom-scrollbar">
-                <div className="flex items-stretch gap-2 min-w-max mx-auto w-fit">
-                    {columns.map(col => (
-                        <div key={col.key} className="flex flex-col w-[185px]">
+                <div className="flex items-stretch min-w-max mx-auto w-fit">
+                    {columns.map((col, idx) => {
+                        const prev = columns[idx - 1];
+                        const interlocks = !!prev && prev.side === col.side;
+                        return (
+                        <div
+                            key={col.key}
+                            className="flex flex-col pointer-events-none"
+                            style={{
+                                width: COL_WIDTH,
+                                marginLeft: idx === 0 ? 0 : interlocks ? -COL_WIDTH / 2 : 10,
+                                zIndex: idx + 1
+                            }}
+                        >
                             <div className="text-center mb-2">
                                 <span className={`text-[9px] font-black uppercase tracking-[0.25em] ${col.side === "C" ? "text-celeste" : "text-foreground/40"}`}>
                                     {col.side === "C" ? "🏆 FINAL" : roundTitle(col.round, true)}
                                 </span>
                             </div>
-                            <div className="flex-1 flex flex-col justify-around gap-1.5" style={{ height: colHeight }}>
+                            <div className="flex flex-col justify-around shrink-0" style={{ height: colHeight }}>
                                 {col.side === "C" && champion && (
                                     <div className="text-center px-1 py-1.5 rounded-lg bg-celeste/10 border border-celeste/30">
                                         <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-celeste">Campeón</span>
@@ -115,7 +132,8 @@ export function AmericanoBracketMirror({
                                 ))}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -189,7 +207,7 @@ function MirrorCell({ match, onClick }: { match: BracketMatch; onClick: () => vo
         <button
             type="button"
             onClick={onClick}
-            className={`group/cell relative w-full text-left rounded-md border transition-all cursor-pointer overflow-hidden
+            className={`group/cell pointer-events-auto relative w-full text-left rounded-md border transition-all cursor-pointer overflow-hidden
                 ${isLive
                     ? "border-rojo/40 bg-rojo/[0.04] shadow-[0_0_10px_rgba(239,68,68,0.15)]"
                     : match.confirmed && !isBye
