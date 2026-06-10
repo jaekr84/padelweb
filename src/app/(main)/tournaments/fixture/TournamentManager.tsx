@@ -1,12 +1,13 @@
 "use client";
 
-import { Trophy, Swords, Plus, Minus } from "lucide-react";
+import { Trophy, Swords, Plus, Minus, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TournamentHeader } from "./components/tournament/TournamentHeader";
 import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
 import { TournamentDashboard } from "./components/tournament/TournamentDashboard";
 import { TournamentGroupsView } from "./components/tournament/TournamentGroupsView";
-import { TournamentBracketView } from "./components/tournament/TournamentBracketView";
+import { AmericanoPlayoffQueue } from "./components/americano/AmericanoPlayoffQueue";
+import { AmericanoBracketMirror } from "./components/americano/AmericanoBracketMirror";
 import { TournamentQualifiersView } from "./components/tournament/TournamentQualifiersView";
 import { TournamentModals } from "./components/tournament/TournamentModals";
 import { useTournamentLogic } from "./components/tournament/useTournamentLogic";
@@ -53,6 +54,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
         replaceSlot, setReplaceSlot,
         isRefreshing,
         showSuccessModal, setShowSuccessModal,
+        saving,
         searchQuery, setSearchQuery,
         confirmModal, setConfirmModal,
         allPlayers,
@@ -61,7 +63,6 @@ export default function TournamentManager(props: TournamentManagerProps) {
         progressPercent,
         confirmedGroupMatches,
         totalGroupMatches,
-        roundsArr,
         handleRefresh,
         togglePresent,
         togglePaid,
@@ -78,9 +79,6 @@ export default function TournamentManager(props: TournamentManagerProps) {
         handleBracketStart,
         handleBracketScore,
         handleBracketConfirm,
-        handleSwapPlayers,
-        swappingPlayer,
-        roundLabel,
         isIndividual,
         bulkUpdateStatus,
         finalQualifiers,
@@ -231,27 +229,38 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                 ) : (
                                     <div className="space-y-6">
                                         <div className="flex items-center justify-between px-2">
-                                            <button 
+                                            <button
                                                 onClick={() => setStep("done")}
                                                 className="text-[10px] font-black uppercase tracking-widest text-foreground/40 hover:text-azul-primary transition-colors flex items-center gap-2"
                                             >
                                                 ← Volver a Grupos
                                             </button>
+                                            {!readOnly && (
+                                                <button
+                                                    onClick={handleGenerateBracket}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all text-[9px] font-black uppercase tracking-widest"
+                                                    title="Regenerar llaves desde cero"
+                                                >
+                                                    <RefreshCw className="w-3 h-3" />
+                                                    Regenerar Llaves
+                                                </button>
+                                            )}
                                         </div>
-                                        
-                                        <TournamentBracketView
+
+                                        <AmericanoPlayoffQueue
                                             bracket={bracket}
-                                            roundsArr={roundsArr}
                                             readOnly={readOnly}
-                                            handleBracketStart={handleBracketStart}
+                                            saving={saving}
                                             handleBracketScore={handleBracketScore}
+                                            handleBracketStart={handleBracketStart}
                                             handleBracketConfirm={handleBracketConfirm}
-                                            handleReopenMatch={handleReopenMatch}
-                                            handleGenerateBracket={handleGenerateBracket}
-                                            handleSwapPlayers={handleSwapPlayers}
-                                            swappingPlayer={swappingPlayer}
-                                            roundLabel={roundLabel}
-                                            isIndividual={isIndividual}
+                                            handleBracketEdit={handleReopenMatch}
+                                            skipReopenConfirm
+                                        />
+
+                                        <AmericanoBracketMirror
+                                            bracket={bracket}
+                                            readOnly={readOnly}
                                         />
                                     </div>
                                 )}

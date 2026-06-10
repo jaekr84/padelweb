@@ -196,7 +196,7 @@ function MirrorCell({ match, onClick }: { match: BracketMatch; onClick: () => vo
     const t1 = teamOf(match.team1);
     const t2 = teamOf(match.team2);
     const isBye = (match.team1 as any) === "BYE" || (match.team2 as any) === "BYE";
-    const isLive = !match.confirmed && match.status === "live";
+    const isLive = !match.confirmed && (match.status === "live" || match.status === "in_progress");
     const winnerIs1 = match.confirmed && (match.score1 ?? 0) > (match.score2 ?? 0);
     const winnerIs2 = match.confirmed && (match.score2 ?? 0) > (match.score1 ?? 0);
 
@@ -256,7 +256,7 @@ function MirrorCell({ match, onClick }: { match: BracketMatch; onClick: () => vo
 function VersusModal({ match, onClose }: { match: BracketMatch; onClose: () => void }) {
     const t1 = teamOf(match.team1);
     const t2 = teamOf(match.team2);
-    const isLive = !match.confirmed && match.status === "live";
+    const isLive = !match.confirmed && (match.status === "live" || match.status === "in_progress");
     const winnerIs1 = match.confirmed && (match.score1 ?? 0) > (match.score2 ?? 0);
     const winnerIs2 = match.confirmed && (match.score2 ?? 0) > (match.score1 ?? 0);
 

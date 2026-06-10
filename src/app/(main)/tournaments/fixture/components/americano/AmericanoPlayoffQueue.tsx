@@ -16,6 +16,8 @@ interface AmericanoPlayoffQueueProps {
     handleBracketStart: (matchId: string) => void | Promise<any>;
     handleBracketConfirm: (matchId: string) => void | Promise<any>;
     handleBracketEdit: (matchId: string) => void | Promise<any>;
+    // When the reopen handler brings its own confirmation (robin), skip the queue's modal
+    skipReopenConfirm?: boolean;
 }
 
 type MatchStatus = "bye" | "finished" | "live" | "ready" | "waiting";
@@ -41,7 +43,8 @@ export function AmericanoPlayoffQueue({
     handleBracketScore,
     handleBracketStart,
     handleBracketConfirm,
-    handleBracketEdit
+    handleBracketEdit,
+    skipReopenConfirm
 }: AmericanoPlayoffQueueProps) {
     const [confirmAction, setConfirmAction] = useState<{ type: "start" | "finish" | "reopen"; match: BracketMatch } | null>(null);
     const [busyMatchId, setBusyMatchId] = useState<string | null>(null);
@@ -56,7 +59,8 @@ export function AmericanoPlayoffQueue({
     const statusOf = (m: BracketMatch): MatchStatus => {
         const isBye = (m.team1 as any) === "BYE" || (m.team2 as any) === "BYE";
         if (m.confirmed) return isBye ? "bye" : "finished";
-        if (m.status === "live") return "live";
+        // "live" (americano) / "in_progress" (robin)
+        if (m.status === "live" || m.status === "in_progress") return "live";
         if (teamName(m.team1) && teamName(m.team2)) return "ready";
         return "waiting";
     };
@@ -237,7 +241,9 @@ export function AmericanoPlayoffQueue({
                                             )}
                                             {!readOnly && status === "finished" && (
                                                 <button
-                                                    onClick={() => setConfirmAction({ type: "reopen", match: m })}
+                                                    onClick={() => skipReopenConfirm
+                                                        ? handleBracketEdit(m.id)
+                                                        : setConfirmAction({ type: "reopen", match: m })}
                                                     disabled={saving || isBusy}
                                                     title="Corregir resultado (reabre el partido)"
                                                     className="w-7 h-7 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/30 hover:border-azul-primary/40 hover:text-azul-primary transition-all active:scale-95 disabled:opacity-30"
