@@ -26,6 +26,7 @@ export async function loginAction(formData: FormData) {
                 passwordHash: users.passwordHash,
                 role: users.role,
                 isActive: users.isActive,
+                approvalStatus: users.approvalStatus,
                 bannedUntil: users.bannedUntil,
             })
             .from(users)
@@ -45,7 +46,11 @@ export async function loginAction(formData: FormData) {
             return { error: "Credenciales inválidas" };
         }
 
-        // 2.5 Check if active/banned
+        // 2.5 Check if approved/active/banned
+        if (user.approvalStatus === "pending") {
+            return { error: "Tu cuenta está pendiente de aprobación por un administrador. Te avisaremos cuando esté habilitada." };
+        }
+
         if (user.isActive === false) {
             return { error: "Tu cuenta ha sido desactivada. Contacta al soporte." };
         }

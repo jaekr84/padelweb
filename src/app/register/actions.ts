@@ -2,10 +2,9 @@
 import { registrationRequests } from "@/db/schema";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { hashPassword, setSession } from "@/lib/auth-server";
+import { hashPassword } from "@/lib/auth-server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { jwtVerify } from "jose";
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
@@ -97,7 +96,7 @@ export async function registerAction(formData: FormData) {
     // 3. Hash password
     const passwordHash = await hashPassword(password);
 
-    // 4. Create user
+    // 4. Create user pending admin approval (no session until approved)
     try {
         await db.insert(users).values({
             id: email.toLowerCase(), // User wants email as ID
@@ -110,25 +109,19 @@ export async function registerAction(formData: FormData) {
             documentNumber,
             birthDate,
             gender,
+            clubId: inviteClubId || null,
+            approvalStatus: "pending",
         });
-
-        // 5. Set session
-        await setSession(email.toLowerCase(), email.toLowerCase(), role);
-
     } catch (e: any) {
         console.error("Registration error:", e);
         return { error: "No se pudo completar el registro: " + e.message };
     }
 
-    revalidatePath("/home");
-    
-    let redirectUrl = "/onboarding";
-    const params = new URLSearchParams();
-    if (invitationToken) params.set("invitation", invitationToken);
-    if (inviteClubId) params.set("invite", inviteClubId);
-    
-    const queryString = params.toString();
-    if (queryString) redirectUrl += `?${queryString}`;
-    
-    redirect(redirectUrl);
+    revalidatePath("/admin/requests");
+
+    return {
+        success: true,
+        pendingApproval: true,
+        message: "Cuenta creada. Un administrador debe aprobar tu acceso antes de que puedas iniciar sesión."
+    };
 }

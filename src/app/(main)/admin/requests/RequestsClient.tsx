@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { 
-    getRegistrationRequests, 
-    updateRequestStatus, 
+import {
+    getRegistrationRequests,
+    updateRequestStatus,
     deleteRequestAction,
     getContactMessages,
     updateMessageStatus,
-    deleteMessageAction
+    deleteMessageAction,
+    getPendingSignups,
+    approveSignupAction,
+    rejectSignupAction
 } from "./actions";
 import { generateInvitationLink } from "../invitations/actions";
 import { toast } from "sonner";
@@ -29,13 +32,15 @@ import {
     Eye,
     EyeOff,
     Search,
-    Layers
+    Layers,
+    UserPlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RequestsClient() {
-    const [activeTab, setActiveTab] = useState<"registro" | "mensajes">("registro");
+    const [activeTab, setActiveTab] = useState<"registro" | "altas" | "mensajes">("registro");
     const [requests, setRequests] = useState<any[]>([]);
+    const [signups, setSignups] = useState<any[]>([]);
     const [messages, setMessages] = useState<any[]>([]);
     const [isPending, startTransition] = useTransition();
     const [loading, setLoading] = useState(true);
@@ -52,6 +57,9 @@ export default function RequestsClient() {
             if (activeTab === "registro") {
                 const data = await getRegistrationRequests();
                 setRequests(data);
+            } else if (activeTab === "altas") {
+                const data = await getPendingSignups();
+                setSignups(data);
             } else {
                 const data = await getContactMessages();
                 setMessages(data);
@@ -114,6 +122,31 @@ export default function RequestsClient() {
         });
     };
 
+    const handleApproveSignup = async (userId: string) => {
+        startTransition(async () => {
+            try {
+                await approveSignupAction(userId);
+                setSignups(prev => prev.filter(s => s.id !== userId));
+                toast.success("Cuenta aprobada. El usuario ya puede iniciar sesión.");
+            } catch (e: any) {
+                toast.error(e.message);
+            }
+        });
+    };
+
+    const handleRejectSignup = async (userId: string) => {
+        if (!confirm("¿Rechazar y eliminar esta cuenta permanentemente?")) return;
+        startTransition(async () => {
+            try {
+                await rejectSignupAction(userId);
+                setSignups(prev => prev.filter(s => s.id !== userId));
+                toast.success("Cuenta rechazada y eliminada");
+            } catch (e: any) {
+                toast.error(e.message);
+            }
+        });
+    };
+
     const handleDeleteMessage = async (id: string) => {
         if (!confirm("¿Eliminar este mensaje permanentemente?")) return;
         try {
@@ -144,10 +177,14 @@ export default function RequestsClient() {
         toast.success("Copiado al portapapeles");
     };
 
-    const filteredItems = (activeTab === "registro" ? requests : messages).filter(item => {
+    const filteredItems = (activeTab === "registro" ? requests : activeTab === "altas" ? signups : messages).filter(item => {
         const search = searchQuery.toLowerCase();
         if (activeTab === "registro") {
             return item.fullName.toLowerCase().includes(search) || item.whatsapp.includes(search);
+        }
+        if (activeTab === "altas") {
+            const fullName = `${item.firstName || ""} ${item.lastName || ""}`.toLowerCase();
+            return fullName.includes(search) || item.email.toLowerCase().includes(search) || (item.phone || "").includes(search);
         }
         return item.name.toLowerCase().includes(search) || item.email.toLowerCase().includes(search) || item.subject.toLowerCase().includes(search);
     });
@@ -193,7 +230,7 @@ export default function RequestsClient() {
                         <div className="flex flex-col gap-1.5">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                                    {activeTab === "registro" ? <ShieldCheck className="w-5 h-5 text-indigo-600" /> : <Inbox className="w-5 h-5 text-indigo-600" />}
+                                    {activeTab === "registro" ? <ShieldCheck className="w-5 h-5 text-indigo-600" /> : activeTab === "altas" ? <UserPlus className="w-5 h-5 text-indigo-600" /> : <Inbox className="w-5 h-5 text-indigo-600" />}
                                 </div>
                                 <div>
                                     <span className="text-[9px] font-black uppercase tracking-[0.4em] text-indigo-600 italic">Admin Tactical Console</span>
@@ -201,9 +238,9 @@ export default function RequestsClient() {
                                 </div>
                             </div>
                             <h1 className="text-xl md:text-3xl font-black uppercase italic tracking-tighter leading-none text-foreground">
-                                {activeTab === "registro" ? "Solicitudes de " : "Buzón de " }
+                                {activeTab === "registro" ? "Solicitudes de " : activeTab === "altas" ? "Aprobación de " : "Buzón de " }
                                 <span className="text-gradient-animate">
-                                    {activeTab === "registro" ? "Registro" : "Mensajes" }
+                                    {activeTab === "registro" ? "Registro" : activeTab === "altas" ? "Altas" : "Mensajes" }
                                 </span>
                             </h1>
                             <p className="text-muted-foreground text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -218,7 +255,13 @@ export default function RequestsClient() {
                             >
                                 <ShieldCheck className="w-3.5 h-3.5" /> Registro
                             </button>
-                            <button 
+                            <button
+                                onClick={() => setActiveTab("altas")}
+                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "altas" ? "bg-background text-indigo-600 shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                <UserPlus className="w-3.5 h-3.5" /> Altas
+                            </button>
+                            <button
                                 onClick={() => setActiveTab("mensajes")}
                                 className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "mensajes" ? "bg-background text-indigo-600 shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
                             >
@@ -231,7 +274,7 @@ export default function RequestsClient() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
-                            placeholder={`BUSCAR ${activeTab === 'registro' ? 'SOLICITUD (NOMBRE, WHATSAPP)' : 'MENSAJE (NOMBRE, EMAIL, ASUNTO)'}...`}
+                            placeholder={`BUSCAR ${activeTab === 'registro' ? 'SOLICITUD (NOMBRE, WHATSAPP)' : activeTab === 'altas' ? 'ALTA (NOMBRE, EMAIL, TELÉFONO)' : 'MENSAJE (NOMBRE, EMAIL, ASUNTO)'}...`}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-card/50 border border-border rounded-lg pl-9 pr-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
@@ -251,7 +294,7 @@ export default function RequestsClient() {
                         className="glass-card rounded-xl p-12 text-center flex flex-col items-center gap-4 shadow-sm border-dashed"
                     >
                         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground border border-border opacity-50">
-                            {activeTab === "registro" ? <ShieldCheck className="w-5 h-5" /> : <Inbox className="w-5 h-5" />}
+                            {activeTab === "registro" ? <ShieldCheck className="w-5 h-5" /> : activeTab === "altas" ? <UserPlus className="w-5 h-5" /> : <Inbox className="w-5 h-5" />}
                         </div>
                         <div className="space-y-1">
                             <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Sin registros encontrados</h3>
@@ -386,6 +429,66 @@ export default function RequestsClient() {
                                         </motion.div>
                                     );
                                 })
+                            ) : activeTab === "altas" ? (
+                                (filteredItems as any[]).map((signup) => (
+                                    <motion.div
+                                        key={signup.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.98 }}
+                                        className="glass-card p-3 rounded-xl transition-all relative overflow-hidden group border-indigo-500/40 bg-indigo-500/[0.02]"
+                                    >
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg flex items-center justify-center border shadow-sm transition-transform group-hover:scale-105 bg-indigo-500/10 border-indigo-500/20 text-indigo-600">
+                                                    <UserPlus className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-none">
+                                                            {signup.firstName} {signup.lastName}
+                                                        </h3>
+                                                        <span className="px-1.5 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 text-[7px] font-black uppercase tracking-widest">
+                                                            {signup.role}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-3 mt-1">
+                                                        <span className="flex items-center gap-1 text-indigo-600 font-black text-[9px] uppercase tracking-widest">
+                                                            <Mail className="w-3 h-3" /> {signup.email}
+                                                        </span>
+                                                        {signup.phone && (
+                                                            <span className="flex items-center gap-1 text-indigo-600 font-black text-[9px] uppercase tracking-widest">
+                                                                <Phone className="w-3 h-3" /> {signup.phone}
+                                                            </span>
+                                                        )}
+                                                        <span className="flex items-center gap-1 text-muted-foreground font-black text-[9px] uppercase tracking-widest">
+                                                            <Calendar className="w-3 h-3" /> {new Date(signup.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 w-full md:w-auto">
+                                                <button
+                                                    onClick={() => handleRejectSignup(signup.id)}
+                                                    disabled={isPending}
+                                                    className="h-8 px-4 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition-all font-black uppercase tracking-widest text-[8px] flex items-center gap-1.5"
+                                                >
+                                                    <XCircle className="w-3 h-3" /> Rechazar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleApproveSignup(signup.id)}
+                                                    disabled={isPending}
+                                                    className="h-8 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95"
+                                                >
+                                                    {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                                    Aprobar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))
                             ) : (
                                 (filteredItems as any[]).map((msg) => (
                                     <motion.div

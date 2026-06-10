@@ -556,39 +556,22 @@ export function AmericanoCourtGrid({
                                     >
                                         <div className="p-3 space-y-2.5">
                                             {/* Header */}
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/40">
-                                                    Reemplazar pareja
-                                                </span>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/40 shrink-0">
+                                                        Reemplazar a
+                                                    </span>
+                                                    <span className="text-[8px] font-black uppercase italic text-azul-primary truncate">
+                                                        {swapSlot === 1 ? team1Name : team2Name}
+                                                    </span>
+                                                </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => setSwapMatchId(null)}
-                                                    className="w-5 h-5 rounded-full bg-muted/40 flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                                                    className="w-5 h-5 rounded-full bg-muted/40 flex items-center justify-center hover:bg-muted transition-colors cursor-pointer shrink-0"
                                                 >
                                                     <X className="w-3 h-3 text-foreground/50" />
                                                 </button>
-                                            </div>
-
-                                            {/* Slot Tabs */}
-                                            <div className="flex gap-1 p-0.5 bg-muted/30 rounded-lg border border-border/30">
-                                                {([1, 2] as const).map(slot => {
-                                                    const name = slot === 1 ? team1Name : team2Name;
-                                                    const label = name.split(/[\/\+]/)[0]?.trim() ?? `Equipo ${slot}`;
-                                                    return (
-                                                        <button
-                                                            key={slot}
-                                                            type="button"
-                                                            onClick={() => setSwapSlot(slot)}
-                                                            className={`flex-1 py-1.5 px-2 rounded-md text-[7px] font-black uppercase tracking-widest transition-all cursor-pointer truncate
-                                                                ${swapSlot === slot
-                                                                    ? "bg-azul-primary text-white shadow-sm"
-                                                                    : "text-foreground/50 hover:text-foreground/80"
-                                                                }`}
-                                                        >
-                                                            {label}
-                                                        </button>
-                                                    );
-                                                })}
                                             </div>
 
                                             {/* Legend */}

@@ -19,6 +19,7 @@ export default function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [isVerified, setIsVerified] = useState<boolean | null>(null);
     const [requestSuccess, setRequestSuccess] = useState(false);
+    const [pendingApproval, setPendingApproval] = useState(false);
 
     // Verify token on mount if present
     useEffect(() => {
@@ -42,6 +43,9 @@ export default function RegisterPage() {
             if (res?.error) {
                 setError(res.error);
                 toast.error(res.error);
+            } else if (res?.pendingApproval) {
+                setPendingApproval(true);
+                toast.success(res.message);
             }
         });
     };
@@ -107,7 +111,24 @@ export default function RegisterPage() {
                     </p>
                 </div>
 
-                {!isVerified ? (
+                {pendingApproval ? (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-azul-primary/10 border border-azul-primary/20 p-8 rounded-3xl text-center flex flex-col items-center gap-4"
+                    >
+                        <div className="w-16 h-16 rounded-full bg-azul-primary/20 flex items-center justify-center text-azul-primary">
+                            <ShieldCheck className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-black uppercase italic text-white tracking-tight">Cuenta Creada</h3>
+                        <p className="text-slate-400 text-sm font-medium">
+                            Tu cuenta fue creada con éxito, pero un administrador debe aprobarla antes de que puedas iniciar sesión. Te avisaremos cuando esté habilitada.
+                        </p>
+                        <Link href="/login" className="mt-4 text-[10px] font-black uppercase tracking-widest text-celeste hover:text-celeste/80">
+                            Volver al Login
+                        </Link>
+                    </motion.div>
+                ) : !isVerified ? (
                     <form onSubmit={handleRequest} className="space-y-6 relative text-left">
                         {requestSuccess ? (
                             <motion.div

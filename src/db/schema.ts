@@ -19,6 +19,7 @@ export const users = mysqlTable("users", {
     points: int("points").default(0),
     clubId: varchar("club_id", { length: 256 }), // references added below in relations or manually
     isActive: boolean("is_active").default(true),
+    approvalStatus: varchar("approval_status", { length: 20 }).notNull().default("approved"), // approved | pending
     bannedUntil: timestamp("banned_until"),
     imageUrl: varchar("image_url", { length: 512 }),
     lastParticipationAt: timestamp("last_participation_at"),
