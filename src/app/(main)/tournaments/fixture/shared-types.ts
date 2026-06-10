@@ -14,6 +14,9 @@ export type Player = {
     partnerUserId?: string | null;
     image?: string | null;
     partnerImage?: string | null;
+    // Withdrawn from the tournament (injury, left early, never showed up):
+    // played matches are kept, but no new matches are generated for them
+    withdrawn?: boolean;
 };
 
 export type Group = {

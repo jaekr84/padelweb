@@ -573,6 +573,9 @@ export default function AmericanoPlayoffs({
                 playerToDelete={null}
                 setPlayerToDelete={() => {}}
                 handleDeletePlayer={() => {}}
+                playerToWithdraw={null}
+                setPlayerToWithdraw={() => {}}
+                handleWithdrawPlayer={() => {}}
                 editingMatchPlayer={null}
                 setEditingMatchPlayer={() => {}}
                 groups={groups}

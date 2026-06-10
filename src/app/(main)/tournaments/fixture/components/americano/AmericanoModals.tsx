@@ -44,6 +44,11 @@ interface AmericanoModalsProps {
     playerToDelete: Player | null;
     setPlayerToDelete: (p: Player | null) => void;
     handleDeletePlayer: (id: string) => void;
+
+    // Withdraw player modal
+    playerToWithdraw: Player | null;
+    setPlayerToWithdraw: (p: Player | null) => void;
+    handleWithdrawPlayer: (id: string) => void;
     
     // Edit match player modal
     editingMatchPlayer: { matchId: string; playerIndex: 1 | 2 } | null;
@@ -80,6 +85,9 @@ export function AmericanoModals({
     playerToDelete,
     setPlayerToDelete,
     handleDeletePlayer,
+    playerToWithdraw,
+    setPlayerToWithdraw,
+    handleWithdrawPlayer,
     editingMatchPlayer,
     setEditingMatchPlayer,
     groups,
@@ -337,6 +345,35 @@ export function AmericanoModals({
                             className="flex-1 px-4 py-3 bg-rojo hover:bg-rojo/90 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-rojo/20"
                         >
                             Sí, Eliminar
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODAL CONFIRMACION RETIRAR */}
+            <Dialog open={!!playerToWithdraw} onOpenChange={(open) => !open && setPlayerToWithdraw(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-amber-500">¿Retirar Participante?</DialogTitle>
+                        <DialogDescription>
+                            <span className="text-foreground font-black">{playerToWithdraw?.name}</span> se retira del torneo.
+                            Sus partidos jugados se conservan en la tabla, no se le generarán más partidos y sus cupos pendientes
+                            quedan liberados para el resto. Podés reincorporarlo cuando quieras.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex gap-4 mt-4">
+                        <button
+                            onClick={() => setPlayerToWithdraw(null)}
+                            className="flex-1 px-4 py-3 bg-muted hover:bg-muted/80 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={() => playerToWithdraw && handleWithdrawPlayer(playerToWithdraw.id)}
+                            className="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20"
+                        >
+                            Sí, Retirar
                         </button>
                     </div>
                 </DialogContent>

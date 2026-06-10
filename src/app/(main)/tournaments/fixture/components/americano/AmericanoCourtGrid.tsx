@@ -501,29 +501,40 @@ export function AmericanoCourtGrid({
                                 </div>
                             </div>
 
-                            {/* ── Swap toggle button (stays inside card) ── */}
+                            {/* ── Swap buttons: one per side ── */}
                             {activeMatch && !readOnly && onSwapTeam && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (isSwapOpen) {
-                                            setSwapMatchId(null);
-                                        } else {
-                                            setSwapMatchId(activeMatch.id);
-                                            setSwapSlot(1);
-                                        }
-                                    }}
-                                    className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-t transition-all cursor-pointer
-                                        ${isSwapOpen
-                                            ? "border-azul-primary/40 bg-azul-primary/10 text-azul-primary"
-                                            : "border-border/10 text-foreground/30 hover:text-azul-primary hover:border-azul-primary/20 hover:bg-azul-primary/5"
-                                        }`}
-                                >
-                                    <ArrowLeftRight className="w-3 h-3" />
-                                    <span className="text-[7px] font-black uppercase tracking-[0.2em]">
-                                        {isSwapOpen ? "Cerrar" : "Cambiar Pareja"}
-                                    </span>
-                                </button>
+                                <div className={`flex border-t transition-all ${isSwapOpen ? "border-azul-primary/40" : "border-border/10"}`}>
+                                    {([1, 2] as const).map(slot => {
+                                        const teamName = slot === 1 ? activeMatch.team1?.name : activeMatch.team2?.name;
+                                        const label = teamName?.split(/[\/\+]/)[0]?.trim() || `Equipo ${slot}`;
+                                        const isSlotOpen = isSwapOpen && swapSlot === slot;
+                                        return (
+                                            <button
+                                                key={slot}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSlotOpen) {
+                                                        setSwapMatchId(null);
+                                                    } else {
+                                                        setSwapMatchId(activeMatch.id);
+                                                        setSwapSlot(slot);
+                                                    }
+                                                }}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-all cursor-pointer min-w-0
+                                                    ${slot === 2 ? "border-l border-border/10" : ""}
+                                                    ${isSlotOpen
+                                                        ? "bg-azul-primary/10 text-azul-primary"
+                                                        : "text-foreground/30 hover:text-azul-primary hover:bg-azul-primary/5"
+                                                    }`}
+                                            >
+                                                <ArrowLeftRight className="w-3 h-3 shrink-0" />
+                                                <span className="text-[7px] font-black uppercase tracking-[0.2em] truncate">
+                                                    {isSlotOpen ? "Cerrar" : `Cambiar ${label}`}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
 

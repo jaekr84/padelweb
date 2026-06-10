@@ -2,7 +2,7 @@
 
 import {
     Search, Users2, CreditCard, Trash2, RotateCcw,
-    UserCheck, ChevronRight
+    UserCheck, ChevronRight, UserX, UserPlus
 } from "lucide-react";
 import { Player, Group } from "./types";
 import { pairNames, memberKey, isMemberChecked, isTeamChecked, checkKeysFor } from "./attendance-utils";
@@ -18,6 +18,7 @@ interface AmericanoAttendanceProps {
     togglePaid: (id: string) => void;
     setPlayerToDelete: (p: Player) => void;
     setReplacingPlayer: (p: Player) => void;
+    requestWithdraw: (p: Player) => void;
     setStep: (step: "active") => void;
     bulkUpdateStatus: (type: 'present' | 'paid', ids: string[]) => void;
 }
@@ -33,12 +34,13 @@ export function AmericanoAttendance({
     togglePaid,
     setPlayerToDelete,
     setReplacingPlayer,
+    requestWithdraw,
     setStep,
     bulkUpdateStatus
 }: AmericanoAttendanceProps) {
     const players = groups[0]?.players || [];
-    // Teams ready to play (pairs need both members present)
-    const presentTeamsCount = players.filter(p => isTeamChecked(present, p)).length;
+    // Teams ready to play (pairs need both members present, withdrawn excluded)
+    const presentTeamsCount = players.filter(p => !p.withdrawn && isTeamChecked(present, p)).length;
 
     return (
         <div className="w-full space-y-3 pb-32">
@@ -107,7 +109,7 @@ export function AmericanoAttendance({
                             return (
                                 <tr
                                     key={p.id}
-                                    className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-azul-primary/[0.02]" : ""}`}
+                                    className={`group transition-all hover:bg-muted/30 ${p.withdrawn ? "opacity-50" : isPresent ? "bg-azul-primary/[0.02]" : ""}`}
                                 >
                                     <td className="px-2.5 py-1">
                                         <div className="flex items-center gap-2">
@@ -122,6 +124,11 @@ export function AmericanoAttendance({
                                                 </div>
                                             ) : (
                                                 <span className={`font-black uppercase text-[9px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                            )}
+                                            {p.withdrawn && (
+                                                <span className="shrink-0 px-1.5 py-0.5 rounded text-[6px] font-black uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-500">
+                                                    Retirado
+                                                </span>
                                             )}
                                         </div>
                                     </td>
@@ -194,6 +201,15 @@ export function AmericanoAttendance({
                                                     title="Reemplazar"
                                                 >
                                                     <RotateCcw className="w-2.5 h-2.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => requestWithdraw(p)}
+                                                    className={`w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${p.withdrawn
+                                                        ? "bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-white"
+                                                        : "border-border/40 bg-muted/30 text-foreground/20 hover:border-amber-500/40 hover:text-amber-500"}`}
+                                                    title={p.withdrawn ? "Reincorporar al torneo" : "Retirar del torneo"}
+                                                >
+                                                    {p.withdrawn ? <UserPlus className="w-2.5 h-2.5" /> : <UserX className="w-2.5 h-2.5" />}
                                                 </button>
                                             </div>
                                         </td>

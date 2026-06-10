@@ -1,7 +1,7 @@
 "use client";
 
-import { 
-    Users2, RotateCcw, CheckCircle2, Clock, UserCheck, CreditCard 
+import {
+    Users2, RotateCcw, CheckCircle2, Clock, UserCheck, CreditCard, UserX, UserPlus
 } from "lucide-react";
 import { Player, Standing } from "./types";
 import { pairNames, memberKey, isMemberChecked } from "./attendance-utils";
@@ -18,6 +18,7 @@ interface AmericanoStandingsTableProps {
     paid: Set<string>;
     togglePaid: (id: string) => void;
     setReplacingPlayer: (p: Player) => void;
+    requestWithdraw: (p: Player) => void;
 }
 
 export function AmericanoStandingsTable({
@@ -31,11 +32,13 @@ export function AmericanoStandingsTable({
     togglePresent,
     paid,
     togglePaid,
-    setReplacingPlayer
+    setReplacingPlayer,
+    requestWithdraw
 }: AmericanoStandingsTableProps) {
+    // Withdrawn players have no pending matches: they count as "done"
     const filteredStandings = (() => {
-        if (playersTab === "pending") return standings.filter(s => s.matchesPlayed < matchesPerTeam);
-        if (playersTab === "done") return standings.filter(s => s.matchesPlayed >= matchesPerTeam);
+        if (playersTab === "pending") return standings.filter(s => !s.player.withdrawn && s.matchesPlayed < matchesPerTeam);
+        if (playersTab === "done") return standings.filter(s => s.player.withdrawn || s.matchesPlayed >= matchesPerTeam);
         return standings;
     })();
 
@@ -57,10 +60,10 @@ export function AmericanoStandingsTable({
                         Todos ({standings.length})
                     </button>
                     <button onClick={() => setPlayersTab("pending")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-azul-primary" : "hover:bg-muted text-foreground/60"}`}>
-                        Pendientes ({standings.filter(s => s.matchesPlayed < matchesPerTeam).length})
+                        Pendientes ({standings.filter(s => !s.player.withdrawn && s.matchesPlayed < matchesPerTeam).length})
                     </button>
                     <button onClick={() => setPlayersTab("done")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-azul-primary text-white" : "hover:bg-muted text-foreground/60"}`}>
-                        Completos ({standings.filter(s => s.matchesPlayed >= matchesPerTeam).length})
+                        Completos ({standings.filter(s => s.player.withdrawn || s.matchesPlayed >= matchesPerTeam).length})
                     </button>
                 </div>
             </div>
@@ -88,7 +91,7 @@ export function AmericanoStandingsTable({
                                 const memberNames = pairNames(s.player);
                                 const isPair = memberNames.length > 1;
                                 return (
-                                    <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-azul-primary/[0.04]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
+                                    <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${s.player.withdrawn ? "opacity-50" : isPlaying ? "bg-azul-primary/[0.04]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
                                         <td className="px-3 py-1">
                                             <span className={`w-5 h-5 rounded flex items-center justify-center text-[8px] font-black italic ${rank === 1 ? "bg-celeste text-azul-primary" : "bg-muted text-foreground/60"}`}>
                                                 {rank}
@@ -166,20 +169,37 @@ export function AmericanoStandingsTable({
                                                                 JUGANDO
                                                             </span>
                                                         )}
+                                                        {s.player.withdrawn && (
+                                                            <span className="text-[6px] font-black uppercase tracking-widest text-amber-500 mt-0.5">
+                                                                RETIRADO
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 {!readOnly && (
-                                                    <button
-                                                        onClick={() => setReplacingPlayer(s.player)}
-                                                        className="w-5 h-5 rounded flex items-center justify-center bg-celeste/10 text-azul-primary hover:bg-celeste/20 transition-all opacity-0 group-hover:opacity-100 active:scale-90"
-                                                    >
-                                                        <RotateCcw className="w-2 h-2" />
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => setReplacingPlayer(s.player)}
+                                                            title="Reemplazar"
+                                                            className="w-5 h-5 rounded flex items-center justify-center bg-celeste/10 text-azul-primary hover:bg-celeste/20 transition-all opacity-0 group-hover:opacity-100 active:scale-90"
+                                                        >
+                                                            <RotateCcw className="w-2 h-2" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => requestWithdraw(s.player)}
+                                                            title={s.player.withdrawn ? "Reincorporar al torneo" : "Retirar del torneo"}
+                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all active:scale-90 ${s.player.withdrawn
+                                                                ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                                                                : "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 opacity-0 group-hover:opacity-100"}`}
+                                                        >
+                                                            {s.player.withdrawn ? <UserPlus className="w-2 h-2" /> : <UserX className="w-2 h-2" />}
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="px-3 py-1 text-center">
-                                            {isDone ? <CheckCircle2 className="w-3 h-3 mx-auto text-azul-primary" /> : isPlaying ? <div className="text-[6px] font-black uppercase text-azul-primary animate-pulse">CANCHA</div> : <Clock className="w-3 h-3 mx-auto text-foreground/10" />}
+                                            {s.player.withdrawn ? <UserX className="w-3 h-3 mx-auto text-amber-500" /> : isDone ? <CheckCircle2 className="w-3 h-3 mx-auto text-azul-primary" /> : isPlaying ? <div className="text-[6px] font-black uppercase text-azul-primary animate-pulse">CANCHA</div> : <Clock className="w-3 h-3 mx-auto text-foreground/10" />}
                                         </td>
                                         <td className="px-3 py-1 text-center text-[8px] font-black italic text-foreground/40">{s.matchesPlayed} / {matchesPerTeam}</td>
                                         <td className="px-3 py-1 text-center font-bold text-[8px] tracking-tight">

@@ -22,6 +22,7 @@ import { AmericanoAttendance } from "./components/americano/AmericanoAttendance"
 import { AmericanoCourtGrid } from "./components/americano/AmericanoCourtGrid";
 import { AmericanoStandingsTable } from "./components/americano/AmericanoStandingsTable";
 import { AmericanoModals } from "./components/americano/AmericanoModals";
+import { AmericanoMatchHistory } from "./components/americano/AmericanoMatchHistory";
 
 export interface AmericanoManagerProps {
     tournamentId: string;
@@ -180,6 +181,9 @@ export default function AmericanoManager({
         initialStatus === "setup" ? "setup" : "active"
     );
     const [playersTab, setPlayersTab] = useState<"all" | "pending" | "done">("all");
+    const [activeView, setActiveView] = useState<"courts" | "history">(
+        initialStatus === "finalizado" ? "history" : "courts"
+    );
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const ensureArray = (val: any) => {
         if (typeof val === 'string') {
@@ -219,12 +223,25 @@ export default function AmericanoManager({
     }, [allRegisteredPlayers]);
     const registeredPlayerIds = useMemo(() => new Set(allRegisteredPlayers.map(p => p.id)), [allRegisteredPlayers]);
 
-    // Teams fully present (for pairs: both members checked) — only these can play
+    // Teams fully present (for pairs: both members checked) and not withdrawn — only these can play
     const presentTeamIds = useMemo(() => new Set(
-        allRegisteredPlayers.filter(p => isTeamChecked(present, p)).map(p => p.id)
+        allRegisteredPlayers.filter(p => !p.withdrawn && isTeamChecked(present, p)).map(p => p.id)
     ), [allRegisteredPlayers, present]);
 
-    const totalExpectedMatches = Math.ceil(((groups[0]?.players.length || 0) * matchesPerTeam) / 2);
+    // Expected total: active players owe matchesPerTeam each; withdrawn players only
+    // count what they already played (their pending quota is released).
+    const totalExpectedMatches = useMemo(() => {
+        const players = groups[0]?.players || [];
+        if (players.length === 0) return 0;
+        const counts = new Map<string, number>();
+        matches.filter(m => m.confirmed).forEach(m => {
+            counts.set(m.team1.id, (counts.get(m.team1.id) || 0) + 1);
+            counts.set(m.team2.id, (counts.get(m.team2.id) || 0) + 1);
+        });
+        const units = players.reduce((acc, p) =>
+            acc + (p.withdrawn ? Math.min(counts.get(p.id) || 0, matchesPerTeam) : matchesPerTeam), 0);
+        return Math.ceil(units / 2);
+    }, [groups, matches, matchesPerTeam]);
     const confirmedGroupMatches = matches.filter(m => m.confirmed).length;
     const isGroupStageFinished = confirmedGroupMatches >= totalExpectedMatches && matches.every(m => m.confirmed);
     const progressPercent = totalExpectedMatches > 0 ? (confirmedGroupMatches / totalExpectedMatches) * 100 : 0;
@@ -232,6 +249,7 @@ export default function AmericanoManager({
     // Player replacement/deletion state
     const [replacingPlayer, setReplacingPlayer] = useState<Player | null>(null);
     const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+    const [playerToWithdraw, setPlayerToWithdraw] = useState<Player | null>(null);
     const [allPotentialPlayers, setAllPotentialPlayers] = useState<Player[]>([]);
     const [isFetchLoading, setIsFetchLoading] = useState(false);
     const [guestName, setGuestName] = useState("");
@@ -425,6 +443,47 @@ export default function AmericanoManager({
         await handleReplacePlayer(oldPlayerId, guestPlayer);
     };
 
+    const setPlayerWithdrawn = async (playerId: string, withdrawn: boolean) => {
+        const updatedGroups = groups.map(group => ({
+            ...group,
+            players: group.players.map(p => p.id === playerId ? { ...p, withdrawn } : p)
+        }));
+        setGroups(updatedGroups);
+        setPlayerToWithdraw(null);
+
+        if (step !== "setup") {
+            setSaving(true);
+            try {
+                const res = await saveFixture({
+                    tournamentId,
+                    phase: bracket.length > 0 ? "eliminatorias" : "grupos",
+                    groups: updatedGroups,
+                    matches: matchesRef.current,
+                    bracket,
+                    modalidad: { numCourts, matchesPerTeam, isIndividual },
+                    presentPlayerIds: Array.from(present),
+                    paidPlayerIds: Array.from(paid)
+                });
+                if (res.ok) {
+                    toast.success(withdrawn ? "Participante retirado del torneo" : "Participante reincorporado");
+                } else {
+                    toast.error("Error al guardar: " + res.error);
+                }
+            } finally {
+                setSaving(false);
+            }
+        } else {
+            toast.success(withdrawn ? "Participante retirado" : "Participante reincorporado");
+        }
+    };
+
+    // Withdrawing asks for confirmation; reinstating is immediate
+    const requestWithdraw = (p: Player) => {
+        if (readOnly) return;
+        if (p.withdrawn) setPlayerWithdrawn(p.id, false);
+        else setPlayerToWithdraw(p);
+    };
+
     const handleDeletePlayer = async (playerId: string) => {
         const updatedGroups = groups.map(group => ({
             ...group,
@@ -501,6 +560,64 @@ export default function AmericanoManager({
             restored.splice(originalIndex, 0, matchToDelete);
             updateMatchesState(restored);
             toast.error("Error al eliminar el partido");
+            throw error;
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleReopenMatch = async (matchId: string) => {
+        if (bracket.length > 0) {
+            toast.error("Las eliminatorias ya están activas. Reiniciá el cuadro para modificar la fase de grupos.");
+            return;
+        }
+        const currentMatches = matchesRef.current;
+        const match = currentMatches.find(m => m.id === matchId);
+        if (!match || !match.confirmed) return;
+
+        // Reopen on its original court if free, otherwise the first free court
+        const busyCourts = new Set(
+            currentMatches.filter(m => !m.confirmed && m.courtNumber).map(m => m.courtNumber as number)
+        );
+        let targetCourt: number | undefined =
+            match.courtNumber && !busyCourts.has(match.courtNumber) ? match.courtNumber : undefined;
+        if (!targetCourt) {
+            for (let c = 1; c <= numCourts; c++) {
+                if (!busyCourts.has(c)) { targetCourt = c; break; }
+            }
+        }
+        if (!targetCourt) {
+            toast.error("No hay canchas libres para reabrir el partido. Finalizá o eliminá un partido en curso.");
+            return;
+        }
+
+        const updatedMatches = currentMatches.map(m =>
+            m.id === matchId ? { ...m, confirmed: false, played: true, courtNumber: targetCourt } : m
+        );
+        updateMatchesState(updatedMatches);
+        setSaving(true);
+        try {
+            const res = await saveFixture({
+                tournamentId,
+                phase: "grupos",
+                groups,
+                matches: updatedMatches,
+                bracket,
+                modalidad: { numCourts, matchesPerTeam, isIndividual },
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid)
+            });
+            if (res.ok) {
+                toast.success(`Partido reabierto en Cancha ${targetCourt}`);
+                setActiveView("courts");
+            } else {
+                updateMatchesState(currentMatches);
+                toast.error("Error al reabrir: " + res.error);
+            }
+            return res;
+        } catch (error) {
+            updateMatchesState(currentMatches);
+            toast.error("Error al reabrir el partido");
             throw error;
         } finally {
             setSaving(false);
@@ -639,6 +756,7 @@ export default function AmericanoManager({
         const isFeasibleAfter = (id1: string, id2: string) => {
             let sum = 0, max = 0;
             players.forEach(p => {
+                if (p.withdrawn) return; // released quota — nothing reserved
                 let rem = matchesPerTeam - (effectiveCounts.get(p.id) || 0);
                 if (p.id === id1 || p.id === id2) rem -= 1;
                 if (rem <= 0) return;
@@ -649,7 +767,7 @@ export default function AmericanoManager({
         };
 
         const absentWithPending = players.filter(p =>
-            !presentTeamIds.has(p.id) && (effectiveCounts.get(p.id) || 0) < matchesPerTeam
+            !p.withdrawn && !presentTeamIds.has(p.id) && (effectiveCounts.get(p.id) || 0) < matchesPerTeam
         ).length;
 
         if (available.length < 2) {
@@ -863,8 +981,10 @@ export default function AmericanoManager({
     };
 
     const generateBracket = async (count?: number) => {
-        const targetCount = count ?? standings.length;
-        const topPlayers = standings.slice(0, targetCount);
+        // Withdrawn players don't qualify for playoffs
+        const eligibleStandings = standings.filter(s => !s.player.withdrawn);
+        const targetCount = count ?? eligibleStandings.length;
+        const topPlayers = eligibleStandings.slice(0, targetCount);
         if (topPlayers.length < 2) {
             toast.error("Se necesitan al menos 2 participantes para generar el cuadro");
             return;
@@ -1114,6 +1234,7 @@ export default function AmericanoManager({
                                 togglePaid={togglePaid}
                                 setPlayerToDelete={setPlayerToDelete}
                                 setReplacingPlayer={setReplacingPlayer}
+                                requestWithdraw={requestWithdraw}
                                 setStep={setStep}
                                 bulkUpdateStatus={bulkUpdateStatus}
                             />
@@ -1127,14 +1248,32 @@ export default function AmericanoManager({
                             exit={{ opacity: 0, y: -10 }}
                             className="space-y-6 pb-24"
                         >
-                            {initialStatus !== "finalizado" && (
+                            {/* Tabs: Canchas / Historial */}
+                            <div className="flex justify-center">
+                                <div className="flex items-center p-0.5 bg-muted/40 border border-border/40 rounded-lg gap-0.5">
+                                    <button
+                                        onClick={() => setActiveView("courts")}
+                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "courts" ? "bg-azul-primary text-white shadow-sm" : "hover:bg-muted text-foreground/60"}`}
+                                    >
+                                        Canchas en Vivo
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveView("history")}
+                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "history" ? "bg-azul-primary text-white shadow-sm" : "hover:bg-muted text-foreground/60"}`}
+                                    >
+                                        Historial ({matches.filter(m => m.confirmed).length})
+                                    </button>
+                                </div>
+                            </div>
+
+                            {activeView === "courts" && initialStatus !== "finalizado" && (
                                 <div className="text-center space-y-2">
                                     <h2 className="text-lg md:text-xl font-black text-foreground tracking-tighter uppercase italic leading-none">Canchas En Vivo</h2>
                                     <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.4em]">Gestión Técnica de Partidos</p>
 
                                     {/* Progress Tracker */}
                                     {(() => {
-                                        const totalPossibleMatches = Math.ceil(((groups[0]?.players?.length || 0) * matchesPerTeam) / 2);
+                                        const totalPossibleMatches = totalExpectedMatches;
                                         const completedMatches = matches.filter(m => m.confirmed).length;
                                         const progress = totalPossibleMatches > 0 ? (completedMatches / totalPossibleMatches) * 100 : 0;
 
@@ -1249,7 +1388,7 @@ export default function AmericanoManager({
                                 </div>
                             )}
 
-                            {initialStatus !== "finalizado" && (
+                            {activeView === "courts" && initialStatus !== "finalizado" && (
                                 <AmericanoCourtGrid
                                     numCourts={numCourts}
                                     matches={matches}
@@ -1268,6 +1407,17 @@ export default function AmericanoManager({
                                 />
                             )}
 
+                            {activeView === "history" && (
+                                <AmericanoMatchHistory
+                                    matches={matches}
+                                    readOnly={readOnly}
+                                    saving={saving}
+                                    hasBracket={bracket.length > 0}
+                                    onReopenMatch={handleReopenMatch}
+                                    onDeleteMatch={handleDeleteMatch}
+                                />
+                            )}
+
                             <AmericanoStandingsTable
                                 standings={standings}
                                 playersTab={playersTab}
@@ -1280,6 +1430,7 @@ export default function AmericanoManager({
                                 paid={paid}
                                 togglePaid={togglePaid}
                                 setReplacingPlayer={setReplacingPlayer}
+                                requestWithdraw={requestWithdraw}
                             />
 
                             {/* Panel de Control de Eliminatorias */}
@@ -1450,6 +1601,9 @@ export default function AmericanoManager({
                 playerToDelete={playerToDelete}
                 setPlayerToDelete={setPlayerToDelete}
                 handleDeletePlayer={handleDeletePlayer}
+                playerToWithdraw={playerToWithdraw}
+                setPlayerToWithdraw={setPlayerToWithdraw}
+                handleWithdrawPlayer={(id) => setPlayerWithdrawn(id, true)}
                 editingMatchPlayer={editingMatchPlayer}
                 setEditingMatchPlayer={setEditingMatchPlayer}
                 groups={groups}
