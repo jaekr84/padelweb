@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trophy, RefreshCw, Users2, Swords, Crown, Clock, CheckCircle2, Circle } from "lucide-react";
-import { TournamentBracketView } from "../../fixture/components/tournament/TournamentBracketView";
+import { AmericanoBracketMirror } from "../../fixture/components/americano/AmericanoBracketMirror";
 import type { BracketMatch, Group, Match, Player } from "../../fixture/components/tournament/types";
 
 interface Standing {
@@ -195,11 +195,6 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
     );
 }
 
-// No-op handlers — TournamentBracketView con readOnly=true no los invoca,
-// pero los requiere por tipado.
-const noop = () => {};
-const noopAsync = async () => {};
-
 export default function ResultadosPublicClient({
     tournamentId,
     tournamentStatus,
@@ -236,19 +231,6 @@ export default function ResultadosPublicClient({
         }, 1000);
         return () => clearInterval(tick);
     }, [lastRefresh]);
-
-    const roundsArr = useMemo(() => {
-        const rounds = initialBracket.map(m => m.round);
-        return Array.from(new Set(rounds)).sort((a, b) => b - a);
-    }, [initialBracket]);
-
-    const roundLabel = (r: number) => {
-        if (r === 0) return "Final 🏆";
-        if (r === 1) return "Semifinal";
-        if (r === 2) return "Cuartos";
-        if (r === 3) return "Octavos";
-        return `Ronda ${roundsArr.length - r}`;
-    };
 
     const confirmedMatches = initialMatches.filter(m => m.confirmed).length;
     const totalMatches = initialMatches.length;
@@ -356,21 +338,11 @@ export default function ResultadosPublicClient({
                 </div>
             )}
 
-            {/* Playoffs — mismo UI que el admin, readOnly=true */}
+            {/* Playoffs — cuadro espejo visual, sin controles de gestión */}
             {hasBracket && activeTab === "playoffs" && (
-                <TournamentBracketView
+                <AmericanoBracketMirror
                     bracket={initialBracket}
-                    roundsArr={roundsArr}
                     readOnly={true}
-                    handleBracketStart={noop}
-                    handleBracketScore={noop}
-                    handleBracketConfirm={noop}
-                    handleReopenMatch={noop}
-                    handleGenerateBracket={noop}
-                    handleSwapPlayers={noop}
-                    swappingPlayer={null}
-                    roundLabel={roundLabel}
-                    isIndividual={isIndividual}
                 />
             )}
 

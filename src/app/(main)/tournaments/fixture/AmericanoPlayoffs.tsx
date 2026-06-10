@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { 
     Player, Group, Match, BracketMatch, Standing 
 } from "./components/americano/types";
-import { AmericanoBracket } from "./components/americano/AmericanoBracket";
+import { AmericanoPlayoffQueue } from "./components/americano/AmericanoPlayoffQueue";
+import { AmericanoBracketMirror } from "./components/americano/AmericanoBracketMirror";
 import { AmericanoModals } from "./components/americano/AmericanoModals";
 import { getAllPlayers } from "@/app/actions/players";
 import { saveTournamentFixture, updateTournamentMetadata, finalizeTournament } from "./actions";
@@ -528,22 +529,23 @@ export default function AmericanoPlayoffs({
                         )}
                     </div>
 
-                    {/* Bracket Render */}
-                    <div className="relative">
-                        <AmericanoBracket
-                            bracket={bracket}
-                            setBracket={setBracket}
-                            onResetBracket={!readOnly ? handleResetBracket : undefined}
-                            readOnly={readOnly}
-                            setReplacingPlayer={setReplacingPlayer}
-                            handleBracketScore={handleBracketScore}
-                            handleBracketStart={handleBracketStart}
-                            handleBracketConfirm={handleBracketConfirm}
-                            handleBracketEdit={handleBracketEdit}
-                            standings={[]}
-                            isIndividual={isIndividual}
-                        />
-                    </div>
+                    {/* Match queue (management) */}
+                    <AmericanoPlayoffQueue
+                        bracket={bracket}
+                        readOnly={readOnly}
+                        saving={saving}
+                        handleBracketScore={handleBracketScore}
+                        handleBracketStart={handleBracketStart}
+                        handleBracketConfirm={handleBracketConfirm}
+                        handleBracketEdit={handleBracketEdit}
+                    />
+
+                    {/* Mirror bracket (visual reference only) */}
+                    <AmericanoBracketMirror
+                        bracket={bracket}
+                        readOnly={readOnly}
+                        onResetBracket={!readOnly ? handleResetBracket : undefined}
+                    />
                 </div>
             </div>
 
