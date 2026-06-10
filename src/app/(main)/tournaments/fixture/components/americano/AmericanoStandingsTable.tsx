@@ -4,6 +4,7 @@ import {
     Users2, RotateCcw, CheckCircle2, Clock, UserCheck, CreditCard 
 } from "lucide-react";
 import { Player, Standing } from "./types";
+import { pairNames, memberKey, isMemberChecked } from "./attendance-utils";
 
 interface AmericanoStandingsTableProps {
     standings: Standing[];
@@ -84,6 +85,8 @@ export function AmericanoStandingsTable({
                                 const isPlaying = playingIds.has(s.playerId);
                                 const isDone = s.matchesPlayed >= matchesPerTeam;
                                 const rank = standings.findIndex(st => st.playerId === s.playerId) + 1;
+                                const memberNames = pairNames(s.player);
+                                const isPair = memberNames.length > 1;
                                 return (
                                     <tr key={s.playerId} className={`group hover:bg-muted/30 transition-all ${isPlaying ? "bg-azul-primary/[0.04]" : isDone ? "bg-azul-primary/[0.01]" : ""}`}>
                                         <td className="px-3 py-1">
@@ -92,22 +95,54 @@ export function AmericanoStandingsTable({
                                             </span>
                                         </td>
                                         <td className="px-3 py-1 text-center">
-                                            <button
-                                                onClick={() => togglePresent(s.playerId)}
-                                                disabled={readOnly}
-                                                className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
-                                            >
-                                                <UserCheck className="w-2.5 h-2.5" />
-                                            </button>
+                                            {isPair ? (
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    {([1, 2] as const).map(slot => (
+                                                        <button
+                                                            key={slot}
+                                                            onClick={() => togglePresent(memberKey(s.playerId, slot))}
+                                                            disabled={readOnly}
+                                                            title={memberNames[slot - 1]}
+                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(present, s.playerId, slot) ? "bg-celeste text-azul-primary" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                        >
+                                                            <UserCheck className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => togglePresent(s.playerId)}
+                                                    disabled={readOnly}
+                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-celeste text-azul-primary" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                >
+                                                    <UserCheck className="w-2.5 h-2.5" />
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="px-3 py-1 text-center">
-                                            <button
-                                                onClick={() => togglePaid(s.playerId)}
-                                                disabled={readOnly}
-                                                className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
-                                            >
-                                                <CreditCard className="w-2.5 h-2.5" />
-                                            </button>
+                                            {isPair ? (
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    {([1, 2] as const).map(slot => (
+                                                        <button
+                                                            key={slot}
+                                                            onClick={() => togglePaid(memberKey(s.playerId, slot))}
+                                                            disabled={readOnly}
+                                                            title={memberNames[slot - 1]}
+                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(paid, s.playerId, slot) ? "bg-azul-primary text-white" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                        >
+                                                            <CreditCard className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => togglePaid(s.playerId)}
+                                                    disabled={readOnly}
+                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-azul-primary text-white" : "bg-muted/40 text-foreground/10 hover:text-azul-primary/40"}`}
+                                                >
+                                                    <CreditCard className="w-2.5 h-2.5" />
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="px-3 py-1">
                                             <div className="flex items-center justify-between gap-3">
@@ -116,7 +151,15 @@ export function AmericanoStandingsTable({
                                                         {s.player.name.charAt(0)}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase italic leading-tight text-foreground/80 tracking-tight">{s.player.name}</span>
+                                                        {isPair ? (
+                                                            <div className="flex flex-col gap-0.5">
+                                                                {memberNames.map((n, i) => (
+                                                                    <span key={i} className="text-[9px] font-black uppercase italic text-foreground/80 tracking-tight h-5 flex items-center">{n}</span>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[9px] font-black uppercase italic leading-tight text-foreground/80 tracking-tight">{s.player.name}</span>
+                                                        )}
                                                         {isPlaying && (
                                                             <span className="text-[6px] font-black uppercase tracking-widest text-rojo flex items-center gap-0.5 mt-0.5">
                                                                 <div className="w-0.5 h-0.5 bg-rojo rounded-full animate-pulse" />

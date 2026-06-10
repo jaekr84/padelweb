@@ -17,6 +17,7 @@ import {
     Player, Group, Match, BracketSlot, BracketMatch, Standing 
 } from "./components/americano/types";
 import { AmericanoHeader } from "./components/americano/AmericanoHeader";
+import { isTeamChecked, toggleCheckKey, remapCheckKeys, removeCheckKeys } from "./components/americano/attendance-utils";
 import { AmericanoAttendance } from "./components/americano/AmericanoAttendance";
 import { AmericanoCourtGrid } from "./components/americano/AmericanoCourtGrid";
 import { AmericanoStandingsTable } from "./components/americano/AmericanoStandingsTable";
@@ -218,6 +219,11 @@ export default function AmericanoManager({
     }, [allRegisteredPlayers]);
     const registeredPlayerIds = useMemo(() => new Set(allRegisteredPlayers.map(p => p.id)), [allRegisteredPlayers]);
 
+    // Teams fully present (for pairs: both members checked) — only these can play
+    const presentTeamIds = useMemo(() => new Set(
+        allRegisteredPlayers.filter(p => isTeamChecked(present, p)).map(p => p.id)
+    ), [allRegisteredPlayers, present]);
+
     const totalExpectedMatches = Math.ceil(((groups[0]?.players.length || 0) * matchesPerTeam) / 2);
     const confirmedGroupMatches = matches.filter(m => m.confirmed).length;
     const isGroupStageFinished = confirmedGroupMatches >= totalExpectedMatches && matches.every(m => m.confirmed);
@@ -280,16 +286,8 @@ export default function AmericanoManager({
         setBracket(updatedBracket);
 
         // Update attendance/paid sets — compute new sets synchronously so the save uses updated values
-        const updatedPresent = new Set(present);
-        if (updatedPresent.has(oldPlayerId)) {
-            updatedPresent.delete(oldPlayerId);
-            updatedPresent.add(newPlayer.id);
-        }
-        const updatedPaid = new Set(paid);
-        if (updatedPaid.has(oldPlayerId)) {
-            updatedPaid.delete(oldPlayerId);
-            updatedPaid.add(newPlayer.id);
-        }
+        const updatedPresent = remapCheckKeys(present, oldPlayerId, newPlayer.id);
+        const updatedPaid = remapCheckKeys(paid, oldPlayerId, newPlayer.id);
         setPresent(updatedPresent);
         lastSavedState.current.present = updatedPresent;
         setPaid(updatedPaid);
@@ -334,9 +332,8 @@ export default function AmericanoManager({
 
     const togglePresent = async (id: string) => {
         if (readOnly) return;
-        const next = new Set(present);
-        if (next.has(id)) next.delete(id); else next.add(id);
-        
+        const next = toggleCheckKey(present, id);
+
         setPresent(next);
         lastSavedState.current.present = next;
         
@@ -348,9 +345,8 @@ export default function AmericanoManager({
 
     const togglePaid = async (id: string) => {
         if (readOnly) return;
-        const next = new Set(paid);
-        if (next.has(id)) next.delete(id); else next.add(id);
-        
+        const next = toggleCheckKey(paid, id);
+
         setPaid(next);
         lastSavedState.current.paid = next;
         
@@ -437,10 +433,8 @@ export default function AmericanoManager({
         const updatedMatches = matchesRef.current.filter(m =>
             m.team1.id !== playerId && m.team2.id !== playerId
         );
-        const updatedPresent = new Set(present);
-        updatedPresent.delete(playerId);
-        const updatedPaid = new Set(paid);
-        updatedPaid.delete(playerId);
+        const updatedPresent = removeCheckKeys(present, playerId);
+        const updatedPaid = removeCheckKeys(paid, playerId);
 
         setGroups(updatedGroups);
         updateMatchesState(updatedMatches);
@@ -629,7 +623,7 @@ export default function AmericanoManager({
         });
 
         // 3. Find available players (present, not playing and matches < target)
-        const available = players.filter(p => present.has(p.id) && !currentlyPlaying.has(p.id) && (playerMatchCounts.get(p.id) || 0) < matchesPerTeam);
+        const available = players.filter(p => presentTeamIds.has(p.id) && !currentlyPlaying.has(p.id) && (playerMatchCounts.get(p.id) || 0) < matchesPerTeam);
 
         // Effective counts include in-progress (unconfirmed) matches: they will consume quota
         const effectiveCounts = new Map<string, number>();
@@ -655,7 +649,7 @@ export default function AmericanoManager({
         };
 
         const absentWithPending = players.filter(p =>
-            !present.has(p.id) && (effectiveCounts.get(p.id) || 0) < matchesPerTeam
+            !presentTeamIds.has(p.id) && (effectiveCounts.get(p.id) || 0) < matchesPerTeam
         ).length;
 
         if (available.length < 2) {
@@ -1269,7 +1263,7 @@ export default function AmericanoManager({
                                     isIndividual={isIndividual}
                                     allGroupPlayers={groups[0]?.players ?? []}
                                     matchesPerTeam={matchesPerTeam}
-                                    presentIds={present}
+                                    presentIds={presentTeamIds}
                                     onSwapTeam={handleUpdateMatchPlayer}
                                 />
                             )}
@@ -1461,7 +1455,7 @@ export default function AmericanoManager({
                 groups={groups}
                 matches={matches}
                 handleUpdateMatchPlayer={handleUpdateMatchPlayer}
-                presentIds={present}
+                presentIds={presentTeamIds}
             />
         </div>
     );

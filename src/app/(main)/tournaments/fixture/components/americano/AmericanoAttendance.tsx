@@ -5,6 +5,7 @@ import {
     UserCheck, ChevronRight
 } from "lucide-react";
 import { Player, Group } from "./types";
+import { pairNames, memberKey, isMemberChecked, isTeamChecked, checkKeysFor } from "./attendance-utils";
 
 interface AmericanoAttendanceProps {
     searchQuery: string;
@@ -36,6 +37,8 @@ export function AmericanoAttendance({
     bulkUpdateStatus
 }: AmericanoAttendanceProps) {
     const players = groups[0]?.players || [];
+    // Teams ready to play (pairs need both members present)
+    const presentTeamsCount = players.filter(p => isTeamChecked(present, p)).length;
 
     return (
         <div className="w-full space-y-3 pb-32">
@@ -60,7 +63,7 @@ export function AmericanoAttendance({
                     <div className="flex items-center gap-1.5 w-full md:w-auto">
                         <button
                             onClick={() => {
-                                const allIds = players.map(p => p.id);
+                                const allIds = players.flatMap(checkKeysFor);
                                 bulkUpdateStatus('paid', allIds);
                             }}
                             className="flex-1 md:flex-none px-3 py-1.5 bg-azul-primary/5 text-azul-primary rounded-md font-black uppercase text-[7px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all"
@@ -69,7 +72,7 @@ export function AmericanoAttendance({
                         </button>
                         <button
                             onClick={() => {
-                                const allIds = players.map(p => p.id);
+                                const allIds = players.flatMap(checkKeysFor);
                                 bulkUpdateStatus('present', allIds);
                             }}
                             className="flex-1 md:flex-none px-3 py-1.5 bg-azul-primary/5 text-azul-primary rounded-md font-black uppercase text-[7px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all"
@@ -93,8 +96,13 @@ export function AmericanoAttendance({
                     </thead>
                     <tbody className="divide-y divide-border/30">
                         {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => {
-                            const isPresent = present.has(p.id);
-                            const isPaid = paid.has(p.id);
+                            const memberNames = pairNames(p);
+                            const isPair = memberNames.length > 1;
+                            const isPresent = isTeamChecked(present, p);
+                            const paidBtnClass = (checked: boolean) => `w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${checked
+                                ? "bg-azul-primary border-azul-primary text-white shadow-sm"
+                                : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                } ${readOnly ? "cursor-default opacity-80" : ""}`;
                             return (
                                 <tr
                                     key={p.id}
@@ -105,23 +113,44 @@ export function AmericanoAttendance({
                                             <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-azul-primary text-white" : "bg-muted text-foreground/20"}`}>
                                                 <Users2 className="w-2.5 h-2.5" />
                                             </div>
-                                            <span className={`font-black uppercase text-[9px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                            {isPair ? (
+                                                <div className="flex flex-col gap-1">
+                                                    {memberNames.map((n, i) => (
+                                                        <span key={i} className={`font-black uppercase text-[9px] tracking-tight transition-colors h-6 flex items-center ${isMemberChecked(present, p.id, (i + 1) as 1 | 2) ? "text-foreground" : "text-foreground/70"}`}>{n}</span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className={`font-black uppercase text-[9px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-2.5 py-1">
                                         <span className="text-[7px] font-black uppercase tracking-widest text-foreground/30">{p.category || "D"}</span>
                                     </td>
                                     <td className="px-2.5 py-1 text-center">
-                                        <button
-                                            onClick={() => !readOnly && togglePaid(p.id)}
-                                            disabled={readOnly}
-                                            className={`w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${isPaid
-                                                ? "bg-azul-primary border-azul-primary text-white shadow-sm"
-                                                : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
-                                                } ${readOnly ? "cursor-default opacity-80" : ""}`}
-                                        >
-                                            <CreditCard className="w-2.5 h-2.5" />
-                                        </button>
+                                        {isPair ? (
+                                            <div className="flex flex-col items-center gap-1">
+                                                {([1, 2] as const).map(slot => (
+                                                    <button
+                                                        key={slot}
+                                                        onClick={() => !readOnly && togglePaid(memberKey(p.id, slot))}
+                                                        disabled={readOnly}
+                                                        title={`Pago: ${memberNames[slot - 1]}`}
+                                                        className={paidBtnClass(isMemberChecked(paid, p.id, slot))}
+                                                    >
+                                                        <CreditCard className="w-2.5 h-2.5" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => !readOnly && togglePaid(p.id)}
+                                                disabled={readOnly}
+                                                className={paidBtnClass(paid.has(p.id))}
+                                            >
+                                                <CreditCard className="w-2.5 h-2.5" />
+                                            </button>
+                                        )}
                                     </td>
                                     <td className="px-2.5 py-1 text-center">
                                         <div className="flex items-center justify-center gap-1">
@@ -143,16 +172,29 @@ export function AmericanoAttendance({
                                                     </button>
                                                 </>
                                             )}
-                                            <button
-                                                onClick={() => !readOnly && togglePresent(p.id)}
-                                                disabled={readOnly}
-                                                className={`w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${isPresent
-                                                    ? "bg-azul-primary border-azul-primary text-white shadow-sm"
-                                                    : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
-                                                    } ${readOnly ? "cursor-default opacity-80" : ""}`}
-                                            >
-                                                <UserCheck className="w-2.5 h-2.5" />
-                                            </button>
+                                            {isPair ? (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    {([1, 2] as const).map(slot => (
+                                                        <button
+                                                            key={slot}
+                                                            onClick={() => !readOnly && togglePresent(memberKey(p.id, slot))}
+                                                            disabled={readOnly}
+                                                            title={`Presente: ${memberNames[slot - 1]}`}
+                                                            className={paidBtnClass(isMemberChecked(present, p.id, slot))}
+                                                        >
+                                                            <UserCheck className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => !readOnly && togglePresent(p.id)}
+                                                    disabled={readOnly}
+                                                    className={paidBtnClass(isPresent)}
+                                                >
+                                                    <UserCheck className="w-2.5 h-2.5" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -166,10 +208,10 @@ export function AmericanoAttendance({
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-4">
                     <button
                         onClick={() => setStep("active")}
-                        disabled={present.size < 2}
+                        disabled={presentTeamsCount < 2}
                         className="w-full py-2.5 bg-azul-primary text-white rounded-xl font-black uppercase italic tracking-widest shadow-lg shadow-azul-primary/20 hover:bg-azul-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale text-[11px]"
                     >
-                        Iniciar Torneo ({present.size})
+                        Iniciar Torneo ({presentTeamsCount})
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
