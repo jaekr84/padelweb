@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -12,7 +12,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { SidebarProfileConsole } from "@/components/ui/SidebarProfileConsole";
 import { getPendingRequestsCount } from "@/app/(main)/admin/requests/actions";
 
-type NavItem = { href: string; icon: any; label: string };
+type NavItem = { href: string; icon: any; label: string; newTab?: boolean };
 
 const NAV: Record<string, NavItem[]> = {
     jugador: [
@@ -56,6 +56,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/sponsors", icon: BadgeDollarSign, label: "Sponsors" },
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
         { href: "/admin/puntosTorneo", icon: Zap, label: "Puntos" },
+        { href: "/dev/test-matchmaking", icon: FlaskConical, label: "Test Armado", newTab: true },
     ],
 };
 
@@ -242,6 +243,8 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 <Link
                                     key={item.href + item.label}
                                     href={item.href}
+                                    target={item.newTab ? "_blank" : undefined}
+                                    rel={item.newTab ? "noopener noreferrer" : undefined}
                                     onClick={() => setIsCollapsed(false)}
                                     className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-lg ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
@@ -359,6 +362,8 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             <Link
                                 key={item.href + item.label}
                                 href={item.href}
+                                target={item.newTab ? "_blank" : undefined}
+                                rel={item.newTab ? "noopener noreferrer" : undefined}
                                 className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all group font-semibold text-[13px] ${isActive ? 'bg-azul-primary text-white shadow-md shadow-azul-primary/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >

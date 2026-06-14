@@ -10,6 +10,7 @@ import {
     LayoutDashboard, Swords, BarChart3, Clock
 } from "lucide-react";
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
+import { generateAmericanoMatches as generateAmericanoMatchesCore } from "@/lib/matchmaking";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -145,120 +146,9 @@ export default function AmericanoSetup({
 
 
 
+    // Núcleo del algoritmo extraído a @/lib/matchmaking (probado en /dev/test-matchmaking).
     const generateAmericanoMatches = (players: Player[], matchesPerPlayer: number, maxCourts: number): (Match & { roundIndex: number; courtNumber: number })[] => {
-        const n = players.length;
-        const playerMatchCount = new Map<string, number>();
-        players.forEach(p => playerMatchCount.set(p.id, 0));
-
-        // 1. Generar todos los pares posibles (todos contra todos)
-        let possiblePairs: [number, number][] = [];
-        for (let i = 0; i < n; i++) {
-            for (let j = i + 1; j < n; j++) {
-                possiblePairs.push([i, j]);
-            }
-        }
-        
-        // Mezclar pares inicialmente para aleatoriedad
-        possiblePairs = possiblePairs.sort(() => Math.random() - 0.5);
-
-        // 2. Seleccionar los partidos necesarios respetando matchesPerPlayer
-        const selectedMatches: { team1: Player; team2: Player }[] = [];
-        
-        // Priorizar pares de clubes distintos
-        const differentClubPairs = possiblePairs.filter(([i, j]) => {
-            const p1 = players[i];
-            const p2 = players[j];
-            return !p1.clubId || !p2.clubId || p1.clubId !== p2.clubId;
-        });
-        const sameClubPairs = possiblePairs.filter(([i, j]) => {
-            const p1 = players[i];
-            const p2 = players[j];
-            return p1.clubId && p2.clubId && p1.clubId === p2.clubId;
-        });
-
-        const tryPick = (pairList: [number, number][]) => {
-            for (const [i, j] of pairList) {
-                const p1 = players[i];
-                const p2 = players[j];
-                if (playerMatchCount.get(p1.id)! < matchesPerPlayer && playerMatchCount.get(p2.id)! < matchesPerPlayer) {
-                    selectedMatches.push({ team1: p1, team2: p2 });
-                    playerMatchCount.set(p1.id, playerMatchCount.get(p1.id)! + 1);
-                    playerMatchCount.set(p2.id, playerMatchCount.get(p2.id)! + 1);
-                }
-            }
-        };
-
-        tryPick(differentClubPairs);
-        tryPick(sameClubPairs);
-
-        // 3. Programación Anti-Bottleneck (por Rondas y Canchas)
-        const scheduledMatches: (Match & { roundIndex: number; courtNumber: number })[] = [];
-        let remainingMatches = [...selectedMatches];
-        let currentRound = 0;
-        let lastRoundPlayers = new Set<string>();
-
-        while (remainingMatches.length > 0) {
-            const roundMatches: typeof selectedMatches = [];
-            const roundPlayers = new Set<string>();
-            
-            // Priorizar jugadores que NO jugaron en la ronda anterior (Regla de Descanso)
-            // Dividimos por prioridad
-            const priorityMatches = remainingMatches.filter(m => 
-                !lastRoundPlayers.has(m.team1.id) && !lastRoundPlayers.has(m.team2.id)
-            );
-            const others = remainingMatches.filter(m => 
-                lastRoundPlayers.has(m.team1.id) || lastRoundPlayers.has(m.team2.id)
-            );
-
-            const attemptAssignment = (pool: typeof selectedMatches) => {
-                for (let k = pool.length - 1; k >= 0; k--) {
-                    const m = pool[k];
-                    if (roundMatches.length < maxCourts && !roundPlayers.has(m.team1.id) && !roundPlayers.has(m.team2.id)) {
-                        roundMatches.push(m);
-                        roundPlayers.add(m.team1.id);
-                        roundPlayers.add(m.team2.id);
-                        // Remover de remainingMatches
-                        const idx = remainingMatches.findIndex(rm => rm === m);
-                        if (idx !== -1) remainingMatches.splice(idx, 1);
-                    }
-                }
-            };
-
-            attemptAssignment(priorityMatches);
-            attemptAssignment(others);
-
-            // Si en una ronda no pudimos meter a nadie (raro, pero posibe matemáticamente), 
-            // y quedan partidos, forzamos el cierre de esta ronda.
-            if (roundMatches.length === 0 && remainingMatches.length > 0) {
-                // Forzar un partido aunque repita descanso si es la única opción
-                const m = remainingMatches.shift()!;
-                roundMatches.push(m);
-                roundPlayers.add(m.team1.id);
-                roundPlayers.add(m.team2.id);
-            }
-
-            // Asignar Canchas y Ronda
-            roundMatches.forEach((m, idx) => {
-                scheduledMatches.push({
-                    id: crypto.randomUUID(),
-                    groupId: 'g0',
-                    team1: m.team1,
-                    team2: m.team2,
-                    played: false,
-                    confirmed: false,
-                    roundIndex: currentRound,
-                    courtNumber: idx + 1
-                } as any);
-            });
-
-            lastRoundPlayers = roundPlayers;
-            currentRound++;
-
-            // Seguridad por si el algoritmo entra en loop (no debería)
-            if (currentRound > 500) break; 
-        }
-
-        return scheduledMatches;
+        return generateAmericanoMatchesCore(players, matchesPerPlayer, maxCourts) as unknown as (Match & { roundIndex: number; courtNumber: number })[];
     };
 
     const handleStart = async () => {

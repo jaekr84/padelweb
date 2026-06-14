@@ -32,6 +32,10 @@ import {
 } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
+import {
+    selectOcCandidates, pickBestOcCombo,
+    type OcMode, type OcCompletedMatch
+} from "@/lib/matchmaking";
 
 interface RegistrationWithUser extends OpenCourtRegistration {
     user: User | null;
@@ -329,170 +333,26 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             return;
         }
 
-        const mode = court.matchType || 'libre';
+        const mode = (court.matchType || 'libre') as OcMode;
 
-        // 1. Seleccionar los 4 jugadores respetando prioridad y restricciones de modo
-        let candidates: RegistrationWithUser[] = [];
-
-        if (mode === 'mixto') {
-            // Caso Mixto: Necesitamos 2 hombres y 2 mujeres de los que más tiempo llevan esperando
-            const topMales = availablePlayers.filter(p => (p.gender || p.user?.gender) === 'masculino').slice(0, 2);
-            const topFemales = availablePlayers.filter(p => (p.gender || p.user?.gender) === 'femenino').slice(0, 2);
-
-            if (topMales.length < 2 || topFemales.length < 2) {
-                toast.error("No hay suficientes hombres y mujeres (2+2) para un mixto.");
-                setIsGenerating(false);
-                return;
-            }
-            candidates = [...topMales, ...topFemales];
-        } else if (mode === 'mismo_genero') {
-            // Caso Mismo Género: Seleccionar los primeros 4 que permitan hacer parejas de igual género (H+H y/o M+M)
-            // Esto significa que el número de hombres seleccionados debe ser par (0, 2 o 4)
-            const picked: RegistrationWithUser[] = [];
-            let hombresPicked = 0;
-
-            for (const p of availablePlayers) {
-                if (picked.length === 4) break;
-                const isH = (p.gender || p.user?.gender) === 'masculino';
-
-                // Si ya tenemos 3 y vamos a pickear el 4to, debemos asegurar paridad
-                if (picked.length === 3) {
-                    const willBeHombres = hombresPicked + (isH ? 1 : 0);
-                    if (willBeHombres % 2 !== 0) continue; // Skip if it breaks parity
-                }
-
-                picked.push(p);
-                if (isH) hombresPicked++;
-            }
-
-            if (picked.length < 4) {
-                toast.error("No hay jugadores suficientes para formar dos parejas de mismo género.");
-                setIsGenerating(false);
-                return;
-            }
-            candidates = picked;
-        } else {
-            // Modo Libre: Los primeros 4 de la lista
-            candidates = availablePlayers.slice(0, 4);
+        // 1-3. Selección de candidatos + mejor combinación 2v2.
+        // Núcleo extraído a @/lib/matchmaking (probado en /dev/test-matchmaking).
+        const sel = selectOcCandidates(availablePlayers, mode);
+        if (!sel.ok) {
+            toast.error(sel.error || "No se pudo armar el partido");
+            setIsGenerating(false);
+            return;
+        }
+        const best = pickBestOcCombo(sel.candidates, event.matches as unknown as OcCompletedMatch[], mode);
+        if (!best.ok || !best.team1 || !best.team2) {
+            toast.error(best.error || "No se pudo armar el partido");
+            setIsGenerating(false);
+            return;
         }
 
-        // 2. Obtener historial y tiempos para el desempate de parejas
-        const lastMatchTime = new Map<string, number>();
-        const pairHistory = new Map<string, number>(); // "id1-id2" -> count
-        const opponentHistory = new Map<string, number>(); // "id1-id2" -> count
-
-        event.matches.filter(m => m.status === "completed").forEach(m => {
-            const time = m.finishedAt ? new Date(m.finishedAt).getTime() : 0;
-            const players = [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id];
-
-            players.forEach(id => {
-                if (time > (lastMatchTime.get(id) || 0)) lastMatchTime.set(id, time);
-            });
-
-            // Registrar parejas
-            const registerPair = (a: string, b: string) => {
-                const key = [a, b].sort().join("-");
-                pairHistory.set(key, (pairHistory.get(key) || 0) + 1);
-            };
-            registerPair(m.team1Player1Id, m.team1Player2Id);
-            registerPair(m.team2Player1Id, m.team2Player2Id);
-
-            // Registrar oponentes
-            const registerOpp = (a: string, b: string) => {
-                const key = [a, b].sort().join("-");
-                opponentHistory.set(key, (opponentHistory.get(key) || 0) + 1);
-            };
-            [m.team1Player1Id, m.team1Player2Id].forEach(p1 => {
-                [m.team2Player1Id, m.team2Player2Id].forEach(p2 => registerOpp(p1, p2));
-            });
-        });
-
-        // 3. Evaluar las 3 combinaciones posibles de estos 4 jugadores
-        // Opciones: (0,1)vs(2,3), (0,2)vs(1,3), (0,3)vs(1,2)
-        const possibleCombos = [
-            { t1: [0, 1], t2: [2, 3] },
-            { t1: [0, 2], t2: [1, 3] },
-            { t1: [0, 3], t2: [1, 2] }
-        ];
-
-        let bestCombo = possibleCombos[0];
-        let minPenalty = Infinity;
-
-        possibleCombos.forEach(combo => {
-            let penalty = 0;
-            const t1p1 = candidates[combo.t1[0]];
-            const t1p2 = candidates[combo.t1[1]];
-            const t2p1 = candidates[combo.t2[0]];
-            const t2p2 = candidates[combo.t2[1]];
-
-            // Penalidad por repetición de pareja (+50)
-            const id1 = t1p1.userId || t1p1.id;
-            const id2 = t1p2.userId || t1p2.id;
-            const id3 = t2p1.userId || t2p1.id;
-            const id4 = t2p2.userId || t2p2.id;
-
-            const p1Key = [id1, id2].sort().join("-");
-            const p2Key = [id3, id4].sort().join("-");
-            penalty += (pairHistory.get(p1Key) || 0) * 50;
-            penalty += (pairHistory.get(p2Key) || 0) * 50;
-
-            // Penalidad por repetición de oponentes (+100)
-            const opponents = [
-                [id1, id3], [id1, id4],
-                [id2, id3], [id2, id4]
-            ];
-            opponents.forEach(opp => {
-                const key = opp.sort().join("-");
-                penalty += (opponentHistory.get(key) || 0) * 100;
-            });
-
-            // --- Lógica Posicional Estricta ---
-            const calculatePositionalPenalty = (a: RegistrationWithUser, b: RegistrationWithUser) => {
-                const sideA = a.sidePreference || (a.user?.side) || "ambos";
-                const sideB = b.sidePreference || (b.user?.side) || "ambos";
-
-                // Caso ideal: Drive + Reves
-                if ((sideA === "drive" && sideB === "reves") || (sideA === "reves" && sideB === "drive")) {
-                    return -100; // Bonus por pareja perfecta
-                }
-
-                // Caso crítico: Dos Drives juntos
-                if (sideA === "drive" && sideB === "drive") {
-                    return 150; // Penalidad alta
-                }
-
-                // Caso subóptimo: Dos Revés juntos
-                if (sideA === "reves" && sideB === "reves") {
-                    return 80; // Penalidad media
-                }
-
-                // Si uno es "ambos", es neutral
-                return 0;
-            };
-
-            penalty += calculatePositionalPenalty(t1p1, t1p2);
-            penalty += calculatePositionalPenalty(t2p1, t2p2);
-
-            // --- Restricciones de Género Estrictas ---
-            if (mode === 'mixto') {
-                const isT1Mixed = (t1p1.gender || t1p1.user?.gender) !== (t1p2.gender || t1p2.user?.gender);
-                const isT2Mixed = (t2p1.gender || t2p1.user?.gender) !== (t2p2.gender || t2p2.user?.gender);
-                if (!isT1Mixed || !isT2Mixed) penalty += 10000;
-            } else if (mode === 'mismo_genero') {
-                const isT1Same = (t1p1.gender || t1p1.user?.gender) === (t1p2.gender || t1p2.user?.gender);
-                const isT2Same = (t2p1.gender || t2p1.user?.gender) === (t2p2.gender || t2p2.user?.gender);
-                if (!isT1Same || !isT2Same) penalty += 10000;
-            }
-
-            if (penalty < minPenalty) {
-                minPenalty = penalty;
-                bestCombo = combo;
-            }
-        });
-
         // 4. Crear el partido directamente e iniciarlo
-        const finalT1 = [candidates[bestCombo.t1[0]], candidates[bestCombo.t1[1]]];
-        const finalT2 = [candidates[bestCombo.t2[0]], candidates[bestCombo.t2[1]]];
+        const finalT1 = best.team1;
+        const finalT2 = best.team2;
 
         const t1p1Id = finalT1[0].userId || finalT1[0].id;
         const t1p2Id = finalT1[1].userId || finalT1[1].id;

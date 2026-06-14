@@ -5,31 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getAllPlayers } from "@/app/actions/players";
 import { saveTournamentFixture, resetTournamentStatus, updateTournamentMetadata } from "../../actions";
-import { 
-    Player, Group, Match, BracketSlot, BracketMatch, Standing 
+import {
+    Player, Group, Match, BracketSlot, BracketMatch, Standing
 } from "./types";
-
-// ── Shared Helper Functions ──
-function getSeedingOrder(size: number) {
-    if (size <= 1) return [1];
-    let rounds = Math.log2(size);
-    let order = [1, 2];
-    for (let r = 1; r < rounds; r++) {
-        let nextOrder = [];
-        let sum = Math.pow(2, r + 1) + 1;
-        for (let i = 0; i < order.length; i++) {
-            if (i % 2 === 0) {
-                nextOrder.push(order[i]);
-                nextOrder.push(sum - order[i]);
-            } else {
-                nextOrder.push(sum - order[i]);
-                nextOrder.push(order[i]);
-            }
-        }
-        order = nextOrder;
-    }
-    return order;
-}
+import {
+    getSeedingOrder, buildSeedMap, computeGroupStandings,
+    type StMatch
+} from "@/lib/matchmaking";
 
 interface UseTournamentLogicProps {
     tournamentId: string;
@@ -446,76 +428,10 @@ export function useTournamentLogic({
             : typeof group.players === 'string'
                 ? (() => { try { return JSON.parse(group.players as string); } catch { return []; } })()
                 : [];
-        const playersArray = Array.isArray(parsedPlayers) ? parsedPlayers : [];
-        
-        const standings = playersArray.map((p: Player) => ({
-            playerId: p.id,
-            player: p,
-            points: 0,
-            matchesPlayed: 0,
-            won: 0,
-            lost: 0,
-            gamesWon: 0,
-            gamesLost: 0,
-        }));
+        const playersArray: Player[] = Array.isArray(parsedPlayers) ? parsedPlayers : [];
 
-        groupMatches.forEach(m => {
-            if (m.score1 === undefined || m.score2 === undefined || m.score1 === null || m.score2 === null) return;
-            if (!m.team1 || !m.team2) return;
-            const p1 = standings.find((s: any) => s.playerId === m.team1.id);
-            const p2 = standings.find((s: any) => s.playerId === m.team2.id);
-            if (p1 && p2) {
-                p1.matchesPlayed++;
-                p2.matchesPlayed++;
-                const s1 = Number(m.score1);
-                const s2 = Number(m.score2);
-                p1.gamesWon += s1;
-                p1.gamesLost += s2;
-                p2.gamesWon += s2;
-                p2.gamesLost += s1;
-                p1.points += (s1 - s2);
-                p2.points += (s2 - s1);
-                if (s1 > s2) { p1.won++; p2.lost++; }
-                else if (s2 > s1) { p2.won++; p1.lost++; }
-            }
-        });
-
-        const rankFIPGroup = (players: any[], matchesToAnalyze: any[], metricIndex: number = 0): any[] => {
-            if (players.length <= 1) return players;
-            if (players.length === 2) {
-                const [a, b] = players;
-                const match = matchesToAnalyze.find(m =>
-                    m.team1 && m.team2 &&
-                    ((m.team1.id === a.playerId && m.team2.id === b.playerId) ||
-                        (m.team1.id === b.playerId && m.team2.id === a.playerId)) &&
-                    m.confirmed
-                );
-                if (match) {
-                    const aIsTeam1 = match.team1!.id === a.playerId;
-                    const aScore = aIsTeam1 ? match.score1! : match.score2!;
-                    const bScore = aIsTeam1 ? match.score2! : match.score1!;
-                    if (aScore !== bScore) return aScore > bScore ? [a, b] : [b, a];
-                }
-            }
-
-            const metrics = [(p: any) => p.won, (p: any) => p.points, (p: any) => p.gamesWon];
-            if (metricIndex >= metrics.length) return players;
-            const metricFn = metrics[metricIndex];
-            const groupsByMetric = new Map<number, any[]>();
-            for (const p of players) {
-                const val = metricFn(p);
-                if (!groupsByMetric.has(val)) groupsByMetric.set(val, []);
-                groupsByMetric.get(val)!.push(p);
-            }
-            const sortedVals = Array.from(groupsByMetric.keys()).sort((a, b) => b - a);
-            let result: any[] = [];
-            for (const val of sortedVals) {
-                const subGroup = groupsByMetric.get(val)!;
-                result = result.concat(rankFIPGroup(subGroup, matchesToAnalyze, metricIndex + 1));
-            }
-            return result;
-        };
-        return rankFIPGroup(standings, groupMatches);
+        // Núcleo extraído a @/lib/matchmaking (probado en /dev/test-matchmaking).
+        return computeGroupStandings(playersArray, groupMatches as unknown as StMatch<Player>[]);
     }, [groups, matches]);
 
     const isGroupFinished = useCallback((groupId: string) => {
@@ -825,23 +741,9 @@ export function useTournamentLogic({
                     }
 
                     // ── Group Protection Seeding ──
+                    // Orden de seeds + protección de grupo extraídos a @/lib/matchmaking.
                     const seedPositions = getSeedingOrder(bracketSize);
-                    const firsts = actualQualifiers.filter(q => q.groupRank === 1);
-                    const seconds = actualQualifiers.filter(q => q.groupRank === 2);
-                    const others = actualQualifiers.filter(q => q.groupRank > 2);
-                    
-                    const shift = Math.max(1, Math.floor(firsts.length / 2));
-                    const shiftedSeconds = [...seconds];
-                    for (let i = 0; i < shift; i++) {
-                        const item = shiftedSeconds.shift();
-                        if (item) shiftedSeconds.push(item);
-                    }
-
-                    const seedMap = new Map<number, any>();
-                    let currentSeed = 1;
-                    firsts.forEach(q => seedMap.set(currentSeed++, q));
-                    shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
-                    others.forEach(q => seedMap.set(currentSeed++, q));
+                    const seedMap = buildSeedMap(actualQualifiers);
 
                     const firstRoundIdx = numRounds - 1;
                     const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
@@ -1203,23 +1105,8 @@ export function useTournamentLogic({
             const firstRoundIdx = numRounds - 1;
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
-            const firsts = actualQuals.filter(q => q.groupRank === 1);
-            const seconds = actualQuals.filter(q => q.groupRank === 2);
-            const others = actualQuals.filter(q => q.groupRank > 2);
-            
-            // Shift seconds by half the number of groups to ensure they don't meet their group-mate
-            const shift = Math.max(1, Math.floor(firsts.length / 2));
-            const shiftedSeconds = [...seconds];
-            for (let i = 0; i < shift; i++) {
-                const item = shiftedSeconds.shift();
-                if (item) shiftedSeconds.push(item);
-            }
-
-            const seedMap = new Map<number, any>();
-            let currentSeed = 1;
-            firsts.forEach(q => seedMap.set(currentSeed++, q));
-            shiftedSeconds.forEach(q => seedMap.set(currentSeed++, q));
-            others.forEach(q => seedMap.set(currentSeed++, q));
+            // Protección de grupo extraída a @/lib/matchmaking.
+            const seedMap = buildSeedMap(actualQuals);
 
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;

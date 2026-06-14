@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/Dialog";
 
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer, updateTournamentMetadata } from "./actions";
+import { distributeIntoGroups, shuffle as shuffleCore } from "@/lib/matchmaking";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -57,14 +58,6 @@ function buildGroups(count: number): Group[] {
     }));
 }
 
-function shuffle<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
 
 export default function FixtureSetup({
     tournamentId,
@@ -390,24 +383,23 @@ export default function FixtureSetup({
         // Very brief pause to see the clear
         await new Promise(r => setTimeout(r, 200));
 
-        const shuffled = shuffle(PRESENT_PLAYERS);
+        const shuffled = shuffleCore(PRESENT_PLAYERS);
 
-        // Target sequence total duration: ~1.2 seconds 
+        // Placement decided by the shared, tested core (club-balanced distribution).
+        // We pass the already-shuffled order and only animate the reveal.
+        const target = distributeIntoGroups(shuffled, numGroups, playersPerGroup, { preshuffled: true });
+        const groupIndexByPlayer = new Map<string, number>();
+        target.forEach((g, gi) => g.players.forEach(p => groupIndexByPlayer.set(p.id, gi)));
+
+        // Target sequence total duration: ~1.2 seconds
         const delay = Math.max(50, Math.min(150, 1200 / shuffled.length));
 
         for (let i = 0; i < shuffled.length; i++) {
             const player = shuffled[i];
-            const candidates = currentGroups.filter(g => g.players.length < playersPerGroup);
-            if (candidates.length === 0) break;
+            const gi = groupIndexByPlayer.get(player.id);
+            if (gi === undefined) continue; // overflow (more players than slots)
 
-            candidates.sort((a, b) => {
-                const sameClubA = (player as any).clubId ? a.players.filter(p => (p as any).clubId === (player as any).clubId).length : 0;
-                const sameClubB = (player as any).clubId ? b.players.filter(p => (p as any).clubId === (player as any).clubId).length : 0;
-                if (sameClubA !== sameClubB) return sameClubA - sameClubB;
-                return a.players.length - b.players.length;
-            });
-
-            candidates[0].players.push(player);
+            currentGroups[gi].players.push(player);
             setDrawingPlayer(player);
             setGroups([...currentGroups]);
 
