@@ -110,7 +110,9 @@ export function generateAmericanoMatches<P extends AmPlayer>(
             pool = pool.filter((_, i) => i !== byeIdx);
         }
 
+        // Emparejado greedy inicial de la ronda (sin confirmar todavía).
         const used = new Array(pool.length).fill(false);
+        const roundPairs: { a: P; b: P }[] = [];
         for (let i = 0; i < pool.length; i++) {
             if (used[i]) continue;
             const a = pool[i];
@@ -125,14 +127,40 @@ export function generateAmericanoMatches<P extends AmPlayer>(
                     if (s === 0) break; // ideal partner, stop searching
                 }
             }
-            const b = pool[bestJ];
             used[i] = true;
             used[bestJ] = true;
+            roundPairs.push({ a, b: pool[bestJ] });
+        }
+
+        // Reparación 2-opt: el greedy a veces deja al final una pareja del mismo
+        // club (o repetida) aunque fuese evitable. Acá intercambiamos compañeros
+        // entre dos parejas de la MISMA ronda mientras baje el costo total
+        // (mismo club +10, repetida +100). No rompe invariantes: sigue siendo un
+        // emparejamiento válido de la ronda (cada jugador una sola vez).
+        const cost = (a: P, b: P) => partnerScore(a, b, seenPairs);
+        let improved = true, guard2 = 0;
+        while (improved && guard2++ < 60) {
+            improved = false;
+            for (let i = 0; i < roundPairs.length; i++) {
+                for (let j = i + 1; j < roundPairs.length; j++) {
+                    const p = roundPairs[i], q = roundPairs[j];
+                    const cur = cost(p.a, p.b) + cost(q.a, q.b);
+                    if (cur === 0) continue;
+                    const ca = cost(p.a, q.a) + cost(p.b, q.b); // (a,c)(b,d)
+                    const cb = cost(p.a, q.b) + cost(p.b, q.a); // (a,d)(b,c)
+                    if (ca < cur && ca <= cb) { roundPairs[i] = { a: p.a, b: q.a }; roundPairs[j] = { a: p.b, b: q.b }; improved = true; }
+                    else if (cb < cur) { roundPairs[i] = { a: p.a, b: q.b }; roundPairs[j] = { a: p.b, b: q.a }; improved = true; }
+                }
+            }
+        }
+
+        // Confirmar la ronda.
+        roundPairs.forEach(({ a, b }) => {
             seenPairs.add(pairKey(a, b));
             selectedMatches.push({ team1: a, team2: b });
             matchCount.set(a.id, matchCount.get(a.id)! + 1);
             matchCount.set(b.id, matchCount.get(b.id)! + 1);
-        }
+        });
     }
 
     // 3. Anti-bottleneck scheduling (rounds & courts)

@@ -112,11 +112,11 @@ function diagnose(eventType: EventType, roster: SimPlayer[], result: SimResult):
         const sameClub = result.rounds.flat().filter(m => { const a = byId.get(m.t1.id)!, b = byId.get(m.t2.id)!; return a.club === b.club; }).length;
         const unavoidable = maxClub * 2 > roster.length;
         d.push({
-            status: sameClub === 0 ? "pass" : unavoidable ? "warn" : "fail",
+            status: sameClub === 0 ? "pass" : "warn",
             text: `Parejas del mismo club: ${sameClub}`,
             detail: sameClub === 0 ? "Ninguna pareja comparte club." : unavoidable
-                ? `Inevitable: el club más grande tiene ${maxClub} de ${roster.length} jugadores (más de la mitad).`
-                : "Había alternativas de distinto club — esto sí sería un problema.",
+                ? `Inevitable: el club más grande tiene ${maxClub} de ${roster.length} jugadores (más de la mitad), así que algunas parejas comparten club a la fuerza.`
+                : "Evitar el mismo club es a mejor esfuerzo. En este sorteo quedó alguna pareja igual aunque se podía evitar; probá 'Re-sortear' — casi siempre queda en 0.",
         });
 
         const dup = result.rounds.some(r => { const ids = r.flatMap(m => [m.t1.id, m.t2.id]); return new Set(ids).size !== ids.length; });
