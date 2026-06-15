@@ -35,7 +35,7 @@ function formatDate(dateStr: string | null) {
 }
 
 export default function AdminTournamentsClient({ initialTournaments }: Props) {
-    const [statusFilter, setStatusFilter] = useState<"all" | "open" | "closed">("all");
+    const [statusFilter, setStatusFilter] = useState<"all" | "open" | "closed">("open");
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -125,23 +125,24 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                 </select>
             </div>
 
-            {/* List View - Optimized for Admin - Responsive High Density */}
+            {/* List View - 1 fila por torneo */}
             <div className="bg-card/40 border border-border/50 rounded-xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left border-collapse min-w-[880px]">
+                <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-muted/30 border-b border-border/50 text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                                <th className="px-3 py-1.5 w-[90px]">Estado</th>
-                                <th className="px-3 py-1.5">Torneo / Club</th>
-                                <th className="px-3 py-1.5 w-[160px]">Info Técnica</th>
-                                <th className="px-3 py-1.5 w-[120px]">Inscripciones</th>
-                                <th className="px-3 py-1.5 w-[240px] text-right">Acciones</th>
+                            <tr className="bg-muted/30 border-b border-border/50 text-[9px] font-black uppercase tracking-[0.12em] text-muted-foreground/70">
+                                <th className="px-3 py-2">Torneo</th>
+                                <th className="px-3 py-2 w-[130px]">Club</th>
+                                <th className="px-3 py-2 w-[92px]">Tipo</th>
+                                <th className="px-3 py-2 w-[66px]">Género</th>
+                                <th className="px-3 py-2 w-[84px]">Modalidad</th>
+                                <th className="px-3 py-2 w-[72px]">Inicio</th>
+                                <th className="px-3 py-2 w-[236px] text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {filteredTournaments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground text-xs font-medium italic">
+                                    <td colSpan={7} className="px-6 py-20 text-center text-muted-foreground text-xs font-medium italic">
                                         No se encontraron torneos con los filtros aplicados.
                                     </td>
                                 </tr>
@@ -152,7 +153,6 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                             )}
                         </tbody>
                     </table>
-                </div>
             </div>
         </div>
     );
@@ -160,18 +160,6 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
 
 function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     const isFinished = tournament.status === 'finalizado';
-    const isLive = tournament.status === "en_curso" || tournament.status === "en_eliminatorias";
-    const isDraft = tournament.status === "draft";
-
-    const statusStyle = isLive
-        ? "text-rojo bg-rojo/10 border-rojo/20"
-        : isFinished
-            ? "text-muted-foreground bg-muted/10 border-border"
-            : isDraft
-                ? "text-foreground bg-muted border-border"
-                : "text-celeste bg-celeste/10 border-celeste/20";
-
-    const statusLabel = isLive ? "En Vivo" : isFinished ? "Cerrado" : isDraft ? "Borrador" : "Abierto";
 
     let mod = tournament.modalidad as any;
     if (typeof mod === 'string') {
@@ -179,66 +167,34 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     }
 
     return (
-        <tr className="hover:bg-muted/5 transition-colors group">
-            <td className="px-3 py-1">
-                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[7px] font-black uppercase tracking-wider ${statusStyle}`}>
-                    <span className={`w-1 h-1 rounded-full fill-current ${isLive ? "animate-pulse bg-rojo" : "bg-current opacity-60"}`} />
-                    {statusLabel}
-                </div>
+        <tr className="hover:bg-muted/5 transition-colors group align-middle">
+            <td className="px-3 py-2">
+                <span className="text-[12px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate block max-w-[240px]">
+                    {tournament.name}
+                </span>
             </td>
-            <td className="px-3 py-1">
-                <div className="flex flex-col">
-                    <span className="text-[11px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate max-w-[200px]">
-                        {tournament.name}
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-0.5 font-bold uppercase tracking-widest">
-                        <div className="flex items-center gap-1">
-                            <span className="text-[6px] text-muted-foreground/60 text-[6px]">Club:</span>
-                            <span className="text-[8px] text-muted-foreground/80">{club?.name || "Acap"}</span>
-                        </div>
-                        <span className="text-[8px] text-muted-foreground/40">•</span>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[6px] text-muted-foreground/60 text-[6px]">Inicio:</span>
-                            <span className="text-[8px] text-azul-primary/80">{formatDate(tournament.startDate)}</span>
-                        </div>
-                    </div>
-                </div>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-bold text-muted-foreground/90 truncate block">{club?.name || "Acap"}</span>
             </td>
-            <td className="px-3 py-1">
-                <div className="flex flex-wrap gap-2">
-                    <div className="flex flex-col">
-                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">Tipo</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/80">
-                            {tournament.type === 'americano' ? 'Americano' : 'R. Robin'}
-                        </span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">Género</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/80">
-                            {mod?.genero === 'mujer' ? 'Fem' : mod?.genero === 'hombre' ? 'Masc' : 'Mix'}
-                        </span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">Mod</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/80">
-                            {mod?.participacion === 'individual' ? "Indiv" : "Parejas"}
-                        </span>
-                    </div>
-                </div>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black uppercase tracking-tight text-foreground/80">
+                    {tournament.type === 'americano' ? 'Americano' : 'R. Robin'}
+                </span>
             </td>
-            <td className="px-3 py-1">
-                <div className="flex items-center gap-3">
-                    <div className="flex flex-col">
-                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">Club</span>
-                        <span className="text-[8px] font-black text-foreground/80">{formatDate(tournament.openDateClub)}</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">Gral</span>
-                        <span className="text-[8px] font-black text-foreground/80">{formatDate(tournament.openDateGeneral)}</span>
-                    </div>
-                </div>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black uppercase tracking-tight text-foreground/80">
+                    {mod?.genero === 'mujer' ? 'Fem' : mod?.genero === 'hombre' ? 'Masc' : 'Mix'}
+                </span>
             </td>
-            <td className="px-3 py-1 text-right">
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black uppercase tracking-tight text-foreground/80">
+                    {mod?.participacion === 'individual' ? "Indiv" : "Parejas"}
+                </span>
+            </td>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black text-azul-primary/90 tabular-nums">{formatDate(tournament.startDate)}</span>
+            </td>
+            <td className="px-3 py-2 text-right">
                 <div className="flex items-center justify-end gap-1">
                     {!isFinished && (
                         <Link href={`/tournaments/${tournament.id}/manage`}>
@@ -261,9 +217,9 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                                     <span className="text-[7px] font-black uppercase tracking-widest leading-none">Resultados</span>
                                 </button>
                             </Link>
-                            <TournamentPublishButton 
-                                tournamentId={tournament.id} 
-                                tournamentName={tournament.name} 
+                            <TournamentPublishButton
+                                tournamentId={tournament.id}
+                                tournamentName={tournament.name}
                             />
                         </>
                     )}

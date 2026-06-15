@@ -144,7 +144,7 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
         return rankedList;
     }, [users, genderFilter, categoryFilter, searchQuery]);
 
-    const ITEMS_PER_PAGE = 18; // 6 columns x 3 rows grid
+    const ITEMS_PER_PAGE = 50; // tabla: muchas más filas por página (render liviano)
     const totalPages = Math.ceil(filteredPlayers.length / ITEMS_PER_PAGE);
 
     const paginatedPlayers = useMemo(() => {
@@ -367,43 +367,68 @@ export default function RankingClient({ users, tournamentCounts, availableCatego
                     <AnimatePresence mode="popLayout">
                         {paginatedPlayers.length > 0 ? (
                             <>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-10 justify-items-center">
-                                    {paginatedPlayers.map((player) => {
-                                        return (
-                                            <motion.div
-                                                key={player.id}
-                                                id={`player-card-${player.id}`}
-                                                layout
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                onClick={() => handlePlayerClick(player)}
-                                                className="relative cursor-pointer group transition-all duration-300 hover:scale-[1.03] select-none flex justify-center w-full overflow-visible transition-shadow duration-300 rounded-xl"
-                                            >
-                                                {/* Scaled Responsive Container */}
-                                                <div className="w-[156px] h-[254px] min-[380px]:w-[174px] min-[380px]:h-[282px] md:w-[180px] md:h-[292px] relative shrink-0 overflow-visible">
-                                                    <div className="absolute top-0 left-0 origin-top-left scale-[0.45] min-[380px]:scale-[0.5] md:scale-[0.52] pointer-events-auto">
-
-                                                        <PlayerCard
-                                                            player={{
-                                                                firstName: player.firstName || player.name?.split(' ')[0] || "",
-                                                                lastName: player.lastName || player.name?.split(' ').slice(1).join(' ') || "",
-                                                                imageUrl: player.imageUrl,
-                                                                category: player.category || "D",
-                                                                side: player.side || "ambos",
-                                                                points: player.points || 0,
-                                                                clubName: player.club?.name,
-                                                                gender: player.gender,
-                                                                rank: player._rank
-                                                            }}
-                                                            stats={player.stats}
-                                                            isCurrentUser={player.id === currentUserId}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        );
-                                    })}
+                                <div className="overflow-x-auto rounded-2xl border border-border bg-card/40 backdrop-blur-md shadow-lg">
+                                    <table className="w-full border-collapse">
+                                        <thead>
+                                            <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/40">
+                                                <th className="py-3 pl-4 pr-1 w-14 text-center">#</th>
+                                                <th className="py-3 px-2 text-left">Jugador</th>
+                                                <th className="py-3 px-2 text-center hidden sm:table-cell">Cat</th>
+                                                <th className="py-3 px-2 text-center hidden md:table-cell">PJ</th>
+                                                <th className="py-3 px-2 text-center hidden md:table-cell">PG</th>
+                                                <th className="py-3 px-2 text-center hidden lg:table-cell">WR</th>
+                                                <th className="py-3 pr-4 pl-2 text-right">Puntos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedPlayers.map((player) => {
+                                                const isMe = player.id === currentUserId;
+                                                const rank = player._rank;
+                                                const initials = (player.name || player.email).split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
+                                                return (
+                                                    <tr
+                                                        key={player.id}
+                                                        id={`player-card-${player.id}`}
+                                                        onClick={() => handlePlayerClick(player)}
+                                                        className={`border-b border-border/40 last:border-0 cursor-pointer transition-colors hover:bg-azul-primary/[0.06] ${isMe ? "bg-celeste/[0.07]" : ""}`}
+                                                    >
+                                                        <td className="py-2 pl-4 pr-1 text-center">
+                                                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-black tabular-nums ${rank === 1 ? "bg-amber-400/20 text-amber-500" : rank === 2 ? "bg-slate-300/20 text-slate-400" : rank === 3 ? "bg-orange-500/20 text-orange-500" : "text-muted-foreground"}`}>
+                                                                {rank}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2 px-2">
+                                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                                <div className="w-9 h-9 rounded-full overflow-hidden bg-azul-primary/10 border border-border flex items-center justify-center shrink-0">
+                                                                    {player.imageUrl
+                                                                        ? <img src={player.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
+                                                                        : <span className="text-[10px] font-black text-azul-primary">{initials}</span>}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="text-[13px] font-bold text-foreground truncate flex items-center gap-1.5">
+                                                                        {player.name}
+                                                                        {isMe && <span className="text-[8px] font-black uppercase tracking-wider text-celeste bg-celeste/10 px-1.5 py-0.5 rounded">Vos</span>}
+                                                                    </div>
+                                                                    {player.club?.name && <div className="text-[10px] text-muted-foreground truncate">{player.club.name}</div>}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-2 px-2 text-center hidden sm:table-cell">
+                                                            <span className="text-[10px] font-black uppercase text-azul-primary">{player.category || "—"}</span>
+                                                        </td>
+                                                        <td className="py-2 px-2 text-center hidden md:table-cell text-[12px] font-semibold text-muted-foreground tabular-nums">{player.stats.pj}</td>
+                                                        <td className="py-2 px-2 text-center hidden md:table-cell text-[12px] font-semibold text-muted-foreground tabular-nums">{player.stats.pg}</td>
+                                                        <td className="py-2 px-2 text-center hidden lg:table-cell">
+                                                            <span className={`text-[12px] font-bold tabular-nums ${player.stats.wr >= 50 ? "text-emerald-500" : "text-muted-foreground"}`}>{player.stats.wr}%</span>
+                                                        </td>
+                                                        <td className="py-2 pr-4 pl-2 text-right">
+                                                            <span className="text-[15px] font-black italic text-celeste tabular-nums">{player.points || 0}</span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
 
                                 {/* Premium HUD Pagination Bar */}

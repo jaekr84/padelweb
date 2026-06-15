@@ -66,8 +66,8 @@ export default function SponsorSidebar({
     return (
         <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-slate-100 bg-white group/sidebar relative overflow-hidden">
 
-            {/* Banners — sin contenedores, directo borde a borde */}
-            <div className="flex-1 flex flex-col min-h-0">
+            {/* Muro de logos — celdas de altura acotada para que el logo no quede chico */}
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto no-scrollbar">
                 {displaySponsors.map((s: any) => (
                     s.imageUrl ? (
                         <Link
@@ -75,16 +75,21 @@ export default function SponsorSidebar({
                             href={s.link || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group/card relative flex-1 min-h-0 overflow-hidden border-b border-slate-100 last:border-0"
+                            className="group/card relative flex-1 min-h-[88px] max-h-[124px] shrink-0 overflow-hidden border-b border-slate-100 last:border-0 bg-white"
                         >
-                            <Image
-                                src={s.imageUrl}
-                                alt={s.name}
-                                fill
-                                className="object-cover transition-transform duration-500 group-hover/card:scale-105"
-                                sizes="176px"
-                                priority={activeCount <= 4}
-                            />
+                            {/* Logo centrado y completo, ocupando la mayor parte de la celda. */}
+                            <div className="absolute inset-0 px-3 py-2">
+                                <div className="relative w-full h-full">
+                                    <Image
+                                        src={s.imageUrl}
+                                        alt={s.name}
+                                        fill
+                                        className="object-contain transition-transform duration-500 group-hover/card:scale-105"
+                                        sizes="176px"
+                                        priority={activeCount <= 4}
+                                    />
+                                </div>
+                            </div>
                         </Link>
                     ) : (
                         <a
@@ -92,7 +97,7 @@ export default function SponsorSidebar({
                             href="https://www.instagram.com/acaparg"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group/ph relative flex-1 min-h-0 border-b border-dashed border-slate-100 last:border-0 bg-slate-50/50 hover:bg-indigo-50/30 transition-colors flex flex-col items-center justify-center gap-1"
+                            className="group/ph relative flex-1 min-h-[88px] max-h-[124px] shrink-0 border-b border-dashed border-slate-100 last:border-0 bg-slate-50/50 hover:bg-indigo-50/30 transition-colors flex flex-col items-center justify-center gap-1"
                         >
                             <Plus className="w-3 h-3 text-slate-300 group-hover/ph:text-indigo-400 transition-colors" />
                             <span className="text-[7px] font-bold uppercase tracking-widest text-slate-300 group-hover/ph:text-indigo-400 transition-colors">

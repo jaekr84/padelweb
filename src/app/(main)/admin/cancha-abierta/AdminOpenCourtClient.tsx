@@ -2,11 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { 
-    Plus, Search, Settings, Calendar, Clock, MapPin, 
-    Users, DollarSign, Activity, Trash2, Edit, ChevronRight
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus, Search, MapPin, Activity, Trash2, Edit } from "lucide-react";
 import { OpenCourtEvent, Club, OpenCourtRegistration } from "@/db/schema";
 import { deleteOpenCourtEventAction } from "./actions";
 import { toast } from "sonner";
@@ -23,14 +19,19 @@ interface Props {
 export default function AdminOpenCourtClient({ initialEvents }: Props) {
     const [events, setEvents] = useState(initialEvents);
     const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState<"all" | "active" | "closed">("all");
 
     const filteredEvents = useMemo(() => {
-        return events.filter(e => 
-            e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.city?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [events, searchQuery]);
+        return events.filter(e => {
+            const isActive = e.status === 'active';
+            if (statusFilter === "active" && !isActive) return false;
+            if (statusFilter === "closed" && isActive) return false;
+            const q = searchQuery.toLowerCase();
+            return e.name.toLowerCase().includes(q) ||
+                (e.address?.toLowerCase().includes(q) ?? false) ||
+                (e.city?.toLowerCase().includes(q) ?? false);
+        });
+    }, [events, searchQuery, statusFilter]);
 
     const handleDelete = async (id: string) => {
         if (!confirm("¿Estás seguro de que deseas eliminar este evento?")) return;
@@ -80,118 +81,104 @@ export default function AdminOpenCourtClient({ initialEvents }: Props) {
                         className="w-full bg-transparent border-none py-2 pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-0 placeholder:text-muted-foreground/50"
                     />
                 </div>
+
+                <div className="flex bg-muted/50 p-0.5 rounded-lg">
+                    {["all", "active", "closed"].map((s) => (
+                        <button
+                            key={s}
+                            onClick={() => setStatusFilter(s as any)}
+                            className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md transition-all ${statusFilter === s ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                            {s === "all" ? "Todos" : s === "active" ? "Activos" : "Cerrados"}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Event List */}
-            <div className="grid grid-cols-1 gap-4">
-                {filteredEvents.length === 0 ? (
-                    <div className="bg-card/30 border border-dashed border-border rounded-[2rem] py-20 text-center">
-                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">No hay eventos creados</p>
-                    </div>
-                ) : (
-                    filteredEvents.map((event) => (
-                        <motion.div
-                            key={event.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="group relative overflow-hidden bg-card/50 border border-border/50 rounded-xl p-2.5 hover:border-celeste/50 transition-all shadow-sm"
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-3">
-                                {/* Main Info */}
-                                <div className="md:col-span-3 border-r border-border/30 pr-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className={`px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider ${
-                                            event.status === 'active' ? 'bg-celeste/10 text-celeste' : 'bg-muted text-muted-foreground'
-                                        }`}>
-                                            {event.status === 'active' ? 'Activo' : 'Cerrado'}
-                                        </div>
-                                    </div>
-                                    <h3 className="text-xs font-black uppercase italic tracking-tight text-foreground line-clamp-1 group-hover:text-azul-primary transition-colors">
-                                        <span className="capitalize">{event.name}</span>
-                                    </h3>
-                                    <div className="flex items-center gap-1.5 mt-0.5 text-muted-foreground">
-                                        <MapPin className="w-2.5 h-2.5" />
-                                        <span className="text-[8px] font-bold tracking-widest leading-none capitalize">{event.city}</span>
-                                        <span className="text-[7px] font-bold text-muted-foreground/40 uppercase tracking-tighter truncate">• {event.address}</span>
-                                    </div>
-                                </div>
-
-                                {/* Date & Time */}
-                                <div className="md:col-span-3 flex items-center gap-4">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-3 h-3 text-muted-foreground/60" />
-                                        <div className="flex flex-col">
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50">Fecha</span>
-                                            <span className="text-[9px] font-black uppercase italic">{event.date}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="w-3 h-3 text-muted-foreground/60" />
-                                        <div className="flex flex-col">
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50">Horario</span>
-                                            <span className="text-[9px] font-black uppercase italic">{event.time}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Stats */}
-                                <div className="md:col-span-3 flex items-center gap-6">
-                                    <div className="flex flex-col">
-                                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50">Inscritos</span>
-                                        <div className="flex items-end gap-1">
-                                            <span className="text-base font-black italic leading-none">{event.registrations?.length || 0}</span>
-                                            <span className="text-[8px] font-bold text-muted-foreground/40 mb-0.5">/ {event.totalSlots}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50">Costo</span>
-                                        <div className="flex items-center gap-0.5 text-celeste">
-                                            <DollarSign className="w-2.5 h-2.5" />
-                                            <span className="text-xs font-black italic leading-none">{event.registrationFee}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="md:col-span-3 flex items-center justify-end gap-1.5">
-                                    <Link 
-                                        href={`/admin/cancha-abierta/${event.id}${event.status !== 'active' ? '?tab=history' : ''}`} 
-                                        className="flex-1"
-                                    >
-                                        <button className={`w-full h-8 flex items-center justify-center gap-1.5 rounded-lg font-black uppercase tracking-widest text-[7px] transition-all shadow-sm group/btn ${
-                                            event.status === 'active' 
-                                                ? 'bg-azul-primary text-white shadow-azul-primary/10 hover:bg-azul-dark' 
-                                                : 'bg-muted text-muted-foreground border border-border shadow-none hover:bg-muted/80'
-                                        }`}>
-                                            {event.status === 'active' ? (
-                                                <Activity className="w-2.5 h-2.5" />
-                                            ) : (
-                                                <div className="w-2 h-2 flex items-center justify-center bg-muted-foreground/20 rounded-full">
-                                                    <div className="w-0.5 h-0.5 bg-muted-foreground rounded-full" />
-                                                </div>
-                                            )}
-                                            {event.status === 'active' ? 'Gestión' : 'Cerrado'}
-                                            <ChevronRight className="w-2 h-2 transition-transform group-hover/btn:translate-x-0.5" />
-                                        </button>
-                                    </Link>
-                                    <div className="flex gap-1">
-                                        <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-muted/30 text-muted-foreground hover:bg-celeste/10 hover:text-celeste transition-all active:scale-90 border border-border/30" title="Editar">
-                                            <Edit className="w-3 h-3" />
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDelete(event.id)}
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-muted/30 text-muted-foreground hover:bg-rojo/10 hover:text-rojo transition-all active:scale-90 border border-border/30"
-                                            title="Eliminar"
-                                        >
-                                            <Trash2 className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))
-                )}
+            {/* Event List - 1 fila por evento */}
+            <div className="bg-card/40 border border-border/50 rounded-xl shadow-sm overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-muted/30 border-b border-border/50 text-[9px] font-black uppercase tracking-[0.12em] text-muted-foreground/70">
+                            <th className="px-3 py-2">Evento</th>
+                            <th className="px-3 py-2">Ubicación</th>
+                            <th className="px-3 py-2 w-[80px]">Fecha</th>
+                            <th className="px-3 py-2 w-[72px]">Horario</th>
+                            <th className="px-3 py-2 w-[90px]">Inscritos</th>
+                            <th className="px-3 py-2 w-[70px]">Costo</th>
+                            <th className="px-3 py-2 w-[180px] text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                        {filteredEvents.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="px-6 py-20 text-center text-muted-foreground text-xs font-medium italic">
+                                    No se encontraron eventos con los filtros aplicados.
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredEvents.map((event) => (
+                                <EventRow key={event.id} event={event} onDelete={handleDelete} />
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
+    );
+}
+
+function EventRow({ event, onDelete }: { event: EventWithDetails; onDelete: (id: string) => void }) {
+    const isActive = event.status === 'active';
+    return (
+        <tr className="hover:bg-muted/5 transition-colors group align-middle">
+            <td className="px-3 py-2">
+                <span className="text-[12px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate block max-w-[220px] capitalize">
+                    {event.name}
+                </span>
+            </td>
+            <td className="px-3 py-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <MapPin className="w-2.5 h-2.5 text-muted-foreground/60 shrink-0" />
+                    <span className="text-[11px] font-bold text-muted-foreground/90 truncate capitalize">
+                        {event.city}{event.address ? ` · ${event.address}` : ""}
+                    </span>
+                </div>
+            </td>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black text-azul-primary/90 tabular-nums">{event.date}</span>
+            </td>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-bold text-foreground/80 tabular-nums">{event.time}</span>
+            </td>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black text-foreground/80 tabular-nums">
+                    {event.registrations?.length || 0}<span className="text-muted-foreground/50 font-bold"> / {event.totalSlots}</span>
+                </span>
+            </td>
+            <td className="px-3 py-2">
+                <span className="text-[11px] font-black text-celeste tabular-nums">${event.registrationFee}</span>
+            </td>
+            <td className="px-3 py-2 text-right">
+                <div className="flex items-center justify-end gap-1">
+                    <Link href={`/admin/cancha-abierta/${event.id}${!isActive ? '?tab=history' : ''}`}>
+                        <button className={`h-7 flex items-center justify-center gap-1 px-2.5 rounded-lg transition-all active:scale-95 shadow-sm text-[7px] font-black uppercase tracking-widest ${isActive ? 'bg-azul-primary hover:bg-azul-dark text-white border border-azul-primary/20' : 'bg-muted/40 text-muted-foreground border border-border/50 hover:bg-muted/60'}`}>
+                            <Activity className="w-2.5 h-2.5" />
+                            {isActive ? 'Gestión' : 'Ver'}
+                        </button>
+                    </Link>
+                    <button className="w-7 h-7 flex items-center justify-center bg-muted/40 hover:bg-celeste hover:text-white text-muted-foreground border border-border/50 rounded-lg transition-all active:scale-95" title="Editar">
+                        <Edit className="w-3 h-3" />
+                    </button>
+                    <button
+                        onClick={() => onDelete(event.id)}
+                        className="w-7 h-7 flex items-center justify-center bg-muted/40 hover:bg-rojo hover:text-white text-muted-foreground border border-border/50 rounded-lg transition-all active:scale-95"
+                        title="Eliminar"
+                    >
+                        <Trash2 className="w-3 h-3" />
+                    </button>
+                </div>
+            </td>
+        </tr>
     );
 }
