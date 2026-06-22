@@ -540,11 +540,16 @@ export default function AmericanoPlayoffs({
                         handleBracketEdit={handleBracketEdit}
                     />
 
-                    {/* Mirror bracket (visual reference only) */}
+                    {/* Mirror bracket — manage matches directly from the cards */}
                     <AmericanoBracketMirror
                         bracket={bracket}
                         readOnly={readOnly}
                         onResetBracket={!readOnly ? handleResetBracket : undefined}
+                        saving={saving}
+                        handleBracketScore={handleBracketScore}
+                        handleBracketStart={handleBracketStart}
+                        handleBracketConfirm={handleBracketConfirm}
+                        handleBracketEdit={handleBracketEdit}
                     />
                 </div>
             </div>

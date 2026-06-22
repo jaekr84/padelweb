@@ -1,18 +1,36 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, RotateCcw, X, Eye } from "lucide-react";
+import { Trophy, RotateCcw, X, Play, Flag, Loader2, Minus, Plus, Clock, AlertTriangle, Settings2 } from "lucide-react";
 import { BracketMatch, Player } from "./types";
 
 interface AmericanoBracketMirrorProps {
     bracket: BracketMatch[];
     readOnly?: boolean;
     onResetBracket?: () => void;
+    saving?: boolean;
+    handleBracketScore?: (matchId: string, s1: string, s2: string) => void;
+    handleBracketStart?: (matchId: string) => void | Promise<any>;
+    handleBracketConfirm?: (matchId: string) => void | Promise<any>;
+    handleBracketEdit?: (matchId: string) => void | Promise<any>;
+    skipReopenConfirm?: boolean;
 }
 
 const teamOf = (slot: BracketMatch["team1"]): Player | null =>
     slot && typeof slot !== "string" ? (slot as Player) : null;
+
+// Neon accent per round (0 = final). Dark graphite cards + an electric edge per
+// phase: broadcast-scoreboard energy, aggressive and competitive.
+const ROUND_ACCENTS: Record<number, string> = {
+    0: "#ffd200", // FINAL    — volt / oro
+    1: "#00e0ff", // SEMIS    — cian eléctrico
+    2: "#2e6bff", // CUARTOS  — azul eléctrico
+    3: "#ff2d55", // OCTAVOS  — carmesí eléctrico
+    4: "#b026ff", // 16AVOS   — violeta eléctrico
+    5: "#ff6a00", // 32AVOS   — naranja blaze
+};
+const roundAccent = (round: number) => ROUND_ACCENTS[round] ?? "#64748b";
 
 const roundTitle = (round: number, short = false) => {
     switch (round) {
@@ -28,10 +46,20 @@ const roundTitle = (round: number, short = false) => {
 export function AmericanoBracketMirror({
     bracket,
     readOnly,
-    onResetBracket
+    onResetBracket,
+    saving,
+    handleBracketScore,
+    handleBracketStart,
+    handleBracketConfirm,
+    handleBracketEdit,
+    skipReopenConfirm
 }: AmericanoBracketMirrorProps) {
-    const [detailMatch, setDetailMatch] = useState<BracketMatch | null>(null);
+    const [manageId, setManageId] = useState<string | null>(null);
     const [confirmReset, setConfirmReset] = useState(false);
+
+    // Management is available when the handlers are wired and we're not in read-only mode.
+    const canManage = !readOnly && !!handleBracketStart;
+    const manageMatch = manageId ? bracket.find(m => m.id === manageId) ?? null : null;
 
     const maxRound = useMemo(() =>
         bracket.length ? Math.max(...bracket.map(m => m.round)) : 0,
@@ -63,14 +91,80 @@ export function AmericanoBracketMirror({
     }, [bracket]);
 
     // Shared column height: driven by the densest (outermost) column.
-    // 120px per cell leaves vertical clearance so brick-overlapped columns interlock without touching.
+    // With justify-around on every column, a parent cell lands exactly between its two
+    // children — the connector elbows then read as a clean binary tree.
     const cellsPerOuterCol = Math.max(Math.pow(2, Math.max(maxRound - 1, 0)), 1);
-    const colHeight = Math.max(cellsPerOuterCol * 120, 300);
+    const colHeight = Math.max(cellsPerOuterCol * 72, 240);
 
-    // Brick layout: same-side neighbor columns overlap 50% horizontally — their cells
-    // interlock vertically. Across the center (semi → final → semi) both cells are
-    // vertically centered, so those columns don't overlap.
-    const COL_WIDTH = 185;
+    // Compact, initials-based cells let the whole tree fit; a fit-to-width scale
+    // guarantees no horizontal overflow no matter how many rounds there are.
+    const COL_WIDTH = 96;
+    const COL_GAP = 30; // horizontal room for the connector elbows
+
+    // ── Connector lines + fit-to-width scale (measured from the real DOM) ──
+    const boxRef = useRef<HTMLDivElement>(null);
+    const wrapRef = useRef<HTMLDivElement>(null);
+    const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+    const [paths, setPaths] = useState<{ d: string; active: boolean }[]>([]);
+    const [svgSize, setSvgSize] = useState({ w: 0, h: 0 });
+    const [scale, setScale] = useState(1);
+
+    const measure = useCallback(() => {
+        const wrap = wrapRef.current;
+        const boxEl = boxRef.current;
+        if (!wrap || !boxEl) return;
+
+        // offsetWidth/Height are layout-natural (unaffected by the CSS transform).
+        const natW = wrap.offsetWidth;
+        const natH = wrap.offsetHeight;
+        const avail = boxEl.clientWidth - 40; // minus the p-5 padding
+        const s = natW > 0 ? Math.min(1, avail / natW) : 1;
+        setScale(s);
+        setSvgSize({ w: natW, h: natH });
+
+        const wb = wrap.getBoundingClientRect(); // scaled rect — divide back to natural coords
+        const box = (id: string) => {
+            const el = cellRefs.current.get(id);
+            if (!el) return null;
+            const r = el.getBoundingClientRect();
+            return {
+                left: (r.left - wb.left) / s,
+                right: (r.right - wb.left) / s,
+                cy: (r.top - wb.top) / s + r.height / s / 2,
+            };
+        };
+
+        const next: { d: string; active: boolean }[] = [];
+        for (const m of bracket) {
+            if (m.round === 0) continue;
+            const parent = bracket.find(p => p.round === m.round - 1 && p.slot === Math.floor(m.slot / 2));
+            if (!parent) continue;
+            const c = box(m.id);
+            const p = box(parent.id);
+            if (!c || !p) continue;
+            const childIsLeft = (c.left + c.right) / 2 < (p.left + p.right) / 2;
+            const startX = childIsLeft ? c.right : c.left;
+            const endX = childIsLeft ? p.left : p.right;
+            const midX = (startX + endX) / 2;
+            next.push({
+                d: `M ${startX} ${c.cy} H ${midX} V ${p.cy} H ${endX}`,
+                active: m.confirmed,
+            });
+        }
+        setPaths(next);
+    }, [bracket]);
+
+    useLayoutEffect(() => { measure(); }, [measure, colHeight, maxRound, columns]);
+    useEffect(() => {
+        const boxEl = boxRef.current;
+        if (!boxEl) return;
+        // Observe the container (not the scaled wrapper) so changing the scale never loops.
+        const ro = new ResizeObserver(() => measure());
+        ro.observe(boxEl);
+        window.addEventListener("resize", measure);
+        const t = setTimeout(measure, 100); // re-measure once fonts/layout settle
+        return () => { ro.disconnect(); window.removeEventListener("resize", measure); clearTimeout(t); };
+    }, [measure]);
 
     if (bracket.length === 0) return null;
 
@@ -100,47 +194,106 @@ export function AmericanoBracketMirror({
                 )}
             </div>
 
-            <div className="bg-card/30 backdrop-blur-xl border border-border/30 rounded-xl p-4 overflow-x-auto custom-scrollbar">
-                <div className="flex items-stretch min-w-max mx-auto w-fit">
-                    {columns.map((col, idx) => {
-                        const prev = columns[idx - 1];
-                        const interlocks = !!prev && prev.side === col.side;
-                        return (
-                        <div
-                            key={col.key}
-                            className="flex flex-col pointer-events-none"
-                            style={{
-                                width: COL_WIDTH,
-                                marginLeft: idx === 0 ? 0 : interlocks ? -COL_WIDTH / 2 : 10,
-                                zIndex: idx + 1
-                            }}
-                        >
-                            <div className="text-center mb-2">
-                                <span className={`text-[9px] font-black uppercase tracking-[0.25em] ${col.side === "C" ? "text-celeste" : "text-foreground/40"}`}>
-                                    {col.side === "C" ? "🏆 FINAL" : roundTitle(col.round, true)}
-                                </span>
+            <div
+                ref={boxRef}
+                className="relative rounded-2xl p-5 overflow-hidden border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)]"
+                style={{ background: "radial-gradient(130% 95% at 50% -10%, #1b2942 0%, #0d1526 45%, #060a13 100%)" }}
+            >
+                {/* Faint grid — arena texture so the neon has something to glow against */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.05]"
+                    style={{
+                        backgroundImage: "linear-gradient(rgba(148,163,184,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.6) 1px, transparent 1px)",
+                        backgroundSize: "26px 26px",
+                    }}
+                />
+                {/* Spacer reserves the scaled footprint and centers the tree */}
+                <div className="mx-auto" style={{ width: svgSize.w * scale, height: svgSize.h * scale }}>
+                <div
+                    ref={wrapRef}
+                    className="relative w-fit"
+                    style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
+                >
+                    {/* Connector tree — drawn behind the cells so lines only show in the gaps */}
+                    <svg
+                        className="absolute top-0 left-0 pointer-events-none"
+                        width={svgSize.w}
+                        height={svgSize.h}
+                        style={{ zIndex: 0 }}
+                        aria-hidden
+                    >
+                        {paths.map((p, i) => (
+                            <path
+                                key={i}
+                                d={p.d}
+                                fill="none"
+                                stroke={p.active ? "#38bdf8" : "#5b6e8c"}
+                                strokeWidth={p.active ? 2.25 : 1.5}
+                                strokeLinejoin="round"
+                                strokeLinecap="round"
+                                style={p.active ? { filter: "drop-shadow(0 0 3px rgba(56,189,248,0.6))" } : undefined}
+                            />
+                        ))}
+                    </svg>
+
+                    <div className="flex items-stretch" style={{ gap: COL_GAP }}>
+                        {columns.map((col, idx) => (
+                            <div
+                                key={col.key}
+                                className="relative flex flex-col pointer-events-none"
+                                style={{ width: COL_WIDTH, zIndex: idx + 1 }}
+                            >
+                                <div className="text-center mb-2.5">
+                                    <span
+                                        className="inline-block text-[8px] font-black uppercase italic tracking-[0.3em] px-2.5 py-1 rounded-sm"
+                                        style={{
+                                            color: roundAccent(col.round),
+                                            backgroundColor: "#0f1420",
+                                            boxShadow: `inset 0 0 0 1px ${roundAccent(col.round)}80, 0 0 8px ${roundAccent(col.round)}40`,
+                                        }}
+                                    >
+                                        {col.side === "C" ? "🏆 FINAL" : roundTitle(col.round, true)}
+                                    </span>
+                                </div>
+                                <div
+                                    className={`flex flex-col shrink-0 ${col.side === "C" ? "justify-center gap-2.5" : "justify-around"}`}
+                                    style={{ height: colHeight }}
+                                >
+                                    {col.side === "C" && champion && (
+                                        <div className="text-center px-1 py-1.5 rounded-md bg-amber-400/15 border border-amber-400/40 shadow-[0_0_18px_rgba(251,191,36,0.25)]">
+                                            <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-amber-300">Campeón</span>
+                                            <span className="block text-[11px] font-black uppercase italic text-white truncate mt-0.5">{champion}</span>
+                                        </div>
+                                    )}
+                                    {col.matches.map(m => (
+                                        <div
+                                            key={m.id}
+                                            ref={el => { if (el) cellRefs.current.set(m.id, el); else cellRefs.current.delete(m.id); }}
+                                        >
+                                            <MirrorCell match={m} canManage={canManage} onManage={() => setManageId(m.id)} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex flex-col justify-around shrink-0" style={{ height: colHeight }}>
-                                {col.side === "C" && champion && (
-                                    <div className="text-center px-1 py-1.5 rounded-lg bg-celeste/10 border border-celeste/30">
-                                        <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-celeste">Campeón</span>
-                                        <span className="block text-[11px] font-black uppercase italic text-foreground truncate mt-0.5">{champion}</span>
-                                    </div>
-                                )}
-                                {col.matches.map(m => (
-                                    <MirrorCell key={m.id} match={m} onClick={() => setDetailMatch(m)} />
-                                ))}
-                            </div>
-                        </div>
-                        );
-                    })}
+                        ))}
+                    </div>
+                </div>
                 </div>
             </div>
 
-            {/* VS detail modal */}
+            {/* Match management — flips open from the card */}
             <AnimatePresence>
-                {detailMatch && (
-                    <VersusModal match={detailMatch} onClose={() => setDetailMatch(null)} />
+                {manageMatch && canManage && (
+                    <ManageModal
+                        match={manageMatch}
+                        saving={!!saving}
+                        skipReopenConfirm={skipReopenConfirm}
+                        onScore={(s1, s2) => handleBracketScore?.(manageMatch.id, s1, s2)}
+                        onStart={() => handleBracketStart?.(manageMatch.id)}
+                        onConfirm={() => handleBracketConfirm?.(manageMatch.id)}
+                        onEdit={() => handleBracketEdit?.(manageMatch.id)}
+                        onClose={() => setManageId(null)}
+                    />
                 )}
             </AnimatePresence>
 
@@ -192,7 +345,19 @@ export function AmericanoBracketMirror({
     );
 }
 
-function MirrorCell({ match, onClick }: { match: BracketMatch; onClick: () => void }) {
+// Compact label for a team: surname-based 3-letter codes per player, e.g. "Juan Pérez / Gómez" → "PÉR/GÓM".
+const shortToken = (name: string) =>
+    name
+        .split(/[\/+]/)
+        .map(part => {
+            const words = part.trim().split(/\s+/).filter(Boolean);
+            const key = words[words.length - 1] || part.trim();
+            return key.slice(0, 3).toUpperCase();
+        })
+        .filter(Boolean)
+        .join("/");
+
+function MirrorCell({ match, canManage, onManage }: { match: BracketMatch; canManage: boolean; onManage: () => void }) {
     const t1 = teamOf(match.team1);
     const t2 = teamOf(match.team2);
     const isBye = (match.team1 as any) === "BYE" || (match.team2 as any) === "BYE";
@@ -200,225 +365,302 @@ function MirrorCell({ match, onClick }: { match: BracketMatch; onClick: () => vo
     const winnerIs1 = match.confirmed && (match.score1 ?? 0) > (match.score2 ?? 0);
     const winnerIs2 = match.confirmed && (match.score2 ?? 0) > (match.score1 ?? 0);
 
-    const rowName = (slot: BracketMatch["team1"], p: Player | null) =>
+    const fullName = (slot: BracketMatch["team1"], p: Player | null) =>
         (slot as any) === "BYE" ? "BYE" : p ? p.name : "A definir";
+    const shortName = (slot: BracketMatch["team1"], p: Player | null) =>
+        (slot as any) === "BYE" ? "BYE" : p ? shortToken(p.name) : "—";
+
+    const accent = roundAccent(match.round); // round colour — washes the whole card
+    const filled = !!(t1 || t2);
+    const emptyCell = !filled && !isBye;
+    const bothTeams = !!(t1 && t2);
+    const isReady = !match.confirmed && !isLive && bothTeams && !isBye;
+    // Manageable states: ready (to start), live (to score/finish), finished (to correct)
+    const manageable = canManage && !isBye && (isReady || isLive || (match.confirmed && !isBye));
+
+    const HoverIcon = isLive ? Flag : isReady ? Play : Settings2;
+    const hoverLabel = isLive ? "Cargar / Finalizar" : isReady ? "Iniciar" : "Corregir";
 
     return (
         <button
             type="button"
-            onClick={onClick}
-            className={`group/cell pointer-events-auto relative w-full text-left rounded-md border transition-all cursor-pointer overflow-hidden
-                ${isLive
-                    ? "border-rojo/40 bg-rojo/[0.04] shadow-[0_0_10px_rgba(239,68,68,0.15)]"
-                    : match.confirmed && !isBye
-                        ? "border-border/30 bg-muted/10 opacity-70 hover:opacity-100"
-                        : isBye
-                            ? "border-border/20 bg-muted/5 opacity-40"
-                            : "border-border/30 bg-card/40 hover:border-azul-primary/40"
-                }`}
-            title="Ver detalle"
+            onClick={manageable ? onManage : undefined}
+            disabled={!manageable}
+            title={manageable
+                ? `${fullName(match.team1, t1)} vs ${fullName(match.team2, t2)} — ${hoverLabel}`
+                : `${fullName(match.team1, t1)} vs ${fullName(match.team2, t2)}`}
+            style={{
+                background: `linear-gradient(155deg, ${accent}33 0%, #1a2030 42%, #0f1420 100%)`,
+                boxShadow: isLive
+                    ? `0 0 0 1.5px #ff2d55, 0 0 18px #ff2d5566`
+                    : `0 2px 6px rgba(0,0,0,0.45), inset 0 0 0 1px ${accent}73, 0 0 10px ${accent}26`,
+                clipPath: "polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px)",
+            }}
+            className={`group/cell pointer-events-auto relative w-full text-left transition-all overflow-hidden
+                ${isBye ? "opacity-35" : ""} ${manageable ? "cursor-pointer hover:brightness-125" : "cursor-default"}`}
         >
+            {/* Ready-to-start pulse dot so the manager spots playable matches at a glance */}
+            {isReady && canManage && (
+                <span className="absolute top-1 right-1 flex h-1.5 w-1.5 z-10">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: accent }} />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: accent }} />
+                </span>
+            )}
+            {/* Leading accent bar — the round's "heat" colour */}
+            <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: accent, opacity: emptyCell ? 0.45 : 1 }} />
+
             {[1, 2].map(side => {
                 const p = side === 1 ? t1 : t2;
                 const slot = side === 1 ? match.team1 : match.team2;
                 const isWinner = side === 1 ? winnerIs1 : winnerIs2;
+                const loser = match.confirmed && !isWinner && !isBye;
                 const score = side === 1 ? match.score1 : match.score2;
                 return (
-                    <div key={side} className={`flex items-center justify-between gap-1 px-2 py-1 ${side === 1 ? "border-b border-border/20" : ""} ${isWinner ? "bg-azul-primary/10" : ""}`}>
-                        <span className={`text-[10px] font-black uppercase italic truncate ${
-                            isWinner ? "text-azul-primary" : p ? "text-foreground/80" : "text-foreground/30"
-                        }`}>
-                            {rowName(slot, p)}
+                    <div
+                        key={side}
+                        title={fullName(slot, p)}
+                        style={isWinner ? { backgroundColor: `${accent}2e` } : undefined}
+                        className={`flex items-center justify-between gap-1 pl-2 pr-1.5 py-[9px] ${side === 1 ? "border-b border-white/10" : ""}`}
+                    >
+                        <span
+                            className="text-[9px] font-black uppercase italic tabular-nums truncate tracking-tight"
+                            style={{ color: emptyCell ? "#64748b" : isWinner ? accent : loser ? "#64748b" : "#f1f5f9" }}
+                        >
+                            {shortName(slot, p)}
                         </span>
-                        <span className={`text-[11px] font-black italic tabular-nums shrink-0 ${isWinner ? "text-azul-primary" : "text-foreground/40"}`}>
+                        <span
+                            className="text-[10px] font-black italic tabular-nums shrink-0"
+                            style={{ color: emptyCell ? "#64748b" : isWinner ? accent : loser ? "#64748b" : "#e2e8f0" }}
+                        >
                             {match.confirmed && !isBye ? score ?? 0 : isLive ? score ?? 0 : ""}
                         </span>
                     </div>
                 );
             })}
             {isLive && (
-                <div className="flex items-center justify-center gap-1 py-[3px] bg-rojo/10">
-                    <div className="w-1.5 h-1.5 rounded-full bg-rojo animate-pulse" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-rojo">En Juego</span>
+                <div className="flex items-center justify-center gap-1 py-[2px]" style={{ backgroundColor: "#ef444426" }}>
+                    <div className="w-1 h-1 rounded-full bg-rojo animate-pulse" />
+                    <span className="text-[7px] font-black uppercase italic tracking-[0.2em] text-rojo">Live</span>
                 </div>
             )}
             {/* Hover overlay — absolute so the cell (and the diagram) never changes size */}
-            <div className="absolute inset-0 hidden group-hover/cell:flex items-center justify-center gap-1 bg-background/80 backdrop-blur-[2px] pointer-events-none">
-                <Eye className="w-3.5 h-3.5 text-azul-primary" />
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Ver Detalle</span>
-            </div>
+            {manageable && (
+                <div className="absolute inset-0 hidden group-hover/cell:flex flex-col items-center justify-center gap-1 px-1 bg-[#0b1120]/80 backdrop-blur-[1px] pointer-events-none">
+                    <HoverIcon className="w-3 h-3 shrink-0" style={{ color: accent }} fill={isReady ? "currentColor" : "none"} />
+                    <span className="text-[7px] font-black uppercase italic tracking-[0.15em] text-center leading-tight" style={{ color: accent }}>{hoverLabel}</span>
+                </div>
+            )}
         </button>
     );
 }
 
-// ── Fighting-game style VS modal ──
+// ── Match management panel — flips open from the card, same handlers as the queue ──
 
-function VersusModal({ match, onClose }: { match: BracketMatch; onClose: () => void }) {
+interface ManageModalProps {
+    match: BracketMatch;
+    saving: boolean;
+    skipReopenConfirm?: boolean;
+    onScore: (s1: string, s2: string) => void;
+    onStart: () => void | Promise<any>;
+    onConfirm: () => void | Promise<any>;
+    onEdit: () => void | Promise<any>;
+    onClose: () => void;
+}
+
+function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onConfirm, onEdit, onClose }: ManageModalProps) {
+    const [busy, setBusy] = useState(false);
+    const [confirmReopen, setConfirmReopen] = useState(false);
+
     const t1 = teamOf(match.team1);
     const t2 = teamOf(match.team2);
     const isLive = !match.confirmed && (match.status === "live" || match.status === "in_progress");
-    const winnerIs1 = match.confirmed && (match.score1 ?? 0) > (match.score2 ?? 0);
-    const winnerIs2 = match.confirmed && (match.score2 ?? 0) > (match.score1 ?? 0);
+    const finished = match.confirmed;
+    const bothTeams = !!(t1 && t2);
+    const isReady = !match.confirmed && !isLive && bothTeams;
+    const winnerIs1 = finished && (match.score1 ?? 0) > (match.score2 ?? 0);
+    const winnerIs2 = finished && (match.score2 ?? 0) > (match.score1 ?? 0);
+    const s1 = match.score1 ?? 0;
+    const s2 = match.score2 ?? 0;
+    const isTie = s1 === s2;
+    const accent = isLive ? "#ef4444" : finished ? "#fbbf24" : roundAccent(match.round);
+
+    const run = async (fn: () => void | Promise<any>) => {
+        setBusy(true);
+        try { await fn(); } finally { setBusy(false); }
+    };
+
+    const TeamRow = ({ team, isWinner, score, editable, onScoreChange }: {
+        team: Player | null; isWinner: boolean; score: number; editable?: boolean; onScoreChange?: (v: number) => void;
+    }) => (
+        <div
+            className="flex items-center justify-between gap-3 pl-3 pr-2 py-2 rounded-lg border"
+            style={{
+                borderColor: isWinner ? `${accent}66` : "rgba(148,163,184,0.15)",
+                background: isWinner ? `${accent}1f` : "rgba(255,255,255,0.03)",
+            }}
+        >
+            <span className="text-xs font-black uppercase italic truncate min-w-0" style={{ color: isWinner ? accent : "#e2e8f0" }}>
+                {team ? team.name : "A definir"}
+            </span>
+            {editable ? (
+                <ScoreStepper value={score} onChange={onScoreChange!} disabled={busy || saving} accent={accent} />
+            ) : (
+                <span className="text-lg font-black italic tabular-nums shrink-0 pr-1" style={{ color: isWinner ? accent : "#cbd5e1" }}>
+                    {finished || isLive ? score : "–"}
+                </span>
+            )}
+        </div>
+    );
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 overflow-hidden">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" style={{ perspective: 1200 }}>
             <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="absolute inset-0 bg-black/90 backdrop-blur-lg"
-            />
-
-            {/* Impact flash */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.55, 0] }}
-                transition={{ delay: 0.4, duration: 0.45, times: [0, 0.2, 1] }}
-                className="absolute inset-0 bg-white pointer-events-none z-20"
+                className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
 
             <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="relative z-10 w-full max-w-2xl flex flex-col items-center gap-5"
+                initial={{ rotateY: -90, opacity: 0, scale: 0.9 }}
+                animate={{ rotateY: 0, opacity: 1, scale: 1 }}
+                exit={{ rotateY: 90, opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                style={{ transformStyle: "preserve-3d", background: "linear-gradient(180deg, #1c2740 0%, #0f1727 100%)" }}
+                className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 shadow-2xl p-5 flex flex-col gap-4"
             >
-                {/* Round label */}
-                <motion.div
-                    initial={{ y: -25, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-center"
-                >
-                    <span className="px-4 py-1 bg-white/10 border border-white/20 rounded-full text-[8px] font-black uppercase tracking-[0.35em] text-white">
-                        {roundTitle(match.round)}
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <span
+                        className="text-[9px] font-black uppercase italic tracking-[0.3em] px-2.5 py-1 rounded"
+                        style={{ color: accent, backgroundColor: `${accent}1f`, boxShadow: `inset 0 0 0 1px ${accent}40` }}
+                    >
+                        {match.round === 0 ? "🏆 FINAL" : roundTitle(match.round)}
                     </span>
-                </motion.div>
-
-                <div className="w-full flex items-center justify-center gap-3 md:gap-6">
-                    <FighterSide team={t1} side="left" isWinner={winnerIs1} dimmed={winnerIs2} />
-
-                    {/* VS + score */}
-                    <div className="flex flex-col items-center gap-2 shrink-0 z-10">
-                        <motion.span
-                            initial={{ scale: 4, opacity: 0, rotate: -12 }}
-                            animate={{ scale: 1, opacity: 1, rotate: -6 }}
-                            transition={{ delay: 0.38, type: "spring", stiffness: 320, damping: 13 }}
-                            className="text-5xl md:text-6xl font-black italic text-rojo drop-shadow-[0_0_25px_rgba(239,68,68,0.7)] select-none"
-                        >
-                            VS
-                        </motion.span>
-                        {(match.confirmed || isLive) && (
-                            <motion.span
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 }}
-                                className="text-2xl font-black italic tabular-nums text-white bg-white/10 border border-white/20 rounded-lg px-3 py-1"
-                            >
-                                {match.score1 ?? 0} - {match.score2 ?? 0}
-                            </motion.span>
-                        )}
-                        {isLive && (
-                            <motion.span
-                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
-                                className="text-[8px] font-black uppercase tracking-[0.3em] text-rojo animate-pulse"
-                            >
-                                ● En Juego
-                            </motion.span>
-                        )}
-                    </div>
-
-                    <FighterSide team={t2} side="right" isWinner={winnerIs2} dimmed={winnerIs1} />
+                    <button
+                        onClick={onClose}
+                        className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 </div>
 
-                {/* Winner banner */}
-                {match.confirmed && (winnerIs1 || winnerIs2) && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.75 }}
-                        className="flex items-center gap-2 px-5 py-2 rounded-xl bg-celeste/10 border border-celeste/30"
+                {/* Teams + scores — each team carries its own +/- when live */}
+                <div className="flex flex-col gap-1.5">
+                    <TeamRow team={t1} isWinner={winnerIs1} score={s1} editable={isLive} onScoreChange={(v) => onScore(String(v), String(s2))} />
+                    <div className="flex items-center gap-2 px-1">
+                        <div className="flex-1 h-px bg-white/10" />
+                        <span className="text-[9px] font-black italic text-white/40">VS</span>
+                        <div className="flex-1 h-px bg-white/10" />
+                    </div>
+                    <TeamRow team={t2} isWinner={winnerIs2} score={s2} editable={isLive} onScoreChange={(v) => onScore(String(s1), String(v))} />
+                </div>
+
+                {/* Controls by state */}
+                {isReady && (
+                    <button
+                        onClick={() => run(onStart)}
+                        disabled={busy || saving}
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-azul-primary hover:bg-azul-dark text-white font-black uppercase italic text-xs tracking-widest transition-all active:scale-[0.98] shadow-lg shadow-azul-primary/20 disabled:opacity-50"
                     >
-                        <Trophy className="w-4 h-4 text-celeste" />
-                        <span className="text-[10px] font-black uppercase italic tracking-wide text-white">
-                            Ganador: {winnerIs1 ? t1?.name : t2?.name}
-                        </span>
-                    </motion.div>
+                        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                        Iniciar Partido
+                    </button>
                 )}
 
-                <motion.button
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-                    onClick={onClose}
-                    className="absolute -top-2 -right-2 md:top-0 md:right-0 w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all text-white"
-                >
-                    <X className="w-4 h-4" />
-                </motion.button>
+                {isLive && (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-rojo animate-pulse" />
+                            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-rojo">En Juego — cargá el marcador</span>
+                        </div>
+                        <button
+                            onClick={() => run(onConfirm)}
+                            disabled={busy || saving || isTie}
+                            title={isTie ? "No se permiten empates: cargá el marcador" : "Finalizar partido"}
+                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-xs tracking-widest transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/20 disabled:opacity-40"
+                        >
+                            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />}
+                            {isTie ? "Empate no permitido" : "Finalizar Partido"}
+                        </button>
+                    </div>
+                )}
+
+                {finished && (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: `${accent}1f`, boxShadow: `inset 0 0 0 1px ${accent}40` }}>
+                            <Trophy className="w-4 h-4" style={{ color: accent }} />
+                            <span className="text-[10px] font-black uppercase italic tracking-wide" style={{ color: accent }}>
+                                Ganador: {winnerIs1 ? t1?.name : t2?.name}
+                            </span>
+                        </div>
+                        {confirmReopen ? (
+                            <div className="flex flex-col gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                                <div className="flex items-start gap-2">
+                                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                    <p className="text-[10px] text-white/70 leading-relaxed">
+                                        Se reabre el partido para editar el marcador. El ganador se quitará de la siguiente ronda.
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setConfirmReopen(false)}
+                                        className="flex-1 py-2 rounded-lg border border-white/10 bg-white/5 text-white/70 font-black uppercase italic text-[9px] tracking-wider hover:bg-white/10 transition-all"
+                                    >
+                                        Volver
+                                    </button>
+                                    <button
+                                        onClick={() => { setConfirmReopen(false); run(onEdit); }}
+                                        disabled={busy || saving}
+                                        className="flex-1 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black uppercase italic text-[9px] tracking-wider transition-all disabled:opacity-50"
+                                    >
+                                        Reabrir
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => skipReopenConfirm ? run(onEdit) : setConfirmReopen(true)}
+                                disabled={busy || saving}
+                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 font-black uppercase italic text-[10px] tracking-widest transition-all disabled:opacity-50"
+                            >
+                                {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                                Corregir Resultado
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!isReady && !isLive && !finished && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-white/50">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase italic tracking-widest">Esperando rivales</span>
+                    </div>
+                )}
             </motion.div>
         </div>
     );
 }
 
-function FighterSide({ team, side, isWinner, dimmed }: {
-    team: Player | null;
-    side: "left" | "right";
-    isWinner: boolean;
-    dimmed: boolean;
-}) {
-    const names = team ? team.name.split(/[\/\+]/).map(n => n.trim()).filter(Boolean) : ["A definir"];
-    const images = team ? [team.image || null, team.partnerImage || null] : [null];
-
+function ScoreStepper({ value, onChange, disabled, accent }: { value: number; onChange: (v: number) => void; disabled?: boolean; accent: string }) {
     return (
-        <div className={`flex gap-2 min-w-0 ${side === "left" ? "justify-end" : "justify-start"} ${dimmed ? "opacity-50 grayscale-[0.6]" : ""} transition-all`}>
-            {names.map((n, i) => (
-                <motion.div
-                    key={i}
-                    initial={{ x: side === "left" ? -380 : 380, opacity: 0, rotate: side === "left" ? -10 : 10 }}
-                    animate={{ x: 0, opacity: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 230, damping: 21, delay: 0.12 + i * 0.08 }}
-                    className="w-[105px] md:w-[130px]"
-                >
-                    <div
-                        className={`p-[1.5px] transition-all ${isWinner ? "bg-celeste shadow-[0_0_25px_rgba(34,211,238,0.5)]" : "bg-white/25"}`}
-                        style={{ clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)" }}
-                    >
-                        <div
-                            className="relative h-[150px] md:h-[180px] bg-[#020617] flex flex-col overflow-hidden"
-                            style={{ clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)" }}
-                        >
-                            <div className="absolute inset-0">
-                                {images[i] ? (
-                                    <img src={images[i] as string} alt={n} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center p-5 bg-[#0f172a]">
-                                        <img
-                                            src="/img/acap%20logo%20svg%20blanco%20sombra.svg"
-                                            alt="ACAP"
-                                            className="w-full h-full object-contain opacity-20"
-                                        />
-                                    </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
-                            </div>
-
-                            {team?.category && (
-                                <div className="absolute top-1.5 right-2 flex flex-col items-end z-10 opacity-70">
-                                    <span className="text-[5px] font-black uppercase tracking-[0.2em] text-white">CAT</span>
-                                    <span className="text-xs font-black italic text-white leading-none">
-                                        {team.category.replace(/[^0-9]/g, "") || team.category}
-                                    </span>
-                                </div>
-                            )}
-
-                            <div className="mt-auto p-1 z-10">
-                                <div className={`py-1 px-1.5 transform -skew-x-12 border-r-2 ${isWinner ? "bg-celeste border-white" : "bg-white border-azul-primary"}`}>
-                                    <div className="transform skew-x-12 text-center">
-                                        <span className={`block text-[8px] font-black uppercase italic leading-none truncate ${isWinner ? "text-slate-950" : "text-slate-950"}`}>
-                                            {n}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            ))}
+        <div className="flex items-center gap-1.5">
+            <button
+                type="button"
+                onClick={() => onChange(Math.max(0, value - 1))}
+                disabled={disabled}
+                className="w-8 h-8 rounded-lg bg-rojo/10 text-rojo border border-rojo/30 hover:bg-rojo hover:text-white transition-all flex items-center justify-center active:scale-95 disabled:opacity-40"
+            >
+                <Minus className="w-3.5 h-3.5 stroke-[3]" />
+            </button>
+            <span className="w-9 text-center text-2xl font-black italic tabular-nums" style={{ color: accent }}>{value}</span>
+            <button
+                type="button"
+                onClick={() => onChange(value + 1)}
+                disabled={disabled}
+                className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center active:scale-95 disabled:opacity-40"
+            >
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+            </button>
         </div>
     );
 }

@@ -261,6 +261,12 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                         <AmericanoBracketMirror
                                             bracket={bracket}
                                             readOnly={readOnly}
+                                            saving={saving}
+                                            handleBracketScore={handleBracketScore}
+                                            handleBracketStart={handleBracketStart}
+                                            handleBracketConfirm={handleBracketConfirm}
+                                            handleBracketEdit={handleReopenMatch}
+                                            skipReopenConfirm
                                         />
                                     </div>
                                 )}
