@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ListOrdered, Play, Flag, RotateCcw, Loader2,
-    Minus, Plus, Trophy, Clock, AlertTriangle
+    Minus, Plus, Trophy, Clock, AlertTriangle, ArrowLeftRight
 } from "lucide-react";
 import { BracketMatch, Player } from "./types";
 
@@ -16,6 +16,10 @@ interface AmericanoPlayoffQueueProps {
     handleBracketStart: (matchId: string) => void | Promise<any>;
     handleBracketConfirm: (matchId: string) => void | Promise<any>;
     handleBracketEdit: (matchId: string) => void | Promise<any>;
+    // Manual reordering of pairs in the bracket (robin playoffs). Optional so the
+    // americano flow can render the same queue without swap controls.
+    handleSwapPlayers?: (matchId: string, teamSlot: 1 | 2) => void;
+    swappingPlayer?: { matchId: string; teamSlot: 1 | 2 } | null;
     // When the reopen handler brings its own confirmation (robin), skip the queue's modal
     skipReopenConfirm?: boolean;
 }
@@ -44,10 +48,23 @@ export function AmericanoPlayoffQueue({
     handleBracketStart,
     handleBracketConfirm,
     handleBracketEdit,
+    handleSwapPlayers,
+    swappingPlayer,
     skipReopenConfirm
 }: AmericanoPlayoffQueueProps) {
     const [confirmAction, setConfirmAction] = useState<{ type: "start" | "finish" | "reopen"; match: BracketMatch } | null>(null);
     const [busyMatchId, setBusyMatchId] = useState<string | null>(null);
+
+    // A pair can be reordered while it is a real (non-BYE, non-placeholder) team
+    // and its match has not started or finished. Reuses the tested swap logic.
+    const canSwap = (m: BracketMatch, slot: 1 | 2): boolean => {
+        if (readOnly || !handleSwapPlayers) return false;
+        if (m.confirmed || m.status === "live" || m.status === "in_progress") return false;
+        const t = slot === 1 ? m.team1 : m.team2;
+        if (!t || typeof t === "string") return false; // null slot or "BYE"
+        if ((t as any).id?.startsWith?.("TBD")) return false;
+        return true;
+    };
 
     // Play order: first round first, then inward to the final; sequential numbering
     const ordered = useMemo(() =>
@@ -112,6 +129,22 @@ export function AmericanoPlayoffQueue({
                 </div>
             </div>
 
+            {swappingPlayer && handleSwapPlayers && (
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-azul-primary/10 border border-azul-primary/30">
+                    <span className="text-[10px] font-black uppercase italic tracking-wide text-azul-primary flex items-center gap-1.5">
+                        <ArrowLeftRight className="w-3 h-3" />
+                        Intercambio activo — elegí otra pareja para completar el cambio
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => handleSwapPlayers(swappingPlayer.matchId, swappingPlayer.teamSlot)}
+                        className="shrink-0 text-[9px] font-black uppercase tracking-widest text-foreground/50 hover:text-rojo transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            )}
+
             {rounds.map(round => {
                 const roundMatches = ordered.filter(m => m.round === round);
                 const playable = roundMatches.filter(m => (m.team1 as any) !== "BYE" && (m.team2 as any) !== "BYE");
@@ -161,11 +194,19 @@ export function AmericanoPlayoffQueue({
 
                                         {/* Teams + score */}
                                         <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 min-w-0">
-                                            <span className={`text-[11px] font-black uppercase italic truncate text-right ${
-                                                winnerIs1 ? "text-azul-primary" : name1 ? "text-foreground/80" : "text-foreground/30"
-                                            }`}>
-                                                {name1 || feederLabel(m, 0)}
-                                            </span>
+                                            <div className="flex items-center justify-end gap-1.5 min-w-0">
+                                                {canSwap(m, 1) && (
+                                                    <SwapButton
+                                                        active={swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 1}
+                                                        onClick={() => handleSwapPlayers!(m.id, 1)}
+                                                    />
+                                                )}
+                                                <span className={`text-[11px] font-black uppercase italic truncate text-right ${
+                                                    winnerIs1 ? "text-azul-primary" : name1 ? "text-foreground/80" : "text-foreground/30"
+                                                }`}>
+                                                    {name1 || feederLabel(m, 0)}
+                                                </span>
+                                            </div>
 
                                             {isLive && !readOnly ? (
                                                 <div className="flex items-center gap-1.5 shrink-0">
@@ -191,11 +232,19 @@ export function AmericanoPlayoffQueue({
                                                 </span>
                                             )}
 
-                                            <span className={`text-[11px] font-black uppercase italic truncate ${
-                                                winnerIs2 ? "text-azul-primary" : name2 ? "text-foreground/80" : "text-foreground/30"
-                                            }`}>
-                                                {name2 || feederLabel(m, 1)}
-                                            </span>
+                                            <div className="flex items-center justify-start gap-1.5 min-w-0">
+                                                <span className={`text-[11px] font-black uppercase italic truncate ${
+                                                    winnerIs2 ? "text-azul-primary" : name2 ? "text-foreground/80" : "text-foreground/30"
+                                                }`}>
+                                                    {name2 || feederLabel(m, 1)}
+                                                </span>
+                                                {canSwap(m, 2) && (
+                                                    <SwapButton
+                                                        active={swappingPlayer?.matchId === m.id && swappingPlayer?.teamSlot === 2}
+                                                        onClick={() => handleSwapPlayers!(m.id, 2)}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* Status + actions */}
@@ -351,6 +400,23 @@ export function AmericanoPlayoffQueue({
                 })()}
             </AnimatePresence>
         </div>
+    );
+}
+
+function SwapButton({ active, onClick }: { active: boolean; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            title={active ? "Cancelar intercambio" : "Intercambiar esta pareja de posición"}
+            className={`shrink-0 w-5 h-5 rounded inline-flex items-center justify-center border transition-all active:scale-95 ${
+                active
+                    ? "bg-azul-primary text-white border-white/30 animate-pulse shadow-sm shadow-azul-primary/30"
+                    : "bg-muted/30 text-foreground/30 border-border/40 hover:border-azul-primary/40 hover:text-azul-primary"
+            }`}
+        >
+            <ArrowLeftRight className="w-3 h-3" />
+        </button>
     );
 }
 

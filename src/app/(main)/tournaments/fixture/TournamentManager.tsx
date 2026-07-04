@@ -79,6 +79,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
         handleBracketStart,
         handleBracketScore,
         handleBracketConfirm,
+        handleSwapPlayers,
+        swappingPlayer,
         isIndividual,
         bulkUpdateStatus,
         finalQualifiers,
@@ -255,6 +257,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             handleBracketStart={handleBracketStart}
                                             handleBracketConfirm={handleBracketConfirm}
                                             handleBracketEdit={handleReopenMatch}
+                                            handleSwapPlayers={handleSwapPlayers}
+                                            swappingPlayer={swappingPlayer}
                                             skipReopenConfirm
                                         />
 
