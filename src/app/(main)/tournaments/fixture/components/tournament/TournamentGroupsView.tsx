@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Users2, UserCheck, Plus, Minus, RotateCcw, CreditCard } from "lucide-react";
+import { MapPin, Users2, UserCheck, Plus, Minus, RotateCcw, CreditCard, Play } from "lucide-react";
 import { Group, Match, Standing } from "./types";
 
 interface TournamentGroupsViewProps {
@@ -11,6 +11,13 @@ interface TournamentGroupsViewProps {
     togglePresent: (id: string) => void;
     paid: Set<string>;
     togglePaid: (id: string) => void;
+    isEntryPresent: (id: string) => boolean;
+    isEntryPaid: (id: string) => boolean;
+    togglePairPresent: (pairId: string) => void;
+    togglePairPaid: (pairId: string) => void;
+    groupNextInfo: (groupId: string) => { pendingCount: number; availableCount: number };
+    startNextGroupMatch: (groupId: string) => void;
+    startAllGroupMatches: (groupId: string) => void;
     handleScoreChange: (matchId: string, s1: string, s2: string) => void;
     handleConfirmScore: (matchId: string | string[]) => void;
     handleReopenMatch: (matchId: string) => void;
@@ -27,6 +34,13 @@ export function TournamentGroupsView({
     togglePresent,
     paid,
     togglePaid,
+    isEntryPresent,
+    isEntryPaid,
+    togglePairPresent,
+    togglePairPaid,
+    groupNextInfo,
+    startNextGroupMatch,
+    startAllGroupMatches,
     handleScoreChange,
     handleConfirmScore,
     handleReopenMatch,
@@ -59,6 +73,11 @@ export function TournamentGroupsView({
                     const groupMatches = matches
                         .filter(m => m.groupId === g.id)
                         .sort((a, b) => a.id.localeCompare(b.id));
+                    // Matches are revealed on demand: only live and finished ones are
+                    // shown. Pending matches stay hidden until "Comenzar siguiente".
+                    const isMatchDone = (m: Match) => m.confirmed || m.status === 'finished' || m.status === 'completed';
+                    const visibleMatches = groupMatches.filter(m => m.status === 'in_progress' || isMatchDone(m));
+                    const nextInfo = groupNextInfo(g.id);
 
                     return (
                         <div
@@ -113,16 +132,16 @@ export function TournamentGroupsView({
                                                 <tr key={s.playerId} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
                                                     <td className="px-0.5 py-0.5 text-center">
                                                         <button
-                                                            onClick={() => togglePresent(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/5 text-slate-600 hover:text-cyan-400"}`}
+                                                            onClick={() => togglePairPresent(s.playerId)}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPresent(s.playerId) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/5 text-slate-600 hover:text-cyan-400"}`}
                                                         >
                                                             <UserCheck className="w-2.5 h-2.5" />
                                                         </button>
                                                     </td>
                                                     <td className="px-0.5 py-0.5 text-center">
                                                         <button
-                                                            onClick={() => togglePaid(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/5 text-slate-600 hover:text-emerald-400"}`}
+                                                            onClick={() => togglePairPaid(s.playerId)}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPaid(s.playerId) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/5 text-slate-600 hover:text-emerald-400"}`}
                                                         >
                                                             <CreditCard className="w-2.5 h-2.5" />
                                                         </button>
@@ -173,9 +192,39 @@ export function TournamentGroupsView({
                                         </button>
                                     )}
                                 </div>
+
+                                {!readOnly && nextInfo.pendingCount > 0 && (
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => startNextGroupMatch(g.id)}
+                                            disabled={nextInfo.availableCount === 0}
+                                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-black uppercase italic tracking-widest text-[11px] transition-all border ${nextInfo.availableCount > 0
+                                                ? "bg-rojo text-white border-rojo/40 shadow-[0_0_16px_rgba(255,45,85,0.25)] hover:bg-rojo/90 hover:scale-[1.01] active:scale-95"
+                                                : "bg-white/[0.03] text-slate-500 border-white/10 cursor-not-allowed"}`}
+                                            title={nextInfo.availableCount > 0
+                                                ? "Inicia el próximo partido disponible del grupo"
+                                                : "Esperando que las parejas estén presentes"}
+                                        >
+                                            <Play className="w-3.5 h-3.5" />
+                                            {nextInfo.availableCount > 0
+                                                ? `Comenzar siguiente (${nextInfo.pendingCount} pendiente${nextInfo.pendingCount === 1 ? "" : "s"})`
+                                                : `Esperando jugadores (${nextInfo.pendingCount} pendiente${nextInfo.pendingCount === 1 ? "" : "s"})`}
+                                        </button>
+                                        {nextInfo.availableCount > 1 && (
+                                            <button
+                                                onClick={() => startAllGroupMatches(g.id)}
+                                                className="shrink-0 px-2.5 py-2 rounded-lg font-black uppercase italic tracking-widest text-[11px] transition-all border bg-cyan-400/10 text-cyan-300 border-cyan-400/30 hover:bg-cyan-400 hover:text-slate-900 active:scale-95"
+                                                title="Iniciar todos los partidos con parejas presentes"
+                                            >
+                                                Todos ({nextInfo.availableCount})
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div className="grid gap-1">
-                                    {groupMatches.map(m => {
-                                        const isReady = present.has(m.team1.id) && present.has(m.team2.id);
+                                    {visibleMatches.map(m => {
+                                        const isReady = isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id);
                                         const isDone = m.confirmed || m.status === 'finished' || m.status === 'completed';
                                         const isLive = m.status === 'in_progress';
                                         return (

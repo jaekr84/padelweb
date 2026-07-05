@@ -118,19 +118,28 @@ export function useTournamentLogic({
     const [swappingPlayer, setSwappingPlayer] = useState<{ matchId: string, teamSlot: 1 | 2 } | null>(null);
     const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
     const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
+    // Serialize saves so concurrent calls (e.g. starting several matches quickly)
+    // don't race: each save reads the version only after the previous one finished
+    // and updated it, avoiding false "another admin modified" conflicts.
+    const saveChainRef = useRef<Promise<any>>(Promise.resolve());
 
-    const saveFixture = useCallback(async (input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
-        const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
-        if (res.ok && res.newUpdatedAt) {
-            fixtureVersionRef.current = res.newUpdatedAt;
-        }
-        if (!res.ok && res.conflictError) {
-            toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
-                duration: 10000,
-                action: { label: "Recargar", onClick: () => window.location.reload() }
-            });
-        }
-        return res;
+    const saveFixture = useCallback((input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
+        const run = saveChainRef.current.then(async () => {
+            const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
+            if (res.ok && res.newUpdatedAt) {
+                fixtureVersionRef.current = res.newUpdatedAt;
+            }
+            if (!res.ok && res.conflictError) {
+                toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
+                    duration: 10000,
+                    action: { label: "Recargar", onClick: () => window.location.reload() }
+                });
+            }
+            return res;
+        });
+        // Keep the chain alive even if a save throws/rejects.
+        saveChainRef.current = run.catch(() => { });
+        return run;
     }, []);
 
     const [confirmModal, setConfirmModal] = useState<{
@@ -258,6 +267,155 @@ export function useTournamentLogic({
             toast.success(type === 'present' ? "Asistencia actualizada" : "Pagos actualizados");
         } catch (e) {
             toast.error("Error al guardar cambios");
+        }
+    };
+
+    // ── Attendance (per-member: "pairId_0"/"pairId_1") + dynamic match start ──
+    // A pair counts as present/paid when both members are checked (or a legacy
+    // plain pair-id is set). Individuals use the plain id.
+    const isEntryPresent = useCallback((id: string) =>
+        isIndividual ? present.has(id) : (present.has(id) || (present.has(`${id}_0`) && present.has(`${id}_1`))),
+        [present, isIndividual]);
+    const isEntryPaid = useCallback((id: string) =>
+        isIndividual ? paid.has(id) : (paid.has(id) || (paid.has(`${id}_0`) && paid.has(`${id}_1`))),
+        [paid, isIndividual]);
+
+    // Toggle a whole pair on/off (both member keys) from the standings quick-toggle.
+    const togglePairChecked = (
+        set: Set<string>,
+        setSet: (s: Set<string>) => void,
+        saveKind: 'present' | 'paid',
+        pairId: string,
+    ) => {
+        if (readOnly) return;
+        const on = saveKind === 'present' ? isEntryPresent(pairId) : isEntryPaid(pairId);
+        const next = new Set(set);
+        next.delete(pairId); next.delete(`${pairId}_0`); next.delete(`${pairId}_1`);
+        if (!on) {
+            if (isIndividual) next.add(pairId);
+            else { next.add(`${pairId}_0`); next.add(`${pairId}_1`); }
+        }
+        setSet(next);
+        if (saveKind === 'present') lastSavedState.current.present = next;
+        else lastSavedState.current.paid = next;
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(saveKind === 'present' ? next : present),
+            paidPlayerIds: Array.from(saveKind === 'paid' ? next : paid),
+        }).catch(e => console.error("Failed to save attendance", e));
+    };
+    const togglePairPresent = (pairId: string) => togglePairChecked(present, setPresent, 'present', pairId);
+    const togglePairPaid = (pairId: string) => togglePairChecked(paid, setPaid, 'paid', pairId);
+
+    const isMatchDone = (m: Match) => m.confirmed || m.status === 'finished' || m.status === 'completed';
+
+    // How many matches a group can still start now, and how many remain pending.
+    // A match is startable when both pairs are present. We do NOT block on a pair
+    // already playing: in round-robin every pair meets every other, so requiring
+    // "no repeated pair" would allow only one live match per group. The admin can
+    // send several matches of the same group.
+    const groupNextInfo = useCallback((groupId: string) => {
+        const pending = matches.filter(m => m.groupId === groupId && !isMatchDone(m) && m.status !== 'in_progress');
+        const available = pending.filter(m => isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id));
+        return { pendingCount: pending.length, availableCount: available.length };
+    }, [matches, isEntryPresent]);
+
+    // Reveal + start the next match of a group: a pending match whose pairs are
+    // both present, preferring pairs that have played the fewest games (fairness).
+    const startNextGroupMatch = async (groupId: string) => {
+        if (readOnly) return;
+        const played = new Map<string, number>();
+        matches.forEach(m => {
+            if (isMatchDone(m)) {
+                played.set(m.team1.id, (played.get(m.team1.id) || 0) + 1);
+                played.set(m.team2.id, (played.get(m.team2.id) || 0) + 1);
+            }
+        });
+
+        const candidates = matches.filter(m =>
+            m.groupId === groupId &&
+            !isMatchDone(m) &&
+            m.status !== 'in_progress' &&
+            isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id)
+        );
+
+        if (candidates.length === 0) {
+            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
+            return;
+        }
+
+        candidates.sort((a, b) => {
+            const ga = (played.get(a.team1.id) || 0) + (played.get(a.team2.id) || 0);
+            const gb = (played.get(b.team1.id) || 0) + (played.get(b.team2.id) || 0);
+            if (ga !== gb) return ga - gb;
+            return a.id.localeCompare(b.id);
+        });
+
+        const chosen = candidates[0];
+        const newMatches = matches.map(m => m.id === chosen.id ? { ...m, status: 'in_progress' } : m);
+        setMatches(newMatches);
+
+        try {
+            const res = await saveFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                matches: newMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true,
+            });
+            if (res.ok) {
+                toast.success(`Partido iniciado: ${chosen.team1.name.split("/")[0].trim()} vs ${chosen.team2.name.split("/")[0].trim()}`);
+            } else {
+                toast.error("Error al iniciar partido: " + res.error);
+                setMatches(matches); // rollback
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al iniciar el partido");
+            setMatches(matches); // rollback
+        }
+    };
+
+    // Start every pending match of a group whose pairs are present, in one save.
+    const startAllGroupMatches = async (groupId: string) => {
+        if (readOnly) return;
+        const toStart = matches.filter(m =>
+            m.groupId === groupId &&
+            !isMatchDone(m) &&
+            m.status !== 'in_progress' &&
+            isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id)
+        );
+        if (toStart.length === 0) {
+            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
+            return;
+        }
+        const ids = new Set(toStart.map(m => m.id));
+        const newMatches = matches.map(m => ids.has(m.id) ? { ...m, status: 'in_progress' } : m);
+        setMatches(newMatches);
+        try {
+            const res = await saveFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                matches: newMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true,
+            });
+            if (res.ok) {
+                toast.success(`${toStart.length} partido${toStart.length === 1 ? "" : "s"} iniciado${toStart.length === 1 ? "" : "s"}`);
+            } else {
+                toast.error("Error al iniciar partidos: " + res.error);
+                setMatches(matches); // rollback
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al iniciar los partidos");
+            setMatches(matches); // rollback
         }
     };
 
@@ -1204,6 +1362,13 @@ export function useTournamentLogic({
         swappingPlayer,
         roundLabel,
         isIndividual,
-        bulkUpdateStatus
+        bulkUpdateStatus,
+        isEntryPresent,
+        isEntryPaid,
+        togglePairPresent,
+        togglePairPaid,
+        groupNextInfo,
+        startNextGroupMatch,
+        startAllGroupMatches
     };
 }

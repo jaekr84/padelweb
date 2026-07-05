@@ -89,18 +89,25 @@ export default function AmericanoPlayoffs({
     const isIndividual = modality?.isIndividual || false;
 
     const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
-    const saveFixture = useCallback(async (input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
-        const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
-        if (res.ok && res.newUpdatedAt) {
-            fixtureVersionRef.current = res.newUpdatedAt;
-        }
-        if (!res.ok && res.conflictError) {
-            toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
-                duration: 10000,
-                action: { label: "Recargar", onClick: () => window.location.reload() }
-            });
-        }
-        return res;
+    // Serialize saves so concurrent calls don't race the optimistic-lock version
+    // and trigger false "another admin modified" conflicts.
+    const saveChainRef = useRef<Promise<any>>(Promise.resolve());
+    const saveFixture = useCallback((input: Omit<Parameters<typeof saveTournamentFixture>[0], 'lastKnownUpdatedAt'>) => {
+        const run = saveChainRef.current.then(async () => {
+            const res = await saveTournamentFixture({ ...input, lastKnownUpdatedAt: fixtureVersionRef.current });
+            if (res.ok && res.newUpdatedAt) {
+                fixtureVersionRef.current = res.newUpdatedAt;
+            }
+            if (!res.ok && res.conflictError) {
+                toast.error("Otro administrador guardó cambios en este torneo. Recargá la página para ver los últimos datos.", {
+                    duration: 10000,
+                    action: { label: "Recargar", onClick: () => window.location.reload() }
+                });
+            }
+            return res;
+        });
+        saveChainRef.current = run.catch(() => { });
+        return run;
     }, []);
 
     // Computed lists for player search

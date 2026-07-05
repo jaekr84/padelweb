@@ -83,6 +83,13 @@ export default function TournamentManager(props: TournamentManagerProps) {
         swappingPlayer,
         isIndividual,
         bulkUpdateStatus,
+        isEntryPresent,
+        isEntryPaid,
+        togglePairPresent,
+        togglePairPaid,
+        groupNextInfo,
+        startNextGroupMatch,
+        startAllGroupMatches,
         finalQualifiers,
         qualLimit,
         setQualLimit
@@ -164,6 +171,13 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             togglePresent={togglePresent}
                                             paid={paid}
                                             togglePaid={togglePaid}
+                                            isEntryPresent={isEntryPresent}
+                                            isEntryPaid={isEntryPaid}
+                                            togglePairPresent={togglePairPresent}
+                                            togglePairPaid={togglePairPaid}
+                                            groupNextInfo={groupNextInfo}
+                                            startNextGroupMatch={startNextGroupMatch}
+                                            startAllGroupMatches={startAllGroupMatches}
                                             handleScoreChange={handleScoreChange}
                                             handleConfirmScore={handleConfirmScore}
                                             handleReopenMatch={handleReopenMatch}
