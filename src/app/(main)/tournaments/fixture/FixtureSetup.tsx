@@ -25,7 +25,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
-import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
+import { SplitAttendanceList } from "./components/SplitAttendanceList";
 import { Player, Group } from "./components/tournament/types";
 
 export interface FixtureSetupProps {
@@ -151,6 +151,23 @@ export default function FixtureSetup({
     const [isFetchLoading, setIsFetchLoading] = useState(false);
     const [guestName, setGuestName] = useState("");
     const [playerSearchQuery, setPlayerSearchQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+
+    // Toggle all check-in entries (per-member for pairs) on/off, mirroring Americano.
+    const handleCheckAll = (type: 'paid' | 'present') => {
+        const allCheckinIds: string[] = [];
+        players.forEach(p => {
+            if (isIndividual) {
+                allCheckinIds.push(p.id);
+            } else {
+                allCheckinIds.push(`${p.id}_0`);
+                if (p.player2 || p.name.includes(" / ")) allCheckinIds.push(`${p.id}_1`);
+            }
+        });
+        const currentSet = type === 'paid' ? paid : present;
+        const areAll = allCheckinIds.length > 0 && allCheckinIds.every(id => currentSet.has(id));
+        bulkUpdateStatus(type, areAll ? [] : allCheckinIds);
+    };
 
     const fetchPotentialPlayers = useCallback(async () => {
         setIsFetchLoading(true);
@@ -704,31 +721,32 @@ export default function FixtureSetup({
                             exit={{ opacity: 0, x: 20 }}
                             className="space-y-6"
                         >
-                            <TournamentAttendance
-                                readOnly={false}
+                            <SplitAttendanceList
+                                players={players}
+                                isIndividual={isIndividual}
                                 searchQuery={playerSearchQuery}
                                 setSearchQuery={setPlayerSearchQuery}
-                                allPlayers={players}
-                                present={present}
-                                togglePresent={togglePresent}
+                                categoryFilter={categoryFilter}
+                                setCategoryFilter={setCategoryFilter}
+                                categories={categories}
                                 paid={paid}
                                 togglePaid={togglePaid}
-                                setPlayerToDelete={(p) => setParticipantToDelete(p ? { id: p.id, name: p.name } : null)}
-                                setReplacingPlayer={(p) => {
-                                    if (p) {
-                                        setReplacingParticipant({
-                                            checkinId: p.id,
-                                            displayName: p.name,
-                                            pairId: p.id
-                                        });
-                                    } else {
-                                        setReplacingParticipant(null);
-                                    }
-                                }}
-                                onContinue={() => setStep("config")}
-                                bulkUpdateStatus={bulkUpdateStatus}
-                                onAddPlayer={() => setIsPlayerModalOpen(true)}
+                                present={present}
+                                togglePresent={togglePresent}
+                                onCheckAll={handleCheckAll}
+                                onInscribir={() => setIsPlayerModalOpen(true)}
                             />
+
+                            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
+                                <button
+                                    onClick={() => setStep("config")}
+                                    disabled={PRESENT_PLAYERS.length < 2}
+                                    className="w-full py-3.5 bg-celeste text-white rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-celeste/30 hover:bg-celeste/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale text-sm"
+                                >
+                                    Continuar ({PRESENT_PLAYERS.length})
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
                         </motion.div>
                     )}
 

@@ -299,6 +299,17 @@ export default async function TournamentDisplayPage({ params }: Props) {
 
     const initialUpdatedAt = tournament.updatedAt?.toISOString() ?? new Date().toISOString();
 
+    // JSON columns may come back as a parsed array or (defensively) a JSON string.
+    const parsePlayers = (data: any): string[] => {
+        if (!data) return [];
+        if (typeof data === 'string') {
+            try { return JSON.parse(data); } catch { return []; }
+        }
+        return Array.isArray(data) ? data : [];
+    };
+    const initialPresent = parsePlayers(tournament.presentPlayerIds);
+    const initialPaid = parsePlayers(tournament.paidPlayerIds);
+
     if (tournament.type === 'americano') {
         return (
             <AmericanoManager
@@ -308,6 +319,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
                 initialMatches={mappedMatches}
                 initialBracket={mappedBracket}
                 initialStatus={tournament.status}
+                initialPresent={initialPresent}
+                initialPaid={initialPaid}
                 initialUpdatedAt={initialUpdatedAt}
                 readOnly={isFinished}
                 isLoggedIn={isLoggedIn}
@@ -323,7 +336,8 @@ export default async function TournamentDisplayPage({ params }: Props) {
             initialMatches={mappedMatches}
             initialBracket={mappedBracket}
             initialStatus={tournament.status}
-            initialPresent={(tournament.presentPlayerIds as string[]) || []}
+            initialPresent={initialPresent}
+            initialPaid={initialPaid}
             initialUpdatedAt={initialUpdatedAt}
             readOnly={isFinished}
             isLoggedIn={isLoggedIn}

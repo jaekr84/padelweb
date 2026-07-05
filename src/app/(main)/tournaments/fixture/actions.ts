@@ -754,7 +754,7 @@ export async function updateTournamentMetadata(input: {
         if (!session?.userId) throw new Error("No autorizado");
 
         const [tournament] = await db
-            .select({ createdByUserId: tournaments.createdByUserId })
+            .select({ createdByUserId: tournaments.createdByUserId, updatedAt: tournaments.updatedAt })
             .from(tournaments)
             .where(eq(tournaments.id, input.tournamentId))
             .limit(1);
@@ -774,6 +774,11 @@ export async function updateTournamentMetadata(input: {
                 ...(input.status ? { status: input.status } : {}),
                 ...(input.presentPlayerIds ? { presentPlayerIds: input.presentPlayerIds } : {}),
                 ...(input.paidPlayerIds ? { paidPlayerIds: input.paidPlayerIds } : {}),
+                // Preserve updatedAt so present/paid/status toggles don't advance the
+                // optimistic-lock version. `onUpdateNow()` would otherwise bump it on
+                // every metadata write and make the next fixture save fail with a false
+                // "another admin modified this tournament" conflict.
+                ...(tournament.updatedAt ? { updatedAt: tournament.updatedAt } : {}),
             })
             .where(eq(tournaments.id, input.tournamentId));
 
