@@ -821,6 +821,35 @@ export function useTournamentLogic({
         });
     }, [sortedQualifiers, qualifierOverrides]);
 
+    // Map bracket seed placeholders ("1º GRUPO A") to the real pair that finished
+    // in that group position, so the playoffs show actual names instead of labels.
+    const seedNameMap = useMemo(() => {
+        const map = new Map<string, string>();
+        const activeGroups = groups.filter(g => (Array.isArray(g.players) ? g.players : []).length > 0);
+        activeGroups.forEach((g, idx) => {
+            const displayGroupName = (g.name && g.name.length < 10) ? g.name.toUpperCase() : String.fromCharCode(65 + idx);
+            const groupLabel = displayGroupName.includes('GRUPO') ? displayGroupName : `GRUPO ${displayGroupName}`;
+            computeStandings(g.id).forEach((s, i) => map.set(`${groupLabel}|${i + 1}`, s.player.name));
+        });
+        return map;
+    }, [groups, computeStandings]);
+
+    const resolveSeedName = useCallback((name: string | null | undefined): string | null => {
+        if (!name) return name ?? null;
+        const mt = /^(\d+)\s*º?\s*(GRUPO\s+.+)$/i.exec(name.trim());
+        if (!mt) return name;
+        const real = seedNameMap.get(`${mt[2].toUpperCase().replace(/\s+/g, ' ').trim()}|${parseInt(mt[1], 10)}`);
+        return real || name;
+    }, [seedNameMap]);
+
+    // Bracket for DISPLAY: same ids/structure but placeholder names resolved to
+    // the real pairs. Handlers keep using the real `bracket` (keyed by id).
+    const resolvedBracket = useMemo(() => bracket.map(m => {
+        const fixSlot = (slot: any) =>
+            (slot && typeof slot !== 'string' && slot.name) ? { ...slot, name: resolveSeedName(slot.name) } : slot;
+        return { ...m, team1: fixSlot(m.team1), team2: fixSlot(m.team2), winnerName: resolveSeedName(m.winnerName) ?? undefined };
+    }), [bracket, resolveSeedName]);
+
     function computeAdvancedBracket(currentBracket: BracketMatch[], totalRounds: number): BracketMatch[] {
         const safeBracket = currentBracket.map(m => ({ ...m }));
         for (let r = totalRounds - 1; r > 0; r--) {
@@ -1313,6 +1342,7 @@ export function useTournamentLogic({
         groups, setGroups,
         matches, setMatches,
         bracket, setBracket,
+        resolvedBracket,
         present, setPresent,
         paid, setPaid,
         isPlayersModalOpen, setIsPlayersModalOpen,

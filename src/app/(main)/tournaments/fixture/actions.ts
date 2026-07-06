@@ -104,6 +104,24 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 }
             }
 
+            const saveTime = new Date();
+
+            // Preserve existing per-match timing across the delete+reinsert save.
+            // Keyed by id (stable UUIDs once the tournament is running).
+            const prevGroupTiming = new Map<string, { startedAt: Date | null; finishedAt: Date | null }>();
+            (await tx
+                .select({ id: groupMatches.id, startedAt: groupMatches.startedAt, finishedAt: groupMatches.finishedAt })
+                .from(groupMatches)
+                .where(eq(groupMatches.tournamentId, input.tournamentId)))
+                .forEach(r => prevGroupTiming.set(r.id, { startedAt: r.startedAt, finishedAt: r.finishedAt }));
+
+            const prevBracketTiming = new Map<string, { startedAt: Date | null; finishedAt: Date | null }>();
+            (await tx
+                .select({ id: bracketMatches.id, startedAt: bracketMatches.startedAt, finishedAt: bracketMatches.finishedAt })
+                .from(bracketMatches)
+                .where(eq(bracketMatches.tournamentId, input.tournamentId)))
+                .forEach(r => prevBracketTiming.set(r.id, { startedAt: r.startedAt, finishedAt: r.finishedAt }));
+
             // 1. Initial cleanup
             await tx.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
             await tx.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
@@ -134,6 +152,16 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     const s1 = (m.score1 !== undefined && m.score1 !== null) ? Number(m.score1) : null;
                     const s2 = (m.score2 !== undefined && m.score2 !== null) ? Number(m.score2) : null;
                     const isConfirmed = m.confirmed ? 1 : 0;
+                    // Confirmed always wins (a match may still carry an 'in_progress'
+                    // status from the client, e.g. Americano matches).
+                    const status = isConfirmed ? "finished" : (m.status || "pending");
+                    // "live" is the Americano vocabulary for in-progress.
+                    const isLive = status === "in_progress" || status === "live";
+                    const isDone = !!isConfirmed || status === "finished" || status === "completed";
+                    const prevTiming = prevGroupTiming.get(idToUse);
+                    // Keep the first start time; set finish only while done (cleared on reopen).
+                    const startedAt = prevTiming?.startedAt ?? ((isLive || isDone) ? saveTime : null);
+                    const finishedAt = isDone ? (prevTiming?.finishedAt ?? saveTime) : null;
 
                     return {
                         id: idToUse,
@@ -146,9 +174,11 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                         score1: s1,
                         score2: s2,
                         confirmed: isConfirmed as any,
-                        status: m.status || (isConfirmed ? "finished" : "pending"),
+                        status,
                         roundIndex: m.roundIndex !== undefined ? Number(m.roundIndex) : null,
                         courtNumber: m.courtNumber !== undefined ? Number(m.courtNumber) : null,
+                        startedAt,
+                        finishedAt,
                     };
                 });
                 
@@ -173,6 +203,13 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     const s1 = (bm.score1 !== undefined && bm.score1 !== null) ? Number(bm.score1) : null;
                     const s2 = (bm.score2 !== undefined && bm.score2 !== null) ? Number(bm.score2) : null;
                     const isConfirmed = bm.confirmed ? 1 : 0;
+                    const status = isConfirmed ? "finished" : (bm.status || "pending");
+                    // "live" is the Americano vocabulary for in-progress.
+                    const isLive = status === "in_progress" || status === "live";
+                    const isDone = !!isConfirmed || status === "finished" || status === "completed";
+                    const prevTiming = prevBracketTiming.get(idToUse);
+                    const startedAt = prevTiming?.startedAt ?? ((isLive || isDone) ? saveTime : null);
+                    const finishedAt = isDone ? (prevTiming?.finishedAt ?? saveTime) : null;
 
                     return {
                         id: idToUse,
@@ -186,9 +223,11 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                         score1: s1,
                         score2: s2,
                         confirmed: isConfirmed as any,
-                        status: isConfirmed ? "finished" : (bm.status || "pending"),
+                        status,
                         winnerId: bm.winnerId ?? null,
                         winnerName,
+                        startedAt,
+                        finishedAt,
                     };
                 });
                 if (bracketValues.length > 0) {
@@ -214,7 +253,6 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                 await awardTournamentPoints(input.tournamentId, input.bracket);
             }
 
-            const saveTime = new Date();
             await tx
                 .update(tournaments)
                 .set({
@@ -224,6 +262,8 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     ...(input.modalidad ? { modalidad: input.modalidad } : {}),
                     presentPlayerIds: input.presentPlayerIds || [],
                     paidPlayerIds: input.paidPlayerIds || [],
+                    // Stamp the moment the tournament is finalized (first time only).
+                    ...(input.phase === "finalizado" && prevT.status !== "finalizado" ? { finalizedAt: saveTime } : {}),
                 })
                 .where(eq(tournaments.id, input.tournamentId));
             if (!input.skipRevalidation) {
@@ -382,10 +422,15 @@ export async function finalizeTournament(id: string): Promise<{ ok: boolean; err
         if (!isAdmin && !isOwner) {
             throw new Error("No tenés permiso para finalizar este torneo");
         }
-        if (t.status !== "finalizado") {
+        const firstFinalize = t.status !== "finalizado";
+        if (firstFinalize) {
             await awardTournamentPoints(id);
         }
-        await db.update(tournaments).set({ status: "finalizado" }).where(eq(tournaments.id, id));
+        await db.update(tournaments).set({
+            status: "finalizado",
+            // Stamp finalize time once (used for total-duration stats).
+            ...(firstFinalize ? { finalizedAt: new Date() } : {}),
+        }).where(eq(tournaments.id, id));
         revalidatePath("/tournaments");
         revalidatePath(`/tournaments/${id}`);
         revalidatePath(`/tournaments/${id}/manage`);

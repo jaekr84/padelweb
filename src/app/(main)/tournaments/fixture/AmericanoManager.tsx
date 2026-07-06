@@ -841,9 +841,12 @@ export default function AmericanoManager({
             score2: 0,
             played: true,
             confirmed: false,
+            // Mark as in-progress the moment it hits a court, so the stats page can
+            // measure its duration (started now → finished on confirm).
+            status: "in_progress",
             courtNumber: courtNum,
             roundIndex: Math.floor(currentMatches.length / numCourts) // Rough round estimate
-        };
+        } as Match;
 
         const nextMatches = [...currentMatches, newMatch];
         updateMatchesState(nextMatches);

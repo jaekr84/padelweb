@@ -142,6 +142,12 @@ export default async function ResultadosPublicPage({ params }: Props) {
                         {tournament.name}
                     </h1>
                     <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                            href={`/tournaments/${id}/stats`}
+                            className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border bg-celeste/10 text-celeste border-celeste/20 hover:bg-celeste hover:text-white transition-all"
+                        >
+                            Estadísticas
+                        </Link>
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
                             tournament.status === "finalizado"
                                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"

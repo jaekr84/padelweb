@@ -41,6 +41,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
         groups, setGroups,
         matches, setMatches,
         bracket,
+        resolvedBracket,
         present, setPresent,
         paid, setPaid,
         isPlayersModalOpen, setIsPlayersModalOpen,
@@ -264,7 +265,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                         </div>
 
                                         <AmericanoPlayoffQueue
-                                            bracket={bracket}
+                                            bracket={resolvedBracket}
                                             readOnly={readOnly}
                                             saving={saving}
                                             handleBracketScore={handleBracketScore}
@@ -277,7 +278,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                         />
 
                                         <AmericanoBracketMirror
-                                            bracket={bracket}
+                                            bracket={resolvedBracket}
                                             readOnly={readOnly}
                                             saving={saving}
                                             handleBracketScore={handleBracketScore}

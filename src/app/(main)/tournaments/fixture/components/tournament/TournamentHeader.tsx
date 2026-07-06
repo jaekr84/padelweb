@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
     ArrowLeft, Users2, Swords, ChevronRight,
-    Check, RefreshCw, Settings, Eye
+    Check, RefreshCw, Settings, Eye, BarChart3
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -145,6 +145,15 @@ export function TournamentHeader({
                                     title="Ver resultados públicos"
                                 >
                                     <Eye className="w-3.5 h-3.5" />
+                                </Link>
+
+                                <Link
+                                    href={`/tournaments/${tournamentId}/stats`}
+                                    className="flex items-center gap-2 p-2 sm:px-3 rounded-xl bg-celeste/10 border border-celeste/20 text-celeste hover:bg-celeste hover:text-white transition-all"
+                                    title="Estadísticas del torneo"
+                                >
+                                    <BarChart3 className="w-3.5 h-3.5" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Estadísticas</span>
                                 </Link>
 
                                 <button

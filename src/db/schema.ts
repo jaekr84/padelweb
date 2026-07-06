@@ -84,6 +84,7 @@ export const tournaments = mysqlTable("tournaments", {
     presentPlayerIds: json("present_player_ids"),
     paidPlayerIds: json("paid_player_ids"),
     hasPoints: boolean("has_points").default(true),
+    finalizedAt: timestamp("finalized_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -130,6 +131,8 @@ export const groupMatches = mysqlTable("group_matches", {
     status: varchar("status", { length: 50 }).notNull().default("pending"),
     roundIndex: smallint("round_index"),
     courtNumber: smallint("court_number"),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     tournamentIdIdx: index("group_matches_tournament_id_idx").on(table.tournamentId),
@@ -151,6 +154,8 @@ export const bracketMatches = mysqlTable("bracket_matches", {
     status: varchar("status", { length: 50 }).notNull().default("pending"),
     winnerId: varchar("winner_id", { length: 256 }),
     winnerName: varchar("winner_name", { length: 256 }),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
     tournamentIdIdx: index("bracket_matches_tournament_id_idx").on(table.tournamentId),

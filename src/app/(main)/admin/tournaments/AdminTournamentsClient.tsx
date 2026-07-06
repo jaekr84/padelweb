@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Trophy, Edit, LayoutDashboard, Calendar as CalendarIcon,
     Search, ChevronDown, MoreVertical, MapPin, Plus, Activity,
-    Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag
+    Zap, Clock, CheckCircle, User, Users2, DollarSign, Settings, Trash2, Flag, BarChart3
 } from "lucide-react";
 import DeleteTournamentButton from "./DeleteTournamentButton";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
@@ -215,6 +215,12 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                                 <button className="h-7 flex items-center justify-center gap-1 px-2.5 bg-azul-primary hover:bg-azul-dark text-white border border-azul-primary/20 rounded-lg transition-all active:scale-95 group/btn shadow-sm" title="Ver Resultados">
                                     <Trophy className="w-2.5 h-2.5" />
                                     <span className="text-[7px] font-black uppercase tracking-widest leading-none">Resultados</span>
+                                </button>
+                            </Link>
+                            <Link href={`/tournaments/${tournament.id}/stats`} target="_blank" rel="noopener noreferrer">
+                                <button className="h-7 flex items-center justify-center gap-1 px-2.5 bg-celeste/10 hover:bg-celeste text-celeste hover:text-white border border-celeste/20 rounded-lg transition-all active:scale-95 group/btn shadow-sm" title="Ver Estadísticas (nueva ventana)">
+                                    <BarChart3 className="w-2.5 h-2.5" />
+                                    <span className="text-[7px] font-black uppercase tracking-widest leading-none">Estadísticas</span>
                                 </button>
                             </Link>
                             <TournamentPublishButton
