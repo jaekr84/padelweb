@@ -45,6 +45,7 @@ interface PlayerProfileClientProps {
     profileData: {
         player: any;
         stats: any;
+        advanced?: any;
         history: any[];
     };
     isOwnProfile: boolean;
@@ -93,7 +94,24 @@ export default function PlayerProfileClient({
     const pageSize = 12; // Denser display
     const history = profileData.history || [];
     const stats = profileData.stats || { pj: 0, pg: 0, pp: 0, wr: 0, trofeos: 0 };
+    const advanced = profileData.advanced || null;
     const player = profileData.player || dbUser;
+
+    // "1h 23m" / "23m 4s" / "45s"
+    const fmtDur = (ms: number | null | undefined) => {
+        if (ms == null || ms < 0) return "—";
+        const s = Math.round(ms / 1000);
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        if (m > 0) return `${m}m ${sec}s`;
+        return `${sec}s`;
+    };
+    // Always "Xh Ym" (total horas jugadas)
+    const fmtHM = (ms: number | null | undefined) => {
+        const total = (ms == null || ms < 0) ? 0 : ms;
+        const min = Math.round(total / 60000);
+        return `${Math.floor(min / 60)}h ${min % 60}m`;
+    };
 
     // Theme depends on formData gender for instant feedback if it's the own profile
     const currentGender = isOwnProfile ? formData.gender : player.gender;
@@ -630,6 +648,98 @@ export default function PlayerProfileClient({
                                         transition={{ duration: 0.25 }}
                                         className="bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden"
                                     >
+                                        {isOwnProfile && advanced && (
+                                            <div className="p-5 space-y-5 border-b border-border/60">
+                                                {/* Horas jugadas — total en todos los torneos */}
+                                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-celeste/25 bg-celeste/10 px-5 py-4">
+                                                    <div>
+                                                        <div className="text-[9px] font-black uppercase tracking-[0.2em] text-celeste/80">Horas jugadas en torneos</div>
+                                                        <div className="text-3xl md:text-4xl font-black italic tabular-nums text-celeste leading-none mt-1">{fmtHM(advanced.durations?.totalMs)}</div>
+                                                    </div>
+                                                    <Activity className="w-8 h-8 text-celeste/40" />
+                                                </div>
+
+                                                {/* KPIs de rendimiento */}
+                                                <div>
+                                                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Rendimiento</h3>
+                                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                                        {[
+                                                            { label: "Partidos", value: stats.pj, color: "text-foreground" },
+                                                            { label: "Ganados", value: stats.pg, color: "text-emerald-500" },
+                                                            { label: "Perdidos", value: stats.pp, color: "text-rojo" },
+                                                            { label: "Efectividad", value: `${stats.wr}%`, color: "text-celeste" },
+                                                            { label: "Torneos", value: advanced.torneosJugados, color: "text-foreground" },
+                                                            { label: "Títulos", value: advanced.titulos, color: "text-amber-500" },
+                                                        ].map((k, i) => (
+                                                            <div key={i} className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center">
+                                                                <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{k.label}</div>
+                                                                <div className={`text-lg font-black italic tabular-nums leading-none mt-1 ${k.color}`}>{k.value}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-2 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                                        <span>Games</span>
+                                                        <span className="text-emerald-500 tabular-nums">{advanced.gamesFor}</span>
+                                                        <span className="opacity-40">/</span>
+                                                        <span className="text-rojo tabular-nums">{advanced.gamesAgainst}</span>
+                                                        <span className="opacity-40">·</span>
+                                                        <span className={`tabular-nums ${advanced.gamesDiff >= 0 ? "text-emerald-500" : "text-rojo"}`}>
+                                                            {advanced.gamesDiff > 0 ? "+" : ""}{advanced.gamesDiff} dif
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Tiempos de partido */}
+                                                {advanced.durations && (
+                                                    <div>
+                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Tiempos de partido</h3>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            {[
+                                                                { label: "Promedio", value: fmtDur(advanced.durations.avgMs) },
+                                                                { label: "Más largo", value: fmtDur(advanced.durations.maxMs) },
+                                                                { label: "Más corto", value: fmtDur(advanced.durations.minMs) },
+                                                            ].map((k, i) => (
+                                                                <div key={i} className="bg-muted/20 border border-border/50 rounded-xl p-2.5 text-center">
+                                                                    <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{k.label}</div>
+                                                                    <div className="text-base font-black italic tabular-nums leading-none mt-1 text-celeste">{k.value}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-[8px] text-muted-foreground/60 font-bold mt-1.5">Sobre {advanced.durations.count} partido{advanced.durations.count === 1 ? "" : "s"} con tiempo registrado.</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Mejores parejas */}
+                                                {advanced.partners && advanced.partners.length > 0 && (
+                                                    <div>
+                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Mejores parejas</h3>
+                                                        <div className="rounded-xl border border-border/50 overflow-hidden">
+                                                            <table className="w-full text-left">
+                                                                <thead className="bg-muted/20 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">
+                                                                    <tr>
+                                                                        <th className="px-3 py-2">Compañero</th>
+                                                                        <th className="px-3 py-2 text-center">Jugados</th>
+                                                                        <th className="px-3 py-2 text-center">Ganados</th>
+                                                                        <th className="px-3 py-2 text-right">Efectividad</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-border/40">
+                                                                    {advanced.partners.slice(0, 8).map((p: any, i: number) => (
+                                                                        <tr key={i} className="hover:bg-muted/10">
+                                                                            <td className="px-3 py-2 text-[11px] font-black uppercase italic truncate">{p.name}</td>
+                                                                            <td className="px-3 py-2 text-center text-[11px] font-bold tabular-nums">{p.played}</td>
+                                                                            <td className="px-3 py-2 text-center text-[11px] font-bold tabular-nums text-emerald-500">{p.won}</td>
+                                                                            <td className="px-3 py-2 text-right text-[11px] font-black tabular-nums text-celeste">{p.wr}%</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         <div className="px-5 py-4 border-b border-border/60 bg-muted/15 flex items-center justify-between">
                                             <div>
                                                 <h2 className="text-sm font-black uppercase tracking-tighter italic text-foreground leading-none">Bitácora Oficial de Encuentros</h2>

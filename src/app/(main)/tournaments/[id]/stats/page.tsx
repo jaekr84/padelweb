@@ -16,12 +16,12 @@ export const revalidate = 0;
 const cleanPair = (name: string | null) =>
     (name || "").split(/[\/\+]/).map(n => n.trim()).filter(Boolean).join(" / ") || "—";
 
-const bracketRoundName = (round: number, totalRounds: number) => {
-    const fromEnd = totalRounds - round;
-    if (fromEnd === 1) return "Final";
-    if (fromEnd === 2) return "Semifinal";
-    if (fromEnd === 3) return "Cuartos";
-    if (fromEnd === 4) return "Octavos";
+const bracketRoundName = (round: number, _totalRounds: number) => {
+    // Winners advance from higher rounds to lower ones, so round 0 is the final.
+    if (round === 0) return "Final";
+    if (round === 1) return "Semifinal";
+    if (round === 2) return "Cuartos";
+    if (round === 3) return "Octavos";
     return `Ronda ${round + 1}`;
 };
 

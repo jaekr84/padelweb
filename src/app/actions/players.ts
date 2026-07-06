@@ -104,15 +104,72 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
         if (!user) return null;
 
         // --- TOURNAMENT PREP ---
-        const userRegistrations = await db.select({ id: registrations.id })
+        const userRegistrations = await db.select({
+            id: registrations.id,
+            userId: registrations.userId,
+            partnerUserId: registrations.partnerUserId,
+            partnerName: registrations.partnerName,
+            isGuestPartner: registrations.isGuestPartner,
+            tournamentId: registrations.tournamentId,
+        })
             .from(registrations)
             .where(or(
                 eq(registrations.userId, userId),
                 eq(registrations.partnerUserId, userId)
             ));
-        
+
         const regIds = userRegistrations.map(r => r.id);
         const allPossibleIds = [userId, ...regIds];
+        const regMap = new Map(userRegistrations.map(r => [r.id, r]));
+
+        // Names for partners who are registered users (the partner may be the
+        // registrant or the invited partner depending on who signed the pair up).
+        const partnerUserIds = new Set<string>();
+        userRegistrations.forEach(r => {
+            if (r.userId === userId && r.partnerUserId) partnerUserIds.add(r.partnerUserId);
+            else if (r.partnerUserId === userId && r.userId) partnerUserIds.add(r.userId);
+        });
+        const partnerUsers = partnerUserIds.size > 0
+            ? await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+                .from(users).where(inArray(users.id, [...partnerUserIds]))
+            : [];
+        const partnerNameMap = new Map(partnerUsers.map(u => [u.id, `${u.firstName || ""} ${u.lastName || ""}`.trim() || "Compañero"]));
+
+        // Resolve the profile user's partner for a given registration (pair) id.
+        const partnerForReg = (regId: string | null | undefined): { key: string; name: string } | null => {
+            if (!regId) return null;
+            const r = regMap.get(regId);
+            if (!r) return null;
+            if (r.partnerUserId === userId && r.userId) {
+                return { key: r.userId, name: partnerNameMap.get(r.userId) || "Compañero" };
+            }
+            if (r.partnerUserId) {
+                return { key: r.partnerUserId, name: (r.partnerName || partnerNameMap.get(r.partnerUserId) || "Compañero").trim() };
+            }
+            if (r.partnerName) return { key: `guest:${r.partnerName}`, name: r.partnerName };
+            return null; // individual / no partner
+        };
+        const myRegIdFor = (t1: string | null, t2: string | null): string | null =>
+            regIds.includes(t1 || "") ? t1 : (regIds.includes(t2 || "") ? t2 : null);
+
+        // Advanced accumulators
+        let gamesFor = 0, gamesAgainst = 0;
+        const durations: number[] = [];
+        const partnerAgg = new Map<string, { name: string; played: number; won: number }>();
+        const tournamentIdSet = new Set<string>();
+        let titulos = 0;
+        const addPartnerResult = (regId: string | null, isWin: boolean) => {
+            const p = partnerForReg(regId);
+            if (!p) return;
+            const agg = partnerAgg.get(p.key) || { name: p.name, played: 0, won: 0 };
+            agg.played++; if (isWin) agg.won++;
+            partnerAgg.set(p.key, agg);
+        };
+        const addDuration = (startedAt: any, finishedAt: any) => {
+            if (!startedAt || !finishedAt) return;
+            const d = new Date(finishedAt).getTime() - new Date(startedAt).getTime();
+            if (d > 0) durations.push(d);
+        };
 
         // 1. Group Matches
         const gMatches = await db.select({
@@ -180,6 +237,12 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
 
             if (isWin) pg++; else pp++;
 
+            // Advanced: games, duration, partner, tournaments played
+            gamesFor += myScore || 0; gamesAgainst += opScore || 0;
+            tournamentIdSet.add(m.match.tournamentId);
+            addDuration(m.match.startedAt, m.match.finishedAt);
+            addPartnerResult(myRegIdFor(m.match.team1Id, m.match.team2Id), isWin);
+
             history.push({
                 id: m.match.id,
                 tournament: m.tournamentName,
@@ -205,10 +268,17 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
 
             if (isWin) {
                 pg++;
-                if (m.match.round === 1) trofeos++; 
+                if (m.match.round === 1) trofeos++;
             } else {
                 pp++;
             }
+
+            // Advanced: games, duration, partner, tournaments played, titles (final = round 0)
+            gamesFor += myScore || 0; gamesAgainst += opScore || 0;
+            tournamentIdSet.add(m.match.tournamentId);
+            addDuration(m.match.startedAt, m.match.finishedAt);
+            addPartnerResult(myRegIdFor(m.match.team1Id, m.match.team2Id), isWin);
+            if (m.match.round === 0 && isWin) titulos++;
 
             history.push({
                 id: m.match.id,
@@ -271,6 +341,18 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
 
         const wr = pj > 0 ? Math.round((pg / pj) * 100) : 0;
 
+        const partners = [...partnerAgg.values()]
+            .map(p => ({ ...p, wr: p.played > 0 ? Math.round((p.won / p.played) * 100) : 0 }))
+            .sort((a, b) => (b.wr - a.wr) || (b.played - a.played) || a.name.localeCompare(b.name));
+
+        const durationStats = durations.length > 0 ? {
+            count: durations.length,
+            avgMs: Math.round(durations.reduce((s, d) => s + d, 0) / durations.length),
+            maxMs: Math.max(...durations),
+            minMs: Math.min(...durations),
+            totalMs: durations.reduce((s, d) => s + d, 0),
+        } : null;
+
         return {
             player: {
                 firstName: user.firstName || "",
@@ -283,6 +365,15 @@ export async function getPlayerProfileData(userId: string, limit?: number) {
             },
             stats: {
                 pj, pg, pp, wr, trofeos
+            },
+            advanced: {
+                gamesFor,
+                gamesAgainst,
+                gamesDiff: gamesFor - gamesAgainst,
+                torneosJugados: tournamentIdSet.size,
+                titulos,
+                partners,
+                durations: durationStats,
             },
             history: limit ? sortedHistory.slice(0, limit) : sortedHistory
         };
