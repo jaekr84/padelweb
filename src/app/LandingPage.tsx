@@ -13,13 +13,13 @@ const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
         opacity: 1,
-        transition: { staggerChildren: 0.12 }
+        transition: { staggerChildren: 0.08 }
     }
 };
 
 const fadeUp: Variants = {
-    hidden: { opacity: 0, y: 40, filter: "blur(8px)" },
-    show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, y: 24 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
 };
 
 const fadeIn: Variants = {
@@ -281,7 +281,7 @@ export default function LandingPage({
                 <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, margin: "-80px" }}
+                    viewport={{ once: true, amount: 0.15 }}
                     variants={staggerContainer}
                     className="grid grid-cols-3 gap-6 md:gap-0 border border-white/[0.06] rounded-3xl overflow-hidden bg-white/[0.02] backdrop-blur-sm divide-x divide-white/[0.06]"
                 >
@@ -308,7 +308,7 @@ export default function LandingPage({
                 <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, margin: "-80px" }}
+                    viewport={{ once: true, amount: 0.15 }}
                     variants={staggerContainer}
                     className="mb-12 text-center"
                 >
@@ -323,7 +323,7 @@ export default function LandingPage({
                 <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, margin: "-60px" }}
+                    viewport={{ once: true, amount: 0.1 }}
                     variants={staggerContainer}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[230px] md:auto-rows-[260px]"
                 >
@@ -434,7 +434,7 @@ export default function LandingPage({
                 <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, margin: "-80px" }}
+                    viewport={{ once: true, amount: 0.15 }}
                     variants={staggerContainer}
                     className="grid grid-cols-1 md:grid-cols-3 gap-6"
                 >
@@ -552,7 +552,7 @@ export default function LandingPage({
                             key={i}
                             initial={{ opacity: 0, x: dir.x }}
                             whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: "-60px" }}
+                            viewport={{ once: true, amount: 0.1 }}
                             transition={{ duration: 0.7, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                             className={`glass-card p-5 rounded-2xl flex gap-4 w-full md:w-[80%] ${offset} ${rotate}`}
                         >
@@ -581,7 +581,7 @@ export default function LandingPage({
                 <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, margin: "-80px" }}
+                    viewport={{ once: true, amount: 0.15 }}
                     variants={staggerContainer}
                     className="max-w-3xl mx-auto text-center relative z-10"
                 >

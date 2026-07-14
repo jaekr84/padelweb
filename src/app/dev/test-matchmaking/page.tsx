@@ -279,7 +279,7 @@ function runAmericano(): Suite {
             <SampleBox title="Ejemplo: 6 jugadores · 2 partidos c/u · 2 canchas">
                 {rounds.map(r => (
                     <div key={r} className="mb-2">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Ronda {r + 1}</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Ronda {r + 1}</div>
                         {sched.filter(m => m.roundIndex === r).map(m => (
                             <MatchRow key={m.id} t1={[m.team1.id]} t2={[m.team2.id]} meta={`cancha ${m.courtNumber}`} />
                         ))}
@@ -360,12 +360,12 @@ function runGroups(): Suite {
             <SampleBox title="Ejemplo: 4 clubes × 4 jugadores → 4 grupos">
                 <div className="grid grid-cols-2 gap-2">
                     {groups.map(g => (
-                        <div key={g.id} className="border border-border/50 rounded-lg p-2">
+                        <div key={g.id} className="border border-white/10 rounded-lg p-2">
                             <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1">{g.name}</div>
                             {g.players.map(p => (
-                                <div key={p.id} className="text-[11px] text-foreground/80 flex justify-between">
+                                <div key={p.id} className="text-[11px] text-slate-200 flex justify-between">
                                     <span>{(p as { name: string }).name}</span>
-                                    <span className="text-muted-foreground">{p.clubId}</span>
+                                    <span className="text-slate-400">{p.clubId}</span>
                                 </div>
                             ))}
                         </div>
@@ -527,11 +527,11 @@ function runStandings(): Suite {
         sample: (
             <SampleBox title="Ejemplo: tabla de un grupo de 3">
                 <div className="text-[11px]">
-                    <div className="grid grid-cols-5 gap-1 font-black uppercase tracking-wider text-muted-foreground text-[9px] mb-1">
+                    <div className="grid grid-cols-5 gap-1 font-black uppercase tracking-wider text-slate-400 text-[9px] mb-1">
                         <span>Pos</span><span>Jugador</span><span>PG</span><span>PP</span><span>Dif</span>
                     </div>
                     {table.map((s, i) => (
-                        <div key={s.playerId} className="grid grid-cols-5 gap-1 text-foreground/80 py-0.5">
+                        <div key={s.playerId} className="grid grid-cols-5 gap-1 text-slate-200 py-0.5">
                             <span>{i + 1}º</span><span>{(s.player as SP).name}</span>
                             <span>{s.won}</span><span>{s.lost}</span><span>{s.points > 0 ? "+" : ""}{s.points}</span>
                         </div>
@@ -661,21 +661,21 @@ function GuidedExample() {
 
     return (
         <div className="space-y-5">
-            <div className="text-sm text-muted-foreground">
-                Torneo de ejemplo: <strong className="text-foreground">12 jugadores · 4 grupos de 3 · clasifican los 2 primeros de cada grupo · llave de 8</strong>.
-                Con los resultados de abajo, el sistema <strong className="text-foreground">debería</strong> producir exactamente lo que se muestra. Si en un torneo real ves algo distinto con estos mismos resultados, ahí sí hay un problema.
+            <div className="text-sm text-slate-400">
+                Torneo de ejemplo: <strong className="text-white">12 jugadores · 4 grupos de 3 · clasifican los 2 primeros de cada grupo · llave de 8</strong>.
+                Con los resultados de abajo, el sistema <strong className="text-white">debería</strong> producir exactamente lo que se muestra. Si en un torneo real ves algo distinto con estos mismos resultados, ahí sí hay un problema.
             </div>
 
             {/* Paso 1: grupos */}
             <GuidedStep n={1} title="Armado de grupos (balanceando clubes)">
-                <p className="text-xs text-muted-foreground mb-2">Cada grupo tiene 3 jugadores de <strong>clubes distintos</strong> (criterio: no juntar gente del mismo club).</p>
+                <p className="text-xs text-slate-400 mb-2">Cada grupo tiene 3 jugadores de <strong>clubes distintos</strong> (criterio: no juntar gente del mismo club).</p>
                 <div className="grid grid-cols-2 gap-2">
                     {GUIDED_GROUPS.map(g => (
-                        <div key={g.name} className="border border-border/50 rounded-lg p-2">
+                        <div key={g.name} className="border border-white/10 rounded-lg p-2">
                             <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1">{g.name}</div>
                             {g.players.map(p => (
-                                <div key={p.id} className="text-[11px] text-foreground/80 flex justify-between">
-                                    <span>{p.name}</span><span className="text-muted-foreground">{p.club}</span>
+                                <div key={p.id} className="text-[11px] text-slate-200 flex justify-between">
+                                    <span>{p.name}</span><span className="text-slate-400">{p.club}</span>
                                 </div>
                             ))}
                         </div>
@@ -685,12 +685,12 @@ function GuidedExample() {
 
             {/* Paso 2: resultados + tabla */}
             <GuidedStep n={2} title="Resultados de cada grupo → tabla de posiciones">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-slate-400 mb-2">
                     Orden: 1º por <strong>partidos ganados</strong>, luego <strong>diferencia de games</strong>, y si dos quedan iguales, <strong>quién le ganó a quién</strong>.
                 </p>
                 <div className="space-y-3">
                     {groupTables.map(({ group, matches, table }) => (
-                        <div key={group.name} className="border border-border/50 rounded-lg p-2.5">
+                        <div key={group.name} className="border border-white/10 rounded-lg p-2.5">
                             <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1.5">{group.name}</div>
                             <div className="mb-2">
                                 {matches.map((m, i) => (
@@ -713,10 +713,10 @@ function GuidedExample() {
 
             {/* Paso 3: siembra */}
             <GuidedStep n={3} title="Siembra de la llave (protección de grupo)">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-slate-400 mb-2">
                     Los 1ros de grupo entran como mejores cabezas de serie. El cruce se arma para que <strong>nadie enfrente a un compañero de su mismo grupo en la primera ronda</strong>.
                 </p>
-                <div className="border border-border/50 rounded-lg p-2.5">
+                <div className="border border-white/10 rounded-lg p-2.5">
                     <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1.5">Cuartos de final</div>
                     {pairs.map(p => (
                         <MatchRow
@@ -731,7 +731,7 @@ function GuidedExample() {
 
             {/* Paso 4: resolución del cuadro */}
             <GuidedStep n={4} title="Se juega la llave → campeón">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-slate-400 mb-2">
                     En este ejemplo asumimos que <strong>siempre gana el mejor sembrado</strong> (menor número de seed), con resultados de muestra, para que puedas seguir la lógica.
                 </p>
                 <div className="space-y-2">
@@ -740,8 +740,8 @@ function GuidedExample() {
                     <BracketRound title="Final" matches={[final]} />
                 </div>
                 <div className="mt-3 p-3 rounded-xl bg-celeste/10 border border-celeste/30 text-center">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Campeón</div>
-                    <div className="text-lg font-black italic text-celeste">🏆 {champion.name} <span className="text-xs text-muted-foreground">({champion.club})</span></div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Campeón</div>
+                    <div className="text-lg font-black italic text-celeste">🏆 {champion.name} <span className="text-xs text-slate-400">({champion.club})</span></div>
                 </div>
             </GuidedStep>
         </div>
@@ -750,7 +750,7 @@ function GuidedExample() {
 
 function GuidedStep({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
     return (
-        <div className="border border-border/40 rounded-xl p-4 bg-muted/10">
+        <div className="border border-white/10 rounded-xl p-4 bg-white/[0.03]">
             <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 rounded-full bg-celeste text-white text-xs font-black flex items-center justify-center shrink-0">{n}</span>
                 <h3 className="text-sm font-black uppercase tracking-tight">{title}</h3>
@@ -763,11 +763,11 @@ function GuidedStep({ n, title, children }: { n: number; title: string; children
 function StandingsTable({ rows }: { rows: { pos: number; name: string; won: number; lost: number; diff: number; qualifies: boolean }[] }) {
     return (
         <div className="text-[11px]">
-            <div className="grid grid-cols-[2rem_1fr_2rem_2rem_3rem] gap-1 font-black uppercase tracking-wider text-muted-foreground text-[9px] mb-0.5">
+            <div className="grid grid-cols-[2rem_1fr_2rem_2rem_3rem] gap-1 font-black uppercase tracking-wider text-slate-400 text-[9px] mb-0.5">
                 <span>Pos</span><span>Jugador</span><span>PG</span><span>PP</span><span>Dif</span>
             </div>
             {rows.map(r => (
-                <div key={r.pos} className={`grid grid-cols-[2rem_1fr_2rem_2rem_3rem] gap-1 py-0.5 ${r.qualifies ? "text-emerald-500 font-bold" : "text-foreground/70"}`}>
+                <div key={r.pos} className={`grid grid-cols-[2rem_1fr_2rem_2rem_3rem] gap-1 py-0.5 ${r.qualifies ? "text-emerald-500 font-bold" : "text-slate-300"}`}>
                     <span>{r.pos}º{r.qualifies ? " ✓" : ""}</span><span>{r.name}</span>
                     <span>{r.won}</span><span>{r.lost}</span><span>{r.diff > 0 ? "+" : ""}{r.diff}</span>
                 </div>
@@ -778,15 +778,15 @@ function StandingsTable({ rows }: { rows: { pos: number; name: string; won: numb
 
 function BracketRound({ title, matches }: { title: string; matches: { p1: { player: GP; seed: number }; p2: { player: GP; seed: number }; s1: number; s2: number }[] }) {
     return (
-        <div className="border border-border/50 rounded-lg p-2.5">
+        <div className="border border-white/10 rounded-lg p-2.5">
             <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1.5">{title}</div>
             {matches.map((m, i) => {
                 const p1Wins = m.s1 > m.s2;
                 return (
                     <div key={i} className="flex items-center justify-between gap-2 text-[11px] py-0.5">
-                        <span className={`text-right flex-1 ${p1Wins ? "text-foreground font-bold" : "text-muted-foreground"}`}>{m.p1.player.name}</span>
-                        <span className="text-foreground/90 font-black px-2 whitespace-nowrap">{m.s1}-{m.s2}</span>
-                        <span className={`flex-1 ${!p1Wins ? "text-foreground font-bold" : "text-muted-foreground"}`}>{m.p2.player.name}</span>
+                        <span className={`text-right flex-1 ${p1Wins ? "text-white font-bold" : "text-slate-400"}`}>{m.p1.player.name}</span>
+                        <span className="text-slate-100 font-black px-2 whitespace-nowrap">{m.s1}-{m.s2}</span>
+                        <span className={`flex-1 ${!p1Wins ? "text-white font-bold" : "text-slate-400"}`}>{m.p2.player.name}</span>
                     </div>
                 );
             })}
@@ -797,8 +797,8 @@ function BracketRound({ title, matches }: { title: string; matches: { p1: { play
 // ── UI compartida ──
 function SampleBox({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <div className="mt-4 border border-border/40 rounded-xl p-3 bg-muted/20">
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">{title}</div>
+        <div className="mt-4 border border-white/10 rounded-xl p-3 bg-white/5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{title}</div>
             {children}
         </div>
     );
@@ -807,10 +807,10 @@ function SampleBox({ title, children }: { title: string; children: React.ReactNo
 function MatchRow({ t1, t2, meta }: { t1: string[]; t2: string[]; meta?: string }) {
     return (
         <div className="flex items-center justify-between gap-2 text-[11px] py-0.5">
-            <span className="text-foreground/90 font-medium text-right flex-1">{t1.join(" / ")}</span>
-            <span className="text-muted-foreground text-[9px] font-black px-1">vs</span>
-            <span className="text-foreground/90 font-medium flex-1">{t2.join(" / ")}</span>
-            {meta && <span className="text-muted-foreground text-[9px] whitespace-nowrap">{meta}</span>}
+            <span className="text-slate-100 font-medium text-right flex-1">{t1.join(" / ")}</span>
+            <span className="text-slate-400 text-[9px] font-black px-1">vs</span>
+            <span className="text-slate-100 font-medium flex-1">{t2.join(" / ")}</span>
+            {meta && <span className="text-slate-400 text-[9px] whitespace-nowrap">{meta}</span>}
         </div>
     );
 }
@@ -846,11 +846,11 @@ export default function TestMatchmakingPage() {
     const allPass = fails === 0 && warns === 0;
 
     return (
-        <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
+        <div className="min-h-screen bg-grid-carbon text-white p-4 md:p-8">
             <div className="max-w-[1700px] mx-auto">
                 <div className="mb-6">
                     <h1 className="text-2xl font-black italic uppercase tracking-tighter">Test de criterios de armado</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-slate-400 mt-1">
                         Verifica la lógica real de <code className="text-celeste">@/lib/matchmaking</code> con jugadores sintéticos. No usa la base de datos.
                     </p>
                 </div>
@@ -863,7 +863,7 @@ export default function TestMatchmakingPage() {
                             onClick={() => setActive(t.id)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-colors border ${active === t.id
                                 ? "bg-celeste text-white border-celeste"
-                                : "bg-muted/30 text-foreground/70 border-border/40 hover:bg-muted/50"
+                                : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"
                                 }`}
                         >
                             {t.label}
@@ -887,7 +887,7 @@ export default function TestMatchmakingPage() {
                             </div>
                             <button
                                 onClick={() => setRunKey(k => k + 1)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest bg-muted/30 border border-border/40 hover:bg-muted/50"
+                                className="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest bg-white/5 border border-white/10 hover:bg-white/10"
                             >
                                 Re-ejecutar
                             </button>
@@ -909,8 +909,8 @@ export default function TestMatchmakingPage() {
                                         {c.status === "pass" ? "✓" : c.status === "warn" ? "⚠" : "✗"}
                                     </span>
                                     <div className="min-w-0">
-                                        <div className="text-sm text-foreground/90">{c.name}</div>
-                                        {c.detail && <div className="text-[11px] text-muted-foreground mt-0.5 break-words font-mono">{c.detail}</div>}
+                                        <div className="text-sm text-slate-100">{c.name}</div>
+                                        {c.detail && <div className="text-[11px] text-slate-400 mt-0.5 break-words font-mono">{c.detail}</div>}
                                     </div>
                                 </div>
                             ))}

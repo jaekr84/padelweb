@@ -588,7 +588,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Live Dashboard</span>
                             <div className={`w-1.5 h-1.5 rounded-full bg-rojo animate-pulse`} />
                         </div>
-                        <h1 className="text-xl font-black uppercase italic tracking-tight text-foreground leading-none">
+                        <h1 className="text-xl heading-sport text-foreground leading-none">
                             {event.name}
                         </h1>
                         <div className="flex items-center gap-3 mt-1.5">

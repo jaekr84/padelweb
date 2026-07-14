@@ -270,21 +270,21 @@ export default async function TournamentsPage({
 
     return (
         <>
-            <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-azul-primary/30">
+            <div className="min-h-screen bg-grid-carbon text-white pb-24 font-sans selection:bg-volt/30">
 
                 {/* Public Header (unauthenticated) */}
                 {!userId && (
-                    <div className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200">
+                    <div className="sticky top-0 z-50 w-full bg-carbon-950/90 backdrop-blur-xl border-b border-white/10">
                         <div className="w-full max-w-[1800px] mx-auto px-6 h-14 flex items-center justify-between">
                             <Link href="/" className="flex items-center gap-2 group">
-                                <div className="w-7 h-7 rounded-full border border-azul-primary/40 overflow-hidden shrink-0">
+                                <div className="w-7 h-7 rounded-full border border-white/20 overflow-hidden shrink-0">
                                     <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                                 </div>
-                                <span className="font-black italic tracking-tighter text-sm uppercase text-slate-900">A.C.A.P.</span>
+                                <span className="heading-sport text-sm text-white">A.C.A.P.</span>
                             </Link>
                             <div className="flex items-center gap-3">
-                                <Link href="/login" className="text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">Login</Link>
-                                <Link href="/" className="px-3.5 py-1.5 bg-azul-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-azul-dark transition-all">Volver</Link>
+                                <Link href="/login" className="label-tech text-[9px] text-slate-400 hover:text-white transition-colors">Login</Link>
+                                <Link href="/" className="px-3.5 py-1.5 bg-azul-primary text-white rounded-lg label-tech text-[9px] hover:bg-azul-dark transition-all">Volver</Link>
                             </div>
                         </div>
                     </div>
@@ -292,23 +292,23 @@ export default async function TournamentsPage({
 
                 <div className="relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
 
-                    {/* ── HERO HEADER (light) ── */}
-                    <div className="relative mb-5 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    {/* ── HERO HEADER (Match Night) ── */}
+                    <div className="relative mb-5 overflow-hidden clip-notch bg-carbon-900 border border-white/10">
+                        {/* Speed stripes */}
+                        <div className="absolute inset-y-0 right-0 w-1/2 bg-stripes text-white opacity-[0.03] pointer-events-none" />
                         {/* Glow orbs */}
-                        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-azul-primary/8 blur-3xl pointer-events-none" />
-                        <div className="absolute bottom-0 -left-10 w-56 h-40 rounded-full bg-celeste/8 blur-3xl pointer-events-none" />
-                        {/* Top accent stripe */}
-                        <div className="absolute top-0 left-0 h-1 w-32 bg-gradient-to-r from-azul-primary to-celeste rounded-tl-2xl" />
+                        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-azul-primary/15 blur-3xl pointer-events-none" />
+                        <div className="absolute bottom-0 -left-10 w-56 h-40 rounded-full bg-volt/5 blur-3xl pointer-events-none" />
 
                         <div className="relative px-5 pt-5 pb-4">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-[3px] h-5 bg-azul-primary rounded-full" />
-                                        <span className="text-[9px] font-black uppercase tracking-[0.4em] text-azul-primary">A.C.A.P.</span>
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">· Circuito Oficial</span>
+                                        <div className="w-[3px] h-5 bg-volt rounded-full" />
+                                        <span className="label-tech text-[9px] text-volt">A.C.A.P.</span>
+                                        <span className="label-tech text-[9px] text-slate-500">· Circuito Oficial</span>
                                     </div>
-                                    <h1 className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+                                    <h1 className="heading-sport text-5xl md:text-6xl text-white">
                                         Torneos
                                     </h1>
                                 </div>
@@ -316,7 +316,7 @@ export default async function TournamentsPage({
                                 {(session?.role === 'superadmin' || session?.role === 'admin' || session?.role === 'club') && (
                                     <Link
                                         href="/tournaments/create"
-                                        className="shrink-0 flex items-center gap-1.5 bg-azul-primary hover:bg-azul-dark text-white px-3.5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-azul-primary/20 h-9 mt-1"
+                                        className="shrink-0 flex items-center gap-1.5 clip-notch bg-rojo hover:bg-rojo-dark text-white px-4 py-2 label-tech text-[9px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rojo/30 h-9 mt-1"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         <span className="hidden sm:inline">Crear Torneo</span>
@@ -325,25 +325,28 @@ export default async function TournamentsPage({
                             </div>
 
                             {/* KPI strip */}
-                            <div className="flex items-center gap-5 md:gap-8 mt-4 pt-4 border-t border-slate-200">
+                            <div className="flex items-center gap-5 md:gap-8 mt-4 pt-4 border-t border-white/10">
                                 <div>
-                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-slate-400 leading-none mb-1.5">Total</p>
-                                    <p className="text-2xl font-black text-slate-900 italic leading-none">{totalC}</p>
+                                    <p className="label-tech text-[7px] text-slate-500 leading-none mb-1.5">Total</p>
+                                    <p className="text-scoreboard text-2xl text-white leading-none">{totalC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div className="w-px h-8 bg-white/10 shrink-0" />
                                 <div>
-                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-rojo/70 leading-none mb-1.5">En Vivo</p>
-                                    <p className={`text-2xl font-black italic leading-none ${liveC > 0 ? 'text-rojo' : 'text-slate-300'}`}>{liveC}</p>
+                                    <p className="label-tech text-[7px] text-live/80 leading-none mb-1.5 flex items-center gap-1.5">
+                                        {liveC > 0 && <span className="live-dot !w-1.5 !h-1.5" />}
+                                        En Vivo
+                                    </p>
+                                    <p className={`text-scoreboard text-2xl leading-none ${liveC > 0 ? 'text-live' : 'text-slate-600'}`}>{liveC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div className="w-px h-8 bg-white/10 shrink-0" />
                                 <div>
-                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-green-600/70 leading-none mb-1.5">Inscripción</p>
-                                    <p className={`text-2xl font-black italic leading-none ${openC > 0 ? 'text-green-600' : 'text-slate-300'}`}>{openC}</p>
+                                    <p className="label-tech text-[7px] text-volt/80 leading-none mb-1.5">Inscripción</p>
+                                    <p className={`text-scoreboard text-2xl leading-none ${openC > 0 ? 'text-volt' : 'text-slate-600'}`}>{openC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-slate-200 shrink-0" />
+                                <div className="w-px h-8 bg-white/10 shrink-0" />
                                 <div>
-                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-slate-400 leading-none mb-1.5">Finalizados</p>
-                                    <p className="text-2xl font-black text-slate-300 italic leading-none">{finishedC}</p>
+                                    <p className="label-tech text-[7px] text-slate-500 leading-none mb-1.5">Finalizados</p>
+                                    <p className="text-scoreboard text-2xl text-slate-600 leading-none">{finishedC}</p>
                                 </div>
                             </div>
                         </div>
@@ -370,18 +373,18 @@ export default async function TournamentsPage({
                                 <div className="flex items-center gap-1">
                                     <Link
                                         href={prevMonthUrl}
-                                        className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-azul-primary/50 hover:text-azul-primary hover:bg-azul-primary/5 transition-all shadow-sm"
+                                        className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:border-volt/50 hover:text-volt hover:bg-volt/5 transition-all"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </Link>
-                                    <div className="px-3 h-8 rounded-lg border border-azul-primary/30 bg-azul-primary/5 flex items-center">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-azul-primary capitalize">
+                                    <div className="px-3 h-8 rounded-lg border border-volt/30 bg-volt/10 flex items-center">
+                                        <span className="label-tech text-[10px] text-volt capitalize">
                                             {getMonthLabel(selectedMonth)}
                                         </span>
                                     </div>
                                     <Link
                                         href={nextMonthUrl}
-                                        className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:border-azul-primary/50 hover:text-azul-primary hover:bg-azul-primary/5 transition-all shadow-sm"
+                                        className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:border-volt/50 hover:text-volt hover:bg-volt/5 transition-all"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </Link>
@@ -389,7 +392,7 @@ export default async function TournamentsPage({
                                 {/* Ver todos link */}
                                 <Link
                                     href={allMonthsUrl}
-                                    className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-azul-primary transition-colors"
+                                    className="label-tech text-[9px] text-slate-500 hover:text-volt transition-colors"
                                 >
                                     Ver todos
                                 </Link>
@@ -397,14 +400,14 @@ export default async function TournamentsPage({
                         ) : (
                             /* "Todos" mode: show link to go back to current month */
                             <div className="flex items-center gap-3 w-full">
-                                <div className="w-[3px] h-4 bg-azul-primary/60 rounded-full shrink-0" />
-                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                <div className="w-[3px] h-4 bg-volt/60 rounded-full shrink-0" />
+                                <span className="label-tech text-[9px] text-slate-500">
                                     Todos los torneos
                                 </span>
-                                <div className="h-px flex-1 bg-slate-200" />
+                                <div className="h-px flex-1 bg-white/10" />
                                 <Link
                                     href={currentMonthUrl}
-                                    className="text-[9px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-dark transition-colors shrink-0"
+                                    className="label-tech text-[9px] text-volt hover:text-volt-dark transition-colors shrink-0"
                                 >
                                     Mes actual
                                 </Link>
@@ -415,21 +418,21 @@ export default async function TournamentsPage({
                     {/* ── Tournament list ── */}
                     {filteredTournaments.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                                <Trophy className="w-6 h-6 text-slate-300" />
+                            <div className="w-14 h-14 bg-carbon-800 border border-white/10 clip-notch flex items-center justify-center mb-4">
+                                <Trophy className="w-6 h-6 text-slate-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase italic text-slate-500 mb-1.5 tracking-tight">Sin torneos</h3>
-                            <p className="text-slate-400 text-xs max-w-[200px] leading-relaxed mb-4">
+                            <h3 className="heading-sport text-sm text-slate-400 mb-1.5">Sin torneos</h3>
+                            <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed mb-4">
                                 {isMonthView
                                     ? `No hay torneos en ${getMonthLabel(selectedMonth)}.`
                                     : `No hay torneos con estos filtros.`}
                             </p>
                             {isMonthView && (
                                 <div className="flex items-center gap-2">
-                                    <Link href={prevMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-azul-primary/40 hover:text-azul-primary transition-all shadow-sm">
+                                    <Link href={prevMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-white/10 bg-white/5 label-tech text-[9px] text-slate-300 hover:border-volt/40 hover:text-volt transition-all">
                                         <ChevronLeft className="w-3 h-3" /> Anterior
                                     </Link>
-                                    <Link href={nextMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-azul-primary/40 hover:text-azul-primary transition-all shadow-sm">
+                                    <Link href={nextMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-white/10 bg-white/5 label-tech text-[9px] text-slate-300 hover:border-volt/40 hover:text-volt transition-all">
                                         Siguiente <ChevronRight className="w-3 h-3" />
                                     </Link>
                                 </div>
@@ -479,11 +482,11 @@ export default async function TournamentsPage({
                                 return sortedMonthKeys.map(month => (
                                     <div key={month} className="space-y-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-[3px] h-4 bg-azul-primary/60 rounded-full shrink-0" />
-                                            <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap capitalize">
+                                            <div className="w-[3px] h-4 bg-volt/60 rounded-full shrink-0" />
+                                            <h2 className="label-tech text-[9px] text-slate-500 whitespace-nowrap capitalize">
                                                 {month}
                                             </h2>
-                                            <div className="h-px flex-1 bg-slate-200" />
+                                            <div className="h-px flex-1 bg-white/10" />
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                             {groups[month].map((t) => (

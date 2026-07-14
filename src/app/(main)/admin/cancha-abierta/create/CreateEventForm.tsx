@@ -70,7 +70,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                     </Link>
                     <div>
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-azul-primary">Nuevo Evento</p>
-                        <h1 className="text-xl font-black uppercase italic tracking-tight text-foreground leading-none">
+                        <h1 className="text-xl heading-sport text-foreground leading-none">
                             Configuración de <span className="text-azul-primary">Cancha Abierta</span>
                         </h1>
                     </div>

@@ -65,7 +65,7 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
 
   return (
     <div className="flex gap-2 group/comment">
-      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 overflow-hidden shrink-0 relative mt-0.5">
+      <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 overflow-hidden shrink-0 relative mt-0.5">
         {comment.user.imageUrl ? (
           <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
         ) : (
@@ -75,9 +75,9 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
         )}
       </div>
       <div className="flex-1 flex flex-col gap-0.5">
-        <div className="bg-slate-50/50 rounded-xl py-2 px-3.5 border border-slate-100 relative group-hover/comment:border-slate-200 transition-colors">
+        <div className="bg-white/[0.03] rounded-xl py-2 px-3.5 border border-white/10 relative group-hover/comment:border-white/10 transition-colors">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-black uppercase italic tracking-tighter text-slate-900 leading-tight">
+            <span className="text-xs font-black uppercase italic tracking-tighter text-white leading-tight">
               {comment.user.name}
             </span>
             {isOwner && (
@@ -106,7 +106,7 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
               <input
                 value={editText}
                 onChange={(e) => setEditText(capitalizeFirstLetter(e.target.value))}
-                className="w-full bg-transparent border-none outline-none text-sm text-slate-900"
+                className="w-full bg-transparent border-none outline-none text-sm text-white"
                 autoFocus
               />
               <div className="flex justify-end gap-2">

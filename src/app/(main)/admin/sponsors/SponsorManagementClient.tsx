@@ -211,16 +211,16 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
     return (
         <div className="max-w-5xl mx-auto space-y-12 pb-24 font-sans">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border pb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-10">
                 <div className="space-y-1">
                     <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-celeste transition-colors mb-4 group">
                         <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                         Volver al Panel
                     </Link>
-                    <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-foreground">
+                    <h1 className="text-4xl md:text-5xl heading-sport text-white">
                         Gestión de <span className="text-azul-primary italic">Sponsors</span>
                     </h1>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
                         Administrá las marcas que acompañan a ACAP.
                     </p>
                 </div>
@@ -238,9 +238,9 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
             {/* Add Sponsor Form */}
             {isAdding && (
                 <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="bg-card border border-border rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+                    <div className="bg-carbon-800 border border-white/10 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-azul-primary/5 rounded-full blur-[80px] -z-10" />
-                        <h2 className="text-xl font-black uppercase italic tracking-tight text-foreground mb-8">
+                        <h2 className="text-xl font-black uppercase italic tracking-tight text-white mb-8">
                             {editingSponsor ? "Editar Sponsor" : "Nuevo Sponsor"}
                         </h2>
 
@@ -248,26 +248,26 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6 text-left">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nombre de la Marca</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nombre de la Marca</label>
                                         <input
                                             type="text"
                                             value={newName}
                                             onChange={(e) => setNewName(e.target.value)}
                                             placeholder="Ej: Wilson, Bullpadel..."
-                                            className="w-full bg-muted/40 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
                                             required
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Link Web (Opcional)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Link Web (Opcional)</label>
                                         <div className="relative">
-                                            <LinkIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                            <LinkIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                             <input
                                                 type="url"
                                                 value={newLink}
                                                 onChange={(e) => setNewLink(e.target.value)}
                                                 placeholder="https://wilson.com"
-                                                className="w-full bg-muted/40 border border-border rounded-2xl pl-12 pr-5 py-4 text-foreground focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-4 text-white focus:outline-none focus:ring-1 focus:ring-azul-primary/50 transition-all"
                                             />
                                         </div>
                                     </div>
@@ -277,7 +277,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Logo del Sponsor</label>
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Logo del Sponsor</label>
                                                 <div className="flex items-center gap-1 text-[9px] font-bold text-azul-primary bg-azul-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                                     <ImageIcon className="w-2.5 h-2.5" />
                                                     {editingSponsor ? "Opcional (cambiar)" : "Recomendado"}
@@ -285,13 +285,13 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                             </div>
                                             <div className="relative group">
                                                 {previewUrl ? (
-                                                    <div className="w-full h-48 bg-muted/40 border-2 border-dashed border-azul-primary/30 rounded-2xl overflow-hidden flex items-center justify-center p-8 group-hover:border-azul-primary/60 transition-all">
+                                                    <div className="w-full h-48 bg-white/5 border-2 border-dashed border-azul-primary/30 rounded-2xl overflow-hidden flex items-center justify-center p-8 group-hover:border-azul-primary/60 transition-all">
                                                         <div className="relative w-full h-full">
                                                             <Image src={previewUrl} alt="Preview" fill className="object-contain" />
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="w-full h-48 bg-muted/40 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-slate-300 group-hover:border-azul-primary/30 transition-all">
+                                                    <div className="w-full h-48 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-400 group-hover:text-slate-300 group-hover:border-azul-primary/30 transition-all">
                                                         <ImageIcon className="w-8 h-8" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest">Subir Imagen</span>
                                                     </div>
@@ -308,9 +308,9 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                         {/* Preview de cómo se ve en el sidebar */}
                                         {previewUrl && (
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Vista en el sidebar</label>
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Vista en el sidebar</label>
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-44 rounded-xl overflow-hidden border border-border shadow-xl bg-white shrink-0">
+                                                    <div className="w-44 rounded-xl overflow-hidden border border-white/10 shadow-xl bg-white shrink-0">
                                                         {/* Celda real del sponsor — mismo ancho (176px) y altura que el sidebar */}
                                                         <div className="relative h-[112px] overflow-hidden border-b border-slate-100 bg-white px-3 py-2">
                                                             <img src={previewUrl} alt="Vista previa" className="w-full h-full object-contain" />
@@ -320,7 +320,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                                             <span className="text-[7px] font-bold uppercase tracking-widest text-slate-300">Otro sponsor</span>
                                                         </div>
                                                     </div>
-                                                    <p className="text-[10px] text-muted-foreground leading-relaxed flex-1">
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed flex-1">
                                                         Así se verá tu logo en el sidebar: <span className="text-celeste">completo</span> y centrado sobre un fondo claro uniforme, igual que el resto de los sponsors. Sin recortes.
                                                     </p>
                                                 </div>
@@ -336,20 +336,20 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                             <ul className="space-y-2">
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
-                                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                                                        <strong className="text-foreground">Subí cualquier imagen:</strong> el logo siempre se muestra <span className="text-celeste">completo, sin recortes</span>, sin importar el tamaño o la proporción del archivo.
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                                        <strong className="text-white">Subí cualquier imagen:</strong> el logo siempre se muestra <span className="text-celeste">completo, sin recortes</span>, sin importar el tamaño o la proporción del archivo.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
-                                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                                                        <strong className="text-foreground">Mejor sobre fondo claro:</strong> ideal un logo con fondo <span className="text-celeste">transparente o blanco</span>. Evitá subir fotos o capturas con cuadritos de transparencia.
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                                        <strong className="text-white">Mejor sobre fondo claro:</strong> ideal un logo con fondo <span className="text-celeste">transparente o blanco</span>. Evitá subir fotos o capturas con cuadritos de transparencia.
                                                     </p>
                                                 </li>
                                                 <li className="flex items-start gap-2">
                                                     <div className="w-1 h-1 rounded-full bg-azul-primary mt-1.5 shrink-0" />
-                                                    <p className="text-[10px] text-muted-foreground leading-relaxed italic">
-                                                        <strong className="text-foreground">Mejor calidad:</strong> para máxima nitidez, idealmente un logo de <span className="text-foreground">~800 px de ancho</span> o más.
+                                                    <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                                                        <strong className="text-white">Mejor calidad:</strong> para máxima nitidez, idealmente un logo de <span className="text-white">~800 px de ancho</span> o más.
                                                     </p>
                                                 </li>
                                             </ul>
@@ -370,7 +370,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                 <button
                                     type="button"
                                     onClick={handleCancelEdit}
-                                    className="px-8 bg-muted text-foreground font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl border border-border hover:bg-rose-900/40 hover:text-rose-400 hover:border-rose-900/50 transition-all"
+                                    className="px-8 bg-white/10 text-white font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl border border-white/10 hover:bg-rose-900/40 hover:text-rose-400 hover:border-rose-900/50 transition-all"
                                 >
                                     {editingSponsor ? <Undo className="w-4 h-4" /> : <X className="w-4 h-4" />}
                                 </button>
@@ -382,19 +382,19 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
 
             {/* Sponsors Grid */}
             <div className="space-y-6">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-3">
                     <span className="w-8 h-px bg-white/10" /> Marcas Registradas
                 </h2>
 
                 {sponsors.length === 0 ? (
-                    <div className="bg-card/40 border border-border rounded-[2rem] p-20 text-center flex flex-col items-center gap-4">
-                        <ImageIcon className="w-12 h-12 text-slate-700" />
-                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No hay sponsors registrados aún.</p>
+                    <div className="bg-carbon-800/40 border border-white/10 rounded-[2rem] p-20 text-center flex flex-col items-center gap-4">
+                        <ImageIcon className="w-12 h-12 text-slate-600" />
+                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs italic">No hay sponsors registrados aún.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {sponsors.map((sponsor) => (
-                            <div key={sponsor.id} className="group relative bg-card border border-border rounded-2xl p-6 transition-all hover:border-azul-primary/40 hover:shadow-2xl hover:shadow-azul-primary/5">
+                            <div key={sponsor.id} className="group relative bg-carbon-800 border border-white/10 rounded-2xl p-6 transition-all hover:border-azul-primary/40 hover:shadow-2xl hover:shadow-azul-primary/5">
                                 <div className="h-24 relative mb-4">
                                     <Image
                                         src={sponsor.imageUrl}
@@ -405,7 +405,7 @@ export default function SponsorManagementClient({ initialSponsors }: Props) {
                                     />
                                 </div>
                                 <div className="text-center space-y-2">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground truncate px-2">{sponsor.name}</h4>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white truncate px-2">{sponsor.name}</h4>
                                     {sponsor.link && (
                                         <p className="text-[8px] font-bold text-azul-primary truncate lowercase opacity-60">
                                             {sponsor.link.replace(/^https?:\/\//, '')}

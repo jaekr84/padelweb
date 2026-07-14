@@ -46,11 +46,11 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
   return (
     <Link
       href={`/tournaments/${t.id}`}
-      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-slate-100 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
+      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-white/5 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
     >
       <div className="relative z-10 flex justify-between items-start gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h3 className="text-xs font-black text-slate-900 leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors uppercase italic tracking-tighter">
+          <h3 className="text-xs font-black text-white leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors uppercase italic tracking-tighter">
             {t.name}
           </h3>
           <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
@@ -75,14 +75,14 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
             </span>
           </div>
         </div>
-        <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-500 rounded-md group-hover:bg-azul-primary group-hover:text-white group-hover:border-azul-primary transition-all uppercase tracking-widest">
+        <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-white/5 border border-white/10 text-slate-500 rounded-md group-hover:bg-azul-primary group-hover:text-white group-hover:border-azul-primary transition-all uppercase tracking-widest">
           {catLabel}
         </span>
       </div>
 
       {modal?.maxSlots > 0 && (
         <div className="relative z-10 w-full mt-1">
-          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
             {(() => {
               const percentage = Math.min(((t.registrationsCount || 0) / modal.maxSlots) * 100, 100);
               let barColor = "bg-azul-primary";
@@ -106,7 +106,7 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
             t.registrants.map((reg, idx) => (
               <div
                 key={idx}
-                className="w-5 h-5 rounded-full border border-white bg-slate-100 overflow-hidden relative shadow-sm"
+                className="w-5 h-5 rounded-full border border-white bg-white/5 overflow-hidden relative shadow-sm"
               >
                 {reg.imageUrl ? (
                   <Image src={reg.imageUrl} alt={reg.name} fill className="object-cover" sizes="20px" unoptimized />
@@ -118,7 +118,7 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
               </div>
             ))
           ) : (
-            <div className="w-5 h-5 rounded-full border border-white bg-slate-50 flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full border border-white bg-white/5 flex items-center justify-center">
               <Users className="w-2.5 h-2.5 text-slate-300" />
             </div>
           )}

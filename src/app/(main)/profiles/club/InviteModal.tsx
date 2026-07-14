@@ -33,23 +33,23 @@ export function InviteModal({ clubName, clubId, onClose }: InviteModalProps) {
             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-lg flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-card backdrop-blur-3xl border border-border rounded-t-[2.5rem] sm:rounded-[2.5rem] w-full sm:max-w-sm overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 shadow-2xl relative">
+            <div className="bg-carbon-800 backdrop-blur-3xl border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] w-full sm:max-w-sm overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 shadow-2xl relative">
                 {/* Drag pill */}
-                <div className="w-10 h-1 bg-muted-foreground/20 rounded-full mx-auto mt-4 sm:hidden mb-1" />
+                <div className="w-10 h-1 bg-white/10-foreground/20 rounded-full mx-auto mt-4 sm:hidden mb-1" />
 
                 {/* Header */}
-                <div className="px-8 pt-6 pb-5 flex items-center justify-between border-b border-border">
+                <div className="px-8 pt-6 pb-5 flex items-center justify-between border-b border-white/10">
                     <div>
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground italic flex items-center gap-2">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white italic flex items-center gap-2">
                              <span className="text-celeste">Invitar</span> Jugadores
                         </h3>
-                        <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest opacity-60">
+                        <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-widest opacity-60">
                             {clubName}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-2xl bg-muted/50 hover:bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                        className="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -63,12 +63,12 @@ export function InviteModal({ clubName, clubId, onClose }: InviteModalProps) {
                     </div>
 
                     {/* Description */}
-                    <p className="text-muted-foreground text-[11px] leading-relaxed text-center font-bold uppercase tracking-widest opacity-80">
+                    <p className="text-slate-400 text-[11px] leading-relaxed text-center font-bold uppercase tracking-widest opacity-80">
                         Compartí este link para vincular jugadores a tu club automáticamente al registrarse.
                     </p>
 
                     {/* Link box */}
-                    <div className="w-full flex items-center gap-2 bg-muted/30 border border-border rounded-2xl p-2.5 focus-within:border-azul-primary transition-all">
+                    <div className="w-full flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-2.5 focus-within:border-azul-primary transition-all">
                         <div className="flex-1 overflow-hidden">
                             <p className="text-[10px] text-azul-primary font-mono truncate px-3 py-1 font-bold">
                                 {inviteLink}
@@ -78,7 +78,7 @@ export function InviteModal({ clubName, clubId, onClose }: InviteModalProps) {
                             onClick={handleCopy}
                             className={`shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${copied
                                     ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                    : "bg-muted text-muted-foreground hover:bg-border border border-border"
+                                    : "bg-white/10 text-slate-400 hover:bg-white/10 border border-white/10"
                                 }`}
                         >
                             {copied ? (
@@ -102,7 +102,7 @@ export function InviteModal({ clubName, clubId, onClose }: InviteModalProps) {
 
                     <button
                         onClick={onClose}
-                        className="text-muted-foreground/50 hover:text-azul-primary text-[9px] font-black uppercase tracking-widest transition-colors mt-2"
+                        className="text-slate-500 hover:text-azul-primary text-[9px] font-black uppercase tracking-widest transition-colors mt-2"
                     >
                         Omitir por ahora
                     </button>

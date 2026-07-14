@@ -53,9 +53,9 @@ export default function InvitationsClient() {
                     animation: gradient-x 6s ease infinite;
                 }
                 .glass-card {
-                    background-color: color-mix(in srgb, var(--card) 90%, transparent);
+                    background-color: rgba(17, 26, 46, 0.85); /* carbon-800 */
                     backdrop-filter: blur(20px);
-                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 .glass-card:hover {
                     border-color: rgba(16, 185, 129, 0.5);
@@ -90,21 +90,21 @@ export default function InvitationsClient() {
                 <motion.header 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-1.5 border-b border-border/50 pb-4 mb-2"
+                    className="space-y-1.5 border-b border-white/10 pb-4 mb-2"
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white shadow-sm relative overflow-hidden">
                             <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
                             <User className="relative z-10 w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-0.5">Accesos al sistema</p>
-                            <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tight leading-none text-foreground">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-0.5">Accesos al sistema</p>
+                            <h1 className="text-xl md:text-2xl heading-sport leading-none text-white">
                                 Invitación de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Jugadores</span>
                             </h1>
                         </div>
                     </div>
-                <p className="text-muted-foreground/80 text-[10px] font-medium leading-relaxed pl-[56px]">
+                <p className="text-slate-400 text-[10px] font-medium leading-relaxed pl-[56px]">
                     Genera links de invitación exclusivos para nuevos jugadores. Validez de 24 horas y acceso directo al registro.
                 </p>
                 </motion.header>
@@ -113,20 +113,20 @@ export default function InvitationsClient() {
                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                     <div className="flex flex-col gap-2 relative z-10">
-                    <label className="text-[8px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Configuración del Link</label>
-                    <div className="bg-muted/30 border border-border/50 p-3 rounded-xl flex items-center gap-3">
+                    <label className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-400 ml-1">Configuración del Link</label>
+                    <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                             <User className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-foreground">Rol: Jugador Libre</span>
-                            <span className="text-[8px] font-bold text-muted-foreground opacity-70 leading-tight">Acceso estándar al feed y torneos públicos</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-white">Rol: Jugador Libre</span>
+                            <span className="text-[8px] font-bold text-slate-400 opacity-70 leading-tight">Acceso estándar al feed y torneos públicos</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-4 relative z-10">
-                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-600  flex items-start gap-3">
+                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400  flex items-start gap-3">
                         <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                         <p className="text-[8px] font-bold leading-relaxed uppercase tracking-wide">
                             Link de uso único con <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>.
@@ -141,7 +141,7 @@ export default function InvitationsClient() {
                         >
                             <label className="text-[8px] font-black uppercase tracking-[0.25em] text-emerald-500 ml-3 pt-1 relative z-10">Link Generado</label>
                             <div className="flex flex-col sm:flex-row gap-1.5 px-1.5 pb-1.5 relative z-10">
-                                <div className="flex-1 bg-muted border border-border rounded-xl px-3 py-2.5 text-[10px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 ">
+                                <div className="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-[10px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-400 ">
                                     {generatedLink}
                                 </div>
                                 <div className="flex gap-1.5">
@@ -170,7 +170,7 @@ export default function InvitationsClient() {
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="glow-button w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background px-8 py-2.5 rounded-xl border border-border text-[9px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-emerald-900/30 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.98]"
+                        className="glow-button w-full sm:w-auto bg-volt hover:bg-volt-dark text-carbon-950 px-8 py-2.5 rounded-xl border border-transparent text-[9px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-emerald-900/30 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-[0.98]"
                     >
                         {isPending ? (
                             <>

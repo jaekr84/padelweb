@@ -60,12 +60,12 @@ export function SidebarProfileConsole({
 
   if (!userData) {
     return (
-      <div className="p-3.5 border-t border-border/40 flex items-center gap-3 animate-pulse">
-        <div className="w-9 h-9 bg-muted rounded-full shrink-0" />
+      <div className="p-3.5 border-t border-white/10 flex items-center gap-3 animate-pulse">
+        <div className="w-9 h-9 bg-white/10 rounded-full shrink-0" />
         {!isCollapsed && (
           <div className="flex-1 flex flex-col gap-1.5">
-            <div className="h-3.5 w-24 bg-muted rounded-full" />
-            <div className="h-2.5 w-16 bg-muted/60 rounded-full" />
+            <div className="h-3.5 w-24 bg-white/10 rounded-full" />
+            <div className="h-2.5 w-16 bg-white/5 rounded-full" />
           </div>
         )}
       </div>
@@ -96,27 +96,27 @@ export function SidebarProfileConsole({
   };
 
   return (
-    <div ref={dropdownRef} className="mt-auto border-t border-border/40 relative">
+    <div ref={dropdownRef} className="mt-auto border-t border-white/10 relative">
       {/* ── EXPANDED SIDEBAR CONSOLE ── */}
       {!isCollapsed ? (
-        <div className="p-3.5 flex flex-col gap-3.5 bg-slate-900/[0.02] dark:bg-white/[0.01]">
+        <div className="p-3.5 flex flex-col gap-3.5 bg-white/[0.02]">
           {/* Top Info section */}
           <div className="flex items-center gap-3">
-            <Link 
-              href={profileUrl} 
-              className="relative w-9 h-9 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center shrink-0 hover:ring-2 hover:ring-azul-primary/20 transition-all active:scale-95 group/avatar"
+            <Link
+              href={profileUrl}
+              className="relative w-9 h-9 rounded-full overflow-hidden border border-white/15 bg-white/5 flex items-center justify-center shrink-0 hover:ring-2 hover:ring-volt/30 transition-all active:scale-95 group/avatar"
             >
               {userData.imageUrl ? (
                 <Image src={userData.imageUrl} alt={userData.name} fill className="object-cover" />
               ) : (
-                <User className="w-4 h-4 text-muted-foreground group-hover/avatar:scale-110 transition-transform" />
+                <User className="w-4 h-4 text-slate-400 group-hover/avatar:scale-110 transition-transform" />
               )}
               {/* Pulsing online badge indicator */}
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-background rounded-full animate-pulse z-10" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-carbon-950 rounded-full animate-pulse z-10" />
             </Link>
 
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs font-black text-foreground tracking-tight leading-none mb-1.5 truncate">
+              <span className="text-xs font-black text-white tracking-tight leading-none mb-1.5 truncate">
                 {userData.name}
               </span>
               
@@ -124,7 +124,7 @@ export function SidebarProfileConsole({
               {hasMultipleRoles ? (
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider transition-all select-none hover:bg-azul-primary/5 active:scale-95 ${currentRole.color}`}
+                  className={`inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider transition-all select-none hover:bg-white/10 active:scale-95 ${currentRole.color}`}
                 >
                   <CurrentIcon className="w-2.5 h-2.5 shrink-0" />
                   <span>{currentRole.label}</span>
@@ -144,21 +144,21 @@ export function SidebarProfileConsole({
           </div>
 
           {/* Quick diagnostics bar */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/30">
+          <div className="flex items-center justify-between pt-2 border-t border-white/10">
             {/* Sponsors diagnostic view toggle (Only for Superadmins) */}
             {userData.role === "superadmin" ? (
               <button
                 onClick={() => setSponsorsVisible(!sponsorsVisible)}
                 className={`p-1.5 rounded-lg border transition-all active:scale-95 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-wider ${
-                  sponsorsVisible 
-                    ? "text-azul-primary border-azul-primary/20 bg-azul-primary/5 hover:bg-azul-primary/10" 
-                    : "text-muted-foreground border-border/40 bg-transparent hover:text-foreground hover:bg-muted"
+                  sponsorsVisible
+                    ? "text-celeste-light border-celeste/30 bg-celeste/10 hover:bg-celeste/20"
+                    : "text-slate-500 border-white/10 bg-transparent hover:text-white hover:bg-white/5"
                 }`}
                 title={sponsorsVisible ? "Ocultar Banners Publicitarios" : "Mostrar Banners Publicitarios"}
               >
                 {sponsorsVisible ? (
                   <>
-                    <Eye className="w-3.5 h-3.5 text-azul-primary" />
+                    <Eye className="w-3.5 h-3.5 text-celeste-light" />
                     <span>Banners On</span>
                   </>
                 ) : (
@@ -169,7 +169,7 @@ export function SidebarProfileConsole({
                 )}
               </button>
             ) : (
-              <div className="text-[9px] font-semibold text-muted-foreground tracking-wider uppercase">
+              <div className="label-tech text-[8px] text-slate-500">
                 ACAP PADEL APP
               </div>
             )}
@@ -187,19 +187,19 @@ export function SidebarProfileConsole({
         </div>
       ) : (
         /* ── COLLAPSED SIDEBAR CONSOLE ── */
-        <div className="p-3.5 flex flex-col items-center gap-4 bg-slate-900/[0.02] dark:bg-white/[0.01]">
+        <div className="p-3.5 flex flex-col items-center gap-4 bg-white/[0.02]">
           {/* Clickable Profile Avatar that opens dropdown menu */}
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="relative w-9 h-9 rounded-full overflow-hidden border border-border bg-muted flex items-center justify-center hover:ring-2 hover:ring-azul-primary/40 transition-all active:scale-95 group/avatar"
+            className="relative w-9 h-9 rounded-full overflow-hidden border border-white/15 bg-white/5 flex items-center justify-center hover:ring-2 hover:ring-volt/40 transition-all active:scale-95 group/avatar"
             title={`${userData.name} (${currentRole.label})`}
           >
             {userData.imageUrl ? (
               <Image src={userData.imageUrl} alt={userData.name} fill className="object-cover" />
             ) : (
-              <User className="w-4 h-4 text-muted-foreground group-hover/avatar:scale-110 transition-transform" />
+              <User className="w-4 h-4 text-slate-400 group-hover/avatar:scale-110 transition-transform" />
             )}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-background rounded-full" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-carbon-950 rounded-full" />
           </button>
         </div>
       )}
@@ -212,27 +212,27 @@ export function SidebarProfileConsole({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: isCollapsed ? 10 : 8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className={`absolute z-[999] bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-[1.25rem] shadow-xl p-2 flex flex-col gap-1 w-48 ${
+            className={`absolute z-[999] bg-carbon-900/95 backdrop-blur-xl border border-white/10 rounded-[1.25rem] shadow-xl shadow-black/40 p-2 flex flex-col gap-1 w-48 ${
               isCollapsed 
                 ? "left-16 bottom-4" 
                 : "left-4 right-4 bottom-[calc(100%+8px)]"
             }`}
           >
             {/* Top tiny diagnostic header inside dropdown */}
-            <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
-              <span className="text-[7.5px] font-black tracking-[0.25em] text-slate-400 uppercase">
+            <div className="px-2.5 py-1.5 border-b border-white/10 flex items-center justify-between">
+              <span className="text-[7.5px] font-black tracking-[0.25em] text-slate-500 uppercase">
                 {isCollapsed ? "Menú Usuario" : "Configurar Vista"}
               </span>
-              <Settings className="w-2.5 h-2.5 text-slate-350" />
+              <Settings className="w-2.5 h-2.5 text-slate-500" />
             </div>
 
             {/* If collapsed, show basic user header details inside popover */}
             {isCollapsed && (
-              <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col gap-0.5">
-                <span className="text-[10px] font-black text-slate-900 truncate leading-none">
+              <div className="px-2.5 py-2 border-b border-white/10 flex flex-col gap-0.5">
+                <span className="text-[10px] font-black text-white truncate leading-none">
                   {userData.name}
                 </span>
-                <span className="text-[8px] font-medium text-slate-450 truncate">
+                <span className="text-[8px] font-medium text-slate-500 truncate">
                   Asociado ACAP
                 </span>
               </div>
@@ -257,14 +257,14 @@ export function SidebarProfileConsole({
                         key={r}
                         onClick={() => handleRoleSelect(r)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[10px] font-bold uppercase tracking-wider transition-all active:scale-98 group/item ${
-                          isSelected 
-                            ? "bg-azul-primary/10 text-azul-primary border border-azul-primary/20" 
-                            : "text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent"
+                          isSelected
+                            ? "bg-celeste/10 text-celeste-light border border-celeste/30"
+                            : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                         }`}
                       >
-                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-celeste" : "text-slate-400 group-hover/item:text-slate-600"}`} />
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-celeste-light" : "text-slate-500 group-hover/item:text-slate-300"}`} />
                         <span className="flex-1 truncate">{config.label}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-celeste shrink-0 animate-scaleIn" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-celeste-light shrink-0 animate-scaleIn" />}
                       </button>
                     );
                   })}
@@ -273,7 +273,7 @@ export function SidebarProfileConsole({
 
             {/* If collapsed, inject quick action toggles inside popover */}
             {isCollapsed && (
-              <div className="flex flex-col gap-1 border-t border-slate-100 pt-1 mt-1">
+              <div className="flex flex-col gap-1 border-t border-white/10 pt-1 mt-1">
                 {/* Banners diagnostic view toggle inside popover */}
                 {userData.role === "superadmin" && (
                   <button
@@ -281,9 +281,9 @@ export function SidebarProfileConsole({
                       setSponsorsVisible(!sponsorsVisible);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider transition-all ${
-                      sponsorsVisible 
-                        ? "text-azul-primary bg-azul-primary/10 border border-azul-primary/20" 
-                        : "text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent"
+                      sponsorsVisible
+                        ? "text-celeste-light bg-celeste/10 border border-celeste/30"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                     }`}
                   >
                     {sponsorsVisible ? (
@@ -304,16 +304,16 @@ export function SidebarProfileConsole({
                 <Link
                   href={profileUrl}
                   onClick={() => setIsDropdownOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-slate-650 hover:text-slate-950 hover:bg-slate-50 border border-transparent transition-all"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all"
                 >
-                  <User className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                  <User className="w-3.5 h-3.5 shrink-0 text-slate-500" />
                   <span>Mi Perfil</span>
                 </Link>
 
                 {/* Logout button inside popover */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-red-500 hover:text-red-600 hover:bg-red-50 border border-transparent transition-all"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[9px] font-black uppercase tracking-wider text-live hover:text-red-400 hover:bg-live/10 border border-transparent transition-all"
                 >
                   <LogOut className="w-3.5 h-3.5 shrink-0" />
                   <span>Cerrar Sesión</span>

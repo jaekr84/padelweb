@@ -33,7 +33,7 @@ export default function ReglamentoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-emerald-500/30 overflow-x-hidden pb-32">
+        <div className="min-h-screen bg-grid-carbon text-white relative font-sans selection:bg-volt/30 overflow-x-hidden pb-32">
 
             <style>{`
                 @keyframes gradient-x {
@@ -82,7 +82,7 @@ export default function ReglamentoPage() {
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-tight mb-4"
+                        className="heading-sport text-2xl md:text-3xl leading-tight mb-4"
                     >
                         Reglas &{" "}
                         <span className="text-gradient-animate drop-shadow-[0_0_30px_rgba(14,165,233,0.3)]">Criterios</span>
@@ -91,7 +91,7 @@ export default function ReglamentoPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-muted-foreground text-xs md:text-sm font-bold max-w-2xl leading-relaxed uppercase tracking-tight opacity-70 italic"
+                        className="text-slate-400 text-xs md:text-sm font-bold max-w-2xl leading-relaxed uppercase tracking-tight opacity-70 italic"
                     >
                         Toda la lógica detrás de cómo se arman los grupos, partidos y rankings.
                     </motion.p>
@@ -102,7 +102,7 @@ export default function ReglamentoPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="flex gap-1 bg-muted/20 p-1 rounded-2xl border border-border/30 w-fit mb-8"
+                    className="flex gap-1 bg-white/5 p-1 rounded-2xl border border-white/10 w-fit mb-8"
                 >
                     {TABS.map((tab) => (
                         <button
@@ -111,7 +111,7 @@ export default function ReglamentoPage() {
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
                                 activeTab === tab.id
                                     ? "bg-celeste text-white shadow-lg shadow-celeste/20"
-                                    : "text-muted-foreground hover:text-foreground"
+                                    : "text-slate-400 hover:text-white"
                             }`}
                         >
                             <tab.icon className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Obtención de Puntos</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Suma en cada etapa del torneo</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Suma en cada etapa del torneo</p>
                                     </div>
                                 </div>
 
@@ -180,7 +180,7 @@ export default function ReglamentoPage() {
                                                         <stat.icon className={`w-4 h-4 ${stat.color}`} />
                                                         <span className="text-[11px] font-black uppercase italic tracking-tight">{stat.label}</span>
                                                     </div>
-                                                    <span className="text-[9px] font-bold text-muted-foreground leading-tight uppercase tracking-widest opacity-60 ml-7">{stat.desc}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 leading-tight uppercase tracking-widest opacity-60 ml-7">{stat.desc}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -191,17 +191,17 @@ export default function ReglamentoPage() {
                                 <div className="pt-8 border-t border-white/5">
                                     <div className="flex items-center gap-3 mb-6">
                                         <Activity className="w-5 h-5 text-celeste" />
-                                        <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground/70 italic">Distribución de Puntos — 26 Inscriptos</h3>
+                                        <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-300 italic">Distribución de Puntos — 26 Inscriptos</h3>
                                     </div>
-                                    <div className="overflow-hidden rounded-xl border border-black/5 bg-white/10">
+                                    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/10">
                                         <div className="overflow-x-auto no-scrollbar">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
                                                     <tr className="bg-white/5">
-                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground italic">Instancia</th>
-                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground italic text-center">Ronda</th>
-                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground italic text-center">Zona</th>
-                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground italic text-center">Base</th>
+                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Instancia</th>
+                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-slate-400 italic text-center">Ronda</th>
+                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-slate-400 italic text-center">Zona</th>
+                                                        <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-slate-400 italic text-center">Base</th>
                                                         <th className="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-emerald-500 italic text-center">Total</th>
                                                     </tr>
                                                 </thead>
@@ -218,14 +218,14 @@ export default function ReglamentoPage() {
                                                             <td className="px-4 py-2">
                                                                 <div className="flex items-center gap-2">
                                                                     {row.highlight && <Trophy className="w-3 h-3 text-amber-400" />}
-                                                                    <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.highlight ? "text-celeste" : "text-foreground"}`}>{row.rank}</span>
+                                                                    <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.highlight ? "text-celeste" : "text-white"}`}>{row.rank}</span>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-4 py-2 text-center text-[9px] font-black text-foreground italic">{row.round}</td>
-                                                            <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">+{row.zone}</td>
-                                                            <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">+{row.base}</td>
+                                                            <td className="px-4 py-2 text-center text-[9px] font-black text-white italic">{row.round}</td>
+                                                            <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">+{row.zone}</td>
+                                                            <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">+{row.base}</td>
                                                             <td className="px-4 py-2 text-center">
-                                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black italic tracking-tighter ${row.highlight ? "bg-celeste text-white" : "bg-white/5 text-foreground"}`}>
+                                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black italic tracking-tighter ${row.highlight ? "bg-celeste text-white" : "bg-white/5 text-white"}`}>
                                                                     {row.total}
                                                                 </span>
                                                             </td>
@@ -249,7 +249,7 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter text-rosa">Meritocracia & Ascenso</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Criterios técnicos para subir de nivel</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Criterios técnicos para subir de nivel</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -264,15 +264,15 @@ export default function ReglamentoPage() {
                                             </div>
                                             <div>
                                                 <h4 className="text-[11px] font-black uppercase italic tracking-widest mb-2 group-hover:text-rosa transition-colors leading-tight">{card.title}</h4>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 leading-relaxed uppercase tracking-wider">{card.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase tracking-wider">{card.desc}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="mt-10 p-6 bg-rosa/5 border border-rosa/10 rounded-2xl flex items-start gap-5">
                                     <Info className="w-6 h-6 text-rosa shrink-0 mt-0.5" />
-                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-normal opacity-70">
-                                        IMPORTANTE: El sistema procesa <span className="text-foreground">una categoría a la vez</span>. No se permiten ascensos dobles directos para preservar el equilibrio competitivo.
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-normal opacity-70">
+                                        IMPORTANTE: El sistema procesa <span className="text-white">una categoría a la vez</span>. No se permiten ascensos dobles directos para preservar el equilibrio competitivo.
                                     </p>
                                 </div>
                             </motion.section>
@@ -288,12 +288,12 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter text-rojo">Penalización</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">La importancia de mantenerse en competencia</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">La importancia de mantenerse en competencia</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col lg:flex-row items-center gap-8">
                                     <div className="flex-1 space-y-4">
-                                        <p className="text-sm font-bold text-muted-foreground leading-relaxed uppercase tracking-tight italic">
+                                        <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase tracking-tight italic">
                                             Para asegurar nivel real: implementado el <strong className="text-rojo italic">— Descenso por Inactividad —</strong>.
                                         </p>
                                         <div className="p-6 bg-rojo/5 border border-rojo/10 rounded-xl w-full group-hover:bg-rojo/10 transition-all">
@@ -301,17 +301,17 @@ export default function ReglamentoPage() {
                                                 <TrendingDown className="w-5 h-5 text-rojo" />
                                                 <span className="text-sm font-black uppercase italic tracking-tighter">Regla de 365 Días</span>
                                             </div>
-                                            <p className="text-[10px] font-bold text-muted-foreground/60 leading-relaxed uppercase tracking-[0.15em]">
-                                                Sin actividad oficial por <strong className="text-foreground">12 meses consecutivos</strong>, baja automáticamente una categoría.
+                                            <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-[0.15em]">
+                                                Sin actividad oficial por <strong className="text-white">12 meses consecutivos</strong>, baja automáticamente una categoría.
                                             </p>
                                         </div>
                                     </div>
                                     <div className="w-full lg:w-56 p-6 glass-card rounded-xl flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group-hover:border-rojo/40 transition-all">
                                         <div className="absolute inset-x-0 bottom-0 h-1 bg-rojo/20 group-hover:h-full transition-all duration-700 opacity-20 pointer-events-none" />
                                         <div className="text-4xl font-black italic tracking-tighter text-rojo mb-1 relative">365</div>
-                                        <div className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground relative">Días</div>
+                                        <div className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 relative">Días</div>
                                         <div className="w-10 h-px bg-white/10 my-3 relative" />
-                                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 italic relative">-1 Categoría</div>
+                                        <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 opacity-40 italic relative">-1 Categoría</div>
                                     </div>
                                 </div>
                             </motion.section>
@@ -324,10 +324,10 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Performance</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Promoción manual supervisada</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Promoción manual supervisada</p>
                                     </div>
                                 </div>
-                                <p className="text-xs font-bold text-muted-foreground leading-relaxed max-w-2xl uppercase tracking-tight italic opacity-70">
+                                <p className="text-xs font-bold text-slate-400 leading-relaxed max-w-2xl uppercase tracking-tight italic opacity-70">
                                     Existen casos excepcionales donde un jugador demuestra un <span className="text-celeste">nivel disruptivo</span>. Los administradores tienen la facultad de realizar promociones manuales basadas en la observación directa.
                                 </p>
                             </motion.section>
@@ -354,11 +354,11 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">¿Qué es el Round Robin?</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Grupos + eliminación directa</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Grupos + eliminación directa</p>
                                     </div>
                                 </div>
-                                <p className="text-xs font-bold text-muted-foreground leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
-                                    El Round Robin divide a los participantes en <span className="text-foreground">grupos reducidos</span> donde todos se enfrentan entre sí. Los mejores de cada grupo avanzan a un bracket de eliminación directa. Es el formato más usado en torneos federados.
+                                <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
+                                    El Round Robin divide a los participantes en <span className="text-white">grupos reducidos</span> donde todos se enfrentan entre sí. Los mejores de cada grupo avanzan a un bracket de eliminación directa. Es el formato más usado en torneos federados.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     {[
@@ -370,7 +370,7 @@ export default function ReglamentoPage() {
                                             <c.icon className={`w-5 h-5 ${c.color}`} />
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{c.title}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-wider leading-relaxed">{c.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{c.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -385,7 +385,7 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Fases del Torneo</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">El flujo de gestión paso a paso</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">El flujo de gestión paso a paso</p>
                                     </div>
                                 </div>
                                 <div className="space-y-3">
@@ -425,8 +425,8 @@ export default function ReglamentoPage() {
                                             <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[9px] font-black italic border ${s.color}`}>{s.step}</div>
                                             <div className="flex-1">
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1 group-hover/item:text-celeste transition-colors">{s.label}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed mb-1">{s.desc}</p>
-                                                <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest italic">{s.detail}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed mb-1">{s.desc}</p>
+                                                <p className="text-[8px] font-black text-slate-400/40 uppercase tracking-widest italic">{s.detail}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -444,10 +444,10 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Criterios del Sorteo</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se distribuyen los jugadores en los grupos</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se distribuyen los jugadores en los grupos</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
                                     El sorteo automático mezcla a los jugadores presentes de forma aleatoria y los distribuye uno por uno evaluando dos criterios en orden de prioridad:
                                 </p>
                                 <div className="space-y-3 mb-6">
@@ -467,15 +467,15 @@ export default function ReglamentoPage() {
                                             <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[9px] font-black italic ${s.color}`}>{s.priority}</div>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{s.label}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">{s.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{s.desc}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="p-5 bg-azul-primary/5 border border-azul-primary/15 rounded-2xl flex items-start gap-4">
                                     <Info className="w-5 h-5 text-azul-primary shrink-0 mt-0.5" />
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                                        El admin puede <span className="text-foreground">rehacer el sorteo</span> las veces que quiera antes de confirmar el fixture, o mover jugadores manualmente mediante drag & drop entre grupos.
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed opacity-80">
+                                        El admin puede <span className="text-white">rehacer el sorteo</span> las veces que quiera antes de confirmar el fixture, o mover jugadores manualmente mediante drag & drop entre grupos.
                                     </p>
                                 </div>
                             </motion.section>
@@ -488,10 +488,10 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Clasificación dentro del Grupo</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Sistema FIP de desempate recursivo</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Sistema FIP de desempate recursivo</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
                                     El sistema usa un algoritmo de desempate recursivo (estilo FIP): si varios jugadores empatan en un criterio, se aplica el siguiente solo sobre ese subgrupo empatado — no sobre la tabla completa.
                                 </p>
                                 <div className="space-y-2 mb-6">
@@ -505,7 +505,7 @@ export default function ReglamentoPage() {
                                             <span className={`text-xl font-black italic tracking-tighter shrink-0 w-8 ${c.color}`}>{c.rank}</span>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{c.label}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">{c.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{c.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -519,11 +519,11 @@ export default function ReglamentoPage() {
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-white/5">
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">#</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground text-center">PJ</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400">#</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400 text-center">PJ</th>
                                                     <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-amber-400 text-center">V</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground text-center">D</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400 text-center">D</th>
                                                     <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-celeste text-center">+/-</th>
                                                     <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-azul-primary text-center">GF</th>
                                                 </tr>
@@ -535,18 +535,18 @@ export default function ReglamentoPage() {
                                                     { pos: 3, name: "Jugador C", pj: 2, v: 0, d: 2, diff: "-7", gf: 5, qualify: false },
                                                 ].map((row, i) => (
                                                     <tr key={i} className={`hover:bg-celeste/5 transition-colors ${row.qualify ? "bg-celeste/5" : ""}`}>
-                                                        <td className="px-4 py-2 text-[9px] font-black text-muted-foreground/50 italic">{row.pos}</td>
+                                                        <td className="px-4 py-2 text-[9px] font-black text-slate-500 italic">{row.pos}</td>
                                                         <td className="px-4 py-2">
-                                                            <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.qualify ? "text-celeste" : "text-foreground"}`}>{row.name}</span>
+                                                            <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.qualify ? "text-celeste" : "text-white"}`}>{row.name}</span>
                                                             {row.qualify && <span className="ml-2 text-[7px] font-black text-emerald-400 uppercase tracking-widest">↑ clasifica</span>}
                                                         </td>
-                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">{row.pj}</td>
+                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">{row.pj}</td>
                                                         <td className="px-4 py-2 text-center text-[9px] font-black text-amber-400">{row.v}</td>
-                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">{row.d}</td>
+                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">{row.d}</td>
                                                         <td className="px-4 py-2 text-center">
                                                             <span className={`text-[9px] font-black ${row.diff.startsWith("+") ? "text-emerald-400" : "text-rojo"}`}>{row.diff}</span>
                                                         </td>
-                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">{row.gf}</td>
+                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">{row.gf}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -566,20 +566,20 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Clasificados & Seeding</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se arma el bracket con protección de grupo</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se arma el bracket con protección de grupo</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
-                                    Por defecto clasifican <span className="text-foreground">2 jugadores por grupo</span>, pero el admin puede ajustar ese número con +/- antes de generar el bracket. El mínimo es 1 clasificado por grupo y el máximo es la cantidad total de jugadores del grupo mayor.
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                    Por defecto clasifican <span className="text-white">2 jugadores por grupo</span>, pero el admin puede ajustar ese número con +/- antes de generar el bracket. El mínimo es 1 clasificado por grupo y el máximo es la cantidad total de jugadores del grupo mayor.
                                 </p>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div className="space-y-3">
-                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic flex items-center gap-2">
+                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">1</span>
                                             Orden de seeds entre grupos
                                         </h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">
                                             Los seeds se asignan intercalando posiciones de todos los grupos: primero todos los 1ros, luego todos los 2dos, etc. El orden dentro de cada posición se decide por victorias → diferencia → games.
                                         </p>
                                         <div className="space-y-1.5">
@@ -591,17 +591,17 @@ export default function ReglamentoPage() {
                                             ].map((s, i) => (
                                                 <div key={i} className="flex items-center justify-between p-2.5 bg-white/5 border border-white/5 rounded-xl">
                                                     <span className={`px-2 py-0.5 rounded text-[8px] font-black ${s.color}`}>{s.seed}</span>
-                                                    <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">{s.from}</span>
+                                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{s.from}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic flex items-center gap-2">
+                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">2</span>
                                             Protección de grupo en el bracket
                                         </h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">
                                             Los 2dos de cada grupo son desplazados en el cuadro para que no puedan cruzarse con el 1ro de su mismo grupo hasta la final. El desplazamiento es de la mitad de la cantidad de grupos.
                                         </p>
                                         <div className="p-4 bg-amber-500/5 border border-amber-500/15 rounded-xl">
@@ -614,8 +614,8 @@ export default function ReglamentoPage() {
 
                                 <div className="p-5 bg-celeste/5 border border-celeste/15 rounded-2xl flex items-start gap-4">
                                     <Info className="w-5 h-5 text-celeste shrink-0 mt-0.5" />
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                                        Al igual que en el Americano, el número de clasificados puede ser <span className="text-celeste">cualquier par ≥ 2</span>. El sistema redondea al cuadro más cercano y rellena con <strong className="text-foreground">BYE</strong> (pase directo) a los mejores seeds. Los BYEs se auto-confirman y el ganador avanza solo.
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed opacity-80">
+                                        Al igual que en el Americano, el número de clasificados puede ser <span className="text-celeste">cualquier par ≥ 2</span>. El sistema redondea al cuadro más cercano y rellena con <strong className="text-white">BYE</strong> (pase directo) a los mejores seeds. Los BYEs se auto-confirman y el ganador avanza solo.
                                     </p>
                                 </div>
                             </motion.section>
@@ -642,11 +642,11 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">¿Qué es el Americano?</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Formato libre con playoffs clasificatorios</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Formato libre con playoffs clasificatorios</p>
                                     </div>
                                 </div>
-                                <p className="text-xs font-bold text-muted-foreground leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
-                                    El Americano es un torneo donde <span className="text-foreground">todos los participantes forman un único grupo</span> y se enfrentan entre sí en una fase libre. Al terminar la fase de grupos, los mejores clasificados avanzan a un bracket de eliminación directa.
+                                <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
+                                    El Americano es un torneo donde <span className="text-white">todos los participantes forman un único grupo</span> y se enfrentan entre sí en una fase libre. Al terminar la fase de grupos, los mejores clasificados avanzan a un bracket de eliminación directa.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     {[
@@ -658,7 +658,7 @@ export default function ReglamentoPage() {
                                             <c.icon className={`w-5 h-5 ${c.color}`} />
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{c.title}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-wider leading-relaxed">{c.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{c.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -673,7 +673,7 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Configuración del Formato</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Parámetros definidos por el organizador</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Parámetros definidos por el organizador</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -718,10 +718,10 @@ export default function ReglamentoPage() {
                                         <div key={i} className={`p-5 rounded-xl border ${cfg.color} flex flex-col gap-3`}>
                                             <div className="flex items-center justify-between">
                                                 <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${cfg.badge}`}>{cfg.label}</span>
-                                                <span className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">por defecto: {cfg.default}</span>
+                                                <span className="text-[8px] font-black text-slate-400/40 uppercase tracking-widest">por defecto: {cfg.default}</span>
                                             </div>
-                                            <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-wider leading-relaxed">{cfg.desc}</p>
-                                            <p className="text-[8px] font-black text-muted-foreground/45 uppercase tracking-widest italic border-t border-white/5 pt-2">{cfg.example}</p>
+                                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{cfg.desc}</p>
+                                            <p className="text-[8px] font-black text-slate-400/45 uppercase tracking-widest italic border-t border-white/5 pt-2">{cfg.example}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -738,15 +738,15 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Fase de Grupos</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se generan y asignan los partidos</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Cómo se generan y asignan los partidos</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
                                     El admin genera los partidos cancha por cancha. Cuando una cancha queda libre, el sistema elige automáticamente los 2 jugadores/parejas disponibles con mayor necesidad de jugar.
                                 </p>
 
                                 <div className="space-y-3 mb-6">
-                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic flex items-center gap-2">
+                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic flex items-center gap-2">
                                         <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">1</span>
                                         Criterios para seleccionar el próximo partido
                                     </h3>
@@ -759,7 +759,7 @@ export default function ReglamentoPage() {
                                             <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[9px] font-black italic ${s.color}`}>{s.priority}</div>
                                             <div className="flex-1">
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1 group-hover/item:text-celeste transition-colors">{s.label}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">{s.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{s.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -767,8 +767,8 @@ export default function ReglamentoPage() {
 
                                 <div className="p-5 bg-amber-500/5 border border-amber-500/15 rounded-2xl flex items-start gap-4">
                                     <Info className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                                        Un jugador solo puede estar en <span className="text-foreground">un partido a la vez</span>. Si ya está en cancha, no aparece como candidato hasta que su partido sea confirmado. La fase de grupos termina cuando todos los jugadores alcanzaron el número de partidos configurado.
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed opacity-80">
+                                        Un jugador solo puede estar en <span className="text-white">un partido a la vez</span>. Si ya está en cancha, no aparece como candidato hasta que su partido sea confirmado. La fase de grupos termina cuando todos los jugadores alcanzaron el número de partidos configurado.
                                     </p>
                                 </div>
                             </motion.section>
@@ -781,23 +781,23 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Clasificación & Posiciones</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Criterios de desempate en el ranking de grupos</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Criterios de desempate en el ranking de grupos</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
                                     La tabla de posiciones se actualiza en tiempo real con cada partido confirmado. El orden se determina por los siguientes criterios aplicados en cascada:
                                 </p>
                                 <div className="space-y-2 mb-6">
                                     {[
                                         { rank: "1°", label: "Victorias", desc: "Partidos ganados (score del jugador mayor que el del rival). Criterio principal.", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
                                         { rank: "2°", label: "Diferencia de Games", desc: "Games ganados menos games perdidos. Se aplica cuando dos jugadores tienen el mismo número de victorias.", color: "text-celeste", bg: "bg-celeste/10 border-celeste/20" },
-                                        { rank: "3°", label: "Games Ganados", desc: "Total de games anotados en toda la fase de grupos. Desempate final para casos de empate absoluto.", color: "text-muted-foreground", bg: "bg-white/5 border-white/10" },
+                                        { rank: "3°", label: "Games Ganados", desc: "Total de games anotados en toda la fase de grupos. Desempate final para casos de empate absoluto.", color: "text-slate-400", bg: "bg-white/5 border-white/10" },
                                     ].map((c, i) => (
                                         <div key={i} className={`flex items-start gap-4 p-4 rounded-xl border ${c.bg}`}>
                                             <span className={`text-xl font-black italic tracking-tighter shrink-0 w-8 ${c.color}`}>{c.rank}</span>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{c.label}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">{c.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{c.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -811,11 +811,11 @@ export default function ReglamentoPage() {
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-white/5">
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">#</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground text-center">PJ</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400">#</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400 text-center">PJ</th>
                                                     <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-amber-400 text-center">V</th>
-                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground text-center">D</th>
+                                                    <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-slate-400 text-center">D</th>
                                                     <th className="px-4 py-2.5 text-[8px] font-black uppercase tracking-widest text-celeste text-center">+/-</th>
                                                 </tr>
                                             </thead>
@@ -829,14 +829,14 @@ export default function ReglamentoPage() {
                                                     { pos: 6, name: "Jugador F", pj: 2, v: 0, d: 2, diff: "-7", highlight: false },
                                                 ].map((row, i) => (
                                                     <tr key={i} className={`hover:bg-celeste/5 transition-colors ${row.highlight ? "bg-celeste/5" : ""}`}>
-                                                        <td className="px-4 py-2 text-[9px] font-black text-muted-foreground/50 italic">{row.pos}</td>
+                                                        <td className="px-4 py-2 text-[9px] font-black text-slate-500 italic">{row.pos}</td>
                                                         <td className="px-4 py-2">
-                                                            <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.highlight ? "text-celeste" : "text-foreground"}`}>{row.name}</span>
+                                                            <span className={`text-[10px] font-black uppercase italic tracking-tight ${row.highlight ? "text-celeste" : "text-white"}`}>{row.name}</span>
                                                             {row.pos <= 2 && <span className="ml-2 text-[7px] font-black text-emerald-400 uppercase tracking-widest">↑ clasifica</span>}
                                                         </td>
-                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">{row.pj}</td>
+                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">{row.pj}</td>
                                                         <td className="px-4 py-2 text-center text-[9px] font-black text-amber-400">{row.v}</td>
-                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-muted-foreground">{row.d}</td>
+                                                        <td className="px-4 py-2 text-center text-[9px] font-bold text-slate-400">{row.d}</td>
                                                         <td className="px-4 py-2 text-center">
                                                             <span className={`text-[9px] font-black ${row.diff.startsWith("+") ? "text-emerald-400" : "text-rojo"}`}>{row.diff}</span>
                                                         </td>
@@ -859,20 +859,20 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Fase Playoff</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Bracket de eliminación directa con seeding</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Bracket de eliminación directa con seeding</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
-                                    Al finalizar la fase de grupos, los <span className="text-foreground">N mejores clasificados</span> (según el bracketSize configurado) avanzan a un bracket de eliminación directa. El bracket se arma con seeding para que los mejores se crucen lo más tarde posible.
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                    Al finalizar la fase de grupos, los <span className="text-white">N mejores clasificados</span> (según el bracketSize configurado) avanzan a un bracket de eliminación directa. El bracket se arma con seeding para que los mejores se crucen lo más tarde posible.
                                 </p>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div className="space-y-3">
-                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic flex items-center gap-2">
+                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">1</span>
                                             Seeding — cruce con bracket clásico
                                         </h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">
                                             El sistema usa el orden estándar de torneos: el 1° vs el último, el 2° vs el penúltimo, y así sucesivamente. Esto maximiza la probabilidad de que los mejores clasificados se encuentren en la final.
                                         </p>
                                         <div className="space-y-1.5">
@@ -883,20 +883,20 @@ export default function ReglamentoPage() {
                                                 { s1: "4°", s2: "5°", round: "Cuartos" },
                                             ].map((m, i) => (
                                                 <div key={i} className="flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-lg">
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 w-10">{m.round}</span>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-400/40 w-10">{m.round}</span>
                                                     <span className="px-2 py-0.5 bg-celeste/20 text-celeste text-[8px] font-black rounded">{m.s1}</span>
-                                                    <ChevronRight className="w-3 h-3 text-muted-foreground/30" />
+                                                    <ChevronRight className="w-3 h-3 text-slate-400/30" />
                                                     <span className="px-2 py-0.5 bg-rosa/20 text-rosa text-[8px] font-black rounded">{m.s2}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic flex items-center gap-2">
+                                        <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">2</span>
                                             Avance automático de ganadores
                                         </h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">
                                             Al confirmar el resultado de un partido del bracket, el ganador avanza automáticamente al siguiente cruze. Si el resultado se corrige, el avance también se revierte.
                                         </p>
                                         <div className="space-y-2">
@@ -906,9 +906,9 @@ export default function ReglamentoPage() {
                                                 { bracket: "4 jugadores", rounds: "2 rondas", matches: "3 partidos" },
                                             ].map((b, i) => (
                                                 <div key={i} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
-                                                    <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground/80">{b.bracket}</span>
+                                                    <span className="text-[9px] font-black uppercase italic tracking-tight text-slate-200">{b.bracket}</span>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">{b.rounds}</span>
+                                                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{b.rounds}</span>
                                                         <span className="px-2 py-0.5 bg-amber-500/15 border border-amber-500/20 text-amber-400 text-[8px] font-black rounded-full">{b.matches}</span>
                                                     </div>
                                                 </div>
@@ -919,8 +919,8 @@ export default function ReglamentoPage() {
 
                                 <div className="p-5 bg-celeste/5 border border-celeste/15 rounded-2xl flex items-start gap-4">
                                     <Info className="w-5 h-5 text-celeste shrink-0 mt-0.5" />
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                                        El número de clasificados puede ser <span className="text-celeste">cualquier número par ≥ 2</span>, no necesariamente potencia de 2. El sistema redondea internamente al cuadro más cercano y rellena los slots sobrantes con <strong className="text-foreground">BYE</strong> (pase directo), asignados a los mejores seeds. Ejemplo: 6 clasificados → bracket de 8, el 1° y 2° avanzan solos su BYE.
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed opacity-80">
+                                        El número de clasificados puede ser <span className="text-celeste">cualquier número par ≥ 2</span>, no necesariamente potencia de 2. El sistema redondea internamente al cuadro más cercano y rellena los slots sobrantes con <strong className="text-white">BYE</strong> (pase directo), asignados a los mejores seeds. Ejemplo: 6 clasificados → bracket de 8, el 1° y 2° avanzan solos su BYE.
                                     </p>
                                 </div>
                             </motion.section>
@@ -947,11 +947,11 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">¿Qué es Cancha Abierta?</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Formato de juego libre y rotativo</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Formato de juego libre y rotativo</p>
                                     </div>
                                 </div>
-                                <p className="text-xs font-bold text-muted-foreground leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
-                                    Cancha Abierta es un formato de juego donde <span className="text-foreground">todos juegan contra todos</span> de forma rotativa. No hay grupos fijos ni eliminatorias: los jugadores esperan en cola, se arman partidos automáticamente cuando una cancha queda libre, y al terminar vuelven a la fila.
+                                <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-tight italic opacity-80 max-w-2xl mb-6">
+                                    Cancha Abierta es un formato de juego donde <span className="text-white">todos juegan contra todos</span> de forma rotativa. No hay grupos fijos ni eliminatorias: los jugadores esperan en cola, se arman partidos automáticamente cuando una cancha queda libre, y al terminar vuelven a la fila.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     {[
@@ -963,7 +963,7 @@ export default function ReglamentoPage() {
                                             <c.icon className={`w-5 h-5 ${c.color}`} />
                                             <div>
                                                 <p className="text-[10px] font-black uppercase italic tracking-widest mb-1">{c.title}</p>
-                                                <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-wider leading-relaxed">{c.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{c.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -978,11 +978,11 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Inscripción & Preferencia</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Cómo registrarse en el evento</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Cómo registrarse en el evento</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
-                                    Al inscribirse, cada jugador indica su <span className="text-foreground">preferencia de posición en cancha</span>. El sistema usa este dato para armar las mejores parejas posibles.
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                    Al inscribirse, cada jugador indica su <span className="text-white">preferencia de posición en cancha</span>. El sistema usa este dato para armar las mejores parejas posibles.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     {[
@@ -1014,10 +1014,10 @@ export default function ReglamentoPage() {
                                         <div key={i} className={`p-5 rounded-xl border ${pos.color} flex flex-col gap-3`}>
                                             <div className="flex items-center justify-between">
                                                 <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${pos.badge}`}>{pos.label}</span>
-                                                <span className="text-xl font-black text-muted-foreground/30">{pos.icon}</span>
+                                                <span className="text-xl font-black text-slate-400/30">{pos.icon}</span>
                                             </div>
-                                            <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-wider leading-relaxed">{pos.desc}</p>
-                                            <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest italic border-t border-white/5 pt-2">{pos.ideal}</p>
+                                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{pos.desc}</p>
+                                            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic border-t border-white/5 pt-2">{pos.ideal}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -1031,10 +1031,10 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Modos de Partido</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Configuración por cancha</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Configuración por cancha</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
                                     Cada cancha puede tener un modo independiente. El admin configura el modo y el algoritmo respeta la restricción al seleccionar jugadores.
                                 </p>
                                 <div className="space-y-3">
@@ -1063,13 +1063,13 @@ export default function ReglamentoPage() {
                                     ].map((m, i) => (
                                         <div key={i} className="p-5 bg-white/5 border border-white/5 rounded-xl hover:bg-white/[0.07] transition-all">
                                             <div className="flex items-start gap-4">
-                                                <m.icon className="w-4 h-4 mt-0.5 text-muted-foreground/50 shrink-0" />
+                                                <m.icon className="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${m.badge}`}>{m.mode}</span>
                                                     </div>
-                                                    <p className="text-[9px] font-bold text-foreground/70 uppercase tracking-wider leading-relaxed mb-2">{m.rule}</p>
-                                                    <p className="text-[8px] font-black text-muted-foreground/45 uppercase tracking-widest italic">{m.note}</p>
+                                                    <p className="text-[9px] font-bold text-slate-300 uppercase tracking-wider leading-relaxed mb-2">{m.rule}</p>
+                                                    <p className="text-[8px] font-black text-slate-400/45 uppercase tracking-widest italic">{m.note}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -1088,17 +1088,17 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Algoritmo de Armado</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Cómo el sistema elige las parejas óptimas</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Cómo el sistema elige las parejas óptimas</p>
                                     </div>
                                 </div>
 
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-8 max-w-2xl">
-                                    Con 4 jugadores seleccionados, existen <span className="text-foreground">3 formas posibles de armar las parejas</span>. El sistema evalúa cada combinación con un puntaje de penalidad y elige la de menor costo.
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-8 max-w-2xl">
+                                    Con 4 jugadores seleccionados, existen <span className="text-white">3 formas posibles de armar las parejas</span>. El sistema evalúa cada combinación con un puntaje de penalidad y elige la de menor costo.
                                 </p>
 
                                 {/* Las 3 combinaciones */}
                                 <div className="mb-8">
-                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic mb-3 flex items-center gap-2">
+                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic mb-3 flex items-center gap-2">
                                         <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">1</span>
                                         Las 3 combinaciones posibles para A, B, C, D
                                     </h3>
@@ -1109,14 +1109,14 @@ export default function ReglamentoPage() {
                                             { combo: "A+D vs B+C", players: [["A","D"],["B","C"]] },
                                         ].map((c, i) => (
                                             <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-xl text-center">
-                                                <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest mb-2">Opción {i+1}</p>
+                                                <p className="text-[8px] font-black text-slate-400/40 uppercase tracking-widest mb-2">Opción {i+1}</p>
                                                 <div className="flex items-center justify-center gap-3">
                                                     <div className="flex gap-1.5">
                                                         {c.players[0].map(p => (
                                                             <span key={p} className="w-7 h-7 rounded-lg bg-celeste/20 border border-celeste/30 flex items-center justify-center text-[10px] font-black text-celeste">{p}</span>
                                                         ))}
                                                     </div>
-                                                    <span className="text-[8px] font-black text-muted-foreground/30">vs</span>
+                                                    <span className="text-[8px] font-black text-slate-400/30">vs</span>
                                                     <div className="flex gap-1.5">
                                                         {c.players[1].map(p => (
                                                             <span key={p} className="w-7 h-7 rounded-lg bg-rosa/20 border border-rosa/30 flex items-center justify-center text-[10px] font-black text-rosa">{p}</span>
@@ -1130,7 +1130,7 @@ export default function ReglamentoPage() {
 
                                 {/* Sistema de penalidades */}
                                 <div>
-                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic mb-3 flex items-center gap-2">
+                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic mb-3 flex items-center gap-2">
                                         <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[8px]">2</span>
                                         Sistema de penalidades — gana el menor puntaje
                                     </h3>
@@ -1141,7 +1141,7 @@ export default function ReglamentoPage() {
                                             { label: "Drive + Revés en la misma pareja", value: "−100 pts", icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/5 border-emerald-500/20", desc: "Pareja posicionalmente perfecta: un jugador de drive y uno de revés." },
                                             { label: "Dos Drives en la misma pareja", value: "+150 pts", icon: AlertTriangle, color: "text-rojo", bg: "bg-rojo/5 border-rojo/15", desc: "Pareja posicionalmente crítica: dos jugadores de drive juntos." },
                                             { label: "Dos Reveses en la misma pareja", value: "+80 pts", icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/5 border-amber-500/15", desc: "Pareja sub-óptima: dos jugadores de revés juntos." },
-                                            { label: "Uno o ambos son 'Ambos'", value: "0 pts", icon: CircleDot, color: "text-muted-foreground/50", bg: "bg-white/5 border-white/5", desc: "Neutral: no suma ni resta penalidad posicional." },
+                                            { label: "Uno o ambos son 'Ambos'", value: "0 pts", icon: CircleDot, color: "text-slate-500", bg: "bg-white/5 border-white/5", desc: "Neutral: no suma ni resta penalidad posicional." },
                                             { label: "Género incompatible con el modo", value: "+10.000 pts", icon: AlertTriangle, color: "text-rojo", bg: "bg-rojo/10 border-rojo/25", desc: "Violación de la restricción de modo (mixto/mismo género). Descarta la combinación." },
                                         ].map((row, i) => (
                                             <div key={i} className={`flex items-start gap-4 p-4 rounded-xl border ${row.bg} transition-all`}>
@@ -1151,7 +1151,7 @@ export default function ReglamentoPage() {
                                                         <span className="text-[10px] font-black uppercase italic tracking-tight">{row.label}</span>
                                                         <span className={`text-[10px] font-black shrink-0 ${row.color}`}>{row.value}</span>
                                                     </div>
-                                                    <p className="text-[8px] font-bold text-muted-foreground/50 uppercase tracking-wider leading-relaxed">{row.desc}</p>
+                                                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{row.desc}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -1160,7 +1160,7 @@ export default function ReglamentoPage() {
 
                                 <div className="mt-6 p-5 bg-celeste/5 border border-celeste/15 rounded-2xl flex items-start gap-4">
                                     <Info className="w-5 h-5 text-celeste shrink-0 mt-0.5" />
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-80">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed opacity-80">
                                         El sistema evalúa las 3 combinaciones, suma las penalidades de cada una y asigna automáticamente la combinación con <span className="text-celeste">menor puntaje total</span>. En caso de empate, se toma la primera opción evaluada.
                                     </p>
                                 </div>
@@ -1174,11 +1174,11 @@ export default function ReglamentoPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-black uppercase italic tracking-tighter">Prioridad de Fila</h2>
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 opacity-50">Quién sube a cancha primero</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1 opacity-50">Quién sube a cancha primero</p>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
-                                    La cola de jugadores disponibles se ordena por <span className="text-foreground">tiempo de espera</span>: quién más tarde terminó su último partido va primero en la cola.
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic opacity-70 mb-6 max-w-2xl">
+                                    La cola de jugadores disponibles se ordena por <span className="text-white">tiempo de espera</span>: quién más tarde terminó su último partido va primero en la cola.
                                 </p>
                                 <div className="space-y-3">
                                     {[
@@ -1191,9 +1191,9 @@ export default function ReglamentoPage() {
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between mb-1">
                                                     <p className="text-[10px] font-black uppercase italic tracking-widest group-hover/item:text-azul-primary transition-colors">{s.title}</p>
-                                                    <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${s.priority === "Alta" ? "bg-rojo/20 text-rojo" : s.priority === "Media" ? "bg-amber-500/20 text-amber-400" : "bg-muted/50 text-muted-foreground"}`}>{s.priority}</span>
+                                                    <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${s.priority === "Alta" ? "bg-rojo/20 text-rojo" : s.priority === "Media" ? "bg-amber-500/20 text-amber-400" : "bg-white/10 text-slate-400"}`}>{s.priority}</span>
                                                 </div>
-                                                <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-relaxed">{s.desc}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-relaxed">{s.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -1206,7 +1206,7 @@ export default function ReglamentoPage() {
                 {/* Footer */}
                 <footer className="mt-16 text-center pb-8">
                     <div className="h-px bg-gradient-to-r from-transparent via-azul-primary/10 to-transparent mb-8" />
-                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-muted-foreground opacity-30 italic">
+                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-slate-400 opacity-30 italic">
                         Plataforma Oficial Ranking Padel <span className="text-azul-primary/50">//</span> v2.4
                     </p>
                 </footer>

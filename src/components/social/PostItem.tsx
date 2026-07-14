@@ -136,10 +136,10 @@ export const PostItem = memo(function PostItem({
   const RoleIcon = roleConfig.icon;
 
   return (
-    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.02)] hover:border-slate-200 transition-all duration-300 relative overflow-hidden group">
+    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.02)] hover:border-white/20 transition-all duration-300 relative overflow-hidden group">
       
       {/* Dynamic light border glow at top */}
-      <div className={`absolute top-0 left-0 w-full h-[2px] opacity-25 bg-gradient-to-right ${
+      <div className={`absolute top-0 left-0 w-full h-[2px] opacity-25 bg-gradient-to-r ${
         post.user.role === 'superadmin' ? 'from-red-500' : post.user.role === 'club' ? 'from-emerald-500' : 'from-celeste'
       } to-transparent`} />
 
@@ -147,7 +147,7 @@ export const PostItem = memo(function PostItem({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           {/* Avatar frame with glow ring */}
-          <div className={`w-10 h-10 bg-slate-50 border border-slate-200/40 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative ring-2 ring-offset-2 ring-offset-background ${
+          <div className={`w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative ring-2 ring-offset-2 ring-offset-carbon-800 ${
             post.user.role === 'superadmin' ? 'ring-red-500/10' : post.user.role === 'club' ? 'ring-emerald-500/10' : 'ring-celeste/10'
           }`}>
             {post.user.imageUrl ? (
@@ -159,7 +159,7 @@ export const PostItem = memo(function PostItem({
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-tight text-slate-950 leading-none">
+              <span className="text-xs font-black uppercase tracking-tight text-white leading-none">
                 {post.user.name}
               </span>
               
@@ -184,7 +184,7 @@ export const PostItem = memo(function PostItem({
                 setIsEditingPost(true);
                 setEditPostContent(post.content || "");
               }}
-              className="p-1.5 bg-slate-50 hover:bg-azul-primary/5 text-slate-400 hover:text-azul-primary rounded-xl border border-slate-200/30 transition-all active:scale-90"
+              className="p-1.5 bg-white/5 hover:bg-azul-primary/5 text-slate-400 hover:text-azul-primary rounded-xl border border-white/10 transition-all active:scale-90"
               title="Editar Publicación"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export const PostItem = memo(function PostItem({
             <button
               onClick={handleDeletePost}
               disabled={isDeletingPost}
-              className="p-1.5 bg-slate-50 hover:bg-rose-500/5 text-slate-400 hover:text-rose-500 rounded-xl border border-slate-200/30 transition-all active:scale-90 disabled:opacity-50"
+              className="p-1.5 bg-white/5 hover:bg-rose-500/5 text-slate-400 hover:text-rose-500 rounded-xl border border-white/10 transition-all active:scale-90 disabled:opacity-50"
               title="Eliminar Publicación"
             >
               {isDeletingPost ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -204,11 +204,11 @@ export const PostItem = memo(function PostItem({
       {/* Content Section */}
       <div className="relative z-10 pl-0 sm:pl-1">
         {isEditingPost ? (
-          <div className="flex flex-col gap-4 mb-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex flex-col gap-4 mb-4 bg-white/5 p-5 rounded-2xl border border-white/10">
             <textarea
               value={editPostContent}
               onChange={(e) => setEditPostContent(capitalizeFirstLetter(e.target.value))}
-              className="w-full bg-transparent border-none outline-none text-sm text-slate-800 placeholder-slate-400 resize-none min-h-[100px] leading-relaxed"
+              className="w-full bg-transparent border-none outline-none text-sm text-slate-200 placeholder-slate-500 resize-none min-h-[100px] leading-relaxed"
               autoFocus
             />
             <div className="flex justify-end gap-2.5">
@@ -217,14 +217,14 @@ export const PostItem = memo(function PostItem({
                   setIsEditingPost(false);
                   setEditPostContent(post.content || "");
                 }}
-                className="px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-200/50 rounded-xl transition-all flex items-center gap-1.5"
+                className="px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/10 rounded-xl transition-all flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3 h-3" /> Cancelar
               </button>
               <button
                 onClick={handleUpdatePost}
                 disabled={isUpdatingPost || !editPostContent.trim()}
-                className="px-4 py-2 text-[9px] font-black uppercase tracking-widest text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
+                className="px-4 py-2 text-[9px] font-black uppercase tracking-widest text-carbon-950 bg-volt hover:bg-volt-dark disabled:opacity-50 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
               >
                 {isUpdatingPost ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Guardar
               </button>
@@ -232,7 +232,7 @@ export const PostItem = memo(function PostItem({
           </div>
         ) : (
           post.content && (
-            <p className="text-slate-750 text-sm font-medium leading-relaxed mb-4 whitespace-pre-wrap">
+            <p className="text-slate-300 text-sm font-medium leading-relaxed mb-4 whitespace-pre-wrap">
               {post.content}
             </p>
           )
@@ -248,7 +248,7 @@ export const PostItem = memo(function PostItem({
             className={`flex items-center gap-2 py-1.5 px-3 rounded-xl transition-all font-black uppercase tracking-widest text-[9px] active:scale-95 border ${
               showComments 
                 ? "bg-azul-primary/10 text-azul-primary border-azul-primary/20" 
-                : "bg-slate-50 text-slate-400 hover:text-slate-800 border-transparent"
+                : "bg-white/5 text-slate-400 hover:text-white border-transparent"
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export const PostItem = memo(function PostItem({
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="mt-4 pt-4 border-t border-slate-100 overflow-hidden"
+              className="mt-4 pt-4 border-t border-white/10 overflow-hidden"
             >
               {post.comments && post.comments.length > 0 ? (
                 <div className="flex flex-col gap-3.5 mb-4 max-h-[300px] overflow-y-auto pr-1">
@@ -279,15 +279,15 @@ export const PostItem = memo(function PostItem({
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200/60 mb-4">
+                <div className="text-center py-6 bg-white/[0.03] rounded-2xl border border-dashed border-white/10 mb-4">
                   <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Sin Comentarios</p>
                 </div>
               )}
 
               {/* Comment Input */}
               {currentUser && (
-                <form onSubmit={handleComment} className="flex gap-3 items-center mt-2 pt-2 border-t border-slate-100">
-                  <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/40 overflow-hidden shrink-0 relative">
+                <form onSubmit={handleComment} className="flex gap-3 items-center mt-2 pt-2 border-t border-white/10">
+                  <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 overflow-hidden shrink-0 relative">
                     {currentUser.imageUrl ? (
                       <Image src={currentUser.imageUrl} alt="" fill unoptimized className="object-cover" sizes="32px" />
                     ) : (
@@ -302,7 +302,7 @@ export const PostItem = memo(function PostItem({
                       value={commentText}
                       onChange={handleCommentChange}
                       placeholder="Escribe un comentario en el hilo..."
-                      className="w-full bg-slate-50 border border-slate-200/50 focus:border-slate-300 focus:bg-white rounded-2xl py-2 px-4 pr-12 text-xs text-slate-800 placeholder-slate-405 outline-none transition-all font-medium"
+                      className="w-full bg-white/5 border border-white/10 focus:border-white/20 focus:bg-white/10 rounded-2xl py-2 px-4 pr-12 text-xs text-slate-200 placeholder-slate-500 outline-none transition-all font-medium"
                     />
                     <button
                       type="submit"
@@ -311,7 +311,7 @@ export const PostItem = memo(function PostItem({
                         ${
                           commentState === 'success'
                             ? 'bg-azul-primary text-white'
-                            : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-30 disabled:bg-slate-200'
+                            : 'bg-volt text-carbon-950 hover:bg-volt-dark disabled:opacity-30 disabled:bg-white/10'
                         }`}
                     >
                       {commentState === 'loading' ? (

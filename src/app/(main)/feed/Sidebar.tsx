@@ -152,21 +152,21 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     return (
         <>
             {/* MOBILE TOP HEADER */}
-            <header className="md:hidden fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 h-16 transition-all duration-300 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
+            <header className="md:hidden fixed top-0 w-full z-50 bg-carbon-950/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 h-16 transition-all duration-300">
                 <div className="flex items-center gap-2.5">
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="p-2.5 rounded-2xl border border-slate-100 bg-white shadow-sm hover:bg-slate-50 transition-all active:scale-95 group"
+                        className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95 group"
                     >
-                        <Menu className="w-5 h-5 text-slate-600 group-hover:text-azul-primary transition-colors" />
+                        <Menu className="w-5 h-5 text-slate-300 group-hover:text-volt transition-colors" />
                     </button>
                     <Link href="/home" className="flex items-center gap-2.5 transition-transform active:scale-95">
-                        <div className="w-9 h-9 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
+                        <div className="w-9 h-9 bg-azul-primary clip-notch flex items-center justify-center shadow-lg shadow-azul-primary/30">
                             <span className="text-white font-black text-sm tracking-tighter">AC</span>
                         </div>
-                        <div className="flex flex-col -gap-1">
-                            <span className="text-[15px] font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                            <span className="text-[10px] font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
+                        <div className="flex flex-col gap-1">
+                            <span className="heading-sport text-[15px] text-white leading-none">A.C.A.P.</span>
+                            <span className="label-tech text-[8px] text-celeste-light leading-none">Padel App</span>
                         </div>
                     </Link>
                 </div>
@@ -182,7 +182,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     await switchActiveRole(newRole);
                                     window.location.href = "/home";
                                 }}
-                                className="bg-emerald-50 border border-celeste text-emerald-700 text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all shadow-sm pr-7"
+                                className="bg-white/5 border border-white/15 text-volt text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-volt/30 transition-all pr-7"
                             >
                                 {["superadmin", "club", "jugador"].filter(r => {
                                     const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -194,18 +194,18 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-azul-primary pointer-events-none opacity-60" />
+                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-volt pointer-events-none opacity-60" />
                         </div>
                     )}
                     <Link
                         href={profileUrl}
-                        className="w-10 h-10 rounded-full border border-slate-100 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 transition-all active:scale-95 overflow-hidden"
+                        className="w-10 h-10 rounded-full border border-white/15 bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all active:scale-95 overflow-hidden"
                     >
                         {userData?.imageUrl ? (
                             <Image src={userData.imageUrl} alt="" width={40} height={40} className="object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-                                <span className="text-xs font-bold text-slate-500">{userData?.name?.charAt(0) || "U"}</span>
+                            <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                                <span className="text-xs font-bold text-slate-300">{userData?.name?.charAt(0) || "U"}</span>
                             </div>
                         )}
                     </Link>
@@ -214,22 +214,22 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
 
             {/* MOBILE OVERLAY MENU (DRAWER) */}
             <div
-                className={`md:hidden fixed inset-0 z-[60] bg-white/95 backdrop-blur-xl transition-all duration-300 ${isCollapsed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                className={`md:hidden fixed inset-0 z-[60] bg-grid-carbon transition-all duration-300 ${isCollapsed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <div className="flex flex-col h-full p-6">
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-azul-primary rounded-xl flex items-center justify-center shadow-lg shadow-azul-primary/20">
+                            <div className="w-10 h-10 bg-azul-primary clip-notch flex items-center justify-center shadow-lg shadow-azul-primary/30">
                                 <span className="text-white font-black text-base tracking-tighter">AC</span>
                             </div>
-                            <div className="flex flex-col -gap-1">
-                                <span className="text-xl font-black tracking-tight text-slate-900 leading-none">A.C.A.P.</span>
-                                <span className="text-xs font-bold text-azul-primary/80 uppercase tracking-widest leading-none">Padel App</span>
+                            <div className="flex flex-col gap-1">
+                                <span className="heading-sport text-xl text-white leading-none">A.C.A.P.</span>
+                                <span className="label-tech text-[9px] text-celeste-light leading-none">Padel App</span>
                             </div>
                         </div>
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-2.5 rounded-2xl border border-slate-100 bg-white shadow-sm hover:bg-slate-50 text-slate-600"
+                            className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -246,30 +246,30 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     target={item.newTab ? "_blank" : undefined}
                                     rel={item.newTab ? "noopener noreferrer" : undefined}
                                     onClick={() => setIsCollapsed(false)}
-                                    className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-lg ${isActive ? 'bg-azul-primary text-white shadow-lg shadow-azul-primary/20' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className={`flex items-center gap-4 px-6 py-4 rounded-xl border-l-4 transition-all font-bold text-lg ${isActive ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'}`}
                                 >
-                                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : 'opacity-70'}`} />
+                                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110 text-volt' : 'opacity-70'}`} />
                                     <span>{item.label}</span>
                                 </Link>
                             );
                         })}
                     </nav>
 
-                    <div className="mt-8 pt-6 border-t border-border flex flex-col gap-4">
+                    <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4">
                         <div className="flex items-center gap-4 px-2">
-                            <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
-                                <User className="w-6 h-6 text-muted-foreground" />
+                            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/15 flex items-center justify-center">
+                                <User className="w-6 h-6 text-slate-400" />
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className="text-lg font-bold truncate text-foreground">{userData?.name || 'Usuario'}</span>
-                                <span className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                                <span className="text-lg font-bold truncate text-white">{userData?.name || 'Usuario'}</span>
+                                <span className="label-tech text-[9px] text-slate-500">
                                     {ROLE_LABELS[role] || role}
                                 </span>
                             </div>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-muted text-red-500 font-bold hover:bg-red-500/10 transition-colors"
+                            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl bg-white/5 text-live font-bold hover:bg-live/10 transition-colors"
                         >
                             <LogOut className="w-5 h-5" />
                             Cerrar Sesión
@@ -279,7 +279,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </div>
 
             {/* DESKTOP SIDEBAR */}
-            <aside className={`hidden md:flex ${isCollapsed ? 'w-16' : 'w-52'} border-r border-border bg-background flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
+            <aside className={`hidden md:flex ${isCollapsed ? 'w-16' : 'w-52'} border-r border-white/10 bg-carbon-950 flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
                 <style>{`
                     .sidebar-scroll::-webkit-scrollbar {
                         width: 5px;
@@ -288,29 +288,23 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         background: transparent;
                     }
                     .sidebar-scroll::-webkit-scrollbar-thumb {
-                        background: rgba(0, 0, 0, 0.05);
+                        background: rgba(255, 255, 255, 0.06);
                         border-radius: 10px;
                     }
                     .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-                        background: rgba(99, 102, 241, 0.2);
-                    }
-                    .dark .sidebar-scroll::-webkit-scrollbar-thumb {
-                        background: rgba(255, 255, 255, 0.05);
-                    }
-                    .dark .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-                        background: rgba(99, 102, 241, 0.3);
+                        background: rgba(212, 255, 63, 0.25);
                     }
                 `}</style>
-                <div className={`p-2.5 flex flex-col gap-3 border-b border-border ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`p-2.5 flex flex-col gap-3 border-b border-white/10 ${isCollapsed ? 'items-center' : ''}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <Link href="/home" className="flex items-center gap-2 group">
-                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={28} height={28} className="rounded-full border border-border shadow-sm" priority />
-                            {!isCollapsed && <span className="text-base font-extrabold tracking-tight text-foreground group-hover:text-azul-primary transition-colors">A.C.A.P.</span>}
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={28} height={28} className="rounded-full border border-white/15 shadow-sm" priority />
+                            {!isCollapsed && <span className="heading-sport text-base text-white group-hover:text-volt transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button
                                 onClick={() => setIsCollapsed(true)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all"
                             >
                                 <Menu className="w-4 h-4" />
                             </button>
@@ -320,7 +314,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     {isCollapsed && (
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-1.5 mt-2 rounded-lg text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/10 transition-all active:scale-95"
+                            className="p-1.5 mt-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all active:scale-95"
                         >
                             <Menu className="w-4 h-4" />
                         </button>
@@ -340,11 +334,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             {idx === 1 && (
                                 <button
                                     onClick={() => setExpanded(!isExpanded)}
-                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all font-semibold text-[13px] ${isExpanded ? 'bg-azul-primary text-white shadow-md shadow-azul-primary/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all font-semibold text-[13px] ${isExpanded ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                     title={isCollapsed ? "Mensajes" : ""}
                                 >
                                     <div className="relative shrink-0">
-                                        <MessageSquare className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'scale-110' : 'opacity-80'}`} />
+                                        <MessageSquare className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'scale-110 text-volt' : 'opacity-80'}`} />
                                         {unreadMessages > 0 && (
                                             <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
                                                 {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -364,11 +358,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 href={item.href}
                                 target={item.newTab ? "_blank" : undefined}
                                 rel={item.newTab ? "noopener noreferrer" : undefined}
-                                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all group font-semibold text-[13px] ${isActive ? 'bg-azul-primary text-white shadow-md shadow-azul-primary/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all group font-semibold text-[13px] ${isActive ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
                                 <div className="relative">
-                                    <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                    <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110 text-volt' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
                                     {isRequests && pendingRequests > 0 && (
                                         <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
                                             {pendingRequests > 9 ? "9+" : pendingRequests}
@@ -400,7 +394,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}
-            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
+            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-carbon-950/95 backdrop-blur-xl border-t border-white/10 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
                 <div className="flex items-center justify-around px-1 py-1">
                     {navItems.slice(0, 5).map((item) => {
                         const Icon = item.icon;
@@ -408,12 +402,12 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         return (
                             <Link key={item.label} href={item.href} className="flex flex-col items-center gap-0.5 p-1 min-w-[56px] rounded-lg relative">
                                 {isActive && (
-                                    <div className="absolute top-0 w-6 h-0.5 bg-azul-primary rounded-b-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <div className="absolute top-0 w-6 h-0.5 bg-volt rounded-b-full shadow-[0_0_8px_rgba(212,255,63,0.6)]" />
                                 )}
-                                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-azul-primary/10 text-azul-primary' : 'text-slate-400'}`}>
+                                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-volt/10 text-volt' : 'text-slate-500'}`}>
                                     <Icon className="w-4.5 h-4.5" />
                                 </div>
-                                <span className={`text-[9px] font-bold tracking-tight transition-colors ${isActive ? 'text-azul-primary' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] font-bold tracking-tight transition-colors ${isActive ? 'text-volt' : 'text-slate-500'}`}>
                                     {item.label.split(' ')[0]}
                                 </span>
                             </Link>

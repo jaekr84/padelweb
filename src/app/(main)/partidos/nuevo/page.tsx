@@ -13,7 +13,9 @@ export default async function NewMatchPage() {
     const categories = await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true));
 
     return (
-        <CreateMatchClient categories={JSON.parse(JSON.stringify(categories))} />
+        <div className="min-h-screen bg-grid-carbon text-white">
+            <CreateMatchClient categories={JSON.parse(JSON.stringify(categories))} />
+        </div>
     );
 }
 

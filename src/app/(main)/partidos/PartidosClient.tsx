@@ -50,14 +50,14 @@ function MatchCard({
             >
                 {/* FRONT SIDE */}
                 <div className="absolute inset-0 w-full h-full [backface-visibility:hidden]">
-                    <div className="h-full bg-card border border-border/60 rounded-2xl overflow-hidden hover:shadow-lg hover:border-azul-primary/40 transition-all duration-300 flex flex-col justify-between">
+                    <div className="h-full bg-carbon-800 border border-white/10 rounded-2xl overflow-hidden hover:shadow-lg hover:border-azul-primary/40 transition-all duration-300 flex flex-col justify-between">
                         {/* Header info */}
                         <button
                             type="button"
                             onClick={() => onShowProfile(match.creatorId)}
-                            className="p-2.5 pb-1.5 flex items-center gap-2 border-b border-border/30 shrink-0 w-full text-left hover:bg-muted/30 transition-colors group/header"
+                            className="p-2.5 pb-1.5 flex items-center gap-2 border-b border-white/10 shrink-0 w-full text-left hover:bg-white/5 transition-colors group/header"
                         >
-                            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-border/60 bg-muted shrink-0 flex items-center justify-center group-hover/header:border-azul-primary/45 transition-colors">
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-white/10 shrink-0 flex items-center justify-center group-hover/header:border-azul-primary/45 transition-colors">
                                 {match.creator.imageUrl ? (
                                     <Image
                                         src={match.creator.imageUrl}
@@ -66,12 +66,12 @@ function MatchCard({
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <User className="w-4 h-4 text-muted-foreground/60" />
+                                    <User className="w-4 h-4 text-slate-500" />
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-[7px] font-black text-muted-foreground/60 uppercase tracking-widest leading-none mb-0.5 group-hover/header:text-azul-primary transition-colors">Organiza</p>
-                                <h3 className="text-[10px] font-black text-foreground truncate leading-none group-hover/header:text-azul-primary transition-colors">
+                                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest leading-none mb-0.5 group-hover/header:text-azul-primary transition-colors">Organiza</p>
+                                <h3 className="text-[10px] font-black text-white truncate leading-none group-hover/header:text-azul-primary transition-colors">
                                     {match.creator.firstName} {match.creator.lastName}
                                 </h3>
                             </div>
@@ -83,7 +83,7 @@ function MatchCard({
                         {/* Body content */}
                         <div className="p-2.5 flex-grow flex flex-col justify-between min-h-0">
                             <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-foreground leading-none">
+                                <div className="flex items-center justify-between text-white leading-none">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-3.5 h-3.5 text-azul-primary" />
                                         <span className="text-[10px] font-black">{formatDate(match.date)}</span>
@@ -94,17 +94,17 @@ function MatchCard({
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-muted/20 border border-border/40 relative group/loc min-w-0">
-                                    <MapPin className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-white/5 border border-white/10 relative group/loc min-w-0">
+                                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <span className="block text-[6px] font-black uppercase tracking-widest text-muted-foreground/60 leading-none mb-0.5">Sede / Ubicación</span>
-                                        <h4 className="text-[9px] font-black text-foreground truncate leading-none">{match.location}</h4>
+                                        <span className="block text-[6px] font-black uppercase tracking-widest text-slate-500 leading-none mb-0.5">Sede / Ubicación</span>
+                                        <h4 className="text-[9px] font-black text-white truncate leading-none">{match.location}</h4>
                                     </div>
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${match.location}, ${match.city}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="bg-background px-1.5 py-1 rounded-lg border border-border text-muted-foreground hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-1 shrink-0 h-6"
+                                        className="bg-white/10 px-1.5 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-1 shrink-0 h-6"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <ExternalLink className="w-2.5 h-2.5" />
@@ -115,7 +115,7 @@ function MatchCard({
 
                             <div className="space-y-1 mt-1">
                                 <div className="flex items-center justify-between leading-none mb-1">
-                                    <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">Jugadores ({spotsFull}/{totalSpots})</p>
+                                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">Jugadores ({spotsFull}/{totalSpots})</p>
                                     <span className={`text-[7px] font-black px-1.5 py-0.5 rounded leading-none ${remaining === 0 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
                                         {remaining === 0 ? 'COMPLETO' : `FALTAN ${remaining}`}
                                     </span>
@@ -241,10 +241,10 @@ function MatchCard({
                         </div>
 
                         {/* Actions footer */}
-                        <div className="p-2 flex items-center gap-1 bg-muted/10 border-t border-border/40 shrink-0">
+                        <div className="p-2 flex items-center gap-1 bg-white/[0.03] border-t border-white/10 shrink-0">
                             <button
                                 onClick={() => setIsFlipped(true)}
-                                className="w-8 h-8 rounded-lg bg-background border border-border text-muted-foreground hover:bg-muted transition-all flex items-center justify-center shrink-0"
+                                className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                                 title="Ver Jugadores"
                             >
                                 <Users className="w-3.5 h-3.5" />
@@ -271,7 +271,7 @@ function MatchCard({
                                     onClick={() => handleJoin(match.id)}
                                     disabled={loadingId === match.id || remaining === 0}
                                     className={`flex-grow h-8 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${remaining === 0
-                                        ? 'bg-muted text-muted-foreground/60 cursor-not-allowed border border-border'
+                                        ? 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
                                         : 'bg-slate-900 text-white hover:bg-blue-600 shadow-sm'
                                         }`}
                                 >
@@ -498,8 +498,8 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
         return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" });
     };
 
-    const dropdownTriggerStyles = "flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-2 text-sm font-bold uppercase tracking-tight text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
-    const dropdownContentStyles = "z-50 overflow-hidden rounded-2xl border border-border bg-popover shadow-2xl";
+    const dropdownTriggerStyles = "flex h-14 w-full items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+    const dropdownContentStyles = "z-50 overflow-hidden rounded-2xl border border-white/10 bg-popover shadow-2xl";
     const dropdownItemStyles = "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm font-bold tracking-tight uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-primary/10 data-[highlighted]:text-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground";
 
     return (
@@ -511,21 +511,21 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             </div>
 
             {/* Widescreen Cyber-Sports HUD Header */}
-            <div className="relative rounded-2xl overflow-hidden bg-foreground p-6 lg:p-8 text-background flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-white/5">
+            <div className="relative rounded-2xl overflow-hidden bg-carbon-800 border border-white/10 p-6 lg:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-white/5">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-azul-primary rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-azul-primary rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2" />
                 </div>
 
                 <div className="relative z-10 space-y-3 max-w-3xl text-center md:text-left">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-background/10 border border-background/20 rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-celeste">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-celeste">
                         <Users className="w-2.5 h-2.5 fill-current" />
                         Completá tu partido
                     </div>
                     <h1 className="text-3xl lg:text-4xl font-black uppercase tracking-tighter leading-none italic">
                         Armá tu <span className="text-celeste">Match</span>
                     </h1>
-                    <p className="text-xs text-background/60 font-bold leading-normal max-w-xl">
+                    <p className="text-xs text-slate-400 font-bold leading-normal max-w-xl">
                         ¿Te falta gente? Creá un partido público o unite a uno ya existente. Encontrá jugadores de tu zona y categoría al instante.
                     </p>
                 </div>
@@ -542,18 +542,18 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             </div>
 
             {/* Horizontal HUD Filter Bar */}
-            <div className="p-3 bg-card border border-border/60 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm relative z-20">
+            <div className="p-3 bg-carbon-800 border border-white/10 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm relative z-20">
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-grow">
                     {/* City Selector */}
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
-                        <span className="text-[7.5px] font-black uppercase tracking-widest text-muted-foreground/60 shrink-0">Zona:</span>
+                        <span className="text-[7.5px] font-black uppercase tracking-widest text-slate-500 shrink-0">Zona:</span>
                         <Select.Root value={searchCity} onValueChange={setSearchCity}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-muted/40">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-white/5 border border-white/10 px-3 text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-between transition-all hover:bg-white/10">
                                 <Select.Value placeholder="Todas las zonas" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60 transition-transform duration-200" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-slate-500 transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-white/10 bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
                                         <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las zonas</Select.ItemText>
@@ -577,14 +577,14 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                     {/* Category Selector */}
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
-                        <span className="text-[7.5px] font-black uppercase tracking-widest text-muted-foreground/60 shrink-0">Categoría:</span>
+                        <span className="text-[7.5px] font-black uppercase tracking-widest text-slate-500 shrink-0">Categoría:</span>
                         <Select.Root value={filterCategory} onValueChange={setFilterCategory}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-muted/30 border border-border/40 px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-muted/40">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-white/5 border border-white/10 px-3 text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-between transition-all hover:bg-white/10">
                                 <Select.Value placeholder="Todas las categorías" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-muted-foreground/60 transition-transform duration-200" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-slate-500 transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-white/10 bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
                                         <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las categorías</Select.ItemText>
@@ -614,7 +614,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                             onClick={() => setShowMyMatches(!showMyMatches)}
                             className={`px-4 h-9 rounded-xl flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest transition-all ${showMyMatches
                                 ? "bg-azul-primary text-white shadow-md shadow-azul-primary/30"
-                                : "bg-muted/50 border border-border/40 text-muted-foreground hover:bg-muted"
+                                : "bg-white/10 border border-white/10 text-slate-400 hover:bg-white/10"
                                 }`}
                         >
                             <Star className={`w-3 h-3 ${showMyMatches ? "fill-current" : ""}`} />

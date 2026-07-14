@@ -34,7 +34,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
     const percent = event.totalSlots ? (event.registrationCount / event.totalSlots) * 100 : 0;
 
     const statusConfig = isFinished
-        ? { label: "Finalizado", pill: "border-muted-foreground/30 text-muted-foreground bg-muted-foreground/5", text: "text-muted-foreground" }
+        ? { label: "Finalizado", pill: "border-white/15 text-slate-400 bg-white/5", text: "text-slate-400" }
         : isFull
             ? { label: "Agotado", pill: "border-rojo/30 text-rojo bg-rojo/5", text: "text-rojo" }
             : { label: "Abierto", pill: "border-celeste/30 text-celeste bg-celeste/5", text: "text-celeste" };
@@ -63,15 +63,15 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
             onClick={handleCardClick}
             className="group block h-full focus:outline-none cursor-pointer select-none"
         >
-            <div className="bg-card/65 backdrop-blur-sm border border-border/70 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-azul-primary/5 hover:border-celeste/40 flex flex-col h-full relative group/card">
+            <div className="bg-carbon-800/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-azul-primary/5 hover:border-celeste/40 flex flex-col h-full relative group/card">
                 {/* Tactical HUD Corner Elements */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-muted-foreground/20 z-20 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-muted-foreground/20 z-20 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-muted-foreground/20 z-20 pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-muted-foreground/20 z-20 pointer-events-none" />
+                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/15 z-20 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/15 z-20 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/15 z-20 pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/15 z-20 pointer-events-none" />
 
                 {/* Compact Tech Image Area */}
-                <div className="relative h-16 w-full overflow-hidden bg-muted/20 border-b border-border/40 shrink-0">
+                <div className="relative h-16 w-full overflow-hidden bg-white/5 border-b border-white/5 shrink-0">
                     {/* Futuristic Grid Overlay on image */}
                     <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:6px_6px] mix-blend-overlay z-10 pointer-events-none" />
                     
@@ -94,7 +94,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                             {statusConfig.label}
                         </span>
                         {isRegistered && (
-                            <span className="px-2 py-0.5 rounded border border-celeste bg-white text-celeste font-black text-[7px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded border border-celeste/40 bg-celeste/15 text-celeste-light font-black text-[7px] uppercase tracking-wider shadow-sm flex items-center gap-1">
                                 <CheckCircle className="w-2.5 h-2.5 fill-current opacity-20" />
                                 <CheckCircle className="absolute w-2.5 h-2.5" /> Inscripto
                             </span>
@@ -107,10 +107,10 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
-                            <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5 truncate">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-0.5 truncate">
                                 {event.club?.name || "Club Padel"}
                             </p>
-                            <h3 className="text-[11px] font-black uppercase italic tracking-tight text-foreground leading-tight group-hover/card:text-azul-primary transition-colors truncate">
+                            <h3 className="text-[11px] font-black uppercase italic tracking-tight text-white leading-tight group-hover/card:text-azul-primary transition-colors truncate">
                                 {event.name}
                             </h3>
                             {event.city && (
@@ -120,8 +120,8 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                             )}
                         </div>
                         <div className="flex flex-col items-end text-right shrink-0">
-                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/75 mb-0.5">Fecha / Hora</span>
-                            <span className="text-[9px] font-black text-foreground/80">{formatDate(event.date)}</span>
+                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Fecha / Hora</span>
+                            <span className="text-[9px] font-black text-slate-200">{formatDate(event.date)}</span>
                             {event.time && (
                                 <span className="text-[8px] font-bold text-azul-primary uppercase tracking-tighter flex items-center gap-0.5 mt-0.5">
                                     <Clock className="w-2 h-2" /> {event.time}
@@ -131,16 +131,16 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                     </div>
 
                     {/* Compact Metadata Dashboard Grid */}
-                    <div className="grid grid-cols-2 gap-1.5 my-1.5 border-y border-border/40 py-2 bg-muted/5 -mx-3 px-3 shrink-0">
+                    <div className="grid grid-cols-2 gap-1.5 my-1.5 border-y border-white/5 py-2 bg-white/[0.02] -mx-3 px-3 shrink-0">
                         <div className="flex flex-col">
-                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/70 mb-0.5">Inscripción</span>
-                            <span className="text-[9px] font-black font-mono text-foreground/90">
+                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Inscripción</span>
+                            <span className="text-[9px] font-black font-mono text-white">
                                 {event.registrationFee ? `$${event.registrationFee.toLocaleString('es-ES')}` : <span className="text-emerald-500 font-bold uppercase text-[7px]">Gratis</span>}
                             </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/70 mb-0.5">Cupos</span>
-                            <span className="text-[9px] font-black font-mono text-foreground/90">
+                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Cupos</span>
+                            <span className="text-[9px] font-black font-mono text-white">
                                 {event.registrationCount} / {event.totalSlots || '∞'}
                             </span>
                         </div>
@@ -149,16 +149,16 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                     {/* Slots Progress Bar - High Density Slim */}
                     {!isFinished && (
                         <div className="my-2 space-y-1 shrink-0">
-                            <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest text-muted-foreground/70 font-mono">
+                            <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest text-slate-500 font-mono">
                                 <span>Capacidad Asignada</span>
-                                <span className={isFull ? "text-rojo" : "text-celeste"}>{Math.round(percent)}%</span>
+                                <span className={isFull ? "text-live" : "text-volt"}>{Math.round(percent)}%</span>
                             </div>
-                            <div className="h-1 w-full bg-muted rounded-full overflow-hidden border border-border/30">
+                            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden border border-white/10">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min(percent, 100)}%` }}
                                     transition={{ duration: 0.8, ease: "easeOut" }}
-                                    className={`h-full rounded-full ${percent > 80 ? 'bg-rojo' : 'bg-celeste'}`}
+                                    className={`h-full rounded-full ${percent > 80 ? 'bg-live' : 'bg-volt'}`}
                                 />
                             </div>
                         </div>
@@ -166,9 +166,9 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
 
                     {/* Address Panel */}
                     <div className="my-1 flex items-start gap-1.5 shrink-0">
-                        <MapPin className="w-3 h-3 mt-0.5 text-muted-foreground/75" />
+                        <MapPin className="w-3 h-3 mt-0.5 text-slate-500" />
                         <div className="flex-1 min-w-0">
-                            <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/70 block">Dirección de Sede</span>
+                            <span className="text-[7px] font-black uppercase tracking-widest text-slate-500 block">Dirección de Sede</span>
                             {event.address ? (
                                 <span
                                     onClick={(e) => {
@@ -176,12 +176,12 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                                         e.stopPropagation();
                                         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address + " " + event.city)}`, "_blank");
                                     }}
-                                    className="text-[10px] font-bold text-foreground/75 hover:text-azul-primary underline decoration-azul-primary/20 underline-offset-2 cursor-pointer truncate block"
+                                    className="text-[10px] font-bold text-slate-300 hover:text-azul-primary underline decoration-azul-primary/20 underline-offset-2 cursor-pointer truncate block"
                                 >
                                     {event.address}
                                 </span>
                             ) : (
-                                <span className="text-[10px] font-bold text-muted-foreground/60 italic block">Por confirmar</span>
+                                <span className="text-[10px] font-bold text-slate-500 italic block">Por confirmar</span>
                             )}
                         </div>
                     </div>
@@ -193,7 +193,7 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                             e.stopPropagation();
                             onOpenParticipants?.(e, event.id, event.name);
                         }}
-                        className="w-full h-7 bg-card border border-border/70 hover:bg-muted/50 text-muted-foreground hover:text-foreground rounded-lg text-[7px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 shrink-0 my-1"
+                        className="w-full h-7 bg-carbon-900 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg text-[7px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 shrink-0 my-1"
                     >
                         <Users2 className="w-3.5 h-3.5 text-celeste" />
                         Ver Inscriptos ({event.registrationCount})
@@ -226,8 +226,8 @@ export default function PublicOpenCourtCard({ event, isRegistered, isLoggedIn, c
                         ) : (
                             <div className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all duration-300 font-black uppercase tracking-widest text-[7px] h-7 border ${
                                 isRegistered ? "bg-celeste text-white shadow-md shadow-celeste/10 border-transparent" :
-                                isFull ? "bg-rojo/10 text-rojo border-rojo/20" :
-                                "bg-azul-primary hover:bg-azul-dark text-white shadow-md shadow-azul-primary/10 hover:scale-[1.01] active:scale-98 transition-transform border-transparent"
+                                isFull ? "bg-live/10 text-live border-live/20" :
+                                "bg-volt hover:bg-volt-dark text-carbon-950 shadow-md shadow-volt/20 hover:scale-[1.01] active:scale-98 transition-transform border-transparent"
                             }`}>
                                 {isRegistered ? <CheckCircle className="w-3 h-3" /> :
                                  isFull ? <Users2 className="w-3 h-3" /> :

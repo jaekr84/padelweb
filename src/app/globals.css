@@ -19,7 +19,35 @@
   --color-rosa: #fb7185;
   --color-rosa-dark: #e11d48;
 
+  /* Match Night — base oscura para módulos competitivos */
+  --color-carbon-950: #05080f;
+  --color-carbon-900: #0a0f1e;
+  --color-carbon-800: #111a2e;
+  --color-carbon-700: #1a2540;
+  --color-carbon-600: #253352;
+
+  /* Match Night — acentos */
+  --color-volt: #d4ff3f;
+  --color-volt-dark: #a9d61c;
+  --color-live: #ff3b4e;
+  --color-gold: #ffc53d;
+  --color-silver: #c9d4e4;
+  --color-bronze: #e8925a;
+
   --animate-marquee: marquee 30s linear infinite;
+  --animate-live-pulse: live-pulse 1.6s ease-in-out infinite;
+}
+
+/* Tipografía deportiva: habilita las utilidades font-display y font-data.
+   `inline` es necesario porque referencian variables de next/font definidas en <body>. */
+@theme inline {
+  --font-display: var(--font-russo), var(--font-geist-sans), sans-serif;
+  --font-data: var(--font-chakra), var(--font-geist-mono), monospace;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 @keyframes marquee {
@@ -212,6 +240,82 @@
     opacity: 1;
     visibility: visible;
     bottom: 125%;
+  }
+
+  /* --- Match Night: lenguaje visual deportivo --- */
+
+  /* Título display: RANKING GENERAL, TORNEOS, etc. */
+  .heading-sport {
+    font-family: var(--font-russo), var(--font-geist-sans), sans-serif;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 0.95;
+  }
+
+  /* Números tipo marcador: puntos, resultados, stats */
+  .text-scoreboard {
+    font-family: var(--font-chakra), var(--font-geist-mono), monospace;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* Etiquetas técnicas: CATEGORÍA, FORMATO, EN VIVO */
+  .label-tech {
+    font-family: var(--font-chakra), var(--font-geist-mono), monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  /* Cortes diagonales (mismo gesto que la player card) */
+  .clip-corner-tl { clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%, 0 16px); }
+  .clip-corner-br { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%); }
+  .clip-notch { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+
+  /* Badge inclinado (el texto interno se endereza con .unskew) */
+  .badge-slant { transform: skewX(-10deg); }
+  .badge-slant > .unskew { transform: skewX(10deg); }
+
+  /* Textura de grilla sobre fondo carbón (la del fixture) */
+  .bg-grid-carbon {
+    background-color: var(--color-carbon-900);
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Franjas diagonales de velocidad (hereda color vía currentColor) */
+  .bg-stripes {
+    background-image: repeating-linear-gradient(
+      -55deg,
+      currentColor 0px,
+      currentColor 10px,
+      transparent 10px,
+      transparent 22px
+    );
+  }
+
+  /* Punto pulsante para estados EN VIVO */
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-live);
+    animation: var(--animate-live-pulse);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot,
+    .animate-marquee,
+    .animate-shine-multi,
+    .text-gradient-animate {
+      animation: none !important;
+    }
   }
 }
 

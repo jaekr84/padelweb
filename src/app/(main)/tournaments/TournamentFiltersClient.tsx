@@ -31,11 +31,11 @@ const STATUS_TABS = [
 ];
 
 const selectTrigger =
-    "flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 text-[9px] font-black uppercase tracking-widest outline-none hover:border-azul-primary/40 hover:text-azul-primary transition-all min-w-[110px] max-w-[160px] shadow-sm";
+    "flex items-center gap-1.5 h-8 px-3 rounded-lg border border-white/10 bg-white/5 text-slate-300 text-[9px] font-black uppercase tracking-widest outline-none hover:border-volt/40 hover:text-volt transition-all min-w-[110px] max-w-[160px]";
 const selectContent =
-    "z-50 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150";
+    "z-50 overflow-hidden rounded-xl border border-white/10 bg-carbon-900 shadow-2xl shadow-black/50 min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150";
 const selectItem =
-    "relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[10px] font-bold text-slate-700 outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/15 data-[state=checked]:text-azul-primary";
+    "relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[10px] font-bold text-slate-300 outline-none transition-colors data-[highlighted]:bg-white/10 data-[highlighted]:text-white data-[state=checked]:bg-volt/15 data-[state=checked]:text-volt";
 
 export default function TournamentFiltersClient({
     userId,
@@ -79,10 +79,10 @@ export default function TournamentFiltersClient({
 
     const getTabStyle = (value: string) => {
         const isActive = currentFilter === value;
-        if (!isActive) return "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700 shadow-sm";
+        if (!isActive) return "bg-white/5 text-slate-400 border-white/10 hover:border-white/20 hover:text-white";
         if (value === "envivo")   return "bg-rojo text-white border-transparent shadow-lg shadow-rojo/30";
         if (value === "mi_club")  return "bg-celeste text-white border-transparent shadow-lg shadow-celeste/30";
-        if (value === "abiertas") return "bg-green-600 text-white border-transparent shadow-lg shadow-green-600/30";
+        if (value === "abiertas") return "bg-volt text-carbon-950 border-transparent shadow-lg shadow-volt/30";
         return "bg-azul-primary text-white border-transparent shadow-lg shadow-azul-primary/30";
     };
 
@@ -119,14 +119,14 @@ export default function TournamentFiltersClient({
                             <Select.Viewport className="p-1">
                                 <Select.Item value="todas" className={selectItem}>
                                     <Select.ItemText>Todas las categorías</Select.ItemText>
-                                    <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                    <Select.ItemIndicator className="absolute right-3 text-volt">
                                         <Check className="w-3 h-3" />
                                     </Select.ItemIndicator>
                                 </Select.Item>
                                 {availableCategories.map((cat) => (
                                     <Select.Item key={cat.id} value={cat.name} className={selectItem}>
                                         <Select.ItemText>{cat.name}</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                        <Select.ItemIndicator className="absolute right-3 text-volt">
                                             <Check className="w-3 h-3" />
                                         </Select.ItemIndicator>
                                     </Select.Item>
@@ -150,14 +150,14 @@ export default function TournamentFiltersClient({
                                 <Select.Viewport className="p-1">
                                     <Select.Item value="todos" className={selectItem}>
                                         <Select.ItemText>Todos los clubes</Select.ItemText>
-                                        <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                        <Select.ItemIndicator className="absolute right-3 text-volt">
                                             <Check className="w-3 h-3" />
                                         </Select.ItemIndicator>
                                     </Select.Item>
                                     {availableClubs.map((club) => (
                                         <Select.Item key={club.id} value={club.id} className={selectItem}>
                                             <Select.ItemText>{club.name}</Select.ItemText>
-                                            <Select.ItemIndicator className="absolute right-3 text-azul-primary">
+                                            <Select.ItemIndicator className="absolute right-3 text-volt">
                                                 <Check className="w-3 h-3" />
                                             </Select.ItemIndicator>
                                         </Select.Item>
@@ -173,7 +173,7 @@ export default function TournamentFiltersClient({
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-slate-200 bg-transparent text-slate-500 text-[9px] font-black uppercase tracking-widest hover:border-rojo/60 hover:text-rojo hover:bg-rojo/5 transition-all"
+                        className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-white/10 bg-transparent text-slate-400 text-[9px] font-black uppercase tracking-widest hover:border-live/60 hover:text-live hover:bg-live/5 transition-all"
                     >
                         <X className="w-3 h-3" />
                         Limpiar

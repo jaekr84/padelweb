@@ -1,17 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { PaddleLoading } from "./PaddleLoading";
+
+// Solo mostramos el overlay si la navegación tarda más que esto;
+// las navegaciones rápidas no generan ningún flash.
+const SHOW_DELAY_MS = 350;
 
 export function GlobalNavigationLoader() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleLoader = () => {
+    if (showTimer.current) clearTimeout(showTimer.current);
+    showTimer.current = setTimeout(() => setIsLoading(true), SHOW_DELAY_MS);
+  };
 
   // Monitor path and query param changes to hide loader
   useEffect(() => {
+    if (showTimer.current) {
+      clearTimeout(showTimer.current);
+      showTimer.current = null;
+    }
     setIsLoading(false);
   }, [pathname, searchParams]);
 
@@ -44,7 +58,7 @@ export function GlobalNavigationLoader() {
             targetUrl.pathname !== currentUrl.pathname ||
             targetUrl.search !== currentUrl.search
           ) {
-            setIsLoading(true);
+            scheduleLoader();
           }
         } catch (err) {
           console.error("Navigation parser error:", err);
@@ -54,7 +68,7 @@ export function GlobalNavigationLoader() {
 
     // Intercept backward/forward popstate browser navigations
     const handlePopState = () => {
-      setIsLoading(true);
+      scheduleLoader();
     };
 
     window.addEventListener("click", handleAnchorClick);
@@ -74,7 +88,7 @@ export function GlobalNavigationLoader() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[99999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto"
+          className="fixed inset-0 z-[99999] bg-carbon-950/70 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto"
         >
           {/* Radial accent neon light glow in center */}
           <div className="absolute inset-0 bg-azul-primary/5 pointer-events-none" />
@@ -85,7 +99,7 @@ export function GlobalNavigationLoader() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.93 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="bg-slate-900/90 border border-white/10 p-12 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-8 relative overflow-hidden max-w-[280px]"
+            className="bg-carbon-900/90 border border-white/10 p-12 clip-notch shadow-2xl flex flex-col items-center gap-8 relative overflow-hidden max-w-[280px]"
           >
             {/* Corner Tech bracket alignments */}
             <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20" />
@@ -95,10 +109,10 @@ export function GlobalNavigationLoader() {
             <PaddleLoading size="lg" className="relative z-10 scale-95" />
             
             <div className="flex flex-col items-center gap-2 relative z-10 text-center">
-              <span className="text-[11px] font-black uppercase tracking-[0.25em] text-white">
+              <span className="label-tech text-[11px] text-white">
                 Sincronizando
               </span>
-              <span className="text-[7.5px] text-celeste font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full border border-white/5 animate-pulse">
+              <span className="text-[7.5px] text-volt font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full border border-white/5 animate-pulse">
                 Accediendo a ACAP Cloud
               </span>
             </div>

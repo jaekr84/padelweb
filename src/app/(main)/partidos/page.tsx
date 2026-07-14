@@ -34,13 +34,15 @@ export default async function PartidosPage() {
 
     if (matchesData.length === 0) {
         return (
-            <PartidosClient 
-                initialMatches={[]} 
-                isLoggedIn={!!session}
-                currentUserId={session?.userId}
-                cities={[]}
-                categories={[]}
-            />
+            <div className="min-h-screen bg-grid-carbon text-white">
+                <PartidosClient
+                    initialMatches={[]}
+                    isLoggedIn={!!session}
+                    currentUserId={session?.userId}
+                    cities={[]}
+                    categories={[]}
+                />
+            </div>
         );
     }
 
@@ -81,12 +83,14 @@ export default async function PartidosPage() {
     const categories = allCategories.map(c => c.name);
 
     return (
-        <PartidosClient 
-            initialMatches={JSON.parse(JSON.stringify(matches))} 
-            isLoggedIn={!!session}
-            currentUserId={session?.userId}
-            cities={cities}
-            categories={categories}
-        />
+        <div className="min-h-screen bg-grid-carbon text-white">
+            <PartidosClient
+                initialMatches={JSON.parse(JSON.stringify(matches))}
+                isLoggedIn={!!session}
+                currentUserId={session?.userId}
+                cities={cities}
+                categories={categories}
+            />
+        </div>
     );
 }

@@ -9,5 +9,9 @@ export default async function InvitationsPage() {
         redirect("/home");
     }
 
-    return <InvitationsClient />;
+    return (
+        <div className="min-h-screen bg-grid-carbon text-white flex flex-col">
+            <InvitationsClient />
+        </div>
+    );
 }

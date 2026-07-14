@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Russo_One, Chakra_Petch } from "next/font/google";
 import { getCurrentUser, checkSuperadmin } from "@/lib/auth";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/Providers";
@@ -9,6 +9,8 @@ import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const russoOne = Russo_One({ weight: "400", variable: "--font-russo", subsets: ["latin"] });
+const chakraPetch = Chakra_Petch({ weight: ["400", "500", "600", "700"], variable: "--font-chakra", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://acap.ar"),
@@ -83,7 +85,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="es" suppressHydrationWarning>
       <head>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${russoOne.variable} ${chakraPetch.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 font-sans antialiased`}>
         <script
           dangerouslySetInnerHTML={{
             __html: `document.cookie="__padel_role=${currentRole};path=/;max-age=86400;samesite=lax"`,

@@ -262,7 +262,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
     const existingCats = Array.from(new Set(items.map(i => i.category?.toUpperCase()).filter(Boolean))).sort();
 
     return (
-        <div className="min-h-screen bg-background text-foreground relative font-sans selection:bg-azul-primary/30">
+        <div className="min-h-screen bg-grid-carbon text-white relative font-sans selection:bg-volt/30">
             {/* CSS KEYFRAMES & GLOBAL STYLES */}
             <style>{`
                 @keyframes gradient-x {
@@ -278,9 +278,9 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                     animation: gradient-x 6s ease infinite;
                 }
                 .glass-card {
-                    background-color: color-mix(in srgb, var(--card) 85%, transparent);
+                    background-color: rgba(17, 26, 46, 0.75); /* carbon-800 */
                     backdrop-filter: blur(20px);
-                    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                 }
                 .glass-card:hover {
                     border-color: rgba(14, 165, 233, 0.4);
@@ -323,7 +323,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
             {/* Public Header */}
             {!session?.userId && (
-                <div className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)]">
+                <div className="sticky top-0 z-50 w-full bg-carbon-950/90 backdrop-blur-xl border-b border-white/10">
                     <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2 group">
                             <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
@@ -332,8 +332,8 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                         </Link>
                         <div className="flex items-center gap-3">
-                            <Link href="/login" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">Login</Link>
-                            <Link href="/" className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Volver</Link>
+                            <Link href="/login" className="px-5 py-2.5 bg-volt text-carbon-950 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 shadow-lg shadow-volt/20">Login</Link>
+                            <Link href="/" className="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95">Volver</Link>
                         </div>
                     </div>
                 </div>
@@ -341,7 +341,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
             <div className="relative z-10">
                 {/* Header Section */}
-                <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-3 px-6">
+                <div className="sticky top-0 z-30 bg-carbon-950/85 backdrop-blur-md border-b border-white/10 py-3 px-6">
                     <div className="max-w-7xl mx-auto flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                             <motion.div 
@@ -350,8 +350,8 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 className="space-y-0.5"
                             >
                                 <p className="text-[8px] font-black uppercase tracking-[0.3em] text-celeste">Comunidad ACAP</p>
-                                <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
-                                    <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(14,165,233,0.3)]">Marketplace</span>
+                                <h1 className="heading-sport text-xl md:text-2xl leading-none text-white">
+                                    Market<span className="text-volt">place</span>
                                 </h1>
                             </motion.div>
                             {isLoggedIn && (
@@ -359,7 +359,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     onClick={() => setIsPublishing(true)}
-                                    className="glow-button bg-foreground text-background px-4 py-2 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 shadow-2xl transition-all active:scale-95 h-9"
+                                    className="glow-button bg-volt text-carbon-950 px-4 py-2 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 shadow-2xl transition-all active:scale-95 h-9"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
                                     Vender Algo
@@ -371,7 +371,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
                                 <button 
                                     onClick={() => setFilter("all")}
-                                    className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                    className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === "all" ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-slate-400 hover:text-white"}`}
                                 >
                                     Todas las Categorías
                                 </button>
@@ -379,7 +379,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     <button 
                                         key={cat}
                                         onClick={() => setFilter(cat!)}
-                                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-1.5 ${filter === cat ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-muted-foreground hover:text-foreground"}`}
+                                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-1.5 ${filter === cat ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20" : "glass-card text-slate-400 hover:text-white"}`}
                                     >
                                         {cat}
                                     </button>
@@ -389,7 +389,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             <div className="flex gap-1.5">
                                 <button 
                                     onClick={() => setConditionFilter("all")}
-                                    className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border ${conditionFilter === "all" ? "bg-muted text-foreground border-white/20 shadow-sm" : "glass-card text-muted-foreground"}`}
+                                    className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border ${conditionFilter === "all" ? "bg-white/10 text-white border-white/20 shadow-sm" : "glass-card text-slate-400"}`}
                                 >
                                     Todos los Estados
                                 </button>
@@ -397,7 +397,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     <button 
                                         key={c.id}
                                         onClick={() => setConditionFilter(c.id)}
-                                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border ${conditionFilter === c.id ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20" : "glass-card text-muted-foreground"}`}
+                                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border ${conditionFilter === c.id ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20" : "glass-card text-slate-400"}`}
                                     >
                                         {c.label}
                                     </button>
@@ -406,13 +406,13 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                         </div>
 
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-azul-primary transition-colors" />
                             <input 
                                 type="text" 
                                 placeholder="Buscar equipamiento..." 
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full glass-card rounded-xl py-2.5 px-10 text-[11px] font-medium outline-none focus:ring-1 focus:ring-azul-primary/30 transition-all placeholder:text-muted-foreground/70 placeholder:uppercase placeholder:text-[9px] placeholder:tracking-[0.2em]"
+                                className="w-full glass-card rounded-xl py-2.5 px-10 text-[11px] font-medium outline-none focus:ring-1 focus:ring-azul-primary/30 transition-all placeholder:text-slate-500 placeholder:uppercase placeholder:text-[9px] placeholder:tracking-[0.2em]"
                             />
                         </div>
                     </div>
@@ -444,7 +444,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             className="object-cover group-hover:scale-110 transition-transform duration-1000" 
                                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                         />
-                                        <div className="absolute top-2.5 left-2.5 bg-azul-primary text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] shadow-xl backdrop-blur-md">
+                                        <div className="absolute top-2.5 left-2.5 bg-volt text-carbon-950 px-2.5 py-1 rounded-lg text-scoreboard text-[9px] uppercase tracking-[0.1em] shadow-xl">
                                             ${item.price.toLocaleString()}
                                         </div>
                                         <div className="absolute bottom-2.5 right-2.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest text-white border border-white/10">
@@ -456,11 +456,11 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             <span className="text-[7px] font-black uppercase tracking-[0.3em] text-celeste mb-0.5">
                                                 {item.category || "General"}
                                             </span>
-                                            <h3 className="font-extrabold text-xs leading-tight line-clamp-2 uppercase italic tracking-tighter text-foreground group-hover:text-azul-primary transition-colors">{item.title}</h3>
+                                            <h3 className="font-extrabold text-xs leading-tight line-clamp-2 uppercase italic tracking-tighter text-white group-hover:text-azul-primary transition-colors">{item.title}</h3>
                                         </div>
                                         <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-2">
-                                            <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors">
-                                                <div className="w-4 h-4 rounded-full bg-muted border border-border flex items-center justify-center">
+                                            <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-white transition-colors">
+                                                <div className="w-4 h-4 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
                                                     <UserIcon className="w-2.5 h-2.5" />
                                                 </div>
                                                 <span className="text-[8px] font-black uppercase tracking-widest truncate max-w-[60px]">
@@ -495,7 +495,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setSelectedItem(null)}
-                                className="absolute inset-0 bg-background/60 backdrop-blur-xl"
+                                className="absolute inset-0 bg-carbon-950/70 backdrop-blur-xl"
                             />
                             <motion.div 
                                 initial={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -505,7 +505,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                             >
                                 <button 
                                     onClick={() => setSelectedItem(null)}
-                                    className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-background/50 backdrop-blur-md border border-border flex items-center justify-center hover:bg-background transition-all"
+                                    className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-carbon-900/60 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-carbon-800 transition-all"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -534,7 +534,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             <span className="bg-azul-primary text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-lg">
                                                 ${selectedItem.price.toLocaleString()}
                                             </span>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground italic truncate">
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 italic truncate">
                                                 {selectedItem.category} • {selectedItem.condition === "nuevo" ? "NUEVO" : "USADO"}
                                             </span>
                                         </div>
@@ -612,7 +612,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setIsPublishing(false)}
-                                className="absolute inset-0 bg-background/60 backdrop-blur-xl"
+                                className="absolute inset-0 bg-carbon-950/70 backdrop-blur-xl"
                             />
                              <motion.div 
                                  initial={{ opacity: 0, y: 100 }}
@@ -626,7 +626,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                      </h2>
                                      <button 
                                          onClick={() => setIsPublishing(false)}
-                                         className="w-8 h-8 rounded-full bg-background/50 border border-border flex items-center justify-center hover:bg-muted"
+                                         className="w-8 h-8 rounded-full bg-carbon-900/60 border border-white/10 flex items-center justify-center hover:bg-white/10"
                                      >
                                          <X className="w-4 h-4" />
                                      </button>
@@ -658,7 +658,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                                               <div className="w-12 h-12 rounded-full bg-azul-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                                                                 <Camera className="w-6 h-6 text-azul-primary" />
                                                             </div>
-                                                            <span className="text-[8px] font-black uppercase text-muted-foreground text-center">Tocar para<br/>subir</span>
+                                                            <span className="text-[8px] font-black uppercase text-slate-400 text-center">Tocar para<br/>subir</span>
                                                         </>
                                                     )}
                                                     <input 
@@ -676,7 +676,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                          <div className="flex flex-col gap-1.5">
-                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Título del Producto</label>
+                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Título del Producto</label>
                                              <input
                                                  type="text"
                                                  required
@@ -687,7 +687,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                              />
                                          </div>
                                          <div className="flex flex-col gap-1.5">
-                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Precio (ARS)</label>
+                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Precio (ARS)</label>
                                              <div className="relative">
                                                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-azul-primary text-[11px]">$</span>
                                                  <input
@@ -704,7 +704,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic px-2">Categoría</h3>
+                                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic px-2">Categoría</h3>
                                             <input
                                                 type="text"
                                                 required
@@ -715,14 +715,14 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic px-2">Estado</h3>
+                                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic px-2">Estado</h3>
                                             <div className="bg-white/5 p-1 rounded-xl border border-white/10 flex">
                                                 {CONDITIONS.map(c => (
                                                     <button
                                                         key={c.id}
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, condition: c.id })}
-                                                        className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-muted-foreground hover:text-foreground"}`}
+                                                        className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${formData.condition === c.id ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20" : "text-slate-400 hover:text-white"}`}
                                                     >
                                                         {c.label}
                                                     </button>
@@ -732,7 +732,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     </div>
 
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Observaciones / Detalles</label>
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Observaciones / Detalles</label>
                                         <textarea
                                             required
                                             value={formData.observations}
@@ -744,7 +744,7 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                     </div>
 
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Contacto</label>
+                                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Contacto</label>
                                         <div className="bg-azul-primary/5 border border-azul-primary/10 rounded-xl py-2 px-4 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-7 h-7 rounded-full bg-azul-primary/20 flex items-center justify-center">
@@ -756,11 +756,11 @@ export default function MarketplaceClient({ initialItems, session }: { initialIt
                                         </div>
                                     </div>
 
-                                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/80 backdrop-blur-xl border-t border-white/5 md:relative md:bg-transparent md:border-none md:p-0 md:mt-2">
+                                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-carbon-950/80 backdrop-blur-xl border-t border-white/5 md:relative md:bg-transparent md:border-none md:p-0 md:mt-2">
                                         <button 
                                             type="submit"
                                             disabled={isLoading}
-                                            className="glow-button w-full bg-foreground text-background h-12 rounded-full font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="glow-button w-full bg-volt text-carbon-950 h-12 rounded-full font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
                                         >
                                             {isLoading ? <Activity className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                                             {isLoading ? (editingId ? "Guardando..." : "Publicando...") : (editingId ? "Guardar Cambios" : "Confirmar Publicación")}

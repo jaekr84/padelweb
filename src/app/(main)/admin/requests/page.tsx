@@ -10,5 +10,9 @@ export default async function RequestsPage() {
         redirect("/home");
     }
 
-    return <RequestsClient />;
+    return (
+        <div className="min-h-screen bg-grid-carbon text-white flex flex-col">
+            <RequestsClient />
+        </div>
+    );
 }

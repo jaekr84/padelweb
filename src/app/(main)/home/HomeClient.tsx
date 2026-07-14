@@ -299,7 +299,7 @@ export default function HomeClient({
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/40 text-slate-900 pb-24 font-sans selection:bg-azul-primary/20 relative overflow-x-hidden">
+        <div className="min-h-screen bg-grid-carbon text-white pb-24 font-sans selection:bg-azul-primary/20 relative overflow-x-hidden">
             {/* Elegant grid background and ambient glows */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:32px_32px] opacity-100" />
@@ -308,7 +308,7 @@ export default function HomeClient({
             </div>
 
             {/* Header Section */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 py-4 px-4 sm:px-6">
+            <div className="sticky top-0 z-30 bg-carbon-950/85 backdrop-blur-xl border-b border-white/10 py-4 px-4 sm:px-6">
                 <div className="max-w-[1300px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -316,20 +316,20 @@ export default function HomeClient({
                         className="space-y-1"
                     >
                         <div className="flex items-center gap-2">
-                            <span className="inline-block w-2 h-2 rounded-full bg-azul-primary animate-pulse" />
-                            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-celeste">Comunidad A.C.A.P.</p>
+                            <span className="inline-block w-2 h-2 rounded-full bg-volt animate-pulse" />
+                            <p className="label-tech text-[9px] text-celeste-light">Comunidad A.C.A.P.</p>
                         </div>
-                        <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tight leading-none text-slate-900">
-                            Dashboard <span className="text-azul-primary">Social</span>
+                        <h1 className="heading-sport text-xl md:text-2xl leading-none text-white">
+                            Dashboard <span className="text-celeste-light">Social</span>
                         </h1>
                     </motion.div>
 
                     {/* Integrated Live HUD Stats Console */}
-                    <div className="flex items-center gap-2 sm:gap-3 bg-slate-100/60 border border-slate-200/40 rounded-2xl p-1.5 shrink-0 self-start sm:self-center">
-                        <div className="px-3 py-1.5 flex items-center gap-2 border-r border-slate-200/30">
+                    <div className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 rounded-2xl p-1.5 shrink-0 self-start sm:self-center">
+                        <div className="px-3 py-1.5 flex items-center gap-2 border-r border-white/10">
                             <Trophy className="w-3.5 h-3.5 text-celeste" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-800 leading-none">{totalActiveTournaments}</span>
+                                <span className="text-[10px] font-black text-slate-200 leading-none">{totalActiveTournaments}</span>
                                 <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Torneos</span>
                             </div>
                         </div>
@@ -337,7 +337,7 @@ export default function HomeClient({
                         <div className="px-3 py-1.5 flex items-center gap-2">
                             <Users2 className="w-3.5 h-3.5 text-emerald-500" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-800 leading-none">{totalOpenSlots}</span>
+                                <span className="text-[10px] font-black text-slate-200 leading-none">{totalOpenSlots}</span>
                                 <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Canchas</span>
                             </div>
                         </div>
@@ -377,7 +377,7 @@ export default function HomeClient({
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                            className="bg-carbon-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
                         >
                             <div className="bg-indigo-600 px-5 py-4 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function HomeClient({
                                     <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                                         <Check className="w-6 h-6 text-emerald-600" />
                                     </div>
-                                    <p className="text-sm font-bold text-slate-800">¡Mensaje enviado!</p>
+                                    <p className="text-sm font-bold text-slate-200">¡Mensaje enviado!</p>
                                     <p className="text-xs text-slate-500">Los admins lo revisarán pronto.</p>
                                 </div>
                             ) : (
@@ -408,7 +408,7 @@ export default function HomeClient({
                                             type="text"
                                             value={bannerForm.name}
                                             onChange={e => setBannerForm(f => ({ ...f, name: e.target.value }))}
-                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
                                             placeholder="Tu nombre o empresa"
                                             required
                                         />
@@ -419,7 +419,7 @@ export default function HomeClient({
                                             type="email"
                                             value={bannerForm.email}
                                             onChange={e => setBannerForm(f => ({ ...f, email: e.target.value }))}
-                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
                                             placeholder="tu@email.com"
                                             required
                                         />
@@ -430,7 +430,7 @@ export default function HomeClient({
                                             value={bannerForm.message}
                                             onChange={e => setBannerForm(f => ({ ...f, message: e.target.value }))}
                                             rows={3}
-                                            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
+                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
                                             required
                                         />
                                     </div>
@@ -468,7 +468,7 @@ export default function HomeClient({
                         <motion.div
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-slate-200/70 rounded-3xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.015)] relative overflow-hidden"
+                            className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.015)] relative overflow-hidden"
                         >
                             {/* Decorative crop marks for advanced HUD styling */}
                             <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-azul-primary/20" />
@@ -478,11 +478,11 @@ export default function HomeClient({
 
                             <div className="flex gap-4">
                                 {/* Compact User Avatar */}
-                                <div className="w-10 h-10 shrink-0 bg-slate-100 rounded-full overflow-hidden border border-slate-200/40 relative">
+                                <div className="w-10 h-10 shrink-0 bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
                                     {currentUser.imageUrl ? (
                                         <Image src={currentUser.imageUrl} alt={currentUser.name || ""} fill unoptimized className="object-cover" sizes="40px" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs font-black bg-slate-100 text-slate-450 uppercase italic">
+                                        <div className="w-full h-full flex items-center justify-center text-xs font-black bg-white/5 text-slate-500 uppercase italic">
                                             {currentUser.name?.charAt(0) || "U"}
                                         </div>
                                     )}
@@ -494,7 +494,7 @@ export default function HomeClient({
                                         value={content}
                                         onChange={handleContentChange}
                                         placeholder="¿Qué novedades o anuncios hay en el club hoy?"
-                                        className="w-full bg-transparent resize-none text-slate-800 placeholder-slate-400 outline-none text-sm font-medium pt-1 min-h-[90px] leading-relaxed"
+                                        className="w-full bg-transparent resize-none text-slate-200 placeholder-slate-500 outline-none text-sm font-medium pt-1 min-h-[90px] leading-relaxed"
                                     />
 
                                     {/* WebP Compressed Previews */}
@@ -508,7 +508,7 @@ export default function HomeClient({
                                                         initial={{ opacity: 0, scale: 0.85 }}
                                                         animate={{ opacity: 1, scale: 1 }}
                                                         exit={{ opacity: 0, scale: 0.85 }}
-                                                        className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-slate-200/60 bg-slate-50 snap-start group"
+                                                        className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-white/5 snap-start group"
                                                     >
                                                         <Image src={img.preview} fill className="object-cover" alt="Preview" unoptimized />
 
@@ -535,7 +535,7 @@ export default function HomeClient({
                                             </AnimatePresence>
 
                                             {selectedImages.length < 10 && (
-                                                <label className="w-28 h-28 shrink-0 rounded-2xl border-2 border-dashed border-slate-200 hover:border-azul-primary/50 hover:bg-azul-primary/5 flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-azul-primary transition-all cursor-pointer">
+                                                <label className="w-28 h-28 shrink-0 rounded-2xl border-2 border-dashed border-white/10 hover:border-azul-primary/50 hover:bg-azul-primary/5 flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-azul-primary transition-all cursor-pointer">
                                                     <Plus className="w-5 h-5" />
                                                     <span className="text-[8px] font-black uppercase tracking-widest">Añadir</span>
                                                     <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
@@ -545,12 +545,12 @@ export default function HomeClient({
                                     )}
 
                                     {/* Action Bar */}
-                                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
                                         <label className="p-2 -ml-2 text-slate-400 hover:text-azul-primary hover:bg-azul-primary/5 rounded-full cursor-pointer transition-all relative active:scale-95">
                                             <ImageIcon className="w-5 h-5" />
                                             <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
                                             {selectedImages.length > 0 && (
-                                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-celeste text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-celeste text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-carbon-800">
                                                     {selectedImages.length}
                                                 </span>
                                             )}
@@ -562,7 +562,7 @@ export default function HomeClient({
                                             className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 shadow-md
                                                 ${postState === 'success'
                                                     ? 'bg-azul-primary text-white shadow-azul-primary/20'
-                                                    : 'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none'
+                                                    : 'bg-volt text-carbon-950 hover:bg-volt-dark disabled:opacity-40 disabled:pointer-events-none'
                                                 }`}
                                         >
                                             {postState === 'loading' && <Loader2 className="w-3 h-3 animate-spin" />}
@@ -578,11 +578,11 @@ export default function HomeClient({
                     {/* Social Feed Post List */}
                     <div className="flex flex-col gap-5">
                         {initialPosts.length === 0 ? (
-                            <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-200">
-                                <div className="w-12 h-12 bg-slate-50 text-slate-455 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div className="text-center py-24 bg-carbon-800 rounded-3xl border border-dashed border-white/10">
+                                <div className="w-12 h-12 bg-white/5 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-3">
                                     <MessageSquare className="w-5 h-5 text-azul-primary" />
                                 </div>
-                                <p className="text-slate-800 font-black uppercase text-xs tracking-wider">Sin Novedades</p>
+                                <p className="text-slate-200 font-black uppercase text-xs tracking-wider">Sin Novedades</p>
                                 <p className="text-slate-400 text-xs mt-1">Aún no hay publicaciones en esta comunidad.</p>
                             </div>
                         ) : (
@@ -613,11 +613,11 @@ export default function HomeClient({
                     {currentUser && playerProfileData && (
                         <div className="flex flex-col gap-6">
                             {/* Player Card Frame */}
-                            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden flex flex-col items-center">
-                                <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-right from-azul-primary to-celeste" />
+                            <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden flex flex-col items-center">
+                                <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
                                 
-                                <div className="w-full flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 flex items-center gap-2 italic">
+                                <div className="w-full flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
                                         <Zap size={11} className="text-azul-primary animate-pulse" />
                                         Tu Ficha Oficial
                                     </h2>
@@ -657,11 +657,11 @@ export default function HomeClient({
                             </div>
 
                             {/* 5 Latest Matches List */}
-                            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-right from-azul-primary to-celeste" />
+                            <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
                                 
-                                <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 flex items-center gap-2 italic">
+                                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
                                         <Trophy size={11} className="text-azul-primary" />
                                         Tus Últimos 5 Partidos
                                     </h2>
@@ -682,15 +682,15 @@ export default function HomeClient({
                                             return (
                                                 <div 
                                                     key={i} 
-                                                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50/50 hover:bg-slate-50 border border-slate-100 hover:border-slate-200/80 transition-all group"
+                                                    className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div className={`w-1.5 h-6 rounded-full shrink-0 ${isWin ? "bg-azul-primary shadow-[0_0_8px_rgba(0,119,255,0.4)]" : isLoss ? "bg-rojo shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "bg-slate-300"}`} />
+                                                        <div className={`w-1.5 h-6 rounded-full shrink-0 ${isWin ? "bg-azul-primary shadow-[0_0_8px_rgba(0,119,255,0.4)]" : isLoss ? "bg-rojo shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "bg-slate-600"}`} />
                                                         
                                                         <div className="min-w-0 flex flex-col">
-                                                            <span className="text-[9px] font-black uppercase truncate text-slate-900 group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
+                                                            <span className="text-[9px] font-black uppercase truncate text-white group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
                                                             <div className="flex items-center gap-1.5 mt-0.5">
-                                                                <span className="text-[7px] font-black uppercase px-1 py-0.2 bg-white border border-slate-200 text-slate-400 tracking-widest leading-none">{match.type}</span>
+                                                                <span className="text-[7px] font-black uppercase px-1 py-0.2 bg-carbon-800 border border-white/10 text-slate-400 tracking-widest leading-none">{match.type}</span>
                                                                 <span className="text-[7.5px] font-bold text-slate-500 truncate">{match.opponent}</span>
                                                             </div>
                                                         </div>
@@ -701,10 +701,10 @@ export default function HomeClient({
                                                             <span className={`text-[7.5px] font-black italic ${isWin ? "text-azul-primary" : isLoss ? "text-rojo" : "text-slate-400"}`}>
                                                                 {isWin ? "VICTORIA" : isLoss ? "DERROTA" : "COMPLETO"}
                                                             </span>
-                                                            <span className="text-[10px] font-black italic tracking-tighter text-slate-800 leading-none tabular-nums mt-0.5">{match.score}</span>
+                                                            <span className="text-[10px] font-black italic tracking-tighter text-slate-200 leading-none tabular-nums mt-0.5">{match.score}</span>
                                                         </div>
                                                         
-                                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 tabular-nums bg-white border border-slate-200 px-1.5 py-1 rounded-md leading-none">
+                                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 tabular-nums bg-carbon-800 border border-white/10 px-1.5 py-1 rounded-md leading-none">
                                                             {matchDate}
                                                         </div>
                                                     </div>
@@ -718,11 +718,11 @@ export default function HomeClient({
                     )}
 
                     {/* Active & Ongoing Tournaments Section */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-right from-amber-500/80 to-celeste/80" />
+                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-amber-500/80 to-celeste/80" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
                                 Torneos Activos
                             </h2>
@@ -746,11 +746,11 @@ export default function HomeClient({
                     </div>
 
                     {/* Upcoming Tournaments Section */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-right from-azul-primary to-celeste" />
+                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-azul-primary rounded-full" />
                                 Próximos Torneos
                             </h2>
@@ -774,11 +774,11 @@ export default function HomeClient({
                     </div>
 
                     {/* Open Courts Telemetry Panel */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-right from-emerald-500 to-azul-primary" />
+                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-azul-primary" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                                 Canchas Abiertas
                             </h2>
@@ -810,9 +810,9 @@ function MobileTournamentBar({ ongoing, upcoming, formatDateAR }: { ongoing: Tou
     if (ongoing.length === 0 && upcoming.length === 0) return null;
 
     return (
-        <div className="flex flex-col gap-3.5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 p-4 rounded-3xl mb-2">
+        <div className="flex flex-col gap-3.5 bg-carbon-800 dark:bg-slate-900 border border-white/10 dark:border-slate-800 p-4 rounded-3xl mb-2">
             <div className="flex items-center justify-between px-1">
-                <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-800 dark:text-white flex items-center gap-1.5">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 dark:text-white flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-azul-primary rounded-full animate-pulse" />
                     Torneos Activos
                 </h2>
@@ -832,7 +832,7 @@ function MobileTournamentBar({ ongoing, upcoming, formatDateAR }: { ongoing: Tou
 
 function EmptyState({ text }: { text: string }) {
     return (
-        <p className="text-[8px] font-black text-slate-400 text-center py-6 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-slate-100 dark:border-slate-800/40 border-dashed italic uppercase tracking-widest">
+        <p className="text-[8px] font-black text-slate-400 text-center py-6 bg-white/[0.03] dark:bg-slate-900/20 rounded-2xl border border-white/10 dark:border-slate-800/40 border-dashed italic uppercase tracking-widest">
             {text}
         </p>
     );
