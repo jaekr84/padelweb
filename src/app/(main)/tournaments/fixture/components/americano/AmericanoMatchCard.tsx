@@ -212,7 +212,7 @@ export function AmericanoMatchCard({
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleBracketStart(m.id)}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-celeste text-carbon-950 shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-celeste-light transition-all"
                                     title="Iniciar Partido"
                                 >
                                     <Play className="w-5 h-5 fill-current" />
@@ -310,7 +310,7 @@ export function AmericanoMatchCard({
                             <div className="w-full flex justify-center py-2 relative z-10">
                                 {loadingProfile ? (
                                     <div className="h-[420px] w-[280px] flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-2xl relative shadow-inner">
-                                        <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
+                                        <Loader2 className="w-8 h-8 text-celeste animate-spin" />
                                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-4 animate-pulse">Cargando Ficha...</span>
                                     </div>
                                 ) : (
@@ -460,7 +460,7 @@ function MiniProfileCard({
                     className={`
                         absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full
                         border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)]
-                        bg-slate-900 text-slate-300 border-white/10 hover:bg-azul-primary hover:text-white hover:border-white/20 hover:scale-105 active:scale-95
+                        bg-slate-900 text-slate-300 border-white/10 hover:bg-celeste hover:text-carbon-950 hover:border-white/20 hover:scale-105 active:scale-95
                     `}
                     title="Reemplazar Jugador"
                 >
@@ -513,7 +513,7 @@ function MiniProfileCard({
 
                     {/* Guest Badge */}
                     {isGuest && (
-                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-azul-primary border border-white/20 rounded-sm">
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-celeste border border-white/20 rounded-sm">
                             <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
                             <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
                         </div>
@@ -524,7 +524,7 @@ function MiniProfileCard({
                         {!isBye && !isTBD && ranking && (
                             <div className="flex items-center gap-1 px-1 py-0.5 bg-[#1e293b] rounded-sm border border-white/5 w-fit">
                                 <span className="text-[5px] font-black italic uppercase text-white/60 tracking-widest">
-                                    RANK <span className="text-azul-primary">#{ranking}</span>
+                                    RANK <span className="text-celeste">#{ranking}</span>
                                 </span>
                             </div>
                         )}
@@ -533,7 +533,7 @@ function MiniProfileCard({
                         <div className="relative">
                             <div className={`
                                 py-1 px-2 transform -skew-x-12 relative border-r-2
-                                ${isWinner ? "bg-emerald-500 border-white shadow-lg" : "bg-white border-azul-primary shadow-lg"}
+                                ${isWinner ? "bg-emerald-500 border-white shadow-lg" : "bg-white border-celeste shadow-lg"}
                             `}>
                                 <div className="transform skew-x-12 text-center">
                                     <span className={`

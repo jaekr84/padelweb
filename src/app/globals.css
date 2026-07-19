@@ -56,16 +56,34 @@
 }
 
 @layer base {
-  :root {
-    --background: #f8fafc;
-    --foreground: #020617;
-    --card: #ffffff;
-    --card-foreground: #020617;
-    --border: #e2e8f0;
-    --muted: #f1f5f9;
-    --muted-foreground: #334155;
+  /* Match Night: la app es dark-only, así que los tokens semánticos son
+     oscuros desde la raíz. Cada superficie sube un escalón sobre la anterior
+     (fondo < card < muted) para que los bloques se separen sin sombras. */
+  :root, .theme-night {
+    --background: #05080f;
+    --foreground: #f1f5f9;
+    --card: #131c30;
+    --card-foreground: #f8fafc;
+    --border: #2e3d5c;
+    --muted: #1c2740;
+    --muted-foreground: #b8c4d6;
     --accent: #1e40af;
     --accent-foreground: #ffffff;
+  }
+
+  /* `theme-night` sigue existiendo para forzar el tema dentro de un subárbol
+     (modales en portal, que se montan fuera del contenedor de la página). */
+  .theme-night {
+
+    /* Las utilidades de Tailwind leen --color-*, que se resuelve en :root:
+       hay que repintarlas acá o el override no llega a los descendientes. */
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-border: var(--border);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
   }
 
   * {

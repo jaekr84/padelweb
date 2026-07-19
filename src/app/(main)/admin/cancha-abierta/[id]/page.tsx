@@ -89,12 +89,10 @@ export default async function AdminLiveManagementPage(props: { params: Promise<{
     };
 
     return (
-        <div className="min-h-screen p-4 md:p-8 bg-background">
-            <AdminLiveManagementClient 
-                initialEvent={event as any}
-                initialRegistrations={registrations as any}
-                allPlayers={allPlayers as any}
-            />
-        </div>
+        <AdminLiveManagementClient
+            initialEvent={event as any}
+            initialRegistrations={registrations as any}
+            allPlayers={allPlayers as any}
+        />
     );
 }

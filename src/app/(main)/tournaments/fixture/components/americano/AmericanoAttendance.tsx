@@ -46,19 +46,19 @@ export function AmericanoAttendance({
         <div className="w-full space-y-3 pb-32">
             <div className="text-center space-y-0.5">
                 <h2 className="text-sm font-black text-foreground tracking-tighter uppercase italic leading-none">Lista de Asistencia</h2>
-                <p className="text-azul-primary text-[6px] font-black uppercase tracking-[0.4em]">Verificación Técnica de Participantes</p>
+                <p className="text-celeste text-[6px] font-black uppercase tracking-[0.4em]">Verificación Técnica de Participantes</p>
             </div>
 
             {/* Control Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-1.5 p-1.5 bg-card/40 backdrop-blur-xl border border-border/50 rounded-lg shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-1.5 p-1.5 bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg shadow-sm">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/20" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
                     <input
                         type="text"
                         placeholder="Buscar participante..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-muted/30 border border-border/40 rounded-md py-1.5 pl-8 pr-3 text-[9px] font-bold outline-none focus:ring-1 focus:ring-azul-primary transition-all placeholder:text-foreground/20"
+                        className="w-full bg-white/5 border border-white/12 rounded-md py-1.5 pl-8 pr-3 text-[9px] font-bold outline-none focus:ring-1 focus:ring-celeste transition-all placeholder:text-slate-500"
                     />
                 </div>
                 {!readOnly && (
@@ -68,7 +68,7 @@ export function AmericanoAttendance({
                                 const allIds = players.flatMap(checkKeysFor);
                                 bulkUpdateStatus('paid', allIds);
                             }}
-                            className="flex-1 md:flex-none px-3 py-1.5 bg-azul-primary/5 text-azul-primary rounded-md font-black uppercase text-[7px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all"
+                            className="flex-1 md:flex-none px-3 py-1.5 bg-celeste/5 text-celeste rounded-md font-black uppercase text-[7px] tracking-widest border border-celeste/20 hover:bg-celeste hover:text-carbon-950 transition-all"
                         >
                             Todo Pago
                         </button>
@@ -77,7 +77,7 @@ export function AmericanoAttendance({
                                 const allIds = players.flatMap(checkKeysFor);
                                 bulkUpdateStatus('present', allIds);
                             }}
-                            className="flex-1 md:flex-none px-3 py-1.5 bg-azul-primary/5 text-azul-primary rounded-md font-black uppercase text-[7px] tracking-widest border border-azul-primary/20 hover:bg-azul-primary hover:text-white transition-all"
+                            className="flex-1 md:flex-none px-3 py-1.5 bg-celeste/5 text-celeste rounded-md font-black uppercase text-[7px] tracking-widest border border-celeste/20 hover:bg-celeste hover:text-carbon-950 transition-all"
                         >
                             Todo Ok
                         </button>
@@ -86,9 +86,9 @@ export function AmericanoAttendance({
             </div>
 
             {/* Players Table */}
-            <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-lg overflow-hidden shadow-sm">
+            <div className="bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg overflow-hidden shadow-sm">
                 <table className="w-full text-left">
-                    <thead className="bg-muted text-[7px] font-black uppercase tracking-[0.2em] text-foreground/40 border-b border-border/40">
+                    <thead className="bg-muted text-[7px] font-black uppercase tracking-[0.2em] text-slate-400 border-b border-white/12">
                         <tr>
                             <th className="px-2.5 py-1">Jugador</th>
                             <th className="px-2.5 py-1">Cat</th>
@@ -103,27 +103,27 @@ export function AmericanoAttendance({
                             const isPair = memberNames.length > 1;
                             const isPresent = isTeamChecked(present, p);
                             const paidBtnClass = (checked: boolean) => `w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${checked
-                                ? "bg-azul-primary border-azul-primary text-white shadow-sm"
-                                : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                ? "bg-celeste border-celeste text-carbon-950 shadow-sm"
+                                : "bg-white/5 border-white/12 text-slate-500 hover:border-celeste/30 hover:text-celeste"
                                 } ${readOnly ? "cursor-default opacity-80" : ""}`;
                             return (
                                 <tr
                                     key={p.id}
-                                    className={`group transition-all hover:bg-muted/30 ${p.withdrawn ? "opacity-50" : isPresent ? "bg-azul-primary/[0.02]" : ""}`}
+                                    className={`group transition-all hover:bg-white/5 ${p.withdrawn ? "opacity-50" : isPresent ? "bg-celeste/[0.02]" : ""}`}
                                 >
                                     <td className="px-2.5 py-1">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-azul-primary text-white" : "bg-muted text-foreground/20"}`}>
+                                            <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-carbon-950" : "bg-muted text-slate-500"}`}>
                                                 <Users2 className="w-2.5 h-2.5" />
                                             </div>
                                             {isPair ? (
                                                 <div className="flex flex-col gap-1">
                                                     {memberNames.map((n, i) => (
-                                                        <span key={i} className={`font-black uppercase text-[9px] tracking-tight transition-colors h-6 flex items-center ${isMemberChecked(present, p.id, (i + 1) as 1 | 2) ? "text-foreground" : "text-foreground/70"}`}>{n}</span>
+                                                        <span key={i} className={`font-black uppercase text-[9px] tracking-tight transition-colors h-6 flex items-center ${isMemberChecked(present, p.id, (i + 1) as 1 | 2) ? "text-foreground" : "text-slate-200"}`}>{n}</span>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <span className={`font-black uppercase text-[9px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                                <span className={`font-black uppercase text-[9px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-slate-200"}`}>{p.name}</span>
                                             )}
                                             {p.withdrawn && (
                                                 <span className="shrink-0 px-1.5 py-0.5 rounded text-[6px] font-black uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-500">
@@ -133,7 +133,7 @@ export function AmericanoAttendance({
                                         </div>
                                     </td>
                                     <td className="px-2.5 py-1">
-                                        <span className="text-[7px] font-black uppercase tracking-widest text-foreground/30">{p.category || "D"}</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-400">{p.category || "D"}</span>
                                     </td>
                                     <td className="px-2.5 py-1 text-center">
                                         {isPair ? (
@@ -190,14 +190,14 @@ export function AmericanoAttendance({
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
                                                     onClick={() => setPlayerToDelete(p)}
-                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-95"
+                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-95"
                                                     title="Eliminar"
                                                 >
                                                     <Trash2 className="w-2.5 h-2.5" />
                                                 </button>
                                                 <button
                                                     onClick={() => setReplacingPlayer(p)}
-                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-95"
+                                                    className="w-6 h-6 rounded inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-celeste/30 hover:text-celeste transition-all transform active:scale-95"
                                                     title="Reemplazar"
                                                 >
                                                     <RotateCcw className="w-2.5 h-2.5" />
@@ -206,7 +206,7 @@ export function AmericanoAttendance({
                                                     onClick={() => requestWithdraw(p)}
                                                     className={`w-6 h-6 rounded inline-flex items-center justify-center border transition-all transform active:scale-95 ${p.withdrawn
                                                         ? "bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-white"
-                                                        : "border-border/40 bg-muted/30 text-foreground/20 hover:border-amber-500/40 hover:text-amber-500"}`}
+                                                        : "border-white/12 bg-white/5 text-slate-500 hover:border-amber-500/40 hover:text-amber-500"}`}
                                                     title={p.withdrawn ? "Reincorporar al torneo" : "Retirar del torneo"}
                                                 >
                                                     {p.withdrawn ? <UserPlus className="w-2.5 h-2.5" /> : <UserX className="w-2.5 h-2.5" />}
@@ -226,7 +226,7 @@ export function AmericanoAttendance({
                     <button
                         onClick={() => setStep("active")}
                         disabled={presentTeamsCount < 2}
-                        className="w-full py-2.5 bg-azul-primary text-white rounded-xl font-black uppercase italic tracking-widest shadow-lg shadow-azul-primary/20 hover:bg-azul-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale text-[11px]"
+                        className="w-full py-2.5 bg-celeste text-carbon-950 rounded-xl font-black uppercase italic tracking-widest shadow-lg shadow-celeste/20 hover:bg-celeste-light hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale text-[11px]"
                     >
                         Iniciar Torneo ({presentTeamsCount})
                         <ChevronRight className="w-4 h-4" />

@@ -33,7 +33,7 @@ export default async function EditTournamentPage({ params }: Props) {
     const isSuperAdmin = session.role === "superadmin";
     if (tournament.createdByUserId !== session.userId && !isSuperAdmin) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+            <div className="theme-night min-h-screen flex items-center justify-center bg-background p-6">
                 <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
                     <h1 className="text-2xl font-black uppercase text-red-500 mb-4">No autorizado</h1>
                     <p className="text-white/60">No tenés permisos para editar este torneo.</p>
@@ -45,7 +45,7 @@ export default async function EditTournamentPage({ params }: Props) {
     // Prevention of editing finished tournaments
     if (tournament.status === "finalizado") {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+            <div className="theme-night min-h-screen flex items-center justify-center bg-background p-6">
                 <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
                     <h1 className="text-2xl font-black uppercase text-amber-500 mb-4">Torneo Finalizado</h1>
                     <p className="text-white/60">Este torneo ya ha finalizado y no puede ser editado.</p>

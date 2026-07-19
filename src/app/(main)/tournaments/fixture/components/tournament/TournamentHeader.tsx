@@ -67,14 +67,14 @@ export function TournamentHeader({
 
     return (
         <>
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-border/50 px-4 py-4">
+            <header className="sticky top-0 z-50 bg-carbon-950/90 backdrop-blur-3xl border-b border-white/12 px-4 py-4">
                 <div className="max-w-6xl mx-auto space-y-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-6">
                             {!readOnly && (
                                 <button
                                     onClick={handleBack}
-                                    className="group flex items-center gap-2 text-foreground/70 hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/50"
+                                    className="group flex items-center gap-2 text-slate-300 hover:text-white transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/12"
                                 >
                                     <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                                     Volver
@@ -102,7 +102,7 @@ export function TournamentHeader({
                             {!readOnly && (
                                 <button
                                     onClick={() => setIsPlayersModalOpen(true)}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-azul-primary/10 text-azul-primary hover:bg-azul-primary hover:text-white transition-all group shadow-sm border border-azul-primary/20"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-celeste/15 text-celeste hover:bg-celeste hover:text-carbon-950 transition-all group border border-celeste/40"
                                 >
                                     <Users2 className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
                                     <span className="text-[9px] font-black uppercase tracking-widest hidden sm:inline">Jugadores</span>
@@ -112,7 +112,7 @@ export function TournamentHeader({
                             {!readOnly && initialStatus !== "finalizado" && (
                                 <button
                                     onClick={() => setIsFinalizeModalOpen(true)}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rojo/10 text-rojo hover:bg-rojo hover:text-white transition-all group shadow-sm border border-rojo/20 font-bold text-[9px] uppercase tracking-widest"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-live/15 text-live hover:bg-live hover:text-white transition-all group border border-live/40 font-bold text-[9px] uppercase tracking-widest"
                                 >
                                     <Check className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
                                     <span>Finalizar Torneo</span>
@@ -131,7 +131,7 @@ export function TournamentHeader({
                                 {!readOnly && (
                                     <Link
                                         href={`/tournaments/${tournamentId}/edit`}
-                                        className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all"
+                                        className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-white hover:bg-white/10 transition-all"
                                         title="Configuración"
                                     >
                                         <Settings className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export function TournamentHeader({
                                 <Link
                                     href={`/tournaments/${tournamentId}/resultados`}
                                     target="_blank"
-                                    className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all"
+                                    className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all"
                                     title="Ver resultados públicos"
                                 >
                                     <Eye className="w-3.5 h-3.5" />
@@ -149,7 +149,7 @@ export function TournamentHeader({
 
                                 <Link
                                     href={`/tournaments/${tournamentId}/stats`}
-                                    className="flex items-center gap-2 p-2 sm:px-3 rounded-xl bg-celeste/10 border border-celeste/20 text-celeste hover:bg-celeste hover:text-white transition-all"
+                                    className="flex items-center gap-2 p-2 sm:px-3 rounded-xl bg-celeste/15 border border-celeste/40 text-celeste hover:bg-celeste hover:text-carbon-950 transition-all"
                                     title="Estadísticas del torneo"
                                 >
                                     <BarChart3 className="w-3.5 h-3.5" />
@@ -159,7 +159,7 @@ export function TournamentHeader({
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
-                                    className="p-2 rounded-xl bg-muted/30 border border-border/50 text-foreground/50 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                                    className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
                                 >
                                     <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
                                 </button>

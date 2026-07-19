@@ -82,7 +82,7 @@ export function TournamentTimeline({
         : steps;
 
     return (
-        <div className="flex items-center gap-1 bg-muted/10 p-1 rounded-2xl border border-border/40 backdrop-blur-md">
+        <div className="flex items-center gap-1 bg-black/30 p-1 rounded-2xl border border-white/12 backdrop-blur-md">
             {filteredSteps.map((s, idx) => {
                 const Icon = s.icon;
                 const isActive = s.id === currentStep;
@@ -94,13 +94,13 @@ export function TournamentTimeline({
                             disabled={!s.isAccessible}
                             className={`
                                 group relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300
-                                ${isActive 
-                                    ? "bg-azul-primary text-white shadow-lg shadow-azul-primary/20 scale-[1.02]" 
+                                ${isActive
+                                    ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/30 scale-[1.02]"
                                     : s.isCompleted
-                                        ? "text-celeste hover:bg-celeste/10"
+                                        ? "text-volt hover:bg-volt/10"
                                         : s.isAccessible
-                                            ? "text-foreground/50 hover:bg-white/5 hover:text-foreground"
-                                            : "opacity-20 cursor-not-allowed"}
+                                            ? "text-slate-300 hover:bg-white/10 hover:text-white"
+                                            : "text-slate-600 cursor-not-allowed"}
                             `}
                         >
                             <div className="relative">
@@ -114,7 +114,7 @@ export function TournamentTimeline({
                             
                             <span className={`
                                 text-[9px] font-black uppercase tracking-wider hidden lg:block
-                                ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}
+                                ${isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"}
                             `}>
                                 {s.label}
                             </span>
@@ -125,7 +125,7 @@ export function TournamentTimeline({
                         </button>
 
                         {idx < steps.length - 1 && (
-                            <ChevronRight className={`w-3 h-3 mx-0.5 ${steps[idx+1].isAccessible ? "text-border/40" : "text-border/10"}`} />
+                            <ChevronRight className={`w-3 h-3 mx-0.5 ${steps[idx+1].isAccessible ? "text-slate-500" : "text-slate-700"}`} />
                         )}
                     </div>
                 );

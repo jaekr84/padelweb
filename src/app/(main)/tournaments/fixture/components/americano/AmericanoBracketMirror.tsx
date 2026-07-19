@@ -169,15 +169,15 @@ export function AmericanoBracketMirror({
     if (bracket.length === 0) return null;
 
     return (
-        <div className="space-y-3 border-t border-border/40 pt-8 mt-8">
+        <div className="space-y-3 border-t border-white/12 pt-8 mt-8">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-azul-primary/10 flex items-center justify-center">
-                        <Trophy className="w-3.5 h-3.5 text-azul-primary" />
+                    <div className="w-7 h-7 rounded-lg bg-celeste/10 flex items-center justify-center">
+                        <Trophy className="w-3.5 h-3.5 text-celeste" />
                     </div>
                     <div>
                         <h3 className="text-[11px] font-black uppercase italic tracking-tight">Cuadro de Eliminatorias</h3>
-                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/40 leading-none mt-0.5">
+                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">
                             Referencia visual • Click en un partido para ver detalle
                         </p>
                     </div>
@@ -310,7 +310,7 @@ export function AmericanoBracketMirror({
                             initial={{ scale: 0.92, opacity: 0, y: 10 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                            className="relative w-full max-w-sm bg-card border border-border/40 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                            className="relative w-full max-w-sm bg-card border border-white/12 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
                         >
                             <div className="w-14 h-14 rounded-full border bg-rojo/10 border-rojo/30 text-rojo flex items-center justify-center">
                                 <RotateCcw className="w-6 h-6" />
@@ -319,14 +319,14 @@ export function AmericanoBracketMirror({
                                 <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
                                     Vas a reiniciar el cuadro
                                 </h3>
-                                <p className="text-xs text-foreground/60 leading-relaxed">
+                                <p className="text-xs text-slate-300 leading-relaxed">
                                     Se borran todas las llaves y resultados de eliminatorias y el torneo vuelve a la fase de grupos.
                                 </p>
                             </div>
                             <div className="w-full flex gap-2 pt-1">
                                 <button
                                     onClick={() => setConfirmReset(false)}
-                                    className="flex-1 py-3 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 text-foreground/70 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                    className="flex-1 py-3 rounded-xl border border-white/12 bg-white/5 hover:bg-white/5 text-slate-200 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
                                 >
                                     Volver
                                 </button>
@@ -560,7 +560,7 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                     <button
                         onClick={() => run(onStart)}
                         disabled={busy || saving}
-                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-azul-primary hover:bg-azul-dark text-white font-black uppercase italic text-xs tracking-widest transition-all active:scale-[0.98] shadow-lg shadow-azul-primary/20 disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-celeste hover:bg-celeste-light text-carbon-950 font-black uppercase italic text-xs tracking-widest transition-all active:scale-[0.98] shadow-lg shadow-celeste/20 disabled:opacity-50"
                     >
                         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
                         Iniciar Partido

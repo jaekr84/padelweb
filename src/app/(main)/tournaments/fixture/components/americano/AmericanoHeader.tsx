@@ -46,7 +46,7 @@ export function AmericanoHeader({
 
     return (
         <>
-            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-border/40">
+            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-white/12">
                 <div className="w-full px-2 md:px-3 h-10 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                         <button
@@ -54,7 +54,7 @@ export function AmericanoHeader({
                                 if (step === "active") setStep("setup");
                                 else router.push("/admin/tournaments");
                             }}
-                            className="group flex items-center gap-1.5 text-foreground/70 hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
+                            className="group flex items-center gap-1.5 text-slate-200 hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
                         >
                             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                             <span className="text-[8px] font-black uppercase tracking-[0.15em] italic">Volver</span>
@@ -63,8 +63,8 @@ export function AmericanoHeader({
                         <div className="h-5 w-px bg-border/20 hidden md:block" />
 
                         <div className="hidden md:flex flex-col min-w-0">
-                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-azul-primary leading-none mb-0.5">Torneo</span>
-                            <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground/90 leading-none truncate max-w-[120px] lg:max-w-[200px]">
+                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
+                            <span className="text-[9px] font-black uppercase italic tracking-tight text-white leading-none truncate max-w-[120px] lg:max-w-[200px]">
                                 {tournamentName}
                             </span>
                         </div>
@@ -117,10 +117,10 @@ export function AmericanoHeader({
 
                                     const className = `flex items-center gap-1 px-2.5 py-0.5 rounded-md transition-all ${
                                         s.active
-                                            ? "bg-azul-primary text-white shadow-sm"
+                                            ? "bg-celeste text-carbon-950 shadow-sm"
                                             : s.completed
-                                                ? "text-azul-primary bg-azul-primary/5 hover:bg-azul-primary/10"
-                                                : "text-foreground/60 hover:bg-muted/80"
+                                                ? "text-celeste bg-celeste/5 hover:bg-celeste/10"
+                                                : "text-slate-300 hover:bg-muted/80"
                                     }`;
 
                                     return (
@@ -146,14 +146,14 @@ export function AmericanoHeader({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-azul-primary/5 border border-azul-primary/20 text-azul-primary text-[8px] font-black uppercase tracking-widest">
-                            <div className="w-1 h-1 rounded-full bg-azul-primary animate-pulse" />
+                        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-celeste/5 border border-celeste/20 text-celeste text-[8px] font-black uppercase tracking-widest">
+                            <div className="w-1 h-1 rounded-full bg-celeste animate-pulse" />
                             {initialStatus === "finalizado" ? "Finalizado" : "En Vivo"}
                         </div>
 
                         {readOnly && hasBracket && (
                             <Link href={`/tournaments/${tournamentId}/playoffs`} className="lg:hidden">
-                                <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-azul-primary/10 border border-azul-primary/20 text-azul-primary hover:bg-azul-primary hover:text-white transition-all text-[8px] font-black uppercase tracking-widest shadow-sm">
+                                <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-celeste/10 border border-celeste/20 text-celeste hover:bg-celeste hover:text-carbon-950 transition-all text-[8px] font-black uppercase tracking-widest shadow-sm">
                                     <Trophy className="w-3 h-3" />
                                     <span>Llaves</span>
                                 </button>
@@ -181,7 +181,7 @@ export function AmericanoHeader({
                         {!readOnly && (
                             <Link
                                 href={`/tournaments/${tournamentId}/edit`}
-                                className="p-1.5 rounded-lg bg-muted/40 border border-border/40 text-foreground/50 hover:text-foreground hover:bg-muted transition-all"
+                                className="p-1.5 rounded-lg bg-white/5 border border-white/12 text-slate-300 hover:text-foreground hover:bg-muted transition-all"
                                 title="Configuración"
                             >
                                 <Settings className="w-3 h-3" />
@@ -191,7 +191,7 @@ export function AmericanoHeader({
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="p-1.5 rounded-lg bg-muted/40 border border-border/40 text-foreground/50 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                            className="p-1.5 rounded-lg bg-white/5 border border-white/12 text-slate-300 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
                         </button>

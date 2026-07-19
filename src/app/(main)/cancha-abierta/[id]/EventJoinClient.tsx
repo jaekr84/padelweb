@@ -90,7 +90,7 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <div className="theme-night max-w-4xl mx-auto px-4 py-6 space-y-6 bg-background text-foreground min-h-screen">
 
             {/* Enrollment / Status Panel */}
             <div className="relative bg-card border border-border/80 rounded-xl p-5 overflow-hidden shadow-md">
@@ -112,9 +112,9 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
 
                 {isCompleted ? (
                     <div className="space-y-3">
-                        <div className="flex items-center gap-3 bg-azul-primary/8 border border-azul-primary/20 rounded-lg px-4 py-3">
-                            <Trophy className="w-4 h-4 text-azul-primary shrink-0" />
-                            <p className="text-[9px] font-bold text-azul-primary uppercase italic leading-relaxed">Este evento ya ha concluido. Podés consultar los resultados históricos.</p>
+                        <div className="flex items-center gap-3 bg-celeste/8 border border-celeste/20 rounded-lg px-4 py-3">
+                            <Trophy className="w-4 h-4 text-celeste shrink-0" />
+                            <p className="text-[9px] font-bold text-celeste uppercase italic leading-relaxed">Este evento ya ha concluido. Podés consultar los resultados históricos.</p>
                         </div>
                         <Link href="/cancha-abierta" className="w-full bg-foreground text-background font-black uppercase tracking-widest text-[8px] py-3 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                             Ver otros eventos <ChevronRight className="w-3 h-3" />
@@ -126,19 +126,19 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                             <CheckCircle2 className="w-4 h-4 text-celeste shrink-0" />
                             <p className="text-[9px] font-bold text-celeste uppercase italic">Tu lugar está asegurado. Recordá llegar 15 minutos antes.</p>
                         </div>
-                        <button onClick={handleLeave} disabled={isPending} className="w-full text-muted-foreground/40 hover:text-rojo font-black uppercase tracking-widest text-[8px] transition-colors py-2.5 flex items-center justify-center gap-1.5 group/leave">
+                        <button onClick={handleLeave} disabled={isPending} className="w-full text-slate-400 hover:text-rojo font-black uppercase tracking-widest text-[8px] transition-colors py-2.5 flex items-center justify-center gap-1.5 group/leave">
                             <XCircle className="w-3 h-3 opacity-0 group-hover/leave:opacity-100 transition-opacity" />
                             Cancelar Inscripción
                         </button>
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        <div className="bg-muted/30 border border-border/40 rounded-lg px-4 py-2.5 flex items-center justify-between">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">Preferencia de Lado</span>
+                        <div className="bg-white/5 border border-white/12 rounded-lg px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Preferencia de Lado</span>
                             <span className="text-[10px] font-black uppercase italic text-celeste">{defaultSidePreference}</span>
                         </div>
                         <button onClick={handleJoin} disabled={isPending || !!isFull}
-                            className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-widest text-[9px] py-3.5 rounded-lg shadow-lg shadow-azul-primary/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group/btn">
+                            className="w-full bg-celeste hover:bg-celeste-light disabled:opacity-50 text-carbon-950 font-black uppercase tracking-widest text-[9px] py-3.5 rounded-lg shadow-lg shadow-celeste/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group/btn">
                             {isPending ? "Procesando..." : isFull ? "Lista de Espera" : "Inscribirme"}
                             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
                         </button>
@@ -164,15 +164,15 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-muted-foreground/30 pointer-events-none" />
 
                 {/* Tab Bar */}
-                <div className="flex items-center border-b border-border/70 bg-muted/20 px-1 pt-1">
+                <div className="flex items-center border-b border-border/70 bg-white/5 px-1 pt-1">
                     {(["results", "players"] as const).map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
-                            className={`relative px-5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === tab ? "text-foreground" : "text-muted-foreground/60 hover:text-muted-foreground"}`}>
+                            className={`relative px-5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === tab ? "text-foreground" : "text-slate-400 hover:text-muted-foreground"}`}>
                             {tab === "results" ? "Resultados" : "Jugadores"}
-                            {activeTab === tab && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-azul-primary rounded-full" />}
+                            {activeTab === tab && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-celeste rounded-full" />}
                         </button>
                     ))}
-                    <div className="ml-auto pr-3 text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 font-mono">
+                    <div className="ml-auto pr-3 text-[8px] font-black uppercase tracking-widest text-slate-400 font-mono">
                         {activeTab === "results" ? `${matches.length} partidos` : `${participants.length} jugadores`}
                     </div>
                 </div>
@@ -183,15 +183,15 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                             <motion.div key="results" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
                                 {/* Search */}
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/50" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                                     <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                                         placeholder="Buscar por jugador..."
-                                        className="w-full rounded-lg border border-border/60 bg-muted/20 pl-8 pr-3 py-2 text-[9px] font-bold uppercase tracking-widest text-foreground focus:outline-none focus:ring-1 focus:ring-azul-primary/30 placeholder-muted-foreground/40 transition-all" />
+                                        className="w-full rounded-lg border border-white/12 bg-white/5 pl-8 pr-3 py-2 text-[9px] font-bold uppercase tracking-widest text-foreground focus:outline-none focus:ring-1 focus:ring-celeste/30 placeholder-muted-foreground/40 transition-all" />
                                 </div>
 
                                 {/* Player stats widget */}
                                 {q && matchingIds.size > 0 && (
-                                    <div className="grid grid-cols-4 gap-1.5 p-2 bg-azul-primary/5 border border-azul-primary/15 rounded-lg">
+                                    <div className="grid grid-cols-4 gap-1.5 p-2 bg-celeste/5 border border-celeste/15 rounded-lg">
                                         {[
                                             { label: "Jugados", val: stats.played, color: "text-foreground" },
                                             { label: "Ganados", val: stats.won, color: "text-emerald-400" },
@@ -199,7 +199,7 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                             { label: "Empates", val: stats.drawn, color: "text-orange-400" },
                                         ].map(s => (
                                             <div key={s.label} className="text-center py-1.5">
-                                                <p className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/60">{s.label}</p>
+                                                <p className="text-[6px] font-black uppercase tracking-widest text-slate-400">{s.label}</p>
                                                 <p className={`text-base font-black font-mono ${s.color}`}>{s.val}</p>
                                             </div>
                                         ))}
@@ -208,14 +208,14 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
 
                                 {/* Match cards */}
                                 {!isCompleted ? (
-                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                    <div className="py-8 text-center border border-dashed border-white/12 rounded-lg">
                                         <Trophy className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Los resultados aparecerán cuando finalice el evento.</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Los resultados aparecerán cuando finalice el evento.</p>
                                     </div>
                                 ) : filteredMatches.length === 0 ? (
-                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                    <div className="py-8 text-center border border-dashed border-white/12 rounded-lg">
                                         <Search className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Sin partidos que coincidan con «{searchQuery}».</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Sin partidos que coincidan con «{searchQuery}».</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
@@ -226,11 +226,11 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                                 <div key={match.id} className="bg-[#020617] border border-white/8 rounded-xl overflow-hidden shadow-xl">
                                                     {/* Header */}
                                                     <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/5 bg-white/[0.02]">
-                                                        <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-1">
+                                                        <span className="text-[6px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
                                                             <Zap className="w-2 h-2 text-orange-400" /> Partido {i + 1}
                                                         </span>
                                                         {match.finishedAt && (
-                                                            <span className="text-[6px] font-mono text-muted-foreground/40">
+                                                            <span className="text-[6px] font-mono text-slate-400">
                                                                 {new Date(match.finishedAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })} HS
                                                             </span>
                                                         )}
@@ -292,9 +292,9 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                         ) : (
                             <motion.div key="players" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                                 {participants.length === 0 ? (
-                                    <div className="py-8 text-center border border-dashed border-border/50 rounded-lg">
+                                    <div className="py-8 text-center border border-dashed border-white/12 rounded-lg">
                                         <Users className="w-7 h-7 text-muted-foreground/15 mx-auto mb-2" />
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Todavía no hay jugadores inscriptos.</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Todavía no hay jugadores inscriptos.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -318,7 +318,7 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                                     <div
                                                         className={`relative z-10 w-full p-[2px] transition-all duration-300 ${isMe
                                                                 ? "bg-red-500"
-                                                                : "bg-gradient-to-br from-azul-primary via-celeste to-azul-primary"
+                                                                : "bg-gradient-to-br from-celeste via-celeste to-celeste"
                                                             }`}
                                                         style={{ clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)" }}
                                                     >
@@ -334,7 +334,7 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                                             <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')] invert pointer-events-none" />
 
                                                             {/* Top gradient overlay */}
-                                                            <div className={`absolute top-0 inset-x-0 h-20 bg-gradient-to-b ${isMe ? "from-celeste/30" : "from-azul-primary/30"} to-transparent z-20 pointer-events-none`} />
+                                                            <div className={`absolute top-0 inset-x-0 h-20 bg-gradient-to-b ${isMe ? "from-celeste/30" : "from-celeste/30"} to-transparent z-20 pointer-events-none`} />
 
                                                             {/* Branding */}
                                                             <div className="absolute top-3 left-3 z-40 flex flex-col leading-none">
@@ -346,7 +346,7 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
 
                                                             {/* Side ribbon top-right */}
                                                             <div className="absolute top-2 right-2 z-40">
-                                                                <div className={`px-1.5 py-0.5 transform skew-x-[-15deg] border ${isMe ? "bg-celeste border-celeste/50 shadow-[0_0_12px_rgba(14,165,233,0.7)]" : "bg-azul-primary border-celeste/30 shadow-[0_0_10px_rgba(30,64,175,0.4)]"}`}>
+                                                                <div className={`px-1.5 py-0.5 transform skew-x-[-15deg] border ${isMe ? "bg-celeste border-celeste/50 shadow-[0_0_12px_rgba(14,165,233,0.7)]" : "bg-celeste border-celeste/30 shadow-[0_0_10px_rgba(30,64,175,0.4)]"}`}>
                                                                     <span className="text-[7px] font-black text-white uppercase tracking-widest inline-block transform skew-x-[15deg]">
                                                                         {sideLabel}
                                                                     </span>
@@ -369,16 +369,16 @@ export default function EventJoinClient({ event, club, participants, isLoggedIn,
                                                             <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-slate-950 via-slate-900 to-transparent pt-8 px-3 pb-3">
                                                                 {/* Name plate */}
                                                                 <div className="relative mb-1.5">
-                                                                    <div className={`bg-white py-1 transform -skew-x-12 shadow-xl border-r-4 ${isMe ? "border-celeste" : "border-azul-primary"}`}>
-                                                                        <p className="text-[9px] font-black uppercase italic tracking-tighter text-slate-950 text-center transform skew-x-12 truncate px-2">
-                                                                            {firstName} <span className={isMe ? "text-celeste" : "text-azul-primary"}>{lastName}</span>
+                                                                    <div className={`bg-carbon-950/90 py-1 transform -skew-x-12 shadow-xl border-r-4 ${isMe ? "border-volt" : "border-celeste"}`}>
+                                                                        <p className="text-[9px] font-black uppercase italic tracking-tighter text-white text-center transform skew-x-12 truncate px-2">
+                                                                            {firstName} <span className={isMe ? "text-celeste" : "text-celeste"}>{lastName}</span>
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* Status */}
                                                                 <div className="flex justify-center">
-                                                                    <span className="text-[6px] font-black uppercase tracking-widest text-white/40">
+                                                                    <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">
                                                                         {isCompleted ? "✓ Finalizó" : "● Confirmado"}
                                                                     </span>
                                                                 </div>
@@ -421,7 +421,7 @@ function MatchPlayerCard({
     return (
         <div className="relative group/card transition-all duration-300 w-[68px] hover:scale-105 hover:z-10">
             <div
-                className={`p-[1px] transition-all duration-500 ${isWinner ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]" : highlight ? "bg-azul-primary shadow-[0_0_10px_rgba(30,64,175,0.4)]" : "bg-white/15"}`}
+                className={`p-[1px] transition-all duration-500 ${isWinner ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]" : highlight ? "bg-celeste shadow-[0_0_10px_rgba(30,64,175,0.4)]" : "bg-white/15"}`}
                 style={cardStyle}
             >
                 <div className="relative h-[100px] overflow-hidden bg-[#020617] flex flex-col" style={cardStyle}>
@@ -448,7 +448,7 @@ function MatchPlayerCard({
 
                     {/* Guest badge */}
                     {isGuest && (
-                        <div className="absolute top-1.5 left-1.5 z-20 px-1 py-0.5 bg-azul-primary border border-white/20 rounded-sm flex items-center gap-0.5">
+                        <div className="absolute top-1.5 left-1.5 z-20 px-1 py-0.5 bg-celeste border border-white/20 rounded-sm flex items-center gap-0.5">
                             <div className="w-1 h-1 rounded-full bg-white" />
                             <span className="text-[4px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
                         </div>
@@ -461,9 +461,9 @@ function MatchPlayerCard({
 
                     {/* Name plate */}
                     <div className="mt-auto p-1 z-10 bg-[#020617]">
-                        <div className={`py-0.5 px-1.5 transform -skew-x-12 border-r-2 shadow-lg ${isWinner ? "bg-emerald-500 border-white" : "bg-white border-azul-primary"}`}>
+                        <div className={`py-0.5 px-1.5 transform -skew-x-12 border-r-2 shadow-lg ${isWinner ? "bg-emerald-500 border-emerald-200" : "bg-carbon-950/90 border-celeste"}`}>
                             <div className="transform skew-x-12 text-center">
-                                <span className={`block text-[7px] font-black uppercase italic leading-none truncate ${isWinner ? "text-white" : "text-slate-950"}`}>
+                                <span className={`block text-[7px] font-black uppercase italic leading-none truncate ${isWinner ? "text-carbon-950" : "text-white"}`}>
                                     {shortName}
                                 </span>
                             </div>

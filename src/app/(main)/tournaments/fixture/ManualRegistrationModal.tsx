@@ -348,7 +348,7 @@ export default function ManualRegistrationModal({
                 className="relative w-full max-w-5xl bg-card border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]"
             >
                 {/* Header */}
-                <div className="p-4 md:p-5 border-b border-border/50 flex items-center justify-between bg-white">
+                <div className="p-4 md:p-5 border-b border-border/50 flex items-center justify-between bg-card">
                     <div>
                         <h3 className="text-lg font-black uppercase italic tracking-tighter flex items-center gap-3">
                             <Plus className="w-5 h-5 text-azul-primary" />
@@ -376,18 +376,18 @@ export default function ManualRegistrationModal({
                             </div>
 
                             {/* Registered vs Guest toggle */}
-                            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-sm text-[8px] font-black uppercase italic">
+                            <div className="flex rounded-lg border border-border/60 p-0.5 bg-card shadow-sm text-[8px] font-black uppercase italic">
                                 <button
                                     type="button"
                                     onClick={() => switchRegisterMode("search")}
-                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "search" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "search" ? "bg-azul-primary text-white shadow-sm font-black" : "text-foreground/40 hover:text-foreground/80 font-bold"}`}
                                 >
                                     Jugadores Registrados
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => switchRegisterMode("guest")}
-                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "guest" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                    className={`flex-1 py-1.5 px-2 rounded-md transition-all ${registerMode === "guest" ? "bg-azul-primary text-white shadow-sm font-black" : "text-foreground/40 hover:text-foreground/80 font-bold"}`}
                                 >
                                     Invitados
                                 </button>
@@ -424,7 +424,7 @@ export default function ManualRegistrationModal({
                                             setShowResults1(registerMode === "search");
                                         }}
                                         onFocus={() => setShowResults1(registerMode === "search")}
-                                        className="w-full bg-slate-50/50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-slate-800"
+                                        className="w-full bg-muted/40 border border-border/60 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-foreground/25 outline-none focus:border-azul-primary transition-all text-foreground"
                                     />
                                     {registerMode === "search" && manualName.length > 1 && !selectedPlayer1 && showResults1 && (
                                         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
@@ -457,7 +457,7 @@ export default function ManualRegistrationModal({
                                             value={manualSide1}
                                             onValueChange={(val) => setManualSide1(val)}
                                         >
-                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                            <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                 <SelectValue placeholder="Lado..." />
                                             </SelectTrigger>
                                             <SelectContent className="z-[9999]">
@@ -470,7 +470,7 @@ export default function ManualRegistrationModal({
                                             value={manualClub1}
                                             onValueChange={(val) => setManualClub1(val)}
                                         >
-                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                            <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                 <SelectValue placeholder="Club..." />
                                             </SelectTrigger>
                                             <SelectContent className="z-[9999]">
@@ -485,7 +485,7 @@ export default function ManualRegistrationModal({
                                             value={manualCategory1}
                                             onValueChange={(val) => setManualCategory1(val)}
                                         >
-                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                            <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                 <SelectValue placeholder="Categoría..." />
                                             </SelectTrigger>
                                             <SelectContent className="z-[9999]">
@@ -498,7 +498,7 @@ export default function ManualRegistrationModal({
                                             value={manualGender1}
                                             onValueChange={(val) => setManualGender1(val)}
                                         >
-                                            <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                            <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                 <SelectValue placeholder="Género..." />
                                             </SelectTrigger>
                                             <SelectContent className="z-[9999]">
@@ -530,7 +530,7 @@ export default function ManualRegistrationModal({
                                                 setShowResults2(registerMode === "search");
                                             }}
                                             onFocus={() => setShowResults2(registerMode === "search")}
-                                            className="w-full bg-slate-50/50 border border-slate-200 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-slate-800"
+                                            className="w-full bg-muted/40 border border-border/60 rounded-lg py-2 px-3 text-xs font-bold placeholder:text-foreground/25 outline-none focus:border-azul-primary transition-all text-foreground"
                                         />
                                         {registerMode === "search" && manualName2.length > 1 && !selectedPlayer2 && showResults2 && (
                                             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-2xl max-h-40 overflow-y-auto overflow-x-hidden custom-scrollbar">
@@ -563,7 +563,7 @@ export default function ManualRegistrationModal({
                                                 value={manualSide2}
                                                 onValueChange={(val) => setManualSide2(val)}
                                             >
-                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                     <SelectValue placeholder="Lado..." />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[9999]">
@@ -576,7 +576,7 @@ export default function ManualRegistrationModal({
                                                 value={manualClub2}
                                                 onValueChange={(val) => setManualClub2(val)}
                                             >
-                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                     <SelectValue placeholder="Club..." />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[9999]">
@@ -591,7 +591,7 @@ export default function ManualRegistrationModal({
                                                 value={manualCategory2}
                                                 onValueChange={(val) => setManualCategory2(val)}
                                             >
-                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                     <SelectValue placeholder="Categoría..." />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[9999]">
@@ -604,7 +604,7 @@ export default function ManualRegistrationModal({
                                                 value={manualGender2}
                                                 onValueChange={(val) => setManualGender2(val)}
                                             >
-                                                <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                                <SelectTrigger className="w-full bg-muted/50 border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                                     <SelectValue placeholder="Género..." />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[9999]">
@@ -630,25 +630,25 @@ export default function ManualRegistrationModal({
                             </div>
                         </div>
 
-                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                            <div className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2 mb-1">
+                        <div className="p-4 bg-muted/50 border border-border/60 rounded-2xl space-y-3">
+                            <div className="text-[9px] font-black uppercase text-foreground/40 tracking-[0.2em] flex items-center gap-2 mb-1">
                                 <Users2 className="w-3 h-3" />
                                 Inscripción Masiva (Base de Datos)
                             </div>
                             
                             {/* Toggle Switch */}
-                            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-sm text-[8px] font-black uppercase italic">
+                            <div className="flex rounded-lg border border-border/60 p-0.5 bg-card shadow-sm text-[8px] font-black uppercase italic">
                                 <button
                                     type="button"
                                     onClick={() => setAutoFillMode("individual")}
-                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "individual" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "individual" ? "bg-azul-primary text-white shadow-sm font-black" : "text-foreground/40 hover:text-foreground/80 font-bold"}`}
                                 >
                                     Individual
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setAutoFillMode("pareja")}
-                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "pareja" ? "bg-azul-primary text-white shadow-sm font-black" : "text-slate-400 hover:text-slate-600 font-bold"}`}
+                                    className={`flex-1 py-1 px-2 rounded-md transition-all ${autoFillMode === "pareja" ? "bg-azul-primary text-white shadow-sm font-black" : "text-foreground/40 hover:text-foreground/80 font-bold"}`}
                                 >
                                     En Parejas
                                 </button>
@@ -659,7 +659,7 @@ export default function ManualRegistrationModal({
                                     value={manualCategory}
                                     onValueChange={(val) => setManualCategory(val)}
                                 >
-                                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                    <SelectTrigger className="w-full bg-card border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Categoría (Opcional)..." />
                                     </SelectTrigger>
                                     <SelectContent className="z-[9999]">
@@ -672,7 +672,7 @@ export default function ManualRegistrationModal({
                                     value={manualGender}
                                     onValueChange={(val) => setManualGender(val)}
                                 >
-                                    <SelectTrigger className="w-full bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                    <SelectTrigger className="w-full bg-card border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Género (Opcional)..." />
                                     </SelectTrigger>
                                     <SelectContent className="z-[9999]">
@@ -689,7 +689,7 @@ export default function ManualRegistrationModal({
                                     placeholder={autoFillMode === "individual" ? "Jugadores" : "Parejas"}
                                     value={autoFillCount}
                                     onChange={(e) => setAutoFillCount(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
-                                    className="w-16 bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-[10px] font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary transition-all text-center"
+                                    className="w-16 bg-card border border-border/60 rounded-lg py-1.5 px-2 text-[10px] font-bold placeholder:text-foreground/25 outline-none focus:border-azul-primary transition-all text-center"
                                 />
                                 <button 
                                     onClick={handleAutoFill}
@@ -733,13 +733,13 @@ export default function ManualRegistrationModal({
 
                         <div className="space-y-4">
                             <div className="relative group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-azul-primary transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/40 group-focus-within:text-azul-primary transition-colors" />
                                 <input 
                                     type="text"
                                     placeholder="Nombre, ID o email..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-azul-primary/50 transition-all shadow-sm"
+                                    className="w-full bg-card border border-border/60 rounded-xl py-2.5 pl-9 pr-4 text-xs font-bold placeholder:text-foreground/25 outline-none focus:border-azul-primary/50 transition-all shadow-sm"
                                 />
                             </div>
 
@@ -748,7 +748,7 @@ export default function ManualRegistrationModal({
                                     value={categoryFilter}
                                     onValueChange={(val) => setCategoryFilter(val)}
                                 >
-                                    <SelectTrigger className="bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                    <SelectTrigger className="bg-card border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Cat. (Todas)" />
                                     </SelectTrigger>
                                     <SelectContent className="z-[9999]">
@@ -763,7 +763,7 @@ export default function ManualRegistrationModal({
                                     value={genderFilter}
                                     onValueChange={(val) => setGenderFilter(val)}
                                 >
-                                    <SelectTrigger className="bg-white border-slate-200 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
+                                    <SelectTrigger className="bg-card border-border/60 rounded-lg h-8 text-[9px] font-black uppercase italic shadow-sm">
                                         <SelectValue placeholder="Género (Todos)" />
                                     </SelectTrigger>
                                     <SelectContent className="z-[9999]">
@@ -791,15 +791,15 @@ export default function ManualRegistrationModal({
                                 filteredAvailable.map(p => (
                                     <div
                                         key={p.id}
-                                        className="group flex items-center justify-between px-3 py-1 bg-white hover:bg-slate-50 border border-slate-100 hover:border-azul-primary/20 rounded-lg transition-all duration-200"
+                                        className="group flex items-center justify-between px-3 py-1 bg-card hover:bg-muted/40 border border-border/40 hover:border-azul-primary/20 rounded-lg transition-all duration-200"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase italic tracking-tighter text-slate-700">{p.name}</span>
+                                            <span className="text-[10px] font-black uppercase italic tracking-tighter text-foreground">{p.name}</span>
                                             <div className="flex gap-1">
                                                 <span className="text-[7px] font-black uppercase tracking-widest text-azul-primary bg-azul-primary/5 px-1 rounded border border-azul-primary/10">
                                                     {p.category || "D"}
                                                 </span>
-                                                <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1 rounded border border-slate-200">
+                                                <span className="text-[7px] font-black uppercase tracking-widest text-foreground/40 bg-muted px-1 rounded border border-border/60">
                                                     {p.gender?.charAt(0) || "M"}
                                                 </span>
                                             </div>

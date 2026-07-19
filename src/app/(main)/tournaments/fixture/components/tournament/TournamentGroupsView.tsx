@@ -112,19 +112,19 @@ export function TournamentGroupsView({
                                     )}
                                     <h3 className="text-base font-black italic uppercase tracking-tighter text-white leading-none">{g.name}</h3>
                                 </div>
-                                <Users2 className="w-4 h-4 text-slate-600" />
+                                <Users2 className="w-4 h-4 text-slate-400" />
                             </div>
                             <div className="px-3 py-1 border-b border-white/10 bg-white/[0.02]">
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-[11px]">
                                         <thead>
                                             <tr className="border-b border-white/10">
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-500 uppercase tracking-widest text-[11px]">OK</th>
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-500 uppercase tracking-widest text-[11px]">$$</th>
-                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-500 uppercase tracking-widest text-[11px]">#</th>
-                                                <th className="px-1 py-1 text-left font-black italic text-slate-500 uppercase tracking-widest text-[11px]">Jugador</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-500 uppercase tracking-widest text-[11px]">PG</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-500 uppercase tracking-widest text-[11px]">+/-</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">OK</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">$$</th>
+                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">#</th>
+                                                <th className="px-1 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">Jugador</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">PG</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">+/-</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -133,7 +133,7 @@ export function TournamentGroupsView({
                                                     <td className="px-0.5 py-0.5 text-center">
                                                         <button
                                                             onClick={() => togglePairPresent(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPresent(s.playerId) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/5 text-slate-600 hover:text-cyan-400"}`}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPresent(s.playerId) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/10 text-slate-400 hover:text-cyan-400"}`}
                                                         >
                                                             <UserCheck className="w-2.5 h-2.5" />
                                                         </button>
@@ -141,7 +141,7 @@ export function TournamentGroupsView({
                                                     <td className="px-0.5 py-0.5 text-center">
                                                         <button
                                                             onClick={() => togglePairPaid(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPaid(s.playerId) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/5 text-slate-600 hover:text-emerald-400"}`}
+                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPaid(s.playerId) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/10 text-slate-400 hover:text-emerald-400"}`}
                                                         >
                                                             <CreditCard className="w-2.5 h-2.5" />
                                                         </button>
@@ -170,7 +170,7 @@ export function TournamentGroupsView({
                             </div>
                             <div className="p-2.5 space-y-1.5">
                                 <div className="flex items-center justify-between px-1">
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Fixture del Grupo</h4>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fixture del Grupo</h4>
                                     <div className="h-px flex-1 bg-white/10 mx-2" />
                                     {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
                                         <button
@@ -257,7 +257,7 @@ export function TournamentGroupsView({
                                                     </div>
 
                                                     {/* VS */}
-                                                    <span className="text-[10px] font-black text-slate-600 shrink-0">VS</span>
+                                                    <span className="text-[10px] font-black text-slate-400 shrink-0">VS</span>
 
                                                     {/* Equipo 2 */}
                                                     <div className="flex items-center gap-1 flex-1 min-w-0">

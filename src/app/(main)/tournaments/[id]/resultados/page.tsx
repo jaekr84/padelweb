@@ -128,7 +128,7 @@ export default async function ResultadosPublicPage({ params }: Props) {
     const isElimPhase = tournament.status === "en_eliminatorias" || tournament.status === "finalizado";
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="theme-night min-h-screen bg-background">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-white/5">
                 <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">

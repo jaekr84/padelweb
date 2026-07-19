@@ -45,15 +45,15 @@ export function TournamentAttendance({
             </div>
 
             {/* Control Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2 p-2 bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl shadow-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-2 p-2 bg-card/40 backdrop-blur-xl border border-white/12 rounded-xl shadow-lg">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
                     <input
                         type="text"
                         placeholder="Buscar participante..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-muted/50 border border-border/50 rounded-lg py-2 pl-10 pr-3 text-[10px] font-bold outline-none focus:border-azul-primary transition-all placeholder:text-foreground/20"
+                        className="w-full bg-muted/50 border border-white/12 rounded-lg py-2 pl-10 pr-3 text-[10px] font-bold outline-none focus:border-azul-primary transition-all placeholder:text-slate-500"
                     />
                 </div>
                 {!readOnly && (
@@ -94,9 +94,9 @@ export function TournamentAttendance({
             </div>
 
             {/* Players Table */}
-            <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl overflow-hidden shadow-xl">
+            <div className="bg-card/40 backdrop-blur-xl border border-white/12 rounded-2xl overflow-hidden shadow-xl">
                 <table className="w-full text-left">
-                    <thead className="bg-muted text-[8px] font-black uppercase tracking-[0.2em] text-foreground/40 border-b border-border/50">
+                    <thead className="bg-muted text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 border-b border-white/12">
                         <tr>
                             <th className="px-3 py-1.5">Jugador</th>
                             <th className="px-3 py-1.5">Cat</th>
@@ -111,18 +111,18 @@ export function TournamentAttendance({
                             return (
                                 <tr
                                     key={p.id}
-                                    className={`group transition-all hover:bg-muted/30 ${isPresent ? "bg-celeste/[0.02]" : ""}`}
+                                    className={`group transition-all hover:bg-white/5 ${isPresent ? "bg-celeste/[0.02]" : ""}`}
                                 >
                                     <td className="px-3 py-1">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-white" : "bg-muted text-foreground/20"}`}>
+                                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-carbon-950" : "bg-muted text-slate-500"}`}>
                                                 <Users2 className="w-3 h-3" />
                                             </div>
-                                            <span className={`font-black uppercase text-[10px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-foreground/70"}`}>{p.name}</span>
+                                            <span className={`font-black uppercase text-[10px] tracking-tight transition-colors ${isPresent ? "text-foreground" : "text-slate-200"}`}>{p.name}</span>
                                         </div>
                                     </td>
                                     <td className="px-3 py-1">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/40">{p.category || "D"}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{p.category || "D"}</span>
                                     </td>
                                     <td className="px-3 py-1 text-center">
                                         <button
@@ -130,7 +130,7 @@ export function TournamentAttendance({
                                             disabled={readOnly}
                                             className={`w-7 h-7 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPaid
                                                 ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                : "bg-muted/30 border-border/40 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary"
+                                                : "bg-white/5 border-white/12 text-slate-500 hover:border-azul-primary/30 hover:text-azul-primary"
                                                 } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                         >
                                             <CreditCard className="w-3 h-3" />
@@ -142,14 +142,14 @@ export function TournamentAttendance({
                                                 <>
                                                     <button
                                                         onClick={() => setPlayerToDelete(p)}
-                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
+                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
                                                         title="Eliminar"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
                                                     </button>
                                                     <button
                                                         onClick={() => setReplacingPlayer(p)}
-                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/20 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
+                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
                                                         title="Reemplazar"
                                                     >
                                                         <RotateCcw className="w-3 h-3" />
@@ -160,8 +160,8 @@ export function TournamentAttendance({
                                                 onClick={() => togglePresent(p.id)}
                                                 disabled={readOnly}
                                                 className={`w-7 h-7 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isPresent
-                                                    ? "bg-celeste border-celeste text-white shadow-lg shadow-celeste/20"
-                                                    : "bg-muted/30 border-border/40 text-foreground/20 hover:border-celeste/30 hover:text-celeste"
+                                                    ? "bg-celeste border-celeste text-carbon-950 shadow-lg shadow-celeste/20"
+                                                    : "bg-white/5 border-white/12 text-slate-500 hover:border-celeste/30 hover:text-celeste"
                                                     } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                             >
                                                 <UserCheck className="w-3 h-3" />
@@ -180,7 +180,7 @@ export function TournamentAttendance({
                     <button
                         onClick={onContinue}
                         disabled={present.size < 2}
-                        className="w-full py-3.5 bg-celeste text-white rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-celeste/30 hover:bg-celeste/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale text-sm"
+                        className="w-full py-3.5 bg-celeste text-carbon-950 rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-celeste/30 hover:bg-celeste/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale text-sm"
                     >
                         Iniciar Torneo ({present.size})
                         <ChevronRight className="w-5 h-5" />

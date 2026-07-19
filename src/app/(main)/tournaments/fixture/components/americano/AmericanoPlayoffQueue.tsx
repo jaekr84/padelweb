@@ -118,27 +118,27 @@ export function AmericanoPlayoffQueue({
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-2.5 px-1">
-                <div className="w-7 h-7 rounded-lg bg-azul-primary/10 flex items-center justify-center">
-                    <ListOrdered className="w-3.5 h-3.5 text-azul-primary" />
+                <div className="w-7 h-7 rounded-lg bg-celeste/10 flex items-center justify-center">
+                    <ListOrdered className="w-3.5 h-3.5 text-celeste" />
                 </div>
                 <div>
                     <h3 className="text-[11px] font-black uppercase italic tracking-tight">Orden de Partidos</h3>
-                    <p className="text-[6px] font-black uppercase tracking-[0.4em] text-foreground/40 leading-none mt-0.5">
+                    <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">
                         Gestión de la fase eliminatoria
                     </p>
                 </div>
             </div>
 
             {swappingPlayer && handleSwapPlayers && (
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-azul-primary/10 border border-azul-primary/30">
-                    <span className="text-[10px] font-black uppercase italic tracking-wide text-azul-primary flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-celeste/10 border border-celeste/30">
+                    <span className="text-[10px] font-black uppercase italic tracking-wide text-celeste flex items-center gap-1.5">
                         <ArrowLeftRight className="w-3 h-3" />
                         Intercambio activo — elegí otra pareja para completar el cambio
                     </span>
                     <button
                         type="button"
                         onClick={() => handleSwapPlayers(swappingPlayer.matchId, swappingPlayer.teamSlot)}
-                        className="shrink-0 text-[9px] font-black uppercase tracking-widest text-foreground/50 hover:text-rojo transition-colors"
+                        className="shrink-0 text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-rojo transition-colors"
                     >
                         Cancelar
                     </button>
@@ -156,12 +156,12 @@ export function AmericanoPlayoffQueue({
                             <span className="px-2.5 py-0.5 bg-foreground text-background rounded text-[9px] font-black uppercase tracking-[0.2em] italic">
                                 {round === 0 ? "🏆 " : ""}{roundTitle(round)}
                             </span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-foreground/40">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                                 {done} / {playable.length} jugados
                             </span>
                         </div>
 
-                        <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg overflow-hidden shadow-sm divide-y divide-border/30">
+                        <div className="bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg overflow-hidden shadow-sm divide-y divide-border/30">
                             {roundMatches.map(m => {
                                 const status = statusOf(m);
                                 const seq = seqMap.get(m.id);
@@ -177,9 +177,9 @@ export function AmericanoPlayoffQueue({
                                     const advancing = name1 && (m.team1 as any) !== "BYE" ? name1 : name2;
                                     return (
                                         <div key={m.id} className="flex items-center gap-2 px-3 py-1.5 opacity-40">
-                                            <span className="w-9 shrink-0 text-[10px] font-black italic text-foreground/40">P{seq}</span>
-                                            <span className="flex-1 text-[11px] font-black uppercase italic text-foreground/60 truncate">{advancing}</span>
-                                            <span className="shrink-0 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-muted/40 border border-border/30 text-foreground/40">
+                                            <span className="w-9 shrink-0 text-[10px] font-black italic text-slate-400">P{seq}</span>
+                                            <span className="flex-1 text-[11px] font-black uppercase italic text-slate-300 truncate">{advancing}</span>
+                                            <span className="shrink-0 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/12 text-slate-400">
                                                 BYE — Pasa directo
                                             </span>
                                         </div>
@@ -190,7 +190,7 @@ export function AmericanoPlayoffQueue({
                                     <div key={m.id} className={`flex flex-col md:flex-row md:items-center gap-2 px-3 py-2 transition-all ${
                                         isLive ? "bg-rojo/[0.03]" : status === "finished" ? "opacity-70" : status === "waiting" ? "opacity-50" : ""
                                     }`}>
-                                        <span className="w-9 shrink-0 text-[10px] font-black italic text-foreground/40">P{seq}</span>
+                                        <span className="w-9 shrink-0 text-[10px] font-black italic text-slate-400">P{seq}</span>
 
                                         {/* Teams + score */}
                                         <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 min-w-0">
@@ -202,7 +202,7 @@ export function AmericanoPlayoffQueue({
                                                     />
                                                 )}
                                                 <span className={`text-[11px] font-black uppercase italic truncate text-right ${
-                                                    winnerIs1 ? "text-azul-primary" : name1 ? "text-foreground/80" : "text-foreground/30"
+                                                    winnerIs1 ? "text-celeste" : name1 ? "text-slate-100" : "text-slate-400"
                                                 }`}>
                                                     {name1 || feederLabel(m, 0)}
                                                 </span>
@@ -225,8 +225,8 @@ export function AmericanoPlayoffQueue({
                                             ) : (
                                                 <span className={`text-sm font-black italic tabular-nums shrink-0 rounded px-1.5 py-0.5 border ${
                                                     status === "finished"
-                                                        ? "text-foreground bg-muted/30 border-border/30"
-                                                        : "text-foreground/30 bg-transparent border-transparent"
+                                                        ? "text-foreground bg-white/5 border-white/12"
+                                                        : "text-slate-400 bg-transparent border-transparent"
                                                 }`}>
                                                     {status === "finished" || isLive ? `${m.score1 ?? 0} - ${m.score2 ?? 0}` : "VS"}
                                                 </span>
@@ -234,7 +234,7 @@ export function AmericanoPlayoffQueue({
 
                                             <div className="flex items-center justify-start gap-1.5 min-w-0">
                                                 <span className={`text-[11px] font-black uppercase italic truncate ${
-                                                    winnerIs2 ? "text-azul-primary" : name2 ? "text-foreground/80" : "text-foreground/30"
+                                                    winnerIs2 ? "text-celeste" : name2 ? "text-slate-100" : "text-slate-400"
                                                 }`}>
                                                     {name2 || feederLabel(m, 1)}
                                                 </span>
@@ -250,13 +250,13 @@ export function AmericanoPlayoffQueue({
                                         {/* Status + actions */}
                                         <div className="flex items-center justify-end gap-1.5 shrink-0">
                                             {status === "finished" && (
-                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-azul-primary/10 border border-azul-primary/20 text-azul-primary flex items-center gap-1">
+                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-celeste/10 border border-celeste/20 text-celeste flex items-center gap-1">
                                                     <Trophy className="w-2.5 h-2.5" />
                                                     {winnerIs1 ? name1 : name2}
                                                 </span>
                                             )}
                                             {status === "waiting" && (
-                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-muted/40 border border-border/30 text-foreground/40 flex items-center gap-1">
+                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/12 text-slate-400 flex items-center gap-1">
                                                     <Clock className="w-2.5 h-2.5" />
                                                     Esperando Rivales
                                                 </span>
@@ -271,7 +271,7 @@ export function AmericanoPlayoffQueue({
                                                 <button
                                                     onClick={() => setConfirmAction({ type: "start", match: m })}
                                                     disabled={saving || isBusy}
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-azul-primary hover:bg-azul-dark text-white rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm shadow-azul-primary/20 disabled:opacity-50"
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-celeste hover:bg-celeste-light text-carbon-950 rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm shadow-celeste/20 disabled:opacity-50"
                                                 >
                                                     {isBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
                                                     Iniciar
@@ -295,7 +295,7 @@ export function AmericanoPlayoffQueue({
                                                         : setConfirmAction({ type: "reopen", match: m })}
                                                     disabled={saving || isBusy}
                                                     title="Corregir resultado (reabre el partido)"
-                                                    className="w-7 h-7 rounded inline-flex items-center justify-center border border-border/40 bg-muted/30 text-foreground/30 hover:border-azul-primary/40 hover:text-azul-primary transition-all active:scale-95 disabled:opacity-30"
+                                                    className="w-7 h-7 rounded inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-400 hover:border-celeste/40 hover:text-celeste transition-all active:scale-95 disabled:opacity-30"
                                                 >
                                                     {isBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
                                                 </button>
@@ -316,11 +316,11 @@ export function AmericanoPlayoffQueue({
                     const config = confirmAction.type === "start"
                         ? {
                             icon: <Play className="w-6 h-6 fill-current" />,
-                            iconBox: "bg-azul-primary/10 border-azul-primary/30 text-azul-primary",
+                            iconBox: "bg-celeste/10 border-celeste/30 text-celeste",
                             title: "Vas a iniciar el partido",
                             description: "El partido quedará marcado en juego y podrás cargar el marcador desde la lista.",
                             confirmLabel: "Iniciar Partido",
-                            confirmClass: "bg-azul-primary hover:bg-azul-dark shadow-azul-primary/20"
+                            confirmClass: "bg-celeste hover:bg-celeste-light shadow-celeste/20"
                         }
                         : confirmAction.type === "finish"
                         ? {
@@ -353,7 +353,7 @@ export function AmericanoPlayoffQueue({
                                 initial={{ scale: 0.92, opacity: 0, y: 10 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                                className="relative w-full max-w-sm bg-card border border-border/40 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                                className="relative w-full max-w-sm bg-card border border-white/12 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
                             >
                                 <div className={`w-14 h-14 rounded-full border flex items-center justify-center ${config.iconBox}`}>
                                     {config.icon}
@@ -363,17 +363,17 @@ export function AmericanoPlayoffQueue({
                                     <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
                                         {config.title}
                                     </h3>
-                                    <p className="text-xs text-foreground/60 leading-relaxed">{config.description}</p>
+                                    <p className="text-xs text-slate-300 leading-relaxed">{config.description}</p>
                                 </div>
 
-                                <div className="w-full bg-muted/20 border border-border/30 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
-                                    <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-right">
+                                <div className="w-full bg-white/5 border border-white/12 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
+                                    <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-right">
                                         {teamName(m.team1)}
                                     </span>
                                     <span className="text-sm font-black italic tabular-nums text-foreground shrink-0">
                                         {confirmAction.type === "start" ? "VS" : `${m.score1 ?? 0} - ${m.score2 ?? 0}`}
                                     </span>
-                                    <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-left">
+                                    <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-left">
                                         {teamName(m.team2)}
                                     </span>
                                 </div>
@@ -382,7 +382,7 @@ export function AmericanoPlayoffQueue({
                                     <button
                                         type="button"
                                         onClick={() => setConfirmAction(null)}
-                                        className="flex-1 py-3 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 text-foreground/70 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                        className="flex-1 py-3 rounded-xl border border-white/12 bg-white/5 hover:bg-white/5 text-slate-200 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
                                     >
                                         Volver
                                     </button>
@@ -411,8 +411,8 @@ function SwapButton({ active, onClick }: { active: boolean; onClick: () => void 
             title={active ? "Cancelar intercambio" : "Intercambiar esta pareja de posición"}
             className={`shrink-0 w-5 h-5 rounded inline-flex items-center justify-center border transition-all active:scale-95 ${
                 active
-                    ? "bg-azul-primary text-white border-white/30 animate-pulse shadow-sm shadow-azul-primary/30"
-                    : "bg-muted/30 text-foreground/30 border-border/40 hover:border-azul-primary/40 hover:text-azul-primary"
+                    ? "bg-celeste text-carbon-950 border-white/30 animate-pulse shadow-sm shadow-celeste/30"
+                    : "bg-white/5 text-slate-400 border-white/12 hover:border-celeste/40 hover:text-celeste"
             }`}
         >
             <ArrowLeftRight className="w-3 h-3" />

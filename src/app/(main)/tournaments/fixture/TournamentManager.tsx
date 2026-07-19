@@ -97,7 +97,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
     } = useTournamentLogic(props as any);
 
     return (
-        <div className="min-h-screen bg-background relative overflow-x-hidden">
+        <div className="theme-night min-h-screen bg-background text-foreground relative overflow-x-hidden">
             {/* Page Background Watermark */}
             <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden opacity-10">
                 <img 

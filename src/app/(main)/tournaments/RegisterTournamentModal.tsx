@@ -57,7 +57,7 @@ export default function RegisterTournamentModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent hideClose={true} className="max-w-2xl p-0 overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl shadow-3xl rounded-[2.5rem] ring-1 ring-black/5">
+            <DialogContent hideClose={true} className="theme-night max-w-2xl p-0 overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl shadow-3xl rounded-[2.5rem] ring-1 ring-black/5">
                 {!context && !error ? (
                     <div className="flex flex-col items-center justify-center p-24 space-y-6">
                         <DialogTitle className="sr-only">Cargando inscripción</DialogTitle>
@@ -103,7 +103,7 @@ export default function RegisterTournamentModal({
                             <div className="flex flex-col gap-3">
                                 <Link
                                     href={`/tournaments/${tournamentId}/manage`}
-                                    className="w-full py-4 bg-azul-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-azul-primary/20 active:scale-95 transition-all text-center"
+                                    className="w-full py-4 bg-celeste text-carbon-950 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-celeste/20 active:scale-95 transition-all text-center"
                                 >
                                     Ver gestión del torneo
                                 </Link>
@@ -117,7 +117,7 @@ export default function RegisterTournamentModal({
                         ) : (
                             <button
                                 onClick={onClose}
-                                className="w-full py-4 bg-azul-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-azul-primary/20 active:scale-95 transition-all"
+                                className="w-full py-4 bg-celeste text-carbon-950 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-celeste/20 active:scale-95 transition-all"
                             >
                                 Entendido
                             </button>

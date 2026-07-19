@@ -213,14 +213,14 @@ export default function RegisterForm({
 
     const RegistrantsList = (
         <div className="bg-card border border-border rounded-3xl p-5 shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/12">
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-azul-primary/5 flex items-center justify-center">
-                        <Users className="w-3.5 h-3.5 text-azul-primary" />
+                    <div className="w-6 h-6 rounded-lg bg-celeste/5 flex items-center justify-center">
+                        <Users className="w-3.5 h-3.5 text-celeste" />
                     </div>
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-foreground">Inscriptos actuales</h3>
                 </div>
-                <div className="px-2 py-0.5 bg-azul-primary/5 border border-azul-primary/10 rounded text-[9px] font-black text-azul-primary uppercase">
+                <div className="px-2 py-0.5 bg-celeste/5 border border-celeste/10 rounded text-[9px] font-black text-celeste uppercase">
                     {initialRegistrations.length} Parejas
                 </div>
             </div>
@@ -230,14 +230,14 @@ export default function RegisterForm({
             ) : (
                 <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                     {initialRegistrations.map((reg, idx) => (
-                        <div key={reg.id} className="flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-2xl hover:bg-muted/70 transition-colors">
+                        <div key={reg.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/12 rounded-2xl hover:bg-muted/70 transition-colors">
                             <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground shrink-0 shadow-sm">
                                     {idx + 1}
                                 </div>
                                 <div className="flex flex-col min-w-0">
                                     <span className="text-xs font-bold text-foreground truncate uppercase tracking-tight">{reg.name}</span>
-                                    <span className="text-[8px] font-black text-azul-primary uppercase tracking-widest mt-0.5">{reg.category}</span>
+                                    <span className="text-[8px] font-black text-celeste uppercase tracking-widest mt-0.5">{reg.category}</span>
                                 </div>
                             </div>
                             <div className="w-6 h-6 rounded-full bg-celeste/10 border border-celeste/20 flex items-center justify-center shrink-0">
@@ -252,9 +252,9 @@ export default function RegisterForm({
 
     if (step === "success") {
         return (
-            <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
+            <div className={`theme-night ${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
                 {!isModal && (
-                    <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
+                    <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-celeste/5 to-transparent pointer-events-none z-0" />
                 )}
                 <div className={`relative z-10 max-w-lg mx-auto px-4 ${isModal ? "py-6" : "pt-20 pb-28"}`}>
                     <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
@@ -270,10 +270,10 @@ export default function RegisterForm({
                         </h2>
                         <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mb-8 font-medium italic">
                             {isIndividual
-                                ? <>Tu participación en <strong className="text-azul-primary">{tournament.name}</strong> está asegurada.</>
-                                : <>El equipo de <strong className="text-azul-primary">{currentUser.name}</strong> y <strong className="text-azul-primary">{partnerDisplayName}</strong> están dentro del torneo.</>
+                                ? <>Tu participación en <strong className="text-celeste">{tournament.name}</strong> está asegurada.</>
+                                : <>El equipo de <strong className="text-celeste">{currentUser.name}</strong> y <strong className="text-celeste">{partnerDisplayName}</strong> están dentro del torneo.</>
                             }
-                            {hasCategories && <span className="block mt-1.5">Categoría: <strong className="text-azul-primary underline decoration-2 underline-offset-4">{category}</strong></span>}
+                            {hasCategories && <span className="block mt-1.5">Categoría: <strong className="text-celeste underline decoration-2 underline-offset-4">{category}</strong></span>}
                         </p>
 
                         <div className="bg-card border border-border rounded-2xl p-4 w-full text-left mb-8 shadow-sm">
@@ -298,7 +298,7 @@ export default function RegisterForm({
                             </button>
                             <Link
                                 href="/home"
-                                className="w-full bg-azul-primary hover:bg-azul-dark active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-[10px] uppercase tracking-widest text-center"
+                                className="w-full bg-celeste hover:bg-celeste-light active:scale-95 text-carbon-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-celeste/20 text-[10px] uppercase tracking-widest text-center"
                             >
                                 Ir al inicio →
                             </Link>
@@ -310,11 +310,11 @@ export default function RegisterForm({
     }
 
     return (
-        <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
+        <div className={`theme-night ${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
 
             {/* ── Ambient glow ── */}
             {!isModal && (
-                <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-azul-primary/5 to-transparent pointer-events-none z-0" />
+                <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-celeste/5 to-transparent pointer-events-none z-0" />
             )}
 
             {/* ── Content ── */}
@@ -330,7 +330,7 @@ export default function RegisterForm({
                             <ArrowLeft className="w-4 h-4" />
                             Volver
                         </Link>
-                        <div className="px-3 py-1 rounded-full bg-azul-primary/5 border border-azul-primary/10 text-azul-primary text-[10px] font-black uppercase tracking-widest">
+                        <div className="px-3 py-1 rounded-full bg-celeste/5 border border-celeste/10 text-celeste text-[10px] font-black uppercase tracking-widest">
                             Inscripción al Torneo
                         </div>
                     </div>
@@ -343,7 +343,7 @@ export default function RegisterForm({
                         {/* ── Step bar ── */}
                         <div className={`${isModal ? "mb-10 px-6" : "mb-12"}`}>
                             <div className="relative flex items-center justify-between">
-                                <div className="absolute top-3.5 left-0 right-0 h-[1px] bg-muted/50">
+                                <div className="absolute top-3.5 left-0 right-0 h-[1px] bg-white/5">
                                     <div
                                         className="absolute top-0 bottom-0 left-0 bg-celeste transition-all duration-500"
                                         style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
@@ -356,7 +356,7 @@ export default function RegisterForm({
                                     return (
                                         <div key={s.id} className="relative flex flex-col items-center gap-2">
                                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all border ${done
-                                                ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
+                                                ? "bg-celeste border-celeste text-carbon-950 shadow-lg shadow-celeste/20"
                                                 : active
                                                     ? "bg-background border-celeste text-celeste shadow-inner"
                                                     : "bg-background border-border text-muted-foreground"
@@ -390,8 +390,8 @@ export default function RegisterForm({
                                                 />
                                             </>
                                         ) : (
-                                            <div className="absolute inset-0 bg-gradient-to-br from-azul-primary/5 to-azul-primary/15 flex items-center justify-center">
-                                                <Trophy className="w-16 h-16 text-azul-primary/20" />
+                                            <div className="absolute inset-0 bg-gradient-to-br from-celeste/5 to-celeste/15 flex items-center justify-center">
+                                                <Trophy className="w-16 h-16 text-celeste/20" />
                                             </div>
                                         )}
                                         <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-white px-5 pb-5 leading-tight">
@@ -409,8 +409,8 @@ export default function RegisterForm({
                                         <div className="grid grid-cols-2 gap-2">
                                             {tournament.startDate && (
                                                 <div className="bg-muted border border-border rounded-2xl p-3 flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-xl bg-azul-primary/5 border border-azul-primary/10 flex items-center justify-center shrink-0">
-                                                        <Calendar className="w-4 h-4 text-azul-primary" />
+                                                    <div className="w-8 h-8 rounded-xl bg-celeste/5 border border-celeste/10 flex items-center justify-center shrink-0">
+                                                        <Calendar className="w-4 h-4 text-celeste" />
                                                     </div>
                                                     <div>
                                                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Fecha</p>
@@ -467,8 +467,8 @@ export default function RegisterForm({
                                                     key={cat}
                                                     onClick={() => setCategory(cat)}
                                                     className={`py-3 px-2 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${category === cat
-                                                        ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                        : "bg-muted border-border text-muted-foreground hover:border-azul-primary/50 hover:text-foreground"
+                                                        ? "bg-celeste border-celeste text-carbon-950 shadow-lg shadow-celeste/20"
+                                                        : "bg-muted border-border text-muted-foreground hover:border-celeste/50 hover:text-foreground"
                                                         }`}
                                                 >
                                                     {cat}
@@ -494,7 +494,7 @@ export default function RegisterForm({
                                     )}
                                     <button
                                         onClick={goNext}
-                                        className={`${isModal ? "flex-[2]" : "w-full"} bg-azul-primary hover:bg-azul-dark active:scale-95 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2`}
+                                        className={`${isModal ? "flex-[2]" : "w-full"} bg-celeste hover:bg-celeste-light active:scale-95 text-carbon-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-celeste/20 text-sm uppercase tracking-widest flex items-center justify-center gap-2`}
                                     >
                                         {isIndividual ? "Continuar" : "Elegir pareja"}
                                         <ChevronRight className="w-4 h-4" />
@@ -511,7 +511,7 @@ export default function RegisterForm({
                                 <div className="text-center mb-2">
                                     <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Tu pareja</h2>
                                     <p className="text-muted-foreground text-xs mt-1">
-                                        Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-azul-primary">{category}</strong></> : ""}
+                                        Elegí tu compañero/a{hasCategories ? <> — categoría <strong className="text-celeste">{category}</strong></> : ""}
                                     </p>
                                 </div>
 
@@ -519,15 +519,15 @@ export default function RegisterForm({
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 pl-1">Jugador 1 • Vos</p>
                                         <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-azul-primary rounded-l-2xl" />
-                                            <div className="w-10 h-10 rounded-xl bg-azul-primary/5 border border-azul-primary/10 text-azul-primary font-black text-sm flex items-center justify-center shrink-0 ml-2">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-celeste rounded-l-2xl" />
+                                            <div className="w-10 h-10 rounded-xl bg-celeste/5 border border-celeste/10 text-celeste font-black text-sm flex items-center justify-center shrink-0 ml-2">
                                                 <Initials name={currentUser.name} />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-foreground text-sm truncate">{currentUser.name}</p>
                                                 <p className="text-muted-foreground text-[10px] truncate">{currentUser.email}</p>
                                             </div>
-                                            <span className="text-[9px] font-black uppercase tracking-widest bg-azul-primary/5 border border-azul-primary/10 text-azul-primary px-2.5 py-1 rounded-lg shrink-0">Vos</span>
+                                            <span className="text-[9px] font-black uppercase tracking-widest bg-celeste/5 border border-celeste/10 text-celeste px-2.5 py-1 rounded-lg shrink-0">Vos</span>
                                         </div>
                                     </div>
 
@@ -543,13 +543,13 @@ export default function RegisterForm({
                                             <div className="flex m-3 mb-0 bg-muted rounded-xl p-1 relative">
                                                 <button
                                                     onClick={() => switchMode("search")}
-                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-azul-primary" : "text-muted-foreground hover:text-foreground"}`}
+                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "search" ? "text-celeste" : "text-muted-foreground hover:text-foreground"}`}
                                                 >
                                                     Buscar Jugador
                                                 </button>
                                                 <button
                                                     onClick={() => switchMode("guest")}
-                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-azul-primary" : "text-muted-foreground hover:text-foreground"}`}
+                                                    className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all z-10 ${partnerMode === "guest" ? "text-celeste" : "text-muted-foreground hover:text-foreground"}`}
                                                 >
                                                     Invitado
                                                 </button>
@@ -589,16 +589,16 @@ export default function RegisterForm({
                                                         />
 
                                                         {partnerName && (
-                                                            <div className="mt-2 bg-azul-primary/5 border border-azul-primary/10 rounded-xl p-3 flex items-center justify-between">
+                                                            <div className="mt-2 bg-celeste/5 border border-celeste/10 rounded-xl p-3 flex items-center justify-between">
                                                                 <div className="flex items-center gap-2.5">
-                                                                    <div className="w-8 h-8 rounded-lg bg-azul-primary/10 text-azul-primary border border-azul-primary/20 font-black text-[10px] flex items-center justify-center">
+                                                                    <div className="w-8 h-8 rounded-lg bg-celeste/10 text-celeste border border-celeste/20 font-black text-[10px] flex items-center justify-center">
                                                                         <Initials name={partnerName} />
                                                                     </div>
-                                                                    <span className="font-bold text-azul-primary text-sm">{partnerName}</span>
+                                                                    <span className="font-bold text-celeste text-sm">{partnerName}</span>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => { setPartnerName(""); setSearch(""); setPartnerUserId(null); }}
-                                                                    className="text-[10px] font-black uppercase tracking-widest text-azul-primary hover:text-azul-dark transition-colors"
+                                                                    className="text-[10px] font-black uppercase tracking-widest text-celeste hover:text-celeste-light transition-colors"
                                                                 >
                                                                     Cambiar
                                                                 </button>
@@ -624,7 +624,7 @@ export default function RegisterForm({
                                                                                     setSearchResults([]);
                                                                                 }}
                                                                             >
-                                                                                <div className="w-8 h-8 rounded-lg bg-azul-primary/5 border border-azul-primary/10 text-azul-primary font-black text-xs flex items-center justify-center italic">
+                                                                                <div className="w-8 h-8 rounded-lg bg-celeste/5 border border-celeste/10 text-celeste font-black text-xs flex items-center justify-center italic">
                                                                                     {(p.name || "U").charAt(0)}
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
@@ -678,7 +678,7 @@ export default function RegisterForm({
                                         <button
                                             onClick={goNext}
                                             disabled={!filledTeam}
-                                            className="flex-[2] bg-azul-primary hover:bg-azul-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                            className="flex-[2] bg-celeste hover:bg-celeste-light disabled:opacity-40 disabled:cursor-not-allowed text-carbon-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-celeste/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
                                         >
                                             Siguiente <ChevronRight className="w-4 h-4" />
                                         </button>
@@ -693,8 +693,8 @@ export default function RegisterForm({
                         {step === "confirm" && (
                             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-4">
                                 <div className="text-center">
-                                    <div className="w-14 h-14 rounded-2xl bg-azul-primary/5 border border-azul-primary/10 flex items-center justify-center mx-auto mb-3 shadow-sm">
-                                        <Check className="w-7 h-7 text-azul-primary" />
+                                    <div className="w-14 h-14 rounded-2xl bg-celeste/5 border border-celeste/10 flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                        <Check className="w-7 h-7 text-celeste" />
                                     </div>
                                     <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Confirmá tu inscripción</h2>
                                     <p className="text-muted-foreground text-xs mt-1 font-medium">Revisá los datos antes de confirmar.</p>
@@ -710,7 +710,7 @@ export default function RegisterForm({
                                         {hasCategories && (
                                             <div className="flex items-center justify-between">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Categoría</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest bg-azul-primary/5 border border-azul-primary/10 text-azul-primary px-2.5 py-1 rounded-lg">{category}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest bg-celeste/5 border border-celeste/10 text-celeste px-2.5 py-1 rounded-lg">{category}</span>
                                             </div>
                                         )}
                                         <div className="flex items-center justify-between">
@@ -726,14 +726,14 @@ export default function RegisterForm({
 
                                         <div className="border-t border-border pt-4 mt-2 space-y-2">
                                             <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-azul-primary" />
+                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-celeste" />
                                                 <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">1</div>
                                                 <span className="font-bold text-foreground text-sm truncate flex-1">{currentUser.name}</span>
                                             </div>
 
                                             {!isIndividual && (
                                                 <div className="bg-muted border border-border rounded-xl p-3 flex items-center gap-3 relative overflow-hidden shadow-sm">
-                                                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-azul-primary" />
+                                                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-celeste" />
                                                     <div className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground ml-1.5">2</div>
                                                     <span className="font-bold text-foreground text-sm truncate flex items-center gap-2 flex-1 min-w-0">
                                                         <span className="truncate">{partnerDisplayName}</span>
@@ -753,8 +753,8 @@ export default function RegisterForm({
                                     </div>
                                 )}
 
-                                <label className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:border-azul-primary/30 transition-all shadow-sm">
-                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-azul-primary border-azul-primary text-white" : "border-border text-transparent"
+                                <label className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:border-celeste/30 transition-all shadow-sm">
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${agreed ? "bg-celeste border-celeste text-carbon-950" : "border-border text-transparent"
                                         }`}>
                                         <Check className="w-3 h-3" strokeWidth={3} />
                                     </div>
@@ -775,7 +775,7 @@ export default function RegisterForm({
                                     <button
                                         onClick={handleConfirm}
                                         disabled={!agreed || isPending}
-                                        className="flex-[2] bg-azul-primary hover:bg-azul-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-azul-primary/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                                        className="flex-[2] bg-celeste hover:bg-celeste-light disabled:opacity-40 disabled:cursor-not-allowed text-carbon-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-celeste/20 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95"
                                     >
                                         {isPending ? (
                                             <>

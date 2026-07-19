@@ -45,7 +45,7 @@ export default async function TournamentFixturePage({ params }: Props) {
 
     if (!canManage || (isActivePlayer && !isOwner)) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background p-6">
+            <div className="theme-night min-h-screen flex items-center justify-center bg-background p-6">
                 <div className="bg-card border border-border p-8 rounded-3xl text-center shadow-xl">
                     <h1 className="text-2xl font-black uppercase text-red-500 mb-4">No autorizado</h1>
                     <p className="text-white/60">No tenés permisos para configurar este torneo.</p>

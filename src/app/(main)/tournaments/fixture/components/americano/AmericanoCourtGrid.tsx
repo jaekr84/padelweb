@@ -338,12 +338,14 @@ export function AmericanoCourtGrid({
                         style={{ zIndex: isSwapOpen ? 50 : undefined }}
                     >
                         <div className="absolute -top-2 left-2 flex items-center gap-1.5 z-10">
-                            <div className="px-2 py-0.5 bg-background border border-border/40 backdrop-blur-md rounded text-[6px] font-black uppercase tracking-[0.2em] shadow-sm">
+                            <div className={`px-2 py-0.5 backdrop-blur-md rounded text-[7px] font-black uppercase tracking-[0.2em] shadow-sm border ${activeMatch
+                                ? "bg-celeste text-carbon-950 border-celeste"
+                                : "bg-carbon-800 text-slate-300 border-white/15"}`}>
                                 CANCHA {courtNumber}
                             </div>
                         </div>
 
-                        <div className={`rounded-lg border transition-all duration-300 flex flex-col shadow-sm relative overflow-hidden group-hover:border-azul-primary/40 min-h-[75px] ${activeMatch && !readOnly ? "border-azul-primary/20 bg-azul-primary/[0.01]" : "border-border/20 bg-card/40 backdrop-blur-xl"}`}>
+                        <div className={`rounded-lg border transition-all duration-300 flex flex-col shadow-sm relative overflow-hidden group-hover:border-celeste/40 min-h-[75px] ${activeMatch && !readOnly ? "border-celeste/50 bg-celeste/[0.06]" : "border-white/12 bg-carbon-900 backdrop-blur-xl"}`}>
                             {activeMatch && !readOnly && (
                                 <div className="absolute top-0 right-0 bg-rojo text-white px-1 py-0.5 text-[5px] font-black italic rounded-bl shadow-sm z-10 animate-pulse tracking-widest uppercase">
                                     VIVO
@@ -437,7 +439,7 @@ export function AmericanoCourtGrid({
                                                             whileTap={{ scale: 0.9 }}
                                                             onClick={() => setConfirmAction({ type: "start", courtNum: courtNumber })}
                                                             disabled={isCourtSaving}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_15px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all disabled:opacity-55"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-full bg-celeste text-carbon-950 shadow-[0_0_15px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-celeste-light transition-all disabled:opacity-55"
                                                             title="Generar Partido"
                                                         >
                                                             {isCourtSaving ? (
@@ -448,8 +450,8 @@ export function AmericanoCourtGrid({
                                                         </motion.button>
                                                     )}
 
-                                                    <span className="text-[9px] font-black italic text-foreground/20 tracking-[0.2em] select-none mt-1">VS</span>
-                                                    <span className="text-[5px] font-black italic text-foreground/30 tracking-[0.1em] select-none uppercase">LIBRE</span>
+                                                    <span className="text-[9px] font-black italic text-slate-500 tracking-[0.2em] select-none mt-1">VS</span>
+                                                    <span className="text-[5px] font-black italic text-slate-400 tracking-[0.1em] select-none uppercase">LIBRE</span>
 
                                                     {!readOnly && courtNumber === numCourts && numCourts > 1 && onUpdateCourts && (
                                                         <motion.button
@@ -503,7 +505,7 @@ export function AmericanoCourtGrid({
 
                             {/* ── Swap buttons: one per side ── */}
                             {activeMatch && !readOnly && onSwapTeam && (
-                                <div className={`flex border-t transition-all ${isSwapOpen ? "border-azul-primary/40" : "border-border/10"}`}>
+                                <div className={`flex border-t transition-all ${isSwapOpen ? "border-celeste/40" : "border-white/12"}`}>
                                     {([1, 2] as const).map(slot => {
                                         const teamName = slot === 1 ? activeMatch.team1?.name : activeMatch.team2?.name;
                                         const label = teamName?.split(/[\/\+]/)[0]?.trim() || `Equipo ${slot}`;
@@ -521,10 +523,10 @@ export function AmericanoCourtGrid({
                                                     }
                                                 }}
                                                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-all cursor-pointer min-w-0
-                                                    ${slot === 2 ? "border-l border-border/10" : ""}
+                                                    ${slot === 2 ? "border-l border-white/12" : ""}
                                                     ${isSlotOpen
-                                                        ? "bg-azul-primary/10 text-azul-primary"
-                                                        : "text-foreground/30 hover:text-azul-primary hover:bg-azul-primary/5"
+                                                        ? "bg-celeste/10 text-celeste"
+                                                        : "text-slate-400 hover:text-celeste hover:bg-celeste/5"
                                                     }`}
                                             >
                                                 <ArrowLeftRight className="w-3 h-3 shrink-0" />
@@ -552,37 +554,37 @@ export function AmericanoCourtGrid({
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: -6, scale: 0.98 }}
                                         transition={{ duration: 0.18, ease: "easeOut" }}
-                                        className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-lg border border-azul-primary/30 bg-card/98 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden"
+                                        className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-lg border border-celeste/30 bg-card/98 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden"
                                     >
                                         <div className="p-3 space-y-2.5">
                                             {/* Header */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-1.5 min-w-0">
-                                                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-foreground/40 shrink-0">
+                                                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-slate-400 shrink-0">
                                                         Reemplazar a
                                                     </span>
-                                                    <span className="text-[8px] font-black uppercase italic text-azul-primary truncate">
+                                                    <span className="text-[8px] font-black uppercase italic text-celeste truncate">
                                                         {swapSlot === 1 ? team1Name : team2Name}
                                                     </span>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => setSwapMatchId(null)}
-                                                    className="w-5 h-5 rounded-full bg-muted/40 flex items-center justify-center hover:bg-muted transition-colors cursor-pointer shrink-0"
+                                                    className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center hover:bg-muted transition-colors cursor-pointer shrink-0"
                                                 >
-                                                    <X className="w-3 h-3 text-foreground/50" />
+                                                    <X className="w-3 h-3 text-slate-300" />
                                                 </button>
                                             </div>
 
                                             {/* Legend */}
                                             <div className="flex items-center gap-3 px-0.5">
-                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-slate-400 uppercase tracking-wider">
                                                     <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" /> Ideal
                                                 </span>
-                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-slate-400 uppercase tracking-wider">
                                                     <Info className="w-2.5 h-2.5 text-yellow-400" /> Mismo club
                                                 </span>
-                                                <span className="flex items-center gap-1 text-[6px] font-bold text-foreground/40 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1 text-[6px] font-bold text-slate-400 uppercase tracking-wider">
                                                     <AlertCircle className="w-2.5 h-2.5 text-orange-400" /> Ya jugaron
                                                 </span>
                                             </div>
@@ -590,10 +592,10 @@ export function AmericanoCourtGrid({
                                             {/* Candidates list */}
                                             {candidates.length === 0 ? (
                                                 <div className="py-3 text-center">
-                                                    <p className="text-[8px] font-black uppercase tracking-widest text-foreground/30">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">
                                                         Sin jugadores disponibles
                                                     </p>
-                                                    <p className="text-[7px] text-foreground/20 mt-0.5">
+                                                    <p className="text-[7px] text-slate-500 mt-0.5">
                                                         Todos están jugando o completaron sus partidos.
                                                     </p>
                                                 </div>
@@ -619,20 +621,20 @@ export function AmericanoCourtGrid({
                                                                 whileTap={{ scale: 0.97 }}
                                                                 disabled={swapSaving}
                                                                 onClick={() => handleSwapClick(activeMatch.id, swapSlot, c)}
-                                                                className="w-full flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-card/50 hover:bg-azul-primary/10 hover:border-azul-primary/40 transition-all group/cand cursor-pointer disabled:opacity-50 text-left"
+                                                                className="w-full flex items-center gap-2 p-2 rounded-lg border border-white/12 bg-carbon-900 hover:bg-celeste/10 hover:border-celeste/40 transition-all group/cand cursor-pointer disabled:opacity-50 text-left"
                                                             >
                                                                 {swapSaving
-                                                                    ? <Loader2 className="w-3 h-3 animate-spin text-azul-primary shrink-0" />
+                                                                    ? <Loader2 className="w-3 h-3 animate-spin text-celeste shrink-0" />
                                                                     : iconEl
                                                                 }
-                                                                <span className="text-[9px] font-black uppercase italic flex-1 truncate text-foreground group-hover/cand:text-azul-primary transition-colors">
+                                                                <span className="text-[9px] font-black uppercase italic flex-1 truncate text-foreground group-hover/cand:text-celeste transition-colors">
                                                                     {c.name}
                                                                 </span>
                                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                                     <span className={`text-[6px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded border ${badgeColor}`}>
                                                                         {matchCount}P
                                                                     </span>
-                                                                    <ArrowLeftRight className="w-3 h-3 text-foreground/20 group-hover/cand:text-azul-primary transition-colors" />
+                                                                    <ArrowLeftRight className="w-3 h-3 text-slate-500 group-hover/cand:text-celeste transition-colors" />
                                                                 </div>
                                                             </motion.button>
                                                         );
@@ -653,10 +655,10 @@ export function AmericanoCourtGrid({
                     type="button"
                     onClick={() => onUpdateCourts(numCourts + 1)}
                     disabled={saving}
-                    className="rounded-lg border-2 border-dashed border-border/30 hover:border-azul-primary/40 hover:bg-azul-primary/[0.01] transition-all duration-300 flex flex-col items-center justify-center gap-1.5 min-h-[75px] text-center p-2 group cursor-pointer disabled:opacity-50"
+                    className="rounded-lg border-2 border-dashed border-white/12 hover:border-celeste/60 hover:bg-celeste/[0.05] transition-all duration-300 flex flex-col items-center justify-center gap-1.5 min-h-[75px] text-center p-2 group cursor-pointer disabled:opacity-50"
                 >
-                    <Plus className="w-4 h-4 text-azul-primary/60 group-hover:text-azul-primary group-hover:scale-110 transition-all" />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-azul-primary/60 group-hover:text-azul-primary transition-all">
+                    <Plus className="w-4 h-4 text-celeste group-hover:text-celeste-light group-hover:scale-110 transition-all" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-celeste group-hover:text-celeste-light transition-all">
                         Agregar Cancha
                     </span>
                 </button>
@@ -668,11 +670,11 @@ export function AmericanoCourtGrid({
                     const config = confirmAction.type === "start"
                         ? {
                             icon: <Plus className="w-6 h-6 stroke-[3]" />,
-                            iconBox: "bg-azul-primary/10 border-azul-primary/30 text-azul-primary",
+                            iconBox: "bg-celeste/10 border-celeste/30 text-celeste",
                             title: "Vas a iniciar un partido",
                             description: `Se generará un nuevo partido en la Cancha ${confirmAction.courtNum} con los jugadores disponibles.`,
                             confirmLabel: "Iniciar Partido",
-                            confirmClass: "bg-azul-primary hover:bg-azul-dark shadow-azul-primary/20"
+                            confirmClass: "bg-celeste hover:bg-celeste-light shadow-celeste/20"
                         }
                         : confirmAction.type === "finish"
                         ? {
@@ -715,7 +717,7 @@ export function AmericanoCourtGrid({
                                 initial={{ scale: 0.92, opacity: 0, y: 10 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                                className="relative w-full max-w-sm bg-card border border-border/40 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                                className="relative w-full max-w-sm bg-card border border-white/12 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
                             >
                                 <div className={`w-14 h-14 rounded-full border flex items-center justify-center ${config.iconBox}`}>
                                     {config.icon}
@@ -725,20 +727,20 @@ export function AmericanoCourtGrid({
                                     <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
                                         {config.title}
                                     </h3>
-                                    <p className="text-xs text-foreground/60 leading-relaxed">
+                                    <p className="text-xs text-slate-300 leading-relaxed">
                                         {config.description}
                                     </p>
                                 </div>
 
                                 {match && (
-                                    <div className="w-full bg-muted/20 border border-border/30 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
-                                        <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-right">
+                                    <div className="w-full bg-white/5 border border-white/12 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
+                                        <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-right">
                                             {match.team1?.name}
                                         </span>
                                         <span className="text-sm font-black italic tabular-nums text-foreground shrink-0">
                                             {match.score1 ?? 0} - {match.score2 ?? 0}
                                         </span>
-                                        <span className="text-[9px] font-black uppercase italic text-foreground/80 truncate max-w-[35%] text-left">
+                                        <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-left">
                                             {match.team2?.name}
                                         </span>
                                     </div>
@@ -748,7 +750,7 @@ export function AmericanoCourtGrid({
                                     <button
                                         type="button"
                                         onClick={() => setConfirmAction(null)}
-                                        className="flex-1 py-3 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 text-foreground/70 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                        className="flex-1 py-3 rounded-xl border border-white/12 bg-white/5 hover:bg-white/5 text-slate-200 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
                                     >
                                         Volver
                                     </button>
@@ -801,7 +803,7 @@ export function AmericanoCourtGrid({
                             <div className="w-full flex justify-center py-2 relative z-10">
                                 {loadingProfile ? (
                                     <div className="h-[420px] w-[280px] flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-2xl relative shadow-inner">
-                                        <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
+                                        <Loader2 className="w-8 h-8 text-celeste animate-spin" />
                                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-4 animate-pulse">Cargando Ficha...</span>
                                     </div>
                                 ) : (
@@ -861,7 +863,7 @@ function ScoreControl({
             {isInProgress && !readOnly ? (
                 <button
                     onClick={onIncrement}
-                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-lg group/plus"
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-carbon-950 transition-all border border-emerald-500/50 shadow-lg group/plus"
                 >
                     <ChevronUp className="w-4 h-4 stroke-[3] group-hover/plus:scale-125 transition-transform" />
                 </button>
@@ -875,13 +877,15 @@ function ScoreControl({
                 className={`
                     w-10 h-10 flex items-center justify-center rounded-lg transition-all relative overflow-hidden border-2
                     ${isWinner
-                        ? 'bg-emerald-500 border-white/40 shadow-lg'
-                        : 'bg-white/5 border-white/5 shadow-inner'}
+                        ? 'bg-emerald-500 border-emerald-300 shadow-lg shadow-emerald-500/30'
+                        : isInProgress
+                            ? 'bg-black/50 border-celeste/50 shadow-inner'
+                            : 'bg-black/40 border-white/15 shadow-inner'}
                 `}
             >
                 <span className={`
-                    text-xl font-black italic tabular-nums tracking-tighter relative z-10
-                    text-black
+                    text-xl text-scoreboard italic tracking-tighter relative z-10
+                    ${isWinner ? 'text-carbon-950' : isInProgress ? 'text-white' : 'text-slate-500'}
                 `}>
                     {score ?? 0}
                 </span>
@@ -891,7 +895,7 @@ function ScoreControl({
             {isInProgress && !readOnly ? (
                 <button
                     onClick={onDecrement}
-                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-rojo/10 hover:bg-rojo text-rojo hover:text-white transition-all border border-rojo/20 shadow-lg group/minus"
+                    className="w-9 h-7 flex items-center justify-center rounded-lg bg-rojo/15 hover:bg-rojo text-rojo hover:text-white transition-all border border-rojo/50 shadow-lg group/minus"
                 >
                     <ChevronDown className="w-4 h-4 stroke-[3] group-hover/minus:scale-125 transition-transform" />
                 </button>
@@ -945,7 +949,7 @@ function MiniProfileCard({
             <div
                 className={`
                     p-[1px] transition-all duration-700 relative
-                    ${isWinner ? "bg-emerald-500 shadow-lg" : "bg-white/20"}
+                    ${isWinner ? "bg-emerald-500 shadow-lg" : isTBD || isBye ? "bg-white/12" : "bg-white/25"}
                 `}
                 style={cardStyle}
             >
@@ -962,11 +966,11 @@ function MiniProfileCard({
                                 className="w-full h-full object-cover transition-all duration-700 group-hover/card:scale-110"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center p-5 bg-[#0f172a]">
+                            <div className="w-full h-full flex items-center justify-center p-5 bg-carbon-800">
                                 <img
                                     src="/img/acap%20logo%20svg%20blanco%20sombra.svg"
                                     alt="ACAP"
-                                    className="w-full h-full object-contain filter drop-shadow-xl opacity-20"
+                                    className="w-full h-full object-contain filter drop-shadow-xl opacity-[0.12]"
                                 />
                             </div>
                         )}
@@ -975,8 +979,8 @@ function MiniProfileCard({
 
                     {/* HUD Elements */}
                     {!isBye && !isTBD && category && (
-                        <div className="absolute top-2 right-2 flex flex-col items-end opacity-40 group-hover/card:opacity-100 transition-opacity z-10">
-                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white">CAT</span>
+                        <div className="absolute top-2 right-2 flex flex-col items-end opacity-90 group-hover/card:opacity-100 transition-opacity z-10 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-slate-300">CAT</span>
                             <span className="text-sm font-black italic text-white leading-none">
                                 {category.replace(/[^0-9]/g, "") || "5"}
                             </span>
@@ -985,7 +989,7 @@ function MiniProfileCard({
 
                     {/* Guest Badge */}
                     {isGuest && (
-                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-azul-primary border border-white/20 rounded-sm">
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-celeste border border-white/20 rounded-sm">
                             <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
                             <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
                         </div>
@@ -996,21 +1000,26 @@ function MiniProfileCard({
                         {!isBye && !isTBD && ranking && (
                             <div className="flex items-center gap-1 px-1 py-0.5 bg-[#1e293b] rounded-sm border border-white/5 w-fit">
                                 <span className="text-[5px] font-black italic uppercase text-white/60 tracking-widest">
-                                    RANK <span className="text-azul-primary">#{ranking}</span>
+                                    RANK <span className="text-celeste">#{ranking}</span>
                                 </span>
                             </div>
                         )}
 
-                        {/* Name Plate */}
+                        {/* Name Plate: el blanco sólido queda reservado al ganador,
+                            así las canchas vacías no compiten con el partido en juego. */}
                         <div className="relative">
                             <div className={`
                                 py-1 px-2 transform -skew-x-12 relative border-r-2
-                                ${isWinner ? "bg-emerald-500 border-white shadow-lg" : "bg-white border-azul-primary shadow-lg"}
+                                ${isWinner
+                                    ? "bg-emerald-500 border-emerald-200 shadow-lg"
+                                    : isTBD || isBye
+                                        ? "bg-white/[0.06] border-white/25"
+                                        : "bg-carbon-950/90 border-celeste shadow-lg"}
                             `}>
                                 <div className="transform skew-x-12 text-center">
                                     <span className={`
                                         block text-[8px] font-black uppercase italic leading-none truncate
-                                        ${isWinner ? "text-white" : "text-slate-950"}
+                                        ${isWinner ? "text-carbon-950" : isTBD || isBye ? "text-slate-400" : "text-white"}
                                     `}>
                                         {name.replace(/INVITADO/gi, "").replace(/\(INV\)/gi, "").trim() || "PLAYER"}
                                     </span>
