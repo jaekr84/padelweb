@@ -8,6 +8,7 @@ import {
     Check, UserPlus, Users, Trophy, MapPin,
     Calendar, Info, Search, User, ArrowLeft, ChevronRight
 } from "lucide-react";
+import { isHiddenUser } from "@/lib/hidden-users";
 
 type Tournament = {
     id: string;
@@ -119,7 +120,7 @@ export default function RegisterForm({
             .filter(u =>
                 u.id !== currentUser.id &&
                 (u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)) &&
-                !['dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com'].includes(u.email)
+                !isHiddenUser(u.email)
             )
             .slice(0, 10);
 

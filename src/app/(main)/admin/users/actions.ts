@@ -3,9 +3,10 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
-import { eq, ne, and, desc, sql, notLike } from "drizzle-orm";
+import { eq, ne, and, desc, sql, notLike, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { hashPassword } from "@/lib/auth-server";
+import { HIDDEN_AND_DEMO_EMAILS, HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
 
 async function checkSuperAdmin() {
     const session = await getSession() as { userId: string, role: string } | null;
@@ -90,7 +91,7 @@ export async function resetDatabasePlayers() {
         await db.delete(users).where(
             and(
                 notLike(users.role, "%superadmin%"),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'admin@admin.com', 'dkdunko@gmail.com')`
+                notInArray(users.email, HIDDEN_AND_DEMO_EMAILS)
             )
         );
 
@@ -124,7 +125,7 @@ export async function getUsers() {
         createdAt: users.createdAt,
     })
         .from(users)
-        .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`)
+        .where(notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]))
         .orderBy(desc(users.createdAt));
 }
 

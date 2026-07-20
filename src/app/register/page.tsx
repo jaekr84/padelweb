@@ -18,6 +18,8 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isVerified, setIsVerified] = useState<boolean | null>(null);
+    // Por qué no vale el link (usada / vencida / revocada), para poder decírselo.
+    const [invalidReason, setInvalidReason] = useState<string | null>(null);
     const [requestSuccess, setRequestSuccess] = useState(false);
     const [pendingApproval, setPendingApproval] = useState(false);
 
@@ -26,6 +28,7 @@ export default function RegisterPage() {
         if (invitationToken) {
             verifyTokenAction(invitationToken).then(res => {
                 setIsVerified(res.valid);
+                setInvalidReason(res.valid ? null : (res as any).reason ?? "invalido");
             });
         } else {
             setIsVerified(false);
@@ -109,6 +112,14 @@ export default function RegisterPage() {
                             ? "Completá tus datos para registrarte."
                             : "El registro es por invitación. Completa tus datos para solicitar acceso."}
                     </p>
+
+                    {/* Que quien recibe el link sepa que es de un solo uso y vence. */}
+                    {isVerified && (
+                        <p className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-[10px] font-bold text-amber-400">
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                            Esta invitación es de un solo uso y vence a las 24hs de generada
+                        </p>
+                    )}
                 </div>
 
                 {pendingApproval ? (
@@ -130,6 +141,19 @@ export default function RegisterPage() {
                     </motion.div>
                 ) : !isVerified ? (
                     <form onSubmit={handleRequest} className="space-y-6 relative text-left">
+                        {invitationToken && invalidReason && (
+                            <div className="p-4 rounded-2xl bg-rojo/10 border border-rojo/30 text-center">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-rojo">
+                                    {invalidReason === "usada" ? "Este link de invitación ya fue usado"
+                                        : invalidReason === "vencida" ? "El link de invitación venció"
+                                            : invalidReason === "revocada" ? "Esta invitación fue anulada"
+                                                : "El link de invitación no es válido"}
+                                </p>
+                                <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                                    Podés solicitar acceso completando el formulario.
+                                </p>
+                            </div>
+                        )}
                         {requestSuccess ? (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}

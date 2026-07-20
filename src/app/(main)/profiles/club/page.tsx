@@ -1,10 +1,11 @@
 import { getSession } from "@/lib/auth-server";
 import { db } from "@/db";
 import { clubs, tournaments, users } from "@/db/schema";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, notInArray } from "drizzle-orm";
 
 import ClubProfileClient from "./ClubProfileClient";
 import { Shield } from "lucide-react";
+import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
 
 export default async function ClubProfilePage({
     searchParams
@@ -110,7 +111,7 @@ export default async function ClubProfilePage({
         .where(
             and(
                 eq(users.clubId, club.id),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
+                notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[])
             )
         )
         .orderBy(desc(users.points));

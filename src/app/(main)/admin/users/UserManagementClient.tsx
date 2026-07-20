@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Plus,
     Trash2,
@@ -97,6 +97,8 @@ interface UserManagementClientProps {
     clubs: { id: string, name: string }[];
 }
 
+const USERS_PER_PAGE = 30;
+
 export default function UserManagementClient({ initialUsers, categories, clubs }: UserManagementClientProps) {
     const queryClient = useQueryClient();
     const { tournamentFilter, setTournamentFilter } = useAppStore();
@@ -109,6 +111,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         staleTime: 1000 * 60, // 1 minute
     });
 
+    const [page, setPage] = useState(1);
     const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -218,6 +221,19 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
 
         return matchesSearch && matchesStatus && matchesRole && matchesGender && matchesCategory;
     });
+
+    // Paginación: 30 filas por página sobre el resultado ya filtrado.
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
+    // Si los filtros achican la lista, la página actual puede quedar fuera de rango.
+    const currentPage = Math.min(page, totalPages);
+    const pageStart = (currentPage - 1) * USERS_PER_PAGE;
+    const pagedUsers = filteredUsers.slice(pageStart, pageStart + USERS_PER_PAGE);
+
+    // Volver a la primera página cuando cambian los filtros o la búsqueda.
+    const filterKey = JSON.stringify(tournamentFilter);
+    useEffect(() => {
+        setPage(1);
+    }, [filterKey]);
 
     const isCurrentlyBanned = (user: ManagedUser) => {
         return user.bannedUntil && new Date(user.bannedUntil) > new Date();
@@ -450,7 +466,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                 <div className="space-y-4">
                     {/* Mobile Card Layout */}
                     <div className="grid grid-cols-1 gap-4 md:hidden">
-                        {filteredUsers.map((user) => {
+                        {pagedUsers.map((user) => {
                             const banned = isCurrentlyBanned(user);
                             const isInactive = user.isActive === false;
 
@@ -609,7 +625,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
-                                    {filteredUsers.map((user) => {
+                                    {pagedUsers.map((user) => {
                                         const banned = isCurrentlyBanned(user);
                                         const isInactive = user.isActive === false;
 
@@ -760,6 +776,54 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                             </table>
                         </div>
                     </div>
+
+                    {filteredUsers.length > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                Mostrando <span className="text-white">{pageStart + 1}–{pageStart + pagedUsers.length}</span> de{" "}
+                                <span className="text-white">{filteredUsers.length}</span> usuarios
+                            </span>
+
+                            {totalPages > 1 && (
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => setPage(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className="h-8 px-3 rounded-lg bg-white/5 border border-white/12 text-[9px] font-black uppercase tracking-widest text-slate-300 hover:border-celeste/50 hover:text-celeste transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        Anterior
+                                    </button>
+
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                        // Ventana corta alrededor de la página actual (+ primera y última)
+                                        .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                                        .map((p, idx, arr) => (
+                                            <span key={p} className="flex items-center gap-1.5">
+                                                {idx > 0 && p - arr[idx - 1] > 1 && (
+                                                    <span className="text-[9px] font-black text-slate-500">…</span>
+                                                )}
+                                                <button
+                                                    onClick={() => setPage(p)}
+                                                    className={`h-8 min-w-8 px-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${p === currentPage
+                                                        ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20"
+                                                        : "bg-white/5 border border-white/12 text-slate-300 hover:border-celeste/50 hover:text-celeste"}`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            </span>
+                                        ))}
+
+                                    <button
+                                        onClick={() => setPage(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className="h-8 px-3 rounded-lg bg-white/5 border border-white/12 text-[9px] font-black uppercase tracking-widest text-slate-300 hover:border-celeste/50 hover:text-celeste transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {filteredUsers.length === 0 && (
                         <div className="px-8 py-24 text-center bg-carbon-800 border border-white/10 rounded-[3rem] shadow-2xl relative overflow-hidden group">

@@ -551,3 +551,26 @@ export const contactMessages = mysqlTable("contact_messages", {
 });
 
 export type ContactMessage = InferSelectModel<typeof contactMessages>;
+
+// Invitaciones de un solo uso. El link lleva un JWT firmado cuyo `jti` apunta
+// a una fila de esta tabla: la firma sola no basta, la invitación tiene que
+// existir, no estar usada ni revocada y no haber vencido. Así el link deja de
+// servir apenas se completa el registro (o a las 24hs, lo que pase primero).
+export const invitations = mysqlTable("invitations", {
+    id: varchar("id", { length: 36 }).primaryKey(), // = jti del token
+    role: varchar("role", { length: 50 }).notNull(),
+    clubId: varchar("club_id", { length: 256 }),
+    email: varchar("email", { length: 256 }), // opcional: invitación dirigida a ese correo
+    label: varchar("label", { length: 256 }), // opcional: nota para recordar a quién se envió
+    createdBy: varchar("created_by", { length: 256 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    usedByUserId: varchar("used_by_user_id", { length: 256 }),
+    revokedAt: timestamp("revoked_at"),
+}, (table) => ({
+    createdByIdx: index("invitations_created_by_idx").on(table.createdBy),
+    expiresAtIdx: index("invitations_expires_at_idx").on(table.expiresAt),
+}));
+
+export type Invitation = InferSelectModel<typeof invitations>;

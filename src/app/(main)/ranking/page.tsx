@@ -1,8 +1,9 @@
 import RankingClient from "./RankingClient";
 import { db } from "@/db";
 import { users, registrations, categoriesTable, bracketMatches, groupMatches, tournaments, clubs } from "@/db/schema";
-import { eq, inArray, asc, and, sql } from "drizzle-orm";
+import { eq, inArray, asc, and, sql, notInArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
+import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
 
 export default async function RankingPage() {
     const session = await getSession();
@@ -28,7 +29,7 @@ export default async function RankingPage() {
     .from(users)
     .leftJoin(clubs, eq(users.clubId, clubs.id))
     .where(
-        sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`
+        notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[])
     );
 
     // 2. Fetch all tournament registrations to count UNIQUE tournaments played per player

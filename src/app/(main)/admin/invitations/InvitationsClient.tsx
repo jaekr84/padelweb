@@ -2,11 +2,77 @@
 
 import { useTransition, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { createInvitation } from "./actions";
+import { createInvitation, listInvitations, revokeInvitation, getInvitationLink } from "./actions";
 import { toast } from "sonner";
-import { Send, Loader2, User, Building2, ShieldCheck, Mail, Link as LinkIcon, Copy, Check } from "lucide-react";
+import { Send, Loader2, User, Building2, ShieldCheck, Mail, Link as LinkIcon, Copy, Check, Ban, Clock, History } from "lucide-react";
 
-export default function InvitationsClient() {
+type InvitationRow = Awaited<ReturnType<typeof listInvitations>>[number];
+
+const STATUS_STYLES: Record<string, string> = {
+    pendiente: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
+    usada: "bg-white/10 text-slate-300 border-white/20",
+    vencida: "bg-amber-500/15 text-amber-400 border-amber-500/40",
+    revocada: "bg-rojo/15 text-rojo border-rojo/40",
+};
+
+const formatDate = (d: Date | string | null) =>
+    d ? new Date(d).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+
+export default function InvitationsClient({ initialInvitations = [] }: { initialInvitations?: InvitationRow[] }) {
+    const [invitations, setInvitations] = useState<InvitationRow[]>(initialInvitations);
+    const [revokingId, setRevokingId] = useState<string | null>(null);
+    const [busyId, setBusyId] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [filter, setFilter] = useState<"pendientes" | "todas">("pendientes");
+
+    const visibleInvitations = filter === "pendientes"
+        ? invitations.filter(i => i.status === "pendiente")
+        : invitations;
+
+    /** Reconstruye el link (no se guarda en la base) para copiar o reenviar. */
+    const withLink = async (id: string, action: (link: string) => void) => {
+        setBusyId(id);
+        const res = await getInvitationLink(id);
+        setBusyId(null);
+        if (res?.error || !res?.link) {
+            toast.error(res?.error || "No se pudo obtener el link");
+            await refresh();
+            return;
+        }
+        action(res.link);
+    };
+
+    const copyInvitation = (id: string) => withLink(id, (link) => {
+        navigator.clipboard.writeText(link);
+        setCopiedId(id);
+        toast.success("Link copiado");
+        setTimeout(() => setCopiedId(null), 2000);
+    });
+
+    const shareInvitation = (id: string) => withLink(id, (link) => {
+        const text = `¡Hola! Te enviamos tu link de invitación para ACAP. Es personal, de un solo uso y vence en 24hs: ${link}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    });
+
+    const refresh = async () => {
+        try {
+            setInvitations(await listInvitations());
+        } catch {
+            // El listado es informativo: si falla, no rompemos la generación.
+        }
+    };
+
+    const handleRevoke = async (id: string) => {
+        setRevokingId(id);
+        const res = await revokeInvitation(id);
+        if (res?.error) toast.error(res.error);
+        else {
+            toast.success("Invitación anulada");
+            await refresh();
+        }
+        setRevokingId(null);
+    };
+
     const [isPending, startTransition] = useTransition();
     const [selectedRole] = useState("jugador");
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
@@ -24,6 +90,7 @@ export default function InvitationsClient() {
             } else if (result.success && result.link) {
                 setGeneratedLink(result.link);
                 toast.success("¡Link generado correctamente!");
+                await refresh();
             }
         });
     };
@@ -105,7 +172,7 @@ export default function InvitationsClient() {
                         </div>
                     </div>
                 <p className="text-slate-400 text-[10px] font-medium leading-relaxed pl-[56px]">
-                    Genera links de invitación exclusivos para nuevos jugadores. Validez de 24 horas y acceso directo al registro.
+                    Genera links de invitación para nuevos jugadores. Cada link lleva un token propio y deja de funcionar apenas se completa el registro, o a las 24 horas.
                 </p>
                 </motion.header>
 
@@ -114,6 +181,19 @@ export default function InvitationsClient() {
 
                     <div className="flex flex-col gap-2 relative z-10">
                     <label className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-400 ml-1">Configuración del Link</label>
+
+                    <div className="flex flex-col gap-1.5">
+                        <input
+                            name="email"
+                            type="text"
+                            placeholder="¿Para quién es? (nombre o email, opcional)"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[11px] font-bold text-white placeholder:text-slate-500 outline-none focus:border-emerald-500/50 transition-all"
+                        />
+                        <p className="text-[8px] text-slate-500 font-medium ml-1 leading-relaxed">
+                            Si ponés un email, el link solo va a servir para ese correo. Con un nombre, queda como referencia para saber a quién se lo enviaste.
+                        </p>
+                    </div>
+
                     <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                             <User className="w-4 h-4" />
@@ -126,11 +206,19 @@ export default function InvitationsClient() {
                 </div>
 
                 <div className="flex flex-col gap-4 relative z-10">
-                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400  flex items-start gap-3">
-                        <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                        <p className="text-[8px] font-bold leading-relaxed uppercase tracking-wide">
-                            Link de uso único con <span className="underline decoration-2 underline-offset-4">validez de 24 horas</span>.
-                        </p>
+                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-3">
+                        <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-black uppercase tracking-wide text-amber-400">
+                                Cómo funciona el link
+                            </p>
+                            <ul className="space-y-0.5 text-[9px] font-medium text-slate-300 leading-relaxed">
+                                <li>· Lleva un <span className="text-amber-400 font-bold">token único</span>: no se puede adivinar ni reutilizar.</li>
+                                <li>· Se anula solo <span className="text-amber-400 font-bold">al completarse el registro</span>.</li>
+                                <li>· O <span className="text-amber-400 font-bold">a las 24 horas</span>, lo que pase primero.</li>
+                                <li>· Podés anularlo antes desde la lista de abajo.</li>
+                            </ul>
+                        </div>
                     </div>
 
                     {generatedLink && (
@@ -153,7 +241,7 @@ export default function InvitationsClient() {
                                         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                     </button>
                                     <a
-                                        href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te enviamos tu link de invitación para ACAP (válido por 24hs): ${generatedLink}`)}`}
+                                        href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te enviamos tu link de invitación para ACAP. Es personal, de un solo uso y vence en 24hs: ${generatedLink}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex-1 sm:w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-90 flex items-center justify-center"
@@ -184,6 +272,100 @@ export default function InvitationsClient() {
                     </button>
                 </div>
             </form>
+
+                {/* Historial: qué links siguen vivos, cuáles se usaron y quién los usó */}
+                <div className="glass-card p-4 md:p-5 rounded-2xl space-y-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                            <History className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-[11px] font-black uppercase italic tracking-tight text-white leading-none">Invitaciones generadas</h2>
+                            <span className="text-[9px] font-bold text-slate-400">
+                                {invitations.filter(i => i.status === "pendiente").length} activas de {invitations.length}
+                            </span>
+                        </div>
+
+                        <div className="ml-auto flex items-center gap-0.5 p-0.5 bg-white/5 border border-white/10 rounded-lg">
+                            {(["pendientes", "todas"] as const).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    className={`px-2.5 h-6 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${filter === f
+                                        ? "bg-emerald-500 text-carbon-950"
+                                        : "text-slate-400 hover:text-white"}`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {visibleInvitations.length === 0 ? (
+                        <p className="text-[10px] text-slate-400 py-6 text-center font-medium">
+                            {invitations.length === 0
+                                ? "Todavía no generaste invitaciones."
+                                : "No hay invitaciones pendientes."}
+                        </p>
+                    ) : (
+                        <div className="divide-y divide-white/[0.08]">
+                            {visibleInvitations.map(inv => (
+                                <div key={inv.id} className="flex items-center justify-between gap-3 py-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <span className={`shrink-0 px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest ${STATUS_STYLES[inv.status]}`}>
+                                            {inv.status}
+                                        </span>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[10px] font-black uppercase tracking-wide text-white truncate">
+                                                {inv.label || inv.email || inv.role}
+                                            </span>
+                                            <span className="text-[9px] text-slate-400 truncate">
+                                                {inv.status === "usada"
+                                                    ? `Usada por ${inv.usedByUserId} · ${formatDate(inv.usedAt)}`
+                                                    : inv.status === "pendiente"
+                                                        ? `Vence ${formatDate(inv.expiresAt)}`
+                                                        : `Creada ${formatDate(inv.createdAt)}`}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {inv.status === "pendiente" && (
+                                        <div className="shrink-0 flex items-center gap-1.5">
+                                            <button
+                                                onClick={() => copyInvitation(inv.id)}
+                                                disabled={busyId === inv.id}
+                                                title="Copiar link"
+                                                className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 text-slate-300 flex items-center justify-center hover:border-emerald-500/50 hover:text-emerald-400 transition-all disabled:opacity-50"
+                                            >
+                                                {busyId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" />
+                                                    : copiedId === inv.id ? <Check className="w-3 h-3 text-emerald-400" />
+                                                        : <Copy className="w-3 h-3" />}
+                                            </button>
+                                            <button
+                                                onClick={() => shareInvitation(inv.id)}
+                                                disabled={busyId === inv.id}
+                                                title="Reenviar por WhatsApp"
+                                                className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 text-slate-300 flex items-center justify-center hover:border-blue-500/50 hover:text-blue-400 transition-all disabled:opacity-50"
+                                            >
+                                                <Send className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleRevoke(inv.id)}
+                                                disabled={revokingId === inv.id}
+                                                className="flex items-center gap-1.5 px-2.5 h-7 rounded-lg bg-rojo/10 border border-rojo/30 text-rojo text-[8px] font-black uppercase tracking-widest hover:bg-rojo hover:text-white transition-all disabled:opacity-50"
+                                            >
+                                                {revokingId === inv.id
+                                                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                                                    : <Ban className="w-3 h-3" />}
+                                                Anular
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

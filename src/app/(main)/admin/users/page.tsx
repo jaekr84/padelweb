@@ -3,7 +3,8 @@ import { users, categoriesTable } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import UserManagementClient from "@/app/(main)/admin/users/UserManagementClient";
-import { desc, asc, eq, sql, and } from "drizzle-orm";
+import { desc, asc, eq, sql, and, notInArray } from "drizzle-orm";
+import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
 
 
 export default async function UserManagementPage() {
@@ -29,7 +30,7 @@ export default async function UserManagementPage() {
         createdAt: users.createdAt,
     })
     .from(users)
-    .where(sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'dkdunko@gmail.com')`)
+    .where(notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]))
     .orderBy(desc(users.createdAt));
 
     const allCategories = await db

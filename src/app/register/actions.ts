@@ -1,9 +1,9 @@
 "use server";
 import { registrationRequests } from "@/db/schema";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, invitations } from "@/db/schema";
 import { hashPassword } from "@/lib/auth-server";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull, gt } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { jwtVerify } from "jose";
 
@@ -33,12 +33,33 @@ export async function requestRegistrationAction(formData: FormData) {
 
 export async function verifyTokenAction(token: string) {
     if (!token) return { valid: false };
+
+    let payload: any;
     try {
-        const { payload } = await jwtVerify(token, INVITATION_SECRET);
-        return { valid: !!payload, role: payload?.role as string };
+        ({ payload } = await jwtVerify(token, INVITATION_SECRET));
     } catch (e) {
-        return { valid: false };
+        return { valid: false, reason: "invalido" as const };
     }
+
+    // La firma no alcanza: hay que mirar el estado real de la invitación para
+    // que el formulario no se muestre con un link ya consumido o revocado.
+    const jti = payload?.jti as string | undefined;
+    if (!jti) return { valid: false, reason: "invalido" as const };
+
+    const [invitation] = await db
+        .select()
+        .from(invitations)
+        .where(eq(invitations.id, jti))
+        .limit(1);
+
+    if (!invitation) return { valid: false, reason: "invalido" as const };
+    if (invitation.revokedAt) return { valid: false, reason: "revocada" as const };
+    if (invitation.usedAt) return { valid: false, reason: "usada" as const };
+    if (new Date(invitation.expiresAt).getTime() < Date.now()) {
+        return { valid: false, reason: "vencida" as const };
+    }
+
+    return { valid: true, role: invitation.role, email: invitation.email ?? undefined };
 }
 
 
@@ -80,39 +101,96 @@ export async function registerAction(formData: FormData) {
         }
     }
 
-    // 2. Determine role from invitation or default
+    // 2. Rol según la invitación. Si vino un token tiene que ser válido: antes
+    // se degradaba en silencio a "jugador" y la persona creía haberse
+    // registrado como club. Ahora se corta con un mensaje claro.
     let role = (formData.get("role") as string) || "jugador";
+    let invitationId: string | null = null;
+    let invitationClubId: string | null = null;
+
     if (invitationToken) {
+        let payload: any = null;
         try {
-            const { payload } = await jwtVerify(invitationToken, INVITATION_SECRET);
-            if (payload && payload.role) {
-                role = payload.role as string;
-            }
+            ({ payload } = await jwtVerify(invitationToken, INVITATION_SECRET));
         } catch (e) {
             console.error("Invalid registration token:", e);
+            return { error: "El link de invitación no es válido o ya venció. Pedí uno nuevo." };
         }
+
+        const jti = payload?.jti as string | undefined;
+        if (!jti) {
+            // Links viejos (previos a la tabla) no se pueden consumir: se rechazan.
+            return { error: "Este link de invitación es de una versión anterior. Pedí uno nuevo." };
+        }
+
+        const [invitation] = await db
+            .select()
+            .from(invitations)
+            .where(eq(invitations.id, jti))
+            .limit(1);
+
+        if (!invitation) return { error: "La invitación no existe. Pedí un link nuevo." };
+        if (invitation.revokedAt) return { error: "Esta invitación fue anulada. Pedí un link nuevo." };
+        if (invitation.usedAt) return { error: "Este link de invitación ya fue usado." };
+        if (new Date(invitation.expiresAt).getTime() < Date.now()) {
+            return { error: "El link de invitación venció. Pedí uno nuevo." };
+        }
+        if (invitation.email && invitation.email !== email.toLowerCase()) {
+            return { error: "Esta invitación es para otro correo electrónico." };
+        }
+
+        role = invitation.role;
+        invitationId = invitation.id;
+        invitationClubId = invitation.clubId;
     }
 
     // 3. Hash password
     const passwordHash = await hashPassword(password);
 
-    // 4. Create user pending admin approval (no session until approved)
+    // 4. Create user pending admin approval (no session until approved).
+    // El alta y el consumo de la invitación van en la misma transacción: si el
+    // registro falla, la invitación no se quema; si dos personas abren el mismo
+    // link a la vez, el UPDATE condicional deja que solo una lo consuma.
+    const userId = email.toLowerCase();
     try {
-        await db.insert(users).values({
-            id: email.toLowerCase(), // User wants email as ID
-            email: email.toLowerCase(),
-            passwordHash,
-            role,
-            firstName,
-            lastName,
-            phone,
-            documentNumber,
-            birthDate,
-            gender,
-            clubId: inviteClubId || null,
-            approvalStatus: "pending",
+        await db.transaction(async (tx) => {
+            await tx.insert(users).values({
+                id: userId, // User wants email as ID
+                email: userId,
+                passwordHash,
+                role,
+                firstName,
+                lastName,
+                phone,
+                documentNumber,
+                birthDate,
+                gender,
+                clubId: inviteClubId || invitationClubId || null,
+                approvalStatus: "pending",
+            });
+
+            if (invitationId) {
+                const result: any = await tx
+                    .update(invitations)
+                    .set({ usedAt: new Date(), usedByUserId: userId })
+                    .where(and(
+                        eq(invitations.id, invitationId),
+                        isNull(invitations.usedAt),
+                        isNull(invitations.revokedAt),
+                        gt(invitations.expiresAt, new Date()),
+                    ));
+
+                const affected = result?.[0]?.affectedRows ?? result?.affectedRows ?? 0;
+                if (affected === 0) {
+                    // Alguien la usó entre la validación y este punto.
+                    throw new Error("INVITATION_ALREADY_USED");
+                }
+            }
         });
     } catch (e: any) {
+        if (e?.message === "INVITATION_ALREADY_USED") {
+            return { error: "Este link de invitación ya fue usado." };
+        }
         console.error("Registration error:", e);
         return { error: "No se pudo completar el registro: " + e.message };
     }

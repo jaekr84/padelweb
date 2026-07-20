@@ -162,7 +162,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
     });
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 pb-24 font-sans">
+        <div className="min-h-screen bg-carbon-950 text-white pb-24 font-sans">
             <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -172,17 +172,17 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
             />
 
             {/* ── Sticky Header ── */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 py-3 px-3 sm:px-6">
+            <div className="sticky top-0 z-30 bg-carbon-950/90 backdrop-blur-md border-b border-white/10 py-3 px-3 sm:px-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-azul-primary">Mensajería Privada</p>
-                        <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter leading-none text-slate-900">
+                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-celeste">Mensajería Privada</p>
+                        <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter leading-none text-white">
                             Mensajes
                         </h1>
                     </div>
                     <button
                         onClick={() => { setShowNewConv(true); setUserQuery(""); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-azul-primary transition-all shadow-md h-8"
+                        className="flex items-center gap-2 px-4 py-2 bg-celeste text-carbon-950 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-celeste-light transition-all shadow-lg shadow-celeste/20 h-8"
                     >
                         <Pencil className="w-3 h-3" />
                         Nuevo Mensaje
@@ -193,9 +193,9 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
             {/* ── Main Layout ── */}
             <div className="flex h-[calc(100vh-84px)]">
                 {/* ── Conversation List ── */}
-                <div className={`w-full md:w-64 lg:w-72 border-r border-slate-100 flex flex-col flex-shrink-0 ${mobileShowChat ? "hidden md:flex" : "flex"}`}>
+                <div className={`w-full md:w-64 lg:w-72 border-r border-white/10 flex flex-col flex-shrink-0 ${mobileShowChat ? "hidden md:flex" : "flex"}`}>
                     {/* Search */}
-                    <div className="p-2 border-b border-slate-100">
+                    <div className="p-2 border-b border-white/10">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                             <input
@@ -203,7 +203,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                 placeholder="Buscar conversación..."
                                 value={convSearchQuery}
                                 onChange={e => setConvSearchQuery(e.target.value)}
-                                className="w-full h-9 pl-9 pr-4 bg-slate-50 rounded-lg text-[11px] font-medium text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30 focus:border-azul-primary/50 transition-all"
+                                className="w-full h-9 pl-9 pr-4 bg-white/5 rounded-lg text-[11px] font-medium text-white placeholder:text-slate-500 border border-white/10 focus:outline-none focus:ring-2 focus:ring-celeste/30 focus:border-celeste/50 transition-all"
                             />
                         </div>
                     </div>
@@ -224,10 +224,10 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     onClick={() => handleSelectConv(conv.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-all text-left border-b border-slate-100 relative ${activeConvId === conv.id ? "bg-azul-primary/5 border-l-2 border-l-azul-primary" : conv.unreadCount > 0 ? "bg-azul-primary/[0.03]" : ""}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-all text-left border-b border-white/10 relative ${activeConvId === conv.id ? "bg-celeste/5 border-l-2 border-l-celeste" : conv.unreadCount > 0 ? "bg-celeste/[0.03]" : ""}`}
                                 >
                                     <div className="relative flex-shrink-0">
-                                        <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100">
+                                        <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center border border-white/10">
                                             {conv.otherUser?.imageUrl ? (
                                                 <Image src={conv.otherUser.imageUrl} alt="" width={36} height={36} className="object-cover" />
                                             ) : (
@@ -235,7 +235,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                             )}
                                         </div>
                                         {conv.unreadCount > 0 && (
-                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-azul-primary text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white z-10 shadow-sm">
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-celeste text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white z-10 shadow-sm">
                                                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
                                             </span>
                                         )}
@@ -243,7 +243,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
 
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between mb-0">
-                                            <p className={`text-[11px] truncate ${conv.unreadCount > 0 ? "font-black text-slate-900" : "font-semibold text-slate-700"}`}>
+                                            <p className={`text-[11px] truncate ${conv.unreadCount > 0 ? "font-black text-white" : "font-semibold text-slate-200"}`}>
                                                 {conv.otherUser?.firstName} {conv.otherUser?.lastName}
                                             </p>
                                             <span className="text-[8px] text-slate-400 font-medium flex-shrink-0 ml-2">
@@ -251,7 +251,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <p className={`text-[10px] truncate flex-1 ${conv.unreadCount > 0 ? "text-slate-900 font-bold" : "text-slate-400 font-medium"}`}>
+                                            <p className={`text-[10px] truncate flex-1 ${conv.unreadCount > 0 ? "text-white font-bold" : "text-slate-400 font-medium"}`}>
                                                 {conv.lastMessage ?? "Conversación iniciada"}
                                             </p>
                                         </div>
@@ -267,14 +267,14 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                     {activeConv ? (
                         <>
                             {/* Chat Header */}
-                            <div className="flex items-center gap-3 px-6 py-2 border-b border-slate-100 bg-white">
+                            <div className="flex items-center gap-3 px-6 py-2 border-b border-white/10 bg-carbon-900">
                                 <button
                                     onClick={() => setMobileShowChat(false)}
-                                    className="md:hidden w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                                    className="md:hidden w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-white"
                                 >
                                     <ArrowLeft className="w-4 h-4" />
                                 </button>
-                                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-100 flex-shrink-0">
+                                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center border border-white/10 flex-shrink-0">
                                     {activeConv.otherUser?.imageUrl ? (
                                         <Image src={activeConv.otherUser.imageUrl} alt="" width={32} height={32} className="object-cover" />
                                     ) : (
@@ -282,7 +282,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                     )}
                                 </div>
                                 <div>
-                                    <p className="font-black text-xs text-slate-900">
+                                    <p className="font-black text-xs text-white">
                                         {activeConv.otherUser?.firstName} {activeConv.otherUser?.lastName}
                                     </p>
                                     {activeConv.otherUser?.category && (
@@ -294,10 +294,10 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                             </div>
 
                             {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-slate-50/50">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-black/20">
                                 {isLoadingMessages && messages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full opacity-30">
-                                        <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
+                                        <Loader2 className="w-8 h-8 text-celeste animate-spin" />
                                     </div>
                                 ) : messages.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-full opacity-30 gap-3">
@@ -323,8 +323,8 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                             >
                                                 <div className={`max-w-[85%] flex flex-col gap-0.5 ${isMine ? "items-end" : "items-start"}`}>
                                                     <div className={`px-3 py-1.5 rounded-xl text-[11px] leading-snug ${isMine
-                                                        ? "bg-azul-primary text-white rounded-br-sm shadow-md shadow-azul-primary/20"
-                                                        : "bg-white text-slate-900 rounded-bl-sm border border-slate-100 shadow-sm"
+                                                        ? "bg-celeste text-carbon-950 rounded-br-sm shadow-md shadow-celeste/20"
+                                                        : "bg-white/[0.08] text-white rounded-bl-sm border border-white/12"
                                                         }`}>
                                                         {msg.imageUrl && (
                                                             <div className="mb-1.5 rounded-lg overflow-hidden border border-white/20">
@@ -345,7 +345,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                                         </span>
                                                         {isMine && (
                                                             msg.isRead
-                                                                ? <CheckCheck className="w-2.5 h-2.5 text-azul-primary" />
+                                                                ? <CheckCheck className="w-2.5 h-2.5 text-celeste" />
                                                                 : <Check className="w-2.5 h-2.5 text-slate-400" />
                                                         )}
                                                     </div>
@@ -358,11 +358,11 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                             </div>
 
                              {/* Message Input */}
-                             <div className="px-6 py-2.5 border-t border-slate-100 bg-white">
+                             <div className="px-6 py-2.5 border-t border-white/10 bg-carbon-900">
                                  <div className="flex items-center gap-2">
                                      <button
                                          onClick={() => fileInputRef.current?.click()}
-                                         className="w-9 h-9 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-slate-100 hover:text-azul-primary transition-all active:scale-95 border border-slate-100"
+                                         className="w-9 h-9 bg-white/5 text-slate-400 rounded-xl flex items-center justify-center hover:bg-white/10 hover:text-celeste transition-all active:scale-95 border border-white/10"
                                      >
                                          <ImageIcon className="w-4 h-4" />
                                      </button>
@@ -373,12 +373,12 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                          onChange={e => setNewMessage(e.target.value)}
                                          onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
                                          placeholder="Escribí un mensaje..."
-                                         className="flex-1 h-9 px-4 bg-slate-50 rounded-xl text-[11px] text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30 focus:border-azul-primary/50 transition-all"
+                                         className="flex-1 h-9 px-4 bg-white/5 rounded-xl text-[11px] text-white placeholder:text-slate-500 border border-white/10 focus:outline-none focus:ring-2 focus:ring-celeste/30 focus:border-celeste/50 transition-all"
                                      />
                                      <button
                                          onClick={() => handleSend()}
                                          disabled={(!newMessage.trim() && !sending) || sending}
-                                         className="w-9 h-9 bg-slate-900 text-white rounded-xl flex items-center justify-center transition-all hover:bg-azul-primary active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+                                         className="w-9 h-9 bg-celeste text-carbon-950 rounded-xl flex items-center justify-center transition-all hover:bg-celeste-light active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
                                      >
                                          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                      </button>
@@ -386,10 +386,10 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                              </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-slate-50/50">
+                        <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-black/20">
                             <MessageSquare className="w-16 h-16 text-slate-200" />
                             <div className="text-center">
-                                <p className="text-base font-black uppercase italic tracking-tighter text-slate-900">Tus Mensajes</p>
+                                <p className="text-base font-black uppercase italic tracking-tighter text-white">Tus Mensajes</p>
                                 <p className="text-sm text-slate-400 font-medium mt-1">
                                     Seleccioná una conversación para empezar
                                 </p>
@@ -419,22 +419,22 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                className="relative z-10 w-full max-w-md bg-white border border-slate-100 rounded-3xl shadow-2xl overflow-hidden"
+                                className="relative z-10 w-full max-w-md bg-carbon-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
                             >
-                                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
                                      <div>
-                                         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-azul-primary">Mensajería</p>
-                                         <h2 className="text-base font-black uppercase italic tracking-tighter text-slate-900">Nuevo Mensaje</h2>
+                                         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-celeste">Mensajería</p>
+                                         <h2 className="text-base font-black uppercase italic tracking-tighter text-white">Nuevo Mensaje</h2>
                                      </div>
                                      <button
                                          onClick={() => { setShowNewConv(false); setSelectedClubId(null); }}
-                                         className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 border border-slate-100 transition-colors"
+                                         className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-white border border-white/10 transition-colors"
                                      >
                                          <X className="w-3.5 h-3.5" />
                                      </button>
                                  </div>
 
-                                 <div className="px-6 py-4 bg-slate-50/50 space-y-3 border-b border-slate-100">
+                                 <div className="px-6 py-4 bg-black/20 space-y-3 border-b border-white/10">
                                      <div className="flex flex-col gap-1.5">
                                          <label className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Filtrar por Club</label>
                                          <select
@@ -443,7 +443,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                                  setSelectedClubId(e.target.value || null);
                                                  setUserQuery("");
                                              }}
-                                             className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all"
+                                             className="w-full h-9 px-3 bg-carbon-900 border border-white/12 rounded-lg text-[11px] font-semibold text-white outline-none focus:ring-2 focus:ring-celeste/20 transition-all"
                                          >
                                              <option value="">Todos los clubes</option>
                                              {clubs.map(club => (
@@ -462,7 +462,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                                 }}
                                                 defaultValue=""
                                                 disabled={isLoadingMembers}
-                                                className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-azul-primary/20 transition-all disabled:opacity-50"
+                                                className="w-full h-11 px-4 bg-carbon-900 border border-white/12 rounded-xl text-sm font-semibold text-white outline-none focus:ring-2 focus:ring-celeste/20 transition-all disabled:opacity-50"
                                             >
                                                 <option value="" disabled>{isLoadingMembers ? "Cargando..." : "Seleccionar un jugador..."}</option>
                                                 {clubMembers.map(member => (
@@ -473,7 +473,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                     )}
                                 </div>
 
-                                <div className="px-6 py-4 border-b border-slate-100">
+                                <div className="px-6 py-4 border-b border-white/10">
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                         <input
@@ -481,7 +481,7 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                             placeholder="Buscá un jugador..."
                                             value={userQuery}
                                             onChange={e => setUserQuery(e.target.value)}
-                                            className="w-full h-11 pl-9 pr-4 bg-slate-50 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-azul-primary/30"
+                                            className="w-full h-11 pl-9 pr-4 bg-white/5 rounded-xl text-sm font-medium text-white placeholder:text-slate-500 border border-white/10 focus:outline-none focus:ring-2 focus:ring-celeste/30"
                                         />
                                     </div>
                                 </div>
@@ -489,15 +489,15 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                 <div className="overflow-y-auto max-h-72">
                                     {isSearchingUsers ? (
                                         <div className="flex items-center justify-center py-10">
-                                            <Loader2 className="w-6 h-6 text-azul-primary animate-spin" />
+                                            <Loader2 className="w-6 h-6 text-celeste animate-spin" />
                                         </div>
                                     ) : userSearchResults.map(user => (
                                         <button
                                             key={user.id}
                                             onClick={() => handleStartConv(user)}
-                                            className="group w-full flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50 transition-all text-left border-b border-slate-100 last:border-0"
+                                            className="group w-full flex items-center gap-3 px-6 py-3.5 hover:bg-white/5 transition-all text-left border-b border-white/10 last:border-0"
                                         >
-                                            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center border border-slate-100">
+                                            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/10 flex-shrink-0 flex items-center justify-center border border-white/10">
                                                 {user.imageUrl ? (
                                                     <Image src={user.imageUrl} alt="" width={40} height={40} className="object-cover" />
                                                 ) : (
@@ -505,11 +505,11 @@ export default function MensajesClient({ currentUserId, initialConvId }: Mensaje
                                                 )}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-black text-slate-900 truncate">
+                                                <p className="text-sm font-black text-white truncate">
                                                     {user.firstName} {user.lastName}
                                                 </p>
                                             </div>
-                                            <div className="text-[10px] font-black uppercase tracking-widest text-azul-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-celeste opacity-0 group-hover:opacity-100 transition-opacity">
                                                 Mensaje →
                                             </div>
                                         </button>

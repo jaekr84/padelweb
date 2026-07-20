@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import PublicOpenCourtCard from "./PublicOpenCourtCard";
 import { startConversation } from "@/app/(main)/mensajes/actions";
-import { useRouter } from "next/navigation";
+import { useChatStore } from "@/store/useChatStore";
 import { getOpenCourtRegistrationsAction, getOpenCourtMatchesAction } from "@/app/(main)/admin/cancha-abierta/actions";
 
 type EventListing = {
@@ -46,7 +46,8 @@ interface OpenCourtPublicClientProps {
 }
 
 export default function OpenCourtPublicClient({ initialEvents, userRegistrations, isLoggedIn, currentUserId, userRole }: OpenCourtPublicClientProps) {
-    const router = useRouter();
+    const setActiveConvId = useChatStore(s => s.setActiveConvId);
+    const setChatExpanded = useChatStore(s => s.setExpanded);
 
     // View state
     const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
@@ -73,12 +74,15 @@ export default function OpenCourtPublicClient({ initialEvents, userRegistrations
     const [resultsPlayers, setResultsPlayers] = useState<any[]>([]);
     const [resultsSearchQuery, setResultsSearchQuery] = useState("");
 
+    // Abre el chat flotante sobre la página en lugar de navegar a /mensajes:
+    // escribirle al organizador no debería sacar al usuario del listado.
     const handleMessage = async (e: React.MouseEvent, recipientId: string) => {
         e.preventDefault();
         e.stopPropagation();
         try {
             const { conversationId } = await startConversation(recipientId);
-            router.push(`/mensajes?conv=${conversationId}`);
+            setActiveConvId(conversationId);
+            setChatExpanded(true);
         } catch (err) {
             console.error(err);
         }

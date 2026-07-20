@@ -16,9 +16,10 @@ import {
     clubRequests,
     categoriesTable
 } from "@/db/schema";
-import { eq, not, and, sql } from "drizzle-orm";
+import { eq, not, and, sql, notInArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
 import { revalidatePath } from "next/cache";
+import { HIDDEN_AND_DEMO_EMAILS } from "@/lib/hidden-users";
 
 export async function resetDatabaseAction() {
     const session = await getSession();
@@ -46,7 +47,7 @@ export async function resetDatabaseAction() {
         await db.delete(users).where(
             and(
                 not(eq(users.role, "superadmin")),
-                sql`${users.email} NOT IN ('dev@jae.com', 'jae@dev.com', 'demo1@demo.com', 'demo2@demo.com', 'demo3@demo.com', 'demo4@demo.com', 'dkdunko@gmail.com')`
+                notInArray(users.email, HIDDEN_AND_DEMO_EMAILS)
             )
         );
         
