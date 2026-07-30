@@ -25,7 +25,7 @@ import type { FilaRankingUI } from "../../desafio/actions/ranking";
 import { agregarCancha, cambiarEstadoCancha, eliminarCancha } from "../../desafio/actions/canchas";
 import { inscribirJugador, darDeBajaJugador } from "../../desafio/actions/inscripciones";
 import { armarPareja, desarmarPareja } from "../../desafio/actions/parejas";
-import { cancelarPartido, confirmarResultado, iniciarPartido, rechazarResultado } from "../../desafio/actions/partidos";
+import { cancelarPartido, confirmarResultado, corregirResultado, iniciarPartido, rechazarResultado } from "../../desafio/actions/partidos";
 import { anotarEnCola, asignarSiguienteDeCola, reordenarCola, sacarDeCola } from "../../desafio/actions/cola";
 import { cerrarDesafio } from "../../desafio/actions/desafios";
 import { ChipCategoria, periodo } from "../GestionDesafiosClient";
@@ -50,6 +50,9 @@ export default function PanelClient(p: Props) {
     const router = useRouter();
     const [pestana, setPestana] = useState<Pestana>("juego");
     const [pendiente, iniciar] = useTransition();
+    // El admin puede cargar o corregir el resultado de cualquier partido:
+    // desde la cancha, desde la bandeja o desde el historial.
+    const [editando, setEditando] = useState<PartidoResumen | null>(null);
 
     const correr = (fn: () => Promise<{ ok: boolean; error?: string }>, exito: string, despues?: () => void) => {
         iniciar(async () => {
@@ -153,8 +156,25 @@ export default function PanelClient(p: Props) {
                     <ZonaCola desafioId={p.desafio.id} cola={p.cola} parejas={p.parejas} pendiente={pendiente} correr={correr} />
                 )}
                 {pestana === "ranking" && <TablaRanking filas={p.ranking} puntos={p.desafio.puntos} />}
-                {pestana === "historial" && <Historial partidos={p.historial} />}
+                {pestana === "historial" && <Historial partidos={p.historial} onEditar={setEditando} />}
             </div>
+
+            {editando && (
+                <ModalResultado
+                    partido={editando}
+                    pendiente={pendiente}
+                    onCerrar={() => setEditando(null)}
+                    onGuardar={(sets) =>
+                        correr(
+                            () => corregirResultado(editando.id, sets),
+                            editando.estado === "confirmado"
+                                ? "Resultado corregido y puntos recalculados."
+                                : "Resultado cargado: falta confirmarlo.",
+                            () => setEditando(null)
+                        )
+                    }
+                />
+            )}
         </div>
     );
 }
@@ -183,6 +203,8 @@ function FilaCanchas({
 }) {
     const [, refrescar] = useState(0);
     const [asignando, setAsignando] = useState<string | null>(null);
+    // Id del partido cuyo resultado se está cargando ahí mismo, en la tarjeta.
+    const [cargando, setCargando] = useState<string | null>(null);
 
     // El tiempo en cancha se actualiza solo, sin recargar la página.
     useEffect(() => {
@@ -246,7 +268,30 @@ function FilaCanchas({
                                             <div className="text-slate-500 text-[9px]">vs</div>
                                             <div className="text-white truncate">{m!.equipo2.map((j) => j.nombre).join(" / ")}</div>
                                         </div>
-                                        <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-white/10">
+                                        {cargando === m!.id ? (
+                                            <FormResultado
+                                                inicial={m!.sets}
+                                                pendiente={pendiente}
+                                                onCancelar={() => setCargando(null)}
+                                                onGuardar={(sets) =>
+                                                    correr(
+                                                        () => corregirResultado(m!.id, sets),
+                                                        "Resultado cargado: falta confirmarlo.",
+                                                        () => setCargando(null)
+                                                    )
+                                                }
+                                            />
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setCargando(m!.id)}
+                                                disabled={pendiente}
+                                                className="w-full mt-2.5 py-2 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                                            >
+                                                Cargar resultado
+                                            </button>
+                                        )}
+                                        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-white/10">
                                             <span className="flex items-center gap-1 label-tech text-[7px] text-slate-400">
                                                 <Clock className="w-3 h-3" />
                                                 {transcurrido(m!.iniciadoEn)}
@@ -639,9 +684,16 @@ function ModalInscribir({
 
 // ── Bandeja de confirmación ─────────────────────────────────────────────────
 
-function Bandeja({ partidos, pendiente, correr }: { partidos: PartidoResumen[]; pendiente: boolean; correr: Correr }) {
+function Bandeja({
+    partidos, pendiente, correr,
+}: {
+    partidos: PartidoResumen[];
+    pendiente: boolean;
+    correr: Correr;
+}) {
     const [rechazando, setRechazando] = useState<string | null>(null);
     const [motivo, setMotivo] = useState("");
+    const [editando, setEditando] = useState<string | null>(null);
 
     if (partidos.length === 0) {
         return (
@@ -673,7 +725,16 @@ function Bandeja({ partidos, pendiente, correr }: { partidos: PartidoResumen[]; 
                         </div>
                     </div>
 
-                    {rechazando === m.id ? (
+                    {editando === m.id ? (
+                        <FormResultado
+                            inicial={m.sets}
+                            pendiente={pendiente}
+                            onCancelar={() => setEditando(null)}
+                            onGuardar={(sets) =>
+                                correr(() => corregirResultado(m.id, sets), "Resultado corregido.", () => setEditando(null))
+                            }
+                        />
+                    ) : rechazando === m.id ? (
                         <div className="mt-3 space-y-2">
                             <input
                                 autoFocus
@@ -713,6 +774,14 @@ function Bandeja({ partidos, pendiente, correr }: { partidos: PartidoResumen[]; 
                             </button>
                             <button
                                 type="button"
+                                onClick={() => setEditando(m.id)}
+                                disabled={pendiente}
+                                className="px-4 py-2.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-300 label-tech text-[8px] hover:border-celeste/40 hover:text-white transition-all disabled:opacity-40 cursor-pointer"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => setRechazando(m.id)}
                                 disabled={pendiente}
                                 className="px-4 py-2.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
@@ -739,6 +808,15 @@ function ZonaCola({
     correr: Correr;
 }) {
     const disponibles = parejas.filter((p) => !p.jugando && !p.enCola);
+
+    // Se anotan de a una (espera sin rival) o de a dos (el partido ya armado).
+    const [sel, setSel] = useState<string[]>([]);
+    const alternar = (id: string) =>
+        setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length < 2 ? [...s, id] : [s[1], id]));
+    const rotulo = (id: string) => {
+        const p = parejas.find((x) => x.id === id);
+        return p ? `${p.a.nombre} / ${p.b.nombre}` : "";
+    };
 
     const mover = (i: number, delta: number) => {
         const ids = cola.map((e) => e.id);
@@ -803,19 +881,60 @@ function ZonaCola({
 
             {disponibles.length > 0 && (
                 <section>
-                    <h3 className="label-tech text-[8px] text-slate-500 mb-2">Anotar una pareja a la cola</h3>
-                    <div className="flex flex-wrap gap-1.5">
-                        {disponibles.map((p) => (
+                    <h3 className="label-tech text-[8px] text-slate-500 mb-1">Anotar en la cola</h3>
+                    <p className="text-[10px] text-slate-500 mb-2">
+                        Tocá una pareja para que espere sola, o dos para dejar el partido ya armado.
+                    </p>
+
+                    {sel.length > 0 && (
+                        <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-carbon-700 border border-celeste/30">
+                            <span className="text-[11px] text-white flex-1 min-w-0 truncate">
+                                {sel.length === 1
+                                    ? `${rotulo(sel[0])} — esperando rival`
+                                    : `${rotulo(sel[0])} vs ${rotulo(sel[1])}`}
+                            </span>
                             <button
-                                key={p.id}
                                 type="button"
-                                onClick={() => correr(() => anotarEnCola(desafioId, p.id), "Anotada en la cola.")}
-                                disabled={pendiente}
-                                className="px-3 py-2 rounded-lg bg-carbon-700 border border-white/10 text-[11px] text-white hover:border-celeste/40 transition-all disabled:opacity-40 cursor-pointer"
+                                onClick={() => setSel([])}
+                                className="label-tech text-[8px] text-slate-400 hover:text-white cursor-pointer shrink-0"
                             >
-                                {p.a.nombre} / {p.b.nombre}
+                                Limpiar
                             </button>
-                        ))}
+                            <button
+                                type="button"
+                                disabled={pendiente}
+                                onClick={() =>
+                                    correr(
+                                        () => anotarEnCola(desafioId, sel[0], sel[1] ?? null),
+                                        sel.length === 2 ? "Partido anotado en la cola." : "Anotada en la cola.",
+                                        () => setSel([])
+                                    )
+                                }
+                                className="shrink-0 px-3 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-30 cursor-pointer"
+                            >
+                                {sel.length === 2 ? "Anotar partido" : "Anotar sin rival"}
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-1.5">
+                        {disponibles.map((p) => {
+                            const elegida = sel.includes(p.id);
+                            return (
+                                <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => alternar(p.id)}
+                                    disabled={pendiente}
+                                    className={`px-3 py-2 rounded-lg border text-[11px] transition-all disabled:opacity-40 cursor-pointer ${elegida
+                                        ? "bg-celeste/15 border-celeste/40 text-white"
+                                        : "bg-carbon-700 border-white/10 text-white hover:border-celeste/40"
+                                        }`}
+                                >
+                                    {p.a.nombre} / {p.b.nombre}
+                                </button>
+                            );
+                        })}
                     </div>
                 </section>
             )}
@@ -880,7 +999,13 @@ function TablaRanking({ filas, puntos }: { filas: FilaRankingUI[]; puntos: Desaf
     );
 }
 
-function Historial({ partidos }: { partidos: PartidoResumen[] }) {
+function Historial({
+    partidos,
+    onEditar,
+}: {
+    partidos: PartidoResumen[];
+    onEditar: (partido: PartidoResumen) => void;
+}) {
     if (partidos.length === 0) {
         return (
             <div className="rounded-xl border border-white/10 bg-carbon-800 p-8 text-center">
@@ -909,10 +1034,189 @@ function Historial({ partidos }: { partidos: PartidoResumen[] }) {
                         <span className="label-tech text-[7px] text-slate-600">{ETIQUETA_ESTADO_PARTIDO[m.estado]}</span>
                         {m.canchaNumero != null && <span className="label-tech text-[7px] text-slate-600">· Cancha {m.canchaNumero}</span>}
                         {m.motivoRechazo && <span className="text-[9px] text-rojo">· {m.motivoRechazo}</span>}
+                        {m.estado !== "cancelado" && (
+                            <button
+                                type="button"
+                                onClick={() => onEditar(m)}
+                                className="ml-auto label-tech text-[7px] text-slate-500 hover:text-celeste transition-colors cursor-pointer shrink-0"
+                            >
+                                {m.estado === "confirmado" ? "Corregir" : "Cargar resultado"}
+                            </button>
+                        )}
                     </div>
                 </li>
             ))}
         </ul>
+    );
+}
+
+// ── Formulario de resultado, inline ─────────────────────────────────────────
+
+/**
+ * Carga de resultado sin modal: se despliega dentro de la tarjeta.
+ * Los games van por set; el ganador sale de cuántos sets ganó cada equipo.
+ */
+function FormResultado({
+    inicial, pendiente, aviso, onGuardar, onCancelar,
+}: {
+    inicial?: SetPartido[] | null;
+    pendiente: boolean;
+    aviso?: string;
+    onGuardar: (sets: SetPartido[]) => void;
+    onCancelar: () => void;
+}) {
+    const [sets, setSets] = useState<{ t1: string; t2: string }[]>(() =>
+        inicial?.length
+            ? inicial.map((s) => ({ t1: String(s.t1), t2: String(s.t2) }))
+            : [{ t1: "", t2: "" }, { t1: "", t2: "" }]
+    );
+
+    const set = (i: number, lado: "t1" | "t2", v: string) =>
+        setSets((s) => s.map((x, j) => (j === i ? { ...x, [lado]: v.replace(/\D/g, "").slice(0, 2) } : x)));
+
+    const limpios = sets
+        .filter((s) => s.t1 !== "" && s.t2 !== "")
+        .map((s) => ({ t1: Number(s.t1), t2: Number(s.t2) }));
+
+    return (
+        <div className="mt-2.5 pt-2.5 border-t border-white/10 space-y-2">
+            {aviso && (
+                <p className="flex items-start gap-1.5 text-[10px] text-volt">
+                    <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+                    {aviso}
+                </p>
+            )}
+
+            {sets.map((s, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                    <span className="label-tech text-[7px] text-slate-500 w-8 shrink-0">S{i + 1}</span>
+                    <input
+                        inputMode="numeric"
+                        value={s.t1}
+                        onChange={(e) => set(i, "t1", e.target.value)}
+                        className="w-11 bg-carbon-700 border border-white/10 rounded-lg h-8 text-center text-[13px] text-scoreboard text-white focus:outline-none focus:border-celeste/50"
+                    />
+                    <span className="text-slate-600 text-[11px]">—</span>
+                    <input
+                        inputMode="numeric"
+                        value={s.t2}
+                        onChange={(e) => set(i, "t2", e.target.value)}
+                        className="w-11 bg-carbon-700 border border-white/10 rounded-lg h-8 text-center text-[13px] text-scoreboard text-white focus:outline-none focus:border-celeste/50"
+                    />
+                    {i === sets.length - 1 && sets.length < 5 && (
+                        <button
+                            type="button"
+                            onClick={() => setSets((x) => [...x, { t1: "", t2: "" }])}
+                            className="ml-auto flex items-center gap-0.5 label-tech text-[7px] text-celeste hover:text-celeste-light cursor-pointer shrink-0"
+                        >
+                            <Plus className="w-2.5 h-2.5" />
+                            Set
+                        </button>
+                    )}
+                </div>
+            ))}
+
+            <div className="flex gap-1.5 pt-0.5">
+                <button
+                    type="button"
+                    onClick={onCancelar}
+                    className="px-2.5 py-1.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-white transition-all cursor-pointer"
+                >
+                    Cancelar
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onGuardar(limpios)}
+                    disabled={limpios.length === 0 || pendiente}
+                    className="flex-1 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
+                >
+                    Guardar
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ── Carga y corrección de resultado (admin) ─────────────────────────────────
+
+function ModalResultado({
+    partido, pendiente, onCerrar, onGuardar,
+}: {
+    partido: PartidoResumen;
+    pendiente: boolean;
+    onCerrar: () => void;
+    onGuardar: (sets: SetPartido[]) => void;
+}) {
+    const yaConfirmado = partido.estado === "confirmado";
+    const [sets, setSets] = useState<{ t1: string; t2: string }[]>(() =>
+        partido.sets?.length
+            ? partido.sets.map((s) => ({ t1: String(s.t1), t2: String(s.t2) }))
+            : [{ t1: "", t2: "" }, { t1: "", t2: "" }]
+    );
+
+    const set = (i: number, lado: "t1" | "t2", v: string) =>
+        setSets((s) => s.map((x, j) => (j === i ? { ...x, [lado]: v.replace(/\D/g, "").slice(0, 2) } : x)));
+
+    const limpios = sets
+        .filter((s) => s.t1 !== "" && s.t2 !== "")
+        .map((s) => ({ t1: Number(s.t1), t2: Number(s.t2) }));
+
+    return (
+        <Modal titulo={yaConfirmado ? "Corregir resultado" : "Cargar resultado"} onCerrar={onCerrar}>
+            <div className="space-y-3">
+                <div className="text-[12px]">
+                    <div className="text-white font-bold">{partido.equipo1.map((j) => j.nombre).join(" / ")}</div>
+                    <div className="text-slate-500 text-[10px] my-0.5">vs</div>
+                    <div className="text-white font-bold">{partido.equipo2.map((j) => j.nombre).join(" / ")}</div>
+                </div>
+
+                {yaConfirmado && (
+                    <p className="flex items-start gap-1.5 text-[11px] text-volt bg-carbon-700 border border-volt/30 rounded-lg p-2.5">
+                        <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                        Este partido ya estaba confirmado. Al guardar se reescriben los puntos de los cuatro
+                        jugadores según el resultado nuevo.
+                    </p>
+                )}
+
+                {sets.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                        <span className="label-tech text-[7px] text-slate-500 w-10">Set {i + 1}</span>
+                        <input
+                            inputMode="numeric"
+                            value={s.t1}
+                            onChange={(e) => set(i, "t1", e.target.value)}
+                            className="w-14 bg-carbon-700 border border-white/10 rounded-lg h-10 text-center text-[14px] text-scoreboard text-white focus:outline-none focus:border-celeste/40"
+                        />
+                        <span className="text-slate-600">—</span>
+                        <input
+                            inputMode="numeric"
+                            value={s.t2}
+                            onChange={(e) => set(i, "t2", e.target.value)}
+                            className="w-14 bg-carbon-700 border border-white/10 rounded-lg h-10 text-center text-[14px] text-scoreboard text-white focus:outline-none focus:border-celeste/40"
+                        />
+                        {i === sets.length - 1 && sets.length < 5 && (
+                            <button
+                                type="button"
+                                onClick={() => setSets((x) => [...x, { t1: "", t2: "" }])}
+                                className="ml-auto flex items-center gap-1 label-tech text-[8px] text-celeste hover:text-celeste-light cursor-pointer"
+                            >
+                                <Plus className="w-3 h-3" />
+                                Set
+                            </button>
+                        )}
+                    </div>
+                ))}
+
+                <button
+                    type="button"
+                    onClick={() => onGuardar(limpios)}
+                    disabled={limpios.length === 0 || pendiente}
+                    className="w-full py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
+                >
+                    {yaConfirmado ? "Guardar y recalcular puntos" : "Guardar resultado"}
+                </button>
+            </div>
+        </Modal>
     );
 }
 

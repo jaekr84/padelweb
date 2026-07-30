@@ -119,13 +119,15 @@ export async function listarParejas(desafioId: string): Promise<ParejaResumen[]>
         sumar(m.pair2Id, m.winnerTeam === 2);
     }
 
+    // Una entrada de la cola puede llevar rival: esa pareja también está
+    // esperando, aunque no sea la dueña de la fila.
     const enCola = new Set(
         (
             await db
-                .select({ pairId: challengeQueue.pairId })
+                .select({ pairId: challengeQueue.pairId, rivalPairId: challengeQueue.rivalPairId })
                 .from(challengeQueue)
                 .where(and(eq(challengeQueue.challengeId, desafioId), eq(challengeQueue.status, ESTADO_COLA.ESPERANDO)))
-        ).map((q) => q.pairId)
+        ).flatMap((q) => [q.pairId, q.rivalPairId]).filter(Boolean) as string[]
     );
 
     return parejas.map((p) => {

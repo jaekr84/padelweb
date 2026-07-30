@@ -337,6 +337,121 @@ export async function confirmarResultado(partidoId: string) {
     });
 }
 
+/**
+ * Corrección de un resultado por parte del admin. Sirve para cargarlo en lugar
+ * de los jugadores, para arreglar un error antes de confirmarlo, o para
+ * corregir uno YA CONFIRMADO.
+ *
+ * En ese último caso el ledger se reescribe dentro de la misma transacción:
+ * se borran las filas de ese partido y se vuelven a insertar con el ganador
+ * nuevo. Los puntos de participación no se tocan (van con `matchId = ""`).
+ */
+export async function corregirResultado(partidoId: string, sets: SetPartido[]) {
+    return ejecutar("corregirResultado", async () => {
+        const session = await requerirAdmin();
+
+        const calculo = calcularResultado(sets);
+        if (!calculo.ok) throw new ErrorDesafio(calculo.error);
+        const r = calculo.resultado;
+
+        return await db.transaction(async (tx) => {
+            const [m] = await tx.select().from(challengeMatches).where(eq(challengeMatches.id, partidoId)).limit(1);
+            if (!m) throw new ErrorDesafio("El partido no existe.");
+            if (m.status === ESTADO_PARTIDO.CANCELADO) {
+                throw new ErrorDesafio("El partido está cancelado: no se le puede cargar un resultado.");
+            }
+
+            const [d] = await tx
+                .select({
+                    estado: challenges.status,
+                    participacion: challenges.participationPoints,
+                    victoria: challenges.winPoints,
+                    derrota: challenges.lossPoints,
+                })
+                .from(challenges)
+                .where(eq(challenges.id, m.challengeId))
+                .limit(1);
+            if (!d) throw new ErrorDesafio("El desafío no existe.");
+            if (d.estado === ESTADO_DESAFIO.CERRADO) {
+                throw new ErrorDesafio("El desafío está cerrado. Reabrilo para corregir resultados.");
+            }
+
+            const yaConfirmado = m.status === ESTADO_PARTIDO.CONFIRMADO;
+
+            await tx
+                .update(challengeMatches)
+                .set({
+                    sets,
+                    gamesTeam1: r.gamesEquipo1,
+                    gamesTeam2: r.gamesEquipo2,
+                    winnerTeam: r.ganador,
+                    // Si ya estaba confirmado sigue estándolo: se corrige en el lugar.
+                    status: yaConfirmado ? ESTADO_PARTIDO.CONFIRMADO : ESTADO_PARTIDO.RESULTADO_CARGADO,
+                    reportedByUserId: session.userId,
+                    reportedAt: new Date(),
+                    rejectionReason: null,
+                    ...(yaConfirmado ? { confirmedByUserId: session.userId, confirmedAt: new Date() } : {}),
+                })
+                .where(eq(challengeMatches.id, partidoId));
+
+            // La cancha se libera igual que al cargar un resultado normal.
+            await tx
+                .update(challengeCourts)
+                .set({ currentMatchId: null, status: ESTADO_CANCHA.LIBRE })
+                .where(eq(challengeCourts.currentMatchId, partidoId));
+
+            const jugadores = [m.team1Player1Id, m.team1Player2Id, m.team2Player1Id, m.team2Player2Id];
+            await tx
+                .update(challengeRegistrations)
+                .set({ status: ESTADO_INSCRIPCION.EMPAREJADO })
+                .where(
+                    and(
+                        eq(challengeRegistrations.challengeId, m.challengeId),
+                        inArray(challengeRegistrations.userId, jugadores),
+                        eq(challengeRegistrations.status, ESTADO_INSCRIPCION.JUGANDO)
+                    )
+                );
+
+            if (yaConfirmado) {
+                // Reescribir el ledger de ESTE partido. La participación queda
+                // intacta porque viaja con matchId = "".
+                await tx
+                    .delete(challengePoints)
+                    .where(and(eq(challengePoints.challengeId, m.challengeId), eq(challengePoints.matchId, partidoId)));
+
+                const entradas = entradasDePartido({
+                    matchId: partidoId,
+                    equipos: {
+                        equipo1: [m.team1Player1Id, m.team1Player2Id],
+                        equipo2: [m.team2Player1Id, m.team2Player2Id],
+                    },
+                    ganador: r.ganador,
+                    config: d,
+                });
+
+                await tx.insert(challengePoints).values(
+                    entradas.map((e) => ({
+                        id: nuevoId(),
+                        challengeId: m.challengeId,
+                        userId: e.userId,
+                        type: e.tipo,
+                        points: e.puntos,
+                        matchId: e.matchId,
+                    }))
+                );
+            }
+
+            revalidarDesafio(m.challengeId);
+            return {
+                id: partidoId,
+                ganador: r.ganador,
+                resultado: formatearSets(sets),
+                reescribioPuntos: yaConfirmado,
+            };
+        });
+    });
+}
+
 /** Rechaza el resultado para que lo vuelvan a cargar. No toca la cancha (ya está libre). */
 export async function rechazarResultado(partidoId: string, motivo: string) {
     return ejecutar("rechazarResultado", async () => {
