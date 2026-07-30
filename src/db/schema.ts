@@ -574,3 +574,228 @@ export const invitations = mysqlTable("invitations", {
 }));
 
 export type Invitation = InferSelectModel<typeof invitations>;
+
+// ── Módulo Desafío ──────────────────────────────────────────────────────────
+// Spec completa en docs/desafio-specs.md.
+//
+// Un desafío es un evento de duración abierta atado a una categoría. Los
+// jugadores se inscriben, arman y desarman parejas libremente, y juegan en las
+// canchas disponibles. Los puntos se acreditan SIEMPRE al jugador individual:
+// la pareja es un vínculo temporal, el punto ya confirmado es de la persona.
+//
+// El módulo no comparte tablas con torneos ni con cancha abierta: se probó
+// reutilizar `tournaments` y la divergencia terminó ensuciando el Americano.
+//
+// Nombres en inglés como el resto del schema; los estados van en castellano
+// igual que `registration_requests.status` ("pendiente") o `users.role`.
+
+export const challenges = mysqlTable("challenges", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 256 }).notNull(),
+    description: text("description"),
+    // borrador | abierto | cerrado
+    status: varchar("status", { length: 20 }).notNull().default("borrador"),
+    // Categoría exclusiva del desafío → categories.id
+    categoryId: varchar("category_id", { length: 36 }).notNull(),
+    // Puntaje configurable por desafío (defaults de la spec)
+    participationPoints: int("participation_points").notNull().default(1),
+    winPoints: int("win_points").notNull().default(3),
+    lossPoints: int("loss_points").notNull().default(0),
+    // Datos informativos: el desafío es de duración abierta, estas fechas se
+    // muestran pero no abren ni cierran nada por sí solas.
+    startDate: varchar("start_date", { length: 50 }),
+    endDate: varchar("end_date", { length: 50 }),
+    location: varchar("location", { length: 256 }),
+    time: varchar("time", { length: 50 }),
+    registrationFee: int("registration_fee"),
+    maxSlots: int("max_slots").notNull().default(0), // 0 = sin límite
+    createdByUserId: varchar("created_by_user_id", { length: 256 }).notNull(),
+    openedAt: timestamp("opened_at"),
+    closedAt: timestamp("closed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+    statusCategoryIdx: index("challenges_status_category_idx").on(table.status, table.categoryId),
+    createdByIdx: index("challenges_created_by_idx").on(table.createdByUserId),
+}));
+
+export const challengeCourts = mysqlTable("challenge_courts", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    number: int("number").notNull(),
+    name: varchar("name", { length: 100 }),
+    // libre | ocupada | inhabilitada
+    status: varchar("status", { length: 20 }).notNull().default("libre"),
+    // El candado de concurrencia: al ser UNIQUE, si dos parejas tocan "jugar"
+    // en la misma cancha a la vez, la segunda transacción falla en la base y
+    // no hace falta ningún lock aplicativo. MySQL permite varios NULL en un
+    // índice único, que es lo que hace viable el patrón.
+    currentMatchId: varchar("current_match_id", { length: 36 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    challengeIdx: index("challenge_courts_challenge_idx").on(table.challengeId),
+    challengeNumberUniq: uniqueIndex("challenge_courts_challenge_number_uniq").on(table.challengeId, table.number),
+    currentMatchUniq: uniqueIndex("challenge_courts_current_match_uniq").on(table.currentMatchId),
+}));
+
+export const challengeRegistrations = mysqlTable("challenge_registrations", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    // Snapshots del perfil al inscribirse: si el jugador después cambia su
+    // categoría o su lado, el desafío en curso no se ve afectado.
+    side: varchar("side", { length: 20 }).notNull(), // drive | reves | ambos
+    categoryName: varchar("category_name", { length: 50 }),
+    // disponible | emparejado | jugando | baja
+    status: varchar("status", { length: 20 }).notNull().default("disponible"),
+    // El admin puede inscribir salteando la validación de categoría.
+    isException: boolean("is_exception").notNull().default(false),
+    registeredAt: timestamp("registered_at").defaultNow().notNull(),
+}, (table) => ({
+    challengeUserUniq: uniqueIndex("challenge_registrations_challenge_user_uniq").on(table.challengeId, table.userId),
+    challengeStatusIdx: index("challenge_registrations_challenge_status_idx").on(table.challengeId, table.status),
+    userIdx: index("challenge_registrations_user_idx").on(table.userId),
+}));
+
+// Vínculo temporal entre dos jugadores. Se arma, se desarma y se rearma sin
+// límite; por eso lleva `active` y `dissolvedAt` en vez de borrarse.
+export const challengePairs = mysqlTable("challenge_pairs", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    playerAId: varchar("player_a_id", { length: 256 }).notNull(),
+    playerBId: varchar("player_b_id", { length: 256 }).notNull(),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    dissolvedAt: timestamp("dissolved_at"),
+}, (table) => ({
+    challengeActiveIdx: index("challenge_pairs_challenge_active_idx").on(table.challengeId, table.active),
+    playerAIdx: index("challenge_pairs_player_a_idx").on(table.playerAId),
+    playerBIdx: index("challenge_pairs_player_b_idx").on(table.playerBId),
+}));
+
+export const challengeMatches = mysqlTable("challenge_matches", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    courtId: varchar("court_id", { length: 36 }).notNull(),
+    // Los 4 jugadores desnormalizados: el historial sobrevive aunque las
+    // parejas se disuelvan o se rearmen distinto.
+    team1Player1Id: varchar("t1_p1_id", { length: 256 }).notNull(),
+    team1Player2Id: varchar("t1_p2_id", { length: 256 }).notNull(),
+    team2Player1Id: varchar("t2_p1_id", { length: 256 }).notNull(),
+    team2Player2Id: varchar("t2_p2_id", { length: 256 }).notNull(),
+    // Referencia histórica a las parejas que jugaron (pueden estar disueltas).
+    pair1Id: varchar("pair1_id", { length: 36 }),
+    pair2Id: varchar("pair2_id", { length: 36 }),
+    // en_curso | resultado_cargado | confirmado | rechazado | cancelado
+    status: varchar("status", { length: 25 }).notNull().default("en_curso"),
+    // Resultado por sets: [{ t1: 6, t2: 4 }, { t1: 3, t2: 6 }]
+    sets: json("sets"),
+    gamesTeam1: smallint("games_team1"),
+    gamesTeam2: smallint("games_team2"),
+    winnerTeam: smallint("winner_team"), // 1 | 2
+    reportedByUserId: varchar("reported_by_user_id", { length: 256 }),
+    confirmedByUserId: varchar("confirmed_by_user_id", { length: 256 }),
+    rejectionReason: text("rejection_reason"),
+    startedAt: timestamp("started_at").defaultNow().notNull(),
+    reportedAt: timestamp("reported_at"),
+    confirmedAt: timestamp("confirmed_at"),
+}, (table) => ({
+    challengeStatusIdx: index("challenge_matches_challenge_status_idx").on(table.challengeId, table.status),
+    courtIdx: index("challenge_matches_court_idx").on(table.courtId),
+}));
+
+export const challengeQueue = mysqlTable("challenge_queue", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    pairId: varchar("pair_id", { length: 36 }).notNull(),
+    // Rival elegido de antemano; puede anotarse a esperar sin rival.
+    rivalPairId: varchar("rival_pair_id", { length: 36 }),
+    position: int("position").notNull(),
+    // esperando | asignada | cancelada
+    status: varchar("status", { length: 20 }).notNull().default("esperando"),
+    enteredAt: timestamp("entered_at").defaultNow().notNull(),
+    assignedAt: timestamp("assigned_at"),
+}, (table) => ({
+    challengeStatusPositionIdx: index("challenge_queue_challenge_status_position_idx").on(table.challengeId, table.status, table.position),
+    pairIdx: index("challenge_queue_pair_idx").on(table.pairId),
+}));
+
+// El ledger. El ranking sale de acá y de ningún otro lado.
+//
+// `matchId` es NOT NULL con centinela "" a propósito: el punto de
+// participación no viene de ningún partido, y si la columna fuera nullable el
+// índice único NO lo protegería — MySQL considera que dos NULL son distintos,
+// así que se podrían insertar dos participaciones para el mismo jugador. Con
+// el centinela, el único cubre los tres tipos y confirmar dos veces nunca
+// duplica puntos.
+export const challengePoints = mysqlTable("challenge_points", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    userId: varchar("user_id", { length: 256 }).notNull(),
+    // participacion | victoria | derrota
+    type: varchar("type", { length: 20 }).notNull(),
+    points: int("points").notNull(),
+    matchId: varchar("match_id", { length: 36 }).notNull().default(""),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    ledgerUniq: uniqueIndex("challenge_points_ledger_uniq").on(table.challengeId, table.userId, table.type, table.matchId),
+    challengeUserIdx: index("challenge_points_challenge_user_idx").on(table.challengeId, table.userId),
+    matchIdx: index("challenge_points_match_idx").on(table.matchId),
+}));
+
+export const challengesRelations = relations(challenges, ({ one, many }) => ({
+    category: one(categoriesTable, {
+        fields: [challenges.categoryId],
+        references: [categoriesTable.id],
+    }),
+    createdBy: one(users, {
+        fields: [challenges.createdByUserId],
+        references: [users.id],
+    }),
+    courts: many(challengeCourts),
+    registrations: many(challengeRegistrations),
+    pairs: many(challengePairs),
+    matches: many(challengeMatches),
+    queue: many(challengeQueue),
+    points: many(challengePoints),
+}));
+
+export const challengeCourtsRelations = relations(challengeCourts, ({ one, many }) => ({
+    challenge: one(challenges, { fields: [challengeCourts.challengeId], references: [challenges.id] }),
+    matches: many(challengeMatches),
+}));
+
+export const challengeRegistrationsRelations = relations(challengeRegistrations, ({ one }) => ({
+    challenge: one(challenges, { fields: [challengeRegistrations.challengeId], references: [challenges.id] }),
+    user: one(users, { fields: [challengeRegistrations.userId], references: [users.id] }),
+}));
+
+export const challengePairsRelations = relations(challengePairs, ({ one }) => ({
+    challenge: one(challenges, { fields: [challengePairs.challengeId], references: [challenges.id] }),
+    playerA: one(users, { fields: [challengePairs.playerAId], references: [users.id] }),
+    playerB: one(users, { fields: [challengePairs.playerBId], references: [users.id] }),
+}));
+
+export const challengeMatchesRelations = relations(challengeMatches, ({ one, many }) => ({
+    challenge: one(challenges, { fields: [challengeMatches.challengeId], references: [challenges.id] }),
+    court: one(challengeCourts, { fields: [challengeMatches.courtId], references: [challengeCourts.id] }),
+    points: many(challengePoints),
+}));
+
+export const challengeQueueRelations = relations(challengeQueue, ({ one }) => ({
+    challenge: one(challenges, { fields: [challengeQueue.challengeId], references: [challenges.id] }),
+    pair: one(challengePairs, { fields: [challengeQueue.pairId], references: [challengePairs.id] }),
+}));
+
+export const challengePointsRelations = relations(challengePoints, ({ one }) => ({
+    challenge: one(challenges, { fields: [challengePoints.challengeId], references: [challenges.id] }),
+    user: one(users, { fields: [challengePoints.userId], references: [users.id] }),
+}));
+
+export type Challenge = InferSelectModel<typeof challenges>;
+export type ChallengeCourt = InferSelectModel<typeof challengeCourts>;
+export type ChallengeRegistration = InferSelectModel<typeof challengeRegistrations>;
+export type ChallengePair = InferSelectModel<typeof challengePairs>;
+export type ChallengeMatch = InferSelectModel<typeof challengeMatches>;
+export type ChallengeQueueEntry = InferSelectModel<typeof challengeQueue>;
+export type ChallengePoint = InferSelectModel<typeof challengePoints>;

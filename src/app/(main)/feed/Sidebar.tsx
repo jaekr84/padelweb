@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert, Swords } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -18,6 +18,7 @@ const NAV: Record<string, NavItem[]> = {
     jugador: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/desafio", icon: Swords, label: "Desafío" },
         { href: "/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
@@ -31,6 +32,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/tournaments", icon: Trophy, label: "Torneos" },
         { href: "/club/tournaments", icon: Trophy, label: "Mis Torneos" },
+        { href: "/desafio", icon: Swords, label: "Desafío" },
         { href: "/club/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/partidos", icon: Users, label: "Partidos" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
@@ -42,6 +44,7 @@ const NAV: Record<string, NavItem[]> = {
     superadmin: [
         { href: "/home", icon: Home, label: "Inicio" },
         { href: "/admin/tournaments", icon: Trophy, label: "Torneos" },
+        { href: "/desafio", icon: Swords, label: "Desafío" },
         { href: "/admin/cancha-abierta", icon: Activity, label: "Cancha Abierta" },
         { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
         { href: "/profile", icon: User, label: "Mi Perfil" },
