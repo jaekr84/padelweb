@@ -477,17 +477,22 @@ function ZonaJuego({
                                             {ETIQUETA_LADO[p.a.lado]} · {ETIQUETA_LADO[p.b.lado]} — {p.partidosJugados} jugados, {p.partidosGanados} ganados
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => correr(() => desarmarPareja(p.id), "Pareja desarmada.")}
-                                        disabled={pendiente || p.jugando}
-                                        title={p.jugando ? "Está jugando: cargá el resultado primero" : "Desarmar"}
-                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-rojo hover:bg-rojo/10 transition-all shrink-0 disabled:opacity-25 disabled:hover:text-slate-600 disabled:hover:bg-transparent cursor-pointer"
-                                    >
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
+                                    {/* Desarmar y volver a armar es libre: los jugadores cambian de
+                                        pareja cuando quieren. Lo único que lo frena es estar en
+                                        medio de un partido. */}
+                                    {!p.jugando && (
+                                        <button
+                                            type="button"
+                                            onClick={() => correr(() => desarmarPareja(p.id), "Pareja desarmada: los dos vuelven al pool.")}
+                                            disabled={pendiente}
+                                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[7px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Desarmar
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
                                     {p.jugando && <Etiqueta color="live">Jugando</Etiqueta>}
                                     {p.enCola && <Etiqueta color="celeste">En cola</Etiqueta>}
                                     {p.aviso.nivel === "aviso" && (
@@ -497,6 +502,11 @@ function ZonaJuego({
                                         </span>
                                     )}
                                 </div>
+                                {p.jugando && (
+                                    <p className="text-[10px] text-slate-500 mt-1.5">
+                                        Para desarmarla, cargá el resultado del partido o cancelalo desde la cancha.
+                                    </p>
+                                )}
                             </div>
                         ))}
                     </div>
