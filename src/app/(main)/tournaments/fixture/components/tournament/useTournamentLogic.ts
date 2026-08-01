@@ -190,63 +190,6 @@ export function useTournamentLogic({
         });
     };
 
-    const togglePresent = (id: string) => {
-        if (readOnly) return;
-        const isRemoving = present.has(id);
-        
-        const save = async (updatedPresent: Set<string>) => {
-            lastSavedState.current.present = updatedPresent;
-            try {
-                await updateTournamentMetadata({
-                    tournamentId,
-                    presentPlayerIds: Array.from(updatedPresent),
-                });
-            } catch (e) {
-                console.error("Failed to save presence", e);
-            }
-        };
-
-        if (isRemoving) {
-            const player = groups.flatMap(g => g.players).find(p => p.id === id);
-            const name = player?.name || "este jugador";
-            setConfirmModal({
-                open: true,
-                title: "Quitar Presencia",
-                description: `¿Estás seguro de que deseas quitar la presencia a ${name}? Esto podría afectar la disponibilidad de sus partidos.`,
-                variant: 'danger',
-                onConfirm: async () => {
-                    const next = new Set(present);
-                    next.delete(id);
-                    setPresent(next);
-                    await save(next);
-                    setConfirmModal(prev => ({ ...prev, open: false }));
-                }
-            });
-            return;
-        }
-        
-        const next = new Set(present);
-        next.add(id);
-        setPresent(next);
-        save(next);
-    };
-
-    const togglePaid = (id: string) => {
-        if (readOnly) return;
-        
-        const next = new Set(paid);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        
-        setPaid(next);
-        lastSavedState.current.paid = next;
-        
-        updateTournamentMetadata({
-            tournamentId,
-            paidPlayerIds: Array.from(next),
-        }).catch(e => console.error("Failed to save payment", e));
-    };
-
     const bulkUpdateStatus = async (type: 'present' | 'paid', ids: string[]) => {
         if (readOnly) return;
         const next = new Set(ids);
@@ -280,20 +223,38 @@ export function useTournamentLogic({
         isIndividual ? paid.has(id) : (paid.has(id) || (paid.has(`${id}_0`) && paid.has(`${id}_1`))),
         [paid, isIndividual]);
 
-    // Toggle a whole pair on/off (both member keys) from the standings quick-toggle.
-    const togglePairChecked = (
+    // One member of a pair (slot 0 = primer nombre, slot 1 = segundo).
+    const memberCheckKey = (pairId: string, slot: 0 | 1) => `${pairId}_${slot}`;
+
+    const isMemberPresent = useCallback((pairId: string, slot: 0 | 1) =>
+        isIndividual ? present.has(pairId) : (present.has(pairId) || present.has(`${pairId}_${slot}`)),
+        [present, isIndividual]);
+    const isMemberPaid = useCallback((pairId: string, slot: 0 | 1) =>
+        isIndividual ? paid.has(pairId) : (paid.has(pairId) || paid.has(`${pairId}_${slot}`)),
+        [paid, isIndividual]);
+
+    // Check in / charge a single player from the standings table. A legacy plain
+    // pair id in the set means "both members checked": it gets expanded into the
+    // two member keys before toggling, so one member can be turned off alone.
+    const toggleMemberChecked = (
         set: Set<string>,
         setSet: (s: Set<string>) => void,
         saveKind: 'present' | 'paid',
         pairId: string,
+        slot: 0 | 1,
     ) => {
         if (readOnly) return;
-        const on = saveKind === 'present' ? isEntryPresent(pairId) : isEntryPaid(pairId);
         const next = new Set(set);
-        next.delete(pairId); next.delete(`${pairId}_0`); next.delete(`${pairId}_1`);
-        if (!on) {
-            if (isIndividual) next.add(pairId);
-            else { next.add(`${pairId}_0`); next.add(`${pairId}_1`); }
+        if (isIndividual) {
+            if (next.has(pairId)) next.delete(pairId); else next.add(pairId);
+        } else {
+            if (next.has(pairId)) {
+                next.delete(pairId);
+                next.add(memberCheckKey(pairId, 0));
+                next.add(memberCheckKey(pairId, 1));
+            }
+            const key = memberCheckKey(pairId, slot);
+            if (next.has(key)) next.delete(key); else next.add(key);
         }
         setSet(next);
         if (saveKind === 'present') lastSavedState.current.present = next;
@@ -304,8 +265,10 @@ export function useTournamentLogic({
             paidPlayerIds: Array.from(saveKind === 'paid' ? next : paid),
         }).catch(e => console.error("Failed to save attendance", e));
     };
-    const togglePairPresent = (pairId: string) => togglePairChecked(present, setPresent, 'present', pairId);
-    const togglePairPaid = (pairId: string) => togglePairChecked(paid, setPaid, 'paid', pairId);
+    const toggleMemberPresent = (pairId: string, slot: 0 | 1) =>
+        toggleMemberChecked(present, setPresent, 'present', pairId, slot);
+    const toggleMemberPaid = (pairId: string, slot: 0 | 1) =>
+        toggleMemberChecked(paid, setPaid, 'paid', pairId, slot);
 
     const isMatchDone = (m: Match) => m.confirmed || m.status === 'finished' || m.status === 'completed';
 
@@ -1435,8 +1398,6 @@ export function useTournamentLogic({
         
         // Handlers
         handleRefresh,
-        togglePresent,
-        togglePaid,
         handleReplacePlayer,
         handleReplaceOneInPair,
         handleReplaceWithGuest,
@@ -1457,8 +1418,10 @@ export function useTournamentLogic({
         bulkUpdateStatus,
         isEntryPresent,
         isEntryPaid,
-        togglePairPresent,
-        togglePairPaid,
+        isMemberPresent,
+        isMemberPaid,
+        toggleMemberPresent,
+        toggleMemberPaid,
         groupNextInfo,
         startGroupMatch,
         startAllGroupMatches,

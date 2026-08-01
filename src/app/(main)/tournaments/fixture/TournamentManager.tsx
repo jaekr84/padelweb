@@ -6,6 +6,7 @@ import { TournamentHeader } from "./components/tournament/TournamentHeader";
 import { TournamentAttendance } from "./components/tournament/TournamentAttendance";
 import { TournamentDashboard } from "./components/tournament/TournamentDashboard";
 import { TournamentGroupsView } from "./components/tournament/TournamentGroupsView";
+import { TournamentLiveQueue } from "./components/tournament/TournamentLiveQueue";
 import { AmericanoPlayoffQueue } from "./components/americano/AmericanoPlayoffQueue";
 import { AmericanoBracketMirror } from "./components/americano/AmericanoBracketMirror";
 import { TournamentQualifiersView } from "./components/tournament/TournamentQualifiersView";
@@ -42,8 +43,6 @@ export default function TournamentManager(props: TournamentManagerProps) {
         matches,
         bracket,
         resolvedBracket,
-        present, setPresent,
-        paid, setPaid,
         isPlayersModalOpen, setIsPlayersModalOpen,
         playerSearchQuery, setPlayerSearchQuery,
         replacingPlayer, setReplacingPlayer,
@@ -65,8 +64,6 @@ export default function TournamentManager(props: TournamentManagerProps) {
         confirmedGroupMatches,
         totalGroupMatches,
         handleRefresh,
-        togglePresent,
-        togglePaid,
         handleReplacePlayer,
         handleReplaceOneInPair,
         handleReplaceWithGuest,
@@ -85,9 +82,10 @@ export default function TournamentManager(props: TournamentManagerProps) {
         isIndividual,
         bulkUpdateStatus,
         isEntryPresent,
-        isEntryPaid,
-        togglePairPresent,
-        togglePairPaid,
+        isMemberPresent,
+        isMemberPaid,
+        toggleMemberPresent,
+        toggleMemberPaid,
         groupNextInfo,
         startGroupMatch,
         startAllGroupMatches,
@@ -138,10 +136,10 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                     searchQuery={searchQuery}
                                     setSearchQuery={setSearchQuery}
                                     allPlayers={allPlayers}
-                                    present={present}
-                                    togglePresent={togglePresent}
-                                    paid={paid}
-                                    togglePaid={togglePaid}
+                                    isMemberPresent={isMemberPresent}
+                                    isMemberPaid={isMemberPaid}
+                                    toggleMemberPresent={toggleMemberPresent}
+                                    toggleMemberPaid={toggleMemberPaid}
                                     setPlayerToDelete={setPlayerToDelete}
                                     setReplacingPlayer={setReplacingPlayer}
                                     onContinue={() => setStep("done")}
@@ -171,14 +169,11 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             groups={groups}
                                             matches={matches}
                                             readOnly={readOnly}
-                                            present={present}
-                                            togglePresent={togglePresent}
-                                            paid={paid}
-                                            togglePaid={togglePaid}
                                             isEntryPresent={isEntryPresent}
-                                            isEntryPaid={isEntryPaid}
-                                            togglePairPresent={togglePairPresent}
-                                            togglePairPaid={togglePairPaid}
+                                            isMemberPresent={isMemberPresent}
+                                            isMemberPaid={isMemberPaid}
+                                            toggleMemberPresent={toggleMemberPresent}
+                                            toggleMemberPaid={toggleMemberPaid}
                                             groupNextInfo={groupNextInfo}
                                             startGroupMatch={startGroupMatch}
                                             startAllGroupMatches={startAllGroupMatches}
@@ -190,6 +185,15 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             handleReopenMatch={handleReopenMatch}
                                             setGroups={setGroups}
                                             computeStandings={computeStandings}
+                                        />
+
+                                        <TournamentLiveQueue
+                                            groups={groups}
+                                            matches={matches}
+                                            readOnly={readOnly}
+                                            handleScoreChange={handleScoreChange}
+                                            handleConfirmScore={handleConfirmScore}
+                                            cancelGroupMatch={cancelGroupMatch}
                                         />
 
                                         <div className="space-y-4 pt-4 border-t border-border/40">
@@ -308,10 +312,10 @@ export default function TournamentManager(props: TournamentManagerProps) {
                 playerSearchQuery={playerSearchQuery}
                 setPlayerSearchQuery={setPlayerSearchQuery}
                 filteredPlayers={filteredPlayers}
-                present={present}
-                togglePresent={togglePresent}
-                paid={paid}
-                togglePaid={togglePaid}
+                isMemberPresent={isMemberPresent}
+                isMemberPaid={isMemberPaid}
+                toggleMemberPresent={toggleMemberPresent}
+                toggleMemberPaid={toggleMemberPaid}
                 showSuccessModal={showSuccessModal}
                 setShowSuccessModal={setShowSuccessModal}
                 tournamentName={tournamentName}

@@ -25,10 +25,10 @@ interface TournamentModalsProps {
     playerSearchQuery: string;
     setPlayerSearchQuery: (q: string) => void;
     filteredPlayers: Player[];
-    present: Set<string>;
-    togglePresent: (id: string) => void;
-    paid: Set<string>;
-    togglePaid: (id: string) => void;
+    isMemberPresent: (pairId: string, slot: 0 | 1) => boolean;
+    isMemberPaid: (pairId: string, slot: 0 | 1) => boolean;
+    toggleMemberPresent: (pairId: string, slot: 0 | 1) => void;
+    toggleMemberPaid: (pairId: string, slot: 0 | 1) => void;
     bulkUpdateStatus: (type: 'present' | 'paid', ids: string[]) => void;
     allPlayers: Player[];
 
@@ -69,10 +69,10 @@ export function TournamentModals({
     playerSearchQuery,
     setPlayerSearchQuery,
     filteredPlayers,
-    present,
-    togglePresent,
-    paid,
-    togglePaid,
+    isMemberPresent,
+    isMemberPaid,
+    toggleMemberPresent,
+    toggleMemberPaid,
     bulkUpdateStatus,
     allPlayers,
     showSuccessModal,
@@ -96,6 +96,11 @@ export function TournamentModals({
     handleDeletePlayer,
     isIndividual
 }: TournamentModalsProps) {
+    // Check-in y pago por jugador: cada integrante de la pareja tiene su clave.
+    const memberNamesOf = (p: Player) => p.name.split(/[\/\+]/).map(n => n.trim()).filter(Boolean);
+    const checkinIdsOf = (p: Player) =>
+        memberNamesOf(p).length > 1 ? [`${p.id}_0`, `${p.id}_1`] : [p.id];
+
     return (
         <>
             {/* Modal de Confirmación Estético */}
@@ -191,14 +196,14 @@ export function TournamentModals({
 
                             <div className="px-5 py-1.5 flex items-center gap-2">
                                 <button
-                                    onClick={() => bulkUpdateStatus('paid', allPlayers.map(p => p.id))}
+                                    onClick={() => bulkUpdateStatus('paid', allPlayers.flatMap(checkinIdsOf))}
                                     className="flex-1 py-2.5 bg-azul-primary/5 hover:bg-azul-primary/10 text-azul-primary border border-azul-primary/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                 >
                                     <CreditCard className="w-3 h-3" />
                                     Todos Pagos
                                 </button>
                                 <button
-                                    onClick={() => bulkUpdateStatus('present', allPlayers.map(p => p.id))}
+                                    onClick={() => bulkUpdateStatus('present', allPlayers.flatMap(checkinIdsOf))}
                                     className="flex-1 py-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                 >
                                     <UserCheck className="w-3 h-3" />
@@ -209,44 +214,55 @@ export function TournamentModals({
                             {/* Lista de Jugadores */}
                             <div className="flex-1 overflow-y-auto px-5 pb-5 custom-scrollbar">
                                 <div className="grid gap-1.5">
-                                    {filteredPlayers.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="group flex items-center justify-between p-2.5 rounded-xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${present.has(p.id) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-foreground/5 text-foreground/20'}`}>
-                                                    {p.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <div className="text-xs font-black uppercase italic leading-none mb-0.5">{p.name}</div>
-                                                    <div className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">{p.category || 'Sin Cat.'}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => togglePaid(p.id)}
-                                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${paid.has(p.id)
-                                                        ? 'bg-azul-primary/10 border-azul-primary/30 text-azul-primary'
-                                                        : 'bg-transparent border-border/50 text-foreground/30 hover:border-azul-primary/30 hover:text-azul-primary'}`}
+                                    {filteredPlayers.flatMap((p) => {
+                                        const memberNames = memberNamesOf(p);
+                                        const slots: (0 | 1)[] = memberNames.length > 1 ? [0, 1] : [0];
+                                        return slots.map(slot => {
+                                            const displayName = memberNames[slot] || p.name;
+                                            const isPresent = isMemberPresent(p.id, slot);
+                                            const isPaid = isMemberPaid(p.id, slot);
+                                            return (
+                                                <div
+                                                    key={`${p.id}_${slot}`}
+                                                    className="group flex items-center justify-between p-2.5 rounded-xl bg-muted/20 border border-border/30 hover:border-azul-primary/30 hover:bg-muted/30 transition-all"
                                                 >
-                                                    <CreditCard className={`w-3 h-3 ${paid.has(p.id) ? 'animate-pulse' : ''}`} />
-                                                    <span className="text-[8px] font-black uppercase tracking-tighter">{paid.has(p.id) ? 'PAGADO' : 'PAGAR'}</span>
-                                                </button>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${isPresent ? 'bg-emerald-500/10 text-emerald-500' : 'bg-foreground/5 text-foreground/20'}`}>
+                                                            {displayName.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-xs font-black uppercase italic leading-none mb-0.5">{displayName}</div>
+                                                            <div className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">
+                                                                {memberNames.length > 1 ? p.name : (p.category || 'Sin Cat.')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                <button
-                                                    onClick={() => togglePresent(p.id)}
-                                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${present.has(p.id)
-                                                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
-                                                        : 'bg-transparent border-border/50 text-foreground/30 hover:border-emerald-500/30 hover:text-emerald-500'}`}
-                                                >
-                                                    <UserCheck className={`w-3 h-3 ${present.has(p.id) ? 'animate-bounce' : ''}`} />
-                                                    <span className="text-[8px] font-black uppercase tracking-tighter">{present.has(p.id) ? 'PRESENTE' : 'AUSENTE'}</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => toggleMemberPaid(p.id, slot)}
+                                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${isPaid
+                                                                ? 'bg-azul-primary/10 border-azul-primary/30 text-azul-primary'
+                                                                : 'bg-transparent border-border/50 text-foreground/30 hover:border-azul-primary/30 hover:text-azul-primary'}`}
+                                                        >
+                                                            <CreditCard className={`w-3 h-3 ${isPaid ? 'animate-pulse' : ''}`} />
+                                                            <span className="text-[8px] font-black uppercase tracking-tighter">{isPaid ? 'PAGADO' : 'PAGAR'}</span>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => toggleMemberPresent(p.id, slot)}
+                                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${isPresent
+                                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
+                                                                : 'bg-transparent border-border/50 text-foreground/30 hover:border-emerald-500/30 hover:text-emerald-500'}`}
+                                                        >
+                                                            <UserCheck className={`w-3 h-3 ${isPresent ? 'animate-bounce' : ''}`} />
+                                                            <span className="text-[8px] font-black uppercase tracking-tighter">{isPresent ? 'PRESENTE' : 'AUSENTE'}</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })}
                                 </div>
                             </div>
                         </motion.div>

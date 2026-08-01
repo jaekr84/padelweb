@@ -7,14 +7,11 @@ interface TournamentGroupsViewProps {
     groups: Group[];
     matches: Match[];
     readOnly: boolean;
-    present: Set<string>;
-    togglePresent: (id: string) => void;
-    paid: Set<string>;
-    togglePaid: (id: string) => void;
     isEntryPresent: (id: string) => boolean;
-    isEntryPaid: (id: string) => boolean;
-    togglePairPresent: (pairId: string) => void;
-    togglePairPaid: (pairId: string) => void;
+    isMemberPresent: (pairId: string, slot: 0 | 1) => boolean;
+    isMemberPaid: (pairId: string, slot: 0 | 1) => boolean;
+    toggleMemberPresent: (pairId: string, slot: 0 | 1) => void;
+    toggleMemberPaid: (pairId: string, slot: 0 | 1) => void;
     groupNextInfo: (groupId: string) => { pendingCount: number; availableCount: number };
     startGroupMatch: (matchId: string) => void;
     startAllGroupMatches: (groupId: string) => void;
@@ -32,14 +29,11 @@ export function TournamentGroupsView({
     groups,
     matches,
     readOnly,
-    present,
-    togglePresent,
-    paid,
-    togglePaid,
     isEntryPresent,
-    isEntryPaid,
-    togglePairPresent,
-    togglePairPaid,
+    isMemberPresent,
+    isMemberPaid,
+    toggleMemberPresent,
+    toggleMemberPaid,
     groupNextInfo,
     startGroupMatch,
     startAllGroupMatches,
@@ -87,7 +81,9 @@ export function TournamentGroupsView({
                     return (
                         <div
                             key={g.id}
-                            className="rounded-xl overflow-hidden border border-white/10 shadow-lg flex flex-col h-full"
+                            // min-w-0: sin esto el ítem de grid no baja del ancho mínimo de
+                            // su contenido (botones + steppers) y la tarjeta se corta.
+                            className="min-w-0 rounded-xl overflow-hidden border border-white/10 shadow-lg flex flex-col h-full"
                             style={{ background: "linear-gradient(155deg, #1b2536 0%, #0f1420 100%)" }}
                         >
                             <div className="px-3 py-1.5 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
@@ -133,50 +129,71 @@ export function TournamentGroupsView({
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standings.map((s, idx: number) => (
+                                            {standings.map((s, idx: number) => {
+                                                // Check-in y pago son por jugador: una fila de la pareja = un
+                                                // botón por integrante, alineado con su nombre.
+                                                const memberNames = s.player.name.split(/[\/\+]/).map((n: string) => n.trim()).filter(Boolean);
+                                                const slots: (0 | 1)[] = memberNames.length > 1 ? [0, 1] : [0];
+                                                return (
                                                 <tr key={s.playerId} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
-                                                    <td className="px-0.5 py-0.5 text-center">
-                                                        <button
-                                                            onClick={() => togglePairPresent(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPresent(s.playerId) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/10 text-slate-400 hover:text-cyan-400"}`}
-                                                        >
-                                                            <UserCheck className="w-2.5 h-2.5" />
-                                                        </button>
+                                                    <td className="px-0.5 py-0.5 align-top">
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            {slots.map(slot => (
+                                                                <button
+                                                                    key={slot}
+                                                                    onClick={() => toggleMemberPresent(s.playerId, slot)}
+                                                                    title={`${memberNames[slot] || s.player.name}: ${isMemberPresent(s.playerId, slot) ? "presente" : "marcar presente"}`}
+                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPresent(s.playerId, slot) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/10 text-slate-400 hover:text-cyan-400"}`}
+                                                                >
+                                                                    <UserCheck className="w-2.5 h-2.5" />
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </td>
-                                                    <td className="px-0.5 py-0.5 text-center">
-                                                        <button
-                                                            onClick={() => togglePairPaid(s.playerId)}
-                                                            className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isEntryPaid(s.playerId) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/10 text-slate-400 hover:text-emerald-400"}`}
-                                                        >
-                                                            <CreditCard className="w-2.5 h-2.5" />
-                                                        </button>
+                                                    <td className="px-0.5 py-0.5 align-top">
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            {slots.map(slot => (
+                                                                <button
+                                                                    key={slot}
+                                                                    onClick={() => toggleMemberPaid(s.playerId, slot)}
+                                                                    title={`${memberNames[slot] || s.player.name}: ${isMemberPaid(s.playerId, slot) ? "pagó" : "marcar pago"}`}
+                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPaid(s.playerId, slot) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/10 text-slate-400 hover:text-emerald-400"}`}
+                                                                >
+                                                                    <CreditCard className="w-2.5 h-2.5" />
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </td>
-                                                    <td className="px-1.5 py-0.5 text-left">
+                                                    <td className="px-1.5 py-0.5 text-left align-top">
                                                         <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[10px] ${idx === 0 ? "bg-rojo text-white shadow-sm shadow-rojo/30" : "bg-white/5 text-slate-400"}`}>
                                                             {idx + 1}
                                                         </span>
                                                     </td>
-                                                    <td className="px-1 py-0.5">
-                                                        <div className="flex flex-col">
-                                                            {s.player.name.split(/[\/\+]/).map((name: string, i: number) => (
-                                                                <span key={i} className="font-black uppercase italic tracking-tight leading-none text-[11px] text-slate-200">
-                                                                    {name.trim()}
+                                                    <td className="px-1 py-0.5 align-top">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {(memberNames.length ? memberNames : [s.player.name]).map((name: string, i: number) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className={`font-black uppercase italic tracking-tight leading-none text-[11px] h-4 flex items-center ${isMemberPresent(s.playerId, (i === 1 ? 1 : 0)) ? "text-slate-200" : "text-slate-500"}`}
+                                                                >
+                                                                    {name}
                                                                 </span>
                                                             ))}
                                                         </div>
                                                     </td>
-                                                    <td className="px-1 py-0.5 text-center font-black italic text-cyan-400">{s.won}</td>
-                                                    <td className="px-1 py-0.5 text-center font-black italic text-slate-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                    <td className="px-1 py-0.5 text-center align-top font-black italic text-cyan-400">{s.won}</td>
+                                                    <td className="px-1 py-0.5 text-center align-top font-black italic text-slate-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                 </tr>
-                                            ))}
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                             <div className="p-2.5 space-y-1.5">
-                                <div className="flex items-center justify-between px-1">
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fixture del Grupo</h4>
-                                    <div className="h-px flex-1 bg-white/10 mx-2" />
+                                <div className="flex items-center justify-between gap-1 px-1 min-w-0">
+                                    <h4 className="shrink-0 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fixture del Grupo</h4>
+                                    <div className="h-px flex-1 min-w-2 bg-white/10 mx-1" />
                                     {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
                                         <button
                                             onClick={() => {
@@ -191,7 +208,7 @@ export function TournamentGroupsView({
                                                     handleConfirmScore(matchesToConfirm.map(m => m.id));
                                                 }
                                             }}
-                                            className="text-[10px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-slate-900 bg-cyan-400/10 hover:bg-cyan-400 px-1.5 py-0.5 rounded transition-colors border border-cyan-400/30"
+                                            className="shrink-0 text-[10px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-slate-900 bg-cyan-400/10 hover:bg-cyan-400 px-1.5 py-0.5 rounded transition-colors border border-cyan-400/30"
                                         >
                                             GUARDAR TODO
                                         </button>
@@ -199,7 +216,7 @@ export function TournamentGroupsView({
                                     {!readOnly && liveInfo.cancellableCount > 1 && (
                                         <button
                                             onClick={() => cancelAllGroupMatches(g.id)}
-                                            className="ml-1 flex items-center gap-1 text-[10px] font-black uppercase italic tracking-wider text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-1.5 py-0.5 rounded transition-colors border border-white/15"
+                                            className="shrink-0 ml-1 flex items-center gap-1 text-[10px] font-black uppercase italic tracking-wider text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-1.5 py-0.5 rounded transition-colors border border-white/15"
                                             title="Devolver a pendiente los partidos iniciados sin puntos"
                                         >
                                             <Undo2 className="w-2.5 h-2.5" />
@@ -227,7 +244,7 @@ export function TournamentGroupsView({
                                         return (
                                             <div
                                                 key={m.id}
-                                                className={`group/match relative transition-all text-[10px] ${!isReady && readOnly && !isDone ? "opacity-40 grayscale pointer-events-none" : ""}`}
+                                                className={`group/match relative min-w-0 transition-all text-[10px] ${!isReady && readOnly && !isDone ? "opacity-40 grayscale pointer-events-none" : ""}`}
                                             >
                                                 <div
                                                     className={`rounded-md border transition-all overflow-hidden flex items-center justify-between px-1.5 py-1.5 gap-1 ${isDone
