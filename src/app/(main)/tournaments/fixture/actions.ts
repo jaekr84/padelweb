@@ -159,8 +159,9 @@ export async function saveTournamentFixture(input: SaveFixtureInput): Promise<{ 
                     const isLive = status === "in_progress" || status === "live";
                     const isDone = !!isConfirmed || status === "finished" || status === "completed";
                     const prevTiming = prevGroupTiming.get(idToUse);
-                    // Keep the first start time; set finish only while done (cleared on reopen).
-                    const startedAt = prevTiming?.startedAt ?? ((isLive || isDone) ? saveTime : null);
+                    // Keep the first start time while the match is live/done; a match sent
+                    // back to 'pending' (undo start) loses it so stats don't count that time.
+                    const startedAt = (isLive || isDone) ? (prevTiming?.startedAt ?? saveTime) : null;
                     const finishedAt = isDone ? (prevTiming?.finishedAt ?? saveTime) : null;
 
                     return {

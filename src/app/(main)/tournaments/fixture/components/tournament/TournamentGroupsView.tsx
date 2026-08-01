@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Users2, UserCheck, Plus, Minus, RotateCcw, CreditCard, Play } from "lucide-react";
+import { MapPin, Users2, UserCheck, Plus, Minus, RotateCcw, CreditCard, Play, Undo2 } from "lucide-react";
 import { Group, Match, Standing } from "./types";
 
 interface TournamentGroupsViewProps {
@@ -16,13 +16,15 @@ interface TournamentGroupsViewProps {
     togglePairPresent: (pairId: string) => void;
     togglePairPaid: (pairId: string) => void;
     groupNextInfo: (groupId: string) => { pendingCount: number; availableCount: number };
-    startNextGroupMatch: (groupId: string) => void;
+    startGroupMatch: (matchId: string) => void;
     startAllGroupMatches: (groupId: string) => void;
+    groupLiveInfo: (groupId: string) => { cancellableCount: number };
+    cancelGroupMatch: (matchId: string) => void;
+    cancelAllGroupMatches: (groupId: string) => void;
     handleScoreChange: (matchId: string, s1: string, s2: string) => void;
     handleConfirmScore: (matchId: string | string[]) => void;
     handleReopenMatch: (matchId: string) => void;
     setGroups: (groups: Group[]) => void;
-    setMatches: (matches: Match[] | ((prev: Match[]) => Match[])) => void;
     computeStandings: (groupId: string) => Standing[];
 }
 
@@ -39,13 +41,15 @@ export function TournamentGroupsView({
     togglePairPresent,
     togglePairPaid,
     groupNextInfo,
-    startNextGroupMatch,
+    startGroupMatch,
     startAllGroupMatches,
+    groupLiveInfo,
+    cancelGroupMatch,
+    cancelAllGroupMatches,
     handleScoreChange,
     handleConfirmScore,
     handleReopenMatch,
     setGroups,
-    setMatches,
     computeStandings
 }: TournamentGroupsViewProps) {
     return (
@@ -73,11 +77,12 @@ export function TournamentGroupsView({
                     const groupMatches = matches
                         .filter(m => m.groupId === g.id)
                         .sort((a, b) => a.id.localeCompare(b.id));
-                    // Matches are revealed on demand: only live and finished ones are
-                    // shown. Pending matches stay hidden until "Comenzar siguiente".
-                    const isMatchDone = (m: Match) => m.confirmed || m.status === 'finished' || m.status === 'completed';
-                    const visibleMatches = groupMatches.filter(m => m.status === 'in_progress' || isMatchDone(m));
+                    // The whole fixture is listed: the admin picks which match goes to
+                    // court and starts it manually (the order on court rarely follows
+                    // the listed order).
+                    const visibleMatches = groupMatches;
                     const nextInfo = groupNextInfo(g.id);
+                    const liveInfo = groupLiveInfo(g.id);
 
                     return (
                         <div
@@ -191,35 +196,27 @@ export function TournamentGroupsView({
                                             GUARDAR TODO
                                         </button>
                                     )}
+                                    {!readOnly && liveInfo.cancellableCount > 1 && (
+                                        <button
+                                            onClick={() => cancelAllGroupMatches(g.id)}
+                                            className="ml-1 flex items-center gap-1 text-[10px] font-black uppercase italic tracking-wider text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-1.5 py-0.5 rounded transition-colors border border-white/15"
+                                            title="Devolver a pendiente los partidos iniciados sin puntos"
+                                        >
+                                            <Undo2 className="w-2.5 h-2.5" />
+                                            Deshacer ({liveInfo.cancellableCount})
+                                        </button>
+                                    )}
                                 </div>
 
-                                {!readOnly && nextInfo.pendingCount > 0 && (
-                                    <div className="flex items-center gap-1.5">
-                                        <button
-                                            onClick={() => startNextGroupMatch(g.id)}
-                                            disabled={nextInfo.availableCount === 0}
-                                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-black uppercase italic tracking-widest text-[11px] transition-all border ${nextInfo.availableCount > 0
-                                                ? "bg-rojo text-white border-rojo/40 shadow-[0_0_16px_rgba(255,45,85,0.25)] hover:bg-rojo/90 hover:scale-[1.01] active:scale-95"
-                                                : "bg-white/[0.03] text-slate-500 border-white/10 cursor-not-allowed"}`}
-                                            title={nextInfo.availableCount > 0
-                                                ? "Inicia el próximo partido disponible del grupo"
-                                                : "Esperando que las parejas estén presentes"}
-                                        >
-                                            <Play className="w-3.5 h-3.5" />
-                                            {nextInfo.availableCount > 0
-                                                ? `Comenzar siguiente (${nextInfo.pendingCount} pendiente${nextInfo.pendingCount === 1 ? "" : "s"})`
-                                                : `Esperando jugadores (${nextInfo.pendingCount} pendiente${nextInfo.pendingCount === 1 ? "" : "s"})`}
-                                        </button>
-                                        {nextInfo.availableCount > 1 && (
-                                            <button
-                                                onClick={() => startAllGroupMatches(g.id)}
-                                                className="shrink-0 px-2.5 py-2 rounded-lg font-black uppercase italic tracking-widest text-[11px] transition-all border bg-cyan-400/10 text-cyan-300 border-cyan-400/30 hover:bg-cyan-400 hover:text-slate-900 active:scale-95"
-                                                title="Iniciar todos los partidos con parejas presentes"
-                                            >
-                                                Todos ({nextInfo.availableCount})
-                                            </button>
-                                        )}
-                                    </div>
+                                {!readOnly && nextInfo.availableCount > 1 && (
+                                    <button
+                                        onClick={() => startAllGroupMatches(g.id)}
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg font-black uppercase italic tracking-widest text-[10px] transition-all border bg-white/[0.03] text-slate-300 border-white/12 hover:bg-cyan-400/10 hover:text-cyan-300 hover:border-cyan-400/30 active:scale-95"
+                                        title="Iniciar de una todos los partidos con las dos parejas presentes"
+                                    >
+                                        <Play className="w-3 h-3" />
+                                        Iniciar todos ({nextInfo.availableCount})
+                                    </button>
                                 )}
 
                                 <div className="grid gap-1">
@@ -237,12 +234,12 @@ export function TournamentGroupsView({
                                                         ? "bg-emerald-500/[0.06] border-emerald-500/30"
                                                         : isLive
                                                             ? "bg-rojo/[0.08] border-rojo/40 shadow-[0_0_12px_rgba(255,45,85,0.25)]"
-                                                            : "bg-white/[0.04] border-white/10 hover:border-white/20"
+                                                            : "bg-white/[0.02] border-white/10 hover:border-white/25"
                                                         }`}
                                                 >
                                                     {/* Equipo 1 */}
                                                     <div className="flex items-center gap-1 flex-1 min-w-0">
-                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight ${isDone ? (m.score1! > m.score2! ? "text-emerald-400" : "text-slate-500") : "text-slate-100"}`}>
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight ${isDone ? (m.score1! > m.score2! ? "text-emerald-400" : "text-slate-500") : isLive ? "text-slate-100" : "text-slate-400"}`}>
                                                             {m.team1.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
                                                         {isLive && !readOnly ? (
@@ -270,7 +267,7 @@ export function TournamentGroupsView({
                                                         ) : (
                                                             <span className={`font-black w-6 text-center ${isDone && m.score2! > m.score1! ? "text-emerald-400" : "text-slate-400"}`}>{m.score2 ?? 0}</span>
                                                         )}
-                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight text-right ${isDone ? (m.score2! > m.score1! ? "text-emerald-400" : "text-slate-500") : "text-slate-100"}`}>
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight text-right ${isDone ? (m.score2! > m.score1! ? "text-emerald-400" : "text-slate-500") : isLive ? "text-slate-100" : "text-slate-400"}`}>
                                                             {m.team2.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
                                                     </div>
@@ -278,22 +275,38 @@ export function TournamentGroupsView({
                                                     {/* Acciones */}
                                                     <div className="flex items-center gap-1 shrink-0 ml-1">
                                                         {!m.confirmed && !readOnly && m.status !== 'finished' && m.status !== 'completed' && (
-                                                            <>
-                                                                {!isLive && (
+                                                            isLive ? (
+                                                                <>
+                                                                    {!m.score1 && !m.score2 && (
+                                                                        <button
+                                                                            onClick={() => cancelGroupMatch(m.id)}
+                                                                            className="p-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white border border-white/15 transition-colors"
+                                                                            title="Deshacer inicio: vuelve a pendiente"
+                                                                        >
+                                                                            <Undo2 className="w-2.5 h-2.5" />
+                                                                        </button>
+                                                                    )}
                                                                     <button
-                                                                        onClick={() => setMatches(prev => prev.map(match => match.id === m.id ? { ...match, status: 'in_progress' } : match))}
-                                                                        className="px-1.5 py-0.5 rounded bg-rojo/10 hover:bg-rojo text-rojo hover:text-white border border-rojo/30 text-[10px] font-black italic transition-colors"
+                                                                        onClick={() => handleConfirmScore(m.id)}
+                                                                        className="px-1.5 py-0.5 rounded bg-cyan-400/10 hover:bg-cyan-400 text-cyan-300 hover:text-slate-900 text-[10px] font-black italic border border-cyan-400/30 transition-colors"
                                                                     >
-                                                                        START
+                                                                        FIN
                                                                     </button>
-                                                                )}
+                                                                </>
+                                                            ) : (
                                                                 <button
-                                                                    onClick={() => handleConfirmScore(m.id)}
-                                                                    className="px-1.5 py-0.5 rounded bg-cyan-400/10 hover:bg-cyan-400 text-cyan-300 hover:text-slate-900 text-[10px] font-black italic border border-cyan-400/30 transition-colors"
+                                                                    onClick={() => startGroupMatch(m.id)}
+                                                                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black italic border transition-colors ${isReady
+                                                                        ? "bg-rojo/10 hover:bg-rojo text-rojo hover:text-white border-rojo/30"
+                                                                        : "bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white border-white/15"}`}
+                                                                    title={isReady
+                                                                        ? "Iniciar este partido"
+                                                                        : "Iniciar igual (falta marcar presente a alguna pareja)"}
                                                                 >
-                                                                    FIN
+                                                                    <Play className="w-2 h-2" />
+                                                                    START
                                                                 </button>
-                                                            </>
+                                                            )
                                                         )}
                                                         {isDone && !readOnly && (
                                                             <button

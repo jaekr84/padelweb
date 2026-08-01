@@ -39,7 +39,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
     const {
         step, setStep,
         groups, setGroups,
-        matches, setMatches,
+        matches,
         bracket,
         resolvedBracket,
         present, setPresent,
@@ -89,8 +89,11 @@ export default function TournamentManager(props: TournamentManagerProps) {
         togglePairPresent,
         togglePairPaid,
         groupNextInfo,
-        startNextGroupMatch,
+        startGroupMatch,
         startAllGroupMatches,
+        groupLiveInfo,
+        cancelGroupMatch,
+        cancelAllGroupMatches,
         finalQualifiers,
         qualLimit,
         setQualLimit
@@ -177,13 +180,15 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                             togglePairPresent={togglePairPresent}
                                             togglePairPaid={togglePairPaid}
                                             groupNextInfo={groupNextInfo}
-                                            startNextGroupMatch={startNextGroupMatch}
+                                            startGroupMatch={startGroupMatch}
                                             startAllGroupMatches={startAllGroupMatches}
+                                            groupLiveInfo={groupLiveInfo}
+                                            cancelGroupMatch={cancelGroupMatch}
+                                            cancelAllGroupMatches={cancelAllGroupMatches}
                                             handleScoreChange={handleScoreChange}
                                             handleConfirmScore={handleConfirmScore}
                                             handleReopenMatch={handleReopenMatch}
                                             setGroups={setGroups}
-                                            setMatches={setMatches}
                                             computeStandings={computeStandings}
                                         />
 

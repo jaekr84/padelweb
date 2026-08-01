@@ -320,39 +320,15 @@ export function useTournamentLogic({
         return { pendingCount: pending.length, availableCount: available.length };
     }, [matches, isEntryPresent]);
 
-    // Reveal + start the next match of a group: a pending match whose pairs are
-    // both present, preferring pairs that have played the fewest games (fairness).
-    const startNextGroupMatch = async (groupId: string) => {
+    // Start one specific match, chosen by the admin from the full fixture. No
+    // presence check: the order on court rarely matches the listed order, so the
+    // admin decides (the row already shows whether both pairs are checked in).
+    const startGroupMatch = async (matchId: string) => {
         if (readOnly) return;
-        const played = new Map<string, number>();
-        matches.forEach(m => {
-            if (isMatchDone(m)) {
-                played.set(m.team1.id, (played.get(m.team1.id) || 0) + 1);
-                played.set(m.team2.id, (played.get(m.team2.id) || 0) + 1);
-            }
-        });
+        const chosen = matches.find(m => m.id === matchId);
+        if (!chosen || isMatchDone(chosen) || chosen.status === 'in_progress') return;
 
-        const candidates = matches.filter(m =>
-            m.groupId === groupId &&
-            !isMatchDone(m) &&
-            m.status !== 'in_progress' &&
-            isEntryPresent(m.team1.id) && isEntryPresent(m.team2.id)
-        );
-
-        if (candidates.length === 0) {
-            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
-            return;
-        }
-
-        candidates.sort((a, b) => {
-            const ga = (played.get(a.team1.id) || 0) + (played.get(a.team2.id) || 0);
-            const gb = (played.get(b.team1.id) || 0) + (played.get(b.team2.id) || 0);
-            if (ga !== gb) return ga - gb;
-            return a.id.localeCompare(b.id);
-        });
-
-        const chosen = candidates[0];
-        const newMatches = matches.map(m => m.id === chosen.id ? { ...m, status: 'in_progress' } : m);
+        const newMatches = matches.map(m => m.id === matchId ? { ...m, status: 'in_progress' } : m);
         setMatches(newMatches);
 
         try {
@@ -380,7 +356,29 @@ export function useTournamentLogic({
     };
 
     // Start every pending match of a group whose pairs are present, in one save.
-    const startAllGroupMatches = async (groupId: string) => {
+    // Asks first: starting a whole group at once is the opposite of the on-demand
+    // flow, and an accidental click used to leave every match live.
+    const startAllGroupMatches = (groupId: string) => {
+        if (readOnly) return;
+        const { availableCount } = groupNextInfo(groupId);
+        if (availableCount === 0) {
+            toast.error("No hay partidos disponibles: revisá que las parejas estén presentes.");
+            return;
+        }
+        const groupName = groups.find(g => g.id === groupId)?.name || "el grupo";
+        setConfirmModal({
+            open: true,
+            title: `Iniciar todos (${availableCount})`,
+            description: `Se van a iniciar los ${availableCount} partidos disponibles de ${groupName} al mismo tiempo. Si querés jugarlos de a uno, usá "Comenzar siguiente".`,
+            variant: 'primary',
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                void runStartAllGroupMatches(groupId);
+            }
+        });
+    };
+
+    const runStartAllGroupMatches = async (groupId: string) => {
         if (readOnly) return;
         const toStart = matches.filter(m =>
             m.groupId === groupId &&
@@ -417,6 +415,70 @@ export function useTournamentLogic({
             toast.error("Error al iniciar los partidos");
             setMatches(matches); // rollback
         }
+    };
+
+    // ── Undo an accidental start ──────────────────────────────────────────────
+    // A live match with no points loaded can go back to 'pending': it disappears
+    // from the fixture again and vuelve a la cola de "Comenzar siguiente".
+    const isMatchCancellable = (m: Match) =>
+        m.status === 'in_progress' && !isMatchDone(m) && !m.score1 && !m.score2;
+
+    const groupLiveInfo = useCallback((groupId: string) => {
+        const cancellable = matches.filter(m => m.groupId === groupId && isMatchCancellable(m));
+        return { cancellableCount: cancellable.length };
+    }, [matches]);
+
+    const persistCancelled = async (ids: Set<string>, label: string) => {
+        const newMatches = matches.map(m =>
+            ids.has(m.id) ? { ...m, status: 'pending', played: false, score1: 0, score2: 0 } : m
+        );
+        setMatches(newMatches);
+        try {
+            const res = await saveFixture({
+                tournamentId,
+                phase: "grupos",
+                groups: groups.map(g => ({ id: g.id, name: g.name, players: g.players })),
+                matches: newMatches,
+                bracket,
+                presentPlayerIds: Array.from(present),
+                paidPlayerIds: Array.from(paid),
+                skipRevalidation: true,
+            });
+            if (res.ok) {
+                toast.success(label);
+            } else {
+                toast.error("Error al deshacer: " + res.error);
+                setMatches(matches); // rollback
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al deshacer el inicio");
+            setMatches(matches); // rollback
+        }
+    };
+
+    const cancelGroupMatch = async (matchId: string) => {
+        if (readOnly) return;
+        const match = matches.find(m => m.id === matchId);
+        if (!match || !isMatchCancellable(match)) return;
+        await persistCancelled(new Set([matchId]), "Partido devuelto a pendiente");
+    };
+
+    const cancelAllGroupMatches = (groupId: string) => {
+        if (readOnly) return;
+        const toCancel = matches.filter(m => m.groupId === groupId && isMatchCancellable(m));
+        if (toCancel.length === 0) return;
+        const groupName = groups.find(g => g.id === groupId)?.name || "el grupo";
+        setConfirmModal({
+            open: true,
+            title: `Deshacer inicio (${toCancel.length})`,
+            description: `Se van a devolver a pendiente los ${toCancel.length} partidos iniciados sin puntos de ${groupName}. Vuelven a la cola de "Comenzar siguiente".`,
+            variant: 'primary',
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                void persistCancelled(new Set(toCancel.map(m => m.id)), `${toCancel.length} partidos devueltos a pendiente`);
+            }
+        });
     };
 
     const handleReplacePlayer = async (oldPlayerId: string, newPlayer: Player) => {
@@ -1398,7 +1460,10 @@ export function useTournamentLogic({
         togglePairPresent,
         togglePairPaid,
         groupNextInfo,
-        startNextGroupMatch,
-        startAllGroupMatches
+        startGroupMatch,
+        startAllGroupMatches,
+        groupLiveInfo,
+        cancelGroupMatch,
+        cancelAllGroupMatches
     };
 }
