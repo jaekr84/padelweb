@@ -15,6 +15,8 @@ import {
     generateAmericanoMatches, type AmPlayer,
     distributeIntoGroups, type GrPlayer,
     getSeedingOrder, buildSeedMap, computeFirstRoundPairs,
+    orderQualifiers, countRealQualifiers, toSeedInput, isByeQualifier,
+    advanceBracket, isDoubleBye, type BrMatch,
     computeGroupStandings, type StMatch,
 } from "@/lib/matchmaking";
 import Simulator from "./Simulator";
@@ -379,7 +381,7 @@ function runGroups(): Suite {
 // ============================================================================
 // 4. SIEMBRA DE LLAVES
 // ============================================================================
-type Qual = { groupRank: number; groupId: string; player: { id: string; name: string } };
+type Qual = { groupRank: number; groupId: string; clubId?: string; player: { id: string; name: string } };
 
 function runSeeding(): Suite {
     const checks: Check[] = [];
@@ -429,6 +431,37 @@ function runSeeding(): Suite {
             pairs.map(p => `${p.q1?.player.name}vs${p.q2?.player.name}`).join("  ")));
     }
 
+    // 4d. Regresión: 3 grupos y 4 clasificados. El armado "de una pasada" le
+    // dejaba a 2ºA sólo el seed 4, que en un cuadro de 4 siempre enfrenta al
+    // seed 1 — su propio ganador de grupo. Hace falta reacomodar los seeds.
+    {
+        const quals: Qual[] = [
+            { groupRank: 1, groupId: "A", player: { id: "1A", name: "1ºA" } },
+            { groupRank: 1, groupId: "B", player: { id: "1B", name: "1ºB" } },
+            { groupRank: 1, groupId: "C", player: { id: "1C", name: "1ºC" } },
+            { groupRank: 2, groupId: "A", player: { id: "2A", name: "2ºA" } },
+        ];
+        const pairs = computeFirstRoundPairs(quals, 4);
+        const clean = pairs.every(p => !p.q1 || !p.q2 || p.q1.groupId !== p.q2.groupId);
+        checks.push(ok("3 grupos / 4 clasificados: el 2ºA no cae contra el 1ºA", clean,
+            pairs.map(p => `${p.q1?.player.name} vs ${p.q2?.player.name}`).join("   ")));
+    }
+
+    // 4e. Club como criterio SECUNDARIO: separa club-mates sin romper la
+    // separación de grupo. 4 grupos, 8 clasificados, 4 clubes de 2 parejas.
+    {
+        const clubOf: Record<string, string> = { "1A": "X", "1B": "X", "1C": "Y", "1D": "Y", "2A": "Z", "2B": "Z", "2C": "W", "2D": "W" };
+        const quals: Qual[] = [];
+        for (const g of ["A", "B", "C", "D"]) quals.push({ groupRank: 1, groupId: g, clubId: clubOf[`1${g}`], player: { id: `1${g}`, name: `1º${g}` } });
+        for (const g of ["A", "B", "C", "D"]) quals.push({ groupRank: 2, groupId: g, clubId: clubOf[`2${g}`], player: { id: `2${g}`, name: `2º${g}` } });
+        const pairs = computeFirstRoundPairs(quals, 8);
+        const noGroup = pairs.every(p => !p.q1 || !p.q2 || p.q1.groupId !== p.q2.groupId);
+        const noClub = pairs.every(p => !p.q1 || !p.q2 || p.q1.clubId !== p.q2.clubId);
+        checks.push(ok("Separación por club en 1ª ronda (criterio secundario)", noClub,
+            pairs.map(p => `${p.q1?.player.name}(${p.q1?.clubId})vs${p.q2?.player.name}(${p.q2?.clubId})`).join("  ")));
+        checks.push(ok("El club no rompe la separación de grupo", noGroup));
+    }
+
     // Muestra
     const quals: Qual[] = [];
     for (const g of ["A", "B", "C", "D"]) quals.push({ groupRank: 1, groupId: g, player: { id: `1${g}`, name: `1º ${g}` } });
@@ -453,7 +486,223 @@ function runSeeding(): Suite {
 }
 
 // ============================================================================
-// 5. TABLA DE POSICIONES
+// 5. TORNEO ROBIN: CLASIFICADOS Y CUADRO
+// ============================================================================
+type RbPlayer = { id: string; name: string; clubId?: string | null; isPlaceholder?: boolean };
+type RbQual = {
+    groupRank: number; groupId?: string; player?: RbPlayer;
+    isPlaceholder?: boolean; isBye?: boolean;
+    matchesPlayed?: number; won?: number; points?: number; gamesWon?: number;
+};
+
+// Clasificado real de un grupo terminado.
+function rbReal(group: string, rank: number, stats: { played: number; won: number; points?: number; gamesWon?: number }, clubId?: string): RbQual {
+    return {
+        groupRank: rank, groupId: group,
+        player: { id: `${group}${rank}`, name: `${rank}º ${group}`, clubId },
+        matchesPlayed: stats.played, won: stats.won,
+        points: stats.points ?? 0, gamesWon: stats.gamesWon ?? 0,
+    };
+}
+// Puesto de un grupo que todavía está jugando ("1º GRUPO B").
+function rbTbd(group: string, rank: number): RbQual {
+    return {
+        groupRank: rank, groupId: group, isPlaceholder: true,
+        player: { id: `TBD_${group}_${rank}`, name: `${rank}º ${group}`, isPlaceholder: true },
+        matchesPlayed: 0, won: 0, points: 0, gamesWon: 0,
+    };
+}
+// Hueco de un grupo con menos parejas que el más grande.
+function rbBye(group: string, rank: number): RbQual {
+    return { groupRank: rank, groupId: group, isBye: true, matchesPlayed: 0, won: 0, points: 0, gamesWon: 0 };
+}
+
+// Arma el cuadro igual que useTournamentLogic: siembra + BYEs + propagación.
+function rbBuildBracket(quals: RbQual[]) {
+    const K = quals.length;
+    const numRounds = Math.max(1, Math.ceil(Math.log2(K)));
+    const size = Math.pow(2, numRounds);
+    const order = getSeedingOrder(size);
+    const seedMap = buildSeedMap(toSeedInput(quals));
+
+    const bracket: BrMatch<RbPlayer>[] = [];
+    for (let r = 0; r < numRounds; r++) {
+        for (let s = 0; s < Math.pow(2, r); s++) {
+            bracket.push({ round: r, slot: s, team1: null, team2: null, confirmed: false });
+        }
+    }
+    bracket.filter(m => m.round === numRounds - 1).forEach((m, idx) => {
+        const q1 = seedMap.get(order[idx * 2]);
+        const q2 = seedMap.get(order[idx * 2 + 1]);
+        m.team1 = isByeQualifier(q1) ? "BYE" : q1!.player!;
+        m.team2 = isByeQualifier(q2) ? "BYE" : q2!.player!;
+        if (m.team1 === "BYE" || m.team2 === "BYE") {
+            m.confirmed = true;
+            const winner = m.team1 === "BYE" ? m.team2 : m.team1;
+            if (winner && winner !== "BYE") {
+                m.winnerId = winner.id;
+                m.winnerName = winner.name;
+            }
+        }
+    });
+    return { bracket: advanceBracket(bracket, numRounds), numRounds };
+}
+
+// Un casillero "muerto": partido sin resolver con un lado en null aunque el
+// partido que lo alimenta ya esté terminado. El rival espera para siempre.
+function rbDeadSlots(bracket: BrMatch<RbPlayer>[], numRounds: number): number {
+    let dead = 0;
+    for (const m of bracket) {
+        if (m.round === numRounds - 1 || m.confirmed) continue;
+        ([1, 2] as const).forEach(side => {
+            if ((side === 1 ? m.team1 : m.team2) !== null) return;
+            const feeder = bracket.find(f => f.round === m.round + 1 && f.slot === m.slot * 2 + (side - 1));
+            if (feeder && feeder.confirmed) dead++;
+        });
+    }
+    return dead;
+}
+
+function runRobin(): Suite {
+    const checks: Check[] = [];
+
+    // 5a. El puesto manda sobre "ya definido": si un grupo terminó y los otros
+    // siguen jugando, no puede llevarse todos los cupos.
+    let mixedTop: RbQual[] = [];
+    {
+        const quals: RbQual[] = [];
+        for (let r = 1; r <= 4; r++) quals.push(rbReal("A", r, { played: 3, won: 4 - r }));
+        for (let r = 1; r <= 4; r++) quals.push(rbTbd("B", r));
+        for (let r = 1; r <= 4; r++) quals.push(rbTbd("C", r));
+        const ordered = orderQualifiers(quals);
+        mixedTop = ordered.slice(0, 6);
+        const perGroup = new Map<string, number>();
+        mixedTop.forEach(q => perGroup.set(q.groupId!, (perGroup.get(q.groupId!) ?? 0) + 1));
+        const balanced = [...perGroup.values()].every(n => n === 2);
+        checks.push(ok("Grupo A terminado y B/C jugando: cada grupo aporta 2 clasificados, no 4-1-1", balanced,
+            [...perGroup.entries()].map(([g, n]) => `${g}=${n}`).join(", ")));
+        checks.push(ok("Los 1º de los grupos sin terminar entran antes que el 4º del grupo terminado",
+            mixedTop.every(q => q.groupRank <= 2),
+            mixedTop.map(q => `${q.groupRank}º${q.groupId}`).join("  ")));
+    }
+
+    // 5b. A igual puesto, el desempate es POR PARTIDO: comparar totales le daba
+    // el mejor seed al del grupo más grande sólo por jugar más partidos.
+    {
+        const grande = rbReal("A", 2, { played: 5, won: 3, points: 6 }); // 0.60 por partido
+        const chico = rbReal("B", 2, { played: 3, won: 2, points: 6 });  // 0.67 por partido
+        const ordered = orderQualifiers([grande, chico]);
+        checks.push(ok("2º de un grupo de 4 (2 de 3) le gana al 2º de un grupo de 6 (3 de 5)",
+            ordered[0].groupId === "B",
+            `A: ${(3 / 5).toFixed(2)}/partido · B: ${(2 / 3).toFixed(2)}/partido → primero ${ordered[0].groupId}`));
+
+        // Guarda de que el caso sirve: si se comparara por totales el resultado
+        // sería el opuesto, así que el test detecta si se vuelve atrás.
+        const porTotales = [grande, chico].slice().sort((x, y) => (y.won! - x.won!));
+        checks.push(ok("El caso es discriminante: comparando totales daría al revés",
+            porTotales[0].groupId === "A", "3 ganados > 2 ganados, pero 0.60 < 0.67 por partido"));
+    }
+
+    // 5c. Los fantasmas van últimos dentro de su puesto y no cuentan para el cupo.
+    {
+        const quals = orderQualifiers([
+            rbBye("C", 2),
+            rbReal("A", 2, { played: 3, won: 2 }),
+            rbReal("B", 2, { played: 3, won: 1 }),
+        ]);
+        checks.push(ok("El hueco de un grupo corto queda último en su puesto", !!quals[2].isBye,
+            quals.map(q => (q.isBye ? `BYE(${q.groupId})` : `${q.groupRank}º${q.groupId}`)).join("  ")));
+        checks.push(ok("El cupo máximo cuenta sólo parejas reales", countRealQualifiers(quals) === 2,
+            `${countRealQualifiers(quals)} de ${quals.length} entradas`));
+    }
+
+    // 5d. Un BYE normal hace avanzar al rival.
+    {
+        const quals: RbQual[] = [];
+        for (const g of ["A", "B", "C"]) quals.push(rbReal(g, 1, { played: 3, won: 3 }));
+        for (const g of ["A", "B"]) quals.push(rbReal(g, 2, { played: 3, won: 2 }));
+        const { bracket, numRounds } = rbBuildBracket(quals); // 5 clasificados → cuadro de 8
+        const first = bracket.filter(m => m.round === numRounds - 1);
+        const byeMatches = first.filter(m => m.team1 === "BYE" || m.team2 === "BYE");
+        const allResolved = byeMatches.every(m => m.confirmed && (isDoubleBye(m) || !!m.winnerId));
+        checks.push(ok("Los partidos con BYE quedan resueltos solos", byeMatches.length > 0 && allResolved,
+            `${byeMatches.length} partidos con BYE en 1ª ronda`));
+        checks.push(ok("Nadie queda esperando 'a definir' contra un casillero vacío",
+            rbDeadSlots(bracket, numRounds) === 0));
+    }
+
+    // 5e. BYE contra BYE: se resuelve solo y el BYE sube, en vez de dejar el
+    // casillero de la ronda siguiente en null para siempre.
+    let dbSample: { bracket: BrMatch<RbPlayer>[]; numRounds: number } | null = null;
+    {
+        // Grupos de 4, 4 y 1 pareja: el grupo C aporta 3 huecos.
+        const quals: RbQual[] = [];
+        for (let r = 1; r <= 4; r++) {
+            quals.push(rbReal("A", r, { played: 3, won: 4 - r }));
+            quals.push(rbReal("B", r, { played: 3, won: 4 - r }));
+            quals.push(r === 1 ? rbReal("C", 1, { played: 0, won: 0 }) : rbBye("C", r));
+        }
+        const ordered = orderQualifiers(quals);
+        const built = rbBuildBracket(ordered.slice(0, 10));
+        dbSample = built;
+        const dobles = built.bracket.filter(isDoubleBye);
+        checks.push(ok("Se generan partidos BYE vs BYE cuando un grupo es mucho más chico", dobles.length > 0,
+            `${dobles.length} partidos BYE vs BYE`));
+        checks.push(ok("BYE vs BYE no deja casilleros muertos en la ronda siguiente",
+            rbDeadSlots(built.bracket, built.numRounds) === 0));
+    }
+
+    // 5f. Barrido: ninguna combinación de grupos desparejos deja el cuadro trabado.
+    {
+        let dead = 0, cuadros = 0, dobles = 0;
+        for (const sizes of [[4, 4, 1], [4, 1, 1], [5, 5, 1], [6, 3, 1], [5, 4, 4, 2], [8, 1], [4, 4, 3]]) {
+            const maxSize = Math.max(...sizes);
+            const quals: RbQual[] = [];
+            sizes.forEach((size, gi) => {
+                const g = String.fromCharCode(65 + gi);
+                for (let r = 1; r <= maxSize; r++) {
+                    quals.push(r <= size ? rbReal(g, r, { played: size - 1, won: size - r }) : rbBye(g, r));
+                }
+            });
+            const ordered = orderQualifiers(quals);
+            for (let limit = 2; limit <= ordered.length; limit++) {
+                const built = rbBuildBracket(ordered.slice(0, limit));
+                cuadros++;
+                dobles += built.bracket.filter(isDoubleBye).length;
+                dead += rbDeadSlots(built.bracket, built.numRounds);
+            }
+        }
+        checks.push(ok(`Barrido de grupos desparejos: ${cuadros} cuadros, ${dobles} partidos BYE vs BYE, 0 casilleros muertos`,
+            dead === 0, dead === 0 ? undefined : `${dead} casilleros muertos`));
+    }
+
+    return {
+        checks,
+        sample: (
+            <>
+                <SampleBox title="Grupo A terminado, B y C todavía jugando → 6 clasificados">
+                    {mixedTop.map((q, i) => (
+                        <MatchRow key={i} t1={[`seed ${i + 1}`]} t2={[`${q.groupRank}º GRUPO ${q.groupId}`]}
+                            meta={q.isPlaceholder ? "a definir" : "definido"} />
+                    ))}
+                </SampleBox>
+                {dbSample && (
+                    <SampleBox title="Grupos de 4, 4 y 1 pareja → 1ª ronda del cuadro">
+                        {dbSample.bracket.filter(m => m.round === dbSample!.numRounds - 1).map((m, i) => (
+                            <MatchRow key={i}
+                                t1={[m.team1 === "BYE" ? "BYE" : m.team1?.name ?? "—"]}
+                                t2={[m.team2 === "BYE" ? "BYE" : m.team2?.name ?? "—"]}
+                                meta={isDoubleBye(m) ? "BYE vs BYE → sube el BYE" : m.winnerName ? `pasa ${m.winnerName}` : "se juega"} />
+                        ))}
+                    </SampleBox>
+                )}
+            </>
+        ),
+    };
+}
+
+// ============================================================================
+// 6. TABLA DE POSICIONES
 // ============================================================================
 type SP = { id: string; name: string };
 function stMatch(a: SP, b: SP, sa: number, sb: number): StMatch<SP> {
@@ -820,8 +1069,13 @@ const TABS = [
     { id: "americano", label: "Americano", run: runAmericano },
     { id: "groups", label: "Grupos", run: runGroups },
     { id: "seeding", label: "Llaves", run: runSeeding },
+    { id: "robin", label: "Robin", run: runRobin },
     { id: "standings", label: "Posiciones", run: runStandings },
 ] as const;
+
+// Las suites, para poder correrlas fuera del navegador (scripts, CI) además de
+// desde la página. No es una ruta de Next: es sólo un export nombrado.
+export const __suites = Object.fromEntries(TABS.map(t => [t.label, t.run]));
 
 type TabId = typeof TABS[number]["id"] | "guided" | "sim";
 
