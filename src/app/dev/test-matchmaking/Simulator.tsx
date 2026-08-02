@@ -252,7 +252,7 @@ function resolveRoundRobin(rr: RRBuild, scoreOf: ScoreOf, qualifiersPerGroup: nu
     if (rr.error) return { kind: "error", message: rr.error };
 
     type Row = { pos: number; p: SimPlayer; won: number; lost: number; diff: number; qual: boolean };
-    type Q = { player: SimPlayer; groupId: string; groupRank: number };
+    type Q = { player: SimPlayer; groupId: string; groupRank: number; clubId: string };
     const outGroups: { name: string; players: SimPlayer[]; matches: { id: string; a: SimPlayer; b: SimPlayer; sa: number; sb: number }[]; rows: Row[] }[] = [];
     const quals: Q[] = [];
 
@@ -262,7 +262,10 @@ function resolveRoundRobin(rr: RRBuild, scoreOf: ScoreOf, qualifiersPerGroup: nu
         const table = computeGroupStandings(g.players, ms);
         const rows: Row[] = table.map((s, i) => ({ pos: i + 1, p: s.player as SimPlayer, won: s.won, lost: s.lost, diff: s.points, qual: i < qualifiersPerGroup }));
         outGroups.push({ name: g.name, players: g.players, matches: fx.map(f => { const s = scoreOf(f.id); return { id: f.id, a: f.a, b: f.b, sa: s.sa, sb: s.sb }; }), rows });
-        table.slice(0, qualifiersPerGroup).forEach((s, i) => quals.push({ player: s.player as SimPlayer, groupId: g.name, groupRank: i + 1 }));
+        table.slice(0, qualifiersPerGroup).forEach((s, i) => quals.push({
+            player: s.player as SimPlayer, groupId: g.name, groupRank: i + 1,
+            clubId: (s.player as SimPlayer).club,
+        }));
     });
 
     const orderedQuals = [...quals].sort((a, b) => a.groupRank - b.groupRank);

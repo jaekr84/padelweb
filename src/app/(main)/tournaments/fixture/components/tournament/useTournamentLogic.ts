@@ -13,6 +13,32 @@ import {
     type StMatch
 } from "@/lib/matchmaking";
 
+// Un clasificado "fantasma": el hueco que deja un grupo con menos parejas que el
+// más grande. Ocupa un lugar del cuadro pero no juega.
+function isByeQualifier(q: any): boolean {
+    return !q || q.isBye || !q.player;
+}
+
+// BYE contra BYE: pasa cuando un grupo corto deja un clasificado fantasma justo
+// enfrente de un seed vacío. El partido se da por jugado pero no tiene ganador,
+// así que el casillero siguiente hereda el BYE — si se dejara en null, el rival
+// de la ronda siguiente se quedaría esperando "a definir" para siempre.
+function isDoubleBye(m: { team1?: any; team2?: any }): boolean {
+    return m.team1 === "BYE" && m.team2 === "BYE";
+}
+
+// Prepara los clasificados para la siembra: sube el club de la pareja al nivel
+// que lee buildSeedMap, y deja a los fantasmas sin grupo ni club. Separar a un
+// fantasma de "sus" parejas no evita ningún cruce y le come lugares protegidos
+// a las parejas reales, que terminan enfrentándose antes de lo necesario.
+function toSeedInput<T extends { groupId?: string; player?: { clubId?: string | null } }>(quals: T[]) {
+    return quals.map(q =>
+        isByeQualifier(q)
+            ? { ...q, groupId: undefined, clubId: undefined }
+            : { ...q, clubId: q.player?.clubId ?? undefined }
+    );
+}
+
 interface UseTournamentLogicProps {
     tournamentId: string;
     tournamentName: string;
@@ -114,7 +140,6 @@ export function useTournamentLogic({
         const activeGroups = initialGroups.filter(g => (g.players || []).length > 0);
         return activeGroups.length * 2; // Default to 2 per group
     });
-    const [qualifierOverrides, setQualifierOverrides] = useState<Record<number, Player | "BYE">>({});
     const [swappingPlayer, setSwappingPlayer] = useState<{ matchId: string, teamSlot: 1 | 2 } | null>(null);
     const lastSavedState = useRef({ present: new Set(initialPresent), paid: new Set(initialPaid) });
     const fixtureVersionRef = useRef<string | undefined>(initialUpdatedAt);
@@ -767,7 +792,7 @@ export function useTournamentLogic({
         }
     };
 
-    const sortedQualifiers = useMemo(() => {
+    const finalQualifiers = useMemo(() => {
         const quals: any[] = [];
         // Only consider groups that have players
         const activeGroups = groups.filter(g => {
@@ -829,22 +854,40 @@ export function useTournamentLogic({
                 }
             }
         });
+        // El puesto en el grupo manda siempre: un 1º de un grupo que todavía
+        // está jugando vale más que el 4º de un grupo que ya terminó. Si se
+        // ordenara por "definido primero", un solo grupo terminado se llevaría
+        // todos los cupos mientras el resto sigue en cancha.
+        //
+        // Dentro del mismo puesto se compara el rendimiento POR PARTIDO: los
+        // grupos pueden tener distinta cantidad de parejas, y comparar totales
+        // le daría el mejor seed al del grupo más grande sólo por haber jugado
+        // más partidos.
+        const perMatch = (value: number, played: number) => (played > 0 ? value / played : 0);
         return quals.sort((a, b) => {
-            if (a.isPlaceholder && !b.isPlaceholder) return 1;
-            if (!a.isPlaceholder && b.isPlaceholder) return -1;
-            return (a.groupRank - b.groupRank) || (b.won - a.won) || (b.points - a.points) || (b.gamesWon - a.gamesWon);
+            if (a.groupRank !== b.groupRank) return a.groupRank - b.groupRank;
+            // A igual puesto, los ya definidos antes que los que faltan resolver.
+            if (a.isPlaceholder !== b.isPlaceholder) return a.isPlaceholder ? 1 : -1;
+            return (perMatch(b.won, b.matchesPlayed) - perMatch(a.won, a.matchesPlayed))
+                || (perMatch(b.points, b.matchesPlayed) - perMatch(a.points, a.matchesPlayed))
+                || (perMatch(b.gamesWon, b.matchesPlayed) - perMatch(a.gamesWon, a.matchesPlayed));
         });
     }, [groups, matches, computeStandings, isGroupFinished, isGroupStageFinished]);
 
-    const finalQualifiers = useMemo(() => {
-        return sortedQualifiers.map((q, idx) => {
-            const seed = idx + 1;
-            const override = qualifierOverrides[seed];
-            if (override === "BYE") return { ...q, isOverride: true, isByeOverride: true };
-            if (override) return { ...q, player: override, playerId: override.id, isOverride: true };
-            return q;
-        });
-    }, [sortedQualifiers, qualifierOverrides]);
+    // Tope real de clasificados: los fantasmas de los grupos cortos no son
+    // parejas, así que subir el cupo por encima de este número sólo agrega BYEs
+    // al cuadro.
+    const maxQualLimit = useMemo(
+        () => Math.max(2, finalQualifiers.filter(q => !isByeQualifier(q)).length),
+        [finalQualifiers]
+    );
+
+    // Cuando terminan los grupos aparecen los fantasmas y el tope baja: si el
+    // cupo quedó por encima, se recorta. Sólo baja, nunca sube solo, para no
+    // pisar lo que haya elegido el admin.
+    useEffect(() => {
+        setQualLimit(prev => Math.min(prev, maxQualLimit));
+    }, [maxQualLimit]);
 
     // Map bracket seed placeholders ("1º GRUPO A") to the real pair that finished
     // in that group position, so the playoffs show actual names instead of labels.
@@ -885,33 +928,48 @@ export function useTournamentLogic({
                 const isTeam2 = m.slot % 2 === 1;
                 const nextMatch = safeBracket.find(nm => nm.round === nextRound && nm.slot === nextSlot);
                 if (nextMatch) {
+                    // Resuelve el casillero de la ronda siguiente y, si quedó
+                    // completo, lo auto-confirma cuando hay un BYE de por medio.
+                    const advance = (slot: BracketSlot) => {
+                        if (isTeam2) nextMatch.team2 = slot;
+                        else nextMatch.team1 = slot;
+
+                        if (!nextMatch.team1 || !nextMatch.team2) return;
+                        // Only auto-confirm if one is a BYE AND the other is a real player (not a TBD or placeholder)
+                        const t1 = nextMatch.team1 as any;
+                        const t2 = nextMatch.team2 as any;
+                        const isT1Bye = t1 === "BYE";
+                        const isT2Bye = t2 === "BYE";
+                        if (nextMatch.status === 'in_progress' || (!isT1Bye && !isT2Bye)) return;
+
+                        if (isT1Bye && isT2Bye) {
+                            // Sigue sin haber nadie: se da por jugado sin ganador
+                            // y el BYE vuelve a subir en la próxima vuelta.
+                            nextMatch.confirmed = true;
+                            nextMatch.winnerId = undefined;
+                            nextMatch.winnerName = undefined;
+                            nextMatch.status = 'completed';
+                            return;
+                        }
+
+                        const realTeam = isT1Bye ? t2 : t1;
+                        const isRealPlayer = realTeam && !realTeam.isPlaceholder && !realTeam.id?.startsWith('TBD');
+                        if (isRealPlayer) {
+                            nextMatch.confirmed = true;
+                            nextMatch.winnerId = realTeam.id;
+                            nextMatch.winnerName = realTeam.name;
+                            nextMatch.status = 'completed';
+                        }
+                    };
+
                     if (m.confirmed && m.winnerId) {
                         let winner = [m.team1, m.team2].find(t => t !== null && (t as any) !== "BYE" && (t as Player).id === m.winnerId);
                         if (!winner && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) {
                             winner = m.score1 > m.score2 ? m.team1 : m.team2;
                         }
-                        if (isTeam2) nextMatch.team2 = winner as Player || null;
-                        else nextMatch.team1 = winner as Player || null;
-
-                        if (nextMatch.team1 && nextMatch.team2) {
-                            // Only auto-confirm if one is a BYE AND the other is a real player (not a TBD or placeholder)
-                            const t1 = nextMatch.team1 as any;
-                            const t2 = nextMatch.team2 as any;
-                            const isT1Bye = t1 === "BYE";
-                            const isT2Bye = t2 === "BYE";
-
-                            if (nextMatch.status !== 'in_progress' && (isT1Bye || isT2Bye)) {
-                                const realTeam = isT1Bye ? t2 : t1;
-                                const isRealPlayer = realTeam && !realTeam.isPlaceholder && !realTeam.id?.startsWith('TBD');
-                                
-                                if (isRealPlayer) {
-                                    nextMatch.confirmed = true;
-                                    nextMatch.winnerId = realTeam.id;
-                                    nextMatch.winnerName = realTeam.name;
-                                    nextMatch.status = 'completed';
-                                }
-                            }
-                        }
+                        advance((winner as Player) || null);
+                    } else if (m.confirmed && isDoubleBye(m)) {
+                        advance("BYE");
                     } else {
                         if (isTeam2) nextMatch.team2 = null;
                         else nextMatch.team1 = null;
@@ -955,18 +1013,18 @@ export function useTournamentLogic({
                     // ── Group Protection Seeding ──
                     // Orden de seeds + protección de grupo extraídos a @/lib/matchmaking.
                     const seedPositions = getSeedingOrder(bracketSize);
-                    const seedMap = buildSeedMap(actualQualifiers);
+                    const seedMap = buildSeedMap(toSeedInput(actualQualifiers));
 
                     const firstRoundIdx = numRounds - 1;
                     const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
-                    
+
                     firstRoundMatches.forEach((m, idx) => {
                         const s1 = seedPositions[idx * 2];
                         const s2 = seedPositions[idx * 2 + 1];
                         const q1 = seedMap.get(s1);
                         const q2 = seedMap.get(s2);
-                        const t1 = q1 ? q1.player : "BYE";
-                        const t2 = q2 ? q2.player : "BYE";
+                        const t1 = isByeQualifier(q1) ? "BYE" : q1!.player;
+                        const t2 = isByeQualifier(q2) ? "BYE" : q2!.player;
 
                         m.team1 = t1 as BracketSlot;
                         m.team2 = t2 as BracketSlot;
@@ -1318,7 +1376,7 @@ export function useTournamentLogic({
             const firstRoundMatches = newBracket.filter(m => m.round === firstRoundIdx);
 
             // Protección de grupo extraída a @/lib/matchmaking.
-            const seedMap = buildSeedMap(actualQuals);
+            const seedMap = buildSeedMap(toSeedInput(actualQuals));
 
             for (let i = 0; i < seedPositions.length; i += 2) {
                 const mIdx = i / 2;
@@ -1328,8 +1386,8 @@ export function useTournamentLogic({
                 const q1 = seedMap.get(s1);
                 const q2 = seedMap.get(s2);
 
-                const t1 = (q1 && !q1.isByeOverride) ? q1.player : "BYE";
-                const t2 = (q2 && !q2.isByeOverride) ? q2.player : "BYE";
+                const t1 = isByeQualifier(q1) ? "BYE" : q1!.player;
+                const t2 = isByeQualifier(q2) ? "BYE" : q2!.player;
 
                 const m = firstRoundMatches.find(x => x.slot === mIdx);
                 if (m) {
@@ -1339,9 +1397,16 @@ export function useTournamentLogic({
                     // Reset or Set confirmation based on BYEs
                     if (m.team1 === "BYE" || m.team2 === "BYE") {
                         const realTeam = m.team1 === "BYE" ? m.team2 : m.team1;
-                        const isRealPlayer = realTeam && !(realTeam as any).isPlaceholder && !(realTeam as any).id?.startsWith('TBD');
-                        
-                        if (isRealPlayer) {
+                        const isRealPlayer = !isDoubleBye(m) && realTeam
+                            && !(realTeam as any).isPlaceholder && !(realTeam as any).id?.startsWith('TBD');
+
+                        if (isDoubleBye(m)) {
+                            // Se da por jugado sin ganador; computeAdvancedBracket
+                            // sube el BYE a la ronda siguiente.
+                            m.confirmed = true;
+                            m.winnerId = undefined;
+                            m.winnerName = undefined;
+                        } else if (isRealPlayer) {
                             m.confirmed = true;
                             m.winnerId = (realTeam as Player).id;
                             m.winnerName = (realTeam as Player).name;
@@ -1384,7 +1449,7 @@ export function useTournamentLogic({
         saving,
         searchQuery, setSearchQuery,
         confirmModal, setConfirmModal,
-        qualLimit, setQualLimit,
+        qualLimit, setQualLimit, maxQualLimit,
         finalQualifiers,
         
         // Memos

@@ -94,7 +94,8 @@ export default function TournamentManager(props: TournamentManagerProps) {
         cancelAllGroupMatches,
         finalQualifiers,
         qualLimit,
-        setQualLimit
+        setQualLimit,
+        maxQualLimit
     } = useTournamentLogic(props as any);
 
     return (
@@ -214,7 +215,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                                         <span className="text-[6px] font-black uppercase tracking-tighter text-foreground/30">Jugadores</span>
                                                     </div>
                                                     <button
-                                                        onClick={() => setQualLimit(Math.min(finalQualifiers.length, qualLimit + 1))}
+                                                        onClick={() => setQualLimit(Math.min(maxQualLimit, qualLimit + 1))}
                                                         className="w-6 h-6 flex items-center justify-center rounded-md bg-background border border-border/40 text-foreground/60 hover:text-azul-primary hover:border-azul-primary/40 transition-all"
                                                     >
                                                         <Plus className="w-3 h-3" />
