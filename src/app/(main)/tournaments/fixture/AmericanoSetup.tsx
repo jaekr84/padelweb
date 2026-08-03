@@ -3,25 +3,25 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-    Users, CheckCircle2, Trophy, ArrowRight, ArrowLeft,
-    Dice5, Check, Trash2, Settings, Plus, Minus,
-    CreditCard, UserCheck, AlertCircle, ChevronRight,
-    Users2, MonitorPlay, AlertTriangle, X, ChevronDown, Search, Zap,
-    LayoutDashboard, Swords, BarChart3, Clock
+    ArrowRight, ArrowLeft, Settings, Plus, Minus, Users2
 } from "lucide-react";
-import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer } from "./actions";
+import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer, updateTournamentMetadata } from "./actions";
 import { generateAmericanoMatches as generateAmericanoMatchesCore } from "@/lib/matchmaking";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
 import { SplitAttendanceList } from "./components/SplitAttendanceList";
+import { FormatSelector } from "./components/FormatSelector";
+import { TournamentTimeline, TournamentStep } from "./components/tournament/TournamentTimeline";
 
 export interface AmericanoSetupProps {
     tournamentId: string;
     tournamentName: string;
     initialStatus: string;
     initialPlayers: Player[];
+    initialPresent?: string[];
+    initialPaid?: string[];
     categories?: string[];
     isIndividual?: boolean;
 }
@@ -58,14 +58,36 @@ export default function AmericanoSetup({
     tournamentName,
     initialStatus,
     initialPlayers,
+    initialPresent = [],
+    initialPaid = [],
     categories = ["A+", "A", "B", "C", "D"],
     isIndividual = false
 }: AmericanoSetupProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const urlStep = searchParams.get("step") as "format" | "config" | null;
+
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin">("checkin");
-    const [paid, setPaid] = useState<Set<string>>(new Set());
-    const [present, setPresent] = useState<Set<string>>(new Set());
+    // Robin's setup maps `assign` here too; Americano has no draw step, so both
+    // `config` and `assign` land on the format configuration.
+    const [step, setStep] = useState<"checkin" | "format" | "config">(urlStep === "format" ? "format" : urlStep ? "config" : "checkin");
+    const [paid, setPaid] = useState<Set<string>>(new Set(initialPaid));
+    const [present, setPresent] = useState<Set<string>>(new Set(initialPresent));
+
+    const timelineStep: TournamentStep =
+        step === "checkin" ? "attendance" :
+            step === "format" ? "format" :
+                "structure";
+
+    // The format can only change while no fixture exists — see setTournamentFormat.
+    const formatLocked = !["draft", "published"].includes(initialStatus);
+
+    useEffect(() => {
+        const s = searchParams.get("step");
+        if (s === "format") setStep("format");
+        else if (s === "config" || s === "assign") setStep("config");
+        else if (s === "checkin" || !s) setStep("checkin");
+    }, [searchParams]);
 
     const [numCourts, setNumCourts] = useState(2);
     const [matchesPerTeam, setMatchesPerTeam] = useState(2);
@@ -77,14 +99,32 @@ export default function AmericanoSetup({
     const [saving, setSaving] = useState(false);
     const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
+    // Attendance is persisted on every toggle (same as the Robin setup) so the
+    // check-in survives navigating to the format step — which may remount this
+    // page as the other format's setup component.
+    const persistAttendance = (nextPresent: Set<string>, nextPaid: Set<string>) => {
+        updateTournamentMetadata({
+            tournamentId,
+            presentPlayerIds: Array.from(nextPresent),
+            paidPlayerIds: Array.from(nextPaid),
+        });
+    };
+
     const onPlayerAdded = (player: any) => {
         setPlayers(prev => [...prev, player as Player]);
+        const nextPresent = new Set(present);
+        const nextPaid = new Set(paid);
         if (isIndividual) {
-            setPresent(prev => new Set([...prev, player.id]));
+            nextPresent.add(player.id);
         } else {
-            setPresent(prev => new Set([...prev, `${player.id}_0`, `${player.id}_1`]));
-            setPaid(prev => new Set([...prev, `${player.id}_0`, `${player.id}_1`]));
+            nextPresent.add(`${player.id}_0`);
+            nextPresent.add(`${player.id}_1`);
+            nextPaid.add(`${player.id}_0`);
+            nextPaid.add(`${player.id}_1`);
         }
+        setPresent(nextPresent);
+        setPaid(nextPaid);
+        persistAttendance(nextPresent, nextPaid);
     };
 
     const PRESENT_PLAYERS = useMemo(() =>
@@ -109,18 +149,16 @@ export default function AmericanoSetup({
     }, []);
 
     const togglePaid = (id: string) => {
-        setPaid(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
+        const next = new Set(paid);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        setPaid(next);
+        persistAttendance(present, next);
     };
     const togglePresent = (id: string) => {
-        setPresent(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
+        const next = new Set(present);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        setPresent(next);
+        persistAttendance(next, paid);
     };
 
     const handleCheckAll = (type: 'paid' | 'present') => {
@@ -135,11 +173,15 @@ export default function AmericanoSetup({
         });
 
         if (type === 'paid') {
-            const areAllPaid = allCheckinIds.every(id => paid.has(id));
-            setPaid(areAllPaid ? new Set() : new Set(allCheckinIds));
+            const areAllPaid = allCheckinIds.length > 0 && allCheckinIds.every(id => paid.has(id));
+            const next = areAllPaid ? new Set<string>() : new Set(allCheckinIds);
+            setPaid(next);
+            persistAttendance(present, next);
         } else {
-            const areAllPresent = allCheckinIds.every(id => present.has(id));
-            setPresent(areAllPresent ? new Set() : new Set(allCheckinIds));
+            const areAllPresent = allCheckinIds.length > 0 && allCheckinIds.every(id => present.has(id));
+            const next = areAllPresent ? new Set<string>() : new Set(allCheckinIds);
+            setPresent(next);
+            persistAttendance(next, paid);
         }
     };
 
@@ -171,11 +213,19 @@ export default function AmericanoSetup({
             groups: [group],
             matches: [], // Dynamically generated matches start empty
             bracket: [],
+            // Required: saveTournamentFixture resets these when omitted, which
+            // would drop the check-in the manager view relies on.
+            presentPlayerIds: Array.from(present),
+            paidPlayerIds: Array.from(paid),
             modalidad: {
                 numCourts,
                 matchesPerTeam,
                 isIndividual,
-                bracketSize
+                bracketSize,
+                // This save replaces `modalidad` wholesale, so `participacion` has
+                // to be re-stated or it is lost — ranking, inscriptions and the
+                // admin list all read it to tell individual from pair tournaments.
+                participacion: isIndividual ? "individual" : "parejas",
             }
         });
 
@@ -202,7 +252,11 @@ export default function AmericanoSetup({
                 <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
+                            onClick={() => {
+                                if (step === "config") setStep("format");
+                                else if (step === "format") setStep("checkin");
+                                else router.push(`/tournaments/${tournamentId}/manage`);
+                            }}
                             className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-surface px-2.5 py-1.5 rounded-lg border border-hairline"
                         >
                             <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
@@ -220,38 +274,13 @@ export default function AmericanoSetup({
 
                         <div className="h-5 w-[1px] bg-border/40 hidden md:block" />
 
-                        <div className="hidden md:flex items-center gap-1">
-                            {[
-                                { 
-                                    id: "checkin", 
-                                    icon: UserCheck, 
-                                    label: "Asistencia", 
-                                    active: step === "checkin",
-                                    completed: false
-                                },
-                                { id: "matches", icon: Swords, label: "Partidos", active: false, disabled: true },
-                                { id: "playoffs", icon: Trophy, label: "Finales", active: false, disabled: true }
-                            ].map((s, idx) => {
-                                const Icon = s.icon;
-                                return (
-                                    <div key={s.id} className="flex items-center">
-                                        <button 
-                                            disabled={s.disabled}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${s.active 
-                                                ? "bg-celeste text-carbon-950 shadow-sm" 
-                                                : "text-muted-foreground"}`}
-                                        >
-                                            <Icon className="w-3 h-3" />
-                                            <span className="text-[8px] font-black uppercase tracking-tight">{s.label}</span>
-                                        </button>
-                                        {idx < 2 && (
-                                            <div className="px-1 text-subtle">
-                                                <ChevronRight className="w-3 h-3" />
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                        {/* Shared stepper so Americano and Robin show the same phases. */}
+                        <div className="hidden md:block">
+                            <TournamentTimeline
+                                tournamentId={tournamentId}
+                                currentStep={timelineStep}
+                                status={initialStatus}
+                            />
                         </div>
                     </div>
 
@@ -287,6 +316,52 @@ export default function AmericanoSetup({
                                 onCheckAll={handleCheckAll}
                                 onInscribir={() => setIsPlayerModalOpen(true)}
                             />
+
+                            <button
+                                onClick={() => setStep("format")}
+                                disabled={PRESENT_PLAYERS.length < 2}
+                                className="w-full py-3 bg-volt hover:bg-volt-dark text-carbon-950 rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-volt/20 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none transition-all flex items-center justify-center gap-2 text-[10px]"
+                            >
+                                Continuar ({PRESENT_PLAYERS.length})
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {step === "format" && (
+                        <motion.div key="format" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
+                            <FormatSelector
+                                tournamentId={tournamentId}
+                                currentFormat="americano"
+                                presentCount={PRESENT_PLAYERS.length}
+                                isIndividual={isIndividual}
+                                locked={formatLocked}
+                                onBack={() => setStep("checkin")}
+                                onContinueSameFormat={() => setStep("config")}
+                            />
+                        </motion.div>
+                    )}
+
+                    {step === "config" && (
+                        <motion.div key="config" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-4">
+                            <div className="flex items-center justify-between gap-4 px-1">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-[3px] h-8 bg-celeste rounded-full" />
+                                    <div>
+                                        <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-foreground">Estructura</h2>
+                                        <p className="text-muted-foreground text-[9px] font-black tracking-widest uppercase mt-0.5">
+                                            Americano · {PRESENT_PLAYERS.length} {isIndividual ? "jugadores" : "parejas"} presentes
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setStep("checkin")}
+                                    className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-surface px-2.5 py-1.5 rounded-lg border border-hairline"
+                                >
+                                    <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
+                                    Asistencia
+                                </button>
+                            </div>
 
                             {/* Tarjeta de Configuración de Formato */}
                             <div className="bg-card/40 backdrop-blur-xl border border-hairline rounded-xl p-4 shadow-sm space-y-4">

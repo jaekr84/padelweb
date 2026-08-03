@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert, Swords } from "lucide-react";
+import { Home, Trophy, User, Users, Star, FolderOpen, X, Search, ChevronDown, Settings, LogOut, ShoppingBag, LayoutDashboard, MessageSquare, BookOpen, UserPlus, TrendingUp, Menu, Activity, Zap, Eye, EyeOff, BadgeDollarSign, FlaskConical, ShieldAlert, Swords, Network } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { logoutAction, getSidebarUser } from "@/app/login/actions";
@@ -61,6 +61,7 @@ const NAV: Record<string, NavItem[]> = {
         { href: "/admin/categories", icon: Settings, label: "Categorías" },
         { href: "/admin/puntosTorneo", icon: Zap, label: "Puntos" },
         { href: "/dev/test-matchmaking", icon: FlaskConical, label: "Test Armado", newTab: true },
+        { href: "/admin/graph", icon: Network, label: "Grafo", newTab: true },
         { href: "/admin/reset", icon: ShieldAlert, label: "Resetear Base" },
     ],
 };

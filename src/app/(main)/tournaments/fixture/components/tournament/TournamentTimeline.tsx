@@ -1,12 +1,12 @@
 "use client";
 
-import { 
-    Users2, LayoutGrid, Shuffle, Swords, Trophy, 
-    Check, ChevronRight 
+import {
+    Users2, LayoutGrid, Shuffle, Swords, Trophy,
+    Check, ChevronRight, Layers
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export type TournamentStep = "attendance" | "structure" | "draw" | "groups" | "bracket";
+export type TournamentStep = "attendance" | "format" | "structure" | "draw" | "groups" | "bracket";
 
 interface TournamentTimelineProps {
     tournamentId: string;
@@ -34,9 +34,17 @@ export function TournamentTimeline({
             isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) || currentStep !== "attendance",
             isAccessible: true
         },
-        { 
-            id: "structure" as TournamentStep, 
-            label: "Estructura", 
+        {
+            id: "format" as TournamentStep,
+            label: "Formato",
+            icon: Layers,
+            path: `/tournaments/${tournamentId}/fixture?step=format`,
+            isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) || !["attendance", "format"].includes(currentStep),
+            isAccessible: !readOnly
+        },
+        {
+            id: "structure" as TournamentStep,
+            label: "Estructura",
             icon: LayoutGrid,
             path: `/tournaments/${tournamentId}/fixture?step=config`,
             isCompleted: ["en_curso", "en_eliminatorias", "finalizado"].includes(status) && currentStep !== "structure",

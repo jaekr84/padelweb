@@ -789,11 +789,198 @@ export async function resetTournamentStatus(id: string): Promise<{ ok: boolean; 
     }
 }
 
-export async function updateTournamentMetadata(input: { 
-    tournamentId: string, 
-    presentPlayerIds?: string[], 
+export type TournamentFormat = "round_robin" | "americano";
+
+/**
+ * Switches a tournament between Round Robin and Americano *after* check-in.
+ *
+ * The fixture data shape differs between the two formats (Robin saves N groups
+ * with a full round-robin of matches, Americano saves a single group and
+ * generates matches on the fly), so the format is locked as soon as a fixture
+ * exists. Until then, `type` is only a routing/label switch and swapping it is
+ * safe: registrations and attendance don't depend on it.
+ */
+export async function setTournamentFormat(input: {
+    tournamentId: string;
+    format: TournamentFormat;
+    /**
+     * Escape hatch for "started the tournament but need to change it anyway":
+     * wipes groups, matches and bracket and sends the tournament back to
+     * `published` so the setup flow can re-arm it in the other format.
+     * Refused on finalized tournaments — ranking points are already awarded.
+     */
+    resetFixture?: boolean;
+}): Promise<{ ok: boolean; locked?: boolean; error?: string }> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        if (input.format !== "round_robin" && input.format !== "americano") {
+            throw new Error("Formato inválido");
+        }
+
+        const [tournament] = await db
+            .select({
+                createdByUserId: tournaments.createdByUserId,
+                status: tournaments.status,
+                type: tournaments.type,
+            })
+            .from(tournaments)
+            .where(eq(tournaments.id, input.tournamentId))
+            .limit(1);
+
+        if (!tournament) throw new Error("Torneo no encontrado");
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = tournament.createdByUserId === session.userId;
+
+        if (!isAdmin && !isOwner) {
+            throw new Error("No tenés permiso");
+        }
+
+        // Nothing to do — the caller can just advance to the next step.
+        if (tournament.type === input.format) return { ok: true };
+
+        // Only these two formats are interchangeable. Anything else (desafío,
+        // future formats) must not be silently converted.
+        if (tournament.type !== "round_robin" && tournament.type !== "americano") {
+            return { ok: false, error: "Este torneo no admite cambio de formato" };
+        }
+
+        const [groupCount] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(tournamentGroups)
+            .where(eq(tournamentGroups.tournamentId, input.tournamentId));
+
+        const hasFixture = Number(groupCount?.count ?? 0) > 0;
+        const isPreFixtureStatus = tournament.status === "draft" || tournament.status === "published";
+        const needsReset = hasFixture || !isPreFixtureStatus;
+
+        if (needsReset && !input.resetFixture) {
+            return {
+                ok: false,
+                locked: true,
+                error: "El fixture ya está armado. Reiniciá el torneo para cambiar el formato.",
+            };
+        }
+
+        if (needsReset) {
+            if (tournament.status === "finalizado") {
+                return {
+                    ok: false,
+                    error: "El torneo está finalizado y ya repartió puntos de ranking. No se puede cambiar el formato.",
+                };
+            }
+
+            // Destructive on purpose: the old format's fixture cannot be
+            // reinterpreted as the new one. Attendance (present/paid) and
+            // registrations are left untouched so the check-in survives.
+            await db.transaction(async (tx) => {
+                await tx.delete(bracketMatches).where(eq(bracketMatches.tournamentId, input.tournamentId));
+                await tx.delete(groupMatches).where(eq(groupMatches.tournamentId, input.tournamentId));
+                await tx.delete(tournamentGroups).where(eq(tournamentGroups.tournamentId, input.tournamentId));
+                await tx
+                    .update(tournaments)
+                    .set({
+                        type: input.format,
+                        status: "published",
+                        // Unlike the metadata-only path below, this destroys data:
+                        // let updatedAt advance so another admin's stale client
+                        // hits the optimistic-lock conflict instead of overwriting.
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(tournaments.id, input.tournamentId));
+            });
+
+            revalidatePath("/tournaments");
+            revalidatePath(`/tournaments/${input.tournamentId}`);
+            revalidatePath(`/tournaments/${input.tournamentId}/fixture`);
+            revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+            return { ok: true };
+        }
+
+        await db
+            .update(tournaments)
+            .set({
+                type: input.format,
+                // Same rationale as updateTournamentMetadata: don't advance the
+                // optimistic-lock version for a metadata-only write.
+                updatedAt: sql`updated_at`,
+            })
+            .where(eq(tournaments.id, input.tournamentId));
+
+        revalidatePath(`/tournaments/${input.tournamentId}/fixture`);
+        revalidatePath(`/tournaments/${input.tournamentId}/manage`);
+        return { ok: true };
+    } catch (err) {
+        console.error("[setTournamentFormat]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+/**
+ * What a format change with `resetFixture` would destroy. Read-only: feeds the
+ * confirmation dialog so the organizer sees the damage before accepting it.
+ */
+export async function getFormatResetImpact(tournamentId: string): Promise<{
+    ok: boolean;
+    groups?: number;
+    matches?: number;
+    playedMatches?: number;
+    bracket?: number;
+    isFinalized?: boolean;
+    error?: string;
+}> {
+    try {
+        const session = await getSession();
+        if (!session?.userId) throw new Error("No autorizado");
+
+        const [tournament] = await db
+            .select({ createdByUserId: tournaments.createdByUserId, status: tournaments.status })
+            .from(tournaments)
+            .where(eq(tournaments.id, tournamentId))
+            .limit(1);
+
+        if (!tournament) throw new Error("Torneo no encontrado");
+
+        const isAdmin = session.role === 'admin' || session.role === 'superadmin' || session.role === 'club';
+        const isOwner = tournament.createdByUserId === session.userId;
+        if (!isAdmin && !isOwner) throw new Error("No tenés permiso");
+
+        const dbMatches = await db
+            .select({ confirmed: groupMatches.confirmed })
+            .from(groupMatches)
+            .where(eq(groupMatches.tournamentId, tournamentId));
+
+        const [groups] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(tournamentGroups)
+            .where(eq(tournamentGroups.tournamentId, tournamentId));
+
+        const [bracket] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(bracketMatches)
+            .where(eq(bracketMatches.tournamentId, tournamentId));
+
+        return {
+            ok: true,
+            groups: Number(groups?.count ?? 0),
+            matches: dbMatches.length,
+            playedMatches: dbMatches.filter(m => m.confirmed).length,
+            bracket: Number(bracket?.count ?? 0),
+            isFinalized: tournament.status === "finalizado",
+        };
+    } catch (err) {
+        console.error("[getFormatResetImpact]", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+export async function updateTournamentMetadata(input: {
+    tournamentId: string,
+    presentPlayerIds?: string[],
     paidPlayerIds?: string[],
-    status?: string 
+    status?: string
 }) {
     try {
         const session = await getSession();

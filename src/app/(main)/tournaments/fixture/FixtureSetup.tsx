@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import ManualRegistrationModal from "./ManualRegistrationModal";
 import { SplitAttendanceList } from "./components/SplitAttendanceList";
+import { FormatSelector } from "./components/FormatSelector";
 import { Player, Group } from "./components/tournament/types";
 
 export interface FixtureSetupProps {
@@ -72,19 +73,23 @@ export default function FixtureSetup({
 }: FixtureSetupProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const urlStep = searchParams.get("step") as "config" | "assign" | null;
+    const urlStep = searchParams.get("step") as "format" | "config" | "assign" | null;
 
     const [players, setPlayers] = useState<Player[]>(initialPlayers);
-    const [step, setStep] = useState<"checkin" | "config" | "assign">(urlStep || "checkin");
+    const [step, setStep] = useState<"checkin" | "format" | "config" | "assign">(urlStep || "checkin");
 
     const timelineStep: TournamentStep =
         step === "checkin" ? "attendance" :
-            step === "config" ? "structure" :
-                "draw";
+            step === "format" ? "format" :
+                step === "config" ? "structure" :
+                    "draw";
+
+    // The format can only change while no fixture exists — see setTournamentFormat.
+    const formatLocked = initialGroups.length > 0 || !["draft", "published"].includes(initialStatus);
 
     useEffect(() => {
         const s = searchParams.get("step");
-        if (s === "config" || s === "assign") {
+        if (s === "format" || s === "config" || s === "assign") {
             setStep(s);
         } else if (s === "checkin" || !s) {
             setStep("checkin");
@@ -665,6 +670,8 @@ export default function FixtureSetup({
                             <button
                                 onClick={() => {
                                     if (step === "assign") setStep("config");
+                                    else if (step === "config") setStep("format");
+                                    else if (step === "format") setStep("checkin");
                                     else router.push(`/tournaments/${tournamentId}/manage`);
                                 }}
                                 className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
@@ -727,7 +734,7 @@ export default function FixtureSetup({
 
                             <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs px-6">
                                 <button
-                                    onClick={() => setStep("config")}
+                                    onClick={() => setStep("format")}
                                     disabled={PRESENT_PLAYERS.length < 2}
                                     className="w-full py-3.5 bg-volt text-carbon-950 rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-volt/25 hover:bg-volt-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none disabled:hover:scale-100"
                                 >
@@ -735,6 +742,25 @@ export default function FixtureSetup({
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {step === "format" && (
+                        <motion.div
+                            key="format"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                        >
+                            <FormatSelector
+                                tournamentId={tournamentId}
+                                currentFormat="round_robin"
+                                presentCount={PRESENT_PLAYERS.length}
+                                isIndividual={isIndividual}
+                                locked={formatLocked}
+                                onBack={() => setStep("checkin")}
+                                onContinueSameFormat={() => setStep("config")}
+                            />
                         </motion.div>
                     )}
 

@@ -185,6 +185,8 @@ export default async function TournamentFixturePage({ params }: Props) {
                 tournamentName={tournament.name}
                 initialStatus={tournament.status}
                 initialPlayers={initialPlayers}
+                initialPresent={parseJsonArray(tournament.presentPlayerIds)}
+                initialPaid={parseJsonArray(tournament.paidPlayerIds)}
                 categories={allCategories.map(c => c.name)}
                 isIndividual={isIndividual}
             />

@@ -42,3 +42,8 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# graphify: se versiona solo el HTML y el reporte (los sirve /admin/graph)
+/graphify-out/*
+!/graphify-out/graph.html
+!/graphify-out/GRAPH_REPORT.md

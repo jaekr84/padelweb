@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
     ArrowLeft, Users2, Swords, Trophy, ChevronRight,
-    Check, Settings, RefreshCw
+    Check, Settings, RefreshCw, Layers
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import TournamentPublishButton from "@/components/TournamentPublishButton";
@@ -83,6 +83,18 @@ export function AmericanoHeader({
                                     href?: string;
                                 }[] = [
                                     { id: "setup", label: "Asistencia", icon: Users2, active: step === "setup", completed: step !== "setup" },
+                                    // Mirrors the Robin stepper: leads to the format
+                                    // step in the setup flow, where a running
+                                    // tournament can still be switched (rearming the
+                                    // fixture) after an explicit confirmation.
+                                    ...(!readOnly && initialStatus !== "finalizado" ? [{
+                                        id: "format",
+                                        label: "Formato",
+                                        icon: Layers,
+                                        active: false,
+                                        completed: true,
+                                        href: `/tournaments/${tournamentId}/fixture?step=format`
+                                    }] : []),
                                     { id: "active", label: "Grupos", icon: SwitchedIcon, active: step === "active", completed: initialStatus === "finalizado" },
                                 ];
 
