@@ -28,7 +28,7 @@ export default async function RegisterPage({ searchParams }: Props) {
     // Block clubs / centros
     if (!session || !ALLOWED_ROLES.includes(session.role)) {
         return (
-            <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                     <div className="w-20 h-20 bg-rojo/10 border border-rojo/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <Ban className="w-10 h-10 text-rojo" />
@@ -63,7 +63,7 @@ export default async function RegisterPage({ searchParams }: Props) {
 
     if (existingRegistration) {
         return (
-            <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm w-full relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1.5 bg-azul-primary" />
                     <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -132,7 +132,7 @@ export default async function RegisterPage({ searchParams }: Props) {
 
         if ((isMaleTournament && !isMalePlayer) || (isFemaleTournament && !isFemalePlayer)) {
             return (
-                <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+                <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                     <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                         <div className="w-20 h-20 bg-rojo/10 border border-rojo/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <Users className="w-10 h-10 text-rojo" />
@@ -163,7 +163,7 @@ export default async function RegisterPage({ searchParams }: Props) {
 
         if (!isEligible) {
             return (
-                <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+                <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                     <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                         <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <Trophy className="w-10 h-10 text-azul-primary" />
@@ -184,7 +184,7 @@ export default async function RegisterPage({ searchParams }: Props) {
     // 3. Check Club Membership if Members Only
     if (tournament.isMembersOnly && tournament.clubId && dbUser.clubId !== tournament.clubId) {
         return (
-            <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                     <div className="w-20 h-20 bg-celeste/10 border border-celeste/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <Shield className="w-10 h-10 text-celeste" />
@@ -203,7 +203,7 @@ export default async function RegisterPage({ searchParams }: Props) {
 
     if (!isOpen) {
         return (
-            <div className="theme-night min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 text-center">
                 <div className="bg-card border border-border p-10 rounded-[2.5rem] shadow-xl max-w-sm">
                     <div className="w-20 h-20 bg-azul-primary/5 border border-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <Clock className="w-10 h-10 text-azul-primary" />

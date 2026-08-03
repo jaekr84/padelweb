@@ -440,13 +440,13 @@ export default function AmericanoPlayoffs({
     };
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-white/12">
+        <div className="min-h-screen bg-background text-foreground">
+            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-hairline">
                 <div className="w-full px-2 md:px-3 h-10 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => router.push(readOnly ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/manage`)}
-                            className="group flex items-center gap-1.5 text-slate-200 hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
+                            className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
                         >
                             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                             <span className="text-[8px] font-black uppercase tracking-[0.15em] italic">Volver a Grupos</span>
@@ -456,7 +456,7 @@ export default function AmericanoPlayoffs({
 
                         <div className="hidden md:flex flex-col min-w-0">
                             <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
-                            <span className="text-[9px] font-black uppercase italic tracking-tight text-white leading-none truncate max-w-[120px] lg:max-w-[200px]">
+                            <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground leading-none truncate max-w-[120px] lg:max-w-[200px]">
                                 {tournamentName}
                             </span>
                         </div>
@@ -483,7 +483,7 @@ export default function AmericanoPlayoffs({
                                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all text-[8px] font-black uppercase tracking-widest ${
                                     isBracketFinished
                                         ? "bg-rojo/10 border-rojo/20 text-rojo hover:bg-rojo hover:text-white"
-                                        : "bg-white/5 border-white/12 text-slate-500 cursor-not-allowed"
+                                        : "bg-surface border-hairline text-subtle cursor-not-allowed"
                                 }`}
                                 title={isBracketFinished ? "Finalizar Torneo" : "Se debe definir la Final para finalizar el torneo"}
                             >
@@ -495,7 +495,7 @@ export default function AmericanoPlayoffs({
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="p-1.5 rounded-lg bg-white/5 border border-white/12 text-slate-300 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                            className="p-1.5 rounded-lg bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
                         </button>
@@ -506,7 +506,7 @@ export default function AmericanoPlayoffs({
             <div className="w-full px-3 md:px-4 py-6 pb-24">
                 <div className="max-w-7xl mx-auto space-y-8">
                     {/* Header Promocional/Visual */}
-                    <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-br from-card/30 to-card/50 p-6 md:p-8 backdrop-blur-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="relative overflow-hidden rounded-3xl border border-hairline bg-gradient-to-br from-card/30 to-card/50 p-6 md:p-8 backdrop-blur-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-celeste/10 rounded-full blur-3xl pointer-events-none" />
                         <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-celeste/5 rounded-full blur-3xl pointer-events-none" />
                         
@@ -517,7 +517,7 @@ export default function AmericanoPlayoffs({
                             <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase italic leading-none pt-1">
                                 Eliminatorias Americano
                             </h2>
-                            <p className="text-xs text-slate-300 max-w-xl">
+                            <p className="text-xs text-muted-foreground max-w-xl">
                                 Cuadro de eliminación directa. Los mejores clasificados de la fase de grupos compiten por el campeonato. 
                                 {readOnly ? " Sigue los resultados en tiempo real." : " Carga resultados y confirma partidos para avanzar al campeón."}
                             </p>
@@ -528,7 +528,7 @@ export default function AmericanoPlayoffs({
                                 <Award className="w-8 h-8 text-celeste animate-bounce" />
                                 <div className="text-center">
                                     <span className="text-[7px] font-black uppercase tracking-[0.3em] text-celeste leading-none">Campeón del Torneo</span>
-                                    <h4 className="text-sm font-black uppercase tracking-tight text-white mt-1 max-w-[180px] truncate">
+                                    <h4 className="text-sm font-black uppercase tracking-tight text-foreground mt-1 max-w-[180px] truncate">
                                         {championName}
                                     </h4>
                                 </div>

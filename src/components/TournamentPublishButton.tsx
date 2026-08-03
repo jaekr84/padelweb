@@ -62,7 +62,7 @@ export default function TournamentPublishButton({ tournamentId, tournamentName, 
                     handlePublish();
                 }}
                 disabled={loading}
-                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-white hover:bg-black/80 transition-colors shadow-lg border border-white/10 group/btn disabled:opacity-50"
+                className="p-2 rounded-lg bg-black/60 backdrop-blur-md text-foreground hover:bg-black/80 transition-colors shadow-lg border border-hairline group/btn disabled:opacity-50"
                 title="Publicar resultados en el feed"
             >
                 {loading ? (

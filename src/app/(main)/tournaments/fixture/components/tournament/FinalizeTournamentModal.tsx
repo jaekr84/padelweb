@@ -64,7 +64,7 @@ export default function FinalizeTournamentModal({
                             <div className="w-16 h-16 rounded-2xl bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center relative shadow-lg shadow-azul-primary/5">
                                 <Trophy className="w-8 h-8 text-azul-primary animate-bounce" />
                                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-background flex items-center justify-center">
-                                    <Check className="w-3 h-3 text-white stroke-[3px]" />
+                                    <Check className="w-3 h-3 text-foreground stroke-[3px]" />
                                 </div>
                             </div>
 
@@ -124,7 +124,7 @@ export default function FinalizeTournamentModal({
                         <div className="flex flex-col items-center space-y-6 py-6">
                             <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center relative shadow-lg shadow-emerald-500/10">
                                 <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center animate-pulse">
-                                    <Check className="w-6 h-6 text-white stroke-[3px]" />
+                                    <Check className="w-6 h-6 text-foreground stroke-[3px]" />
                                 </div>
                             </div>
 

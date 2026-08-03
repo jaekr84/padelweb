@@ -74,7 +74,7 @@ export default async function ClubProfilePage({
     }
 
     if (!session && !club) {
-        return <div className="flex flex-col items-center justify-center min-h-screen bg-grid-carbon text-white/40 gap-4">
+        return <div className="flex flex-col items-center justify-center min-h-screen bg-grid-carbon text-foreground/40 gap-4">
             <Shield className="w-12 h-12" />
             <p className="font-bold uppercase tracking-widest text-[10px]">Debe iniciar sesión para ver este perfil</p>
         </div>;
@@ -82,12 +82,12 @@ export default async function ClubProfilePage({
 
     if (!club) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-grid-carbon text-slate-300 gap-4 p-8 text-center w-full">
-                <div className="w-20 h-20 rounded-[2.5rem] bg-white/10 flex items-center justify-center border-2 border-white/10">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-grid-carbon text-muted-foreground gap-4 p-8 text-center w-full">
+                <div className="w-20 h-20 rounded-[2.5rem] bg-surface-raised flex items-center justify-center border-2 border-hairline">
                     <Shield className="w-10 h-10" />
                 </div>
                 <div className="flex flex-col gap-2">
-                    <h2 className="text-xl font-black uppercase italic tracking-tight text-slate-200">Club no encontrado</h2>
+                    <h2 className="text-xl font-black uppercase italic tracking-tight text-muted-foreground">Club no encontrado</h2>
                     <p className="text-xs font-medium leading-relaxed uppercase tracking-widest">
                         Si sos dueño de un club, asegurate de tener el rol correcto o contactá a soporte.
                     </p>

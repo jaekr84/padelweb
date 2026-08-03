@@ -99,7 +99,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
     } = useTournamentLogic(props as any);
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground relative overflow-x-hidden">
+        <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
             {/* Page Background Watermark */}
             <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden opacity-10">
                 <img 
@@ -240,7 +240,7 @@ export default function TournamentManager(props: TournamentManagerProps) {
                                                                 : "bg-muted text-foreground/20 cursor-not-allowed border border-border/50 grayscale opacity-50"}
                                                         `}
                                                     >
-                                                        {isGroupStageFinished && <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />}
+                                                        {isGroupStageFinished && <div className="absolute inset-0 bg-surface-raised translate-y-full group-hover:translate-y-0 transition-transform duration-300" />}
                                                         <span className="relative">Armar Play-offs</span>
                                                         <Trophy className={`w-5 h-5 relative ${isGroupStageFinished ? "animate-bounce" : ""}`} />
                                                     </button>

@@ -121,9 +121,9 @@ export default function ClubProfileClient({
     const statusConfig: Record<string, { label: string; textColor: string; bg: string; border: string }> = {
         finalizado: {
             label: "Finalizado",
-            textColor: "text-slate-400",
-            bg: "bg-white/10",
-            border: "border-white/10",
+            textColor: "text-muted-foreground",
+            bg: "bg-surface-raised",
+            border: "border-hairline",
         },
         en_curso: {
             label: "En Curso",
@@ -140,7 +140,7 @@ export default function ClubProfileClient({
     };
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-20 font-sans selection:bg-volt/30 relative overflow-hidden">
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-20 font-sans selection:bg-volt/30 relative overflow-hidden">
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-azul-primary/5 blur-[120px] animate-pulse" />
@@ -155,7 +155,7 @@ export default function ClubProfileClient({
                     className="flex flex-col gap-6"
                 >
                     {/* ── Hero Section ── */}
-                    <div className="bg-carbon-800 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-sm relative transition-colors">
+                    <div className="bg-card backdrop-blur-xl border border-hairline rounded-[2.5rem] overflow-hidden shadow-sm relative transition-colors">
                         <div className="h-32 md:h-48 bg-gradient-to-br from-azul-primary/5 via-celeste/5 to-azul-primary/5 relative overflow-hidden">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(30,64,175,0.1),transparent)]" />
                             <div className="absolute inset-0 bg-grid-black/[0.01]" />
@@ -164,18 +164,18 @@ export default function ClubProfileClient({
                         <div className="px-8 pb-10 -mt-12 md:-mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-8">
                             <div className="relative group">
                                 <div className="absolute -inset-1.5 bg-gradient-to-br from-azul-primary to-celeste rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity" />
-                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-white/10 overflow-hidden bg-white/10 shadow-xl relative flex items-center justify-center transition-colors">
+                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-hairline overflow-hidden bg-surface-raised shadow-xl relative flex items-center justify-center transition-colors">
                                     {club?.logoUrl ? (
                                         <Image src={club.logoUrl} alt="Club logo" fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="(max-width: 768px) 96px, 128px" />
                                     ) : (
-                                        <Building2 className="h-10 w-10 text-slate-500" />
+                                        <Building2 className="h-10 w-10 text-subtle" />
                                     )}
                                 </div>
                             </div>
 
                             <div className="flex-1 text-center md:text-left pt-2 pb-1">
                                 <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 justify-center md:justify-start">
-                                    <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
+                                    <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-foreground">
                                         {clubName}
                                     </h1>
                                     <div className="flex self-center md:self-auto px-4 py-1.5 bg-azul-primary/10 border border-azul-primary/20 rounded-full backdrop-blur-md">
@@ -185,14 +185,14 @@ export default function ClubProfileClient({
 
                                 <div className="flex flex-wrap justify-center md:justify-start gap-5 mt-2 text-[10px] font-black uppercase tracking-widest">
                                     {club?.location && (
-                                        <div className="flex items-center gap-2.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-slate-400">
+                                        <div className="flex items-center gap-2.5 bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline text-muted-foreground">
                                             <MapPin className="h-3.5 w-3.5 text-celeste" /> {club.location}
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-2.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-slate-400">
+                                    <div className="flex items-center gap-2.5 bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline text-muted-foreground">
                                         <Users className="h-3.5 w-3.5 text-azul-primary" /> {totalMembers} Miembros
                                     </div>
-                                    <div className="flex items-center gap-2.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-slate-400">
+                                    <div className="flex items-center gap-2.5 bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline text-muted-foreground">
                                         <Trophy className="h-3.5 w-3.5 text-celeste" /> {totalTournaments} Torneos
                                     </div>
                                 </div>
@@ -201,15 +201,15 @@ export default function ClubProfileClient({
                     </div>
 
                     {/* ── Content Navigation ── */}
-                    <div className="flex items-center gap-2 bg-carbon-800 p-2 rounded-[2rem] border border-white/10 overflow-x-auto no-scrollbar shadow-sm transition-colors">
+                    <div className="flex items-center gap-2 bg-card p-2 rounded-[2rem] border border-hairline overflow-x-auto no-scrollbar shadow-sm transition-colors">
                         {tabs.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
-                                className={`flex-1 min-w-[120px] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative group/tab ${activeTab === id ? "text-white" : "text-slate-400 hover:text-white"}`}
+                                className={`flex-1 min-w-[120px] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative group/tab ${activeTab === id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                 onClick={() => setActiveTab(id)}
                             >
                                 <div className="flex items-center justify-center gap-2.5 relative z-10">
-                                    <Icon className={`h-4 w-4 transition-transform group-hover/tab:scale-110 ${activeTab === id ? "text-white" : ""}`} />
+                                    <Icon className={`h-4 w-4 transition-transform group-hover/tab:scale-110 ${activeTab === id ? "text-foreground" : ""}`} />
                                     {label}
                                 </div>
                                 {activeTab === id && (
@@ -232,23 +232,23 @@ export default function ClubProfileClient({
                                 className="grid grid-cols-1 md:grid-cols-3 gap-6"
                             >
                                 <div className="md:col-span-2 flex flex-col gap-6">
-                                    <div className="bg-carbon-800 border border-white/10 p-8 rounded-[2rem] shadow-sm">
+                                    <div className="bg-card border border-hairline p-8 rounded-[2rem] shadow-sm">
                                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-celeste mb-4">Sobre Nuestra Unidad</h3>
-                                        <p className="text-white text-sm leading-relaxed font-medium">
+                                        <p className="text-foreground text-sm leading-relaxed font-medium">
                                             {clubBio}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-6">
-                                    <div className="bg-carbon-800 border border-white/10 p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Contacto</h3>
+                                    <div className="bg-card border border-hairline p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Contacto</h3>
                                         <div className="flex flex-col gap-4">
-                                            <div className="flex items-center gap-3 text-white">
-                                                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10"><Phone className="h-4 w-4" /></div>
+                                            <div className="flex items-center gap-3 text-foreground">
+                                                <div className="w-10 h-10 rounded-2xl bg-surface-raised flex items-center justify-center border border-hairline"><Phone className="h-4 w-4" /></div>
                                                 <span className="text-sm font-bold tracking-tight">{club?.phone || "-"}</span>
                                             </div>
-                                            <div className="flex items-center gap-3 text-white">
-                                                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10"><Globe className="h-4 w-4" /></div>
+                                            <div className="flex items-center gap-3 text-foreground">
+                                                <div className="w-10 h-10 rounded-2xl bg-surface-raised flex items-center justify-center border border-hairline"><Globe className="h-4 w-4" /></div>
                                                 <span className="text-sm font-bold tracking-tight truncate">{club?.website || "-"}</span>
                                             </div>
                                         </div>
@@ -301,16 +301,16 @@ export default function ClubProfileClient({
                                     </div>
                                 </div>
 
-                                <div className="bg-carbon-800 border border-white/10 rounded-[2rem] shadow-sm overflow-hidden">
+                                <div className="bg-card border border-hairline rounded-[2rem] shadow-sm overflow-hidden">
                                     {members && members.length > 0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left">
                                                 <thead>
-                                                    <tr className="border-b border-white/10 bg-white/5">
-                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 text-center">Pos</th>
-                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
-                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">Nivel</th>
-                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">Puntos</th>
+                                                    <tr className="border-b border-hairline bg-surface">
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-16 text-center">Pos</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Nivel</th>
+                                                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-right">Puntos</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-border">
@@ -325,19 +325,19 @@ export default function ClubProfileClient({
                                                             const colors = [
                                                                 `text-white bg-${primary} border-${accent}/40 shadow-lg ${isFemale ? 'shadow-rojo/20' : 'shadow-azul-primary/20'}`,
                                                                 `text-${accent} bg-${accent}/10 border-${accent}/30`,
-                                                                "text-slate-400 bg-white/10 border-white/10"
+                                                                "text-muted-foreground bg-surface-raised border-hairline"
                                                             ];
 
                                                             return (
-                                                                <tr key={member.id} className="hover:bg-white/5 transition-colors group">
+                                                                <tr key={member.id} className="hover:bg-surface transition-colors group">
                                                                     <td className="px-8 py-6">
-                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic border ${isTop3 ? colors[index] : "text-slate-400 bg-white/10 border-white/10"}`}>
+                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic border ${isTop3 ? colors[index] : "text-muted-foreground bg-surface-raised border-hairline"}`}>
                                                                             {index + 1}
                                                                         </div>
                                                                     </td>
                                                                     <td className="px-8 py-6">
                                                                         <div className="flex items-center gap-4">
-                                                                            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/10 shrink-0 border border-white/10">
+                                                                            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface-raised shrink-0 border border-hairline">
                                                                                 {member.imageUrl ? (
                                                                                     <Image src={member.imageUrl} alt={member.firstName || "Miembro"} fill className="object-cover" sizes="40px" />
                                                                                 ) : (
@@ -345,7 +345,7 @@ export default function ClubProfileClient({
                                                                                 )}
                                                                             </div>
                                                                             <div className="flex flex-col">
-                                                                                <span className={`text-sm font-bold tracking-tight group-hover:text-${primary} transition-colors uppercase italic text-white`}>
+                                                                                <span className={`text-sm font-bold tracking-tight group-hover:text-${primary} transition-colors uppercase italic text-foreground`}>
                                                                                     {member.firstName || member.lastName ? `${member.firstName || ''} ${member.lastName || ''}`.trim() : "Jugador"}
                                                                                 </span>
                                                                                 <span className={`text-[9px] font-black text-${accent} uppercase tracking-widest`}>{member.side === 'reves' ? 'Revés' : member.side === 'drive' ? 'Drive' : 'Polivalente'}</span>
@@ -360,7 +360,7 @@ export default function ClubProfileClient({
                                                                     <td className="px-8 py-6">
                                                                         <div className="flex items-center justify-end gap-2">
                                                                             <Star className={`w-3.5 h-3.5 ${isTop3 ? `text-${accent} fill-${accent}/20` : `text-${primary}`}`} />
-                                                                            <span className="text-sm font-black italic tabular-nums text-white">{member.points || 0}</span>
+                                                                            <span className="text-sm font-black italic tabular-nums text-foreground">{member.points || 0}</span>
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -371,11 +371,11 @@ export default function ClubProfileClient({
                                         </div>
                                     ) : (
                                         <div className="p-16 text-center flex flex-col items-center gap-6">
-                                            <div className="w-16 h-16 rounded-[2rem] bg-white/10 flex items-center justify-center">
-                                                <Users className="h-8 w-8 text-slate-500" />
+                                            <div className="w-16 h-16 rounded-[2rem] bg-surface-raised flex items-center justify-center">
+                                                <Users className="h-8 w-8 text-subtle" />
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <p className="text-slate-400 text-sm font-medium italic">Aún no hay miembros registrados en este club.</p>
+                                                <p className="text-muted-foreground text-sm font-medium italic">Aún no hay miembros registrados en este club.</p>
                                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-celeste/50">Invite players to join</span>
                                             </div>
                                         </div>
@@ -392,24 +392,24 @@ export default function ClubProfileClient({
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 className="max-w-md mx-auto w-full"
                             >
-                                <div className="bg-carbon-800 border border-white/10 p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
+                                <div className="bg-card border border-hairline p-8 rounded-[2rem] shadow-sm flex flex-col gap-6">
                                     <div className="flex flex-col items-center gap-4 text-center">
-                                        <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center border-2 border-white/10">
-                                            <Settings className="h-10 w-10 text-slate-500" />
+                                        <div className="w-20 h-20 rounded-full bg-surface-raised flex items-center justify-center border-2 border-hairline">
+                                            <Settings className="h-10 w-10 text-subtle" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-black uppercase italic tracking-tight text-white">{clubName}</h3>
-                                            {user?.email && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{user?.email}</p>}
+                                            <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground">{clubName}</h3>
+                                            {user?.email && <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{user?.email}</p>}
                                         </div>
                                     </div>
 
-                                    <div className="h-px bg-white/10" />
+                                    <div className="h-px bg-surface-raised" />
 
                                     <div className="flex flex-col gap-3">
-                                        <div className="flex items-center justify-between p-4 bg-white/10 rounded-2xl border border-white/10">
+                                        <div className="flex items-center justify-between p-4 bg-surface-raised rounded-2xl border border-hairline">
                                             <div className="flex items-center gap-3">
                                                 <Shield className="h-4 w-4 text-azul-primary" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rol Administrador</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rol Administrador</span>
                                             </div>
                                             <span className="text-[10px] font-black uppercase tracking-widest text-azul-primary font-bold">{user?.role}</span>
                                         </div>
@@ -433,21 +433,21 @@ export default function ClubProfileClient({
                                 exit={{ opacity: 0, y: -20 }}
                                 className="max-w-2xl mx-auto flex flex-col gap-6 w-full"
                             >
-                                <div className="bg-carbon-800 border border-white/10 rounded-[2rem] p-8 md:p-12 shadow-sm">
+                                <div className="bg-card border border-hairline rounded-[2rem] p-8 md:p-12 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="p-3 bg-azul-primary/10 rounded-2xl text-azul-primary">
                                             <User className="h-6 w-6" />
                                         </div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Buscar y Vincular Jugador</h2>
+                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Buscar y Vincular Jugador</h2>
                                     </div>
 
-                                    <p className="text-slate-400 text-[10px] font-bold mb-6 leading-relaxed uppercase tracking-widest">
-                                        Si el jugador ya tiene una cuenta, podés buscarlo por <span className="text-white">Nombre o Email</span> para enviarle una invitación.
+                                    <p className="text-muted-foreground text-[10px] font-bold mb-6 leading-relaxed uppercase tracking-widest">
+                                        Si el jugador ya tiene una cuenta, podés buscarlo por <span className="text-foreground">Nombre o Email</span> para enviarle una invitación.
                                     </p>
 
                                     <div className="flex flex-col gap-4">
                                         <div className="relative">
-                                            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             <input
                                                 type="text"
                                                 placeholder="Buscar jugador..."
@@ -461,7 +461,7 @@ export default function ClubProfileClient({
                                                         setIsSearching(false);
                                                     }
                                                 }}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-azul-primary transition-all text-white"
+                                                className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-5 text-sm font-bold outline-none focus:border-azul-primary transition-all text-foreground"
                                             />
                                             <button
                                                 onClick={async () => {
@@ -478,16 +478,16 @@ export default function ClubProfileClient({
                                         </div>
 
                                         {searchResults.length > 0 && (
-                                            <div className="bg-white/10 border border-white/10 rounded-[1.5rem] overflow-hidden mt-4 shadow-sm">
+                                            <div className="bg-surface-raised border border-hairline rounded-[1.5rem] overflow-hidden mt-4 shadow-sm">
                                                 {searchResults.map(player => (
-                                                    <div key={player.id} className="p-4 border-b border-white/10 flex items-center justify-between gap-4 last:border-0 hover:bg-white/10 transition-colors">
+                                                    <div key={player.id} className="p-4 border-b border-hairline flex items-center justify-between gap-4 last:border-0 hover:bg-surface-raised transition-colors">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-white/10 shrink-0 relative overflow-hidden border border-white/10">
+                                                            <div className="w-10 h-10 rounded-full bg-surface-raised shrink-0 relative overflow-hidden border border-hairline">
                                                                 {player.imageUrl && <Image src={player.imageUrl} alt="" fill className="object-cover" sizes="40px" />}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-xs font-black uppercase italic text-white">{player.firstName} {player.lastName}</span>
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase">{player.email}</span>
+                                                                <span className="text-xs font-black uppercase italic text-foreground">{player.firstName} {player.lastName}</span>
+                                                                <span className="text-[9px] font-bold text-muted-foreground uppercase">{player.email}</span>
                                                             </div>
                                                         </div>
                                                         <button
@@ -514,26 +514,26 @@ export default function ClubProfileClient({
                                     </div>
                                 </div>
 
-                                <div className="bg-carbon-800 border border-white/10 rounded-[2rem] p-8 md:p-12 shadow-sm">
+                                <div className="bg-card border border-hairline rounded-[2rem] p-8 md:p-12 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="p-3 bg-celeste/10 rounded-2xl text-celeste">
                                             <MessageCircle className="h-6 w-6" />
                                         </div>
-                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Invitar Nuevos Jugadores</h2>
+                                        <h2 className="text-2xl font-black uppercase italic tracking-tight text-foreground">Invitar Nuevos Jugadores</h2>
                                     </div>
 
-                                    <p className="text-slate-400 text-xs font-medium mb-8 leading-relaxed uppercase tracking-widest">
+                                    <p className="text-muted-foreground text-xs font-medium mb-8 leading-relaxed uppercase tracking-widest">
                                         Compartí este link con jugadores que aún no estén registrados.
                                     </p>
 
                                     <div className="flex flex-col gap-6">
-                                        <div className="bg-white/10 border border-white/10 rounded-3xl p-6 relative overflow-hidden group shadow-sm">
+                                        <div className="bg-surface-raised border border-hairline rounded-3xl p-6 relative overflow-hidden group shadow-sm">
                                             <div className="absolute inset-0 bg-celeste/5 blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 flex items-center gap-2">
+                                            <h3 className="text-[10px] font-black uppercase text-muted-foreground mb-4 flex items-center gap-2">
                                                 Link de Invitación (Vence en 24hs)
                                             </h3>
                                             <div className="flex flex-col sm:flex-row items-center gap-3">
-                                                <div className="flex-1 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white font-mono truncate select-all shadow-sm">
+                                                <div className="flex-1 w-full bg-surface border border-hairline rounded-xl px-4 py-3 text-[10px] text-foreground font-mono truncate select-all shadow-sm">
                                                     {generatedInviteLink || 'Presioná "Generar Link" para obtener uno'}
                                                 </div>
                                                 <div className="flex gap-2 w-full sm:w-auto">
@@ -592,31 +592,31 @@ export default function ClubProfileClient({
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
-                                className="bg-carbon-800 border border-white/10 rounded-[2.5rem] shadow-sm overflow-hidden"
+                                className="bg-card border border-hairline rounded-[2.5rem] shadow-sm overflow-hidden"
                             >
-                                <div className="px-10 py-8 border-b border-white/10 bg-white/5">
-                                    <h2 className="text-xl font-black uppercase tracking-tighter italic text-white flex items-center gap-3">
+                                <div className="px-10 py-8 border-b border-hairline bg-surface">
+                                    <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground flex items-center gap-3">
                                         <Edit2 className="h-5 w-5 text-azul-primary" /> Información del Club
                                     </h2>
                                 </div>
 
-                                <div className="p-10 border-b border-white/10">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 mb-6 block tracking-[0.2em]">Logo Institucional del Club</label>
+                                <div className="p-10 border-b border-hairline">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground mb-6 block tracking-[0.2em]">Logo Institucional del Club</label>
                                     <div className="flex flex-col sm:flex-row items-center gap-10">
-                                        <div className="w-40 h-40 rounded-[2.5rem] bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center relative overflow-hidden group shadow-sm">
+                                        <div className="w-40 h-40 rounded-[2.5rem] bg-surface border-2 border-dashed border-hairline flex items-center justify-center relative overflow-hidden group shadow-sm">
                                             {logoPreview ? (
                                                 <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized sizes="160px" />
                                             ) : (
-                                                <Building2 className="w-12 h-12 text-slate-400/20" />
+                                                <Building2 className="w-12 h-12 text-muted-foreground/20" />
                                             )}
                                             {isUploading && (
-                                                <div className="absolute inset-0 bg-carbon-950/80 backdrop-blur-sm flex items-center justify-center z-20">
+                                                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
                                                     <Loader2 className="w-8 h-8 animate-spin text-azul-primary" />
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex flex-col gap-5 flex-1 w-full text-center sm:text-left">
-                                            <p className="text-[11px] text-slate-400 font-bold max-w-sm uppercase tracking-wide leading-relaxed italic">Upload high-fidelity institutional icon for visual identification in the neural network.</p>
+                                            <p className="text-[11px] text-muted-foreground font-bold max-w-sm uppercase tracking-wide leading-relaxed italic">Upload high-fidelity institutional icon for visual identification in the neural network.</p>
                                             <label className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-azul-primary hover:bg-celeste text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg shadow-azul-primary/20 active:scale-95">
                                                 <ImageIcon className="w-4 h-4" />
                                                 {isUploading ? "Subiendo..." : "Modificar Logo del Club"}
@@ -660,24 +660,24 @@ export default function ClubProfileClient({
                                 <form onSubmit={handleSave} className="p-10 flex flex-col gap-10">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                         <div className="flex flex-col gap-3">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Trade Name</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Trade Name</label>
                                             <input
                                                 type="text"
                                                 value={formData.name}
                                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
+                                                className="w-full bg-surface border border-hairline rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                 placeholder="Unit Name"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-3">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Deploy Location</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Deploy Location</label>
                                             <div className="relative">
-                                                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                 <input
                                                     type="text"
                                                     value={formData.location}
                                                     onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-surface border border-hairline rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="City, State"
                                                 />
                                             </div>
@@ -686,27 +686,27 @@ export default function ClubProfileClient({
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                         <div className="flex flex-col gap-3">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Comm Channel</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Comm Channel</label>
                                             <div className="relative">
-                                                <Phone className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <Phone className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                 <input
                                                     type="text"
                                                     value={formData.phone}
                                                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-surface border border-hairline rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="Dial Code"
                                                 />
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-3">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Web / Digital HQ</label>
+                                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Web / Digital HQ</label>
                                             <div className="relative">
-                                                <Globe className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <Globe className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                 <input
                                                     type="text"
                                                     value={formData.website}
                                                     onChange={e => setFormData({ ...formData, website: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
+                                                    className="w-full bg-surface border border-hairline rounded-2xl py-5 pl-14 pr-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary shadow-sm transition-all uppercase tracking-wide"
                                                     placeholder="www.hq.com"
                                                 />
                                             </div>
@@ -714,12 +714,12 @@ export default function ClubProfileClient({
                                     </div>
 
                                     <div className="flex flex-col gap-3">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Institutional Intel</label>
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 tracking-widest">Institutional Intel</label>
                                         <textarea
                                             value={formData.bio}
                                             onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                             rows={4}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-sm font-black italic outline-none focus:border-azul-primary resize-none shadow-sm transition-all uppercase tracking-wide"
+                                            className="w-full bg-surface border border-hairline rounded-2xl py-5 px-6 text-foreground text-sm font-black italic outline-none focus:border-azul-primary resize-none shadow-sm transition-all uppercase tracking-wide"
                                             placeholder="Brief of unit operations and objectives..."
                                         />
                                     </div>
@@ -744,7 +744,6 @@ export default function ClubProfileClient({
                 {showInvite && (
                     <InviteModal
                         clubName={clubName}
-                        clubId={club?.id}
                         onClose={() => setShowInvite(false)}
                     />
                 )}

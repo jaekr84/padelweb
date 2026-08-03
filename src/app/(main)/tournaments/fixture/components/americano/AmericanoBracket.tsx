@@ -80,7 +80,7 @@ export function AmericanoBracket({
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-white/12 pt-12 mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-hairline pt-12 mt-12">
             <div className="lg:col-span-12 flex flex-col gap-6">
                 <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ export function AmericanoBracket({
                         </div>
                         <div>
                             <h3 className="text-sm font-black uppercase italic tracking-tight">Cuadro de Eliminatorias</h3>
-                            <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">Definición de Campeonato • Tiempo Real</p>
+                            <p className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mt-0.5">Definición de Campeonato • Tiempo Real</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -175,11 +175,11 @@ export function AmericanoBracket({
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-16 rounded-3xl border-2 border-dashed border-white/12 bg-white/5 flex flex-col items-center gap-4">
+                    <div className="text-center py-16 rounded-3xl border-2 border-dashed border-hairline bg-surface flex flex-col items-center gap-4">
                         <Circle className="w-8 h-8 text-rojo/10 animate-pulse fill-current" />
                         <div className="space-y-0.5">
-                            <p className="text-[10px] font-black uppercase italic text-slate-300">Calculando Cuadro de Play-offs...</p>
-                            <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-500">Sincronizando Ranking en Tiempo Real</p>
+                            <p className="text-[10px] font-black uppercase italic text-muted-foreground">Calculando Cuadro de Play-offs...</p>
+                            <p className="text-[6px] font-black uppercase tracking-[0.4em] text-subtle">Sincronizando Ranking en Tiempo Real</p>
                         </div>
                     </div>
                 )}

@@ -13,7 +13,7 @@ export default async function InvitationsPage() {
     const invitations = await listInvitations();
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white flex flex-col">
+        <div className="min-h-screen bg-grid-carbon text-foreground flex flex-col">
             <InvitationsClient initialInvitations={invitations} />
         </div>
     );

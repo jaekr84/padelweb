@@ -12,7 +12,7 @@ export default async function AdminSponsorsPage() {
     const sponsorsData = await getSponsors();
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white p-6">
+        <div className="min-h-screen bg-grid-carbon text-foreground p-6">
             <SponsorManagementClient initialSponsors={JSON.parse(JSON.stringify(sponsorsData))} />
         </div>
     );

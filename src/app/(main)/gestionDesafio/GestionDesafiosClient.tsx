@@ -52,17 +52,17 @@ export default function GestionDesafiosClient({
                     <div>
                         <Link
                             href="/desafio"
-                            className="inline-flex items-center gap-1.5 label-tech text-[8px] text-slate-400 hover:text-white transition-colors mb-2"
+                            className="inline-flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors mb-2"
                         >
                             <Swords className="w-3 h-3" />
                             Ver la página pública
                         </Link>
-                        <h1 className="heading-sport text-2xl sm:text-3xl text-white">Gestión de Desafíos</h1>
-                        <p className="text-[11px] text-slate-500 mt-1">
+                        <h1 className="heading-sport text-2xl sm:text-3xl text-foreground">Gestión de Desafíos</h1>
+                        <p className="text-[11px] text-subtle mt-1">
                             Cada desafío tiene su categoría, sus canchas y su propia tabla de posiciones.
                         </p>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-carbon-700 border border-celeste/30 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-muted border border-celeste/30 flex items-center justify-center shrink-0">
                         <Settings2 className="w-5 h-5 text-celeste" />
                     </div>
                 </header>
@@ -90,10 +90,10 @@ export default function GestionDesafiosClient({
                 )}
 
                 {desafios.length === 0 && !creando ? (
-                    <div className="rounded-2xl border border-white/12 bg-carbon-800 shadow-lg shadow-black/40 p-8 text-center">
-                        <Swords className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                        <h2 className="heading-sport text-lg text-slate-300">Todavía no hay desafíos</h2>
-                        <p className="text-[12px] text-slate-500 mt-1.5">Creá el primero para empezar a recibir inscripciones.</p>
+                    <div className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 p-8 text-center">
+                        <Swords className="w-10 h-10 text-subtle mx-auto mb-3" />
+                        <h2 className="heading-sport text-lg text-muted-foreground">Todavía no hay desafíos</h2>
+                        <p className="text-[12px] text-subtle mt-1.5">Creá el primero para empezar a recibir inscripciones.</p>
                     </div>
                 ) : (
                     desafios.map((d) =>
@@ -156,11 +156,11 @@ function TarjetaDesafio({
     const cerrado = d.estado === ESTADO_DESAFIO.CERRADO;
 
     return (
-        <section className="rounded-2xl border border-white/12 bg-carbon-800 shadow-lg shadow-black/40 overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-white/10 bg-carbon-900/60">
+        <section className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 overflow-hidden">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-hairline bg-background/60">
                 <div className="flex items-center gap-2 min-w-0">
-                    {abierto ? <span className="live-dot" /> : cerrado ? <Trophy className="w-3.5 h-3.5 text-gold" /> : <Swords className="w-3.5 h-3.5 text-slate-400" />}
-                    <span className={`label-tech text-[8px] ${abierto ? "text-volt" : cerrado ? "text-gold" : "text-slate-400"}`}>
+                    {abierto ? <span className="live-dot" /> : cerrado ? <Trophy className="w-3.5 h-3.5 text-gold-ink" /> : <Swords className="w-3.5 h-3.5 text-muted-foreground" />}
+                    <span className={`label-tech text-[8px] ${abierto ? "text-volt-ink" : cerrado ? "text-gold-ink" : "text-muted-foreground"}`}>
                         {ETIQUETA_ESTADO_DESAFIO[d.estado]}
                     </span>
                 </div>
@@ -168,7 +168,7 @@ function TarjetaDesafio({
                     type="button"
                     onClick={onEditar}
                     disabled={pendiente}
-                    className="flex items-center gap-1.5 label-tech text-[8px] text-slate-400 hover:text-white transition-colors disabled:opacity-40 cursor-pointer"
+                    className="flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 cursor-pointer"
                 >
                     <Pencil className="w-3 h-3" />
                     Editar
@@ -179,14 +179,14 @@ function TarjetaDesafio({
                 <div className="flex items-center gap-3.5">
                     <ChipCategoria nombre={d.categoriaNombre} />
                     <div className="min-w-0">
-                        <h2 className="heading-sport text-xl text-white truncate">{d.nombre}</h2>
+                        <h2 className="heading-sport text-xl text-foreground truncate">{d.nombre}</h2>
                         <p className="label-tech text-[7px] text-celeste mt-1">
                             {d.categoriaNombre ? `Exclusivo categoría ${d.categoriaNombre}` : "Sin categoría"}
                         </p>
                     </div>
                 </div>
 
-                {d.descripcion && <p className="text-[12px] text-slate-400 mt-3 leading-relaxed">{d.descripcion}</p>}
+                {d.descripcion && <p className="text-[12px] text-muted-foreground mt-3 leading-relaxed">{d.descripcion}</p>}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                     <Dato icono={CalendarDays} rotulo="Período" valor={periodo(d.fechaInicio, d.fechaFin)} />
@@ -199,12 +199,12 @@ function TarjetaDesafio({
                     />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 mt-4 px-3 py-2.5 rounded-xl bg-carbon-700 border border-white/10">
+                <div className="flex items-center justify-between gap-3 mt-4 px-3 py-2.5 rounded-xl bg-muted border border-hairline">
                     <div className="flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-celeste" />
-                        <span className="label-tech text-[8px] text-slate-400">Inscriptos</span>
+                        <span className="label-tech text-[8px] text-muted-foreground">Inscriptos</span>
                     </div>
-                    <span className="text-scoreboard text-[15px] text-white">
+                    <span className="text-scoreboard text-[15px] text-foreground">
                         {d.inscriptos}{d.cupo > 0 ? `/${d.cupo}` : ""}
                     </span>
                 </div>
@@ -226,7 +226,7 @@ function TarjetaDesafio({
                             type="button"
                             onClick={onCerrar}
                             disabled={pendiente}
-                            className="sm:w-auto px-4 py-3 clip-notch bg-carbon-700 border border-white/10 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:border-rojo/40 hover:text-rojo transition-all active:scale-95 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2"
+                            className="sm:w-auto px-4 py-3 clip-notch bg-muted border border-hairline text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:border-rojo/40 hover:text-rojo transition-all active:scale-95 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2"
                         >
                             <Lock className="w-3.5 h-3.5" />
                             Cerrar
@@ -237,7 +237,7 @@ function TarjetaDesafio({
                             type="button"
                             onClick={onReabrir}
                             disabled={pendiente}
-                            className="sm:w-auto px-4 py-3 clip-notch bg-carbon-700 border border-white/10 text-slate-300 text-[10px] font-black uppercase tracking-widest hover:border-celeste/40 hover:text-white transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+                            className="sm:w-auto px-4 py-3 clip-notch bg-muted border border-hairline text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:border-celeste/40 hover:text-foreground transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
                         >
                             Reabrir
                         </button>
@@ -259,7 +259,7 @@ function TarjetaDesafio({
                         type="button"
                         onClick={onEliminar}
                         disabled={pendiente}
-                        className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:text-rojo hover:border-rojo/30 transition-all disabled:opacity-40 cursor-pointer"
+                        className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-hairline text-subtle text-[9px] font-black uppercase tracking-widest hover:text-rojo hover:border-rojo/30 transition-all disabled:opacity-40 cursor-pointer"
                     >
                         <Trash2 className="w-3 h-3" />
                         Eliminar desafío
@@ -276,9 +276,9 @@ export function ChipCategoria({ nombre, size = "md" }: { nombre: string | null; 
 
     if (!nombre) {
         return (
-            <div className={`${caja} shrink-0 clip-notch bg-carbon-700 border border-white/10 flex flex-col items-center justify-center`}>
-                <span className="label-tech text-[6px] text-slate-500 leading-none">Cat</span>
-                <span className={`heading-sport ${valor} text-slate-400 leading-none mt-1`}>—</span>
+            <div className={`${caja} shrink-0 clip-notch bg-muted border border-hairline flex flex-col items-center justify-center`}>
+                <span className="label-tech text-[6px] text-subtle leading-none">Cat</span>
+                <span className={`heading-sport ${valor} text-muted-foreground leading-none mt-1`}>—</span>
             </div>
         );
     }
@@ -292,12 +292,12 @@ export function ChipCategoria({ nombre, size = "md" }: { nombre: string | null; 
 
 function Dato({ icono: Icono, rotulo, valor }: { icono: any; rotulo: string; valor: string }) {
     return (
-        <div className="px-3 py-2 rounded-xl bg-carbon-700 border border-white/10 min-w-0">
+        <div className="px-3 py-2 rounded-xl bg-muted border border-hairline min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
-                <Icono className="w-3 h-3 text-slate-500 shrink-0" />
-                <span className="label-tech text-[7px] text-slate-500">{rotulo}</span>
+                <Icono className="w-3 h-3 text-subtle shrink-0" />
+                <span className="label-tech text-[7px] text-subtle">{rotulo}</span>
             </div>
-            <div className="text-[11px] font-bold text-white truncate">{valor}</div>
+            <div className="text-[11px] font-bold text-foreground truncate">{valor}</div>
         </div>
     );
 }
@@ -361,8 +361,8 @@ function Formulario({
     const listo = !!form.nombre?.trim() && !!form.categoriaId && !periodoInvalido;
 
     return (
-        <section className="rounded-2xl border border-white/12 bg-carbon-800 shadow-lg shadow-black/40 p-5">
-            <h2 className="heading-sport text-lg text-white mb-4">{titulo}</h2>
+        <section className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 p-5">
+            <h2 className="heading-sport text-lg text-foreground mb-4">{titulo}</h2>
 
             <div className="space-y-3">
                 <Campo rotulo="Nombre">
@@ -388,7 +388,7 @@ function Formulario({
                                     onClick={() => set("categoriaId", c.id)}
                                     className={`px-3 h-9 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer ${form.categoriaId === c.id
                                         ? "bg-celeste text-carbon-950 border-celeste shadow-lg shadow-celeste/20"
-                                        : "bg-carbon-700 border-white/10 text-slate-400 hover:text-white hover:border-celeste/40"
+                                        : "bg-muted border-hairline text-muted-foreground hover:text-foreground hover:border-celeste/40"
                                         }`}
                                 >
                                     {c.nombre}
@@ -396,7 +396,7 @@ function Formulario({
                             ))}
                         </div>
                     )}
-                    <p className="text-[10px] text-slate-500 mt-1.5">
+                    <p className="text-[10px] text-subtle mt-1.5">
                         Pueden inscribirse los de esta categoría y los de categorías inferiores (jugar para arriba).
                     </p>
                 </Campo>
@@ -475,7 +475,7 @@ function Formulario({
                 <button
                     type="button"
                     onClick={onCancelar}
-                    className="px-4 py-3 clip-notch bg-carbon-700 border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-white transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-3 clip-notch bg-muted border border-hairline text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:text-foreground transition-all active:scale-95 cursor-pointer"
                 >
                     Cancelar
                 </button>
@@ -494,14 +494,14 @@ function Formulario({
 }
 
 const entrada =
-    "w-full bg-carbon-700 border border-white/10 rounded-xl h-11 px-3 text-[12px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-celeste/40 transition-all";
+    "w-full bg-muted border border-hairline rounded-xl h-11 px-3 text-[12px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40 transition-all";
 const entradaError =
-    "w-full bg-carbon-700 border border-rojo/60 rounded-xl h-11 px-3 text-[12px] font-bold text-white focus:outline-none transition-all";
+    "w-full bg-muted border border-rojo/60 rounded-xl h-11 px-3 text-[12px] font-bold text-foreground focus:outline-none transition-all";
 
 function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
     return (
         <label className="block">
-            <span className="label-tech text-[7px] text-slate-500 block mb-1.5">{rotulo}</span>
+            <span className="label-tech text-[7px] text-subtle block mb-1.5">{rotulo}</span>
             {children}
         </label>
     );

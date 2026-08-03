@@ -17,9 +17,9 @@ export const Footer = () => {
                         <div className="relative w-10 h-10">
                             <Image src="/img/acap logo svg blanco sombra.svg" alt="A.C.A.P." fill className="object-contain" />
                         </div>
-                        <span className="font-black text-2xl italic tracking-tighter text-white">A.C.A.P</span>
+                        <span className="font-black text-2xl italic tracking-tighter text-foreground">A.C.A.P</span>
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+                    <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
                         La Asociación Coreana Argentina de Pádel. <br/>
                         Poder, técnica y comunidad en cada partido. Dominá la cancha con nosotros.
                     </p>
@@ -28,13 +28,13 @@ export const Footer = () => {
                             href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-pink-500 hover:border-pink-500/50 transition-all group"
+                            className="w-10 h-10 rounded-full bg-background border border-hairline flex items-center justify-center text-muted-foreground hover:text-pink-500 hover:border-pink-500/50 transition-all group"
                         >
                             <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </a>
                         <a 
                             href="mailto:acap@acap.ar" 
-                            className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-celeste hover:border-celeste/50 transition-all group"
+                            className="w-10 h-10 rounded-full bg-background border border-hairline flex items-center justify-center text-muted-foreground hover:text-celeste hover:border-celeste/50 transition-all group"
                         >
                             <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         </a>
@@ -43,25 +43,25 @@ export const Footer = () => {
 
                 {/* Explore Section */}
                 <div className="space-y-6">
-                    <h4 className="text-white font-black uppercase tracking-widest text-xs">Explorar</h4>
+                    <h4 className="text-foreground font-black uppercase tracking-widest text-xs">Explorar</h4>
                     <ul className="space-y-4">
                         <li>
-                            <Link href="/ranking" className="text-slate-400 hover:text-white text-sm transition-colors flex items-center gap-2 group">
+                            <Link href="/ranking" className="text-muted-foreground hover:text-foreground text-sm transition-colors flex items-center gap-2 group">
                                 <Trophy className="w-4 h-4 text-celeste opacity-50" /> Ranking Oficial
                             </Link>
                         </li>
                         <li>
-                            <Link href="/tournaments" className="text-slate-400 hover:text-white text-sm transition-colors flex items-center gap-2 group">
+                            <Link href="/tournaments" className="text-muted-foreground hover:text-foreground text-sm transition-colors flex items-center gap-2 group">
                                 <Trophy className="w-4 h-4 text-azul-primary opacity-50" /> Próximos Torneos
                             </Link>
                         </li>
                         <li>
-                            <Link href="/directory" className="text-slate-400 hover:text-white text-sm transition-colors flex items-center gap-2 group">
+                            <Link href="/directory" className="text-muted-foreground hover:text-foreground text-sm transition-colors flex items-center gap-2 group">
                                 <MapPin className="w-4 h-4 text-blue-400 opacity-50" /> Directorio de Clubes
                             </Link>
                         </li>
                         <li>
-                            <Link href="/marketplace" className="text-slate-400 hover:text-white text-sm transition-colors flex items-center gap-2 group">
+                            <Link href="/marketplace" className="text-muted-foreground hover:text-foreground text-sm transition-colors flex items-center gap-2 group">
                                 <ShoppingBag className="w-4 h-4 text-cyan-400 opacity-50" /> Marketplace ACAP
                             </Link>
                         </li>
@@ -70,33 +70,33 @@ export const Footer = () => {
 
                 {/* Info Section */}
                 <div className="space-y-6">
-                    <h4 className="text-white font-black uppercase tracking-widest text-xs">Información</h4>
+                    <h4 className="text-foreground font-black uppercase tracking-widest text-xs">Información</h4>
                     <ul className="space-y-4">
                         <li>
-                            <Link href="/contacto" className="text-slate-400 hover:text-white text-sm transition-colors">Contáctanos</Link>
+                            <Link href="/contacto" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Contáctanos</Link>
                         </li>
                         <li>
-                            <Link href="/reglamento" className="text-slate-400 hover:text-white text-sm transition-colors">Reglamento</Link>
+                            <Link href="/reglamento" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Reglamento</Link>
                         </li>
                         <li>
-                            <a href="#" className="text-slate-400 hover:text-white text-sm transition-colors">Preguntas Frecuentes</a>
+                            <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Preguntas Frecuentes</a>
                         </li>
                         <li>
-                            <a href="#" className="text-slate-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                            <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Términos y Condiciones</a>
                         </li>
                     </ul>
                 </div>
             </div>
 
             {/* Bottom Credits */}
-            <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-slate-900 pt-8">
+            <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-hairline pt-8">
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-slate-600">
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-subtle">
                         © 2026 Asociación Coreana Argentina de Pádel. Todos los derechos reservados.
                     </span>
                 </div>
                 <div className="flex items-center gap-6">
-                    <span className="text-[9px] font-bold tracking-widest uppercase text-slate-600 flex items-center gap-1">
+                    <span className="text-[9px] font-bold tracking-widest uppercase text-subtle flex items-center gap-1">
                         Designed & Developed by 
                         <a 
                             href="https://x.com/Kr84Jae" 

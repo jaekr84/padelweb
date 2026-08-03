@@ -56,7 +56,7 @@ export default function DeleteTournamentButton({ tournamentId, tournamentName, c
             {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : confirming ? (
-                <span>{showLabel || !compact ? "¿Seguro?" : <Trash2 className="w-4 h-4 text-white" />}</span>
+                <span>{showLabel || !compact ? "¿Seguro?" : <Trash2 className="w-4 h-4 text-foreground" />}</span>
             ) : (
                 <>
                     <Trash2 className="w-3 h-3" />

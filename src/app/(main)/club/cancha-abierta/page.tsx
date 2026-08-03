@@ -37,14 +37,14 @@ export default async function ClubOpenCourtPage() {
 
     if (session.role === "club" && !userClubId) {
         return (
-            <div className="min-h-screen bg-grid-carbon text-white flex items-center justify-center p-6">
-                <div className="max-w-md w-full bg-carbon-800/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-12 text-center shadow-2xl space-y-6">
+            <div className="min-h-screen bg-grid-carbon text-foreground flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-card/60 backdrop-blur-xl border border-hairline rounded-[2.5rem] p-12 text-center shadow-2xl space-y-6">
                     <div className="w-20 h-20 bg-azul-primary/10 rounded-3xl flex items-center justify-center mx-auto border border-azul-primary/20">
                         <ShieldAlert className="w-10 h-10 text-azul-primary" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl heading-sport text-white">Acceso Restringido</h2>
-                        <p className="text-xs font-medium text-slate-400 leading-relaxed">
+                        <h2 className="text-2xl heading-sport text-foreground">Acceso Restringido</h2>
+                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">
                             No tienes un club asociado a tu cuenta de gestión. 
                             Contactá al administrador de la plataforma para vincular tu club.
                         </p>
@@ -92,7 +92,7 @@ export default async function ClubOpenCourtPage() {
     }));
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-20 pt-6 px-4">
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-20 pt-6 px-4">
             <div className="max-w-7xl mx-auto">
                 <AdminOpenCourtClient initialEvents={events as any} />
             </div>

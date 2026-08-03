@@ -48,8 +48,8 @@ export function TournamentGroupsView({
 }: TournamentGroupsViewProps) {
     return (
         <section
-            className="relative rounded-2xl p-5 overflow-hidden border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)] space-y-4"
-            style={{ background: "radial-gradient(130% 95% at 50% -10%, #1b2942 0%, #0d1526 45%, #060a13 100%)" }}
+            className="relative rounded-2xl p-5 overflow-hidden border border-hairline shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)] space-y-4"
+            style={{ background: "var(--arena)" }}
         >
             {/* Faint arena grid */}
             <div
@@ -61,7 +61,7 @@ export function TournamentGroupsView({
             />
 
             <div className="relative flex flex-col items-center">
-                <h2 className="text-sm font-black text-white tracking-tighter uppercase italic leading-none">Fase de Grupos</h2>
+                <h2 className="text-sm font-black text-foreground tracking-tighter uppercase italic leading-none">Fase de Grupos</h2>
                 <p className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mt-1">Resultados y Clasificación</p>
             </div>
 
@@ -83,13 +83,13 @@ export function TournamentGroupsView({
                             key={g.id}
                             // min-w-0: sin esto el ítem de grid no baja del ancho mínimo de
                             // su contenido (botones + steppers) y la tarjeta se corta.
-                            className="min-w-0 rounded-xl overflow-hidden border border-white/10 shadow-lg flex flex-col h-full"
-                            style={{ background: "linear-gradient(155deg, #1b2536 0%, #0f1420 100%)" }}
+                            className="min-w-0 rounded-xl overflow-hidden border border-hairline shadow-lg flex flex-col h-full"
+                            style={{ background: "var(--arena-panel)" }}
                         >
-                            <div className="px-3 py-1.5 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
+                            <div className="px-3 py-1.5 border-b border-hairline flex items-center justify-between bg-surface">
                                 <div className="flex flex-col gap-0.5">
                                     {!readOnly && (
-                                        <div className="flex items-center gap-1.5 bg-black/30 px-2 py-0.5 rounded-lg border border-white/10 focus-within:border-cyan-400/50 transition-all w-fit">
+                                        <div className="flex items-center gap-1.5 bg-surface px-2 py-0.5 rounded-lg border border-hairline focus-within:border-cyan-400/50 transition-all w-fit">
                                             <MapPin className="w-2.5 h-2.5 text-cyan-400/60" />
                                             <input
                                                 type="text"
@@ -101,7 +101,7 @@ export function TournamentGroupsView({
                                                     );
                                                     setGroups(newGroups);
                                                 }}
-                                                className="w-12 bg-transparent border-none p-0 text-[10px] font-black italic uppercase text-cyan-300 placeholder:text-slate-600 focus:ring-0 outline-none"
+                                                className="w-12 bg-transparent border-none p-0 text-[10px] font-black italic uppercase text-cyan-300 placeholder:text-subtle focus:ring-0 outline-none"
                                             />
                                         </div>
                                     )}
@@ -111,21 +111,21 @@ export function TournamentGroupsView({
                                             <span className="text-[10px] font-black uppercase tracking-[0.1em] text-cyan-300">{g.courtNumber}</span>
                                         </div>
                                     )}
-                                    <h3 className="text-base font-black italic uppercase tracking-tighter text-white leading-none">{g.name}</h3>
+                                    <h3 className="text-base font-black italic uppercase tracking-tighter text-foreground leading-none">{g.name}</h3>
                                 </div>
-                                <Users2 className="w-4 h-4 text-slate-400" />
+                                <Users2 className="w-4 h-4 text-muted-foreground" />
                             </div>
-                            <div className="px-3 py-1 border-b border-white/10 bg-white/[0.02]">
+                            <div className="px-3 py-1 border-b border-hairline bg-surface">
                                 <div className="flex-1 overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-[11px]">
                                         <thead>
-                                            <tr className="border-b border-white/10">
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">OK</th>
-                                                <th className="px-0.5 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">$$</th>
-                                                <th className="px-1.5 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">#</th>
-                                                <th className="px-1 py-1 text-left font-black italic text-slate-400 uppercase tracking-widest text-[11px]">Jugador</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">PG</th>
-                                                <th className="px-1 py-1 text-center font-black italic text-slate-400 uppercase tracking-widest text-[11px]">+/-</th>
+                                            <tr className="border-b border-hairline">
+                                                <th className="px-0.5 py-1 text-center font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">OK</th>
+                                                <th className="px-0.5 py-1 text-center font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">$$</th>
+                                                <th className="px-1.5 py-1 text-left font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">#</th>
+                                                <th className="px-1 py-1 text-left font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">Jugador</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">PG</th>
+                                                <th className="px-1 py-1 text-center font-black italic text-muted-foreground uppercase tracking-widest text-[11px]">+/-</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -135,7 +135,7 @@ export function TournamentGroupsView({
                                                 const memberNames = s.player.name.split(/[\/\+]/).map((n: string) => n.trim()).filter(Boolean);
                                                 const slots: (0 | 1)[] = memberNames.length > 1 ? [0, 1] : [0];
                                                 return (
-                                                <tr key={s.playerId} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+                                                <tr key={s.playerId} className="border-b border-hairline hover:bg-surface transition-colors">
                                                     <td className="px-0.5 py-0.5 align-top">
                                                         <div className="flex flex-col items-center gap-0.5">
                                                             {slots.map(slot => (
@@ -143,7 +143,7 @@ export function TournamentGroupsView({
                                                                     key={slot}
                                                                     onClick={() => toggleMemberPresent(s.playerId, slot)}
                                                                     title={`${memberNames[slot] || s.player.name}: ${isMemberPresent(s.playerId, slot) ? "presente" : "marcar presente"}`}
-                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPresent(s.playerId, slot) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-white/10 text-slate-400 hover:text-cyan-400"}`}
+                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPresent(s.playerId, slot) ? "bg-cyan-400 text-slate-900 shadow-sm shadow-cyan-400/30" : "bg-surface-raised text-muted-foreground hover:text-cyan-400"}`}
                                                                 >
                                                                     <UserCheck className="w-2.5 h-2.5" />
                                                                 </button>
@@ -157,7 +157,7 @@ export function TournamentGroupsView({
                                                                     key={slot}
                                                                     onClick={() => toggleMemberPaid(s.playerId, slot)}
                                                                     title={`${memberNames[slot] || s.player.name}: ${isMemberPaid(s.playerId, slot) ? "pagó" : "marcar pago"}`}
-                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPaid(s.playerId, slot) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-white/10 text-slate-400 hover:text-emerald-400"}`}
+                                                                    className={`w-4 h-4 rounded-md flex items-center justify-center transition-all ${isMemberPaid(s.playerId, slot) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30" : "bg-surface-raised text-muted-foreground hover:text-emerald-400"}`}
                                                                 >
                                                                     <CreditCard className="w-2.5 h-2.5" />
                                                                 </button>
@@ -165,7 +165,7 @@ export function TournamentGroupsView({
                                                         </div>
                                                     </td>
                                                     <td className="px-1.5 py-0.5 text-left align-top">
-                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[10px] ${idx === 0 ? "bg-rojo text-white shadow-sm shadow-rojo/30" : "bg-white/5 text-slate-400"}`}>
+                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-md font-black italic text-[10px] ${idx === 0 ? "bg-rojo text-white shadow-sm shadow-rojo/30" : "bg-surface text-muted-foreground"}`}>
                                                             {idx + 1}
                                                         </span>
                                                     </td>
@@ -174,7 +174,7 @@ export function TournamentGroupsView({
                                                             {(memberNames.length ? memberNames : [s.player.name]).map((name: string, i: number) => (
                                                                 <span
                                                                     key={i}
-                                                                    className={`font-black uppercase italic tracking-tight leading-none text-[11px] h-4 flex items-center ${isMemberPresent(s.playerId, (i === 1 ? 1 : 0)) ? "text-slate-200" : "text-slate-500"}`}
+                                                                    className={`font-black uppercase italic tracking-tight leading-none text-[11px] h-4 flex items-center ${isMemberPresent(s.playerId, (i === 1 ? 1 : 0)) ? "text-muted-foreground" : "text-subtle"}`}
                                                                 >
                                                                     {name}
                                                                 </span>
@@ -182,7 +182,7 @@ export function TournamentGroupsView({
                                                         </div>
                                                     </td>
                                                     <td className="px-1 py-0.5 text-center align-top font-black italic text-cyan-400">{s.won}</td>
-                                                    <td className="px-1 py-0.5 text-center align-top font-black italic text-slate-400">{s.points > 0 ? `+${s.points}` : s.points}</td>
+                                                    <td className="px-1 py-0.5 text-center align-top font-black italic text-muted-foreground">{s.points > 0 ? `+${s.points}` : s.points}</td>
                                                 </tr>
                                                 );
                                             })}
@@ -192,8 +192,8 @@ export function TournamentGroupsView({
                             </div>
                             <div className="p-2.5 space-y-1.5">
                                 <div className="flex items-center justify-between gap-1 px-1 min-w-0">
-                                    <h4 className="shrink-0 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fixture del Grupo</h4>
-                                    <div className="h-px flex-1 min-w-2 bg-white/10 mx-1" />
+                                    <h4 className="shrink-0 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Fixture del Grupo</h4>
+                                    <div className="h-px flex-1 min-w-2 bg-surface-raised mx-1" />
                                     {!readOnly && groupMatches.some(m => !m.confirmed && m.status === 'in_progress' && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== m.score2) && (
                                         <button
                                             onClick={() => {
@@ -208,7 +208,7 @@ export function TournamentGroupsView({
                                                     handleConfirmScore(matchesToConfirm.map(m => m.id));
                                                 }
                                             }}
-                                            className="shrink-0 text-[10px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-slate-900 bg-cyan-400/10 hover:bg-cyan-400 px-1.5 py-0.5 rounded transition-colors border border-cyan-400/30"
+                                            className="shrink-0 text-[10px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-foreground bg-cyan-400/10 hover:bg-cyan-400 px-1.5 py-0.5 rounded transition-colors border border-cyan-400/30"
                                         >
                                             GUARDAR TODO
                                         </button>
@@ -216,7 +216,7 @@ export function TournamentGroupsView({
                                     {!readOnly && liveInfo.cancellableCount > 1 && (
                                         <button
                                             onClick={() => cancelAllGroupMatches(g.id)}
-                                            className="shrink-0 ml-1 flex items-center gap-1 text-[10px] font-black uppercase italic tracking-wider text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-1.5 py-0.5 rounded transition-colors border border-white/15"
+                                            className="shrink-0 ml-1 flex items-center gap-1 text-[10px] font-black uppercase italic tracking-wider text-muted-foreground hover:text-foreground bg-surface hover:bg-surface-raised px-1.5 py-0.5 rounded transition-colors border border-hairline"
                                             title="Devolver a pendiente los partidos iniciados sin puntos"
                                         >
                                             <Undo2 className="w-2.5 h-2.5" />
@@ -228,7 +228,7 @@ export function TournamentGroupsView({
                                 {!readOnly && nextInfo.availableCount > 1 && (
                                     <button
                                         onClick={() => startAllGroupMatches(g.id)}
-                                        className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg font-black uppercase italic tracking-widest text-[10px] transition-all border bg-white/[0.03] text-slate-300 border-white/12 hover:bg-cyan-400/10 hover:text-cyan-300 hover:border-cyan-400/30 active:scale-95"
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg font-black uppercase italic tracking-widest text-[10px] transition-all border bg-surface text-muted-foreground border-hairline hover:bg-cyan-400/10 hover:text-cyan-300 hover:border-cyan-400/30 active:scale-95"
                                         title="Iniciar de una todos los partidos con las dos parejas presentes"
                                     >
                                         <Play className="w-3 h-3" />
@@ -251,40 +251,40 @@ export function TournamentGroupsView({
                                                         ? "bg-emerald-500/[0.06] border-emerald-500/30"
                                                         : isLive
                                                             ? "bg-rojo/[0.08] border-rojo/40 shadow-[0_0_12px_rgba(255,45,85,0.25)]"
-                                                            : "bg-white/[0.02] border-white/10 hover:border-white/25"
+                                                            : "bg-surface border-hairline hover:border-hairline-strong"
                                                         }`}
                                                 >
                                                     {/* Equipo 1 */}
                                                     <div className="flex items-center gap-1 flex-1 min-w-0">
-                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight ${isDone ? (m.score1! > m.score2! ? "text-emerald-400" : "text-slate-500") : isLive ? "text-slate-100" : "text-slate-400"}`}>
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight ${isDone ? (m.score1! > m.score2! ? "text-emerald-400" : "text-subtle") : isLive ? "text-foreground" : "text-muted-foreground"}`}>
                                                             {m.team1.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
                                                         {isLive && !readOnly ? (
-                                                            <div className="flex items-center gap-0.5 bg-black/40 border border-white/10 rounded px-0.5">
-                                                                <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-500 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                <input type="number" value={m.score1 ?? 0} onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] text-white focus:text-rojo" />
-                                                                <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-slate-500 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                            <div className="flex items-center gap-0.5 bg-surface border border-hairline rounded px-0.5">
+                                                                <button onClick={() => handleScoreChange(m.id, Math.max(0, (m.score1 || 0) - 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-subtle hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                <input type="number" value={m.score1 ?? 0} onChange={e => handleScoreChange(m.id, e.target.value, m.score2?.toString() ?? "")} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] text-foreground focus:text-rojo" />
+                                                                <button onClick={() => handleScoreChange(m.id, ((m.score1 || 0) + 1).toString(), m.score2?.toString() ?? "")} className="p-0.5 text-subtle hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
                                                         ) : (
-                                                            <span className={`font-black w-6 text-center ${isDone && m.score1! > m.score2! ? "text-emerald-400" : "text-slate-400"}`}>{m.score1 ?? 0}</span>
+                                                            <span className={`font-black w-6 text-center ${isDone && m.score1! > m.score2! ? "text-emerald-400" : "text-muted-foreground"}`}>{m.score1 ?? 0}</span>
                                                         )}
                                                     </div>
 
                                                     {/* VS */}
-                                                    <span className="text-[10px] font-black text-slate-400 shrink-0">VS</span>
+                                                    <span className="text-[10px] font-black text-muted-foreground shrink-0">VS</span>
 
                                                     {/* Equipo 2 */}
                                                     <div className="flex items-center gap-1 flex-1 min-w-0">
                                                         {isLive && !readOnly ? (
-                                                            <div className="flex items-center gap-0.5 bg-black/40 border border-white/10 rounded px-0.5">
-                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 text-slate-500 hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
-                                                                <input type="number" value={m.score2 ?? 0} onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] text-white focus:text-rojo" />
-                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 text-slate-500 hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
+                                                            <div className="flex items-center gap-0.5 bg-surface border border-hairline rounded px-0.5">
+                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", Math.max(0, (m.score2 || 0) - 1).toString())} className="p-0.5 text-subtle hover:text-rojo transition-colors"><Minus className="w-2 h-2" /></button>
+                                                                <input type="number" value={m.score2 ?? 0} onChange={e => handleScoreChange(m.id, m.score1?.toString() ?? "", e.target.value)} className="w-4 h-4 text-center font-black outline-none no-spin-buttons bg-transparent text-[11px] text-foreground focus:text-rojo" />
+                                                                <button onClick={() => handleScoreChange(m.id, m.score1?.toString() ?? "", ((m.score2 || 0) + 1).toString())} className="p-0.5 text-subtle hover:text-rojo transition-colors"><Plus className="w-2 h-2" /></button>
                                                             </div>
                                                         ) : (
-                                                            <span className={`font-black w-6 text-center ${isDone && m.score2! > m.score1! ? "text-emerald-400" : "text-slate-400"}`}>{m.score2 ?? 0}</span>
+                                                            <span className={`font-black w-6 text-center ${isDone && m.score2! > m.score1! ? "text-emerald-400" : "text-muted-foreground"}`}>{m.score2 ?? 0}</span>
                                                         )}
-                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight text-right ${isDone ? (m.score2! > m.score1! ? "text-emerald-400" : "text-slate-500") : isLive ? "text-slate-100" : "text-slate-400"}`}>
+                                                        <div className={`flex-1 truncate font-black uppercase italic tracking-tight text-right ${isDone ? (m.score2! > m.score1! ? "text-emerald-400" : "text-subtle") : isLive ? "text-foreground" : "text-muted-foreground"}`}>
                                                             {m.team2.name.split(/[\/\+]/).map(n => n.trim()).join(" / ")}
                                                         </div>
                                                     </div>
@@ -297,7 +297,7 @@ export function TournamentGroupsView({
                                                                     {!m.score1 && !m.score2 && (
                                                                         <button
                                                                             onClick={() => cancelGroupMatch(m.id)}
-                                                                            className="p-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white border border-white/15 transition-colors"
+                                                                            className="p-0.5 rounded bg-surface hover:bg-surface-raised text-muted-foreground hover:text-foreground border border-hairline transition-colors"
                                                                             title="Deshacer inicio: vuelve a pendiente"
                                                                         >
                                                                             <Undo2 className="w-2.5 h-2.5" />
@@ -305,7 +305,7 @@ export function TournamentGroupsView({
                                                                     )}
                                                                     <button
                                                                         onClick={() => handleConfirmScore(m.id)}
-                                                                        className="px-1.5 py-0.5 rounded bg-cyan-400/10 hover:bg-cyan-400 text-cyan-300 hover:text-slate-900 text-[10px] font-black italic border border-cyan-400/30 transition-colors"
+                                                                        className="px-1.5 py-0.5 rounded bg-cyan-400/10 hover:bg-cyan-400 text-cyan-300 hover:text-foreground text-[10px] font-black italic border border-cyan-400/30 transition-colors"
                                                                     >
                                                                         FIN
                                                                     </button>
@@ -315,7 +315,7 @@ export function TournamentGroupsView({
                                                                     onClick={() => startGroupMatch(m.id)}
                                                                     className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black italic border transition-colors ${isReady
                                                                         ? "bg-rojo/10 hover:bg-rojo text-rojo hover:text-white border-rojo/30"
-                                                                        : "bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white border-white/15"}`}
+                                                                        : "bg-surface hover:bg-surface-raised text-muted-foreground hover:text-foreground border-hairline"}`}
                                                                     title={isReady
                                                                         ? "Iniciar este partido"
                                                                         : "Iniciar igual (falta marcar presente a alguna pareja)"}
@@ -328,7 +328,7 @@ export function TournamentGroupsView({
                                                         {isDone && !readOnly && (
                                                             <button
                                                                 onClick={() => handleReopenMatch(m.id)}
-                                                                className="p-0.5 text-slate-500 hover:text-cyan-300 transition-colors bg-white/5 border border-white/10 rounded hover:border-cyan-400/40 group/reopen"
+                                                                className="p-0.5 text-subtle hover:text-cyan-300 transition-colors bg-surface border border-hairline rounded hover:border-cyan-400/40 group/reopen"
                                                                 title="Reabrir partido"
                                                             >
                                                                 <RotateCcw className="w-2.5 h-2.5 group-hover/reopen:-rotate-45 transition-transform" />

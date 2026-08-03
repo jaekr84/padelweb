@@ -86,16 +86,16 @@ function OnboardingForm() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="w-full max-w-2xl relative z-10"
             >
-                <div className="bg-[#0f111a]/80 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+                <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
 
                     <div className="text-center mb-10">
                         <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl mb-6">
                             <span className="text-blue-400 font-black italic text-xl tracking-tighter">PADEL WEB</span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white mb-2">
+                        <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-foreground mb-2">
                             Completá tu Perfil
                         </h1>
-                        <p className="text-white/50 text-sm md:text-base font-medium">
+                        <p className="text-foreground/50 text-sm md:text-base font-medium">
                             Contanos cómo vas a usar la plataforma para personalizar tu experiencia
                         </p>
                     </div>
@@ -147,26 +147,26 @@ function OnboardingForm() {
                                         onClick={() => setRole(r.id)}
                                         className={`group relative flex flex-col items-start p-6 rounded-3xl text-left transition-all duration-300 ${isSelected
                                             ? r.active
-                                            : `bg-card border border-border hover:bg-white/10 hover:-translate-y-1`
+                                            : `bg-card border border-border hover:bg-surface-raised hover:-translate-y-1`
                                             }`}
                                     >
                                         <div className={`p-3 rounded-2xl mb-4 transition-colors ${isSelected
-                                            ? "bg-white/20 text-white"
+                                            ? "bg-surface-raised text-foreground"
                                             : `bg-card ${r.iconColor} group-hover:scale-110 transition-transform`
                                             }`}>
                                             <Icon className="w-6 h-6" />
                                         </div>
-                                        <h3 className={`text-lg font-black uppercase tracking-wider mb-2 ${isSelected ? "text-white" : "text-white/80"}`}>
+                                        <h3 className={`text-lg font-black uppercase tracking-wider mb-2 ${isSelected ? "text-foreground" : "text-foreground/80"}`}>
                                             {r.label}
                                         </h3>
-                                        <p className={`text-xs font-medium leading-relaxed ${isSelected ? "text-white/80" : "text-white/40"}`}>
+                                        <p className={`text-xs font-medium leading-relaxed ${isSelected ? "text-foreground/80" : "text-foreground/40"}`}>
                                             {r.description}
                                         </p>
 
                                         {isSelected && (
                                             <motion.div
                                                 layoutId="role-indicator"
-                                                className="absolute inset-0 rounded-3xl border-2 border-white/20 pointer-events-none"
+                                                className="absolute inset-0 rounded-3xl border-2 border-hairline-strong pointer-events-none"
                                                 initial={false}
                                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                             />

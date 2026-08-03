@@ -214,7 +214,7 @@ export default function RegisterForm({
 
     const RegistrantsList = (
         <div className="bg-card border border-border rounded-3xl p-5 shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/12">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-hairline">
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-celeste/5 flex items-center justify-center">
                         <Users className="w-3.5 h-3.5 text-celeste" />
@@ -231,7 +231,7 @@ export default function RegisterForm({
             ) : (
                 <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                     {initialRegistrations.map((reg, idx) => (
-                        <div key={reg.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/12 rounded-2xl hover:bg-muted/70 transition-colors">
+                        <div key={reg.id} className="flex items-center justify-between p-3 bg-surface border border-hairline rounded-2xl hover:bg-muted/70 transition-colors">
                             <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-black text-muted-foreground shrink-0 shadow-sm">
                                     {idx + 1}
@@ -253,7 +253,7 @@ export default function RegisterForm({
 
     if (step === "success") {
         return (
-            <div className={`theme-night ${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
+            <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
                 {!isModal && (
                     <div className="fixed top-0 inset-x-0 h-64 bg-gradient-to-b from-celeste/5 to-transparent pointer-events-none z-0" />
                 )}
@@ -311,7 +311,7 @@ export default function RegisterForm({
     }
 
     return (
-        <div className={`theme-night ${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
+        <div className={`${isModal ? "" : "min-h-screen"} bg-background overflow-x-hidden text-foreground`}>
 
             {/* ── Ambient glow ── */}
             {!isModal && (
@@ -344,7 +344,7 @@ export default function RegisterForm({
                         {/* ── Step bar ── */}
                         <div className={`${isModal ? "mb-10 px-6" : "mb-12"}`}>
                             <div className="relative flex items-center justify-between">
-                                <div className="absolute top-3.5 left-0 right-0 h-[1px] bg-white/5">
+                                <div className="absolute top-3.5 left-0 right-0 h-[1px] bg-surface">
                                     <div
                                         className="absolute top-0 bottom-0 left-0 bg-celeste transition-all duration-500"
                                         style={{ width: `${(stepIdx / (steps.length - 1)) * 100}%` }}
@@ -395,7 +395,7 @@ export default function RegisterForm({
                                                 <Trophy className="w-16 h-16 text-celeste/20" />
                                             </div>
                                         )}
-                                        <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-white px-5 pb-5 leading-tight">
+                                        <h1 className="relative z-20 text-2xl font-black italic uppercase tracking-tight text-foreground px-5 pb-5 leading-tight">
                                             {tournament.name}
                                         </h1>
                                     </div>
@@ -780,7 +780,7 @@ export default function RegisterForm({
                                     >
                                         {isPending ? (
                                             <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <div className="w-4 h-4 border-2 border-hairline-strong border-t-white rounded-full animate-spin" />
                                                 Procesando...
                                             </>
                                         ) : (

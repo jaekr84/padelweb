@@ -94,13 +94,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                                     <span className={`text-[60px] font-black italic leading-[0.9] py-1 text-transparent bg-clip-text bg-gradient-to-b ${rankGradient} drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]`}>
                                         #{player.rank}
                                     </span>
-                                    <span className="text-[12px] font-black italic text-white/90 tracking-[0.22em] uppercase mt-1 block leading-none">
+                                    <span className="text-[12px] font-black italic text-foreground/90 tracking-[0.22em] uppercase mt-1 block leading-none">
                                         A.C.A.P.
                                     </span>
                                 </>
                             ) : (
                                 <div className="flex flex-col justify-center mt-2">
-                                    <span className="text-lg font-black italic text-white leading-none tracking-tighter">
+                                    <span className="text-lg font-black italic text-foreground leading-none tracking-tighter">
                                         A.C.A.P.<span className={isFemale ? "text-rosa" : "text-celeste"}></span>
                                     </span>
                                 </div>
@@ -119,7 +119,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
 
                                 {/* Label de Lado Corporativo */}
                                 <div className={`mt-2 bg-${theme.primary} px-2 py-0.5 rounded-sm transform skew-x-[-15deg] ${theme.accentShadow} border border-${theme.accent}/30`}>
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest inline-block transform skew-x-[15deg]">
+                                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest inline-block transform skew-x-[15deg]">
                                         {sideLabel}
                                     </span>
                                 </div>
@@ -143,7 +143,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                                     unoptimized
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-slate-950 relative">
+                                <div className="w-full h-full flex items-center justify-center bg-background relative">
                                     <div className={`absolute -inset-10 ${theme.glow} opacity-[0.15] blur-2xl rounded-full`} />
                                     <div className="relative w-48 h-48 opacity-35 select-none pointer-events-none transition-all duration-500 group-hover:scale-105 group-hover:opacity-45 transform -translate-y-14">
                                         <img
@@ -162,7 +162,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                         <div className="absolute bottom-[206px] left-6 z-35">
                             <div className={`flex items-center gap-2 bg-gradient-to-r ${theme.ribbonGradient} backdrop-blur-md pl-2 pr-8 py-1 transform -skew-x-12 border-l-4 ${theme.ribbonBorder} shadow-[10px_10px_20px_rgba(0,0,0,0.3)]`}>
                                 <div className="flex flex-col transform skew-x-12 mr-1 leading-none">
-                                    <span className="text-[8px] font-black text-white uppercase italic">Logros</span>
+                                    <span className="text-[8px] font-black text-foreground uppercase italic">Logros</span>
                                 </div>
 
                                 <div className="flex gap-1 transform skew-x-12 items-center">
@@ -174,7 +174,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                                         />
                                     ))}
                                     {stats.trofeos > 5 && (
-                                        <span className="text-[10px] font-black text-white ml-1">+{stats.trofeos - 5}</span>
+                                        <span className="text-[10px] font-black text-foreground ml-1">+{stats.trofeos - 5}</span>
                                     )}
                                 </div>
                             </div>
@@ -185,7 +185,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                             <div className="relative">
                                 <div className={`absolute inset-0 bg-${theme.accent}/30 transform -skew-x-12 translate-x-2 translate-y-1 blur-[2px] opacity-30`} />
                                 <div className={`bg-white py-2 transform -skew-x-12 relative border-r-4 border-${theme.primary} shadow-2xl`}>
-                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950 text-center transform skew-x-12">
+                                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-foreground text-center transform skew-x-12">
                                         {player.firstName} <span className={`text-${theme.primary}`}>{player.lastName}</span>
                                     </h2>
                                 </div>
@@ -204,15 +204,15 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, stats, isCurrentUser })
                                     { label: 'PTS', val: player.points || 0 }
                                 ].map((stat, i) => (
                                     <div key={i} className={`flex flex-col items-center ${theme.statBoxBg} rounded-lg py-1 border transition-colors hover:brightness-110 shadow-lg`}>
-                                        <span className={`text-[7px] font-bold ${isFemale ? 'text-white/60' : 'text-celeste/60'} uppercase tracking-widest`}>{stat.label}</span>
-                                        <span className="text-lg font-black italic text-white leading-none">{stat.val}</span>
+                                        <span className={`text-[7px] font-bold ${isFemale ? 'text-foreground/60' : 'text-celeste/60'} uppercase tracking-widest`}>{stat.label}</span>
+                                        <span className="text-lg font-black italic text-foreground leading-none">{stat.val}</span>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Club */}
-                            <div className="mt-4 flex flex-col items-center border-t border-white/10 pt-2 pb-2">
-                                <span className={`text-[9px] font-bold ${isFemale ? 'text-rosa/60' : 'text-slate-400'} tracking-[0.2em] mb-1 uppercase italic`}>
+                            <div className="mt-4 flex flex-col items-center border-t border-hairline pt-2 pb-2">
+                                <span className={`text-[9px] font-bold ${isFemale ? 'text-rosa/60' : 'text-muted-foreground'} tracking-[0.2em] mb-1 uppercase italic`}>
                                     CLUB: <span className={`text-${theme.accent}`}>{player.clubName || 'Socio Independiente'}</span>
                                 </span>
                             </div>

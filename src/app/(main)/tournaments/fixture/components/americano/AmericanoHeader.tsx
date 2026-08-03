@@ -46,7 +46,7 @@ export function AmericanoHeader({
 
     return (
         <>
-            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-white/12">
+            <header className="sticky top-0 z-[60] bg-background/60 backdrop-blur-3xl border-b border-hairline">
                 <div className="w-full px-2 md:px-3 h-10 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                         <button
@@ -54,7 +54,7 @@ export function AmericanoHeader({
                                 if (step === "active") setStep("setup");
                                 else router.push("/admin/tournaments");
                             }}
-                            className="group flex items-center gap-1.5 text-slate-200 hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
+                            className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all px-2 py-1 hover:bg-muted/50 rounded-lg"
                         >
                             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                             <span className="text-[8px] font-black uppercase tracking-[0.15em] italic">Volver</span>
@@ -64,7 +64,7 @@ export function AmericanoHeader({
 
                         <div className="hidden md:flex flex-col min-w-0">
                             <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste leading-none mb-0.5">Torneo</span>
-                            <span className="text-[9px] font-black uppercase italic tracking-tight text-white leading-none truncate max-w-[120px] lg:max-w-[200px]">
+                            <span className="text-[9px] font-black uppercase italic tracking-tight text-foreground leading-none truncate max-w-[120px] lg:max-w-[200px]">
                                 {tournamentName}
                             </span>
                         </div>
@@ -120,7 +120,7 @@ export function AmericanoHeader({
                                             ? "bg-celeste text-carbon-950 shadow-sm"
                                             : s.completed
                                                 ? "text-celeste bg-celeste/5 hover:bg-celeste/10"
-                                                : "text-slate-300 hover:bg-muted/80"
+                                                : "text-muted-foreground hover:bg-muted/80"
                                     }`;
 
                                     return (
@@ -181,7 +181,7 @@ export function AmericanoHeader({
                         {!readOnly && (
                             <Link
                                 href={`/tournaments/${tournamentId}/edit`}
-                                className="p-1.5 rounded-lg bg-white/5 border border-white/12 text-slate-300 hover:text-foreground hover:bg-muted transition-all"
+                                className="p-1.5 rounded-lg bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                                 title="Configuración"
                             >
                                 <Settings className="w-3 h-3" />
@@ -191,7 +191,7 @@ export function AmericanoHeader({
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="p-1.5 rounded-lg bg-white/5 border border-white/12 text-slate-300 hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                            className="p-1.5 rounded-lg bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50"
                         >
                             <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
                         </button>

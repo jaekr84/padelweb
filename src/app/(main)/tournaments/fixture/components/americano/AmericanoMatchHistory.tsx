@@ -67,20 +67,20 @@ export function AmericanoMatchHistory({
                     </div>
                     <div>
                         <h3 className="text-[11px] font-black uppercase italic tracking-tight">Historial de Partidos</h3>
-                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">
+                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mt-0.5">
                             Registro completo del torneo
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center p-0.5 bg-white/5 border border-white/12 rounded-lg gap-0.5">
-                    <button onClick={() => setFilter("all")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "all" ? "bg-foreground text-background" : "hover:bg-muted text-slate-300"}`}>
+                <div className="flex items-center p-0.5 bg-surface border border-hairline rounded-lg gap-0.5">
+                    <button onClick={() => setFilter("all")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "all" ? "bg-foreground text-background" : "hover:bg-muted text-muted-foreground"}`}>
                         Todos ({matches.length})
                     </button>
-                    <button onClick={() => setFilter("finished")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "finished" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-slate-300"}`}>
+                    <button onClick={() => setFilter("finished")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "finished" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-muted-foreground"}`}>
                         Finalizados ({finishedCount})
                     </button>
-                    <button onClick={() => setFilter("live")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "live" ? "bg-rojo text-white" : "hover:bg-muted text-slate-300"}`}>
+                    <button onClick={() => setFilter("live")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${filter === "live" ? "bg-rojo text-white" : "hover:bg-muted text-muted-foreground"}`}>
                         En Juego ({liveCount})
                     </button>
                 </div>
@@ -88,13 +88,13 @@ export function AmericanoMatchHistory({
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-subtle" />
                 <input
                     type="text"
                     placeholder="Buscar por jugador..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg py-1.5 pl-8 pr-3 text-[9px] font-bold outline-none focus:ring-1 focus:ring-celeste transition-all placeholder:text-slate-500"
+                    className="w-full bg-card backdrop-blur-xl border border-hairline rounded-lg py-1.5 pl-8 pr-3 text-[9px] font-bold outline-none focus:ring-1 focus:ring-celeste transition-all placeholder:text-subtle"
                 />
             </div>
 
@@ -110,38 +110,38 @@ export function AmericanoMatchHistory({
 
             {/* Match list */}
             {filtered.length === 0 ? (
-                <div className="py-14 text-center flex flex-col items-center gap-3 border-2 border-dashed border-white/12 rounded-xl bg-card/20">
-                    <Swords className="w-8 h-8 text-slate-500" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+                <div className="py-14 text-center flex flex-col items-center gap-3 border-2 border-dashed border-hairline rounded-xl bg-card/20">
+                    <Swords className="w-8 h-8 text-subtle" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">
                         {matches.length === 0 ? "Todavía no se jugaron partidos" : "Sin resultados para este filtro"}
                     </span>
                 </div>
             ) : (
-                <div className="bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg overflow-hidden shadow-sm divide-y divide-border/30">
+                <div className="bg-card backdrop-blur-xl border border-hairline rounded-lg overflow-hidden shadow-sm divide-y divide-border/30">
                     {filtered.map(({ match: m, seq }) => {
                         const winnerIs1 = m.confirmed && (m.score1 ?? 0) > (m.score2 ?? 0);
                         const winnerIs2 = m.confirmed && (m.score2 ?? 0) > (m.score1 ?? 0);
                         const isBusy = busyMatchId === m.id;
                         const actionsLocked = saving || isBusy || hasBracket;
                         return (
-                            <div key={m.id} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition-all">
+                            <div key={m.id} className="flex items-center gap-2 px-3 py-2 hover:bg-surface transition-all">
                                 {/* Seq + court */}
                                 <div className="flex flex-col items-center w-10 shrink-0">
-                                    <span className="text-[8px] font-black italic text-slate-400">#{seq}</span>
+                                    <span className="text-[8px] font-black italic text-muted-foreground">#{seq}</span>
                                     {m.courtNumber && (
-                                        <span className="text-[6px] font-black uppercase tracking-wider text-slate-400">C{m.courtNumber}</span>
+                                        <span className="text-[6px] font-black uppercase tracking-wider text-muted-foreground">C{m.courtNumber}</span>
                                     )}
                                 </div>
 
                                 {/* Teams + score */}
                                 <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 min-w-0">
-                                    <span className={`text-[9px] font-black uppercase italic truncate text-right ${winnerIs1 ? "text-celeste" : "text-slate-200"}`}>
+                                    <span className={`text-[9px] font-black uppercase italic truncate text-right ${winnerIs1 ? "text-celeste" : "text-muted-foreground"}`}>
                                         {m.team1?.name}
                                     </span>
-                                    <span className="text-[10px] font-black italic tabular-nums text-foreground bg-white/5 border border-white/12 rounded px-1.5 py-0.5 shrink-0">
+                                    <span className="text-[10px] font-black italic tabular-nums text-foreground bg-surface border border-hairline rounded px-1.5 py-0.5 shrink-0">
                                         {m.score1 ?? 0} - {m.score2 ?? 0}
                                     </span>
-                                    <span className={`text-[9px] font-black uppercase italic truncate ${winnerIs2 ? "text-celeste" : "text-slate-200"}`}>
+                                    <span className={`text-[9px] font-black uppercase italic truncate ${winnerIs2 ? "text-celeste" : "text-muted-foreground"}`}>
                                         {m.team2?.name}
                                     </span>
                                 </div>
@@ -160,7 +160,7 @@ export function AmericanoMatchHistory({
                                             onClick={() => setConfirmAction({ type: "reopen", match: m })}
                                             disabled={actionsLocked}
                                             title={hasBracket ? "Eliminatorias activas" : "Volver a jugar (reabre el partido en una cancha libre)"}
-                                            className="w-6 h-6 rounded inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-400 hover:border-celeste/40 hover:text-celeste transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="w-6 h-6 rounded inline-flex items-center justify-center border border-hairline bg-surface text-muted-foreground hover:border-celeste/40 hover:text-celeste transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
                                             {isBusy ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <RotateCcw className="w-2.5 h-2.5" />}
                                         </button>
@@ -168,7 +168,7 @@ export function AmericanoMatchHistory({
                                             onClick={() => setConfirmAction({ type: "delete", match: m })}
                                             disabled={actionsLocked}
                                             title={hasBracket ? "Eliminatorias activas" : "Eliminar partido del registro"}
-                                            className="w-6 h-6 rounded inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-400 hover:border-rojo/40 hover:text-rojo transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="w-6 h-6 rounded inline-flex items-center justify-center border border-hairline bg-surface text-muted-foreground hover:border-rojo/40 hover:text-rojo transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
                                             {isBusy ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Trash2 className="w-2.5 h-2.5" />}
                                         </button>
@@ -198,7 +198,7 @@ export function AmericanoMatchHistory({
                                 initial={{ scale: 0.92, opacity: 0, y: 10 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                                className="relative w-full max-w-sm bg-card border border-white/12 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                                className="relative w-full max-w-sm bg-card border border-hairline rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
                             >
                                 <div className={`w-14 h-14 rounded-full border flex items-center justify-center ${isReopen
                                     ? "bg-celeste/10 border-celeste/30 text-celeste"
@@ -210,21 +210,21 @@ export function AmericanoMatchHistory({
                                     <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
                                         {isReopen ? "Volver a jugar el partido" : "Eliminar partido del registro"}
                                     </h3>
-                                    <p className="text-xs text-slate-300 leading-relaxed">
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
                                         {isReopen
                                             ? "El resultado se quitará de la tabla y el partido volverá a una cancha libre con el marcador actual para corregirlo y confirmarlo de nuevo."
                                             : "El partido y su resultado se eliminarán definitivamente. Los partidos jugados de cada participante se recalcularán."}
                                     </p>
                                 </div>
 
-                                <div className="w-full bg-white/5 border border-white/12 rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
-                                    <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-right">
+                                <div className="w-full bg-surface border border-hairline rounded-xl px-3 py-2.5 flex items-center justify-center gap-2">
+                                    <span className="text-[9px] font-black uppercase italic text-foreground truncate max-w-[35%] text-right">
                                         {m.team1?.name}
                                     </span>
                                     <span className="text-sm font-black italic tabular-nums text-foreground shrink-0">
                                         {m.score1 ?? 0} - {m.score2 ?? 0}
                                     </span>
-                                    <span className="text-[9px] font-black uppercase italic text-slate-100 truncate max-w-[35%] text-left">
+                                    <span className="text-[9px] font-black uppercase italic text-foreground truncate max-w-[35%] text-left">
                                         {m.team2?.name}
                                     </span>
                                 </div>
@@ -233,7 +233,7 @@ export function AmericanoMatchHistory({
                                     <button
                                         type="button"
                                         onClick={() => setConfirmAction(null)}
-                                        className="flex-1 py-3 rounded-xl border border-white/12 bg-white/5 hover:bg-white/5 text-slate-200 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                        className="flex-1 py-3 rounded-xl border border-hairline bg-surface hover:bg-surface text-muted-foreground font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
                                     >
                                         Volver
                                     </button>

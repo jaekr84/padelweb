@@ -92,7 +92,7 @@ export default async function ClubTournamentsPage() {
                     className="group bg-indigo-600 hover:bg-indigo-500 text-white pl-6 pr-4 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-indigo-600/20 flex items-center gap-4"
                 >
                     Organizar Nuevo Torneo
-                    <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                    <div className="w-8 h-8 rounded-xl bg-surface-raised flex items-center justify-center group-hover:bg-surface-raised transition-colors">
                         <Plus className="w-4 h-4" />
                     </div>
                 </Link>

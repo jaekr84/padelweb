@@ -34,7 +34,7 @@ const AMENITIES_MAP: Record<string, { icon: any; label: string }> = {
 function StarRating({ rating }: { rating: string | null }) {
     const val = rating ? parseFloat(rating) : 0;
     if (val === 0) return (
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Sin calif.</span>
+        <span className="text-[10px] font-bold text-subtle uppercase tracking-widest italic">Sin calif.</span>
     );
     return (
         <div className="flex items-center gap-1 text-[11px] font-black text-azul-primary">
@@ -78,7 +78,7 @@ export default function DirectoryClient({
     }, [initialClubs]);
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white font-sans selection:bg-volt/30 overflow-x-hidden">
+        <div className="min-h-screen bg-grid-carbon text-foreground font-sans selection:bg-volt/30 overflow-x-hidden">
             <style>{`
                 @keyframes gradient-x {
                     0% { background-position: 0% 50%; }
@@ -103,7 +103,7 @@ export default function DirectoryClient({
 
             {/* Public Navbar (If not logged in) */}
             {!isLoggedIn && (
-                <nav className="sticky top-0 z-50 w-full bg-carbon-950/90 backdrop-blur-xl border-b border-white/10">
+                <nav className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-xl border-b border-hairline">
                     <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2 group">
                             <div className="w-8 h-8 rounded-full border border-celeste/30 overflow-hidden shrink-0 relative">
@@ -112,7 +112,7 @@ export default function DirectoryClient({
                             <span className="font-black italic tracking-tighter text-sm uppercase">A.C.A.P.</span>
                         </Link>
                         <div className="flex items-center gap-4">
-                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Entrar</Link>
+                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Entrar</Link>
                             <Link href="/register" className="bg-azul-primary text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-azul-dark transition-all shadow-xl shadow-azul-primary/10 active:scale-95">Registrarme</Link>
                         </div>
                     </div>
@@ -126,7 +126,7 @@ export default function DirectoryClient({
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                         <p className="label-tech text-[9px] text-celeste-light mb-1 px-1">Clasificación Oficial</p>
                         <h1 className="heading-sport text-2xl md:text-3xl leading-tight pr-10">
-                            <span className="text-gradient-animate">Directorio</span> <span className="text-white">de Clubes</span>
+                            <span className="text-gradient-animate">Directorio</span> <span className="text-foreground">de Clubes</span>
                         </h1>
                     </motion.div>
 
@@ -134,7 +134,7 @@ export default function DirectoryClient({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="mt-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-xl"
+                        className="mt-2 text-muted-foreground text-[10px] font-bold uppercase tracking-widest max-w-xl"
                     >
                         Clubes asociados a A.C.A.P.
                     </motion.p>
@@ -144,19 +144,19 @@ export default function DirectoryClient({
                 <div className="mb-6 space-y-4">
                     <div className="flex flex-col lg:flex-row gap-2 items-stretch">
                         <div className="relative flex-1 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-azul-primary transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-azul-primary transition-colors" />
                             <input
                                 type="text"
                                 placeholder="BUSCAR CLUB O CIUDAD..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-12 pr-4 h-11 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-0 transition-all placeholder:text-slate-400 text-white"
+                                className="w-full pl-12 pr-4 h-11 bg-surface border border-hairline rounded-xl text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-0 transition-all placeholder:text-muted-foreground text-foreground"
                             />
                         </div>
                         <div className="flex gap-2 overflow-x-auto no-scrollbar">
                             <button
                                 onClick={() => setSelectedSurface(null)}
-                                className={`px-4 h-11 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedSurface ? 'bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20' : 'bg-white/5 text-slate-400 border-white/10 hover:border-azul-primary/40'}`}
+                                className={`px-4 h-11 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${!selectedSurface ? 'bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20' : 'bg-surface text-muted-foreground border-hairline hover:border-azul-primary/40'}`}
                             >
                                 Todas
                             </button>
@@ -164,7 +164,7 @@ export default function DirectoryClient({
                                 <button
                                     key={s}
                                     onClick={() => setSelectedSurface(s === selectedSurface ? null : s)}
-                                    className={`px-4 h-11 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${s === selectedSurface ? 'bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20' : 'bg-white/5 text-slate-400 border-white/10 hover:border-azul-primary/40'}`}
+                                    className={`px-4 h-11 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${s === selectedSurface ? 'bg-azul-primary text-white border-azul-primary shadow-lg shadow-azul-primary/20' : 'bg-surface text-muted-foreground border-hairline hover:border-azul-primary/40'}`}
                                 >
                                     {s.replace("_", " ")}
                                 </button>
@@ -174,17 +174,17 @@ export default function DirectoryClient({
                 </div>
 
                 {/* ── Club Directory Table ── */}
-                <div className="w-full bg-carbon-800/50 rounded-2xl border border-white/10 overflow-hidden">
+                <div className="w-full bg-card/50 rounded-2xl border border-hairline overflow-hidden">
                     <div className="overflow-x-auto no-scrollbar">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-white/5">
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic w-12 text-center">#</th>
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Club</th>
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic hidden md:table-cell">Ubicación</th>
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic text-center">Miembros</th>
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic text-center">Puntos</th>
-                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic text-right">Acción</th>
+                                <tr className="border-b border-hairline">
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic w-12 text-center">#</th>
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">Club</th>
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic hidden md:table-cell">Ubicación</th>
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic text-center">Miembros</th>
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic text-center">Puntos</th>
+                                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic text-right">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,29 +199,29 @@ export default function DirectoryClient({
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, scale: 0.98 }}
                                                 transition={{ delay: idx * 0.03 }}
-                                                className="group hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                                                className="group hover:bg-surface transition-colors border-b border-hairline last:border-0"
                                             >
                                                 {/* Rank Column */}
                                                 <td className="px-4 py-2 text-center">
-                                                    <span className="text-[10px] font-black italic text-slate-400 border-r border-white/10 pr-2">#{rank}</span>
+                                                    <span className="text-[10px] font-black italic text-muted-foreground border-r border-hairline pr-2">#{rank}</span>
                                                 </td>
 
                                                 {/* Club Column */}
                                                 <td className="px-4 py-2">
                                                     <Link href={`/profiles/club?id=${club.id}`} className="flex items-center gap-3 group/item">
-                                                        <div className="w-9 h-9 bg-white/5 rounded-lg border border-white/10 group-hover/item:border-azul-primary/40 transition-all flex items-center justify-center relative shrink-0 overflow-hidden">
+                                                        <div className="w-9 h-9 bg-surface rounded-lg border border-hairline group-hover/item:border-azul-primary/40 transition-all flex items-center justify-center relative shrink-0 overflow-hidden">
                                                             {club.logoUrl ? (
                                                                 <Image src={club.logoUrl} alt={club.name} fill className="object-cover" unoptimized />
                                                             ) : (
-                                                                <Building2 className="w-4 h-4 text-slate-500" />
+                                                                <Building2 className="w-4 h-4 text-subtle" />
                                                             )}
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-[11px] font-black uppercase italic tracking-tighter text-white leading-none group-hover/item:text-azul-primary transition-colors">{club.name}</span>
+                                                                <span className="text-[11px] font-black uppercase italic tracking-tighter text-foreground leading-none group-hover/item:text-azul-primary transition-colors">{club.name}</span>
                                                                 {club.verified && <CheckCircle2 className="w-2.5 h-2.5 text-celeste fill-celeste/10" />}
                                                             </div>
-                                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 md:hidden">
+                                                            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-1 md:hidden">
                                                                 {club.location || "Sin ubicación"}
                                                             </span>
                                                         </div>
@@ -230,7 +230,7 @@ export default function DirectoryClient({
 
                                                 {/* Location Column */}
                                                 <td className="px-4 py-2 hidden md:table-cell">
-                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                    <div className="flex items-center gap-2 text-muted-foreground">
                                                         <MapPin className="w-3 h-3 text-celeste/60" />
                                                         <span className="text-[9px] font-bold uppercase tracking-[0.1em]">{club.location || "-"}</span>
                                                     </div>
@@ -238,7 +238,7 @@ export default function DirectoryClient({
 
                                                 {/* Members Column */}
                                                 <td className="px-4 py-2 text-center">
-                                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded text-[9px] font-black text-slate-500 border border-white/10">
+                                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface rounded text-[9px] font-black text-subtle border border-hairline">
                                                         <Users className="w-2.5 h-2.5 text-celeste/60" />
                                                         {(club as any).memberCount || 0}
                                                     </div>
@@ -262,14 +262,14 @@ export default function DirectoryClient({
                                                                     const phone = club.whatsapp || club.phone;
                                                                     window.open(`https://wa.me/${phone?.replace(/\D/g, '')}`, '_blank');
                                                                 }}
-                                                                className="w-7 h-7 border border-white/10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-azul-primary/5 hover:text-azul-primary hover:border-azul-primary/20 transition-all active:scale-90"
+                                                                className="w-7 h-7 border border-hairline rounded-lg flex items-center justify-center text-muted-foreground hover:bg-azul-primary/5 hover:text-azul-primary hover:border-azul-primary/20 transition-all active:scale-90"
                                                             >
                                                                 <MessageCircle className="w-3 h-3" />
                                                             </button>
                                                         )}
                                                         <Link
                                                             href={`/profiles/club?id=${club.id}`}
-                                                            className="h-7 px-3 bg-white/10 hover:bg-azul-primary text-white rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+                                                            className="h-7 px-3 bg-surface-raised hover:bg-azul-primary text-foreground rounded-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
                                                         >
                                                             <span className="text-[8px] font-black uppercase tracking-[0.15em]">Ver</span>
                                                             <ChevronRight className="w-2.5 h-2.5" />
@@ -287,8 +287,8 @@ export default function DirectoryClient({
                     {/* Empty State Table Body */}
                     {filteredClubs.length === 0 && (
                         <div className="py-32 flex flex-col items-center justify-center text-center">
-                            <Search className="w-12 h-12 text-slate-600 mb-4" />
-                            <h3 className="text-sm font-black uppercase italic tracking-widest text-slate-400">No hay clubes con estos criterios</h3>
+                            <Search className="w-12 h-12 text-subtle mb-4" />
+                            <h3 className="text-sm font-black uppercase italic tracking-widest text-muted-foreground">No hay clubes con estos criterios</h3>
                             <button onClick={() => { setSearch(""); setSelectedSurface(null); }} className="mt-4 text-[9px] font-black uppercase tracking-widest text-azul-primary border-b border-azul-primary/20 hover:border-azul-primary transition-all">Limpiar filtros</button>
                         </div>
                     )}

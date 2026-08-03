@@ -58,7 +58,7 @@ export default async function EventJoinPage({ params }: { params: Promise<{ id: 
     }
 
     return (
-        <div className="min-h-screen pb-20 bg-carbon-950">
+        <div className="min-h-screen pb-20 bg-background">
             <EventJoinClient 
                 event={event}
                 club={club}

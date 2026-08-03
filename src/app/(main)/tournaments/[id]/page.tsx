@@ -36,7 +36,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
     const isLoggedIn = !!session?.userId;
 
     const publicHeader = !isLoggedIn && (
-        <div className="theme-night sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+        <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-hairline">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-8 h-8 rounded-full border border-azul-primary/30 overflow-hidden shrink-0 relative">
@@ -127,7 +127,7 @@ export default async function TournamentDisplayPage({ params }: Props) {
         return (
             <>
                 {publicHeader}
-                <div className="theme-night min-h-screen bg-background text-foreground pb-24 font-sans">
+                <div className="min-h-screen bg-background text-foreground pb-24 font-sans">
                     <div className="max-w-3xl mx-auto px-4 pt-12">
                         <div className="text-center mb-10">
                             <div className="w-20 h-20 bg-azul-primary/10 border border-azul-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6">

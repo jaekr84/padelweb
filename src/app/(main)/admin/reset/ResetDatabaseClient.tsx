@@ -105,20 +105,20 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
     };
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground p-4 md:p-8">
+        <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
             <div className="max-w-5xl mx-auto space-y-6">
 
                 {/* Header */}
-                <div className="flex items-start gap-3 border-b border-white/12 pb-5">
+                <div className="flex items-start gap-3 border-b border-hairline pb-5">
                     <div className="w-10 h-10 rounded-xl bg-live/15 border border-live/40 flex items-center justify-center shrink-0">
                         <ShieldAlert className="w-5 h-5 text-live" />
                     </div>
                     <div>
                         <span className="label-tech text-[9px] text-live">Zona de peligro · Solo superadmin</span>
-                        <h1 className="heading-sport text-2xl text-white mt-0.5">Resetear base de datos</h1>
-                        <p className="text-[11px] text-slate-400 mt-1 max-w-2xl">
+                        <h1 className="heading-sport text-2xl text-foreground mt-0.5">Resetear base de datos</h1>
+                        <p className="text-[11px] text-muted-foreground mt-1 max-w-2xl">
                             Deja los datos en punto de inicio antes de producción. Las acciones son
-                            <span className="text-white font-bold"> irreversibles</span> y no generan copia de seguridad:
+                            <span className="text-foreground font-bold"> irreversibles</span> y no generan copia de seguridad:
                             exportá un backup antes de ejecutarlas.
                         </p>
                     </div>
@@ -128,7 +128,7 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                 <div className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/[0.07] border border-emerald-500/30">
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Nunca se borran</span>
-                    <span className="text-[11px] text-slate-300">
+                    <span className="text-[11px] text-muted-foreground">
                         Superadmins ({counts.protectedUsers} cuentas) · Categorías · Sponsors · Configuración del sistema
                     </span>
                 </div>
@@ -138,20 +138,20 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                     {CARDS.map(card => {
                         const Icon = card.icon;
                         return (
-                            <div key={card.scope} className="flex flex-col gap-3 p-4 rounded-xl bg-carbon-900 border border-white/12">
+                            <div key={card.scope} className="flex flex-col gap-3 p-4 rounded-xl bg-card border border-hairline">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/12 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-lg bg-surface border border-hairline flex items-center justify-center">
                                         <Icon className="w-4 h-4 text-celeste" />
                                     </div>
                                     <div>
-                                        <h2 className="text-[13px] font-black uppercase italic tracking-tight text-white leading-none">{card.title}</h2>
-                                        <span className="text-[10px] font-bold text-slate-400">{card.summary(counts)}</span>
+                                        <h2 className="text-[13px] font-black uppercase italic tracking-tight text-foreground leading-none">{card.title}</h2>
+                                        <span className="text-[10px] font-bold text-muted-foreground">{card.summary(counts)}</span>
                                     </div>
                                 </div>
 
                                 <ul className="space-y-1 flex-1">
                                     {card.wipes.map(w => (
-                                        <li key={w} className="flex items-start gap-1.5 text-[10px] text-slate-400">
+                                        <li key={w} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
                                             <span className="text-live mt-[1px]">—</span>
                                             <span>{w}</span>
                                         </li>
@@ -174,8 +174,8 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                     <div className="flex items-center gap-2.5">
                         <AlertTriangle className="w-5 h-5 text-live shrink-0" />
                         <div>
-                            <h2 className="text-[13px] font-black uppercase italic tracking-tight text-white leading-none">Borrar todo</h2>
-                            <span className="text-[10px] font-bold text-slate-400">
+                            <h2 className="text-[13px] font-black uppercase italic tracking-tight text-foreground leading-none">Borrar todo</h2>
+                            <span className="text-[10px] font-bold text-muted-foreground">
                                 Ejecuta las seis áreas de una vez: {counts.users} usuarios, {counts.tournaments} torneos,{" "}
                                 {counts.openCourtEvents} eventos, {counts.matches} partidos, {counts.clubs} clubes y todo el contenido
                             </span>
@@ -195,32 +195,32 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={isPending ? undefined : closeModal} />
 
-                    <div className="relative w-full max-w-md bg-carbon-900 border border-live/40 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="relative w-full max-w-md bg-card border border-live/40 rounded-2xl shadow-2xl overflow-hidden">
                         <div className="p-6 space-y-5">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-live/15 border border-live/40 flex items-center justify-center shrink-0">
                                     <AlertTriangle className="w-5 h-5 text-live" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-black uppercase italic tracking-tight text-white leading-none">
+                                    <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-none">
                                         {confirmingScope === "all" ? "Borrar todo" : `Resetear ${activeCard?.title}`}
                                     </h3>
                                     <span className="text-[10px] font-bold text-live uppercase tracking-widest">Acción irreversible</span>
                                 </div>
                             </div>
 
-                            <div className="p-3 rounded-lg bg-black/40 border border-white/12 space-y-1.5">
-                                <span className="label-tech text-[9px] text-slate-400">Se va a borrar</span>
+                            <div className="p-3 rounded-lg bg-black/40 border border-hairline space-y-1.5">
+                                <span className="label-tech text-[9px] text-muted-foreground">Se va a borrar</span>
                                 {(confirmingScope === "all"
                                     ? CARDS.map(c => `${c.title}: ${c.summary(counts)}`)
                                     : (activeCard?.wipes ?? [])
                                 ).map(line => (
-                                    <p key={line} className="text-[11px] text-slate-200">— {line}</p>
+                                    <p key={line} className="text-[11px] text-muted-foreground">— {line}</p>
                                 ))}
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-bold text-slate-400">
+                                <label className="block text-[10px] font-bold text-muted-foreground">
                                     Escribí <span className="text-live font-black">{expectedPhrase}</span> para confirmar
                                 </label>
                                 <input
@@ -229,12 +229,12 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                                     onChange={e => setTyped(e.target.value)}
                                     disabled={isPending}
                                     placeholder={expectedPhrase}
-                                    className="w-full h-11 px-3 rounded-lg bg-black/40 border border-white/12 text-white text-sm font-bold tracking-wide outline-none focus:border-live/60 placeholder:text-slate-600 disabled:opacity-50"
+                                    className="w-full h-11 px-3 rounded-lg bg-black/40 border border-hairline text-foreground text-sm font-bold tracking-wide outline-none focus:border-live/60 placeholder:text-subtle disabled:opacity-50"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-bold text-slate-400">
+                                <label className="block text-[10px] font-bold text-muted-foreground">
                                     Confirmá con tu contraseña de superadmin
                                 </label>
                                 <input
@@ -244,7 +244,7 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                                     onChange={e => setPassword(e.target.value)}
                                     disabled={isPending}
                                     placeholder="••••••••"
-                                    className="w-full h-11 px-3 rounded-lg bg-black/40 border border-white/12 text-white text-sm font-bold outline-none focus:border-live/60 placeholder:text-slate-600 disabled:opacity-50"
+                                    className="w-full h-11 px-3 rounded-lg bg-black/40 border border-hairline text-foreground text-sm font-bold outline-none focus:border-live/60 placeholder:text-subtle disabled:opacity-50"
                                 />
                             </div>
 
@@ -252,14 +252,14 @@ export default function ResetDatabaseClient({ initialCounts }: Props) {
                                 <button
                                     onClick={closeModal}
                                     disabled={isPending}
-                                    className="flex-1 h-10 rounded-lg bg-white/5 border border-white/12 text-slate-300 label-tech text-[9px] hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                                    className="flex-1 h-10 rounded-lg bg-surface border border-hairline text-muted-foreground label-tech text-[9px] hover:text-foreground hover:bg-surface-raised transition-all disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleConfirm}
                                     disabled={!canConfirm || isPending}
-                                    className="flex-[2] h-10 rounded-lg bg-live text-white label-tech text-[9px] hover:bg-rojo-dark transition-all flex items-center justify-center gap-2 disabled:bg-carbon-700 disabled:text-slate-500 disabled:cursor-not-allowed"
+                                    className="flex-[2] h-10 rounded-lg bg-live text-white label-tech text-[9px] hover:bg-rojo-dark transition-all flex items-center justify-center gap-2 disabled:bg-muted disabled:text-subtle disabled:cursor-not-allowed"
                                 >
                                     {isPending ? (
                                         <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Borrando...</>

@@ -194,7 +194,7 @@ export default function PlayerProfileClient({
     };
 
     return (
-        <div className={`min-h-screen bg-grid-carbon text-white pb-24 font-sans ${theme.selection} relative overflow-hidden`}>
+        <div className={`min-h-screen bg-grid-carbon text-foreground pb-24 font-sans ${theme.selection} relative overflow-hidden`}>
 
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
@@ -213,7 +213,7 @@ export default function PlayerProfileClient({
                     {pendingInvites.length > 0 && isOwnProfile && (
                         <div className="flex flex-col gap-3">
                             {pendingInvites.map((invite: any) => (
-                                <div key={invite.id} className={`bg-carbon-900 rounded-2xl p-4 text-white border border-${theme.accent}/40 relative overflow-hidden group shadow-2xl shadow-${theme.primary}/10`}>
+                                <div key={invite.id} className={`bg-background rounded-2xl p-4 text-foreground border border-${theme.accent}/40 relative overflow-hidden group shadow-2xl shadow-${theme.primary}/10`}>
                                     <div className={`absolute inset-0 bg-gradient-to-r from-${theme.primary}/20 via-transparent to-transparent opacity-80`} />
                                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                         <ShieldAlert className="h-16 w-16" />
@@ -224,11 +224,11 @@ export default function PlayerProfileClient({
                                                 <Trophy className={`h-6 w-6 text-${theme.accent}`} />
                                             </div>
                                             <div className="text-center sm:text-left">
-                                                <h3 className="text-xs font-black uppercase italic tracking-[0.15em] text-white flex items-center gap-1.5 justify-center sm:justify-start">
+                                                <h3 className="text-xs font-black uppercase italic tracking-[0.15em] text-foreground flex items-center gap-1.5 justify-center sm:justify-start">
                                                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
                                                     Invitación del Club
                                                 </h3>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                                                     El club <span className={`text-${theme.accent} font-black`}>{invite.club?.name}</span> te ha invitado a unirte a sus filas.
                                                 </p>
                                             </div>
@@ -244,7 +244,7 @@ export default function PlayerProfileClient({
                                                         toast.error("Error al rechazar");
                                                     }
                                                 }}
-                                                className="flex-1 sm:flex-none px-5 py-2.5 bg-white/10 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all text-white active:scale-95"
+                                                className="flex-1 sm:flex-none px-5 py-2.5 bg-surface-raised hover:bg-surface-raised border border-hairline rounded-xl text-[8px] font-black uppercase tracking-widest transition-all text-foreground active:scale-95"
                                             >
                                                 Rechazar
                                             </button>
@@ -284,16 +284,16 @@ export default function PlayerProfileClient({
                     {dbUser?.role !== "club" && (
                         <>
                             {/* PREMIUM HIGH-DENSITY COCKPIT HERO HEADER */}
-                            <div className="bg-carbon-800/80 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl relative transition-colors group/hero">
+                            <div className="bg-card/80 backdrop-blur-xl border border-hairline rounded-[1.5rem] overflow-hidden shadow-2xl relative transition-colors group/hero">
                                 {/* Cyber lines on header background */}
                                 <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(45deg,#fff_25%,transparent_25%,transparent_75%,#fff_75%,#fff),linear-gradient(45deg,#fff_25%,transparent_25%,transparent_75%,#fff_75%,#fff)] bg-[size:10px_10px]" />
                                 
-                                <div className="h-20 md:h-24 bg-white/5 relative overflow-hidden">
+                                <div className="h-20 md:h-24 bg-surface relative overflow-hidden">
                                     <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-80`} />
                                     <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-carbon-900 to-transparent" />
                                     
                                     {/* Tech corners decoration */}
-                                    <div className="absolute top-3 left-4 text-[7px] font-mono text-slate-500 select-none tracking-[0.2em]">
+                                    <div className="absolute top-3 left-4 text-[7px] font-mono text-subtle select-none tracking-[0.2em]">
                                         SECURE_SYS_METRICS // STATUS_OK
                                     </div>
                                 </div>
@@ -302,9 +302,9 @@ export default function PlayerProfileClient({
                                     {isOwnProfile && dbUser?.role === "superadmin" && (
                                         <Link
                                             href="/admin"
-                                            className={`flex items-center gap-1.5 bg-carbon-900/70 backdrop-blur-md border border-white/10 hover:border-${theme.accent}/40 text-white px-3.5 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-${theme.primary} hover:text-white active:scale-95 shadow-lg group/btn`}
+                                            className={`flex items-center gap-1.5 bg-background/70 backdrop-blur-md border border-hairline hover:border-${theme.accent}/40 text-foreground px-3.5 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-${theme.primary} hover:text-white active:scale-95 shadow-lg group/btn`}
                                         >
-                                            <LayoutDashboard className={`h-3 w-3 text-${theme.accent} group-hover/btn:rotate-6 group-hover/btn:text-white transition-all`} /> Panel Admin
+                                            <LayoutDashboard className={`h-3 w-3 text-${theme.accent} group-hover/btn:rotate-6 group-hover/btn:text-foreground transition-all`} /> Panel Admin
                                         </Link>
                                     )}
                                 </div>
@@ -314,11 +314,11 @@ export default function PlayerProfileClient({
                                     <div className="relative group/avatar shrink-0">
                                         <div className={`absolute -inset-1.5 bg-gradient-to-br from-${theme.primary} to-${theme.accent} rounded-2xl blur-md opacity-25 group-hover/avatar:opacity-40 transition-opacity`} />
                                         <div 
-                                            className={`w-[90px] h-[90px] md:w-[110px] md:h-[110px] bg-carbon-900 p-[3px] border-r-2 border-b-2 border-${theme.primary}/40 shadow-2xl relative flex items-center justify-center overflow-hidden`}
+                                            className={`w-[90px] h-[90px] md:w-[110px] md:h-[110px] bg-background p-[3px] border-r-2 border-b-2 border-${theme.primary}/40 shadow-2xl relative flex items-center justify-center overflow-hidden`}
                                             style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}
                                         >
                                             <div 
-                                                className="w-full h-full relative overflow-hidden bg-slate-950 flex items-center justify-center"
+                                                className="w-full h-full relative overflow-hidden bg-background flex items-center justify-center"
                                                 style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}
                                             >
                                                 {dbUser.imageUrl ? (
@@ -332,19 +332,19 @@ export default function PlayerProfileClient({
                                                         sizes="110px" 
                                                     />
                                                 ) : (
-                                                    <User className="w-10 h-10 text-slate-600" />
+                                                    <User className="w-10 h-10 text-subtle" />
                                                 )}
                                             </div>
 
                                             {/* Micro-online Dot indicator */}
-                                            <div className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-white/20" />
+                                            <div className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-hairline-strong" />
                                         </div>
                                     </div>
 
                                     {/* Player Identity Block */}
                                     <div className="flex-1 pt-1 pb-0.5">
                                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
-                                            <h1 className="heading-sport text-2xl md:text-3xl text-white leading-none">
+                                            <h1 className="heading-sport text-2xl md:text-3xl text-foreground leading-none">
                                                 {dbUser.firstName} <span className={isFemale ? "text-rosa" : "text-celeste-light"}>{dbUser.lastName}</span>
                                             </h1>
                                             
@@ -357,15 +357,15 @@ export default function PlayerProfileClient({
                                         </div>
 
                                         {memberClub && (
-                                            <div className="flex justify-center md:justify-start items-center gap-2 mb-3.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-xl w-fit border border-white/10 mx-auto md:mx-0">
-                                                <div className="w-4 h-4 rounded-md bg-carbon-900 relative overflow-hidden border border-white/10">
+                                            <div className="flex justify-center md:justify-start items-center gap-2 mb-3.5 px-3 py-1 bg-surface-raised backdrop-blur-md rounded-xl w-fit border border-hairline mx-auto md:mx-0">
+                                                <div className="w-4 h-4 rounded-md bg-background relative overflow-hidden border border-hairline">
                                                     {memberClub.logoUrl ? (
                                                         <Image src={memberClub.logoUrl} alt="" fill className="object-cover" sizes="16px" />
                                                     ) : (
                                                         <ShieldCheck className={`w-2.5 h-2.5 m-auto text-${theme.primary}`} />
                                                     )}
                                                 </div>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 italic leading-none">
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground italic leading-none">
                                                     Unidad: <span className={`text-${theme.primary}`}>{memberClub.name}</span>
                                                 </span>
                                             </div>
@@ -373,16 +373,16 @@ export default function PlayerProfileClient({
 
                                         {/* HUD Telemetry Details Pill Row */}
                                         <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2 text-[8px] font-black uppercase tracking-widest">
-                                            <div className="flex items-center gap-2 bg-white/10 px-2.5 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-2 bg-surface-raised px-2.5 py-1.5 rounded-lg border border-hairline text-muted-foreground hover:text-foreground hover:border-hairline transition-colors">
                                                 <MapPin className={`h-3 w-3 text-${theme.accent}`} /> {dbUser?.location || "Sector General"}
                                             </div>
-                                            <div className="flex items-center gap-2 bg-white/10 px-2.5 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-2 bg-surface-raised px-2.5 py-1.5 rounded-lg border border-hairline text-muted-foreground hover:text-foreground hover:border-hairline transition-colors">
                                                 <Calendar className={`h-3 w-3 text-${theme.primary}`} /> Registro: {dbUser.createdAt ? `${new Date(dbUser.createdAt).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}` : "Hoy"}
                                             </div>
-                                            <div className="flex items-center gap-2 bg-white/10 px-2.5 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:border-white/10 transition-colors">
+                                            <div className="flex items-center gap-2 bg-surface-raised px-2.5 py-1.5 rounded-lg border border-hairline text-muted-foreground hover:text-foreground hover:border-hairline transition-colors">
                                                 <Zap className={`h-3 w-3 text-${theme.accent}`} /> Perfil: {formData.side === "drive" ? "Drive" : formData.side === "reves" ? "Revés" : "Ambidextro"}
                                             </div>
-                                            <div className="flex items-center gap-2 bg-volt/10 px-2.5 py-1.5 rounded-lg border border-volt/25 text-volt">
+                                            <div className="flex items-center gap-2 bg-volt/10 px-2.5 py-1.5 rounded-lg border border-volt/25 text-volt-ink">
                                                 <Globe className="h-3 w-3 animate-spin" style={{ animationDuration: '8s' }} /> Racha: {winStreak} Victorias
                                             </div>
                                         </div>
@@ -391,7 +391,7 @@ export default function PlayerProfileClient({
                             </div>
 
                             {/* CYBERNETIC TAB NAVIGATION (ANGLED & HIGH DENSITY) */}
-                            <div className="flex items-center gap-1.5 bg-carbon-900/70 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-md">
+                            <div className="flex items-center gap-1.5 bg-background/70 backdrop-blur-md p-1 rounded-xl border border-hairline shadow-md">
                                 {[
                                     { id: "tournaments", label: "Mi Panel", icon: Trophy },
                                     { id: "stats", label: "Historial Completo", icon: Activity },
@@ -400,14 +400,14 @@ export default function PlayerProfileClient({
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}
-                                        className={`flex-1 px-3 py-2 rounded-lg text-[8.5px] font-black uppercase tracking-widest transition-all relative group/tab h-9 ${activeTab === tab.id ? "text-white" : "text-slate-400 hover:text-white"}`}
+                                        className={`flex-1 px-3 py-2 rounded-lg text-[8.5px] font-black uppercase tracking-widest transition-all relative group/tab h-9 ${activeTab === tab.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                         onClick={() => {
                                             setActiveTab(tab.id);
                                             setCurrentPage(1); // Reset page on tab shift
                                         }}
                                     >
                                         <div className="flex items-center justify-center gap-2 relative z-10 transform -skew-x-6">
-                                            <tab.icon className={`h-3.5 w-3.5 transition-transform group-hover/tab:scale-110 ${activeTab === tab.id ? "text-white" : "text-slate-400"}`} />
+                                            <tab.icon className={`h-3.5 w-3.5 transition-transform group-hover/tab:scale-110 ${activeTab === tab.id ? "text-foreground" : "text-muted-foreground"}`} />
                                             <span className="hidden sm:inline">{tab.label}</span>
                                             <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
                                         </div>
@@ -464,72 +464,72 @@ export default function PlayerProfileClient({
                                             {/* SUBGRID 1: DENSE KPI TELEMETRY GRID */}
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                 {/* Metric 1: Rank */}
-                                                <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-4 relative overflow-hidden group hover:border-white/20 transition-colors">
+                                                <div className="bg-card/80 border border-hairline rounded-xl p-4 relative overflow-hidden group hover:border-hairline-strong transition-colors">
                                                     <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-${theme.primary} to-transparent`} />
                                                     <div className="flex flex-col">
-                                                        <span className="text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Rango General</span>
-                                                        <span className="text-scoreboard text-2xl text-white leading-none mt-1.5">#{rankingPosition}</span>
+                                                        <span className="text-[7.5px] font-black uppercase text-subtle tracking-widest">Rango General</span>
+                                                        <span className="text-scoreboard text-2xl text-foreground leading-none mt-1.5">#{rankingPosition}</span>
                                                         <span className={`text-[7px] font-bold text-${theme.accent} mt-1 uppercase`}>Clase {dbUser.category || "4TA"}</span>
                                                     </div>
-                                                    <Zap size={18} className="absolute right-3.5 bottom-3 text-white/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
+                                                    <Zap size={18} className="absolute right-3.5 bottom-3 text-foreground/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
                                                 </div>
 
                                                 {/* Metric 2: Points */}
-                                                <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-4 relative overflow-hidden group hover:border-white/20 transition-colors">
+                                                <div className="bg-card/80 border border-hairline rounded-xl p-4 relative overflow-hidden group hover:border-hairline-strong transition-colors">
                                                     <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-${theme.primary} to-transparent`} />
                                                     <div className="flex flex-col">
-                                                        <span className="text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Puntos de Liga</span>
-                                                        <span className="text-scoreboard text-2xl text-white leading-none mt-1.5">{player.points} PTS</span>
+                                                        <span className="text-[7.5px] font-black uppercase text-subtle tracking-widest">Puntos de Liga</span>
+                                                        <span className="text-scoreboard text-2xl text-foreground leading-none mt-1.5">{player.points} PTS</span>
                                                         <span className="text-[7px] font-bold text-emerald-400 mt-1 uppercase flex items-center gap-0.5"><TrendingUp size={8} /> Activo</span>
                                                     </div>
-                                                    <Target size={18} className="absolute right-3.5 bottom-3 text-white/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
+                                                    <Target size={18} className="absolute right-3.5 bottom-3 text-foreground/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
                                                 </div>
 
                                                 {/* Metric 3: Win Rate */}
-                                                <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-4 relative overflow-hidden group hover:border-white/20 transition-colors">
+                                                <div className="bg-card/80 border border-hairline rounded-xl p-4 relative overflow-hidden group hover:border-hairline-strong transition-colors">
                                                     <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-${theme.accent} to-transparent`} />
                                                     <div className="flex flex-col">
-                                                        <span className="text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Rendimiento (Win Rate)</span>
-                                                        <span className="text-scoreboard text-2xl text-volt leading-none mt-1.5">{stats.wr}%</span>
-                                                        <span className="text-[7px] font-bold text-slate-400 mt-1 uppercase">{stats.pg} Victorial / {stats.pp} Derrotas</span>
+                                                        <span className="text-[7.5px] font-black uppercase text-subtle tracking-widest">Rendimiento (Win Rate)</span>
+                                                        <span className="text-scoreboard text-2xl text-volt-ink leading-none mt-1.5">{stats.wr}%</span>
+                                                        <span className="text-[7px] font-bold text-muted-foreground mt-1 uppercase">{stats.pg} Victorial / {stats.pp} Derrotas</span>
                                                     </div>
-                                                    <Activity size={18} className="absolute right-3.5 bottom-3 text-white/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
+                                                    <Activity size={18} className="absolute right-3.5 bottom-3 text-foreground/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
                                                 </div>
 
                                                 {/* Metric 4: Trophies */}
-                                                <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-4 relative overflow-hidden group hover:border-white/20 transition-colors">
+                                                <div className="bg-card/80 border border-hairline rounded-xl p-4 relative overflow-hidden group hover:border-hairline-strong transition-colors">
                                                     <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-${theme.accent} to-transparent`} />
                                                     <div className="flex flex-col">
-                                                        <span className="text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Logros Obtenidos</span>
-                                                        <span className="text-scoreboard text-2xl text-white leading-none mt-1.5">{stats.trofeos} Trofeos</span>
+                                                        <span className="text-[7.5px] font-black uppercase text-subtle tracking-widest">Logros Obtenidos</span>
+                                                        <span className="text-scoreboard text-2xl text-foreground leading-none mt-1.5">{stats.trofeos} Trofeos</span>
                                                         <span className="text-[7px] font-bold text-amber-400 mt-1 uppercase">★ {stats.trofeos > 0 ? "Podio Registrado" : "Buscando podio"}</span>
                                                     </div>
-                                                    <Trophy size={18} className="absolute right-3.5 bottom-3 text-white/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
+                                                    <Trophy size={18} className="absolute right-3.5 bottom-3 text-foreground/10 group-hover:text-azul-primary/20 group-hover:scale-110 transition-all duration-300" />
                                                 </div>
                                             </div>
 
                                             {/* SUBGRID 2: DETAILED MATCH BREAKDOWN METER TELEMETRY PANEL */}
-                                            <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-5 relative overflow-hidden">
-                                                <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/10">
+                                            <div className="bg-card/80 border border-hairline rounded-xl p-5 relative overflow-hidden">
+                                                <div className="flex justify-between items-center mb-3 pb-2 border-b border-hairline">
                                                     <div className="flex items-center gap-1.5">
                                                         <Activity size={12} className={`text-${theme.accent}`} />
-                                                        <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-300">Desglose de Efectividad Tactica</span>
+                                                        <span className="text-[8.5px] font-black uppercase tracking-widest text-muted-foreground">Desglose de Efectividad Tactica</span>
                                                     </div>
-                                                    <span className="text-[7px] font-mono text-slate-400">REAL_TIME_COMPUTATION: OK</span>
+                                                    <span className="text-[7px] font-mono text-muted-foreground">REAL_TIME_COMPUTATION: OK</span>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
                                                     {/* Meter 1: Playoffs */}
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest">
-                                                            <span className="text-slate-400">Torneo - Playoffs (Eliminatoria)</span>
+                                                            <span className="text-muted-foreground">Torneo - Playoffs (Eliminatoria)</span>
                                                             <span className={`text-${theme.primary}`}>{tacticalStats.playoffs.wr}%</span>
                                                         </div>
                                                         <div className="flex items-end gap-1.5 leading-none">
                                                             <span className="text-base font-black italic">{tacticalStats.playoffs.pg}G</span>
-                                                            <span className="text-[9px] text-slate-400 uppercase mb-0.5">/ {tacticalStats.playoffs.pj} partidos</span>
+                                                            <span className="text-[9px] text-muted-foreground uppercase mb-0.5">/ {tacticalStats.playoffs.pj} partidos</span>
                                                         </div>
-                                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-1 relative">
+                                                        <div className="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden mt-1 relative">
                                                             <motion.div
                                                                 initial={{ width: 0 }}
                                                                 animate={{ width: `${tacticalStats.playoffs.wr}%` }}
@@ -541,14 +541,14 @@ export default function PlayerProfileClient({
                                                     {/* Meter 2: Groups */}
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest">
-                                                            <span className="text-slate-400">Torneo - Fase de Grupos</span>
+                                                            <span className="text-muted-foreground">Torneo - Fase de Grupos</span>
                                                             <span className={`text-${theme.accent}`}>{tacticalStats.groups.wr}%</span>
                                                         </div>
                                                         <div className="flex items-end gap-1.5 leading-none">
                                                             <span className="text-base font-black italic">{tacticalStats.groups.pg}G</span>
-                                                            <span className="text-[9px] text-slate-400 uppercase mb-0.5">/ {tacticalStats.groups.pj} partidos</span>
+                                                            <span className="text-[9px] text-muted-foreground uppercase mb-0.5">/ {tacticalStats.groups.pj} partidos</span>
                                                         </div>
-                                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-1 relative">
+                                                        <div className="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden mt-1 relative">
                                                             <motion.div
                                                                 initial={{ width: 0 }}
                                                                 animate={{ width: `${tacticalStats.groups.wr}%` }}
@@ -560,14 +560,14 @@ export default function PlayerProfileClient({
                                                     {/* Meter 3: Open Courts */}
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest">
-                                                            <span className="text-slate-400">Cancha Abierta</span>
-                                                            <span className="text-white">{tacticalStats.openCourts.wr}%</span>
+                                                            <span className="text-muted-foreground">Cancha Abierta</span>
+                                                            <span className="text-foreground">{tacticalStats.openCourts.wr}%</span>
                                                         </div>
                                                         <div className="flex items-end gap-1.5 leading-none">
                                                             <span className="text-base font-black italic">{tacticalStats.openCourts.pg}G</span>
-                                                            <span className="text-[9px] text-slate-400 uppercase mb-0.5">/ {tacticalStats.openCourts.pj} partidos</span>
+                                                            <span className="text-[9px] text-muted-foreground uppercase mb-0.5">/ {tacticalStats.openCourts.pj} partidos</span>
                                                         </div>
-                                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-1 relative">
+                                                        <div className="w-full h-1.5 bg-surface-raised rounded-full overflow-hidden mt-1 relative">
                                                             <motion.div
                                                                 initial={{ width: 0 }}
                                                                 animate={{ width: `${tacticalStats.openCourts.wr}%` }}
@@ -579,11 +579,11 @@ export default function PlayerProfileClient({
                                             </div>
 
                                             {/* SUBGRID 3: COMPACT HUD RECENT MATCH FEED */}
-                                            <div className="bg-carbon-800/80 border border-white/10 rounded-xl p-5 relative overflow-hidden flex-1 flex flex-col">
-                                                <div className="flex justify-between items-center mb-3.5 pb-2 border-b border-white/10 shrink-0">
+                                            <div className="bg-card/80 border border-hairline rounded-xl p-5 relative overflow-hidden flex-1 flex flex-col">
+                                                <div className="flex justify-between items-center mb-3.5 pb-2 border-b border-hairline shrink-0">
                                                     <div className="flex items-center gap-1.5">
                                                         <Trophy size={12} className={`text-${theme.primary}`} />
-                                                        <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-300">Desafíos Recientes (Últimos 5)</span>
+                                                        <span className="text-[8.5px] font-black uppercase tracking-widest text-muted-foreground">Desafíos Recientes (Últimos 5)</span>
                                                     </div>
                                                     <span className={`text-[8px] font-black uppercase italic text-${theme.accent}`}>Historial Rápido</span>
                                                 </div>
@@ -594,30 +594,30 @@ export default function PlayerProfileClient({
                                                         return (
                                                             <div 
                                                                 key={i} 
-                                                                className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-colors group"
+                                                                className="flex items-center justify-between p-2 rounded-lg bg-surface hover:bg-surface-raised border border-hairline hover:border-hairline transition-colors group"
                                                             >
                                                                 <div className="flex items-center gap-3 min-w-0">
                                                                     {/* Victory/Defeat Indicator strip */}
-                                                                    <div className={`w-1.5 h-6 rounded-full shrink-0 ${match.isWin === true ? `bg-${theme.primary} shadow-[0_0_8px_rgba(0,119,255,0.6)]` : match.isWin === false ? "bg-rojo shadow-[0_0_8px_rgba(239,68,68,0.6)]" : "bg-white/10-foreground/30"}`} />
+                                                                    <div className={`w-1.5 h-6 rounded-full shrink-0 ${match.isWin === true ? `bg-${theme.primary} shadow-[0_0_8px_rgba(0,119,255,0.6)]` : match.isWin === false ? "bg-rojo shadow-[0_0_8px_rgba(239,68,68,0.6)]" : "bg-surface-raised-foreground/30"}`} />
                                                                     
                                                                     <div className="min-w-0 flex flex-col">
-                                                                        <span className="text-[10px] font-black uppercase truncate text-white group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
+                                                                        <span className="text-[10px] font-black uppercase truncate text-foreground group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
                                                                         <div className="flex items-center gap-2 mt-0.5">
-                                                                            <span className="text-[7.5px] font-black uppercase px-1 py-0.2 bg-carbon-900 border border-white/10 text-slate-400 tracking-widest leading-none">{match.type}</span>
-                                                                            <span className="text-[7.5px] font-medium text-slate-400 leading-none truncate">{match.opponent}</span>
+                                                                            <span className="text-[7.5px] font-black uppercase px-1 py-0.2 bg-background border border-hairline text-muted-foreground tracking-widest leading-none">{match.type}</span>
+                                                                            <span className="text-[7.5px] font-medium text-muted-foreground leading-none truncate">{match.opponent}</span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="flex items-center gap-3 shrink-0 ml-2">
                                                                     <div className="flex flex-col items-end">
-                                                                        <span className={`text-[8.5px] font-black italic ${match.isWin === true ? `text-${theme.accent}` : match.isWin === false ? "text-rojo" : "text-slate-400"}`}>
+                                                                        <span className={`text-[8.5px] font-black italic ${match.isWin === true ? `text-${theme.accent}` : match.isWin === false ? "text-rojo" : "text-muted-foreground"}`}>
                                                                             {match.isWin === true ? "VICTORIA" : match.isWin === false ? "DERROTA" : "COMPLETO"}
                                                                         </span>
-                                                                        <span className="text-[11px] font-black italic tracking-tighter text-white leading-none tabular-nums mt-0.5">{match.score}</span>
+                                                                        <span className="text-[11px] font-black italic tracking-tighter text-foreground leading-none tabular-nums mt-0.5">{match.score}</span>
                                                                     </div>
                                                                     
-                                                                    <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 tabular-nums bg-carbon-900 border border-white/10 px-1.5 py-1.5 rounded-md leading-none">
+                                                                    <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground tabular-nums bg-background border border-hairline px-1.5 py-1.5 rounded-md leading-none">
                                                                         {matchDate}
                                                                     </div>
                                                                 </div>
@@ -626,7 +626,7 @@ export default function PlayerProfileClient({
                                                     })}
 
                                                     {history.length === 0 && (
-                                                        <div className="py-8 text-center flex flex-col items-center justify-center gap-3 text-slate-400 italic border border-dashed border-white/10 rounded-xl">
+                                                        <div className="py-8 text-center flex flex-col items-center justify-center gap-3 text-muted-foreground italic border border-dashed border-hairline rounded-xl">
                                                             <Trophy className="w-6 h-6 opacity-25" />
                                                             <span className="text-[8px] font-black uppercase tracking-widest">Sin partidos en el historial</span>
                                                         </div>
@@ -644,10 +644,10 @@ export default function PlayerProfileClient({
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -15 }}
                                         transition={{ duration: 0.25 }}
-                                        className="bg-carbon-900 border border-white/10 rounded-2xl shadow-xl overflow-hidden"
+                                        className="bg-background border border-hairline rounded-2xl shadow-xl overflow-hidden"
                                     >
                                         {isOwnProfile && advanced && (
-                                            <div className="p-5 space-y-5 border-b border-white/10">
+                                            <div className="p-5 space-y-5 border-b border-hairline">
                                                 {/* Horas jugadas — total en todos los torneos */}
                                                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-celeste/25 bg-celeste/10 px-5 py-4">
                                                     <div>
@@ -659,23 +659,23 @@ export default function PlayerProfileClient({
 
                                                 {/* KPIs de rendimiento */}
                                                 <div>
-                                                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Rendimiento</h3>
+                                                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Rendimiento</h3>
                                                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                                                         {[
-                                                            { label: "Partidos", value: stats.pj, color: "text-white" },
+                                                            { label: "Partidos", value: stats.pj, color: "text-foreground" },
                                                             { label: "Ganados", value: stats.pg, color: "text-emerald-500" },
                                                             { label: "Perdidos", value: stats.pp, color: "text-rojo" },
                                                             { label: "Efectividad", value: `${stats.wr}%`, color: "text-celeste" },
-                                                            { label: "Torneos", value: advanced.torneosJugados, color: "text-white" },
+                                                            { label: "Torneos", value: advanced.torneosJugados, color: "text-foreground" },
                                                             { label: "Títulos", value: advanced.titulos, color: "text-amber-500" },
                                                         ].map((k, i) => (
-                                                            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
-                                                                <div className="text-[7px] font-black uppercase tracking-widest text-slate-400">{k.label}</div>
+                                                            <div key={i} className="bg-surface border border-hairline rounded-xl p-2.5 text-center">
+                                                                <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{k.label}</div>
                                                                 <div className={`text-lg font-black italic tabular-nums leading-none mt-1 ${k.color}`}>{k.value}</div>
                                                             </div>
                                                         ))}
                                                     </div>
-                                                    <div className="mt-2 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                                    <div className="mt-2 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                                                         <span>Games</span>
                                                         <span className="text-emerald-500 tabular-nums">{advanced.gamesFor}</span>
                                                         <span className="opacity-40">/</span>
@@ -690,30 +690,30 @@ export default function PlayerProfileClient({
                                                 {/* Tiempos de partido */}
                                                 {advanced.durations && (
                                                     <div>
-                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Tiempos de partido</h3>
+                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Tiempos de partido</h3>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             {[
                                                                 { label: "Promedio", value: fmtDur(advanced.durations.avgMs) },
                                                                 { label: "Más largo", value: fmtDur(advanced.durations.maxMs) },
                                                                 { label: "Más corto", value: fmtDur(advanced.durations.minMs) },
                                                             ].map((k, i) => (
-                                                                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
-                                                                    <div className="text-[7px] font-black uppercase tracking-widest text-slate-400">{k.label}</div>
+                                                                <div key={i} className="bg-surface border border-hairline rounded-xl p-2.5 text-center">
+                                                                    <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">{k.label}</div>
                                                                     <div className="text-base font-black italic tabular-nums leading-none mt-1 text-celeste">{k.value}</div>
                                                                 </div>
                                                             ))}
                                                         </div>
-                                                        <p className="text-[8px] text-slate-500 font-bold mt-1.5">Sobre {advanced.durations.count} partido{advanced.durations.count === 1 ? "" : "s"} con tiempo registrado.</p>
+                                                        <p className="text-[8px] text-subtle font-bold mt-1.5">Sobre {advanced.durations.count} partido{advanced.durations.count === 1 ? "" : "s"} con tiempo registrado.</p>
                                                     </div>
                                                 )}
 
                                                 {/* Mejores parejas */}
                                                 {advanced.partners && advanced.partners.length > 0 && (
                                                     <div>
-                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Mejores parejas</h3>
-                                                        <div className="rounded-xl border border-white/10 overflow-hidden">
+                                                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-2">Mejores parejas</h3>
+                                                        <div className="rounded-xl border border-hairline overflow-hidden">
                                                             <table className="w-full text-left">
-                                                                <thead className="bg-white/5 text-[7.5px] font-black uppercase tracking-widest text-slate-400">
+                                                                <thead className="bg-surface text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">
                                                                     <tr>
                                                                         <th className="px-3 py-2">Compañero</th>
                                                                         <th className="px-3 py-2 text-center">Jugados</th>
@@ -721,9 +721,9 @@ export default function PlayerProfileClient({
                                                                         <th className="px-3 py-2 text-right">Efectividad</th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody className="divide-y divide-white/5">
+                                                                <tbody className="divide-y divide-hairline">
                                                                     {advanced.partners.slice(0, 8).map((p: any, i: number) => (
-                                                                        <tr key={i} className="hover:bg-white/5">
+                                                                        <tr key={i} className="hover:bg-surface">
                                                                             <td className="px-3 py-2 text-[11px] font-black uppercase italic truncate">{p.name}</td>
                                                                             <td className="px-3 py-2 text-center text-[11px] font-bold tabular-nums">{p.played}</td>
                                                                             <td className="px-3 py-2 text-center text-[11px] font-bold tabular-nums text-emerald-500">{p.won}</td>
@@ -738,18 +738,18 @@ export default function PlayerProfileClient({
                                             </div>
                                         )}
 
-                                        <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
+                                        <div className="px-5 py-4 border-b border-hairline bg-surface flex items-center justify-between">
                                             <div>
-                                                <h2 className="text-sm font-black uppercase tracking-tighter italic text-white leading-none">Bitácora Oficial de Encuentros</h2>
+                                                <h2 className="text-sm font-black uppercase tracking-tighter italic text-foreground leading-none">Bitácora Oficial de Encuentros</h2>
                                                 <p className={`text-[8px] font-black uppercase tracking-[0.15em] text-${theme.accent} mt-1`}>Desglose detallado de partidos en la base de datos</p>
                                             </div>
                                             <div className="flex gap-4">
                                                 <div className="text-right">
-                                                    <div className="text-[7px] font-black uppercase tracking-widest text-slate-400">Efectividad</div>
+                                                    <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Efectividad</div>
                                                     <div className={`text-base font-black italic tabular-nums text-${theme.primary} leading-none mt-0.5`}>{stats.wr}%</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-[7px] font-black uppercase tracking-widest text-slate-400">Total Juegos</div>
+                                                    <div className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Total Juegos</div>
                                                     <div className={`text-base font-black italic tabular-nums text-${theme.accent} leading-none mt-0.5`}>{history.length} P</div>
                                                 </div>
                                             </div>
@@ -760,30 +760,30 @@ export default function PlayerProfileClient({
                                                 <div className="overflow-x-auto no-scrollbar">
                                                     <table className="w-full text-left border-collapse">
                                                         <thead>
-                                                            <tr className="border-b border-white/10 bg-white/5">
-                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-slate-400">Fecha</th>
-                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-slate-400">Torneo / Evento</th>
-                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-slate-400">Modalidad</th>
-                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-slate-400">Encuentro / Adversarios</th>
-                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-slate-400 text-right">Marcador / Resultado</th>
+                                                            <tr className="border-b border-hairline bg-surface">
+                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
+                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">Torneo / Evento</th>
+                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">Modalidad</th>
+                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground">Encuentro / Adversarios</th>
+                                                                <th className="px-5 py-3 text-[7.5px] font-black uppercase tracking-widest text-muted-foreground text-right">Marcador / Resultado</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-white/5">
+                                                        <tbody className="divide-y divide-hairline">
                                                             {paginatedHistory.map((m, i) => {
                                                                 const matchDate = m.date ? new Date(m.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : "TBD";
                                                                 return (
-                                                                    <tr key={i} className="hover:bg-white/5 transition-all group">
-                                                                        <td className="px-5 py-3.5 text-[9px] font-black text-slate-400 group-hover:text-white tabular-nums uppercase">{matchDate}</td>
+                                                                    <tr key={i} className="hover:bg-surface transition-all group">
+                                                                        <td className="px-5 py-3.5 text-[9px] font-black text-muted-foreground group-hover:text-foreground tabular-nums uppercase">{matchDate}</td>
                                                                         <td className="px-5 py-3.5">
-                                                                            <span className={`text-xs font-black uppercase italic tracking-tighter text-white group-hover:text-${theme.accent} transition-colors`}>{m.tournament}</span>
+                                                                            <span className={`text-xs font-black uppercase italic tracking-tighter text-foreground group-hover:text-${theme.accent} transition-colors`}>{m.tournament}</span>
                                                                         </td>
                                                                         <td className="px-5 py-3.5">
                                                                             <div className="flex items-center gap-1.5">
-                                                                                <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/10 border border-white/10 text-slate-400`}>{m.type}</span>
-                                                                                <span className="text-[7px] font-black uppercase text-slate-600 tracking-widest">{m.subType}</span>
+                                                                                <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-surface-raised border border-hairline text-muted-foreground`}>{m.type}</span>
+                                                                                <span className="text-[7px] font-black uppercase text-subtle tracking-widest">{m.subType}</span>
                                                                             </div>
                                                                         </td>
-                                                                        <td className="px-5 py-3.5 text-[9.5px] font-bold text-slate-400 group-hover:text-white">{m.opponent}</td>
+                                                                        <td className="px-5 py-3.5 text-[9.5px] font-bold text-muted-foreground group-hover:text-foreground">{m.opponent}</td>
                                                                         <td className="px-5 py-3.5">
                                                                             <div className="flex items-center justify-end gap-3">
                                                                                 <div className="flex flex-col items-end">
@@ -792,9 +792,9 @@ export default function PlayerProfileClient({
                                                                                             {m.isWin ? "VICTORIA" : "DERROTA"}
                                                                                         </span>
                                                                                     ) : (
-                                                                                        <span className="text-[8px] font-black italic text-slate-400">COMPARTIDO</span>
+                                                                                        <span className="text-[8px] font-black italic text-muted-foreground">COMPARTIDO</span>
                                                                                     )}
-                                                                                    <span className="text-[13px] font-black italic tracking-tighter tabular-nums text-white leading-none mt-0.5">{m.score}</span>
+                                                                                    <span className="text-[13px] font-black italic tracking-tighter tabular-nums text-foreground leading-none mt-0.5">{m.score}</span>
                                                                                 </div>
                                                                                 {m.isWin !== null && (
                                                                                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black ${m.isWin ? `bg-${theme.accent}/10 text-${theme.accent} border border-${theme.accent}/20` : "bg-rojo/10 text-rojo border border-rojo/20"}`}>
@@ -812,8 +812,8 @@ export default function PlayerProfileClient({
 
                                                 {/* Compact Pagination Controls */}
                                                 {totalPages > 1 && (
-                                                    <div className="px-5 py-3 border-t border-white/10 bg-white/5 flex items-center justify-between shrink-0">
-                                                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">
+                                                    <div className="px-5 py-3 border-t border-hairline bg-surface flex items-center justify-between shrink-0">
+                                                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">
                                                             Página {currentPage} / {totalPages} <span className="mx-2 opacity-25">|</span> {history.length} Partidos
                                                         </p>
                                                         <div className="flex gap-1.5">
@@ -823,7 +823,7 @@ export default function PlayerProfileClient({
                                                                     setCurrentPage(prev => prev - 1);
                                                                     window.scrollTo({ top: 300, behavior: 'smooth' });
                                                                 }}
-                                                                className="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/10 disabled:opacity-30 transition-all active:scale-95 flex items-center gap-1"
+                                                                className="px-3.5 py-2 rounded-lg bg-surface border border-hairline text-[8px] font-black uppercase tracking-widest hover:bg-surface-raised disabled:opacity-30 transition-all active:scale-95 flex items-center gap-1"
                                                             >
                                                                 Anterior
                                                             </button>
@@ -833,7 +833,7 @@ export default function PlayerProfileClient({
                                                                     setCurrentPage(prev => prev + 1);
                                                                     window.scrollTo({ top: 300, behavior: 'smooth' });
                                                                 }}
-                                                                className="px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/10 disabled:opacity-30 transition-all active:scale-95 flex items-center gap-1"
+                                                                className="px-3.5 py-2 rounded-lg bg-surface border border-hairline text-[8px] font-black uppercase tracking-widest hover:bg-surface-raised disabled:opacity-30 transition-all active:scale-95 flex items-center gap-1"
                                                             >
                                                                 Siguiente <ChevronRight size={10} />
                                                             </button>
@@ -842,13 +842,13 @@ export default function PlayerProfileClient({
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className="p-20 text-center flex flex-col items-center gap-4 bg-white/[0.02]">
-                                                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
-                                                    <Activity className="h-6 w-6 text-slate-500" />
+                                            <div className="p-20 text-center flex flex-col items-center gap-4 bg-surface">
+                                                <div className="w-16 h-16 rounded-full bg-surface-raised flex items-center justify-center border border-hairline">
+                                                    <Activity className="h-6 w-6 text-subtle" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-white text-xs font-black uppercase tracking-widest italic">Sin Actividad Confirmada</p>
-                                                    <p className="text-slate-400 text-[8px] font-black uppercase tracking-widest italic opacity-50">No hay partidos cargados en la base de datos</p>
+                                                    <p className="text-foreground text-xs font-black uppercase tracking-widest italic">Sin Actividad Confirmada</p>
+                                                    <p className="text-muted-foreground text-[8px] font-black uppercase tracking-widest italic opacity-50">No hay partidos cargados en la base de datos</p>
                                                 </div>
                                             </div>
                                         )}
@@ -865,36 +865,36 @@ export default function PlayerProfileClient({
                                         className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto w-full py-2"
                                     >
                                         {/* Status & Session Card */}
-                                        <div className="bg-carbon-900 border border-white/10 p-5 rounded-xl shadow-xl flex flex-col gap-4 h-fit relative overflow-hidden">
+                                        <div className="bg-background border border-hairline p-5 rounded-xl shadow-xl flex flex-col gap-4 h-fit relative overflow-hidden">
                                             <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-rojo to-transparent" />
                                             <div className="flex flex-col items-center gap-3 text-center">
-                                                <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center border border-white/10 relative">
-                                                    <User className="h-6 w-6 text-slate-600" />
+                                                <div className="w-14 h-14 rounded-full bg-surface-raised flex items-center justify-center border border-hairline relative">
+                                                    <User className="h-6 w-6 text-subtle" />
                                                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-carbon-900" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-none">{dbUser.firstName} {dbUser.lastName}</h3>
-                                                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">{dbUser.email}</p>
+                                                    <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-none">{dbUser.firstName} {dbUser.lastName}</h3>
+                                                    <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-1.5">{dbUser.email}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="h-px bg-white/10" />
+                                            <div className="h-px bg-surface-raised" />
 
                                             <div className="flex flex-col gap-2">
-                                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                                                <div className="flex items-center justify-between p-3 bg-surface rounded-xl border border-hairline">
                                                     <div className="flex items-center gap-2">
                                                         <ShieldCheck className={`h-4.5 w-4.5 text-${theme.primary}`} />
-                                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Acceso de Seguridad</span>
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Acceso de Seguridad</span>
                                                     </div>
                                                     <span className={`text-[8.5px] font-black uppercase tracking-widest text-${theme.primary}`}>{dbUser.role}</span>
                                                 </div>
 
-                                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                                                <div className="flex items-center justify-between p-3 bg-surface rounded-xl border border-hairline">
                                                     <div className="flex items-center gap-2">
                                                         <UserCircle className={`h-4.5 w-4.5 text-${theme.accent}`} />
-                                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">ID de Jugador</span>
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">ID de Jugador</span>
                                                     </div>
-                                                    <span className="text-[7.5px] font-mono text-slate-500">{dbUser.id}</span>
+                                                    <span className="text-[7.5px] font-mono text-subtle">{dbUser.id}</span>
                                                 </div>
                                             </div>
 
@@ -907,45 +907,45 @@ export default function PlayerProfileClient({
                                         </div>
 
                                         {/* Security & Password panel */}
-                                        <div className="bg-carbon-900 border border-white/10 p-5 rounded-xl shadow-xl flex flex-col gap-4 relative overflow-hidden">
+                                        <div className="bg-background border border-hairline p-5 rounded-xl shadow-xl flex flex-col gap-4 relative overflow-hidden">
                                             <div className={`absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-${theme.primary} to-transparent`} />
                                             <div>
-                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-white flex items-center gap-2 leading-none">
+                                                <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground flex items-center gap-2 leading-none">
                                                     <Lock className={`h-4 w-4 text-${theme.primary}`} /> Seguridad del Panel
                                                 </h3>
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Actualizar credenciales de inicio</p>
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mt-1">Actualizar credenciales de inicio</p>
                                             </div>
 
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Contraseña Actual</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Contraseña Actual</label>
                                                     <input
                                                         type="password"
                                                         value={passwords.currentPass}
                                                         onChange={e => setPasswords({ ...passwords, currentPass: e.target.value })}
-                                                        className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        className={`w-full h-10 bg-surface border border-hairline rounded-xl px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="••••••••"
                                                     />
                                                 </div>
 
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Nueva Contraseña</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Nueva Contraseña</label>
                                                     <input
                                                         type="password"
                                                         value={passwords.newPass}
                                                         onChange={e => setPasswords({ ...passwords, newPass: e.target.value })}
-                                                        className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        className={`w-full h-10 bg-surface border border-hairline rounded-xl px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="Mínimo 6 caracteres"
                                                     />
                                                 </div>
 
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Confirmar Contraseña</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Confirmar Contraseña</label>
                                                     <input
                                                         type="password"
                                                         value={passwords.confirmPass}
                                                         onChange={e => setPasswords({ ...passwords, confirmPass: e.target.value })}
-                                                        className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        className={`w-full h-10 bg-surface border border-hairline rounded-xl px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="Mínimo 6 caracteres"
                                                     />
                                                 </div>
@@ -997,37 +997,37 @@ export default function PlayerProfileClient({
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -15 }}
                                         transition={{ duration: 0.25 }}
-                                        className="bg-carbon-900 border border-white/10 rounded-xl shadow-xl overflow-hidden max-w-3xl mx-auto w-full py-2"
+                                        className="bg-background border border-hairline rounded-xl shadow-xl overflow-hidden max-w-3xl mx-auto w-full py-2"
                                     >
-                                        <div className="px-6 py-4 border-b border-white/10 bg-white/5">
-                                            <h2 className="text-[8.5px] font-black uppercase tracking-widest italic text-white leading-none">Editar Detalles de Cuenta</h2>
+                                        <div className="px-6 py-4 border-b border-hairline bg-surface">
+                                            <h2 className="text-[8.5px] font-black uppercase tracking-widest italic text-foreground leading-none">Editar Detalles de Cuenta</h2>
                                         </div>
 
-                                        <div className="p-6 border-b border-white/5">
-                                            <label className="text-[8px] font-black uppercase text-slate-400 mb-3 block tracking-widest">Avatar del Jugador</label>
+                                        <div className="p-6 border-b border-hairline">
+                                            <label className="text-[8px] font-black uppercase text-muted-foreground mb-3 block tracking-widest">Avatar del Jugador</label>
                                             <div className="flex flex-col sm:flex-row items-center gap-5">
                                                 <div 
-                                                    className="w-20 h-20 bg-carbon-900 p-[2px] border border-dashed border-white/10 flex items-center justify-center relative overflow-hidden group shrink-0"
+                                                    className="w-20 h-20 bg-background p-[2px] border border-dashed border-hairline flex items-center justify-center relative overflow-hidden group shrink-0"
                                                     style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}
                                                 >
                                                     <div 
-                                                        className="w-full h-full relative overflow-hidden bg-slate-950 flex items-center justify-center"
+                                                        className="w-full h-full relative overflow-hidden bg-background flex items-center justify-center"
                                                         style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}
                                                     >
                                                         {imagePreview ? (
                                                             <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized sizes="80px" />
                                                         ) : (
-                                                            <User className="w-6 h-6 text-slate-600" />
+                                                            <User className="w-6 h-6 text-subtle" />
                                                         )}
                                                     </div>
                                                     {isUploading && (
-                                                        <div className="absolute inset-0 bg-carbon-950/80 backdrop-blur-sm flex items-center justify-center z-20">
+                                                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
                                                             <Loader2 className={`w-4 h-4 animate-spin text-${theme.primary}`} />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col gap-2 flex-1 w-full text-center sm:text-left">
-                                                    <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest leading-relaxed max-w-xs">Formatos aceptados: JPG, PNG. La imagen debe ser cuadrada.</p>
+                                                    <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest leading-relaxed max-w-xs">Formatos aceptados: JPG, PNG. La imagen debe ser cuadrada.</p>
                                                     <label className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-${theme.primary} hover:bg-${theme.accent} text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer w-full sm:w-auto shadow-lg ${theme.shadow} active:scale-95`}>
                                                         <ImageIcon className="w-3.5 h-3.5" />
                                                         {isUploading ? "Cargando..." : "Subir Foto"}
@@ -1071,23 +1071,23 @@ export default function PlayerProfileClient({
                                         <form onSubmit={handleSave} className="p-6 flex flex-col gap-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Nombre</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Nombre</label>
                                                     <input
                                                         type="text"
                                                         value={formData.firstName}
                                                         onChange={e => setFormData({ ...formData, firstName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                        className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        className={`w-full h-10 bg-surface border border-hairline rounded-xl px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="Ingresa tu nombre"
                                                         autoCapitalize="words"
                                                     />
                                                 </div>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Apellido</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Apellido</label>
                                                     <input
                                                         type="text"
                                                         value={formData.lastName}
                                                         onChange={e => setFormData({ ...formData, lastName: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                        className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                        className={`w-full h-10 bg-surface border border-hairline rounded-xl px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                         placeholder="Ingresa tu apellido"
                                                         autoCapitalize="words"
                                                     />
@@ -1096,40 +1096,40 @@ export default function PlayerProfileClient({
 
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Localidad</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Localidad</label>
                                                     <div className="relative">
-                                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-subtle" />
                                                         <input
                                                             type="text"
                                                             value={formData.location}
                                                             onChange={e => setFormData({ ...formData, location: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
-                                                            className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                            className={`w-full h-10 bg-surface border border-hairline rounded-xl pl-10 pr-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                             placeholder="Ciudad, Provincia"
                                                             autoCapitalize="sentences"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">WhatsApp</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">WhatsApp</label>
                                                     <div className="relative">
-                                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-subtle" />
                                                         <input
                                                             type="text"
                                                             value={formData.phone}
                                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                            className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
+                                                            className={`w-full h-10 bg-surface border border-hairline rounded-xl pl-10 pr-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all`}
                                                             placeholder="Ej: 1122334455"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Género</label>
+                                                    <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Género</label>
                                                     <div className="relative">
-                                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-subtle" />
                                                         <select
                                                             value={formData.gender}
                                                             onChange={e => setFormData({ ...formData, gender: e.target.value })}
-                                                            className={`w-full h-10 bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} transition-all appearance-none`}
+                                                            className={`w-full h-10 bg-surface border border-hairline rounded-xl pl-10 pr-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} transition-all appearance-none`}
                                                         >
                                                             <option value="masculino">Masculino</option>
                                                             <option value="femenino">Femenino</option>
@@ -1139,14 +1139,14 @@ export default function PlayerProfileClient({
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Posición Preferida de Juego</label>
+                                                <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Posición Preferida de Juego</label>
                                                 <div className="grid grid-cols-3 gap-2">
                                                     {["drive", "reves", "ambos"].map((s) => (
                                                         <button
                                                             key={s}
                                                             type="button"
                                                             onClick={() => setFormData({ ...formData, side: s })}
-                                                            className={`h-10 rounded-xl text-[8.5px] font-black uppercase tracking-widest border transition-all ${formData.side === s ? `bg-${theme.primary} border-${theme.accent}/30 text-white shadow-lg ${theme.shadow}` : "bg-white/5 border-white/10 text-slate-400 hover:border-celeste/40"}`}
+                                                            className={`h-10 rounded-xl text-[8.5px] font-black uppercase tracking-widest border transition-all ${formData.side === s ? `bg-${theme.primary} border-${theme.accent}/30 text-white shadow-lg ${theme.shadow}` : "bg-surface border-hairline text-muted-foreground hover:border-celeste/40"}`}
                                                         >
                                                             {s}
                                                         </button>
@@ -1155,12 +1155,12 @@ export default function PlayerProfileClient({
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Biografía / Estilo de Juego</label>
+                                                <label className="text-[8px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Biografía / Estilo de Juego</label>
                                                 <textarea
                                                     value={formData.bio}
                                                     onChange={e => setFormData({ ...formData, bio: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) })}
                                                     rows={3}
-                                                    className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white text-xs font-bold outline-none focus:border-${theme.primary} resize-none transition-all`}
+                                                    className={`w-full bg-surface border border-hairline rounded-xl py-3 px-4 text-foreground text-xs font-bold outline-none focus:border-${theme.primary} resize-none transition-all`}
                                                     placeholder="Contá detalles de tu pala, tu racha y cómo jugás..."
                                                     autoCapitalize="sentences"
                                                 />

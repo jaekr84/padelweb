@@ -20,7 +20,9 @@ const palette = [
 
 export default function DesignSystemPage() {
   return (
-    <div className="min-h-screen bg-grid-carbon text-white p-6 md:p-12 space-y-12">
+    // `theme-night`: este styleguide documenta el sistema Match Night, que es
+    // oscuro por definición. Se ancla para que no siga al tema de la app.
+    <div className="theme-night min-h-screen bg-grid-carbon text-white p-6 md:p-12 space-y-12">
       <header>
         <p className="label-tech text-[10px] text-celeste-light mb-2">Design System · Interno</p>
         <h1 className="heading-sport text-5xl md:text-7xl">

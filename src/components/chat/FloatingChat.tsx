@@ -152,21 +152,21 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                             animate={{ x: 0 }}
                             exit={{ x: "-100%" }}
                             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-                            className="fixed inset-0 z-[55] bg-carbon-900 text-white flex flex-col font-sans overflow-hidden md:hidden"
+                            className="fixed inset-0 z-[55] bg-background text-foreground flex flex-col font-sans overflow-hidden md:hidden"
                         >
                             {/* Header mobile */}
-                            <div className="bg-carbon-800 border-b border-white/10 text-white px-4 py-3 flex items-center justify-between shrink-0">
+                            <div className="bg-card border-b border-hairline text-foreground px-4 py-3 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-2">
                                     <MessageSquare className="w-4 h-4 text-azul-primary" />
                                     <span className="text-xs font-black uppercase tracking-widest">Mensajes</span>
                                 </div>
-                                <button onClick={() => setExpanded(false)} className="hover:bg-white/10 p-1.5 rounded-lg transition-colors">
-                                    <X className="w-4 h-4 text-slate-400" />
+                                <button onClick={() => setExpanded(false)} className="hover:bg-surface-raised p-1.5 rounded-lg transition-colors">
+                                    <X className="w-4 h-4 text-muted-foreground" />
                                 </button>
                             </div>
-                            <div className="flex-1 overflow-hidden flex flex-col bg-carbon-900">
+                            <div className="flex-1 overflow-hidden flex flex-col bg-background">
                                 <div className="flex flex-col items-center justify-center h-full p-8 opacity-40">
-                                    <MessageSquare className="w-8 h-8 mb-2 text-slate-600" />
+                                    <MessageSquare className="w-8 h-8 mb-2 text-subtle" />
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-center">Usá la versión desktop para el chat</p>
                                 </div>
                             </div>
@@ -180,17 +180,17 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                             exit={{ x: "-100%", opacity: 0 }}
                             transition={{ type: "spring", stiffness: 320, damping: 32 }}
                             style={{ left: leftPx }}
-                            className="fixed top-0 h-screen z-[55] w-72 bg-carbon-900 text-white border-r border-white/10 shadow-2xl shadow-black/40 flex flex-col font-sans overflow-hidden hidden md:flex"
+                            className="fixed top-0 h-screen z-[55] w-72 bg-background text-foreground border-r border-hairline shadow-2xl shadow-black/40 flex flex-col font-sans overflow-hidden hidden md:flex"
                         >
                             {/* Header */}
-                            <div className="bg-carbon-800 border-b border-white/10 text-white px-4 py-3 flex items-center justify-between shrink-0">
+                            <div className="bg-card border-b border-hairline text-foreground px-4 py-3 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-2">
                                     {view === "chat" ? (
-                                        <button onClick={() => { setActiveConvId(null); setView("list"); }} className="hover:bg-white/10 p-1 rounded-lg transition-colors">
+                                        <button onClick={() => { setActiveConvId(null); setView("list"); }} className="hover:bg-surface-raised p-1 rounded-lg transition-colors">
                                             <ArrowLeft className="w-4 h-4" />
                                         </button>
                                     ) : view === "search" ? (
-                                        <button onClick={() => setView("list")} className="hover:bg-white/10 p-1 rounded-lg transition-colors">
+                                        <button onClick={() => setView("list")} className="hover:bg-surface-raised p-1 rounded-lg transition-colors">
                                             <ArrowLeft className="w-4 h-4" />
                                         </button>
                                     ) : (
@@ -205,36 +205,36 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                 </div>
                                 <div className="flex items-center gap-1">
                                     {view === "list" && (
-                                        <button onClick={() => setView("search")} className="hover:bg-white/10 p-1.5 rounded-lg transition-colors">
+                                        <button onClick={() => setView("search")} className="hover:bg-surface-raised p-1.5 rounded-lg transition-colors">
                                             <Pencil className="w-4 h-4 text-azul-primary" />
                                         </button>
                                     )}
-                                    <button onClick={() => setExpanded(false)} className="hover:bg-white/10 p-1.5 rounded-lg transition-colors">
-                                        <X className="w-4 h-4 text-slate-400" />
+                                    <button onClick={() => setExpanded(false)} className="hover:bg-surface-raised p-1.5 rounded-lg transition-colors">
+                                        <X className="w-4 h-4 text-muted-foreground" />
                                     </button>
                                 </div>
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 overflow-hidden flex flex-col bg-carbon-900">
+                            <div className="flex-1 overflow-hidden flex flex-col bg-background">
                                 {view === "list" ? (
-                                    <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+                                    <div className="flex-1 overflow-y-auto divide-y divide-hairline">
                                         {conversations.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-full p-8 opacity-40">
-                                                <MessageSquare className="w-8 h-8 mb-2 text-slate-600" />
+                                                <MessageSquare className="w-8 h-8 mb-2 text-subtle" />
                                                 <p className="text-[10px] font-bold uppercase tracking-widest text-center">Todavía no tenés chats</p>
                                             </div>
                                         ) : conversations.map(conv => (
                                             <button
                                                 key={conv.id}
                                                 onClick={() => setActiveConvId(conv.id)}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-all text-left ${conv.unreadCount > 0 ? "bg-azul-primary/10" : ""}`}
+                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface transition-all text-left ${conv.unreadCount > 0 ? "bg-azul-primary/10" : ""}`}
                                             >
                                                 <div className="relative shrink-0">
-                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center border border-white/10">
+                                                    <div className="w-9 h-9 rounded-full overflow-hidden bg-surface-raised flex items-center justify-center border border-hairline">
                                                         {conv.otherUser?.imageUrl
                                                             ? <Image src={conv.otherUser.imageUrl} alt="" width={36} height={36} className="object-cover" />
-                                                            : <User className="w-4 h-4 text-slate-400" />}
+                                                            : <User className="w-4 h-4 text-muted-foreground" />}
                                                     </div>
                                                     {conv.unreadCount > 0 && (
                                                         <span className="absolute -top-1 -right-1 w-4 h-4 bg-azul-primary text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-carbon-900 shadow-sm">
@@ -244,14 +244,14 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center justify-between mb-0.5">
-                                                        <p className={`text-xs truncate ${conv.unreadCount > 0 ? "font-black text-white" : "font-semibold text-slate-300"}`}>
+                                                        <p className={`text-xs truncate ${conv.unreadCount > 0 ? "font-black text-foreground" : "font-semibold text-muted-foreground"}`}>
                                                             {conv.otherUser?.firstName} {conv.otherUser?.lastName}
                                                         </p>
-                                                        <span className="text-[9px] text-slate-400 font-medium shrink-0 ml-1">
+                                                        <span className="text-[9px] text-muted-foreground font-medium shrink-0 ml-1">
                                                             {formatTime(conv.lastMessageAt)}
                                                         </span>
                                                     </div>
-                                                    <p className={`text-[10px] truncate ${conv.unreadCount > 0 ? "text-white font-bold" : "text-slate-500"}`}>
+                                                    <p className={`text-[10px] truncate ${conv.unreadCount > 0 ? "text-foreground font-bold" : "text-subtle"}`}>
                                                         {conv.lastMessage ?? "Conversación iniciada"}
                                                     </p>
                                                 </div>
@@ -260,13 +260,13 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                     </div>
                                 ) : view === "search" ? (
                                     <div className="flex-1 flex flex-col overflow-hidden">
-                                        <div className="p-3 border-b border-white/10 bg-white/5 space-y-3">
+                                        <div className="p-3 border-b border-hairline bg-surface space-y-3">
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Filtrar por Club</label>
+                                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Filtrar por Club</label>
                                                 <select
                                                     value={selectedClubId || ""}
                                                     onChange={(e) => { setSelectedClubId(e.target.value || null); setUserQuery(""); }}
-                                                    className="w-full h-9 px-3 bg-carbon-800 border border-white/10 rounded-xl text-[11px] font-semibold text-white outline-none focus:ring-2 focus:ring-azul-primary/30"
+                                                    className="w-full h-9 px-3 bg-card border border-hairline rounded-xl text-[11px] font-semibold text-foreground outline-none focus:ring-2 focus:ring-azul-primary/30"
                                                 >
                                                     <option value="">Todos los clubes</option>
                                                     {clubs.map(club => <option key={club.id} value={club.id}>{club.name}</option>)}
@@ -274,14 +274,14 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                             </div>
                                             {selectedClubId && (
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Seleccionar Jugador</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Seleccionar Jugador</label>
                                                     <select
                                                         onChange={(e) => {
                                                             const player = clubMembers.find(m => m.id === e.target.value);
                                                             if (player) { createNewConversation(player.id); setSelectedClubId(null); }
                                                         }}
                                                         defaultValue=""
-                                                        className="w-full h-9 px-3 bg-carbon-800 border border-white/10 rounded-xl text-[11px] font-semibold text-white outline-none focus:ring-2 focus:ring-azul-primary/30"
+                                                        className="w-full h-9 px-3 bg-card border border-hairline rounded-xl text-[11px] font-semibold text-foreground outline-none focus:ring-2 focus:ring-azul-primary/30"
                                                     >
                                                         <option value="" disabled>{isLoadingMembers ? "Cargando..." : "Seleccionar jugador..."}</option>
                                                         {clubMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -289,13 +289,13 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                 </div>
                                             )}
                                             <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-subtle" />
                                                 <input
                                                     type="text"
                                                     placeholder="O busca por nombre..."
                                                     value={userQuery}
                                                     onChange={e => setUserQuery(e.target.value)}
-                                                    className="w-full h-9 pl-8 pr-4 bg-white/5 rounded-xl text-[11px] font-medium text-white placeholder:text-slate-500 border border-white/10 outline-none focus:ring-1 focus:ring-azul-primary/30"
+                                                    className="w-full h-9 pl-8 pr-4 bg-surface rounded-xl text-[11px] font-medium text-foreground placeholder:text-subtle border border-hairline outline-none focus:ring-1 focus:ring-azul-primary/30"
                                                 />
                                             </div>
                                         </div>
@@ -306,14 +306,14 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                     <button
                                                         key={user.id}
                                                         onClick={() => createNewConversation(user.id)}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 border-b border-white/5 last:border-0"
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface border-b border-hairline last:border-0"
                                                     >
-                                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 border border-white/10 flex items-center justify-center">
+                                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-raised border border-hairline flex items-center justify-center">
                                                             {user.imageUrl
                                                                 ? <Image src={user.imageUrl} alt="" width={32} height={32} className="object-cover" />
-                                                                : <User className="w-4 h-4 text-slate-400" />}
+                                                                : <User className="w-4 h-4 text-muted-foreground" />}
                                                         </div>
-                                                        <p className="text-xs font-bold text-white">{user.firstName} {user.lastName}</p>
+                                                        <p className="text-xs font-bold text-foreground">{user.firstName} {user.lastName}</p>
                                                     </button>
                                                 ))
                                             }
@@ -321,19 +321,19 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                     </div>
                                 ) : (
                                     <div className="flex-1 flex flex-col overflow-hidden">
-                                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white/[0.02]">
+                                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-surface">
                                             {messages.map(msg => {
                                                 const isMine = msg.senderId === currentUserId;
                                                 return (
                                                     <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                                                        <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug shadow-sm ${isMine ? "bg-azul-primary text-white rounded-br-sm" : "bg-white/10 text-white border border-white/10 rounded-bl-sm"}`}>
+                                                        <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-[13px] leading-snug shadow-sm ${isMine ? "bg-azul-primary text-white rounded-br-sm" : "bg-surface-raised text-foreground border border-hairline rounded-bl-sm"}`}>
                                                             {msg.imageUrl && (
-                                                                <div className="mb-1.5 rounded-lg overflow-hidden border border-white/20">
+                                                                <div className="mb-1.5 rounded-lg overflow-hidden border border-hairline-strong">
                                                                     <Image src={msg.imageUrl} alt="" width={200} height={200} className="object-contain max-h-40" />
                                                                 </div>
                                                             )}
                                                             {msg.content}
-                                                            <div className={`mt-0.5 text-[8px] flex justify-end gap-1 ${isMine ? "text-blue-100" : "text-slate-500"}`}>
+                                                            <div className={`mt-0.5 text-[8px] flex justify-end gap-1 ${isMine ? "text-blue-100" : "text-subtle"}`}>
                                                                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                                                 {isMine && (msg.isRead ? <CheckCheck className="w-2.5 h-2.5" /> : <Check className="w-2.5 h-2.5" />)}
                                                             </div>
@@ -343,11 +343,11 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                             })}
                                             <div ref={messagesEndRef} />
                                         </div>
-                                        <div className="p-3 border-t border-white/10 bg-carbon-900 shrink-0">
+                                        <div className="p-3 border-t border-hairline bg-background shrink-0">
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="w-9 h-9 bg-white/10 text-slate-400 rounded-xl flex items-center justify-center hover:bg-white/15 transition-all"
+                                                    className="w-9 h-9 bg-surface-raised text-muted-foreground rounded-xl flex items-center justify-center hover:bg-surface-raised transition-all"
                                                 >
                                                     <ImageIcon className="w-4 h-4" />
                                                 </button>
@@ -358,7 +358,7 @@ export default function FloatingChat({ currentUserId }: FloatingChatProps) {
                                                     onChange={e => setNewMessage(e.target.value)}
                                                     onKeyDown={e => e.key === "Enter" && handleSend()}
                                                     placeholder="Escribe..."
-                                                    className="flex-1 h-9 px-4 bg-white/5 rounded-xl text-xs text-white placeholder:text-slate-500 border border-white/10 outline-none focus:ring-1 focus:ring-azul-primary/30"
+                                                    className="flex-1 h-9 px-4 bg-surface rounded-xl text-xs text-foreground placeholder:text-subtle border border-hairline outline-none focus:ring-1 focus:ring-azul-primary/30"
                                                 />
                                                 <button
                                                     onClick={() => handleSend()}

@@ -51,27 +51,27 @@ export function AmericanoStandingsTable({
                     </div>
                     <div>
                         <h3 className="text-[11px] font-black uppercase italic tracking-tight">Estado de Jugadores</h3>
-                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">Control Técnico de Participantes</p>
+                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mt-0.5">Control Técnico de Participantes</p>
                     </div>
                 </div>
 
-                <div className="flex items-center p-0.5 bg-white/5 border border-white/12 rounded-lg gap-0.5">
-                    <button onClick={() => setPlayersTab("all")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "all" ? "bg-foreground text-background" : "hover:bg-muted text-slate-300"}`}>
+                <div className="flex items-center p-0.5 bg-surface border border-hairline rounded-lg gap-0.5">
+                    <button onClick={() => setPlayersTab("all")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "all" ? "bg-foreground text-background" : "hover:bg-muted text-muted-foreground"}`}>
                         Todos ({standings.length})
                     </button>
-                    <button onClick={() => setPlayersTab("pending")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-slate-300"}`}>
+                    <button onClick={() => setPlayersTab("pending")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "pending" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-muted-foreground"}`}>
                         Pendientes ({standings.filter(s => !s.player.withdrawn && s.matchesPlayed < matchesPerTeam).length})
                     </button>
-                    <button onClick={() => setPlayersTab("done")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-slate-300"}`}>
+                    <button onClick={() => setPlayersTab("done")} className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest transition-all ${playersTab === "done" ? "bg-celeste text-carbon-950" : "hover:bg-muted text-muted-foreground"}`}>
                         Completos ({standings.filter(s => s.player.withdrawn || s.matchesPlayed >= matchesPerTeam).length})
                     </button>
                 </div>
             </div>
 
-            <div className="bg-carbon-900 backdrop-blur-xl border border-white/12 rounded-lg overflow-hidden shadow-sm transition-all">
+            <div className="bg-card backdrop-blur-xl border border-hairline rounded-lg overflow-hidden shadow-sm transition-all">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-muted text-[7px] font-black uppercase tracking-widest text-slate-400 border-b border-white/12">
+                        <thead className="bg-muted text-[7px] font-black uppercase tracking-widest text-muted-foreground border-b border-hairline">
                             <tr>
                                 <th className="px-3 py-1">#</th>
                                 <th className="px-3 py-1 text-center">OK</th>
@@ -91,9 +91,9 @@ export function AmericanoStandingsTable({
                                 const memberNames = pairNames(s.player);
                                 const isPair = memberNames.length > 1;
                                 return (
-                                    <tr key={s.playerId} className={`group hover:bg-white/5 transition-all ${s.player.withdrawn ? "opacity-50" : isPlaying ? "bg-celeste/[0.04]" : isDone ? "bg-celeste/[0.01]" : ""}`}>
+                                    <tr key={s.playerId} className={`group hover:bg-surface transition-all ${s.player.withdrawn ? "opacity-50" : isPlaying ? "bg-celeste/[0.04]" : isDone ? "bg-celeste/[0.01]" : ""}`}>
                                         <td className="px-3 py-1">
-                                            <span className={`w-5 h-5 rounded flex items-center justify-center text-[8px] font-black italic ${rank === 1 ? "bg-celeste text-carbon-950" : "bg-muted text-slate-300"}`}>
+                                            <span className={`w-5 h-5 rounded flex items-center justify-center text-[8px] font-black italic ${rank === 1 ? "bg-celeste text-carbon-950" : "bg-muted text-muted-foreground"}`}>
                                                 {rank}
                                             </span>
                                         </td>
@@ -106,7 +106,7 @@ export function AmericanoStandingsTable({
                                                             onClick={() => togglePresent(memberKey(s.playerId, slot))}
                                                             disabled={readOnly}
                                                             title={memberNames[slot - 1]}
-                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(present, s.playerId, slot) ? "bg-volt text-carbon-950" : "bg-white/5 text-slate-500 hover:text-volt"}`}
+                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(present, s.playerId, slot) ? "bg-volt text-carbon-950" : "bg-surface text-subtle hover:text-volt-ink"}`}
                                                         >
                                                             <UserCheck className="w-2.5 h-2.5" />
                                                         </button>
@@ -116,7 +116,7 @@ export function AmericanoStandingsTable({
                                                 <button
                                                     onClick={() => togglePresent(s.playerId)}
                                                     disabled={readOnly}
-                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-volt text-carbon-950" : "bg-white/5 text-slate-500 hover:text-volt"}`}
+                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${present.has(s.playerId) ? "bg-volt text-carbon-950" : "bg-surface text-subtle hover:text-volt-ink"}`}
                                                 >
                                                     <UserCheck className="w-2.5 h-2.5" />
                                                 </button>
@@ -131,7 +131,7 @@ export function AmericanoStandingsTable({
                                                             onClick={() => togglePaid(memberKey(s.playerId, slot))}
                                                             disabled={readOnly}
                                                             title={memberNames[slot - 1]}
-                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(paid, s.playerId, slot) ? "bg-celeste text-carbon-950" : "bg-white/5 text-slate-500 hover:text-celeste"}`}
+                                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${isMemberChecked(paid, s.playerId, slot) ? "bg-celeste text-carbon-950" : "bg-surface text-subtle hover:text-celeste"}`}
                                                         >
                                                             <CreditCard className="w-2.5 h-2.5" />
                                                         </button>
@@ -141,7 +141,7 @@ export function AmericanoStandingsTable({
                                                 <button
                                                     onClick={() => togglePaid(s.playerId)}
                                                     disabled={readOnly}
-                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-celeste text-carbon-950" : "bg-white/5 text-slate-500 hover:text-celeste"}`}
+                                                    className={`w-5 h-5 mx-auto rounded flex items-center justify-center transition-all ${paid.has(s.playerId) ? "bg-celeste text-carbon-950" : "bg-surface text-subtle hover:text-celeste"}`}
                                                 >
                                                     <CreditCard className="w-2.5 h-2.5" />
                                                 </button>
@@ -150,18 +150,18 @@ export function AmericanoStandingsTable({
                                         <td className="px-3 py-1">
                                             <div className="flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-1.5">
-                                                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-celeste/10 to-celeste/10 flex items-center justify-center text-[8px] font-black text-celeste border border-white/5 shrink-0">
+                                                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-celeste/10 to-celeste/10 flex items-center justify-center text-[8px] font-black text-celeste border border-hairline shrink-0">
                                                         {s.player.name.charAt(0)}
                                                     </div>
                                                     <div className="flex flex-col">
                                                         {isPair ? (
                                                             <div className="flex flex-col gap-0.5">
                                                                 {memberNames.map((n, i) => (
-                                                                    <span key={i} className="text-[9px] font-black uppercase italic text-slate-100 tracking-tight h-5 flex items-center">{n}</span>
+                                                                    <span key={i} className="text-[9px] font-black uppercase italic text-foreground tracking-tight h-5 flex items-center">{n}</span>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-[9px] font-black uppercase italic leading-tight text-slate-100 tracking-tight">{s.player.name}</span>
+                                                            <span className="text-[9px] font-black uppercase italic leading-tight text-foreground tracking-tight">{s.player.name}</span>
                                                         )}
                                                         {isPlaying && (
                                                             <span className="text-[6px] font-black uppercase tracking-widest text-rojo flex items-center gap-0.5 mt-0.5">
@@ -199,9 +199,9 @@ export function AmericanoStandingsTable({
                                             </div>
                                         </td>
                                         <td className="px-3 py-1 text-center">
-                                            {s.player.withdrawn ? <UserX className="w-3 h-3 mx-auto text-amber-500" /> : isDone ? <CheckCircle2 className="w-3 h-3 mx-auto text-celeste" /> : isPlaying ? <div className="text-[6px] font-black uppercase text-celeste animate-pulse">CANCHA</div> : <Clock className="w-3 h-3 mx-auto text-slate-500" />}
+                                            {s.player.withdrawn ? <UserX className="w-3 h-3 mx-auto text-amber-500" /> : isDone ? <CheckCircle2 className="w-3 h-3 mx-auto text-celeste" /> : isPlaying ? <div className="text-[6px] font-black uppercase text-celeste animate-pulse">CANCHA</div> : <Clock className="w-3 h-3 mx-auto text-subtle" />}
                                         </td>
-                                        <td className="px-3 py-1 text-center text-[8px] font-black italic text-slate-400">{s.matchesPlayed} / {matchesPerTeam}</td>
+                                        <td className="px-3 py-1 text-center text-[8px] font-black italic text-muted-foreground">{s.matchesPlayed} / {matchesPerTeam}</td>
                                         <td className="px-3 py-1 text-center font-bold text-[8px] tracking-tight">
                                             <span className="text-celeste">{s.won}</span>-<span className="text-rojo">{s.lost}</span>
                                         </td>

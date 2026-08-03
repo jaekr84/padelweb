@@ -82,7 +82,7 @@ export function TournamentTimeline({
         : steps;
 
     return (
-        <div className="flex items-center gap-1 bg-black/30 p-1 rounded-2xl border border-white/12 backdrop-blur-md">
+        <div className="flex items-center gap-1 bg-surface p-1 rounded-2xl border border-hairline backdrop-blur-md">
             {filteredSteps.map((s, idx) => {
                 const Icon = s.icon;
                 const isActive = s.id === currentStep;
@@ -97,10 +97,10 @@ export function TournamentTimeline({
                                 ${isActive
                                     ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/30 scale-[1.02]"
                                     : s.isCompleted
-                                        ? "text-volt hover:bg-volt/10"
+                                        ? "text-volt-ink hover:bg-volt/10"
                                         : s.isAccessible
-                                            ? "text-slate-300 hover:bg-white/10 hover:text-white"
-                                            : "text-slate-600 cursor-not-allowed"}
+                                            ? "text-muted-foreground hover:bg-surface-raised hover:text-foreground"
+                                            : "text-subtle cursor-not-allowed"}
                             `}
                         >
                             <div className="relative">
@@ -125,7 +125,7 @@ export function TournamentTimeline({
                         </button>
 
                         {idx < steps.length - 1 && (
-                            <ChevronRight className={`w-3 h-3 mx-0.5 ${steps[idx+1].isAccessible ? "text-slate-500" : "text-slate-700"}`} />
+                            <ChevronRight className={`w-3 h-3 mx-0.5 ${steps[idx+1].isAccessible ? "text-subtle" : "text-muted-foreground"}`} />
                         )}
                     </div>
                 );

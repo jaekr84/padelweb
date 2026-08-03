@@ -88,7 +88,7 @@ export function GlobalNavigationLoader() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[99999] bg-carbon-950/70 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto"
+          className="fixed inset-0 z-[99999] bg-background/70 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto"
         >
           {/* Radial accent neon light glow in center */}
           <div className="absolute inset-0 bg-azul-primary/5 pointer-events-none" />
@@ -99,20 +99,20 @@ export function GlobalNavigationLoader() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.93 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="bg-carbon-900/90 border border-white/10 p-12 clip-notch shadow-2xl flex flex-col items-center gap-8 relative overflow-hidden max-w-[280px]"
+            className="bg-background/90 border border-hairline p-12 clip-notch shadow-2xl flex flex-col items-center gap-8 relative overflow-hidden max-w-[280px]"
           >
             {/* Corner Tech bracket alignments */}
-            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20" />
-            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/20" />
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-hairline-strong" />
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-hairline-strong" />
             
             {/* The brand new glowing HUD radar spinner */}
             <PaddleLoading size="lg" className="relative z-10 scale-95" />
             
             <div className="flex flex-col items-center gap-2 relative z-10 text-center">
-              <span className="label-tech text-[11px] text-white">
+              <span className="label-tech text-[11px] text-foreground">
                 Sincronizando
               </span>
-              <span className="text-[7.5px] text-volt font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full border border-white/5 animate-pulse">
+              <span className="text-[7.5px] text-volt-ink font-black uppercase tracking-widest px-3 py-1 bg-surface rounded-full border border-hairline animate-pulse">
                 Accediendo a ACAP Cloud
               </span>
             </div>

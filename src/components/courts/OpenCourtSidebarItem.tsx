@@ -29,10 +29,10 @@ export const OpenCourtSidebarItem = memo(function OpenCourtSidebarItem({
   return (
     <Link
       href={`/cancha-abierta`}
-      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-white/5 transition-colors px-2 -mx-2 rounded-xl"
+      className="group flex flex-col gap-1.5 py-2.5 border-b border-border last:border-0 hover:bg-surface transition-colors px-2 -mx-2 rounded-xl"
     >
       <div className="flex justify-between items-start gap-2">
-        <h3 className="text-xs font-black uppercase italic tracking-tighter text-white leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors">
+        <h3 className="text-xs font-black uppercase italic tracking-tighter text-foreground leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors">
           {oc.name}
         </h3>
         <div
@@ -43,7 +43,7 @@ export const OpenCourtSidebarItem = memo(function OpenCourtSidebarItem({
           {oc.registrationCount || 0}/{oc.totalSlots}
         </div>
       </div>
-      <div className="flex items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+      <div className="flex items-center gap-4 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
         <div className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
           <span>
@@ -58,7 +58,7 @@ export const OpenCourtSidebarItem = memo(function OpenCourtSidebarItem({
 
       {oc.totalSlots && oc.totalSlots > 0 && (
         <div className="w-full mt-1">
-          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-surface rounded-full overflow-hidden">
             {(() => {
               const percentage = Math.min(((oc.registrationCount || 0) / oc.totalSlots) * 100, 100);
               let barColor = "bg-azul-primary";

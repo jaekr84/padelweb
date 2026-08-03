@@ -90,7 +90,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
     };
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-20 pt-8 px-4 md:px-8 relative overflow-hidden">
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-20 pt-8 px-4 md:px-8 relative overflow-hidden">
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
                 <div className="absolute top-[-5%] right-[-5%] w-[35%] h-[35%] bg-emerald-500/5 rounded-full blur-[100px] animate-pulse" />
@@ -112,26 +112,26 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                     <div className="h-px w-10 bg-emerald-500/30 mt-0.5" />
                                 </div>
                             </div>
-                            <h1 className="text-xl md:text-3xl heading-sport leading-none text-white">
+                            <h1 className="text-xl md:text-3xl heading-sport leading-none text-foreground">
                                 Gestión de <span className="text-emerald-400">Categorías</span>
                             </h1>
-                            <p className="text-slate-400 text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <p className="text-muted-foreground text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
                                 <Activity className="w-2.5 h-2.5" /> Configuración dinámica de niveles y umbrales de puntuación
                             </p>
                         </div>
                     </div>
 
                     {/* Categories Table */}
-                    <div className="bg-carbon-800 border border-white/10 rounded-xl overflow-hidden shadow-sm relative mt-2">
+                    <div className="bg-card border border-hairline rounded-xl overflow-hidden shadow-sm relative mt-2">
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse table-auto">
                                 <thead>
-                                    <tr className="bg-white/5 border-b border-white/10">
-                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-400 w-16">Nº</th>
-                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-400">Nombre</th>
-                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">Rango Min</th>
-                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">Rango Max</th>
-                                        <th className="px-4 py-3 text-right text-[9px] font-black uppercase tracking-widest text-slate-400">Acciones</th>
+                                    <tr className="bg-surface border-b border-hairline">
+                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground w-16">Nº</th>
+                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Nombre</th>
+                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Rango Min</th>
+                                        <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">Rango Max</th>
+                                        <th className="px-4 py-3 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
@@ -146,7 +146,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                             <input
                                                 type="text"
                                                 placeholder="NUEVA CATEGORÍA..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-white"
+                                                className="w-full bg-surface border border-hairline rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-foreground"
                                                 value={newCat.name}
                                                 onChange={e => setNewCat({ ...newCat, name: e.target.value.toUpperCase() })}
                                             />
@@ -154,7 +154,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                         <td className="px-4 py-2">
                                             <input
                                                 type="number"
-                                                className="w-full max-w-[80px] mx-auto bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-white text-center"
+                                                className="w-full max-w-[80px] mx-auto bg-surface border border-hairline rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-foreground text-center"
                                                 value={newCat.minPoints === 0 && highestMax === -1 ? "" : newCat.minPoints}
                                                 onChange={e => {
                                                     const val = parseInt(e.target.value);
@@ -165,7 +165,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                         <td className="px-4 py-2">
                                             <input
                                                 type="number"
-                                                className="w-full max-w-[80px] mx-auto bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-white text-center"
+                                                className="w-full max-w-[80px] mx-auto bg-surface border border-hairline rounded-lg px-3 py-1.5 text-[10px] font-black outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-foreground text-center"
                                                 value={newCat.maxPoints === 0 ? "" : newCat.maxPoints}
                                                 onChange={e => {
                                                     const val = parseInt(e.target.value);
@@ -192,10 +192,10 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                         return (
                                             <tr
                                                 key={cat.id}
-                                                className={`group hover:bg-white/5 transition-colors ${loading === cat.id ? "opacity-30 pointer-events-none" : ""}`}
+                                                className={`group hover:bg-surface transition-colors ${loading === cat.id ? "opacity-30 pointer-events-none" : ""}`}
                                             >
                                                 <td className="px-4 py-2.5">
-                                                    <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-[10px] font-black italic text-slate-400 mx-auto">
+                                                    <div className="w-7 h-7 rounded-lg bg-surface-raised border border-hairline flex items-center justify-center text-[10px] font-black italic text-muted-foreground mx-auto">
                                                         {idx + 1}
                                                     </div>
                                                 </td>
@@ -203,19 +203,19 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                     {isEditing ? (
                                                         <input
                                                             type="text"
-                                                            className="w-full bg-carbon-900 border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black uppercase outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-white"
+                                                            className="w-full bg-background border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black uppercase outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-foreground"
                                                             value={editData.name}
                                                             onChange={e => setEditData({ ...editData, name: e.target.value.toUpperCase() })}
                                                         />
                                                     ) : (
-                                                        <span className="text-[11px] font-black uppercase italic tracking-tight text-white group-hover:text-emerald-400 transition-colors">{cat.name}</span>
+                                                        <span className="text-[11px] font-black uppercase italic tracking-tight text-foreground group-hover:text-emerald-400 transition-colors">{cat.name}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-2.5">
                                                     {isEditing ? (
                                                         <input
                                                             type="number"
-                                                            className="w-full max-w-[80px] mx-auto bg-carbon-900 border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-white text-center"
+                                                            className="w-full max-w-[80px] mx-auto bg-background border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-foreground text-center"
                                                             value={isNaN(editData.minPoints ?? 0) ? "" : editData.minPoints}
                                                             onChange={e => {
                                                                 const val = parseInt(e.target.value);
@@ -224,8 +224,8 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                         />
                                                     ) : (
                                                         <div className="text-center">
-                                                            <span className="text-[11px] font-black italic text-white tracking-widest">{cat.minPoints}</span>
-                                                            <span className="text-[7px] font-black text-slate-400 ml-1">PTS</span>
+                                                            <span className="text-[11px] font-black italic text-foreground tracking-widest">{cat.minPoints}</span>
+                                                            <span className="text-[7px] font-black text-muted-foreground ml-1">PTS</span>
                                                         </div>
                                                     )}
                                                 </td>
@@ -233,7 +233,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                     {isEditing ? (
                                                         <input
                                                             type="number"
-                                                            className="w-full max-w-[80px] mx-auto bg-carbon-900 border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-white text-center"
+                                                            className="w-full max-w-[80px] mx-auto bg-background border border-emerald-500/30 rounded-lg px-3 py-1.5 text-[11px] font-black outline-none focus:ring-1 focus:ring-emerald-600 transition-all text-foreground text-center"
                                                             value={isNaN(editData.maxPoints ?? 0) ? "" : editData.maxPoints}
                                                             onChange={e => {
                                                                 const val = parseInt(e.target.value);
@@ -242,8 +242,8 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                         />
                                                     ) : (
                                                         <div className="text-center">
-                                                            <span className="text-[11px] font-black italic text-white tracking-widest">{cat.maxPoints}</span>
-                                                            <span className="text-[7px] font-black text-slate-400 ml-1">PTS</span>
+                                                            <span className="text-[11px] font-black italic text-foreground tracking-widest">{cat.maxPoints}</span>
+                                                            <span className="text-[7px] font-black text-muted-foreground ml-1">PTS</span>
                                                         </div>
                                                     )}
                                                 </td>
@@ -261,7 +261,7 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                                 </button>
                                                                 <button
                                                                     onClick={handleCancel}
-                                                                    className="w-7 h-7 flex items-center justify-center bg-white/10 text-slate-400 rounded-lg hover:text-white transition-all active:scale-95"
+                                                                    className="w-7 h-7 flex items-center justify-center bg-surface-raised text-muted-foreground rounded-lg hover:text-foreground transition-all active:scale-95"
                                                                     title="CANCELAR"
                                                                 >
                                                                     <X className="w-3.5 h-3.5" />
@@ -271,14 +271,14 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                                                             <>
                                                                 <button
                                                                     onClick={() => handleEdit(cat)}
-                                                                    className="w-7 h-7 flex items-center justify-center bg-white/10 text-slate-400 rounded-lg hover:text-emerald-400 hover:border-emerald-500/30 border border-transparent transition-all active:scale-95"
+                                                                    className="w-7 h-7 flex items-center justify-center bg-surface-raised text-muted-foreground rounded-lg hover:text-emerald-400 hover:border-emerald-500/30 border border-transparent transition-all active:scale-95"
                                                                     title="EDITAR"
                                                                 >
                                                                     <Pencil className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDelete(cat.id)}
-                                                                    className="w-7 h-7 flex items-center justify-center bg-white/10 text-slate-400 rounded-lg hover:text-rose-400 hover:border-rose-500/30 border border-transparent transition-all active:scale-95"
+                                                                    className="w-7 h-7 flex items-center justify-center bg-surface-raised text-muted-foreground rounded-lg hover:text-rose-400 hover:border-rose-500/30 border border-transparent transition-all active:scale-95"
                                                                     title="ELIMINAR"
                                                                 >
                                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -300,20 +300,20 @@ export default function CategoriesManager({ initialCategories }: { initialCatego
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="text-center py-24 bg-carbon-800 border-white/10 rounded-[3rem] mt-4 flex flex-col items-center gap-6 relative overflow-hidden shadow-xl"
+                        className="text-center py-24 bg-card border-hairline rounded-[3rem] mt-4 flex flex-col items-center gap-6 relative overflow-hidden shadow-xl"
                     >
                         <div className="absolute inset-0 bg-emerald-500/5 blur-[80px]" />
-                        <Layers className="w-16 h-16 text-slate-500 relative z-10" />
+                        <Layers className="w-16 h-16 text-subtle relative z-10" />
                         <div className="space-y-1 relative z-10">
-                            <p className="text-white text-xl font-black uppercase italic tracking-[0.2em]">SISTEMA SIN NIVELES</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">INICIA LA CONFIGURACIÓN DESPLEGANDO LA PRIMERA CATEGORÍA</p>
+                            <p className="text-foreground text-xl font-black uppercase italic tracking-[0.2em]">SISTEMA SIN NIVELES</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">INICIA LA CONFIGURACIÓN DESPLEGANDO LA PRIMERA CATEGORÍA</p>
                         </div>
                     </motion.div>
                 )}
                 {/* Footer Info */}
-                <div className="mt-6 px-6 py-4 bg-white/5 border border-white/10 rounded-xl flex items-start gap-3">
-                    <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                    <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 italic leading-relaxed">
+                <div className="mt-6 px-6 py-4 bg-surface border border-hairline rounded-xl flex items-start gap-3">
+                    <Info className="w-4 h-4 text-subtle shrink-0 mt-0.5" />
+                    <p className="text-[8px] font-black uppercase tracking-[0.15em] text-muted-foreground italic leading-relaxed">
                         NÚCLEO DE INFRAESTRUCTURA: EL ORDEN DE LAS CATEGORÍAS ES AUTOMÁTICO BASADO EN LA CREACIÓN. LOS JUGADORES SERÁN ASIGNADOS SEGÚN EL RANGO DE PUNTOS DEFINIDO EN ESTA CONSOLA TÁCTICA.
                     </p>
                 </div>

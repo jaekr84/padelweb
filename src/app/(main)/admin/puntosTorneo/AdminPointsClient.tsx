@@ -54,7 +54,7 @@ export default function AdminPointsClient({
                     </div>
                     <div>
                         <span className="text-[9px] font-black uppercase tracking-[0.4em] text-azul-primary/60 italic leading-none block mb-1">Admin Tactical Console</span>
-                        <h1 className="text-xl md:text-2xl heading-sport text-white leading-none">
+                        <h1 className="text-xl md:text-2xl heading-sport text-foreground leading-none">
                             Control Global de Torneos
                         </h1>
                     </div>
@@ -67,7 +67,7 @@ export default function AdminPointsClient({
                 <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-carbon-800/40 border border-white/10 rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5"
+                    className="bg-card/40 border border-hairline rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
@@ -89,7 +89,7 @@ export default function AdminPointsClient({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
                             { id: "winner", label: "Campeón", icon: Trophy, color: "text-amber-500" },
-                            { id: "finalist", label: "Finalista", icon: Star, color: "text-slate-400" },
+                            { id: "finalist", label: "Finalista", icon: Star, color: "text-muted-foreground" },
                             { id: "semi", label: "Semifinal", icon: Target, color: "text-celeste" },
                             { id: "quarter", label: "Cuartos", icon: LayoutGrid, color: "text-celeste" },
                             { id: "octavos", label: "Octavos", icon: Zap, color: "text-celeste" },
@@ -99,7 +99,7 @@ export default function AdminPointsClient({
                             <div key={item.id} className="space-y-1.5">
                                 <div className="flex items-center gap-2 ml-0.5">
                                     <item.icon className={`w-2.5 h-2.5 ${item.color}`} />
-                                    <label className="text-[8px] font-black uppercase tracking-widest text-slate-400/80">
+                                    <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/80">
                                         {item.label}
                                     </label>
                                 </div>
@@ -107,7 +107,7 @@ export default function AdminPointsClient({
                                     type="number"
                                     value={points[item.id]}
                                     onChange={(e) => setPoints({ ...points, [item.id]: Number(e.target.value) })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-white font-black text-sm italic outline-none focus:ring-1 focus:ring-azul-primary transition-all"
+                                    className="w-full bg-surface border border-hairline rounded-lg py-2 px-3 text-foreground font-black text-sm italic outline-none focus:ring-1 focus:ring-azul-primary transition-all"
                                 />
                             </div>
                         ))}
@@ -126,7 +126,7 @@ export default function AdminPointsClient({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-carbon-800/40 border border-white/10 rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5 h-fit"
+                    className="bg-card/40 border border-hairline rounded-xl p-5 backdrop-blur-sm shadow-sm space-y-5 h-fit"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
@@ -148,7 +148,7 @@ export default function AdminPointsClient({
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-0.5">
+                                <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-0.5">
                                     Torneos Abiertos / Club
                                 </label>
                                 <span className="text-[7px] font-black text-azul-primary bg-azul-primary/10 px-1.5 py-0.5 rounded border border-azul-primary/20">
@@ -162,7 +162,7 @@ export default function AdminPointsClient({
                                         value={limits.openLimit === -1 ? "" : limits.openLimit}
                                         disabled={limits.openLimit === -1}
                                         onChange={(e) => setLimits({ ...limits, openLimit: Number(e.target.value) })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
+                                        className="w-full bg-surface border border-hairline rounded-lg py-2.5 px-4 text-foreground font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
                                         placeholder={limits.openLimit === -1 ? "∞" : "0"}
                                     />
                                     {limits.openLimit === -1 && (
@@ -176,7 +176,7 @@ export default function AdminPointsClient({
                                     className={`px-4 py-2.5 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all active:scale-95 border ${
                                         limits.openLimit === -1 
                                             ? "bg-azul-primary text-white border-azul-primary shadow-sm" 
-                                            : "bg-white/5 text-slate-400 border-white/10 hover:border-azul-primary/40"
+                                            : "bg-surface text-muted-foreground border-hairline hover:border-azul-primary/40"
                                     }`}
                                 >
                                     {limits.openLimit === -1 ? "Ilimitado" : "Sin Límite"}
@@ -184,9 +184,9 @@ export default function AdminPointsClient({
                             </div>
                         </div>
 
-                        <div className="space-y-2 pt-4 border-t border-white/10">
+                        <div className="space-y-2 pt-4 border-t border-hairline">
                             <div className="flex items-center justify-between">
-                                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-0.5">
+                                <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-0.5">
                                     Torneos Cerrados / Club
                                 </label>
                                 <span className="text-[7px] font-black text-purple-500 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
@@ -200,7 +200,7 @@ export default function AdminPointsClient({
                                         value={limits.closedLimit === -1 ? "" : limits.closedLimit}
                                         disabled={limits.closedLimit === -1}
                                         onChange={(e) => setLimits({ ...limits, closedLimit: Number(e.target.value) })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
+                                        className="w-full bg-surface border border-hairline rounded-lg py-2.5 px-4 text-foreground font-black text-xl italic outline-none focus:ring-1 focus:ring-azul-primary transition-all disabled:opacity-50"
                                         placeholder={limits.closedLimit === -1 ? "∞" : "0"}
                                     />
                                     {limits.closedLimit === -1 && (
@@ -214,7 +214,7 @@ export default function AdminPointsClient({
                                     className={`px-4 py-2.5 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all active:scale-95 border ${
                                         limits.closedLimit === -1 
                                             ? "bg-purple-500 text-white border-purple-500 shadow-sm" 
-                                            : "bg-white/5 text-slate-400 border-white/10 hover:border-purple-500/40"
+                                            : "bg-surface text-muted-foreground border-hairline hover:border-purple-500/40"
                                     }`}
                                 >
                                     {limits.closedLimit === -1 ? "Ilimitado" : "Sin Límite"}

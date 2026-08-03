@@ -47,7 +47,7 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
     return createPortal(
         <AnimatePresence>
             {isOpen && (
-                <div className="theme-night fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -94,7 +94,7 @@ export default function AccessDeniedModal({ isOpen, onClose, reason, message, to
                         </div>
 
                         {tournamentName && (
-                            <p className="mt-6 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+                            <p className="mt-6 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">
                                 {tournamentName}
                             </p>
                         )}

@@ -55,13 +55,13 @@ export function SplitAttendanceList({
                 <div className="flex items-center gap-2.5">
                     <div className="w-[3px] h-8 bg-volt rounded-full" />
                     <div>
-                        <h2 className="heading-sport text-base text-white">Asistencia</h2>
-                        <p className="label-tech text-[8px] text-slate-400 mt-0.5">Panel de Control Técnico</p>
+                        <h2 className="heading-sport text-base text-foreground">Asistencia</h2>
+                        <p className="label-tech text-[8px] text-muted-foreground mt-0.5">Panel de Control Técnico</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="label-tech text-[8px] text-slate-300 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5">
-                        <span className="text-volt text-scoreboard">{presentCount}</span> presentes
+                    <span className="label-tech text-[8px] text-muted-foreground bg-surface border border-hairline rounded-lg px-2.5 py-1.5">
+                        <span className="text-volt-ink text-scoreboard">{presentCount}</span> presentes
                     </span>
                     {onInscribir && (
                         <button
@@ -75,32 +75,32 @@ export function SplitAttendanceList({
                 </div>
             </div>
 
-            <div className="bg-carbon-900 border border-white/12 rounded-xl overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.8)]">
-                <div className="px-4 py-2.5 border-b border-white/10 flex flex-col md:flex-row gap-3 bg-white/[0.03]">
+            <div className="bg-card border border-hairline rounded-xl overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.8)]">
+                <div className="px-4 py-2.5 border-b border-hairline flex flex-col md:flex-row gap-3 bg-surface">
                     <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Filtrar por nombre..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-black/40 border border-white/12 rounded-lg py-2 pl-9 pr-3 text-[11px] font-bold text-white outline-none focus:border-celeste/60 focus:ring-1 focus:ring-celeste/40 transition-all placeholder:text-slate-500"
+                            className="w-full bg-surface border border-hairline rounded-lg py-2 pl-9 pr-3 text-[11px] font-bold text-foreground outline-none focus:border-celeste/60 focus:ring-1 focus:ring-celeste/40 transition-all placeholder:text-subtle"
                         />
                     </div>
                     <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="bg-black/40 border border-white/12 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-wider text-slate-200 outline-none focus:border-celeste/60 cursor-pointer"
+                        className="bg-surface border border-hairline rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-wider text-muted-foreground outline-none focus:border-celeste/60 cursor-pointer"
                     >
                         <option value="all">Categoría (Todas)</option>
                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                 </div>
-                <div className="px-4 py-2 flex items-center justify-between bg-black/30 border-b border-white/10">
-                    <span className="label-tech text-[8px] text-slate-400">Lista de Jugadores</span>
+                <div className="px-4 py-2 flex items-center justify-between bg-surface border-b border-hairline">
+                    <span className="label-tech text-[8px] text-muted-foreground">Lista de Jugadores</span>
                     <div className="flex gap-4">
-                        <button onClick={() => onCheckAll('paid')} className="label-tech text-[8px] text-celeste hover:text-white transition-colors">Todo Pago</button>
-                        <button onClick={() => onCheckAll('present')} className="label-tech text-[8px] text-volt hover:text-white transition-colors">Todo Ok</button>
+                        <button onClick={() => onCheckAll('paid')} className="label-tech text-[8px] text-celeste hover:text-foreground transition-colors">Todo Pago</button>
+                        <button onClick={() => onCheckAll('present')} className="label-tech text-[8px] text-volt-ink hover:text-foreground transition-colors">Todo Ok</button>
                     </div>
                 </div>
                 <div className="">
@@ -145,17 +145,17 @@ export function SplitAttendanceList({
                                     key={p.checkinId}
                                     className={`group flex items-center justify-between gap-3 px-4 py-2 border-b border-white/[0.08] last:border-0 transition-colors ${isPresent
                                         ? "bg-volt/[0.1] hover:bg-volt/[0.14]"
-                                        : "hover:bg-white/[0.05]"}`}
+                                        : "hover:bg-surface"}`}
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0">
                                         {/* Barra de estado: separa presentes de pendientes de un vistazo */}
-                                        <div className={`w-[3px] h-7 rounded-full shrink-0 ${isPresent ? "bg-volt" : "bg-white/15"}`} />
+                                        <div className={`w-[3px] h-7 rounded-full shrink-0 ${isPresent ? "bg-volt" : "bg-surface-raised"}`} />
                                         <div className="flex flex-col min-w-0">
-                                            <p className={`text-[11px] font-black uppercase italic tracking-tight truncate ${isPresent ? "text-white" : "text-slate-300"}`}>
+                                            <p className={`text-[11px] font-black uppercase italic tracking-tight truncate ${isPresent ? "text-foreground" : "text-muted-foreground"}`}>
                                                 {p.displayName}
                                             </p>
                                             {!isIndividual && (
-                                                <p className="label-tech text-[7px] text-slate-500 leading-none mt-0.5 truncate">
+                                                <p className="label-tech text-[7px] text-subtle leading-none mt-0.5 truncate">
                                                     {p.pairName}
                                                 </p>
                                             )}
@@ -166,7 +166,7 @@ export function SplitAttendanceList({
                                             onClick={() => togglePaid(p.checkinId)}
                                             className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-all ${isPaid
                                                 ? "bg-celeste border-celeste text-carbon-950 shadow-lg shadow-celeste/30"
-                                                : "border-white/20 bg-white/5 text-slate-400 hover:border-celeste hover:text-celeste"}`}
+                                                : "border-hairline-strong bg-surface text-muted-foreground hover:border-celeste hover:text-celeste"}`}
                                             title={isPaid ? "Pago registrado" : "Marcar como pago"}
                                         >
                                             <CreditCard className="w-3 h-3" />
@@ -175,7 +175,7 @@ export function SplitAttendanceList({
                                             onClick={() => togglePresent(p.checkinId)}
                                             className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-all ${isPresent
                                                 ? "bg-volt border-volt text-carbon-950 shadow-lg shadow-volt/30"
-                                                : "border-white/20 bg-white/5 text-slate-400 hover:border-volt hover:text-volt"}`}
+                                                : "border-hairline-strong bg-surface text-muted-foreground hover:border-volt hover:text-volt-ink"}`}
                                             title={isPresent ? "Presente" : "Marcar presente"}
                                         >
                                             <UserCheck className="w-3 h-3" />

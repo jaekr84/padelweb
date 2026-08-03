@@ -53,10 +53,10 @@ export default function SponsorSidebar({
 
     if (loading) {
         return (
-            <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-white/10 bg-carbon-950">
+            <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-hairline bg-background">
                 <div className="flex-1 flex flex-col min-h-0 p-2.5 gap-2.5">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="flex-1 min-h-0 w-full bg-white/5 rounded-xl animate-pulse" />
+                        <div key={i} className="flex-1 min-h-0 w-full bg-surface rounded-xl animate-pulse" />
                     ))}
                 </div>
             </aside>
@@ -64,11 +64,11 @@ export default function SponsorSidebar({
     }
 
     return (
-        <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-white/10 bg-carbon-950 group/sidebar relative overflow-hidden">
+        <aside className="hidden xl:flex w-44 flex-col h-screen sticky top-0 z-40 border-l border-hairline bg-background group/sidebar relative overflow-hidden">
             {/* Encabezado del muro */}
             <div className="shrink-0 px-3 pt-3 pb-1.5 flex items-center gap-2">
                 <span className="w-4 h-px bg-volt/60" />
-                <span className="label-tech text-[7px] text-slate-500">Sponsors</span>
+                <span className="label-tech text-[7px] text-subtle">Sponsors</span>
             </div>
 
             {/* Muro de logos — cada logo en su tile blanco para mantener legibilidad */}
@@ -80,7 +80,7 @@ export default function SponsorSidebar({
                             href={s.link || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group/card relative flex-1 min-h-[84px] max-h-[120px] shrink-0 overflow-hidden rounded-xl bg-carbon-800 border border-white/10 hover:border-volt/40 transition-colors shadow-lg shadow-black/20"
+                            className="group/card relative flex-1 min-h-[84px] max-h-[120px] shrink-0 overflow-hidden rounded-xl bg-card border border-hairline hover:border-volt/40 transition-colors shadow-lg shadow-black/20"
                         >
                             {/* Logo a sangre completa (cover) sobre toda la card */}
                             <Image
@@ -98,10 +98,10 @@ export default function SponsorSidebar({
                             href="https://www.instagram.com/acaparg"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group/ph relative flex-1 min-h-[84px] max-h-[120px] shrink-0 rounded-xl border border-dashed border-white/10 bg-white/[0.02] hover:bg-white/5 hover:border-volt/30 transition-colors flex flex-col items-center justify-center gap-1"
+                            className="group/ph relative flex-1 min-h-[84px] max-h-[120px] shrink-0 rounded-xl border border-dashed border-hairline bg-surface hover:bg-surface hover:border-volt/30 transition-colors flex flex-col items-center justify-center gap-1"
                         >
-                            <Plus className="w-3 h-3 text-slate-600 group-hover/ph:text-volt transition-colors" />
-                            <span className="text-[7px] font-bold uppercase tracking-widest text-slate-600 group-hover/ph:text-volt transition-colors">
+                            <Plus className="w-3 h-3 text-subtle group-hover/ph:text-volt-ink transition-colors" />
+                            <span className="text-[7px] font-bold uppercase tracking-widest text-subtle group-hover/ph:text-volt-ink transition-colors">
                                 Tu marca
                             </span>
                         </a>
@@ -113,7 +113,7 @@ export default function SponsorSidebar({
             {userRole === "superadmin" && (
                 <button
                     onClick={() => setSponsorsVisible(false)}
-                    className="absolute bottom-2 right-2 opacity-0 group-hover/sidebar:opacity-100 p-1 rounded-md text-slate-500 hover:text-live hover:bg-live/10 transition-all"
+                    className="absolute bottom-2 right-2 opacity-0 group-hover/sidebar:opacity-100 p-1 rounded-md text-subtle hover:text-live hover:bg-live/10 transition-all"
                     title="Ocultar sidebar"
                 >
                     <EyeOff className="w-3 h-3" />

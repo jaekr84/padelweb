@@ -30,8 +30,8 @@ export function TournamentQualifiersView({ finalQualifiers, qualLimit }: Tournam
 
     return (
         <section
-            className="relative rounded-2xl p-5 overflow-hidden border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)] space-y-4"
-            style={{ background: "radial-gradient(130% 95% at 50% -10%, #1b2942 0%, #0d1526 45%, #060a13 100%)" }}
+            className="relative rounded-2xl p-5 overflow-hidden border border-hairline shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)] space-y-4"
+            style={{ background: "var(--arena)" }}
         >
             <div
                 className="absolute inset-0 pointer-events-none opacity-[0.05]"
@@ -42,7 +42,7 @@ export function TournamentQualifiersView({ finalQualifiers, qualLimit }: Tournam
             />
 
             <div className="relative text-center">
-                <h3 className="text-sm md:text-base font-black text-white tracking-tighter uppercase italic">Posiciones por Grupo</h3>
+                <h3 className="text-sm md:text-base font-black text-foreground tracking-tighter uppercase italic">Posiciones por Grupo</h3>
                 <p className="text-cyan-400 text-[7px] font-black uppercase tracking-[0.25em]">Clasificación general de todos los participantes</p>
             </div>
 
@@ -60,15 +60,15 @@ export function TournamentQualifiersView({ finalQualifiers, qualLimit }: Tournam
                             <div className="flex items-center gap-2 px-1">
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
                                     isAdvancingRank ? 'bg-emerald-500/20' :
-                                    'bg-white/5'
+                                    'bg-surface'
                                 }`}>
                                     <Icon className={`w-3 h-3 ${
                                         isAdvancingRank ? 'text-emerald-400' :
-                                        'text-slate-500'
+                                        'text-subtle'
                                     }`} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-200 leading-tight">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-tight">
                                         {rank}º Puestos
                                     </h4>
                                     {isAdvancingRank && (
@@ -107,16 +107,16 @@ function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: numb
             className="flex items-center justify-between p-2 rounded-xl border transition-all shadow-lg group"
             style={{
                 background: isAdvancing
-                    ? "linear-gradient(155deg, rgba(16,185,129,0.12) 0%, #0f1420 100%)"
-                    : "linear-gradient(155deg, #1b2536 0%, #0f1420 100%)",
-                borderColor: isAdvancing ? "rgba(16,185,129,0.35)" : "rgba(255,255,255,0.10)",
+                    ? "linear-gradient(155deg, rgba(16,185,129,0.12) 0%, var(--arena-card-end) 100%)"
+                    : "var(--arena-panel)",
+                borderColor: isAdvancing ? "rgba(16,185,129,0.35)" : "var(--hairline)",
             }}
         >
             <div className="flex items-center gap-3 min-w-0">
                 <span className={`text-[8px] font-black ${isEmerald ? 'text-emerald-400/60' : 'text-cyan-400/50'} w-4 italic`}>#{idx + 1}</span>
                 <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black uppercase tracking-tight truncate ${q.isPlaceholder ? "text-slate-500 italic" : "text-white"}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-tight truncate ${q.isPlaceholder ? "text-subtle italic" : "text-foreground"}`}>
                             {q.name}
                         </span>
                         {isAdvancing && !q.isPlaceholder && (
@@ -125,7 +125,7 @@ function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: numb
                             </span>
                         )}
                     </div>
-                    <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest">
+                    <span className="text-[7px] font-bold text-subtle uppercase tracking-widest">
                         {q.isPlaceholder ? "Pendiente" : q.groupName}
                     </span>
                 </div>
@@ -148,14 +148,14 @@ function QualifierCard({ q, idx, color, isAdvancing }: { q: Qualifier; idx: numb
 }
 
 function StatItem({ label, value, color }: { label: string; value?: number; color?: 'emerald' | 'cyan' | 'rose' }) {
-    let textColor = "text-slate-300";
+    let textColor = "text-muted-foreground";
     if (color === 'emerald') textColor = "text-emerald-400";
     if (color === 'cyan') textColor = "text-cyan-400";
     if (color === 'rose') textColor = "text-rose-400";
 
     return (
         <div className="flex flex-col items-center min-w-[18px]">
-            <span className="text-[6px] font-bold text-slate-500 uppercase">{label}</span>
+            <span className="text-[6px] font-bold text-subtle uppercase">{label}</span>
             <span className={`text-[9px] font-black ${textColor}`}>{value || 0}</span>
         </div>
     );

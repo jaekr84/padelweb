@@ -22,7 +22,7 @@ export default async function AdminPointsPage() {
     const limits = await getClubTournamentLimits();
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white">
+        <div className="min-h-screen bg-grid-carbon text-foreground">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
                 <AdminPointsClient initialPoints={points} initialLimits={limits} />
             </div>

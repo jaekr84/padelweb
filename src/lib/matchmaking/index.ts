@@ -3,6 +3,7 @@
 export * from "./openCourt";
 export * from "./americano";
 export * from "./groups";
+export * from "./roundRobin";
 export * from "./seeding";
 export * from "./qualifiers";
 export * from "./bracket";

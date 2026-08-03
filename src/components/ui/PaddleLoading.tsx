@@ -75,8 +75,8 @@ export function PaddleLoading({ size = "md", className = "" }: PaddleLoadingProp
         />
 
         {/* 4. THE CORE LOGO CONTAINER (CLIPPED & NEON RING) */}
-        <div className={`relative ${sizeMap[size].logo} rounded-full overflow-hidden border border-white/10 bg-slate-950 p-[3px] shadow-[0_0_20px_rgba(var(--color-azul-primary),0.3)] z-10 group`}>
-          <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-900 border border-white/5 flex items-center justify-center">
+        <div className={`relative ${sizeMap[size].logo} rounded-full overflow-hidden border border-hairline bg-background p-[3px] shadow-[0_0_20px_rgba(var(--color-azul-primary),0.3)] z-10 group`}>
+          <div className="w-full h-full rounded-full overflow-hidden relative bg-background border border-hairline flex items-center justify-center">
             {/* The Logo Image */}
             <img
               src="/img/stickers 1.jpg"

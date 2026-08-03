@@ -28,13 +28,13 @@ function ScoreStepper({
     readOnly: boolean;
 }) {
     if (readOnly) {
-        return <span className="w-8 text-center text-sm font-black italic tabular-nums text-slate-200">{value}</span>;
+        return <span className="w-8 text-center text-sm font-black italic tabular-nums text-muted-foreground">{value}</span>;
     }
     return (
-        <div className="flex items-center gap-0.5 bg-black/40 border border-white/12 rounded-lg px-1 py-0.5">
+        <div className="flex items-center gap-0.5 bg-surface border border-hairline rounded-lg px-1 py-0.5">
             <button
                 onClick={() => onChange(Math.max(0, value - 1))}
-                className="p-1 text-slate-400 hover:text-rojo transition-colors"
+                className="p-1 text-muted-foreground hover:text-rojo transition-colors"
                 title="Restar"
             >
                 <Minus className="w-3 h-3" />
@@ -43,11 +43,11 @@ function ScoreStepper({
                 type="number"
                 value={value}
                 onChange={e => onChange(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                className="w-7 text-center text-sm font-black italic tabular-nums bg-transparent text-white outline-none no-spin-buttons focus:text-rojo"
+                className="w-7 text-center text-sm font-black italic tabular-nums bg-transparent text-foreground outline-none no-spin-buttons focus:text-rojo"
             />
             <button
                 onClick={() => onChange(value + 1)}
-                className="p-1 text-slate-400 hover:text-rojo transition-colors"
+                className="p-1 text-muted-foreground hover:text-rojo transition-colors"
                 title="Sumar"
             >
                 <Plus className="w-3 h-3" />
@@ -78,30 +78,30 @@ export function TournamentLiveQueue({
     const withScore = liveMatches.filter(m => (m.score1 ?? 0) !== (m.score2 ?? 0));
 
     return (
-        <section className="rounded-2xl border border-white/10 overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]"
-            style={{ background: "linear-gradient(155deg, #1b2536 0%, #0f1420 100%)" }}
+        <section className="rounded-2xl border border-hairline overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]"
+            style={{ background: "var(--arena-panel)" }}
         >
-            <div className="px-4 py-2.5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between gap-3">
+            <div className="px-4 py-2.5 border-b border-hairline bg-surface flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-lg bg-rojo/10 border border-rojo/30 flex items-center justify-center">
                         <Radio className={`w-3.5 h-3.5 text-rojo ${liveMatches.length > 0 ? "animate-pulse" : ""}`} />
                     </div>
                     <div>
-                        <h3 className="text-[11px] font-black uppercase italic tracking-tight text-white">En Cancha</h3>
-                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">
+                        <h3 className="text-[11px] font-black uppercase italic tracking-tight text-foreground">En Cancha</h3>
+                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mt-0.5">
                             Partidos en juego — carga de resultados
                         </p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/12 text-slate-300">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-surface border border-hairline text-muted-foreground">
                         {liveMatches.length} en juego
                     </span>
                     {!readOnly && withScore.length > 1 && (
                         <button
                             onClick={() => handleConfirmScore(withScore.map(m => m.id))}
-                            className="px-2 py-1 rounded text-[9px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-slate-900 bg-cyan-400/10 hover:bg-cyan-400 border border-cyan-400/30 transition-colors"
+                            className="px-2 py-1 rounded text-[9px] font-black uppercase italic tracking-wider text-cyan-300 hover:text-foreground bg-cyan-400/10 hover:bg-cyan-400 border border-cyan-400/30 transition-colors"
                             title="Finalizar todos los partidos que ya tienen marcador cargado"
                         >
                             Guardar todo ({withScore.length})
@@ -111,7 +111,7 @@ export function TournamentLiveQueue({
             </div>
 
             {liveMatches.length === 0 ? (
-                <p className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <p className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest text-subtle">
                     No hay partidos en juego — iniciá uno con START desde su grupo
                 </p>
             ) : (
@@ -121,10 +121,10 @@ export function TournamentLiveQueue({
                         const isTie = (m.score1 ?? 0) === (m.score2 ?? 0);
                         const noScore = !m.score1 && !m.score2;
                         return (
-                            <div key={m.id} className="flex flex-col md:flex-row md:items-center gap-2 px-4 py-2 hover:bg-white/[0.02] transition-colors">
+                            <div key={m.id} className="flex flex-col md:flex-row md:items-center gap-2 px-4 py-2 hover:bg-surface transition-colors">
                                 {/* Grupo / cancha */}
                                 <div className="flex items-center gap-1.5 md:w-32 shrink-0">
-                                    <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/12 text-[9px] font-black uppercase italic tracking-wider text-slate-200">
+                                    <span className="px-1.5 py-0.5 rounded bg-surface border border-hairline text-[9px] font-black uppercase italic tracking-wider text-muted-foreground">
                                         {group?.name || "Grupo"}
                                     </span>
                                     {group?.courtNumber && (
@@ -137,7 +137,7 @@ export function TournamentLiveQueue({
 
                                 {/* Parejas + marcador */}
                                 <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 min-w-0">
-                                    <span className="text-[11px] font-black uppercase italic truncate text-right text-slate-100">
+                                    <span className="text-[11px] font-black uppercase italic truncate text-right text-foreground">
                                         {teamLabel(m.team1.name)}
                                     </span>
 
@@ -155,7 +155,7 @@ export function TournamentLiveQueue({
                                         />
                                     </div>
 
-                                    <span className="text-[11px] font-black uppercase italic truncate text-slate-100">
+                                    <span className="text-[11px] font-black uppercase italic truncate text-foreground">
                                         {teamLabel(m.team2.name)}
                                     </span>
                                 </div>
@@ -168,7 +168,7 @@ export function TournamentLiveQueue({
                                             onClick={() => noScore && cancelGroupMatch(m.id)}
                                             aria-hidden={!noScore}
                                             tabIndex={noScore ? 0 : -1}
-                                            className={`w-7 h-7 rounded-md inline-flex items-center justify-center border border-white/15 bg-white/5 text-slate-400 transition-colors ${noScore ? "hover:text-white hover:bg-white/15" : "invisible pointer-events-none"}`}
+                                            className={`w-7 h-7 rounded-md inline-flex items-center justify-center border border-hairline bg-surface text-muted-foreground transition-colors ${noScore ? "hover:text-foreground hover:bg-surface-raised" : "invisible pointer-events-none"}`}
                                             title="Deshacer inicio: vuelve a pendiente"
                                         >
                                             <Undo2 className="w-3 h-3" />

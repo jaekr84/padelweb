@@ -6,24 +6,42 @@ import { checkSuperadmin } from "@/lib/auth";
 import { getSession } from "@/lib/auth-server";
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { invitations } from "@/db/schema";
+import { invitations, clubs } from "@/db/schema";
 import { desc, eq, isNull, and } from "drizzle-orm";
 
 const INVITATION_SECRET = new TextEncoder().encode(process.env.INVITATION_SECRET || "padel_secret_key_123_change_me");
 
 const INVITATION_TTL_HOURS = 24;
 
+/**
+ * Una invitación siempre da rol "jugador", nunca uno elevado. Es un valor fijo
+ * y no un parámetro a propósito: un link es una credencial que circula por
+ * WhatsApp, así que no puede ser la vía para crear cuentas de club ni de admin.
+ * Esos roles se asignan a mano desde la gestión de usuarios.
+ */
+const INVITATION_ROLE = "jugador";
+
 /** ¿El texto que escribió el admin es un email o una nota suelta? */
 const looksLikeEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export async function generateInvitationLink(role: string, recipient?: string, clubId?: string) {
-    if (!(await checkSuperadmin())) {
-        throw new Error('No autorizado');
-    }
+async function resolveBaseUrl() {
+    const headerList = await headers();
+    const host = headerList.get("host");
+    const protocol = host?.includes("localhost") ? "http" : "https";
+    return host
+        ? `${protocol}://${host}`
+        : (process.env.NEXT_PUBLIC_APP_URL || "https://acap.ar");
+}
 
-    const session = await getSession();
-    const userId = session?.userId;
-
+/**
+ * Núcleo de emisión, compartido por el alta de admin y la del club. Está acá y
+ * no duplicado en cada acción para que las garantías (24hs, un solo uso, rol
+ * fijo) no puedan divergir entre los dos caminos.
+ *
+ * `clubId` nunca llega desde el cliente: cada llamador lo resuelve del lado del
+ * servidor a partir de quién es.
+ */
+async function issueInvitation(opts: { createdBy: string; recipient?: string; clubId?: string | null }) {
     // La invitación vive en la base: el token solo la referencia por `jti`.
     // Así se puede consumir al usarse y revocar antes de tiempo, cosa que un
     // JWT suelto no permite (es válido hasta que expira, sin excepción).
@@ -33,35 +51,68 @@ export async function generateInvitationLink(role: string, recipient?: string, c
     // Si el destinatario es un email, la invitación queda atada a ese correo
     // (solo esa persona puede usarla). Si es un nombre o teléfono, se guarda
     // como nota para saber a quién se le mandó, sin restringir el registro.
-    const trimmed = recipient?.trim() || "";
+    const trimmed = opts.recipient?.trim() || "";
     const isEmail = trimmed && looksLikeEmail(trimmed);
 
     await db.insert(invitations).values({
         id: jti,
-        role,
+        role: INVITATION_ROLE,
         email: isEmail ? trimmed.toLowerCase() : null,
         label: trimmed && !isEmail ? trimmed : null,
-        clubId: clubId || null,
-        createdBy: userId || "desconocido",
+        clubId: opts.clubId || null,
+        createdBy: opts.createdBy,
         expiresAt,
     });
 
-    const token = await new SignJWT({ role, issuer: 'superadmin', createdBy: userId, jti })
+    const token = await new SignJWT({ role: INVITATION_ROLE, createdBy: opts.createdBy, jti })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
         .setExpirationTime(`${INVITATION_TTL_HOURS}h`)
         .sign(INVITATION_SECRET);
 
-    // Dynamic base URL based on request headers
-    const headerList = await headers();
-    const host = headerList.get("host");
-    const protocol = host?.includes("localhost") ? "http" : "https";
-    
-    const baseUrl = host 
-        ? `${protocol}://${host}` 
-        : (process.env.NEXT_PUBLIC_APP_URL || "https://acap.ar");
+    return `${await resolveBaseUrl()}/register?invitation=${token}`;
+}
 
-    return `${baseUrl}/register?invitation=${token}`;
+export async function generateInvitationLink(recipient?: string, clubId?: string) {
+    if (!(await checkSuperadmin())) {
+        throw new Error('No autorizado');
+    }
+
+    const session = await getSession();
+    return issueInvitation({
+        createdBy: session?.userId || "desconocido",
+        recipient,
+        clubId,
+    });
+}
+
+/**
+ * Link que genera el propio club para sumar un jugador. Mismas garantías que el
+ * de admin: rol "jugador", 24hs, un solo uso y revocable.
+ *
+ * El club se resuelve por `ownerId` desde la sesión y no se recibe por
+ * parámetro: si viniera del cliente, un club podría emitir invitaciones que
+ * vinculan gente a otro club.
+ */
+export async function generateClubInvitationLink(recipient?: string) {
+    const session = await getSession();
+    if (!session?.userId) return { error: "No autorizado" };
+
+    const [club] = await db
+        .select({ id: clubs.id })
+        .from(clubs)
+        .where(eq(clubs.ownerId, session.userId))
+        .limit(1);
+
+    if (!club) return { error: "Tu usuario no tiene un club asociado" };
+
+    const link = await issueInvitation({
+        createdBy: session.userId,
+        recipient,
+        clubId: club.id,
+    });
+
+    return { success: true, link };
 }
 
 export async function createInvitation(formData: FormData) {
@@ -71,12 +122,11 @@ export async function createInvitation(formData: FormData) {
     }
 
     const email = formData.get('email') as string;
-    const role = (formData.get('role') as string) || 'club';
     const type = formData.get('type') as string; // 'email' or 'link'
 
     if (type === 'link') {
         try {
-            const link = await generateInvitationLink(role, email);
+            const link = await generateInvitationLink(email);
             return { success: true, link, message: 'Link generado con éxito (vence en 24hs)' };
         } catch (e: any) {
             return { error: e.message || 'Error al generar link' };
@@ -86,7 +136,7 @@ export async function createInvitation(formData: FormData) {
     // For now, since we removed Clerk, we just generate the link instead of sending an email
     // Later we can integrate Resend or something similar
     try {
-        const link = await generateInvitationLink(role);
+        const link = await generateInvitationLink();
         return {
             success: true,
             link,
@@ -145,10 +195,10 @@ export async function revokeInvitation(id: string) {
  * Reconstruye el link de una invitación pendiente para poder reenviarlo.
  *
  * El token no se guarda en la base a propósito: es una credencial y guardarla
- * significaría que un dump o un backup filtrado alcanzan para registrarse. Como
- * el JWT es determinista (mismo secreto + mismo contenido = mismo token), se
- * vuelve a firmar acá con el `jti` y el vencimiento originales, así el link es
- * exactamente el mismo de antes y sigue siendo de un solo uso.
+ * significaría que un dump o un backup filtrado alcanzan para registrarse. Se
+ * emite uno nuevo apuntando al mismo `jti` y con el vencimiento original, así
+ * que reenviar no crea una segunda invitación ni extiende la validez: los dos
+ * links son la misma invitación y el primero que se use la consume.
  */
 export async function getInvitationLink(id: string) {
     if (!(await checkSuperadmin())) {
@@ -170,8 +220,8 @@ export async function getInvitationLink(id: string) {
 
     // Vencimiento original, no 24hs nuevas: reenviar no extiende la validez.
     const token = await new SignJWT({
-        role: invitation.role,
-        issuer: "superadmin",
+        // Fijo, no `invitation.role`: una fila vieja podría tener otro rol.
+        role: INVITATION_ROLE,
         createdBy: invitation.createdBy,
         jti: invitation.id,
     })
@@ -180,12 +230,5 @@ export async function getInvitationLink(id: string) {
         .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
         .sign(INVITATION_SECRET);
 
-    const headerList = await headers();
-    const host = headerList.get("host");
-    const protocol = host?.includes("localhost") ? "http" : "https";
-    const baseUrl = host
-        ? `${protocol}://${host}`
-        : (process.env.NEXT_PUBLIC_APP_URL || "https://acap.ar");
-
-    return { success: true, link: `${baseUrl}/register?invitation=${token}`, expiresAt };
+    return { success: true, link: `${await resolveBaseUrl()}/register?invitation=${token}`, expiresAt };
 }

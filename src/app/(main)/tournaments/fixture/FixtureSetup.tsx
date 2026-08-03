@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/Dialog";
 
 import { saveTournamentFixture, getAvailablePlayers, quickInscribePlayer, registerManualPlayer, updateTournamentMetadata } from "./actions";
-import { distributeIntoGroups, shuffle as shuffleCore } from "@/lib/matchmaking";
+import { distributeIntoGroups, shuffle as shuffleCore, generateGroupMatches } from "@/lib/matchmaking";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -320,21 +320,9 @@ export default function FixtureSetup({
 
     const handleConfirmGroups = async () => {
         setSaving(true);
-        const currentMatches: Match[] = [];
-        groups.forEach(g => {
-            for (let i = 0; i < g.players.length; i++) {
-                for (let j = i + 1; j < g.players.length; j++) {
-                    currentMatches.push({
-                        id: `m_${g.id}_${i}_${j}`,
-                        groupId: g.id,
-                        team1: g.players[i],
-                        team2: g.players[j],
-                        played: false,
-                        confirmed: false,
-                    });
-                }
-            }
-        });
+        // Todos contra todos dentro de cada grupo. Criterio extraído a
+        // @/lib/matchmaking (probado en /dev/test-matchmaking).
+        const currentMatches = generateGroupMatches(groups) as Match[];
 
         const res = await saveTournamentFixture({
             tournamentId,
@@ -668,9 +656,9 @@ export default function FixtureSetup({
     }, [draggedPlayerId, handleRemovePlayer]);
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground">
             {/* Sticky Header */}
-            <header className="sticky top-0 z-50 bg-carbon-950/90 backdrop-blur-3xl border-b border-white/12 px-4 py-4">
+            <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-3xl border-b border-hairline px-4 py-4">
                 <div className="max-w-6xl mx-auto space-y-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-6">
@@ -679,7 +667,7 @@ export default function FixtureSetup({
                                     if (step === "assign") setStep("config");
                                     else router.push(`/tournaments/${tournamentId}/manage`);
                                 }}
-                                className="group flex items-center gap-2 text-slate-300 hover:text-white transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/12"
+                                className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
                             >
                                 <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                                 Volver
@@ -695,7 +683,7 @@ export default function FixtureSetup({
                         <div className="flex items-center gap-4">
                             <Link
                                 href={`/tournaments/${tournamentId}/edit`}
-                                className="flex items-center gap-2 text-slate-300 hover:text-white transition-all font-black uppercase tracking-widest text-[9px] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/12"
+                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
                             >
                                 <Settings className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Info</span>
@@ -741,7 +729,7 @@ export default function FixtureSetup({
                                 <button
                                     onClick={() => setStep("config")}
                                     disabled={PRESENT_PLAYERS.length < 2}
-                                    className="w-full py-3.5 bg-volt text-carbon-950 rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-volt/25 hover:bg-volt-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 text-sm disabled:bg-carbon-700 disabled:text-slate-400 disabled:shadow-none disabled:hover:scale-100"
+                                    className="w-full py-3.5 bg-volt text-carbon-950 rounded-2xl font-black uppercase italic tracking-widest shadow-xl shadow-volt/25 hover:bg-volt-dark hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none disabled:hover:scale-100"
                                 >
                                     Continuar ({PRESENT_PLAYERS.length})
                                     <ChevronRight className="w-5 h-5" />
@@ -998,7 +986,7 @@ export default function FixtureSetup({
                                                             : "bg-muted hover:bg-foreground/5 text-foreground"
                                                             }`}
                                                     >
-                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${swappedIds.has(p.id) ? "text-white" : ""
+                                                        <span className={`text-[11px] font-black uppercase italic transition-colors ${swappedIds.has(p.id) ? "text-foreground" : ""
                                                             }`}>{p.name}</span>
                                                         <div className="flex items-center gap-1.5">
                                                             <button
@@ -1060,7 +1048,7 @@ export default function FixtureSetup({
                                 <div className="max-w-6xl mx-auto flex gap-4">
                                     <button
                                         onClick={() => setStep("config")}
-                                        className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-xl"
+                                        className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center hover:bg-surface-raised transition-all backdrop-blur-xl"
                                     >
                                         <ArrowLeft className="w-5 h-5" />
                                     </button>
@@ -1089,7 +1077,7 @@ export default function FixtureSetup({
                             initial={{ opacity: 0, scaleY: 0 }}
                             animate={{ opacity: 1, scaleY: 1 }}
                             exit={{ opacity: 0, scaleY: 0 }}
-                            className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-[110] h-48 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl border-y border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)]"
+                            className="fixed inset-x-0 top-1/2 -translate-y-1/2 z-[110] h-48 flex items-center justify-center bg-background/95 backdrop-blur-xl border-y border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)]"
                         >
                             {/* Decorative internal lights for the strip */}
                             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -1132,7 +1120,7 @@ export default function FixtureSetup({
                                             animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                                             exit={{ y: -40, opacity: 0, filter: "blur(10px)" }}
                                             transition={{ duration: 0.1, ease: "easeOut" }}
-                                            className="text-4xl md:text-7xl font-black text-white italic uppercase tracking-tighter"
+                                            className="text-4xl md:text-7xl font-black text-foreground italic uppercase tracking-tighter"
                                         >
                                             {drawingPlayer.name}
                                         </motion.div>
@@ -1140,7 +1128,7 @@ export default function FixtureSetup({
                                 </div>
 
                                 {/* Subtle Loading Line */}
-                                <div className="absolute -bottom-8 w-48 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                                <div className="absolute -bottom-8 w-48 h-0.5 bg-surface rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ x: "-100%" }}
                                         animate={{ x: "100%" }}
@@ -1226,7 +1214,7 @@ export default function FixtureSetup({
                                                 className="w-full flex items-center justify-between p-4 bg-muted/20 hover:bg-azul-primary hover:text-white rounded-2xl border border-border/50 transition-all group/p"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                    <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-surface-raised">
                                                         <Users2 className="w-4 h-4" />
                                                     </div>
                                                     <div className="text-left">

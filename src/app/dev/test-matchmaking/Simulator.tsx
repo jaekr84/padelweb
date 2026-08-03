@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     pickOcMatch, type OcCompletedMatch, type OcMode,
     generateAmericanoMatches,
-    distributeIntoGroups,
+    distributeIntoGroups, generateGroupMatches,
     computeGroupStandings, type StMatch,
     computeFirstRoundPairs,
 } from "@/lib/matchmaking";
@@ -224,12 +224,11 @@ function buildRoundRobin(roster: SimPlayer[], numGroups: number, seed: number): 
     const rng = makeRng(seed);
     const playersPerGroup = Math.ceil(roster.length / numGroups);
     const groups: RRGroup[] = distributeIntoGroups(roster, numGroups, playersPerGroup, { rng }).map((g, i) => ({ name: `Grupo ${String.fromCharCode(65 + i)}`, players: g.players }));
-    const fixtures: RRFixture[] = [];
-    groups.forEach(g => {
-        for (let i = 0; i < g.players.length; i++)
-            for (let j = i + 1; j < g.players.length; j++)
-                fixtures.push({ id: `${g.name}|${g.players[i].id}|${g.players[j].id}`, group: g.name, a: g.players[i], b: g.players[j] });
-    });
+    // Mismo generador que usa la app (el id local lleva los jugadores porque
+    // los scores editables se guardan por fixture).
+    const fixtures: RRFixture[] = generateGroupMatches(
+        groups.map(g => ({ id: g.name, players: g.players }))
+    ).map(m => ({ id: `${m.groupId}|${m.team1.id}|${m.team2.id}`, group: m.groupId, a: m.team1, b: m.team2 }));
     const strength = new Map<string, number>();
     roster.forEach(p => strength.set(p.id, rng()));
     return { groups, fixtures, strength };
@@ -409,13 +408,13 @@ export default function Simulator() {
 
     return (
         <div className="space-y-4">
-            <p className="text-sm text-slate-400">
-                Armá un evento como quieras y corré el simulador. Abajo vas a ver el armado real y un <strong className="text-white">diagnóstico</strong> que explica si cada criterio se cumplió (y por qué, si no).
+            <p className="text-sm text-muted-foreground">
+                Armá un evento como quieras y corré el simulador. Abajo vas a ver el armado real y un <strong className="text-foreground">diagnóstico</strong> que explica si cada criterio se cumplió (y por qué, si no).
             </p>
 
             {/* Presets */}
             <div className="flex flex-wrap gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 self-center">Casos límite:</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground self-center">Casos límite:</span>
                 {[["mismo_club", "Todos mismo club"], ["impares", "Jugadores impares"], ["todos_drive", "Todos drive (cancha abierta)"], ["una_mujer", "Mixto sin mujeres"]].map(([k, label]) => (
                     <button key={k} onClick={() => applyPreset(k)} className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20">
                         {label}
@@ -424,12 +423,12 @@ export default function Simulator() {
             </div>
 
             {/* Config */}
-            <div className="border border-white/10 rounded-xl p-3 bg-white/[0.03] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+            <div className="border border-hairline rounded-xl p-3 bg-surface grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
                 <Field label="Tipo de evento">
                     <Select value={eventType} onChange={v => setEventType(v as EventType)} options={[["round_robin", "Round Robin (grupos + llave)"], ["americano", "Americano"], ["cancha_abierta", "Cancha Abierta"]]} />
                 </Field>
                 <Field label={`${isPairs && eventType !== "cancha_abierta" ? "Parejas" : "Jugadores"} (= suma de lados)`}>
-                    <div className="px-2 py-1.5 text-xs font-black text-celeste border border-white/10 rounded-lg bg-white/5">{total}</div>
+                    <div className="px-2 py-1.5 text-xs font-black text-celeste border border-hairline rounded-lg bg-surface">{total}</div>
                 </Field>
                 <Field label="Clubes">
                     <NumberInput value={numClubs} min={1} max={CLUBS.length} onChange={setNumClubs} />
@@ -473,7 +472,7 @@ export default function Simulator() {
                     {isRegen && <Spinner />}{isRegen ? "Regenerando…" : "Regenerar jugadores"}
                 </button>
                 <button onClick={reSim} disabled={isResorting}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest bg-white/10 border border-white/10 hover:bg-white/15 disabled:opacity-60 disabled:cursor-wait">
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest bg-surface-raised border border-hairline hover:bg-surface-raised disabled:opacity-60 disabled:cursor-wait">
                     {isResorting && <Spinner />}{isResorting ? "Resorteando…" : "Re-sortear"}
                 </button>
                 {(isResorting || isRegen) && <span className="text-[10px] text-celeste font-black uppercase tracking-widest animate-pulse">● en proceso</span>}
@@ -485,9 +484,9 @@ export default function Simulator() {
             <div className="lg:col-span-1 space-y-4">
 
             {/* Roster editable */}
-            <div className="border border-white/10 rounded-xl bg-white/[0.03] p-3">
+            <div className="border border-hairline rounded-xl bg-surface p-3">
                 <div className="flex items-center justify-between mb-2">
-                    <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                         Roster ({roster.length}) — editá a mano: nombre, club, lado, género
                     </div>
                     <button onClick={addPlayer} className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-celeste/10 text-celeste border border-celeste/30 hover:bg-celeste/20">
@@ -497,7 +496,7 @@ export default function Simulator() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-[11px]">
                         <thead>
-                            <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 text-left">
+                            <tr className="text-[9px] font-black uppercase tracking-wider text-muted-foreground text-left">
                                 <th className="py-1 pr-2">{isPairs && eventType !== "cancha_abierta" ? "Pareja" : "Jugador"}</th>
                                 <th className="py-1 pr-2">Club</th>
                                 {showSidesCol(eventType) && <th className="py-1 pr-2">Lado</th>}
@@ -507,25 +506,25 @@ export default function Simulator() {
                         </thead>
                         <tbody>
                             {roster.map(p => (
-                                <tr key={p.id} className="border-t border-white/10">
+                                <tr key={p.id} className="border-t border-hairline">
                                     <td className="py-1 pr-2">
                                         <input type="text" value={p.name} onChange={e => editPlayer(p.id, { name: e.target.value })}
-                                            className="bg-transparent border border-white/10 rounded px-1 py-0.5 w-full min-w-[7rem] text-slate-200" />
+                                            className="bg-transparent border border-hairline rounded px-1 py-0.5 w-full min-w-[7rem] text-muted-foreground" />
                                     </td>
                                     <td className="py-1 pr-2">
-                                        <select value={p.club} onChange={e => editPlayer(p.id, { club: e.target.value })} className="bg-transparent border border-white/10 rounded px-1 py-0.5">
+                                        <select value={p.club} onChange={e => editPlayer(p.id, { club: e.target.value })} className="bg-transparent border border-hairline rounded px-1 py-0.5">
                                             {CLUBS.slice(0, numClubs).map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                     </td>
                                     {showSidesCol(eventType) && (
                                         <td className="py-1 pr-2">
-                                            <select value={p.side} onChange={e => editPlayer(p.id, { side: e.target.value as Side })} className="bg-transparent border border-white/10 rounded px-1 py-0.5">
+                                            <select value={p.side} onChange={e => editPlayer(p.id, { side: e.target.value as Side })} className="bg-transparent border border-hairline rounded px-1 py-0.5">
                                                 {["drive", "reves", "ambos"].map(s => <option key={s} value={s}>{s}</option>)}
                                             </select>
                                         </td>
                                     )}
                                     <td className="py-1 pr-2">
-                                        <select value={p.gender} onChange={e => editPlayer(p.id, { gender: e.target.value as Gender })} className="bg-transparent border border-white/10 rounded px-1 py-0.5">
+                                        <select value={p.gender} onChange={e => editPlayer(p.id, { gender: e.target.value as Gender })} className="bg-transparent border border-hairline rounded px-1 py-0.5">
                                             <option value="masculino">M</option><option value="femenino">F</option>
                                         </select>
                                     </td>
@@ -542,13 +541,13 @@ export default function Simulator() {
             {/* Diagnóstico */}
             {diags.length > 0 && (
                 <div className="space-y-1.5">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Diagnóstico</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Diagnóstico</div>
                     {diags.map((c, i) => (
                         <div key={i} className={`flex items-start gap-3 p-2.5 rounded-lg border ${c.status === "pass" ? "border-emerald-500/20 bg-emerald-500/5" : c.status === "warn" ? "border-amber-500/30 bg-amber-500/5" : "border-rojo/30 bg-rojo/5"}`}>
                             <span className={`text-sm font-black shrink-0 ${c.status === "pass" ? "text-emerald-500" : c.status === "warn" ? "text-amber-500" : "text-rojo"}`}>{c.status === "pass" ? "✓" : c.status === "warn" ? "⚠" : "✗"}</span>
                             <div className="min-w-0">
-                                <div className="text-sm text-slate-100">{c.text}</div>
-                                {c.detail && <div className="text-[11px] text-slate-400 mt-0.5">{c.detail}</div>}
+                                <div className="text-sm text-foreground">{c.text}</div>
+                                {c.detail && <div className="text-[11px] text-muted-foreground mt-0.5">{c.detail}</div>}
                             </div>
                         </div>
                     ))}
@@ -561,14 +560,14 @@ export default function Simulator() {
             {isRR ? (
                 <>
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Resultados:</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Resultados:</span>
                         {(["auto", "manual"] as const).map(m => (
                             <button key={m} onClick={() => setResultMode(m)}
-                                className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${resultMode === m ? "bg-celeste text-white border-celeste" : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"}`}>
+                                className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${resultMode === m ? "bg-celeste text-white border-celeste" : "bg-surface text-muted-foreground border-hairline hover:bg-surface-raised"}`}>
                                 {m === "auto" ? "Automático" : "Manual (editable)"}
                             </button>
                         ))}
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-muted-foreground">
                             {resultMode === "auto" ? "Resultados simulados por nivel. Tocá 'Re-sortear' para otra simulación." : "Editá los games de cada partido; las posiciones se recalculan solas."}
                         </span>
                     </div>
@@ -592,17 +591,17 @@ function ResultView({ result, clubColors, showSides }: { result: SimResult; club
     }
 
     const pName = (p: SimPlayer) => (
-        <span>{p.name}{showSides && p.side !== "ambos" && <span className="text-slate-400 text-[9px]"> ·{p.side === "drive" ? "D" : "R"}</span>} <span className={`text-[9px] ${clubColors[p.club] || "text-slate-400"}`}>{p.club.slice(0, 3)}</span></span>
+        <span>{p.name}{showSides && p.side !== "ambos" && <span className="text-muted-foreground text-[9px]"> ·{p.side === "drive" ? "D" : "R"}</span>} <span className={`text-[9px] ${clubColors[p.club] || "text-muted-foreground"}`}>{p.club.slice(0, 3)}</span></span>
     );
 
     if (result.kind === "cancha") {
         return (
             <Box title={`Partidos armados (${result.matches.length})`}>
                 {result.matches.map((m, i) => (
-                    <div key={i} className="flex items-center justify-between gap-2 text-[11px] py-1 border-t border-white/5 first:border-0">
-                        <span className="flex-1 text-right">{pName(m.team1[0])} <span className="text-slate-400">/</span> {pName(m.team1[1])}</span>
-                        <span className="text-slate-400 text-[9px] font-black px-1">vs</span>
-                        <span className="flex-1">{pName(m.team2[0])} <span className="text-slate-400">/</span> {pName(m.team2[1])}</span>
+                    <div key={i} className="flex items-center justify-between gap-2 text-[11px] py-1 border-t border-hairline first:border-0">
+                        <span className="flex-1 text-right">{pName(m.team1[0])} <span className="text-muted-foreground">/</span> {pName(m.team1[1])}</span>
+                        <span className="text-muted-foreground text-[9px] font-black px-1">vs</span>
+                        <span className="flex-1">{pName(m.team2[0])} <span className="text-muted-foreground">/</span> {pName(m.team2[1])}</span>
                     </div>
                 ))}
             </Box>
@@ -614,13 +613,13 @@ function ResultView({ result, clubColors, showSides }: { result: SimResult; club
             <Box title={`Americano — ${result.rounds.length} rondas`}>
                 {result.rounds.map((r, i) => (
                     <div key={i} className="mb-2">
-                        <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Ronda {i + 1}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-0.5">Ronda {i + 1}</div>
                         {r.map((m, j) => (
                             <div key={j} className="flex items-center justify-between gap-2 text-[11px] py-0.5">
                                 <span className="flex-1 text-right">{pName(m.t1)}</span>
-                                <span className="text-slate-400 text-[9px] px-1">vs</span>
+                                <span className="text-muted-foreground text-[9px] px-1">vs</span>
                                 <span className="flex-1">{pName(m.t2)}</span>
-                                <span className="text-slate-400 text-[9px]">cancha {m.court}</span>
+                                <span className="text-muted-foreground text-[9px]">cancha {m.court}</span>
                             </div>
                         ))}
                     </div>
@@ -635,7 +634,7 @@ function ResultView({ result, clubColors, showSides }: { result: SimResult; club
 // Etiqueta de jugador (nombre + lado opcional + club coloreado)
 function pLabel(p: SimPlayer, clubColors: Record<string, string>, showSides = false) {
     return (
-        <span>{p.name}{showSides && p.side !== "ambos" && <span className="text-slate-400 text-[9px]"> ·{p.side === "drive" ? "D" : "R"}</span>} <span className={`text-[9px] ${clubColors[p.club] || "text-slate-400"}`}>{p.club.slice(0, 3)}</span></span>
+        <span>{p.name}{showSides && p.side !== "ambos" && <span className="text-muted-foreground text-[9px]"> ·{p.side === "drive" ? "D" : "R"}</span>} <span className={`text-[9px] ${clubColors[p.club] || "text-muted-foreground"}`}>{p.club.slice(0, 3)}</span></span>
     );
 }
 
@@ -651,7 +650,7 @@ function RoundRobinView({ result, editable, onEdit, clubColors }: {
             <Box title={`Grupos, partidos y posiciones ${editable ? "(editá los games)" : "(resultados auto-simulados)"}`}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     {result.groups.map(g => (
-                        <div key={g.name} className="border border-white/10 rounded-lg p-2">
+                        <div key={g.name} className="border border-hairline rounded-lg p-2">
                             <div className="text-[10px] font-black uppercase tracking-widest text-celeste mb-1">{g.name}</div>
                             {/* Partidos del grupo */}
                             <div className="mb-2 space-y-0.5">
@@ -661,20 +660,20 @@ function RoundRobinView({ result, editable, onEdit, clubColors }: {
                                         {editable ? (
                                             <span className="flex items-center gap-0.5 px-1">
                                                 <ScoreInput value={m.sa} onChange={v => onEdit(m.id, v, m.sb)} />
-                                                <span className="text-slate-400">-</span>
+                                                <span className="text-muted-foreground">-</span>
                                                 <ScoreInput value={m.sb} onChange={v => onEdit(m.id, m.sa, v)} />
                                             </span>
                                         ) : (
-                                            <span className="text-slate-100 font-black px-2 whitespace-nowrap">{m.sa}-{m.sb}</span>
+                                            <span className="text-foreground font-black px-2 whitespace-nowrap">{m.sa}-{m.sb}</span>
                                         )}
                                         <span className="flex-1 truncate">{pLabel(m.b, clubColors)}</span>
                                     </div>
                                 ))}
                             </div>
                             {/* Posiciones */}
-                            <div className="border-t border-white/10 pt-1">
+                            <div className="border-t border-hairline pt-1">
                                 {g.rows.map(r => (
-                                    <div key={r.pos} className={`grid grid-cols-[1.5rem_1fr_2rem_3rem] gap-1 text-[11px] py-0.5 ${r.qual ? "text-emerald-500 font-bold" : "text-slate-300"}`}>
+                                    <div key={r.pos} className={`grid grid-cols-[1.5rem_1fr_2rem_3rem] gap-1 text-[11px] py-0.5 ${r.qual ? "text-emerald-500 font-bold" : "text-muted-foreground"}`}>
                                         <span>{r.pos}º{r.qual ? "✓" : ""}</span><span>{pLabel(r.p, clubColors)}</span><span>{r.won}G</span><span>{r.diff > 0 ? "+" : ""}{r.diff}</span>
                                     </div>
                                 ))}
@@ -686,14 +685,14 @@ function RoundRobinView({ result, editable, onEdit, clubColors }: {
             <Box title="Llave (se arma con las posiciones de arriba)">
                 {result.bracketRounds.map((br, i) => (
                     <div key={i} className="mb-2">
-                        <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{br.title}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-0.5">{br.title}</div>
                         {br.matches.map((m, j) => {
                             const aWins = m.a && (!m.b || m.sa > m.sb);
                             return (
                                 <div key={j} className="flex items-center justify-between gap-2 text-[11px] py-0.5">
-                                    <span className={`flex-1 text-right ${aWins ? "text-white font-bold" : "text-slate-400"}`}>{m.a ? pLabel(m.a, clubColors) : "BYE"}</span>
-                                    <span className="text-slate-100 font-black px-2 whitespace-nowrap">{m.a && m.b ? `${m.sa}-${m.sb}` : "—"}</span>
-                                    <span className={`flex-1 ${!aWins && m.b ? "text-white font-bold" : "text-slate-400"}`}>{m.b ? pLabel(m.b, clubColors) : "BYE"}</span>
+                                    <span className={`flex-1 text-right ${aWins ? "text-foreground font-bold" : "text-muted-foreground"}`}>{m.a ? pLabel(m.a, clubColors) : "BYE"}</span>
+                                    <span className="text-foreground font-black px-2 whitespace-nowrap">{m.a && m.b ? `${m.sa}-${m.sb}` : "—"}</span>
+                                    <span className={`flex-1 ${!aWins && m.b ? "text-foreground font-bold" : "text-muted-foreground"}`}>{m.b ? pLabel(m.b, clubColors) : "BYE"}</span>
                                 </div>
                             );
                         })}
@@ -701,7 +700,7 @@ function RoundRobinView({ result, editable, onEdit, clubColors }: {
                 ))}
                 {result.champion && (
                     <div className="mt-2 p-3 rounded-xl bg-celeste/10 border border-celeste/30 text-center">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Campeón</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Campeón</div>
                         <div className="text-lg font-black italic text-celeste">🏆 {result.champion.name}</div>
                     </div>
                 )}
@@ -715,7 +714,7 @@ function ScoreInput({ value, onChange }: { value: number; onChange: (v: number) 
         <input type="number" min={0} max={9} value={value}
             onFocus={e => e.target.select()}
             onChange={e => { const n = parseInt(e.target.value, 10); onChange(isNaN(n) ? 0 : Math.max(0, Math.min(9, n))); }}
-            className="w-9 bg-carbon-900 border border-white/10 rounded px-1 py-0.5 text-center text-[11px] text-white" />
+            className="w-9 bg-background border border-hairline rounded px-1 py-0.5 text-center text-[11px] text-foreground" />
     );
 }
 
@@ -725,8 +724,8 @@ function Spinner() {
 }
 function Box({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <div className="border border-white/10 rounded-xl p-3 bg-white/5">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{title}</div>
+        <div className="border border-hairline rounded-xl p-3 bg-surface">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">{title}</div>
             {children}
         </div>
     );
@@ -734,14 +733,14 @@ function Box({ title, children }: { title: string; children: React.ReactNode }) 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <label className="flex flex-col gap-1">
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">{label}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">{label}</span>
             {children}
         </label>
     );
 }
 function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
     return (
-        <select value={value} onChange={e => onChange(e.target.value)} className="bg-carbon-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white">
+        <select value={value} onChange={e => onChange(e.target.value)} className="bg-background border border-hairline rounded-lg px-2 py-1.5 text-xs text-foreground">
             {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
     );
@@ -768,6 +767,6 @@ function NumberInput({ value, onChange, min, max, step = 1 }: { value: number; o
                 if (!isNaN(n) && n >= min && n <= max) onChange(n);
             }}
             onBlur={e => commit(e.target.value)}
-            className="bg-carbon-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white w-full" />
+            className="bg-background border border-hairline rounded-lg px-2 py-1.5 text-xs text-foreground w-full" />
     );
 }

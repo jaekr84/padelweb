@@ -29,7 +29,7 @@ export default async function AdminTournamentsPage() {
         .orderBy(desc(tournaments.createdAt));
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-12 pt-4 px-4">
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-12 pt-4 px-4">
             <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* Main Client Content with Filters */}

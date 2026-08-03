@@ -694,7 +694,7 @@ export default function ManualRegistrationModal({
                                 <button 
                                     onClick={handleAutoFill}
                                     disabled={isAutoFilling || !autoFillCount}
-                                    className="flex-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg py-1.5 px-3 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex-1 bg-card hover:bg-background text-foreground rounded-lg py-1.5 px-3 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     {isAutoFilling ? (
                                         <RefreshCw className="w-3 h-3 animate-spin" />

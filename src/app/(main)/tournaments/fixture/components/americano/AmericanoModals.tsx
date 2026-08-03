@@ -106,7 +106,7 @@ export function AmericanoModals({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-md bg-card border-2 border-white/12 rounded-[3rem] p-10 shadow-2xl overflow-hidden"
+                            className="relative w-full max-w-md bg-card border-2 border-hairline rounded-[3rem] p-10 shadow-2xl overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500/0 via-orange-500 to-orange-500/0" />
 
@@ -118,21 +118,21 @@ export function AmericanoModals({
 
                                 <div className="space-y-3">
                                     <h3 className="text-3xl font-black uppercase italic tracking-tighter">Sin Jugadores Disponibles</h3>
-                                    <p className="text-slate-200 text-xs font-bold uppercase tracking-widest leading-relaxed"> No hay suficientes jugadores libres en este momento para iniciar un nuevo encuentro.</p>
+                                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest leading-relaxed"> No hay suficientes jugadores libres en este momento para iniciar un nuevo encuentro.</p>
                                 </div>
 
-                                <div className="w-full grid grid-cols-3 gap-4 p-6 bg-white/5 rounded-[2rem] border border-white/12">
+                                <div className="w-full grid grid-cols-3 gap-4 p-6 bg-surface rounded-[2rem] border border-hairline">
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="text-xl font-black italic text-celeste">{noPlayersData.playing}</span>
-                                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-300">Jugando</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Jugando</span>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1 border-x border-white/12">
+                                    <div className="flex flex-col items-center gap-1 border-x border-hairline">
                                         <span className="text-xl font-black italic text-celeste">{noPlayersData.finished}</span>
-                                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-300">Completos</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Completos</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="text-xl font-black italic text-celeste">{noPlayersData.waiting}</span>
-                                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-300">Esperando</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground">Esperando</span>
                                     </div>
                                 </div>
 
@@ -143,7 +143,7 @@ export function AmericanoModals({
                                                 ? "Hay 1 jugador ausente con partidos pendientes."
                                                 : `Hay ${noPlayersData.reserved} jugadores ausentes con partidos pendientes.`}
                                         </p>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-slate-300 mt-1.5 leading-relaxed">
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1.5 leading-relaxed">
                                             Sus cupos quedan reservados para cuando lleguen. Si no van a venir, eliminalos de la lista para liberar los partidos.
                                         </p>
                                     </div>
@@ -170,13 +170,13 @@ export function AmericanoModals({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-lg bg-card border border-white/12 shadow-2xl rounded-[3rem] p-12 text-center"
+                            className="relative w-full max-w-lg bg-card border border-hairline shadow-2xl rounded-[3rem] p-12 text-center"
                         >
                             <div className="mb-8 w-24 h-24 bg-celeste text-carbon-950 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-celeste/40">
                                 <Trophy className="w-12 h-12" />
                             </div>
                             <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">¡Torneo Finalizado!</h2>
-                            <p className="text-slate-300 text-sm mb-12">Se han completado todos los partidos y ya hay un campeón oficial.</p>
+                            <p className="text-muted-foreground text-sm mb-12">Se han completado todos los partidos y ya hay un campeón oficial.</p>
                             <button
                                 onClick={() => setShowSuccessModal(false)}
                                 className="w-full py-5 bg-foreground text-background rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -191,9 +191,9 @@ export function AmericanoModals({
             {/* MODAL REEMPLAZO DE JUGADOR */}
             <Dialog open={!!replacingPlayer} onOpenChange={(open) => !open && setReplacingPlayer(null)}>
                 <DialogContent className="max-w-xl">
-                    <DialogHeader className="p-5 pb-3 border-b border-white/12">
+                    <DialogHeader className="p-5 pb-3 border-b border-hairline">
                         <DialogTitle className="text-lg font-black uppercase italic tracking-tight">Cambiar Participante</DialogTitle>
-                        <DialogDescription className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                        <DialogDescription className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                             {isIndividual
                                 ? <>Reemplazar a <span className="text-foreground">{replacingPlayer?.name}</span> por otro jugador.</>
                                 : <>Modificar la pareja <span className="text-foreground">{replacingPlayer?.name}</span>.</>
@@ -202,16 +202,16 @@ export function AmericanoModals({
                     </DialogHeader>
 
                     {!isIndividual && (
-                        <div className="flex p-1 bg-muted rounded-xl border border-white/12">
+                        <div className="flex p-1 bg-muted rounded-xl border border-hairline">
                             <button
                                 onClick={() => setReplaceSlot(1)}
-                                className={`flex-1 py-2 px-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-slate-200 hover:text-slate-300"}`}
+                                className={`flex-1 py-2 px-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${replaceSlot === 1 ? "bg-background text-foreground shadow-lg" : "text-muted-foreground hover:text-muted-foreground"}`}
                             >
                                 Reemplazar Jugador 1
                             </button>
                             <button
                                 onClick={() => setReplaceSlot(2)}
-                                className={`flex-1 py-2 px-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-slate-200 hover:text-slate-300"}`}
+                                className={`flex-1 py-2 px-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${replaceSlot === 2 ? "bg-background text-foreground shadow-lg" : "text-muted-foreground hover:text-muted-foreground"}`}
                             >
                                 Reemplazar Jugador 2
                             </button>
@@ -220,19 +220,19 @@ export function AmericanoModals({
 
                     <div className="space-y-6 py-4">
                         {/* Invitado */}
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/12 space-y-4">
+                        <div className="p-4 bg-surface rounded-2xl border border-hairline space-y-4">
                             <div className="space-y-0.5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-200 block">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">
                                     {isIndividual ? "Opción 1: Persona Externa / Invitado" : `Opción 1: Reemplazar por Persona Externa`}
                                 </span>
-                                <p className="text-[8px] font-medium text-slate-300 uppercase tracking-tighter">
+                                <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-tighter">
                                     Usá esta opción si el jugador no está registrado.
                                 </p>
                             </div>
 
                             <div className="space-y-3">
                                 <div className="flex-1 relative mt-1.5">
-                                    <span className="absolute -top-2 left-3 px-1.5 bg-background text-[7px] font-black text-celeste uppercase tracking-widest z-10 rounded-full border border-white/12">
+                                    <span className="absolute -top-2 left-3 px-1.5 bg-background text-[7px] font-black text-celeste uppercase tracking-widest z-10 rounded-full border border-hairline">
                                         {isIndividual ? "Nombre Completo" : `Nombre del Jugador ${replaceSlot}`}
                                     </span>
                                     <input
@@ -240,7 +240,7 @@ export function AmericanoModals({
                                         placeholder={isIndividual ? "Escribí el nombre..." : (replacingPlayer?.name.split(/[\/\+]/)[replaceSlot - 1]?.trim() || `Nombre ${replaceSlot}...`)}
                                         value={replaceSlot === 1 ? guestName : guestName2}
                                         onChange={(e) => replaceSlot === 1 ? setGuestName(e.target.value) : setGuestName2(e.target.value)}
-                                        className="w-full bg-background border border-white/12 rounded-lg px-3 py-3 text-xs font-bold outline-none focus:border-celeste shadow-sm"
+                                        className="w-full bg-background border border-hairline rounded-lg px-3 py-3 text-xs font-bold outline-none focus:border-celeste shadow-sm"
                                     />
                                 </div>
 
@@ -257,23 +257,23 @@ export function AmericanoModals({
                         {/* Registrados */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-200">Opción 2: Jugador Registrado</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Opción 2: Jugador Registrado</span>
                             </div>
 
                             <div className="relative">
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-subtle" />
                                 <input
                                     type="text"
                                     placeholder="Buscar por nombre..."
                                     value={playerSearchQuery}
                                     onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/12 rounded-xl py-3 pl-10 pr-3 text-xs font-bold outline-none focus:border-blue-500"
+                                    className="w-full bg-surface border border-hairline rounded-xl py-3 pl-10 pr-3 text-xs font-bold outline-none focus:border-blue-500"
                                 />
                             </div>
 
                             <div className="max-h-[250px] overflow-y-auto pr-1.5 space-y-1.5 custom-scrollbar">
                                 {isFetchLoading ? (
-                                    <div className="py-6 text-center animate-pulse text-[10px] font-black uppercase tracking-widest text-slate-200">
+                                    <div className="py-6 text-center animate-pulse text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                         Cargando jugadores...
                                     </div>
                                 ) : allPotentialPlayers
@@ -298,10 +298,10 @@ export function AmericanoModals({
                                                     }
                                                 }
                                             }}
-                                            className="w-full flex items-center justify-between p-2.5 bg-white/5 hover:bg-celeste hover:text-carbon-950 rounded-xl border border-white/12 transition-all group/p shadow-sm"
+                                            className="w-full flex items-center justify-between p-2.5 bg-surface hover:bg-celeste hover:text-carbon-950 rounded-xl border border-hairline transition-all group/p shadow-sm"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-white/20">
+                                                <div className="w-7 h-7 rounded-lg bg-background flex items-center justify-center group-hover/p:bg-surface-raised">
                                                     <Users2 className="w-3.5 h-3.5" />
                                                 </div>
                                                 <div className="text-left">
@@ -310,7 +310,7 @@ export function AmericanoModals({
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-[6px] font-black uppercase tracking-tighter opacity-0 group-hover/p:opacity-100 bg-white/10 px-1.5 py-0.5 rounded">
+                                                <span className="text-[6px] font-black uppercase tracking-tighter opacity-0 group-hover/p:opacity-100 bg-surface-raised px-1.5 py-0.5 rounded">
                                                     Elegir para Jugador {replaceSlot}
                                                 </span>
                                                 <Plus className="w-3.5 h-3.5 opacity-0 group-hover/p:opacity-100 transition-opacity" />
@@ -390,13 +390,13 @@ export function AmericanoModals({
                     </DialogHeader>
 
                     <div className="relative my-4">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
                         <input
                             type="text"
                             placeholder="Buscar jugador del torneo..."
                             value={playerSearchQuery}
                             onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                            className="w-full bg-white/5 border border-white/12 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-celeste transition-all"
+                            className="w-full bg-surface border border-hairline rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:border-celeste transition-all"
                         />
                     </div>
 
@@ -414,16 +414,16 @@ export function AmericanoModals({
                                         disabled={isDisabled}
                                         className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isDisabled
                                             ? "bg-muted/50 border-transparent opacity-50 cursor-not-allowed"
-                                            : "bg-card border-white/12 hover:border-celeste hover:bg-celeste/[0.02]"}`}
+                                            : "bg-card border-hairline hover:border-celeste hover:bg-celeste/[0.02]"}`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                                                <Users2 className="w-4 h-4 text-slate-400" />
+                                                <Users2 className="w-4 h-4 text-muted-foreground" />
                                             </div>
                                             <span className="text-sm font-black uppercase italic">{p.name}</span>
                                         </div>
                                         {isAlreadyInMatch ? (
-                                            <span className="text-[8px] font-black uppercase text-slate-400">Ya en el partido</span>
+                                            <span className="text-[8px] font-black uppercase text-muted-foreground">Ya en el partido</span>
                                         ) : isAbsent ? (
                                             <span className="text-[8px] font-black uppercase text-amber-500">Ausente</span>
                                         ) : (

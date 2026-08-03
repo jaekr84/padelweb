@@ -56,7 +56,7 @@ export default async function CanchaAbiertaPublicPage() {
     }
 
     return (
-        <div className="min-h-screen pb-20 bg-carbon-950">
+        <div className="min-h-screen pb-20 bg-background">
             <OpenCourtPublicClient 
                 initialEvents={events} 
                 userRegistrations={userRegistrations}

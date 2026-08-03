@@ -46,43 +46,43 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
   return (
     <Link
       href={`/tournaments/${t.id}`}
-      className="group flex flex-col gap-1.5 py-2.5 border-b border-slate-50 last:border-0 hover:bg-white/5 transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
+      className="group flex flex-col gap-1.5 py-2.5 border-b border-border last:border-0 hover:bg-surface transition-colors px-2 -mx-2 rounded-xl overflow-hidden relative"
     >
       <div className="relative z-10 flex justify-between items-start gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h3 className="text-xs font-black text-white leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors uppercase italic tracking-tighter">
+          <h3 className="text-xs font-black text-foreground leading-tight line-clamp-1 group-hover:text-azul-primary transition-colors uppercase italic tracking-tighter">
             {t.name}
           </h3>
-          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground">
             <span>{t.clubName || "Acap"}</span>
-            <span className="w-1 h-1 bg-slate-200 rounded-full" />
+            <span className="w-1 h-1 bg-muted rounded-full" />
             <span className={t.type === "americano" ? "text-azul-primary/70" : "text-celeste/70"}>
               {t.type === "americano" ? "Americano" : "Libre"}
             </span>
           </div>
         </div>
-        <div className="p-1.5 text-slate-300 group-hover:text-azul-primary transition-all">
+        <div className="p-1.5 text-muted-foreground group-hover:text-azul-primary transition-all">
           <Send className="w-3 h-3 rotate-45" />
         </div>
       </div>
 
       <div className="relative z-10 flex items-center justify-between mt-1">
-        <div className="flex items-center gap-3 text-slate-400 text-[9px] font-black uppercase tracking-widest">
+        <div className="flex items-center gap-3 text-muted-foreground text-[9px] font-black uppercase tracking-widest">
           <div className="flex items-center gap-1">
             {isOngoing ? <Clock className="w-3 h-3 text-rojo" /> : <Calendar className="w-3 h-3 text-azul-primary" />}
-            <span className="group-hover:text-slate-700 transition-colors">
+            <span className="group-hover:text-muted-foreground transition-colors">
               {isOngoing ? (t.status === "en_curso" ? "Fase de Grupos" : "Playoffs") : formatDateAR(t.startDate)}
             </span>
           </div>
         </div>
-        <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-white/5 border border-white/10 text-slate-500 rounded-md group-hover:bg-azul-primary group-hover:text-white group-hover:border-azul-primary transition-all uppercase tracking-widest">
+        <span className="shrink-0 text-[8px] font-black px-2 py-0.5 bg-surface border border-hairline text-subtle rounded-md group-hover:bg-azul-primary group-hover:text-white group-hover:border-azul-primary transition-all uppercase tracking-widest">
           {catLabel}
         </span>
       </div>
 
       {modal?.maxSlots > 0 && (
         <div className="relative z-10 w-full mt-1">
-          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-surface rounded-full overflow-hidden">
             {(() => {
               const percentage = Math.min(((t.registrationsCount || 0) / modal.maxSlots) * 100, 100);
               let barColor = "bg-azul-primary";
@@ -106,24 +106,24 @@ export const TournamentSidebarItem = memo(function TournamentSidebarItem({
             t.registrants.map((reg, idx) => (
               <div
                 key={idx}
-                className="w-5 h-5 rounded-full border border-white bg-white/5 overflow-hidden relative shadow-sm"
+                className="w-5 h-5 rounded-full border border-hairline-strong bg-surface overflow-hidden relative shadow-sm"
               >
                 {reg.imageUrl ? (
                   <Image src={reg.imageUrl} alt={reg.name} fill className="object-cover" sizes="20px" unoptimized />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[6px] font-black text-slate-500 uppercase italic">
+                  <div className="w-full h-full flex items-center justify-center bg-muted text-[6px] font-black text-subtle uppercase italic">
                     {reg.name.charAt(0)}
                   </div>
                 )}
               </div>
             ))
           ) : (
-            <div className="w-5 h-5 rounded-full border border-white bg-white/5 flex items-center justify-center">
-              <Users className="w-2.5 h-2.5 text-slate-300" />
+            <div className="w-5 h-5 rounded-full border border-hairline-strong bg-surface flex items-center justify-center">
+              <Users className="w-2.5 h-2.5 text-muted-foreground" />
             </div>
           )}
         </div>
-        <span className="text-[9px] font-black text-slate-400 group-hover:text-azul-primary transition-colors uppercase tracking-widest">
+        <span className="text-[9px] font-black text-muted-foreground group-hover:text-azul-primary transition-colors uppercase tracking-widest">
           {t.registrationsCount || 0}/{modal?.maxSlots || 0}
         </span>
       </div>

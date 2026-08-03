@@ -50,14 +50,14 @@ function MatchCard({
             >
                 {/* FRONT SIDE */}
                 <div className="absolute inset-0 w-full h-full [backface-visibility:hidden]">
-                    <div className="h-full bg-carbon-800 border border-white/10 rounded-2xl overflow-hidden hover:shadow-lg hover:border-azul-primary/40 transition-all duration-300 flex flex-col justify-between">
+                    <div className="h-full bg-card border border-hairline rounded-2xl overflow-hidden hover:shadow-lg hover:border-azul-primary/40 transition-all duration-300 flex flex-col justify-between">
                         {/* Header info */}
                         <button
                             type="button"
                             onClick={() => onShowProfile(match.creatorId)}
-                            className="p-2.5 pb-1.5 flex items-center gap-2 border-b border-white/10 shrink-0 w-full text-left hover:bg-white/5 transition-colors group/header"
+                            className="p-2.5 pb-1.5 flex items-center gap-2 border-b border-hairline shrink-0 w-full text-left hover:bg-surface transition-colors group/header"
                         >
-                            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-white/10 shrink-0 flex items-center justify-center group-hover/header:border-azul-primary/45 transition-colors">
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-hairline bg-surface-raised shrink-0 flex items-center justify-center group-hover/header:border-azul-primary/45 transition-colors">
                                 {match.creator.imageUrl ? (
                                     <Image
                                         src={match.creator.imageUrl}
@@ -66,12 +66,12 @@ function MatchCard({
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <User className="w-4 h-4 text-slate-500" />
+                                    <User className="w-4 h-4 text-subtle" />
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest leading-none mb-0.5 group-hover/header:text-azul-primary transition-colors">Organiza</p>
-                                <h3 className="text-[10px] font-black text-white truncate leading-none group-hover/header:text-azul-primary transition-colors">
+                                <p className="text-[7px] font-black text-subtle uppercase tracking-widest leading-none mb-0.5 group-hover/header:text-azul-primary transition-colors">Organiza</p>
+                                <h3 className="text-[10px] font-black text-foreground truncate leading-none group-hover/header:text-azul-primary transition-colors">
                                     {match.creator.firstName} {match.creator.lastName}
                                 </h3>
                             </div>
@@ -83,7 +83,7 @@ function MatchCard({
                         {/* Body content */}
                         <div className="p-2.5 flex-grow flex flex-col justify-between min-h-0">
                             <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-white leading-none">
+                                <div className="flex items-center justify-between text-foreground leading-none">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-3.5 h-3.5 text-azul-primary" />
                                         <span className="text-[10px] font-black">{formatDate(match.date)}</span>
@@ -94,17 +94,17 @@ function MatchCard({
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-white/5 border border-white/10 relative group/loc min-w-0">
-                                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-surface border border-hairline relative group/loc min-w-0">
+                                    <MapPin className="w-3.5 h-3.5 text-subtle shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <span className="block text-[6px] font-black uppercase tracking-widest text-slate-500 leading-none mb-0.5">Sede / Ubicación</span>
-                                        <h4 className="text-[9px] font-black text-white truncate leading-none">{match.location}</h4>
+                                        <span className="block text-[6px] font-black uppercase tracking-widest text-subtle leading-none mb-0.5">Sede / Ubicación</span>
+                                        <h4 className="text-[9px] font-black text-foreground truncate leading-none">{match.location}</h4>
                                     </div>
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${match.location}, ${match.city}`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="bg-white/10 px-1.5 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-1 shrink-0 h-6"
+                                        className="bg-surface-raised px-1.5 py-1 rounded-lg border border-hairline text-muted-foreground hover:text-blue-600 hover:border-blue-200 transition-all flex items-center gap-1 shrink-0 h-6"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <ExternalLink className="w-2.5 h-2.5" />
@@ -115,7 +115,7 @@ function MatchCard({
 
                             <div className="space-y-1 mt-1">
                                 <div className="flex items-center justify-between leading-none mb-1">
-                                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">Jugadores ({spotsFull}/{totalSpots})</p>
+                                    <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">Jugadores ({spotsFull}/{totalSpots})</p>
                                     <span className={`text-[7px] font-black px-1.5 py-0.5 rounded leading-none ${remaining === 0 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
                                         {remaining === 0 ? 'COMPLETO' : `FALTAN ${remaining}`}
                                     </span>
@@ -166,10 +166,10 @@ function MatchCard({
 
                                                     {/* Branding (Top Left) */}
                                                     <div className="absolute top-1.5 left-2.5 z-20 flex flex-col items-start leading-none scale-[0.75] origin-top-left">
-                                                        <span className="text-[5.5px] font-black italic text-white tracking-tighter leading-none">
+                                                        <span className="text-[5.5px] font-black italic text-foreground tracking-tighter leading-none">
                                                             PADEL<span className={isPlayerFemale ? "text-rosa" : "text-celeste"}>WEB</span>
                                                         </span>
-                                                        <span className="text-[3px] font-black text-white/30 tracking-[0.2em] uppercase mt-[1px] leading-none">Series 2026</span>
+                                                        <span className="text-[3px] font-black text-foreground/30 tracking-[0.2em] uppercase mt-[1px] leading-none">Series 2026</span>
                                                     </div>
 
                                                     {/* Category & Side skew label (Top Right) */}
@@ -178,7 +178,7 @@ function MatchCard({
                                                             {category}
                                                         </span>
                                                         <div className={`mt-0.5 px-1 py-[0.5px] rounded-[1.5px] transform skew-x-[-15deg] border border-${theme.accent}/20 bg-black/60`}>
-                                                            <span className="text-[4px] font-black text-white uppercase tracking-wider inline-block transform skew-x-[15deg]">
+                                                            <span className="text-[4px] font-black text-foreground uppercase tracking-wider inline-block transform skew-x-[15deg]">
                                                                 REVÉS
                                                             </span>
                                                         </div>
@@ -189,8 +189,8 @@ function MatchCard({
                                                         {reg.user?.imageUrl ? (
                                                             <Image src={reg.user.imageUrl} alt="Player" fill className="object-cover object-top" />
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center bg-slate-900/50">
-                                                                <User className="w-6 h-6 text-white/10" />
+                                                            <div className="w-full h-full flex items-center justify-center bg-background/50">
+                                                                <User className="w-6 h-6 text-foreground/10" />
                                                             </div>
                                                         )}
                                                         <div className="absolute inset-0 bg-black/25" />
@@ -199,7 +199,7 @@ function MatchCard({
                                                     {/* Logros (Micro Ribbon) */}
                                                     <div className="absolute bottom-[56px] left-2.5 z-20 scale-[0.75] origin-bottom-left">
                                                         <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-500/90 to-transparent backdrop-blur-md pl-1.5 pr-4 py-[1px] transform -skew-x-12 border-l-2 border-yellow-400">
-                                                            <span className="text-[4px] font-black text-white uppercase italic transform skew-x-12">Logros</span>
+                                                            <span className="text-[4px] font-black text-foreground uppercase italic transform skew-x-12">Logros</span>
                                                             <Trophy className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400/20 transform skew-x-12" />
                                                         </div>
                                                     </div>
@@ -207,15 +207,15 @@ function MatchCard({
                                                     {/* Player Name skew banner */}
                                                     <div className="absolute bottom-[28px] inset-x-2 z-20 scale-[0.9] origin-bottom">
                                                         <div className="bg-white py-0.5 px-1 transform -skew-x-12 relative border-r-2 border-azul-primary shadow-lg flex items-center justify-center h-[16px]">
-                                                            <h4 className="text-[7.5px] font-black uppercase italic tracking-tighter text-slate-950 text-center transform skew-x-12 truncate leading-none w-full">
+                                                            <h4 className="text-[7.5px] font-black uppercase italic tracking-tighter text-foreground text-center transform skew-x-12 truncate leading-none w-full">
                                                                 {firstName} <span className="text-azul-primary">{lastName}</span>
                                                             </h4>
                                                         </div>
                                                     </div>
 
                                                     {/* Bottom Bar info */}
-                                                    <div className="absolute bottom-0 inset-x-0 h-[20px] bg-slate-950/80 backdrop-blur-[1px] border-t border-white/5 flex items-center justify-center px-1 z-10">
-                                                        <span className="text-[5.2px] font-black text-slate-400 uppercase tracking-widest leading-none truncate max-w-full text-center">
+                                                    <div className="absolute bottom-0 inset-x-0 h-[20px] bg-background/80 backdrop-blur-[1px] border-t border-hairline flex items-center justify-center px-1 z-10">
+                                                        <span className="text-[5.2px] font-black text-muted-foreground uppercase tracking-widest leading-none truncate max-w-full text-center">
                                                             CLUB: <span className="text-celeste">SOCIO INDEPENDIENTE</span>
                                                         </span>
                                                     </div>
@@ -241,10 +241,10 @@ function MatchCard({
                         </div>
 
                         {/* Actions footer */}
-                        <div className="p-2 flex items-center gap-1 bg-white/[0.03] border-t border-white/10 shrink-0">
+                        <div className="p-2 flex items-center gap-1 bg-surface border-t border-hairline shrink-0">
                             <button
                                 onClick={() => setIsFlipped(true)}
-                                className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
+                                className="w-8 h-8 rounded-lg bg-surface-raised border border-hairline text-muted-foreground hover:bg-surface-raised transition-all flex items-center justify-center shrink-0"
                                 title="Ver Jugadores"
                             >
                                 <Users className="w-3.5 h-3.5" />
@@ -271,8 +271,8 @@ function MatchCard({
                                     onClick={() => handleJoin(match.id)}
                                     disabled={loadingId === match.id || remaining === 0}
                                     className={`flex-grow h-8 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${remaining === 0
-                                        ? 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
-                                        : 'bg-slate-900 text-white hover:bg-blue-600 shadow-sm'
+                                        ? 'bg-surface-raised text-subtle cursor-not-allowed border border-hairline'
+                                        : 'bg-background text-foreground hover:bg-blue-600 shadow-sm'
                                         }`}
                                 >
                                     {loadingId === match.id ? "PROCESANDO..." : remaining === 0 ? "PARTIDO LLENO" : "UNIRME A JUGAR"}
@@ -284,17 +284,17 @@ function MatchCard({
 
                 {/* BACK SIDE */}
                 <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                    <div className="h-full bg-slate-900 text-white border border-slate-800 rounded-2xl overflow-hidden shadow-lg flex flex-col">
-                        <div className="p-2.5 pb-1.5 flex items-center justify-between border-b border-white/5">
+                    <div className="h-full bg-background text-foreground border border-hairline rounded-2xl overflow-hidden shadow-lg flex flex-col">
+                        <div className="p-2.5 pb-1.5 flex items-center justify-between border-b border-hairline">
                             <div>
                                 <h3 className="text-[10px] font-black uppercase tracking-tighter italic">Participantes</h3>
-                                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{spotsFull} Confirmados / {totalSpots} Cupos</p>
+                                <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">{spotsFull} Confirmados / {totalSpots} Cupos</p>
                             </div>
                             <button
                                 onClick={() => setIsFlipped(false)}
-                                className="w-6 h-6 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all"
+                                className="w-6 h-6 bg-surface hover:bg-surface-raised rounded-lg flex items-center justify-center transition-all"
                             >
-                                <ArrowLeft className="w-3.5 h-3.5 text-white" />
+                                <ArrowLeft className="w-3.5 h-3.5 text-foreground" />
                             </button>
                         </div>
 
@@ -302,7 +302,7 @@ function MatchCard({
                             {match.registrations.map((reg, i) => (
                                 <div key={reg.userId || `guest-${i}`} className="flex items-center justify-between group/row">
                                     <div className="flex items-center gap-2">
-                                        <div className="relative w-6 h-6 rounded-full overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center shrink-0">
+                                        <div className="relative w-6 h-6 rounded-full overflow-hidden border border-hairline bg-surface flex items-center justify-center shrink-0">
                                             {reg.user?.imageUrl ? (
                                                 <Image
                                                     src={reg.user.imageUrl}
@@ -311,7 +311,7 @@ function MatchCard({
                                                     className="object-cover"
                                                 />
                                             ) : (
-                                                <User className="w-3 h-3 text-slate-500" />
+                                                <User className="w-3 h-3 text-subtle" />
                                             )}
                                         </div>
                                         <div className="min-w-0">
@@ -320,14 +320,14 @@ function MatchCard({
                                             </p>
                                             <div className="flex items-center gap-1.5">
                                                 {reg.userId === match.creatorId && <span className="text-[6px] font-black uppercase tracking-[0.1em] px-1 bg-azul-primary text-white rounded">Org</span>}
-                                                <span className="text-[6.5px] font-bold text-slate-500 uppercase tracking-widest italic">{reg.user ? "Jugador" : "Invitado"}</span>
+                                                <span className="text-[6.5px] font-bold text-subtle uppercase tracking-widest italic">{reg.user ? "Jugador" : "Invitado"}</span>
                                             </div>
                                         </div>
                                     </div>
                                     {reg.userId && (
                                         <button
                                             onClick={() => onShowProfile(reg.userId!)}
-                                            className="w-6 h-6 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-blue-600 hover:border-azul-primary transition-all shrink-0"
+                                            className="w-6 h-6 rounded-lg bg-surface border border-hairline flex items-center justify-center text-subtle hover:text-white hover:bg-blue-600 hover:border-azul-primary transition-all shrink-0"
                                         >
                                             <User className="w-3 h-3" />
                                         </button>
@@ -337,7 +337,7 @@ function MatchCard({
 
                             {Array.from({ length: remaining }).map((_, i) => (
                                 <div key={i} className="flex items-center gap-2 opacity-30 italic">
-                                    <div className="w-6 h-6 rounded-full border border-dashed border-white/20 flex items-center justify-center shrink-0">
+                                    <div className="w-6 h-6 rounded-full border border-dashed border-hairline-strong flex items-center justify-center shrink-0">
                                         <Plus className="w-3 h-3" />
                                     </div>
                                     <span className="text-[8px] font-bold uppercase tracking-widest">Buscando...</span>
@@ -345,7 +345,7 @@ function MatchCard({
                             ))}
                         </div>
 
-                        <div className="p-2 border-t border-white/5 bg-slate-950 shrink-0">
+                        <div className="p-2 border-t border-hairline bg-background shrink-0">
                             <button
                                 onClick={() => setIsFlipped(false)}
                                 className="w-full h-8 rounded-lg bg-azul-primary text-white text-[8px] font-black uppercase tracking-widest hover:bg-azul-dark transition-all flex items-center justify-center gap-1"
@@ -498,8 +498,8 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
         return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" });
     };
 
-    const dropdownTriggerStyles = "flex h-14 w-full items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold uppercase tracking-tight text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
-    const dropdownContentStyles = "z-50 overflow-hidden rounded-2xl border border-white/10 bg-popover shadow-2xl";
+    const dropdownTriggerStyles = "flex h-14 w-full items-center justify-between rounded-2xl border border-hairline bg-surface-raised px-4 py-2 text-sm font-bold uppercase tracking-tight text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all";
+    const dropdownContentStyles = "z-50 overflow-hidden rounded-2xl border border-hairline bg-popover shadow-2xl";
     const dropdownItemStyles = "relative flex cursor-default select-none items-center rounded-xl px-4 py-3 text-sm font-bold tracking-tight uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-primary/10 data-[highlighted]:text-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground";
 
     return (
@@ -511,21 +511,21 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             </div>
 
             {/* Widescreen Cyber-Sports HUD Header */}
-            <div className="relative rounded-2xl overflow-hidden bg-carbon-800 border border-white/10 p-6 lg:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-white/5">
+            <div className="relative rounded-2xl overflow-hidden bg-card border border-hairline p-6 lg:p-8 text-foreground flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-hairline">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-azul-primary rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-azul-primary rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2" />
                 </div>
 
                 <div className="relative z-10 space-y-3 max-w-3xl text-center md:text-left">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-celeste">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-raised border border-hairline rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-celeste">
                         <Users className="w-2.5 h-2.5 fill-current" />
                         Completá tu partido
                     </div>
                     <h1 className="text-3xl lg:text-4xl font-black uppercase tracking-tighter leading-none italic">
                         Armá tu <span className="text-celeste">Match</span>
                     </h1>
-                    <p className="text-xs text-slate-400 font-bold leading-normal max-w-xl">
+                    <p className="text-xs text-muted-foreground font-bold leading-normal max-w-xl">
                         ¿Te falta gente? Creá un partido público o unite a uno ya existente. Encontrá jugadores de tu zona y categoría al instante.
                     </p>
                 </div>
@@ -542,18 +542,18 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
             </div>
 
             {/* Horizontal HUD Filter Bar */}
-            <div className="p-3 bg-carbon-800 border border-white/10 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm relative z-20">
+            <div className="p-3 bg-card border border-hairline rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm relative z-20">
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-grow">
                     {/* City Selector */}
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
-                        <span className="text-[7.5px] font-black uppercase tracking-widest text-slate-500 shrink-0">Zona:</span>
+                        <span className="text-[7.5px] font-black uppercase tracking-widest text-subtle shrink-0">Zona:</span>
                         <Select.Root value={searchCity} onValueChange={setSearchCity}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-white/5 border border-white/10 px-3 text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-between transition-all hover:bg-white/10">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-surface border border-hairline px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-surface-raised">
                                 <Select.Value placeholder="Todas las zonas" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-slate-500 transition-transform duration-200" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-subtle transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-white/10 bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-hairline bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
                                         <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las zonas</Select.ItemText>
@@ -577,14 +577,14 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                     {/* Category Selector */}
                     <div className="flex items-center gap-2 flex-grow max-w-xs min-w-[200px]">
-                        <span className="text-[7.5px] font-black uppercase tracking-widest text-slate-500 shrink-0">Categoría:</span>
+                        <span className="text-[7.5px] font-black uppercase tracking-widest text-subtle shrink-0">Categoría:</span>
                         <Select.Root value={filterCategory} onValueChange={setFilterCategory}>
-                            <Select.Trigger className="w-full h-9 rounded-xl bg-white/5 border border-white/10 px-3 text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-between transition-all hover:bg-white/10">
+                            <Select.Trigger className="w-full h-9 rounded-xl bg-surface border border-hairline px-3 text-[10px] font-black uppercase tracking-widest text-foreground flex items-center justify-between transition-all hover:bg-surface-raised">
                                 <Select.Value placeholder="Todas las categorías" />
-                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-slate-500 transition-transform duration-200" /></Select.Icon>
+                                <Select.Icon><ChevronRight className="w-3.5 h-3.5 rotate-90 text-subtle transition-transform duration-200" /></Select.Icon>
                             </Select.Trigger>
                             <Select.Portal>
-                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-white/10 bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
+                                <Select.Content position="popper" sideOffset={6} className="z-[9999] overflow-hidden rounded-xl border border-hairline bg-popover shadow-2xl min-w-[var(--radix-select-trigger-width)] animate-in fade-in zoom-in-95 duration-150">
                                     <Select.Viewport className="p-1">
                                         <Select.Item value="all" className="relative flex cursor-default select-none items-center rounded-lg pl-3 pr-8 py-2 text-[9px] font-black uppercase text-popover-foreground outline-none transition-colors data-[highlighted]:bg-azul-primary/10 data-[highlighted]:text-azul-primary data-[state=checked]:bg-azul-primary/20 data-[state=checked]:text-azul-primary cursor-pointer">
                                             <Select.ItemText>Todas las categorías</Select.ItemText>
@@ -614,7 +614,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                             onClick={() => setShowMyMatches(!showMyMatches)}
                             className={`px-4 h-9 rounded-xl flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest transition-all ${showMyMatches
                                 ? "bg-azul-primary text-white shadow-md shadow-azul-primary/30"
-                                : "bg-white/10 border border-white/10 text-slate-400 hover:bg-white/10"
+                                : "bg-surface-raised border border-hairline text-muted-foreground hover:bg-surface-raised"
                                 }`}
                         >
                             <Star className={`w-3 h-3 ${showMyMatches ? "fill-current" : ""}`} />
@@ -645,9 +645,9 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                 {filteredMatches.length === 0 && (
                     <div className="col-span-full py-20 text-center opacity-40">
-                        <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                        <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                         <h3 className="text-xl font-black uppercase italic tracking-tighter">No hay partidos disponibles</h3>
-                        <p className="text-sm font-bold text-slate-500">Intentá con otros filtros o creá uno nuevo.</p>
+                        <p className="text-sm font-bold text-subtle">Intentá con otros filtros o creá uno nuevo.</p>
                     </div>
                 )}
             </div>
@@ -661,7 +661,7 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSelectedPlayerId(null)}
-                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            className="absolute inset-0 bg-background/40 backdrop-blur-md"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -671,27 +671,27 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                         >
                             <button
                                 onClick={() => setSelectedPlayerId(null)}
-                                className="absolute top-3 right-3 w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white border border-white/5 backdrop-blur-md transition-all z-50"
+                                className="absolute top-3 right-3 w-7 h-7 bg-surface hover:bg-surface-raised rounded-lg flex items-center justify-center text-foreground/60 hover:text-foreground border border-hairline backdrop-blur-md transition-all z-50"
                             >
                                 <X className="w-4 h-4" />
                             </button>
 
                             {loadingProfile ? (
-                                <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl p-14 flex flex-col items-center justify-center border border-white/10">
+                                <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-14 flex flex-col items-center justify-center border border-hairline">
                                     <div className="w-9 h-9 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin mb-3" />
-                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Cargando Perfil...</p>
+                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground/40">Cargando Perfil...</p>
                                 </div>
                             ) : profileData ? (
-                                <div className={`bg-slate-950/95 backdrop-blur-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[540px] transition-all duration-500 ${profileData.player.userId === currentUserId ? 'border-red-500/80 shadow-red-500/10' : 'border-white/10'}`}>
+                                <div className={`bg-background/95 backdrop-blur-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[540px] transition-all duration-500 ${profileData.player.userId === currentUserId ? 'border-red-500/80 shadow-red-500/10' : 'border-hairline'}`}>
                                     {/* Modal Header */}
-                                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/5 bg-white/5">
+                                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-hairline bg-surface">
                                         <div className="flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/90">Resumen del Jugador</span>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-foreground/90">Resumen del Jugador</span>
                                         </div>
                                         <div className="hidden sm:flex items-center gap-3 pr-8">
                                             <div className="flex flex-col items-end">
-                                                <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest leading-none mb-[2px]">Nivel Proyectado</span>
+                                                <span className="text-[6.5px] font-black uppercase text-foreground/20 tracking-widest leading-none mb-[2px]">Nivel Proyectado</span>
                                                 <span className="text-[9px] font-black text-celeste italic leading-none">CATEGORÍA {profileData.player.category}</span>
                                             </div>
                                             <div className="w-7 h-7 rounded-lg bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
@@ -712,24 +712,24 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                                 <div className="space-y-3 min-h-0 flex flex-col">
                                                     {/* KPIs grid */}
                                                     <div className="grid grid-cols-2 gap-2.5 shrink-0">
-                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
-                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">PJ Totales</p>
-                                                            <p className="text-xl font-black text-white italic leading-none">{profileData.stats.pj}</p>
+                                                        <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-foreground/30 uppercase tracking-widest">PJ Totales</p>
+                                                            <p className="text-xl font-black text-foreground italic leading-none">{profileData.stats.pj}</p>
                                                         </div>
-                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
-                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">Win Rate</p>
+                                                        <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-foreground/30 uppercase tracking-widest">Win Rate</p>
                                                             <p className="text-xl font-black text-blue-400 italic leading-none">{profileData.stats.wr}%</p>
                                                         </div>
                                                     </div>
 
                                                     {/* Últimos Resultados (Horizontal capsule bar) */}
-                                                    <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-2.5 w-full shrink-0">
-                                                        <h4 className="text-[7.5px] font-black text-white/30 uppercase tracking-[0.25em] leading-none">Últimos Resultados</h4>
+                                                    <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-2.5 w-full shrink-0">
+                                                        <h4 className="text-[7.5px] font-black text-foreground/30 uppercase tracking-[0.25em] leading-none">Últimos Resultados</h4>
                                                         <div className="flex gap-2">
                                                             {profileData.history.slice(0, 5).map((h: any, i: number) => (
                                                                 <div
                                                                     key={i}
-                                                                    className={`flex-1 h-7 rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${h.isWin === true ? 'bg-green-500/20 border border-green-500/30 text-green-400' : h.isWin === false ? 'bg-red-500/20 border border-red-500/30 text-red-400' : 'bg-white/5 border border-white/10 text-white/30'}`}
+                                                                    className={`flex-1 h-7 rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${h.isWin === true ? 'bg-green-500/20 border border-green-500/30 text-green-400' : h.isWin === false ? 'bg-red-500/20 border border-red-500/30 text-red-400' : 'bg-surface border border-hairline text-foreground/30'}`}
                                                                     title={h.tournament}
                                                                 >
                                                                     {h.isWin === true ? 'G' : h.isWin === false ? 'P' : '-'}
@@ -740,33 +740,33 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                                                     {/* Dense Últimos 10 Partidos List */}
                                                     <div className="space-y-1.5 min-h-0 flex flex-col flex-1">
-                                                        <h4 className="text-[7.5px] font-black text-white/45 uppercase tracking-[0.2em] px-1 shrink-0">Últimos 10 Partidos</h4>
+                                                        <h4 className="text-[7.5px] font-black text-foreground/45 uppercase tracking-[0.2em] px-1 shrink-0">Últimos 10 Partidos</h4>
                                                         <div className="space-y-1.5 overflow-y-auto max-h-[250px] pr-1 no-scrollbar flex-1">
                                                             {profileData.history.slice(0, 10).map((m: any) => (
-                                                                <div key={m.id} className="group relative bg-white/3 hover:bg-white/6 border border-white/5 p-2 rounded-xl flex items-center justify-between transition-all">
+                                                                <div key={m.id} className="group relative bg-surface hover:bg-surface border border-hairline p-2 rounded-xl flex items-center justify-between transition-all">
                                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-slate-500'}`}>
+                                                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-subtle'}`}>
                                                                             {m.type === 'Torneo' ? <Zap className="w-3 h-3" /> : m.type === 'Cancha Abierta' ? <Users className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
                                                                         </div>
                                                                         <div className="flex flex-col min-w-0">
                                                                             <div className="flex items-center gap-1 leading-none">
-                                                                                <span className={`text-[5.5px] font-black px-1 py-[0.1px] rounded uppercase tracking-widest ${m.isWin === true ? 'bg-green-500/20 text-green-400' : m.isWin === false ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/30'}`}>
+                                                                                <span className={`text-[5.5px] font-black px-1 py-[0.1px] rounded uppercase tracking-widest ${m.isWin === true ? 'bg-green-500/20 text-green-400' : m.isWin === false ? 'bg-red-500/20 text-red-400' : 'bg-surface-raised text-foreground/30'}`}>
                                                                                     {m.isWin === true ? 'G' : m.isWin === false ? 'P' : '-'}
                                                                                 </span>
-                                                                                <span className="text-[6px] font-black text-white/20 uppercase tracking-widest truncate">{m.type} • {m.subType}</span>
+                                                                                <span className="text-[6px] font-black text-foreground/20 uppercase tracking-widest truncate">{m.type} • {m.subType}</span>
                                                                             </div>
-                                                                            <h4 className="text-[10px] font-black text-white truncate italic uppercase tracking-tight leading-none my-1">{m.tournament}</h4>
-                                                                            <p className="text-[6.5px] font-bold text-white/40 uppercase tracking-tight leading-none">vs {m.opponent}</p>
+                                                                            <h4 className="text-[10px] font-black text-foreground truncate italic uppercase tracking-tight leading-none my-1">{m.tournament}</h4>
+                                                                            <p className="text-[6.5px] font-bold text-foreground/40 uppercase tracking-tight leading-none">vs {m.opponent}</p>
                                                                         </div>
                                                                     </div>
                                                                     <div className="text-right shrink-0 pr-1 leading-none">
-                                                                        <div className="text-xs font-black italic text-white leading-none mb-0.5 tracking-tighter">{m.score}</div>
+                                                                        <div className="text-xs font-black italic text-foreground leading-none mb-0.5 tracking-tighter">{m.score}</div>
                                                                         {m.isWin === true ? (
                                                                             <span className="text-[6.5px] font-black uppercase text-green-400 tracking-widest italic">Win</span>
                                                                         ) : m.isWin === false ? (
                                                                             <span className="text-[6.5px] font-black uppercase text-red-400 tracking-widest italic">Loss</span>
                                                                         ) : (
-                                                                            <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest italic">Fin</span>
+                                                                            <span className="text-[6.5px] font-black uppercase text-foreground/20 tracking-widest italic">Fin</span>
                                                                         )}
                                                                     </div>
                                                                 </div>
@@ -774,8 +774,8 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
 
                                                             {profileData.history.length === 0 && (
                                                                 <div className="flex flex-col items-center justify-center py-6 opacity-30">
-                                                                    <Info className="w-5 h-5 mb-1.5 text-white/40" />
-                                                                    <p className="text-[6.5px] font-black uppercase tracking-widest text-white/40">Sin partidos registrados</p>
+                                                                    <Info className="w-5 h-5 mb-1.5 text-foreground/40" />
+                                                                    <p className="text-[6.5px] font-black uppercase tracking-widest text-foreground/40">Sin partidos registrados</p>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -802,8 +802,8 @@ export default function PartidosClient({ initialMatches, isLoggedIn, currentUser
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-slate-900 border border-white/10 rounded-2xl p-10 text-center">
-                                    <p className="text-slate-400 font-black uppercase tracking-wider text-xs">No se encontró el perfil del jugador.</p>
+                                <div className="bg-background border border-hairline rounded-2xl p-10 text-center">
+                                    <p className="text-muted-foreground font-black uppercase tracking-wider text-xs">No se encontró el perfil del jugador.</p>
                                 </div>
                             )}
                         </motion.div>

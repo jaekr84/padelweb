@@ -57,7 +57,7 @@ export default function RegisterTournamentModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent hideClose={true} className="theme-night max-w-2xl p-0 overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl shadow-3xl rounded-[2.5rem] ring-1 ring-black/5">
+            <DialogContent hideClose={true} className="max-w-2xl p-0 overflow-hidden border border-hairline bg-card/95 backdrop-blur-xl shadow-3xl rounded-[2.5rem] ring-1 ring-black/5">
                 {!context && !error ? (
                     <div className="flex flex-col items-center justify-center p-24 space-y-6">
                         <DialogTitle className="sr-only">Cargando inscripción</DialogTitle>

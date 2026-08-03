@@ -10,6 +10,7 @@ import { switchActiveRole } from "@/app/actions/role";
 import { useChatStore } from "@/store/useChatStore";
 import { useAppStore } from "@/store/useAppStore";
 import { SidebarProfileConsole } from "@/components/ui/SidebarProfileConsole";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getPendingRequestsCount } from "@/app/(main)/admin/requests/actions";
 
 type NavItem = { href: string; icon: any; label: string; newTab?: boolean };
@@ -156,20 +157,20 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
     return (
         <>
             {/* MOBILE TOP HEADER */}
-            <header className="md:hidden fixed top-0 w-full z-50 bg-carbon-950/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 h-16 transition-all duration-300">
+            <header className="md:hidden fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl border-b border-hairline flex items-center justify-between px-4 h-16 transition-all duration-300">
                 <div className="flex items-center gap-2.5">
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95 group"
+                        className="p-2.5 rounded-xl border border-hairline bg-surface hover:bg-surface-raised transition-all active:scale-95 group"
                     >
-                        <Menu className="w-5 h-5 text-slate-300 group-hover:text-volt transition-colors" />
+                        <Menu className="w-5 h-5 text-muted-foreground group-hover:text-volt-ink transition-colors" />
                     </button>
                     <Link href="/home" className="flex items-center gap-2.5 transition-transform active:scale-95">
                         <div className="w-9 h-9 bg-azul-primary clip-notch flex items-center justify-center shadow-lg shadow-azul-primary/30">
-                            <span className="text-white font-black text-sm tracking-tighter">AC</span>
+                            <span className="text-foreground font-black text-sm tracking-tighter">AC</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className="heading-sport text-[15px] text-white leading-none">A.C.A.P.</span>
+                            <span className="heading-sport text-[15px] text-foreground leading-none">A.C.A.P.</span>
                             <span className="label-tech text-[8px] text-celeste-light leading-none">Padel App</span>
                         </div>
                     </Link>
@@ -186,7 +187,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     await switchActiveRole(newRole);
                                     window.location.href = "/home";
                                 }}
-                                className="bg-white/5 border border-white/15 text-volt text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-volt/30 transition-all pr-7"
+                                className="bg-surface border border-hairline text-volt-ink text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xl appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-volt/30 transition-all pr-7"
                             >
                                 {["superadmin", "club", "jugador"].filter(r => {
                                     const userRoles = userData.dbRole?.split(',').map(ur => ur.trim()) || [];
@@ -198,18 +199,18 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-volt pointer-events-none opacity-60" />
+                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-volt-ink pointer-events-none opacity-60" />
                         </div>
                     )}
                     <Link
                         href={profileUrl}
-                        className="w-10 h-10 rounded-full border border-white/15 bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all active:scale-95 overflow-hidden"
+                        className="w-10 h-10 rounded-full border border-hairline bg-surface flex items-center justify-center hover:bg-surface-raised transition-all active:scale-95 overflow-hidden"
                     >
                         {userData?.imageUrl ? (
                             <Image src={userData.imageUrl} alt="" width={40} height={40} className="object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                                <span className="text-xs font-bold text-slate-300">{userData?.name?.charAt(0) || "U"}</span>
+                            <div className="w-full h-full bg-surface flex items-center justify-center">
+                                <span className="text-xs font-bold text-muted-foreground">{userData?.name?.charAt(0) || "U"}</span>
                             </div>
                         )}
                     </Link>
@@ -224,16 +225,16 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-azul-primary clip-notch flex items-center justify-center shadow-lg shadow-azul-primary/30">
-                                <span className="text-white font-black text-base tracking-tighter">AC</span>
+                                <span className="text-foreground font-black text-base tracking-tighter">AC</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                                <span className="heading-sport text-xl text-white leading-none">A.C.A.P.</span>
+                                <span className="heading-sport text-xl text-foreground leading-none">A.C.A.P.</span>
                                 <span className="label-tech text-[9px] text-celeste-light leading-none">Padel App</span>
                             </div>
                         </div>
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
+                            className="p-2.5 rounded-xl border border-hairline bg-surface hover:bg-surface-raised text-muted-foreground"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -250,30 +251,30 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                     target={item.newTab ? "_blank" : undefined}
                                     rel={item.newTab ? "noopener noreferrer" : undefined}
                                     onClick={() => setIsCollapsed(false)}
-                                    className={`flex items-center gap-4 px-6 py-4 rounded-xl border-l-4 transition-all font-bold text-lg ${isActive ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`flex items-center gap-4 px-6 py-4 rounded-xl border-l-4 transition-all font-bold text-lg ${isActive ? 'border-volt bg-surface-raised text-foreground' : 'border-transparent text-muted-foreground hover:bg-surface hover:text-foreground'}`}
                                 >
-                                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110 text-volt' : 'opacity-70'}`} />
+                                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110 text-volt-ink' : 'opacity-70'}`} />
                                     <span>{item.label}</span>
                                 </Link>
                             );
                         })}
                     </nav>
 
-                    <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4">
+                    <div className="mt-8 pt-6 border-t border-hairline flex flex-col gap-4">
                         <div className="flex items-center gap-4 px-2">
-                            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/15 flex items-center justify-center">
-                                <User className="w-6 h-6 text-slate-400" />
+                            <div className="w-12 h-12 rounded-full bg-surface border border-hairline flex items-center justify-center">
+                                <User className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className="text-lg font-bold truncate text-white">{userData?.name || 'Usuario'}</span>
-                                <span className="label-tech text-[9px] text-slate-500">
+                                <span className="text-lg font-bold truncate text-foreground">{userData?.name || 'Usuario'}</span>
+                                <span className="label-tech text-[9px] text-subtle">
                                     {ROLE_LABELS[role] || role}
                                 </span>
                             </div>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl bg-white/5 text-live font-bold hover:bg-live/10 transition-colors"
+                            className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl bg-surface text-live font-bold hover:bg-live/10 transition-colors"
                         >
                             <LogOut className="w-5 h-5" />
                             Cerrar Sesión
@@ -283,7 +284,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </div>
 
             {/* DESKTOP SIDEBAR */}
-            <aside className={`hidden md:flex ${isCollapsed ? 'w-16' : 'w-52'} border-r border-white/10 bg-carbon-950 flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
+            <aside className={`hidden md:flex ${isCollapsed ? 'w-16' : 'w-52'} border-r border-hairline bg-background flex-col h-screen sticky top-0 z-50 transition-all duration-300 ease-in-out`}>
                 <style>{`
                     .sidebar-scroll::-webkit-scrollbar {
                         width: 5px;
@@ -292,23 +293,23 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                         background: transparent;
                     }
                     .sidebar-scroll::-webkit-scrollbar-thumb {
-                        background: rgba(255, 255, 255, 0.06);
+                        background: var(--hairline);
                         border-radius: 10px;
                     }
                     .sidebar-scroll:hover::-webkit-scrollbar-thumb {
                         background: rgba(212, 255, 63, 0.25);
                     }
                 `}</style>
-                <div className={`p-2.5 flex flex-col gap-3 border-b border-white/10 ${isCollapsed ? 'items-center' : ''}`}>
+                <div className={`p-2.5 flex flex-col gap-3 border-b border-hairline ${isCollapsed ? 'items-center' : ''}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <Link href="/home" className="flex items-center gap-2 group">
-                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={28} height={28} className="rounded-full border border-white/15 shadow-sm" priority />
-                            {!isCollapsed && <span className="heading-sport text-base text-white group-hover:text-volt transition-colors">A.C.A.P.</span>}
+                            <Image src="/img/stickers 1.jpg" alt="ACAP" width={28} height={28} className="rounded-full border border-hairline shadow-sm" priority />
+                            {!isCollapsed && <span className="heading-sport text-base text-foreground group-hover:text-volt-ink transition-colors">A.C.A.P.</span>}
                         </Link>
                         {!isCollapsed && (
                             <button
                                 onClick={() => setIsCollapsed(true)}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                                className="p-1.5 rounded-lg text-subtle hover:text-foreground hover:bg-surface-raised transition-all"
                             >
                                 <Menu className="w-4 h-4" />
                             </button>
@@ -318,7 +319,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                     {isCollapsed && (
                         <button
                             onClick={() => setIsCollapsed(false)}
-                            className="p-1.5 mt-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                            className="p-1.5 mt-2 rounded-lg text-subtle hover:text-foreground hover:bg-surface-raised transition-all active:scale-95"
                         >
                             <Menu className="w-4 h-4" />
                         </button>
@@ -328,6 +329,8 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto sidebar-scroll">
+                    <ThemeToggle variant="nav" collapsed={isCollapsed} />
+
                     {navItems.map((item, idx) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -338,11 +341,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                             {idx === 1 && (
                                 <button
                                     onClick={() => setExpanded(!isExpanded)}
-                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all font-semibold text-[13px] ${isExpanded ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all font-semibold text-[13px] ${isExpanded ? 'border-volt bg-surface-raised text-foreground' : 'border-transparent text-muted-foreground hover:bg-surface hover:text-foreground'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                     title={isCollapsed ? "Mensajes" : ""}
                                 >
                                     <div className="relative shrink-0">
-                                        <MessageSquare className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'scale-110 text-volt' : 'opacity-80'}`} />
+                                        <MessageSquare className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'scale-110 text-volt-ink' : 'opacity-80'}`} />
                                         {unreadMessages > 0 && (
                                             <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
                                                 {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -362,11 +365,11 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 href={item.href}
                                 target={item.newTab ? "_blank" : undefined}
                                 rel={item.newTab ? "noopener noreferrer" : undefined}
-                                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all group font-semibold text-[13px] ${isActive ? 'border-volt bg-white/[0.07] text-white' : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-l-2 transition-all group font-semibold text-[13px] ${isActive ? 'border-volt bg-surface-raised text-foreground' : 'border-transparent text-muted-foreground hover:bg-surface hover:text-foreground'} ${isCollapsed ? 'justify-center px-0' : ''}`}
                                 title={isCollapsed ? item.label : ""}
                             >
                                 <div className="relative">
-                                    <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110 text-volt' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
+                                    <Icon className={`w-3.5 h-3.5 transition-transform duration-300 pointer-events-none ${isActive ? 'scale-110 text-volt-ink' : 'group-hover:scale-110 opacity-80 group-hover:opacity-100'}`} />
                                     {isRequests && pendingRequests > 0 && (
                                         <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-amber-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse">
                                             {pendingRequests > 9 ? "9+" : pendingRequests}
@@ -398,7 +401,7 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
             </aside>
 
             {/* MOBILE BOTTOM TAB BAR */}
-            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-carbon-950/95 backdrop-blur-xl border-t border-white/10 pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
+            <nav className={`md:hidden fixed bottom-0 w-full z-[100] bg-background/95 backdrop-blur-xl border-t border-hairline pb-safe transition-transform duration-200 ${keyboardOpen ? "translate-y-full pointer-events-none" : "translate-y-0"}`}>
                 <div className="flex items-center justify-around px-1 py-1">
                     {navItems.slice(0, 5).map((item) => {
                         const Icon = item.icon;
@@ -408,10 +411,10 @@ export default function Sidebar({ initialUser }: { initialUser?: any }) {
                                 {isActive && (
                                     <div className="absolute top-0 w-6 h-0.5 bg-volt rounded-b-full shadow-[0_0_8px_rgba(212,255,63,0.6)]" />
                                 )}
-                                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-volt/10 text-volt' : 'text-slate-500'}`}>
+                                <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-volt/10 text-volt-ink' : 'text-subtle'}`}>
                                     <Icon className="w-4.5 h-4.5" />
                                 </div>
-                                <span className={`text-[9px] font-bold tracking-tight transition-colors ${isActive ? 'text-volt' : 'text-slate-500'}`}>
+                                <span className={`text-[9px] font-bold tracking-tight transition-colors ${isActive ? 'text-volt-ink' : 'text-subtle'}`}>
                                     {item.label.split(' ')[0]}
                                 </span>
                             </Link>

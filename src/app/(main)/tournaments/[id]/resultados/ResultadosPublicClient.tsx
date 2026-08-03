@@ -66,7 +66,7 @@ function PlayerName({ name }: { name: string }) {
     if (parts.length === 1) return <span className="font-black uppercase italic tracking-tight">{parts[0]}</span>;
     return (
         <span className="font-black uppercase italic tracking-tight">
-            {parts[0]} <span className="text-slate-400 font-bold not-italic">/</span> {parts[1]}
+            {parts[0]} <span className="text-muted-foreground font-bold not-italic">/</span> {parts[1]}
         </span>
     );
 }
@@ -74,7 +74,7 @@ function PlayerName({ name }: { name: string }) {
 function MatchStatusIcon({ status, confirmed }: { status?: string; confirmed: boolean }) {
     if (confirmed) return <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />;
     if (status === "in_progress") return <div className="w-2.5 h-2.5 rounded-full bg-rojo animate-pulse shrink-0" />;
-    return <Circle className="w-3 h-3 text-slate-300 shrink-0" />;
+    return <Circle className="w-3 h-3 text-muted-foreground shrink-0" />;
 }
 
 function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
@@ -84,19 +84,19 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
     const isFinished = groupMatches.length > 0 && confirmedCount === groupMatches.length;
 
     return (
-        <div className="bg-carbon-900 rounded-2xl border border-white/12 overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.8)]">
+        <div className="bg-card rounded-2xl border border-hairline overflow-hidden shadow-[0_24px_60px_-24px_rgba(0,0,0,0.8)]">
             {/* Group Header */}
-            <div className={`px-4 py-2.5 border-b border-white/10 flex items-center justify-between ${isFinished ? "bg-emerald-500/10" : "bg-white/[0.04]"}`}>
+            <div className={`px-4 py-2.5 border-b border-hairline flex items-center justify-between ${isFinished ? "bg-emerald-500/10" : "bg-surface"}`}>
                 <div className="flex items-center gap-2">
-                    <Users2 className={`w-4 h-4 ${isFinished ? "text-emerald-500" : "text-slate-400"}`} />
-                    <h3 className="font-black uppercase italic tracking-tight text-white">{group.name}</h3>
+                    <Users2 className={`w-4 h-4 ${isFinished ? "text-emerald-500" : "text-muted-foreground"}`} />
+                    <h3 className="font-black uppercase italic tracking-tight text-foreground">{group.name}</h3>
                     {(group as any).courtNumber && (
                         <span className="text-[9px] font-black uppercase tracking-widest text-celeste bg-celeste/10 px-1.5 py-0.5 rounded-md border border-celeste/20">
                             {(group as any).courtNumber}
                         </span>
                     )}
                 </div>
-                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isFinished ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-white/10 text-slate-300"}`}>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isFinished ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-surface-raised text-muted-foreground"}`}>
                     {confirmedCount}/{groupMatches.length} partidos
                 </span>
             </div>
@@ -105,13 +105,13 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
             <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                     <thead>
-                        <tr className="border-b border-white/10 bg-black/30">
-                            <th className="w-6 px-2 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">#</th>
-                            <th className="px-2 py-1.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
-                            <th className="w-8 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">J</th>
+                        <tr className="border-b border-hairline bg-surface">
+                            <th className="w-6 px-2 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">#</th>
+                            <th className="px-2 py-1.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                            <th className="w-8 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">J</th>
                             <th className="w-8 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-celeste">PG</th>
-                            <th className="w-8 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">PP</th>
-                            <th className="w-10 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">+/-</th>
+                            <th className="w-8 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">PP</th>
+                            <th className="w-10 px-1 py-1.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">+/-</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -120,8 +120,8 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
                                 <td className="px-2 py-1.5 text-center">
                                     <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-black ${
                                         idx === 0 ? "bg-rojo text-white shadow-sm" :
-                                        idx === 1 ? "bg-white/20 text-white" :
-                                        "bg-white/10 text-slate-300"
+                                        idx === 1 ? "bg-surface-raised text-foreground" :
+                                        "bg-surface-raised text-muted-foreground"
                                     }`}>
                                         {idx + 1}
                                     </span>
@@ -129,16 +129,16 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
                                 <td className="px-2 py-1.5">
                                     <div className="flex items-center gap-1.5">
                                         {idx === 0 && isFinished && <Crown className="w-3 h-3 text-amber-500 shrink-0" />}
-                                        <span className="text-[11px] font-black uppercase italic tracking-tight text-white truncate max-w-[180px]">
+                                        <span className="text-[11px] font-black uppercase italic tracking-tight text-foreground truncate max-w-[180px]">
                                             <PlayerName name={s.player.name} />
                                         </span>
                                     </div>
                                 </td>
-                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-slate-400">{s.matchesPlayed}</td>
+                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-muted-foreground">{s.matchesPlayed}</td>
                                 <td className="px-1 py-1.5 text-center text-[11px] font-black text-celeste">{s.won}</td>
-                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-slate-400">{s.lost}</td>
-                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-slate-400">
-                                    <span className={s.points > 0 ? "text-emerald-400" : s.points < 0 ? "text-rojo" : "text-slate-400"}>
+                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-muted-foreground">{s.lost}</td>
+                                <td className="px-1 py-1.5 text-center text-[11px] font-bold text-muted-foreground">
+                                    <span className={s.points > 0 ? "text-emerald-400" : s.points < 0 ? "text-rojo" : "text-muted-foreground"}>
                                         {s.points > 0 ? `+${s.points}` : s.points}
                                     </span>
                                 </td>
@@ -150,8 +150,8 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
 
             {/* Match Results */}
             {groupMatches.length > 0 && (
-                <div className="p-3 space-y-1.5 border-t border-white/10">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-0.5 mb-2">Resultados</p>
+                <div className="p-3 space-y-1.5 border-t border-hairline">
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground px-0.5 mb-2">Resultados</p>
                     {groupMatches.sort((a, b) => a.id.localeCompare(b.id)).map(m => {
                         const isDone = m.confirmed || m.status === "finished" || m.status === "completed";
                         const isLive = m.status === "in_progress";
@@ -161,16 +161,16 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
                             <div
                                 key={m.id}
                                 className={`rounded-xl border px-3 py-2 flex items-center gap-2 transition-all ${
-                                    isDone ? "bg-white/[0.04] border-white/12" :
+                                    isDone ? "bg-surface border-hairline" :
                                     isLive ? "bg-rojo/[0.03] border-rojo/30 shadow-sm shadow-rojo/10" :
-                                    "bg-white/[0.02] border-white/10"
+                                    "bg-surface border-hairline"
                                 }`}
                             >
                                 <div className="flex-1 min-w-0 flex items-center justify-end gap-1.5">
-                                    <span className={`text-[11px] font-black uppercase italic truncate ${w1 ? "text-white" : isDone ? "text-slate-400" : "text-slate-200"}`}>
+                                    <span className={`text-[11px] font-black uppercase italic truncate ${w1 ? "text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground"}`}>
                                         <PlayerName name={m.team1.name} />
                                     </span>
-                                    <span className={`text-base font-black w-6 text-center shrink-0 ${w1 ? "text-rojo" : "text-slate-400"}`}>
+                                    <span className={`text-base font-black w-6 text-center shrink-0 ${w1 ? "text-rojo" : "text-muted-foreground"}`}>
                                         {isDone || isLive ? (m.score1 ?? 0) : "—"}
                                     </span>
                                 </div>
@@ -179,10 +179,10 @@ function GroupCard({ group, matches }: { group: Group; matches: Match[] }) {
                                     {isLive && <span className="text-[8px] font-black text-rojo uppercase tracking-widest">LIVE</span>}
                                 </div>
                                 <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                                    <span className={`text-base font-black w-6 text-center shrink-0 ${w2 ? "text-rojo" : "text-slate-400"}`}>
+                                    <span className={`text-base font-black w-6 text-center shrink-0 ${w2 ? "text-rojo" : "text-muted-foreground"}`}>
                                         {isDone || isLive ? (m.score2 ?? 0) : "—"}
                                     </span>
-                                    <span className={`text-[11px] font-black uppercase italic truncate ${w2 ? "text-white" : isDone ? "text-slate-400" : "text-slate-200"}`}>
+                                    <span className={`text-[11px] font-black uppercase italic truncate ${w2 ? "text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground"}`}>
                                         <PlayerName name={m.team2.name} />
                                     </span>
                                 </div>
@@ -264,7 +264,7 @@ export default function ResultadosPublicClient({
                 </div>
                 <button
                     onClick={doRefresh}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/12 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-300 hover:border-celeste/50 hover:text-celeste transition-colors shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-hairline rounded-full text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:border-celeste/50 hover:text-celeste transition-colors shrink-0"
                 >
                     <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
                     <span>{isRefreshing ? "..." : `${countdown}s`}</span>
@@ -274,11 +274,11 @@ export default function ResultadosPublicClient({
             {/* Progress bar (grupos phase) */}
             {totalMatches > 0 && !isElimPhase && (
                 <div className="space-y-1">
-                    <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                         <span>Progreso Fase de Grupos</span>
                         <span>{confirmedMatches}/{totalMatches} partidos</span>
                     </div>
-                    <div className="h-2 bg-black/40 rounded-full overflow-hidden border border-white/12">
+                    <div className="h-2 bg-surface rounded-full overflow-hidden border border-hairline">
                         <div
                             className="h-full bg-gradient-to-r from-celeste to-celeste rounded-full transition-all duration-700"
                             style={{ width: `${progress}%` }}
@@ -290,13 +290,13 @@ export default function ResultadosPublicClient({
 
             {/* Tabs */}
             {hasBracket && (
-                <div className="flex bg-black/40 border border-white/12 rounded-xl p-1 gap-1">
+                <div className="flex bg-surface border border-hairline rounded-xl p-1 gap-1">
                     <button
                         onClick={() => setActiveTab("grupos")}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
                             activeTab === "grupos"
                                 ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20"
-                                : "text-slate-300 hover:text-white"
+                                : "text-muted-foreground hover:text-foreground"
                         }`}
                     >
                         <Users2 className="w-3.5 h-3.5" />
@@ -307,7 +307,7 @@ export default function ResultadosPublicClient({
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
                             activeTab === "playoffs"
                                 ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20"
-                                : "text-slate-300 hover:text-white"
+                                : "text-muted-foreground hover:text-foreground"
                         }`}
                     >
                         <Swords className="w-3.5 h-3.5" />
@@ -324,7 +324,7 @@ export default function ResultadosPublicClient({
                         <p className="text-celeste text-[10px] font-black uppercase tracking-[0.3em]">Clasificación en Vivo</p>
                     </div>
                     {initialGroups.length === 0 ? (
-                        <div className="text-center py-16 text-slate-400">
+                        <div className="text-center py-16 text-muted-foreground">
                             <Users2 className="w-10 h-10 mx-auto mb-3 opacity-20" />
                             <p className="text-sm font-bold">Los grupos aún no están disponibles</p>
                         </div>
@@ -347,7 +347,7 @@ export default function ResultadosPublicClient({
             )}
 
             {/* Footer timestamp */}
-            <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold text-slate-300 uppercase tracking-widest pt-2">
+            <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest pt-2">
                 <Clock className="w-3 h-3" />
                 <span>Actualizado: {lastRefresh.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
             </div>

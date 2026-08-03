@@ -59,7 +59,9 @@ export async function verifyTokenAction(token: string) {
         return { valid: false, reason: "vencida" as const };
     }
 
-    return { valid: true, role: invitation.role, email: invitation.email ?? undefined };
+    // No se devuelve el rol: el registro siempre crea un jugador, así que
+    // exponerlo sólo podría mostrar el valor viejo de una fila anterior.
+    return { valid: true, email: invitation.email ?? undefined };
 }
 
 
@@ -101,12 +103,19 @@ export async function registerAction(formData: FormData) {
         }
     }
 
-    // 2. Rol según la invitación. Si vino un token tiene que ser válido: antes
-    // se degradaba en silencio a "jugador" y la persona creía haberse
-    // registrado como club. Ahora se corta con un mensaje claro.
-    let role = (formData.get("role") as string) || "jugador";
+    // 2. El auto-registro SIEMPRE crea un jugador. El rol no se lee del
+    // formulario: `registerAction` es un server action y un POST armado a mano
+    // puede mandar cualquier campo, así que tomarlo de ahí permitía pedir
+    // "superadmin" y quedar a la espera de que un admin no lo notara al aprobar.
+    // Tampoco se lee de la invitación: una fila vieja podría traer otro rol.
+    // Club y admin se asignan a mano desde la gestión de usuarios.
+    const role = "jugador";
     let invitationId: string | null = null;
     let invitationClubId: string | null = null;
+
+    // Si vino un token tiene que ser válido: antes se degradaba en silencio y la
+    // persona creía haberse registrado con la invitación. Ahora se corta con un
+    // mensaje claro.
 
     if (invitationToken) {
         let payload: any = null;
@@ -139,7 +148,8 @@ export async function registerAction(formData: FormData) {
             return { error: "Esta invitación es para otro correo electrónico." };
         }
 
-        role = invitation.role;
+        // El rol no sale de acá (siempre es "jugador"); la invitación sólo
+        // aporta a qué club queda vinculada la persona.
         invitationId = invitation.id;
         invitationClubId = invitation.clubId;
     }

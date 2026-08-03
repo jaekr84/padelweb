@@ -65,19 +65,19 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
 
   return (
     <div className="flex gap-2 group/comment">
-      <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 overflow-hidden shrink-0 relative mt-0.5">
+      <div className="w-8 h-8 rounded-full bg-surface border border-hairline overflow-hidden shrink-0 relative mt-0.5">
         {comment.user.imageUrl ? (
           <Image src={comment.user.imageUrl} alt="" fill unoptimized className="object-cover" sizes="36px" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[11px] font-black text-slate-400 uppercase italic">
+          <div className="w-full h-full flex items-center justify-center text-[11px] font-black text-muted-foreground uppercase italic">
             {comment.user.name?.charAt(0) || "U"}
           </div>
         )}
       </div>
       <div className="flex-1 flex flex-col gap-0.5">
-        <div className="bg-white/[0.03] rounded-xl py-2 px-3.5 border border-white/10 relative group-hover/comment:border-white/10 transition-colors">
+        <div className="bg-surface rounded-xl py-2 px-3.5 border border-hairline relative group-hover/comment:border-hairline transition-colors">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-black uppercase italic tracking-tighter text-white leading-tight">
+            <span className="text-xs font-black uppercase italic tracking-tighter text-foreground leading-tight">
               {comment.user.name}
             </span>
             {isOwner && (
@@ -106,11 +106,11 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
               <input
                 value={editText}
                 onChange={(e) => setEditText(capitalizeFirstLetter(e.target.value))}
-                className="w-full bg-transparent border-none outline-none text-sm text-white"
+                className="w-full bg-transparent border-none outline-none text-sm text-foreground"
                 autoFocus
               />
               <div className="flex justify-end gap-2">
-                <button onClick={() => setIsEditing(false)} className="text-[10px] font-bold text-slate-500 uppercase">
+                <button onClick={() => setIsEditing(false)} className="text-[10px] font-bold text-subtle uppercase">
                   Cancelar
                 </button>
                 <button onClick={handleUpdate} disabled={isUpdating} className="text-[10px] font-bold text-azul-primary uppercase">
@@ -119,10 +119,10 @@ export function CommentItem({ comment, currentUser, timeAgo, capitalizeFirstLett
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-700 leading-relaxed font-medium">{comment.content}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed font-medium">{comment.content}</p>
           )}
         </div>
-        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-2">
           {timeAgo(comment.createdAt)}
         </span>
       </div>

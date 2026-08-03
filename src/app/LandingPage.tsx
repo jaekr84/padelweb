@@ -116,7 +116,7 @@ export default function LandingPage({
     const featuresRef = useRef<HTMLElement>(null);
 
     return (
-        <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
+        <div className="theme-night min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
 
             {/* ── Background Glows ── */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">

@@ -79,7 +79,7 @@ export default async function AdminOpenCourtPage() {
     }));
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-12 pt-4 px-4">
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-12 pt-4 px-4">
             <AdminOpenCourtClient initialEvents={events as any} />
         </div>
     );

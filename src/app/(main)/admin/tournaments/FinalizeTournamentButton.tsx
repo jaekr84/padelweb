@@ -49,14 +49,14 @@ export default function FinalizeTournamentButton({ tournamentId, tournamentName,
             title={confirming ? "Hacé clic de nuevo para confirmar finalización" : "Finalizar Torneo"}
             className={`flex items-center justify-center gap-1.5 font-black uppercase tracking-widest text-[8px] transition-all active:scale-95 border w-full h-9 ${
                 confirming 
-                ? "bg-slate-700 text-white border-slate-800 hover:bg-slate-600 animate-pulse" 
-                : "bg-slate-600/10 hover:bg-slate-600/20 border-slate-500/30 text-slate-400"
+                ? "bg-slate-700 text-foreground border-hairline hover:bg-slate-600 animate-pulse" 
+                : "bg-slate-600/10 hover:bg-slate-600/20 border-slate-500/30 text-muted-foreground"
             } disabled:opacity-50 rounded-lg`}
         >
             {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : confirming ? (
-                <span>{showLabel || !compact ? "¿Finalizar?" : <CheckCircle2 className="w-4 h-4 text-white" />}</span>
+                <span>{showLabel || !compact ? "¿Finalizar?" : <CheckCircle2 className="w-4 h-4 text-foreground" />}</span>
             ) : (
                 <>
                     <CheckCircle2 className="w-3 h-3" />

@@ -11,7 +11,7 @@ export default async function RequestsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white flex flex-col">
+        <div className="min-h-screen bg-grid-carbon text-foreground flex flex-col">
             <RequestsClient />
         </div>
     );

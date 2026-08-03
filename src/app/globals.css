@@ -1,14 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-
   /* Corporate Colors */
   --color-azul-primary: #1e40af;
   --color-azul-dark: #1e3a8a;
@@ -38,9 +30,69 @@
   --animate-live-pulse: live-pulse 1.6s ease-in-out infinite;
 }
 
-/* Tipografía deportiva: habilita las utilidades font-display y font-data.
-   `inline` es necesario porque referencian variables de next/font definidas en <body>. */
+/* `inline` es obligatorio para los tokens que cambian con el tema: hace que
+   `bg-card` compile a `background-color: var(--card)` en vez de
+   `var(--color-card)`. Sin eso, redefinir `--card` dentro de un scope
+   (`.dark`, `.theme-night`) no alcanzaría a los descendientes.
+   Las fuentes van acá por el mismo motivo: referencian variables de next/font
+   definidas en <body>. */
 @theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Tokens de superficie: reemplazan los `bg-white/5` y `border-white/10`
+     hardcodeados, que sólo funcionan sobre fondo oscuro. */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-subtle: var(--subtle);
+
+  /* Versión "tinta" de los acentos: el lima volt y los metales del podio
+     están pensados para fondo oscuro y sobre blanco quedan ilegibles. Como
+     relleno (`bg-volt` con texto carbón) el color original sirve en los dos
+     temas, así que sólo se tematiza el uso como color de texto. */
+  --color-volt-ink: var(--volt-ink);
+  --color-gold-ink: var(--gold-ink);
+  --color-silver-ink: var(--silver-ink);
+  --color-bronze-ink: var(--bronze-ink);
+
+  /* Acentos de Tailwind usados como texto (~290 usos): los tonos 300/400 están
+     pensados para fondo oscuro y sobre blanco no llegan a contraste. Se
+     redefinen por tema en vez de tocar cada call site. Los tonos 500+ quedan
+     como vienen: se usan como relleno sólido con texto blanco encima. */
+  --color-emerald-300: var(--a-emerald-300);
+  --color-emerald-400: var(--a-emerald-400);
+  --color-amber-300: var(--a-amber-300);
+  --color-amber-400: var(--a-amber-400);
+  --color-indigo-300: var(--a-indigo-300);
+  --color-indigo-400: var(--a-indigo-400);
+  --color-blue-300: var(--a-blue-300);
+  --color-blue-400: var(--a-blue-400);
+  --color-red-300: var(--a-red-300);
+  --color-red-400: var(--a-red-400);
+  --color-rose-300: var(--a-rose-300);
+  --color-rose-400: var(--a-rose-400);
+  --color-cyan-300: var(--a-cyan-300);
+  --color-cyan-400: var(--a-cyan-400);
+  --color-orange-300: var(--a-orange-300);
+  --color-orange-400: var(--a-orange-400);
+  --color-violet-300: var(--a-violet-300);
+  --color-violet-400: var(--a-violet-400);
+  --color-green-300: var(--a-green-300);
+  --color-green-400: var(--a-green-400);
+  --color-yellow-300: var(--a-yellow-300);
+  --color-yellow-400: var(--a-yellow-400);
+  --color-pink-300: var(--a-pink-300);
+  --color-pink-400: var(--a-pink-400);
+
   --font-display: var(--font-russo), var(--font-geist-sans), sans-serif;
   --font-data: var(--font-chakra), var(--font-geist-mono), monospace;
 }
@@ -56,10 +108,80 @@
 }
 
 @layer base {
-  /* Match Night: la app es dark-only, así que los tokens semánticos son
-     oscuros desde la raíz. Cada superficie sube un escalón sobre la anterior
-     (fondo < card < muted) para que los bloques se separen sin sombras. */
-  :root, .theme-night {
+  /* Tema claro (default de :root). Cada superficie sube un escalón sobre la
+     anterior (fondo < card < muted) para que los bloques se separen sin
+     sombras. El fondo es apenas gris para que las cards blancas destaquen. */
+  :root {
+    color-scheme: light;
+
+    --background: #f4f6fa;
+    --foreground: #0a0f1e;
+    --card: #ffffff;
+    --card-foreground: #0a0f1e;
+    --border: #dfe5ee;
+    --muted: #eaeff6;
+    --muted-foreground: #55637b;
+    --accent: #1e40af;
+    --accent-foreground: #ffffff;
+
+    /* Superficies translúcidas: en claro se oscurecen, en oscuro se aclaran.
+       Son el equivalente tematizado de `bg-white/5` y `border-white/10`. */
+    --surface: rgb(10 15 30 / 0.04);
+    --surface-raised: rgb(10 15 30 / 0.07);
+    --hairline: rgb(10 15 30 / 0.10);
+    --hairline-strong: rgb(10 15 30 / 0.18);
+    --subtle: #7a879e;
+
+    --glass: rgb(255 255 255 / 0.72);
+
+    /* "Arena": los paneles tipo tablero de estadio (cuadro de eliminatorias,
+       vista de grupos, cola en vivo). Son gradientes, no colores planos, así
+       que van como token completo y se aplican por `style` inline. */
+    --arena: radial-gradient(130% 95% at 50% -10%, #ffffff 0%, #f8fafd 45%, #eef2f8 100%);
+    --arena-panel: linear-gradient(155deg, #ffffff 0%, #eff3f9 100%);
+    /* Tarjeta de partido: el gradiente lleva un tinte del color de estado
+       encima, así que estos dos stops son sólo la base. */
+    --arena-card-mid: #f6f8fc;
+    --arena-card-end: #e9eef6;
+
+    --a-emerald-300: #047857;
+    --a-emerald-400: #059669;
+    --a-amber-300: #b45309;
+    --a-amber-400: #d97706;
+    --a-indigo-300: #4338ca;
+    --a-indigo-400: #4f46e5;
+    --a-blue-300: #1d4ed8;
+    --a-blue-400: #2563eb;
+    --a-red-300: #b91c1c;
+    --a-red-400: #dc2626;
+    --a-rose-300: #be123c;
+    --a-rose-400: #e11d48;
+    --a-cyan-300: #0e7490;
+    --a-cyan-400: #0891b2;
+    --a-orange-300: #c2410c;
+    --a-orange-400: #ea580c;
+    --a-violet-300: #6d28d9;
+    --a-violet-400: #7c3aed;
+    --a-green-300: #15803d;
+    --a-green-400: #16a34a;
+    --a-yellow-300: #a16207;
+    --a-yellow-400: #ca8a04;
+    --a-pink-300: #be185d;
+    --a-pink-400: #db2777;
+
+    --volt-ink: #4a6a06;
+    --gold-ink: #96650a;
+    --silver-ink: #5c6b80;
+    --bronze-ink: #9c5222;
+  }
+
+  /* Tema oscuro. `.theme-night` fuerza el mismo set dentro de un subárbol,
+     para los módulos competitivos (fixture, americano, cancha en vivo), que
+     quedan oscuros en ambos temas, y para los modales en portal, que se
+     montan fuera del contenedor de la página. */
+  .dark, .theme-night {
+    color-scheme: dark;
+
     --background: #05080f;
     --foreground: #f1f5f9;
     --card: #131c30;
@@ -69,21 +191,57 @@
     --muted-foreground: #b8c4d6;
     --accent: #1e40af;
     --accent-foreground: #ffffff;
+
+    --surface: rgb(255 255 255 / 0.05);
+    --surface-raised: rgb(255 255 255 / 0.10);
+    --hairline: rgb(255 255 255 / 0.10);
+    --hairline-strong: rgb(255 255 255 / 0.20);
+    --subtle: #8394ad;
+
+    --glass: rgb(15 23 42 / 0.60);
+
+    --arena: radial-gradient(130% 95% at 50% -10%, #1b2942 0%, #0d1526 45%, #060a13 100%);
+    --arena-panel: linear-gradient(155deg, #1b2536 0%, #0f1420 100%);
+    --arena-card-mid: #1a2030;
+    --arena-card-end: #0f1420;
+
+    --a-emerald-300: #6ee7b7;
+    --a-emerald-400: #34d399;
+    --a-amber-300: #fcd34d;
+    --a-amber-400: #fbbf24;
+    --a-indigo-300: #a5b4fc;
+    --a-indigo-400: #818cf8;
+    --a-blue-300: #93c5fd;
+    --a-blue-400: #60a5fa;
+    --a-red-300: #fca5a5;
+    --a-red-400: #f87171;
+    --a-rose-300: #fda4af;
+    --a-rose-400: #fb7185;
+    --a-cyan-300: #67e8f9;
+    --a-cyan-400: #22d3ee;
+    --a-orange-300: #fdba74;
+    --a-orange-400: #fb923c;
+    --a-violet-300: #c4b5fd;
+    --a-violet-400: #a78bfa;
+    --a-green-300: #86efac;
+    --a-green-400: #4ade80;
+    --a-yellow-300: #fde047;
+    --a-yellow-400: #facc15;
+    --a-pink-300: #f9a8d4;
+    --a-pink-400: #f472b6;
+
+    /* En oscuro la tinta es el acento tal cual. */
+    --volt-ink: #d4ff3f;
+    --gold-ink: #ffc53d;
+    --silver-ink: #c9d4e4;
+    --bronze-ink: #e8925a;
   }
 
-  /* `theme-night` sigue existiendo para forzar el tema dentro de un subárbol
-     (modales en portal, que se montan fuera del contenedor de la página). */
+  /* Con raíz clara, `.theme-night` ya no hereda el fondo oscuro de un padre:
+     tiene que pintarlo él mismo. */
   .theme-night {
-
-    /* Las utilidades de Tailwind leen --color-*, que se resuelve en :root:
-       hay que repintarlas acá o el override no llega a los descendientes. */
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-border: var(--border);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   * {
@@ -120,9 +278,11 @@
     appearance: none;
   }
 
-  /* Landing Page Utilities */
+  /* Tarjeta translúcida. La usan la landing y varias pantallas del chrome
+     (contacto, reglamento, admin), así que sigue al tema: dentro de
+     `.theme-night` los tokens son oscuros y conserva el vidrio original. */
   .glass-card {
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--glass);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(59, 130, 246, 0.2);
   }
@@ -296,13 +456,11 @@
   .badge-slant { transform: skewX(-10deg); }
   .badge-slant > .unskew { transform: skewX(10deg); }
 
-  /* Textura de grilla sobre fondo carbón (la del fixture) */
+  /* Fondo de página liso. Antes dibujaba una grilla de 32px; se sacó a pedido.
+     La clase se mantiene porque la usan ~34 pantallas como fondo base, y sigue
+     al tema (dentro de `.theme-night` queda carbón). */
   .bg-grid-carbon {
-    background-color: var(--color-carbon-900);
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background-color: var(--background);
   }
 
   /* Franjas diagonales de velocidad (hereda color vía currentColor) */
@@ -344,11 +502,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.02) !important;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1 !important; /* gray-300 */
+  background: var(--hairline-strong) !important;
   border-radius: 20px !important;
   border: 2px solid transparent !important;
   background-clip: content-box !important;
@@ -362,7 +520,7 @@
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: var(--hairline-strong) transparent;
 }
 
 /* Scrollbar Utilities */

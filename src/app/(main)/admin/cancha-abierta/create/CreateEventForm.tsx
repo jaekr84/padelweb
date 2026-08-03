@@ -260,7 +260,7 @@ export default function CreateEventForm({ categories, clubId }: Props) {
                         className="w-full bg-azul-primary hover:bg-azul-dark disabled:opacity-50 text-white font-black uppercase tracking-[0.3em] h-12 rounded-xl shadow-xl shadow-azul-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                     >
                         {isSubmitting ? (
-                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span className="w-4 h-4 border-2 border-hairline-strong border-t-white rounded-full animate-spin" />
                         ) : (
                             <>
                                 <Save className="w-4 h-4" />

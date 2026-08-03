@@ -34,7 +34,7 @@ export default async function PartidosPage() {
 
     if (matchesData.length === 0) {
         return (
-            <div className="min-h-screen bg-grid-carbon text-white">
+            <div className="min-h-screen bg-grid-carbon text-foreground">
                 <PartidosClient
                     initialMatches={[]}
                     isLoggedIn={!!session}
@@ -83,7 +83,7 @@ export default async function PartidosPage() {
     const categories = allCategories.map(c => c.name);
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white">
+        <div className="min-h-screen bg-grid-carbon text-foreground">
             <PartidosClient
                 initialMatches={JSON.parse(JSON.stringify(matches))}
                 isLoggedIn={!!session}

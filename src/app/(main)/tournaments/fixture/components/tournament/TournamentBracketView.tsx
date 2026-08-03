@@ -69,7 +69,7 @@ export function TournamentBracketView({
                         return (
                             <div key={round} className={`${isSingleBracket ? "w-[320px]" : "w-[450px]"} flex flex-col pt-3`}>
                                 <div className="flex-none flex flex-col items-center mb-4">
-                                    <span className="px-5 py-2 bg-slate-900 border border-white/10 rounded-xl text-[10px] font-black uppercase italic tracking-[0.2em] text-white shadow-xl">
+                                    <span className="px-5 py-2 bg-background border border-hairline rounded-xl text-[10px] font-black uppercase italic tracking-[0.2em] text-foreground shadow-xl">
                                         {roundLabel(round)}
                                     </span>
                                 </div>

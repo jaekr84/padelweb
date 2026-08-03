@@ -194,7 +194,7 @@ export function TournamentMatchCard({
                 </motion.div>
 
                 {/* Central Command Hub */}
-                <div className={`flex flex-col items-center justify-center gap-1 px-1 border-x border-white/5 ${isSingleLayout ? "w-14 flex-none" : "flex-1 min-w-[40px]"}`}>
+                <div className={`flex flex-col items-center justify-center gap-1 px-1 border-x border-hairline ${isSingleLayout ? "w-14 flex-none" : "flex-1 min-w-[40px]"}`}>
                     {!readOnly && (
                         <>
                             {/* START MATCH: Not started yet */}
@@ -205,14 +205,14 @@ export function TournamentMatchCard({
                                              whileHover={{ scale: 1.1 }}
                                              whileTap={{ scale: 0.9 }}
                                              onClick={() => handleBracketStart(m.id)}
-                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-white/20 hover:bg-azul-dark transition-all"
+                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-azul-primary text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] border border-hairline-strong hover:bg-azul-dark transition-all"
                                              title="Iniciar Partido"
                                          >
                                              <Zap className="w-5 h-5 fill-current animate-pulse" />
                                          </motion.button>
                                      ) : (
                                          <div
-                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-slate-500 border border-white/5 cursor-not-allowed"
+                                             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-subtle border border-hairline cursor-not-allowed"
                                              title="Esperando que se definan los participantes de los partidos anteriores"
                                          >
                                              <Lock className="w-4 h-4 stroke-[1.5]" />
@@ -227,7 +227,7 @@ export function TournamentMatchCard({
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleBracketConfirm(m.id)}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_20px_rgba(10,185,129,0.4)] border border-white/20 hover:bg-emerald-600 transition-all"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_0_20px_rgba(10,185,129,0.4)] border border-hairline-strong hover:bg-emerald-600 transition-all"
                                     title="Finalizar Partido"
                                 >
                                     <Flag className="w-5 h-5 stroke-[2.5]" />
@@ -240,7 +240,7 @@ export function TournamentMatchCard({
                                     whileHover={{ scale: 1.1, rotate: -45 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleReopenMatch(m.id)}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-rojo text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] border border-white/20 hover:bg-red-700 transition-all"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-rojo text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] border border-hairline-strong hover:bg-red-700 transition-all"
                                     title="Re-abrir Partido"
                                 >
                                     <RotateCcw className="w-5 h-5" />
@@ -293,12 +293,12 @@ export function TournamentMatchCard({
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="relative w-full max-w-sm bg-slate-950 border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col items-center justify-center shadow-2xl z-10"
+                            className="relative w-full max-w-sm bg-background border border-hairline rounded-2xl p-6 overflow-hidden flex flex-col items-center justify-center shadow-2xl z-10"
                         >
                             {/* Close Button */}
                             <button
                                 onClick={() => setSelectedPlayer(null)}
-                                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:scale-105 active:scale-95 transition-all z-50 text-white"
+                                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface border border-hairline flex items-center justify-center hover:bg-surface-raised hover:scale-105 active:scale-95 transition-all z-50 text-foreground"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -306,15 +306,15 @@ export function TournamentMatchCard({
                             {/* Ficha Title */}
                             <div className="text-center mb-4 shrink-0 z-10 mt-2">
                                 <span className="text-[9px] font-black text-celeste uppercase tracking-[0.3em]">Coleccionable Oficial</span>
-                                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter mt-1">{selectedPlayer.name}</h2>
+                                <h2 className="text-xl font-black text-foreground uppercase italic tracking-tighter mt-1">{selectedPlayer.name}</h2>
                             </div>
 
                             {/* Card Display Area */}
                             <div className="w-full flex justify-center py-2 relative z-10">
                                 {loadingProfile ? (
-                                    <div className="h-[420px] w-[280px] flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-2xl relative shadow-inner">
+                                    <div className="h-[420px] w-[280px] flex flex-col items-center justify-center bg-background border border-hairline rounded-2xl relative shadow-inner">
                                         <Loader2 className="w-8 h-8 text-azul-primary animate-spin" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-4 animate-pulse">Cargando Ficha...</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-subtle mt-4 animate-pulse">Cargando Ficha...</span>
                                     </div>
                                 ) : (
                                     <div className="scale-[0.82] sm:scale-90 origin-center">
@@ -387,8 +387,8 @@ function ScoreControl({
                 className={`
                     w-10 h-10 flex items-center justify-center rounded-lg transition-all relative overflow-hidden border-2
                     ${isWinner
-                        ? 'bg-emerald-500 border-white/40 shadow-lg'
-                        : 'bg-white/5 border-white/5 shadow-inner'}
+                        ? 'bg-emerald-500 border-hairline-strong shadow-lg'
+                        : 'bg-surface border-hairline shadow-inner'}
                 `}
             >
                 <span className={`
@@ -470,8 +470,8 @@ function MiniProfileCard({
                         absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full
                         border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)]
                         ${isSwapping 
-                            ? "bg-azul-primary text-white border-white/40 scale-110 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]" 
-                            : "bg-slate-900 text-slate-300 border-white/10 hover:bg-azul-primary hover:text-white hover:border-white/20 hover:scale-105 active:scale-95"}
+                            ? "bg-azul-primary text-white border-hairline-strong scale-110 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]" 
+                            : "bg-background text-muted-foreground border-hairline hover:bg-azul-primary hover:text-white hover:border-hairline-strong hover:scale-105 active:scale-95"}
                     `}
                     title="Intercambiar Jugador"
                 >
@@ -484,7 +484,7 @@ function MiniProfileCard({
             <div
                 className={`
                     p-[1px] transition-all duration-700 relative
-                    ${isSwapping ? "bg-azul-primary shadow-lg" : isWinner ? "bg-emerald-500 shadow-lg" : "bg-white/20"}
+                    ${isSwapping ? "bg-azul-primary shadow-lg" : isWinner ? "bg-emerald-500 shadow-lg" : "bg-surface-raised"}
                 `}
                 style={cardStyle}
             >
@@ -515,8 +515,8 @@ function MiniProfileCard({
                     {/* HUD Elements */}
                     {!isBye && !isTBD && category && (
                         <div className="absolute top-2 right-2 flex flex-col items-end opacity-40 group-hover/card:opacity-100 transition-opacity z-10">
-                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white">CAT</span>
-                            <span className="text-sm font-black italic text-white leading-none">
+                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-foreground">CAT</span>
+                            <span className="text-sm font-black italic text-foreground leading-none">
                                 {category.replace(/[^0-9]/g, '') || '5'}
                             </span>
                         </div>
@@ -524,17 +524,17 @@ function MiniProfileCard({
 
                     {/* Guest Badge */}
                     {isGuest && (
-                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-azul-primary border border-white/20 rounded-sm">
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 px-1.5 py-0.5 bg-azul-primary border border-hairline-strong rounded-sm">
                             <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                            <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
+                            <span className="text-[5px] font-black italic text-foreground uppercase tracking-[0.1em]">GUEST</span>
                         </div>
                     )}
 
                     {/* Bottom Info Module */}
                     <div className="mt-auto p-1 z-10 space-y-0.5 bg-[#020617]">
                         {!isBye && !isTBD && ranking && (
-                            <div className="flex items-center gap-1 px-1 py-0.5 bg-[#1e293b] rounded-sm border border-white/5 w-fit">
-                                <span className="text-[5px] font-black italic uppercase text-white/60 tracking-widest">
+                            <div className="flex items-center gap-1 px-1 py-0.5 bg-[#1e293b] rounded-sm border border-hairline w-fit">
+                                <span className="text-[5px] font-black italic uppercase text-foreground/60 tracking-widest">
                                     RANK <span className="text-azul-primary">#{ranking}</span>
                                 </span>
                             </div>
@@ -549,7 +549,7 @@ function MiniProfileCard({
                                 <div className="transform skew-x-12 text-center">
                                     <span className={`
                                         block text-[8px] font-black uppercase italic leading-none truncate
-                                        ${isWinner ? "text-white" : "text-slate-950"}
+                                        ${isWinner ? "text-foreground" : "text-foreground"}
                                     `}>
                                         {name.replace(/INVITADO/gi, "").trim() || "PLAYER"}
                                     </span>

@@ -138,7 +138,7 @@ export default async function AmericanoPublicPlayoffsPage({ params }: Props) {
     }
 
     const publicHeader = !isLoggedIn && (
-        <div className="theme-night sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5">
+        <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-hairline">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-8 h-8 rounded-full border border-azul-primary/30 overflow-hidden shrink-0 relative">

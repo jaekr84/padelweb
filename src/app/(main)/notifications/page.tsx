@@ -129,7 +129,7 @@ export default function NotificationsPage() {
                 <div className="flex p-1.5 bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] w-full max-w-md mx-auto relative z-10">
                     <button
                         onClick={() => setTab("todas")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] transition-all duration-500 text-[10px] font-black uppercase tracking-widest relative z-10 ${tab === "todas" ? "text-white" : "text-foreground/50 hover:text-foreground"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] transition-all duration-500 text-[10px] font-black uppercase tracking-widest relative z-10 ${tab === "todas" ? "text-foreground" : "text-foreground/50 hover:text-foreground"}`}
                     >
                         {tab === "todas" && (
                             <motion.div layoutId="notif-tab-bg" className="absolute inset-0 bg-azul-primary rounded-[1.5rem] shadow-xl shadow-azul-primary/30 z-[-1]" />
@@ -138,7 +138,7 @@ export default function NotificationsPage() {
                     </button>
                     <button
                         onClick={() => setTab("menciones")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] transition-all duration-500 text-[10px] font-black uppercase tracking-widest relative z-10 ${tab === "menciones" ? "text-white" : "text-foreground/50 hover:text-foreground"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-[1.5rem] transition-all duration-500 text-[10px] font-black uppercase tracking-widest relative z-10 ${tab === "menciones" ? "text-foreground" : "text-foreground/50 hover:text-foreground"}`}
                     >
                         {tab === "menciones" && (
                             <motion.div layoutId="notif-tab-bg" className="absolute inset-0 bg-celeste rounded-[1.5rem] shadow-xl shadow-celeste/30 z-[-1]" />

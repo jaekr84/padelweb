@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Plus, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
 import PublicTournamentCard from "./PublicTournamentCard";
 import TournamentFiltersClient from "./TournamentFiltersClient";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -270,20 +271,21 @@ export default async function TournamentsPage({
 
     return (
         <>
-            <div className="min-h-screen bg-grid-carbon text-white pb-24 font-sans selection:bg-volt/30">
+            <div className="min-h-screen bg-grid-carbon text-foreground pb-24 font-sans selection:bg-volt/30">
 
                 {/* Public Header (unauthenticated) */}
                 {!userId && (
-                    <div className="sticky top-0 z-50 w-full bg-carbon-950/90 backdrop-blur-xl border-b border-white/10">
+                    <div className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-xl border-b border-hairline">
                         <div className="w-full max-w-[1800px] mx-auto px-6 h-14 flex items-center justify-between">
                             <Link href="/" className="flex items-center gap-2 group">
-                                <div className="w-7 h-7 rounded-full border border-white/20 overflow-hidden shrink-0">
+                                <div className="w-7 h-7 rounded-full border border-hairline-strong overflow-hidden shrink-0">
                                     <img src="/img/stickers 1.jpg" alt="Logo" className="w-full h-full object-cover" />
                                 </div>
-                                <span className="heading-sport text-sm text-white">A.C.A.P.</span>
+                                <span className="heading-sport text-sm text-foreground">A.C.A.P.</span>
                             </Link>
                             <div className="flex items-center gap-3">
-                                <Link href="/login" className="label-tech text-[9px] text-slate-400 hover:text-white transition-colors">Login</Link>
+                                <ThemeToggle variant="icon" />
+                                <Link href="/login" className="label-tech text-[9px] text-muted-foreground hover:text-foreground transition-colors">Login</Link>
                                 <Link href="/" className="px-3.5 py-1.5 bg-azul-primary text-white rounded-lg label-tech text-[9px] hover:bg-azul-dark transition-all">Volver</Link>
                             </div>
                         </div>
@@ -293,9 +295,9 @@ export default async function TournamentsPage({
                 <div className="relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pt-5">
 
                     {/* ── HERO HEADER (Match Night) ── */}
-                    <div className="relative mb-5 overflow-hidden clip-notch bg-carbon-900 border border-white/10">
+                    <div className="relative mb-5 overflow-hidden clip-notch bg-background border border-hairline">
                         {/* Speed stripes */}
-                        <div className="absolute inset-y-0 right-0 w-1/2 bg-stripes text-white opacity-[0.03] pointer-events-none" />
+                        <div className="absolute inset-y-0 right-0 w-1/2 bg-stripes text-foreground opacity-[0.03] pointer-events-none" />
                         {/* Glow orbs */}
                         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-azul-primary/15 blur-3xl pointer-events-none" />
                         <div className="absolute bottom-0 -left-10 w-56 h-40 rounded-full bg-volt/5 blur-3xl pointer-events-none" />
@@ -305,10 +307,10 @@ export default async function TournamentsPage({
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-[3px] h-5 bg-volt rounded-full" />
-                                        <span className="label-tech text-[9px] text-volt">A.C.A.P.</span>
-                                        <span className="label-tech text-[9px] text-slate-500">· Circuito Oficial</span>
+                                        <span className="label-tech text-[9px] text-volt-ink">A.C.A.P.</span>
+                                        <span className="label-tech text-[9px] text-subtle">· Circuito Oficial</span>
                                     </div>
-                                    <h1 className="heading-sport text-5xl md:text-6xl text-white">
+                                    <h1 className="heading-sport text-5xl md:text-6xl text-foreground">
                                         Torneos
                                     </h1>
                                 </div>
@@ -325,28 +327,28 @@ export default async function TournamentsPage({
                             </div>
 
                             {/* KPI strip */}
-                            <div className="flex items-center gap-5 md:gap-8 mt-4 pt-4 border-t border-white/10">
+                            <div className="flex items-center gap-5 md:gap-8 mt-4 pt-4 border-t border-hairline">
                                 <div>
-                                    <p className="label-tech text-[7px] text-slate-500 leading-none mb-1.5">Total</p>
-                                    <p className="text-scoreboard text-2xl text-white leading-none">{totalC}</p>
+                                    <p className="label-tech text-[7px] text-subtle leading-none mb-1.5">Total</p>
+                                    <p className="text-scoreboard text-2xl text-foreground leading-none">{totalC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-white/10 shrink-0" />
+                                <div className="w-px h-8 bg-surface-raised shrink-0" />
                                 <div>
                                     <p className="label-tech text-[7px] text-live/80 leading-none mb-1.5 flex items-center gap-1.5">
                                         {liveC > 0 && <span className="live-dot !w-1.5 !h-1.5" />}
                                         En Vivo
                                     </p>
-                                    <p className={`text-scoreboard text-2xl leading-none ${liveC > 0 ? 'text-live' : 'text-slate-600'}`}>{liveC}</p>
+                                    <p className={`text-scoreboard text-2xl leading-none ${liveC > 0 ? 'text-live' : 'text-subtle'}`}>{liveC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-white/10 shrink-0" />
+                                <div className="w-px h-8 bg-surface-raised shrink-0" />
                                 <div>
-                                    <p className="label-tech text-[7px] text-volt/80 leading-none mb-1.5">Inscripción</p>
-                                    <p className={`text-scoreboard text-2xl leading-none ${openC > 0 ? 'text-volt' : 'text-slate-600'}`}>{openC}</p>
+                                    <p className="label-tech text-[7px] text-volt-ink/80 leading-none mb-1.5">Inscripción</p>
+                                    <p className={`text-scoreboard text-2xl leading-none ${openC > 0 ? 'text-volt-ink' : 'text-subtle'}`}>{openC}</p>
                                 </div>
-                                <div className="w-px h-8 bg-white/10 shrink-0" />
+                                <div className="w-px h-8 bg-surface-raised shrink-0" />
                                 <div>
-                                    <p className="label-tech text-[7px] text-slate-500 leading-none mb-1.5">Finalizados</p>
-                                    <p className="text-scoreboard text-2xl text-slate-600 leading-none">{finishedC}</p>
+                                    <p className="label-tech text-[7px] text-subtle leading-none mb-1.5">Finalizados</p>
+                                    <p className="text-scoreboard text-2xl text-subtle leading-none">{finishedC}</p>
                                 </div>
                             </div>
                         </div>
@@ -373,18 +375,18 @@ export default async function TournamentsPage({
                                 <div className="flex items-center gap-1">
                                     <Link
                                         href={prevMonthUrl}
-                                        className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:border-volt/50 hover:text-volt hover:bg-volt/5 transition-all"
+                                        className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center text-muted-foreground hover:border-volt/50 hover:text-volt-ink hover:bg-volt/5 transition-all"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </Link>
                                     <div className="px-3 h-8 rounded-lg border border-volt/30 bg-volt/10 flex items-center">
-                                        <span className="label-tech text-[10px] text-volt capitalize">
+                                        <span className="label-tech text-[10px] text-volt-ink capitalize">
                                             {getMonthLabel(selectedMonth)}
                                         </span>
                                     </div>
                                     <Link
                                         href={nextMonthUrl}
-                                        className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:border-volt/50 hover:text-volt hover:bg-volt/5 transition-all"
+                                        className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center text-muted-foreground hover:border-volt/50 hover:text-volt-ink hover:bg-volt/5 transition-all"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </Link>
@@ -392,7 +394,7 @@ export default async function TournamentsPage({
                                 {/* Ver todos link */}
                                 <Link
                                     href={allMonthsUrl}
-                                    className="label-tech text-[9px] text-slate-500 hover:text-volt transition-colors"
+                                    className="label-tech text-[9px] text-subtle hover:text-volt-ink transition-colors"
                                 >
                                     Ver todos
                                 </Link>
@@ -401,13 +403,13 @@ export default async function TournamentsPage({
                             /* "Todos" mode: show link to go back to current month */
                             <div className="flex items-center gap-3 w-full">
                                 <div className="w-[3px] h-4 bg-volt/60 rounded-full shrink-0" />
-                                <span className="label-tech text-[9px] text-slate-500">
+                                <span className="label-tech text-[9px] text-subtle">
                                     Todos los torneos
                                 </span>
-                                <div className="h-px flex-1 bg-white/10" />
+                                <div className="h-px flex-1 bg-surface-raised" />
                                 <Link
                                     href={currentMonthUrl}
-                                    className="label-tech text-[9px] text-volt hover:text-volt-dark transition-colors shrink-0"
+                                    className="label-tech text-[9px] text-volt-ink hover:text-volt-dark transition-colors shrink-0"
                                 >
                                     Mes actual
                                 </Link>
@@ -418,21 +420,21 @@ export default async function TournamentsPage({
                     {/* ── Tournament list ── */}
                     {filteredTournaments.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-14 h-14 bg-carbon-800 border border-white/10 clip-notch flex items-center justify-center mb-4">
-                                <Trophy className="w-6 h-6 text-slate-600" />
+                            <div className="w-14 h-14 bg-card border border-hairline clip-notch flex items-center justify-center mb-4">
+                                <Trophy className="w-6 h-6 text-subtle" />
                             </div>
-                            <h3 className="heading-sport text-sm text-slate-400 mb-1.5">Sin torneos</h3>
-                            <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed mb-4">
+                            <h3 className="heading-sport text-sm text-muted-foreground mb-1.5">Sin torneos</h3>
+                            <p className="text-subtle text-xs max-w-[200px] leading-relaxed mb-4">
                                 {isMonthView
                                     ? `No hay torneos en ${getMonthLabel(selectedMonth)}.`
                                     : `No hay torneos con estos filtros.`}
                             </p>
                             {isMonthView && (
                                 <div className="flex items-center gap-2">
-                                    <Link href={prevMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-white/10 bg-white/5 label-tech text-[9px] text-slate-300 hover:border-volt/40 hover:text-volt transition-all">
+                                    <Link href={prevMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-hairline bg-surface label-tech text-[9px] text-muted-foreground hover:border-volt/40 hover:text-volt-ink transition-all">
                                         <ChevronLeft className="w-3 h-3" /> Anterior
                                     </Link>
-                                    <Link href={nextMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-white/10 bg-white/5 label-tech text-[9px] text-slate-300 hover:border-volt/40 hover:text-volt transition-all">
+                                    <Link href={nextMonthUrl} className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-hairline bg-surface label-tech text-[9px] text-muted-foreground hover:border-volt/40 hover:text-volt-ink transition-all">
                                         Siguiente <ChevronRight className="w-3 h-3" />
                                     </Link>
                                 </div>
@@ -483,10 +485,10 @@ export default async function TournamentsPage({
                                     <div key={month} className="space-y-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-[3px] h-4 bg-volt/60 rounded-full shrink-0" />
-                                            <h2 className="label-tech text-[9px] text-slate-500 whitespace-nowrap capitalize">
+                                            <h2 className="label-tech text-[9px] text-subtle whitespace-nowrap capitalize">
                                                 {month}
                                             </h2>
-                                            <div className="h-px flex-1 bg-white/10" />
+                                            <div className="h-px flex-1 bg-surface-raised" />
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                             {groups[month].map((t) => (

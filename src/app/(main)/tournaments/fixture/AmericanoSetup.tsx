@@ -197,13 +197,13 @@ export default function AmericanoSetup({
     const [categoryFilter, setCategoryFilter] = useState("all");
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground">
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-white/12 px-4 py-2">
+        <div className="min-h-screen bg-background text-foreground">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-3xl border-b border-hairline px-4 py-2">
                 <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.push(`/tournaments/${tournamentId}/manage`)}
-                            className="group flex items-center gap-1.5 text-slate-200 hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/12"
+                            className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] shrink-0 bg-surface px-2.5 py-1.5 rounded-lg border border-hairline"
                         >
                             <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
                             Volver
@@ -213,7 +213,7 @@ export default function AmericanoSetup({
 
                         <div className="hidden md:flex flex-col">
                             <span className="text-[6px] font-black uppercase tracking-[0.2em] text-celeste/60 leading-none mb-0.5">Torneo</span>
-                            <span className="text-[10px] font-black uppercase italic tracking-tight text-white leading-none truncate max-w-[150px]">
+                            <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground leading-none truncate max-w-[150px]">
                                 {tournamentName}
                             </span>
                         </div>
@@ -239,13 +239,13 @@ export default function AmericanoSetup({
                                             disabled={s.disabled}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${s.active 
                                                 ? "bg-celeste text-carbon-950 shadow-sm" 
-                                                : "text-slate-400"}`}
+                                                : "text-muted-foreground"}`}
                                         >
                                             <Icon className="w-3 h-3" />
                                             <span className="text-[8px] font-black uppercase tracking-tight">{s.label}</span>
                                         </button>
                                         {idx < 2 && (
-                                            <div className="px-1 text-slate-500">
+                                            <div className="px-1 text-subtle">
                                                 <ChevronRight className="w-3 h-3" />
                                             </div>
                                         )}
@@ -289,28 +289,28 @@ export default function AmericanoSetup({
                             />
 
                             {/* Tarjeta de Configuración de Formato */}
-                            <div className="bg-card/40 backdrop-blur-xl border border-white/12 rounded-xl p-4 shadow-sm space-y-4">
-                                <div className="flex items-center justify-between border-b border-white/12 pb-2">
+                            <div className="bg-card/40 backdrop-blur-xl border border-hairline rounded-xl p-4 shadow-sm space-y-4">
+                                <div className="flex items-center justify-between border-b border-hairline pb-2">
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground flex items-center gap-1.5">
                                             <Settings className="w-3.5 h-3.5 text-celeste" />
                                             Configuración de Formato
                                         </span>
-                                        <span className="text-slate-400 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Ajustes del Sistema de Partidos</span>
+                                        <span className="text-muted-foreground text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Ajustes del Sistema de Partidos</span>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Cantidad de Canchas */}
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/12">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-hairline">
                                         <div className="flex flex-col">
                                             <span className="text-[9px] font-black uppercase text-foreground">Cantidad de Canchas</span>
-                                            <span className="text-[6px] text-slate-400 font-black uppercase tracking-wider">Canchas simultáneas a usar</span>
+                                            <span className="text-[6px] text-muted-foreground font-black uppercase tracking-wider">Canchas simultáneas a usar</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() => setNumCourts(prev => Math.max(1, prev - 1))}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer"
                                             >
                                                 <Minus className="w-3.5 h-3.5" />
                                             </button>
@@ -318,7 +318,7 @@ export default function AmericanoSetup({
                                             <button
                                                 type="button"
                                                 onClick={() => setNumCourts(prev => prev + 1)}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />
                                             </button>
@@ -326,18 +326,18 @@ export default function AmericanoSetup({
                                     </div>
 
                                     {/* Partidos por Jugador */}
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/12">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-hairline">
                                         <div className="flex flex-col">
                                             <span className="text-[9px] font-black uppercase text-foreground">
                                                 {isIndividual ? "Partidos por Jugador" : "Partidos por Pareja"}
                                             </span>
-                                            <span className="text-[6px] text-slate-400 font-black uppercase tracking-wider">Objetivo de partidos mínimos</span>
+                                            <span className="text-[6px] text-muted-foreground font-black uppercase tracking-wider">Objetivo de partidos mínimos</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() => setMatchesPerTeam(prev => Math.max(1, prev - 1))}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer"
                                             >
                                                 <Minus className="w-3.5 h-3.5" />
                                             </button>
@@ -345,7 +345,7 @@ export default function AmericanoSetup({
                                             <button
                                                 type="button"
                                                 onClick={() => setMatchesPerTeam(prev => prev + 1)}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />
                                             </button>
@@ -353,10 +353,10 @@ export default function AmericanoSetup({
                                     </div>
 
                                     {/* Clasificados a Llaves */}
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/12">
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-hairline">
                                         <div className="flex flex-col">
                                             <span className="text-[9px] font-black uppercase text-foreground">Clasificados a Llaves</span>
-                                            <span className="text-[6px] text-slate-400 font-black uppercase tracking-wider">Cantidad que avanza a eliminatorias</span>
+                                            <span className="text-[6px] text-muted-foreground font-black uppercase tracking-wider">Cantidad que avanza a eliminatorias</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
@@ -365,7 +365,7 @@ export default function AmericanoSetup({
                                                     setBracketSize(prev => Math.max(2, prev - 2));
                                                 }}
                                                 disabled={bracketSize <= 2}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer disabled:opacity-30"
                                             >
                                                 <Minus className="w-3.5 h-3.5" />
                                             </button>
@@ -385,14 +385,14 @@ export default function AmericanoSetup({
                                                     }
                                                     setBracketSize(cleanVal);
                                                 }}
-                                                className="w-8 bg-transparent text-center text-xs font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-white/12 focus:border-celeste"
+                                                className="w-8 bg-transparent text-center text-xs font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-hairline focus:border-celeste"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     setBracketSize(prev => prev + 2);
                                                 }}
-                                                className="w-7 h-7 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer"
+                                                className="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />
                                             </button>
@@ -407,7 +407,7 @@ export default function AmericanoSetup({
                                 className="w-full py-3 bg-celeste hover:bg-celeste-light text-carbon-950 rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-celeste/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
                             >
                                 {saving ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-hairline-strong border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
                                         Iniciar Torneo Técnico • {present.size} Jugadores

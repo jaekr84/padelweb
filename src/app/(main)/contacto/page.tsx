@@ -42,7 +42,7 @@ export default function ContactoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden font-sans selection:bg-azul-primary/30">
+        <div className="min-h-screen bg-black text-muted-foreground overflow-x-hidden font-sans selection:bg-azul-primary/30">
             {/* Background Glows */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-azul-primary/10 rounded-full blur-[120px]" />
@@ -59,10 +59,10 @@ export default function ContactoPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h1 className="text-5xl md:text-7xl font-black italic uppercase text-white mb-6 tracking-tighter">
+                        <h1 className="text-5xl md:text-7xl font-black italic uppercase text-foreground mb-6 tracking-tighter">
                             Ponete en <span className="text-celeste">Contacto</span>
                         </h1>
-                        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
                             Estamos acá para ayudarte. Si tenés dudas sobre torneos, membresías o querés ser parte de ACAP, escribinos.
                         </p>
                     </motion.div>
@@ -80,8 +80,8 @@ export default function ContactoPage() {
                             <div className="w-12 h-12 bg-pink-500/20 rounded-2xl flex items-center justify-center text-pink-500 mb-6 group-hover:scale-110 transition-transform">
                                 <Instagram className="w-6 h-6" />
                             </div>
-                            <h3 className="text-xl font-black text-white italic uppercase mb-2">Instagram</h3>
-                            <p className="text-slate-400 text-sm mb-6">Seguinos y envianos un DM para respuestas rápidas.</p>
+                            <h3 className="text-xl font-black text-foreground italic uppercase mb-2">Instagram</h3>
+                            <p className="text-muted-foreground text-sm mb-6">Seguinos y envianos un DM para respuestas rápidas.</p>
                             <a 
                                 href="https://www.instagram.com/acaparg?igsh=NW12OWR0OWcwcHky" 
                                 target="_blank" 
@@ -101,8 +101,8 @@ export default function ContactoPage() {
                             <div className="w-12 h-12 bg-celeste/20 rounded-2xl flex items-center justify-center text-celeste mb-6 group-hover:scale-110 transition-transform">
                                 <Mail className="w-6 h-6" />
                             </div>
-                            <h3 className="text-xl font-black text-white italic uppercase mb-2">Email</h3>
-                            <p className="text-slate-400 text-sm mb-6">Para consultas formales o patrocinio, escribinos un correo.</p>
+                            <h3 className="text-xl font-black text-foreground italic uppercase mb-2">Email</h3>
+                            <p className="text-muted-foreground text-sm mb-6">Para consultas formales o patrocinio, escribinos un correo.</p>
                             <a 
                                 href="mailto:acap@acap.ar" 
                                 className="inline-flex items-center gap-2 text-celeste font-bold text-xs uppercase tracking-widest hover:gap-4 transition-all"
@@ -117,11 +117,11 @@ export default function ContactoPage() {
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="glass-card p-8 rounded-[2rem] opacity-50 cursor-not-allowed text-left"
                         >
-                            <div className="w-12 h-12 bg-slate-800/50 rounded-2xl flex items-center justify-center text-slate-500 mb-6">
+                            <div className="w-12 h-12 bg-slate-800/50 rounded-2xl flex items-center justify-center text-subtle mb-6">
                                 <MapPin className="w-6 h-6" />
                             </div>
-                            <h3 className="text-xl font-black text-white italic uppercase mb-2">Sede Central</h3>
-                            <p className="text-slate-500 text-sm">Buenos Aires, Argentina (Próximamente)</p>
+                            <h3 className="text-xl font-black text-foreground italic uppercase mb-2">Sede Central</h3>
+                            <p className="text-subtle text-sm">Buenos Aires, Argentina (Próximamente)</p>
                         </motion.div>
                     </div>
 
@@ -135,13 +135,13 @@ export default function ContactoPage() {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-azul-primary/10 rounded-full blur-[80px] -mr-32 -mt-32" />
                         
                         <div className="relative z-10">
-                            <h2 className="text-3xl font-black text-white italic uppercase mb-8 flex items-center gap-4">
+                            <h2 className="text-3xl font-black text-foreground italic uppercase mb-8 flex items-center gap-4">
                                 <MessageSquare className="w-8 h-8 text-celeste" /> Enviar Mensaje
                             </h2>
 
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
                                 <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Nombre Completo</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-subtle ml-2">Nombre Completo</label>
                                     <input 
                                         type="text" 
                                         name="name"
@@ -149,11 +149,11 @@ export default function ContactoPage() {
                                         onChange={handleChange}
                                         placeholder="Ej: Juan Pérez" 
                                         required
-                                        className="w-full bg-black/40 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-celeste transition-all"
+                                        className="w-full bg-surface border border-hairline rounded-2xl px-6 py-4 text-foreground focus:outline-none focus:border-celeste transition-all"
                                     />
                                 </div>
                                 <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Email</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-subtle ml-2">Email</label>
                                     <input 
                                         type="email" 
                                         name="email"
@@ -161,27 +161,27 @@ export default function ContactoPage() {
                                         onChange={handleChange}
                                         placeholder="tu@email.com" 
                                         required
-                                        className="w-full bg-black/40 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-celeste transition-all"
+                                        className="w-full bg-surface border border-hairline rounded-2xl px-6 py-4 text-foreground focus:outline-none focus:border-celeste transition-all"
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-2 text-left">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Asunto</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-subtle ml-2">Asunto</label>
                                     <div className="relative">
                                         <select 
                                             name="subject"
                                             value={formData.subject}
                                             onChange={handleChange}
-                                            className="w-full bg-black/40 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-celeste transition-all appearance-none cursor-pointer"
+                                            className="w-full bg-surface border border-hairline rounded-2xl px-6 py-4 text-foreground focus:outline-none focus:border-celeste transition-all appearance-none cursor-pointer"
                                         >
-                                            <option className="bg-slate-900" value="Consulta General">Consulta General</option>
-                                            <option className="bg-slate-900" value="Inscripción a Torneo">Inscripción a Torneo</option>
-                                            <option className="bg-slate-900" value="Sponsors / Publicidad">Sponsors / Publicidad</option>
-                                            <option className="bg-slate-900" value="Problemas con la Cuenta">Problemas con la Cuenta</option>
+                                            <option className="bg-background" value="Consulta General">Consulta General</option>
+                                            <option className="bg-background" value="Inscripción a Torneo">Inscripción a Torneo</option>
+                                            <option className="bg-background" value="Sponsors / Publicidad">Sponsors / Publicidad</option>
+                                            <option className="bg-background" value="Problemas con la Cuenta">Problemas con la Cuenta</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div className="md:col-span-2 space-y-2 text-left">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Mensaje</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-subtle ml-2">Mensaje</label>
                                     <textarea 
                                         rows={5} 
                                         name="message"
@@ -189,7 +189,7 @@ export default function ContactoPage() {
                                         onChange={handleChange}
                                         placeholder="Escribí tu mensaje acá..." 
                                         required
-                                        className="w-full bg-black/40 border border-slate-800 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-celeste transition-all resize-none"
+                                        className="w-full bg-surface border border-hairline rounded-2xl px-6 py-4 text-foreground focus:outline-none focus:border-celeste transition-all resize-none"
                                     />
                                 </div>
                                 <div className="md:col-span-2 pt-4">

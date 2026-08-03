@@ -53,14 +53,14 @@ function StatCard({ label, value, icon: Icon, color, sub, href }: {
     href?: string;
 }) {
     const content = (
-        <div className={`bg-carbon-800/60 border border-white/10 rounded-2xl p-4 flex items-center gap-4 hover:bg-carbon-800 transition-all group ${href ? "cursor-pointer hover:border-celeste/40" : ""}`}>
+        <div className={`bg-card/60 border border-hairline rounded-2xl p-4 flex items-center gap-4 hover:bg-card transition-all group ${href ? "cursor-pointer hover:border-celeste/40" : ""}`}>
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
                 <Icon className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{label}</p>
-                <p className="text-2xl font-black text-white leading-none">{value}</p>
-                {sub && <p className="text-[10px] text-slate-400 mt-1">{sub}</p>}
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">{label}</p>
+                <p className="text-2xl font-black text-foreground leading-none">{value}</p>
+                {sub && <p className="text-[10px] text-muted-foreground mt-1">{sub}</p>}
             </div>
         </div>
     );
@@ -71,7 +71,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex items-center gap-3 mb-4">
             <div className="h-5 w-1 rounded-full bg-volt" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-300">{children}</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground">{children}</h2>
         </div>
     );
 }
@@ -80,12 +80,12 @@ function BarRow({ label, value, total, color }: { label: string; value: number; 
     const pct = total > 0 ? Math.round((value / total) * 100) : 0;
     return (
         <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-slate-300 w-28 shrink-0">{label}</span>
-            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+            <span className="text-[11px] font-bold text-muted-foreground w-28 shrink-0">{label}</span>
+            <div className="flex-1 h-2 bg-surface-raised rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-[11px] font-black text-slate-200 w-8 text-right">{value}</span>
-            <span className="text-[10px] text-slate-400 w-8">{pct}%</span>
+            <span className="text-[11px] font-black text-muted-foreground w-8 text-right">{value}</span>
+            <span className="text-[10px] text-muted-foreground w-8">{pct}%</span>
         </div>
     );
 }
@@ -114,13 +114,13 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
     });
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white font-sans pb-20">
+        <div className="min-h-screen bg-grid-carbon text-foreground font-sans pb-20">
             {/* Header */}
-            <div className="sticky top-0 z-30 bg-carbon-950/90 backdrop-blur-xl border-b border-white/10 py-4 px-6">
+            <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-hairline py-4 px-6">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div>
                         <p className="label-tech text-[9px] text-celeste-light">Panel General</p>
-                        <h1 className="text-xl heading-sport text-white leading-none">
+                        <h1 className="text-xl heading-sport text-foreground leading-none">
                             Dashboard <span className="text-celeste-light">A.C.A.P.</span>
                         </h1>
                     </div>
@@ -163,7 +163,7 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
 
                 {/* ── Género y Lado ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <section className="bg-carbon-800/60 border border-white/10 rounded-2xl p-5">
+                    <section className="bg-card/60 border border-hairline rounded-2xl p-5">
                         <SectionTitle>Género</SectionTitle>
                         <div className="space-y-3">
                             <BarRow label="Masculino" value={stats.genero.masculino} total={stats.usuarios.jugadores} color="bg-blue-400" />
@@ -182,7 +182,7 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
                         </div>
                     </section>
 
-                    <section className="bg-carbon-800/60 border border-white/10 rounded-2xl p-5">
+                    <section className="bg-card/60 border border-hairline rounded-2xl p-5">
                         <SectionTitle>Lado de juego</SectionTitle>
                         <div className="space-y-3">
                             <BarRow label="Drive" value={stats.lado.drive} total={stats.usuarios.jugadores} color="bg-indigo-400" />
@@ -206,7 +206,7 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
                 </div>
 
                 {/* ── Categorías ── */}
-                <section className="bg-carbon-800/60 border border-white/10 rounded-2xl p-5">
+                <section className="bg-card/60 border border-hairline rounded-2xl p-5">
                     <SectionTitle>Distribución por categoría</SectionTitle>
                     <div className="space-y-3">
                         {sortedCats.map(c => (
@@ -221,24 +221,24 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                         {sortedCats.map(c => (
-                            <div key={c.category} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
+                            <div key={c.category} className="flex items-center gap-2 bg-surface border border-hairline rounded-xl px-3 py-1.5">
                                 <span className={`w-2.5 h-2.5 rounded-full ${CATEGORY_COLORS[c.category] ?? "bg-slate-400"}`} />
-                                <span className="text-[11px] font-black text-slate-300">{c.category}</span>
-                                <span className="text-[11px] font-bold text-slate-400">{c.count}</span>
+                                <span className="text-[11px] font-black text-muted-foreground">{c.category}</span>
+                                <span className="text-[11px] font-bold text-muted-foreground">{c.count}</span>
                             </div>
                         ))}
                     </div>
                 </section>
 
                 {/* ── Torneos ── */}
-                <section className="bg-carbon-800/60 border border-white/10 rounded-2xl p-5">
+                <section className="bg-card/60 border border-hairline rounded-2xl p-5">
                     <SectionTitle>Torneos</SectionTitle>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
-                            { label: "Borrador", value: stats.torneos.draft, color: "bg-white/10 text-slate-500 border-white/10" },
+                            { label: "Borrador", value: stats.torneos.draft, color: "bg-surface-raised text-subtle border-hairline" },
                             { label: "Publicados", value: stats.torneos.publicados, color: "bg-blue-500/15 text-blue-400 border-blue-100" },
                             { label: "En curso", value: stats.torneos.enCurso, color: "bg-emerald-500/15 text-emerald-400 border-emerald-100" },
-                            { label: "Finalizados", value: stats.torneos.finalizados, color: "bg-white/5 text-slate-400 border-white/10" },
+                            { label: "Finalizados", value: stats.torneos.finalizados, color: "bg-surface text-muted-foreground border-hairline" },
                         ].map(t => (
                             <div key={t.label} className={`border rounded-xl p-3 text-center ${t.color}`}>
                                 <p className="text-2xl font-black">{t.value}</p>
@@ -253,14 +253,14 @@ export default function DashboardClient({ stats }: { stats: DashboardStats }) {
                     <section className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-5">
                         <SectionTitle>Pendientes de revisión</SectionTitle>
                         <div className="grid grid-cols-2 gap-3">
-                            <Link href="/admin/requests" className="bg-carbon-800/60 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 hover:border-amber-400/50 transition-colors">
+                            <Link href="/admin/requests" className="bg-card/60 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 hover:border-amber-400/50 transition-colors">
                                 <ClipboardList className="w-5 h-5 text-amber-400 shrink-0" />
                                 <div>
                                     <p className="text-xl font-black text-amber-400">{stats.pendientes.solicitudes}</p>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Solicitudes</p>
                                 </div>
                             </Link>
-                            <Link href="/admin/requests" className="bg-carbon-800/60 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 hover:border-amber-400/50 transition-colors">
+                            <Link href="/admin/requests" className="bg-card/60 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 hover:border-amber-400/50 transition-colors">
                                 <Mail className="w-5 h-5 text-amber-400 shrink-0" />
                                 <div>
                                     <p className="text-xl font-black text-amber-400">{stats.pendientes.mensajes}</p>

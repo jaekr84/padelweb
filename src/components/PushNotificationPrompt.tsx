@@ -69,26 +69,26 @@ export default function PushNotificationPrompt() {
 
     return (
         <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm">
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-xl p-4 flex items-start gap-3">
+            <div className="bg-card border border-border rounded-2xl shadow-xl p-4 flex items-start gap-3">
                 <div className="w-10 h-10 bg-azul-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Bell className="w-5 h-5 text-azul-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-slate-900">Activar notificaciones</p>
-                    <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    <p className="text-sm font-black text-foreground">Activar notificaciones</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                         Recibí alertas cuando alguien te envíe un mensaje, aunque la app esté cerrada.
                     </p>
                     <div className="flex items-center gap-2 mt-3">
                         <button
                             onClick={handleEnable}
                             disabled={loading}
-                            className="px-4 py-1.5 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-azul-primary transition-all disabled:opacity-50"
+                            className="px-4 py-1.5 bg-background text-foreground text-xs font-black uppercase tracking-widest rounded-xl hover:bg-azul-primary transition-all disabled:opacity-50"
                         >
                             {loading ? "Activando..." : "Activar"}
                         </button>
                         <button
                             onClick={() => setDismissed(true)}
-                            className="px-4 py-1.5 text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
+                            className="px-4 py-1.5 text-muted-foreground text-xs font-bold hover:text-subtle transition-colors"
                         >
                             Ahora no
                         </button>
@@ -96,7 +96,7 @@ export default function PushNotificationPrompt() {
                 </div>
                 <button
                     onClick={() => setDismissed(true)}
-                    className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0"
+                    className="text-muted-foreground hover:text-subtle transition-colors flex-shrink-0"
                 >
                     <X className="w-4 h-4" />
                 </button>

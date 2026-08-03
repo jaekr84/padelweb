@@ -30,6 +30,8 @@ const ROUND_ACCENTS: Record<number, string> = {
     4: "#b026ff", // 16AVOS   — violeta eléctrico
     5: "#ff6a00", // 32AVOS   — naranja blaze
 };
+// Tiene que quedar en hex: el color se concatena con un par de dígitos de alfa
+// (ver los `${accent}33` de abajo), y un `var(--…)` ahí daría CSS inválido.
 const roundAccent = (round: number) => ROUND_ACCENTS[round] ?? "#64748b";
 
 const roundTitle = (round: number, short = false) => {
@@ -169,7 +171,7 @@ export function AmericanoBracketMirror({
     if (bracket.length === 0) return null;
 
     return (
-        <div className="space-y-3 border-t border-white/12 pt-8 mt-8">
+        <div className="space-y-3 border-t border-hairline pt-8 mt-8">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-lg bg-celeste/10 flex items-center justify-center">
@@ -177,7 +179,7 @@ export function AmericanoBracketMirror({
                     </div>
                     <div>
                         <h3 className="text-[11px] font-black uppercase italic tracking-tight">Cuadro de Eliminatorias</h3>
-                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mt-0.5">
+                        <p className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mt-0.5">
                             Referencia visual • Click en un partido para ver detalle
                         </p>
                     </div>
@@ -196,8 +198,8 @@ export function AmericanoBracketMirror({
 
             <div
                 ref={boxRef}
-                className="relative rounded-2xl p-5 overflow-hidden border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)]"
-                style={{ background: "radial-gradient(130% 95% at 50% -10%, #1b2942 0%, #0d1526 45%, #060a13 100%)" }}
+                className="relative rounded-2xl p-5 overflow-hidden border border-hairline shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_60px_-24px_rgba(0,0,0,0.6)]"
+                style={{ background: "var(--arena)" }}
             >
                 {/* Faint grid — arena texture so the neon has something to glow against */}
                 <div
@@ -248,7 +250,7 @@ export function AmericanoBracketMirror({
                                         className="inline-block text-[8px] font-black uppercase italic tracking-[0.3em] px-2.5 py-1 rounded-sm"
                                         style={{
                                             color: roundAccent(col.round),
-                                            backgroundColor: "#0f1420",
+                                            backgroundColor: "var(--arena-card-end)",
                                             boxShadow: `inset 0 0 0 1px ${roundAccent(col.round)}80, 0 0 8px ${roundAccent(col.round)}40`,
                                         }}
                                     >
@@ -262,7 +264,7 @@ export function AmericanoBracketMirror({
                                     {col.side === "C" && champion && (
                                         <div className="text-center px-1 py-1.5 rounded-md bg-amber-400/15 border border-amber-400/40 shadow-[0_0_18px_rgba(251,191,36,0.25)]">
                                             <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-amber-300">Campeón</span>
-                                            <span className="block text-[11px] font-black uppercase italic text-white truncate mt-0.5">{champion}</span>
+                                            <span className="block text-[11px] font-black uppercase italic text-foreground truncate mt-0.5">{champion}</span>
                                         </div>
                                     )}
                                     {col.matches.map(m => (
@@ -310,7 +312,7 @@ export function AmericanoBracketMirror({
                             initial={{ scale: 0.92, opacity: 0, y: 10 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                            className="relative w-full max-w-sm bg-card border border-white/12 rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
+                            className="relative w-full max-w-sm bg-card border border-hairline rounded-2xl p-6 shadow-2xl z-10 flex flex-col items-center text-center gap-4"
                         >
                             <div className="w-14 h-14 rounded-full border bg-rojo/10 border-rojo/30 text-rojo flex items-center justify-center">
                                 <RotateCcw className="w-6 h-6" />
@@ -319,14 +321,14 @@ export function AmericanoBracketMirror({
                                 <h3 className="text-base font-black uppercase italic tracking-tight text-foreground leading-tight">
                                     Vas a reiniciar el cuadro
                                 </h3>
-                                <p className="text-xs text-slate-300 leading-relaxed">
+                                <p className="text-xs text-muted-foreground leading-relaxed">
                                     Se borran todas las llaves y resultados de eliminatorias y el torneo vuelve a la fase de grupos.
                                 </p>
                             </div>
                             <div className="w-full flex gap-2 pt-1">
                                 <button
                                     onClick={() => setConfirmReset(false)}
-                                    className="flex-1 py-3 rounded-xl border border-white/12 bg-white/5 hover:bg-white/5 text-slate-200 font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
+                                    className="flex-1 py-3 rounded-xl border border-hairline bg-surface hover:bg-surface text-muted-foreground font-black uppercase italic text-[10px] tracking-wider transition-all cursor-pointer"
                                 >
                                     Volver
                                 </button>
@@ -390,7 +392,7 @@ function MirrorCell({ match, canManage, onManage }: { match: BracketMatch; canMa
                 ? `${fullName(match.team1, t1)} vs ${fullName(match.team2, t2)} — ${hoverLabel}`
                 : `${fullName(match.team1, t1)} vs ${fullName(match.team2, t2)}`}
             style={{
-                background: `linear-gradient(155deg, ${accent}33 0%, #1a2030 42%, #0f1420 100%)`,
+                background: `linear-gradient(155deg, ${accent}33 0%, var(--arena-card-mid) 42%, var(--arena-card-end) 100%)`,
                 boxShadow: isLive
                     ? `0 0 0 1.5px #ff2d55, 0 0 18px #ff2d5566`
                     : `0 2px 6px rgba(0,0,0,0.45), inset 0 0 0 1px ${accent}73, 0 0 10px ${accent}26`,
@@ -420,17 +422,17 @@ function MirrorCell({ match, canManage, onManage }: { match: BracketMatch; canMa
                         key={side}
                         title={fullName(slot, p)}
                         style={isWinner ? { backgroundColor: `${accent}2e` } : undefined}
-                        className={`flex items-center justify-between gap-1 pl-2 pr-1.5 py-[9px] ${side === 1 ? "border-b border-white/10" : ""}`}
+                        className={`flex items-center justify-between gap-1 pl-2 pr-1.5 py-[9px] ${side === 1 ? "border-b border-hairline" : ""}`}
                     >
                         <span
                             className="text-[9px] font-black uppercase italic tabular-nums truncate tracking-tight"
-                            style={{ color: emptyCell ? "#64748b" : isWinner ? accent : loser ? "#64748b" : "#f1f5f9" }}
+                            style={{ color: emptyCell ? "var(--subtle)" : isWinner ? accent : loser ? "var(--subtle)" : "var(--foreground)" }}
                         >
                             {shortName(slot, p)}
                         </span>
                         <span
                             className="text-[10px] font-black italic tabular-nums shrink-0"
-                            style={{ color: emptyCell ? "#64748b" : isWinner ? accent : loser ? "#64748b" : "#e2e8f0" }}
+                            style={{ color: emptyCell ? "var(--subtle)" : isWinner ? accent : loser ? "var(--subtle)" : "var(--foreground)" }}
                         >
                             {match.confirmed && !isBye ? score ?? 0 : isLive ? score ?? 0 : ""}
                         </span>
@@ -445,7 +447,7 @@ function MirrorCell({ match, canManage, onManage }: { match: BracketMatch; canMa
             )}
             {/* Hover overlay — absolute so the cell (and the diagram) never changes size */}
             {manageable && (
-                <div className="absolute inset-0 hidden group-hover/cell:flex flex-col items-center justify-center gap-1 px-1 bg-[#0b1120]/80 backdrop-blur-[1px] pointer-events-none">
+                <div className="absolute inset-0 hidden group-hover/cell:flex flex-col items-center justify-center gap-1 px-1 bg-background/80 backdrop-blur-[1px] pointer-events-none">
                     <HoverIcon className="w-3 h-3 shrink-0" style={{ color: accent }} fill={isReady ? "currentColor" : "none"} />
                     <span className="text-[7px] font-black uppercase italic tracking-[0.15em] text-center leading-tight" style={{ color: accent }}>{hoverLabel}</span>
                 </div>
@@ -499,13 +501,13 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                 background: isWinner ? `${accent}1f` : "rgba(255,255,255,0.03)",
             }}
         >
-            <span className="text-xs font-black uppercase italic truncate min-w-0" style={{ color: isWinner ? accent : "#e2e8f0" }}>
+            <span className="text-xs font-black uppercase italic truncate min-w-0" style={{ color: isWinner ? accent : "var(--foreground)" }}>
                 {team ? team.name : "A definir"}
             </span>
             {editable ? (
                 <ScoreStepper value={score} onChange={onScoreChange!} disabled={busy || saving} accent={accent} />
             ) : (
-                <span className="text-lg font-black italic tabular-nums shrink-0 pr-1" style={{ color: isWinner ? accent : "#cbd5e1" }}>
+                <span className="text-lg font-black italic tabular-nums shrink-0 pr-1" style={{ color: isWinner ? accent : "var(--muted-foreground)" }}>
                     {finished || isLive ? score : "–"}
                 </span>
             )}
@@ -525,8 +527,8 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                 animate={{ rotateY: 0, opacity: 1, scale: 1 }}
                 exit={{ rotateY: 90, opacity: 0, scale: 0.9 }}
                 transition={{ type: "spring", stiffness: 260, damping: 24 }}
-                style={{ transformStyle: "preserve-3d", background: "linear-gradient(180deg, #1c2740 0%, #0f1727 100%)" }}
-                className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 shadow-2xl p-5 flex flex-col gap-4"
+                style={{ transformStyle: "preserve-3d", background: "var(--arena-panel)" }}
+                className="relative z-10 w-full max-w-sm rounded-2xl border border-hairline shadow-2xl p-5 flex flex-col gap-4"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -538,7 +540,7 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                     </span>
                     <button
                         onClick={onClose}
-                        className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                        className="w-7 h-7 rounded-lg bg-surface border border-hairline flex items-center justify-center text-foreground/60 hover:text-foreground hover:bg-surface-raised transition-all"
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>
@@ -548,9 +550,9 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                 <div className="flex flex-col gap-1.5">
                     <TeamRow team={t1} isWinner={winnerIs1} score={s1} editable={isLive} onScoreChange={(v) => onScore(String(v), String(s2))} />
                     <div className="flex items-center gap-2 px-1">
-                        <div className="flex-1 h-px bg-white/10" />
-                        <span className="text-[9px] font-black italic text-white/40">VS</span>
-                        <div className="flex-1 h-px bg-white/10" />
+                        <div className="flex-1 h-px bg-surface-raised" />
+                        <span className="text-[9px] font-black italic text-foreground/40">VS</span>
+                        <div className="flex-1 h-px bg-surface-raised" />
                     </div>
                     <TeamRow team={t2} isWinner={winnerIs2} score={s2} editable={isLive} onScoreChange={(v) => onScore(String(s1), String(v))} />
                 </div>
@@ -597,14 +599,14 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                             <div className="flex flex-col gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
                                 <div className="flex items-start gap-2">
                                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                                    <p className="text-[10px] text-white/70 leading-relaxed">
+                                    <p className="text-[10px] text-foreground/70 leading-relaxed">
                                         Se reabre el partido para editar el marcador. El ganador se quitará de la siguiente ronda.
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setConfirmReopen(false)}
-                                        className="flex-1 py-2 rounded-lg border border-white/10 bg-white/5 text-white/70 font-black uppercase italic text-[9px] tracking-wider hover:bg-white/10 transition-all"
+                                        className="flex-1 py-2 rounded-lg border border-hairline bg-surface text-foreground/70 font-black uppercase italic text-[9px] tracking-wider hover:bg-surface-raised transition-all"
                                     >
                                         Volver
                                     </button>
@@ -621,7 +623,7 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                             <button
                                 onClick={() => skipReopenConfirm ? run(onEdit) : setConfirmReopen(true)}
                                 disabled={busy || saving}
-                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 font-black uppercase italic text-[10px] tracking-widest transition-all disabled:opacity-50"
+                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-hairline bg-surface text-foreground/70 hover:text-foreground hover:bg-surface-raised font-black uppercase italic text-[10px] tracking-widest transition-all disabled:opacity-50"
                             >
                                 {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
                                 Corregir Resultado
@@ -631,7 +633,7 @@ function ManageModal({ match, saving, skipReopenConfirm, onScore, onStart, onCon
                 )}
 
                 {!isReady && !isLive && !finished && (
-                    <div className="flex items-center justify-center gap-2 py-3 text-white/50">
+                    <div className="flex items-center justify-center gap-2 py-3 text-foreground/50">
                         <Clock className="w-4 h-4" />
                         <span className="text-[10px] font-black uppercase italic tracking-widest">Esperando rivales</span>
                     </div>

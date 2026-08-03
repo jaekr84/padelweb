@@ -75,7 +75,7 @@ export default async function TournamentStatsPage({ params }: Props) {
     const hasData = stats.playedMatches > 0;
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground">
             <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between gap-3">

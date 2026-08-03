@@ -574,13 +574,13 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
     };
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground p-4 md:p-8">
+        <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-4 animate-fade-in pb-12">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/12 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/cancha-abierta">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-muted text-muted-foreground transition-all active:scale-90">
+                        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface hover:bg-muted text-muted-foreground transition-all active:scale-90">
                             <ArrowLeft className="w-4 h-4" />
                         </button>
                     </Link>
@@ -607,10 +607,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex gap-1 bg-white/5 p-1 rounded-xl w-fit border border-white/12">
+            <div className="flex gap-1 bg-surface p-1 rounded-xl w-fit border border-hairline">
                 <button
                     onClick={() => setActiveTab("attendance")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "attendance" ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "attendance" ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20" : "text-muted-foreground hover:text-foreground"
                         }`}
                 >
                     <UserCheck className="w-3 h-3" />
@@ -618,7 +618,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 </button>
                 <button
                     onClick={() => setActiveTab("live")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "live" ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "live" ? "bg-celeste text-carbon-950 shadow-lg shadow-celeste/20" : "text-muted-foreground hover:text-foreground"
                         }`}
                 >
                     <Activity className="w-3 h-3" />
@@ -626,7 +626,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                 </button>
                 <button
                     onClick={() => setActiveTab("history")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "history" ? "bg-muted text-muted-foreground border border-border" : "text-muted-foreground hover:text-white"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "history" ? "bg-muted text-muted-foreground border border-border" : "text-muted-foreground hover:text-foreground"
                         }`}
                 >
                     <Trophy className="w-3 h-3" />
@@ -647,7 +647,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                         <div className="bg-card/40 border border-celeste/20 rounded-xl p-2.5">
                             <div className="flex flex-wrap items-center gap-2">
                                 {/* Mode toggle */}
-                                <div className="flex gap-1 bg-white/5 p-1 rounded-lg shrink-0">
+                                <div className="flex gap-1 bg-surface p-1 rounded-lg shrink-0">
                                     <button
                                         onClick={() => { setIsGuestMode(false); setSideSelector(null); }}
                                         className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${!isGuestMode ? 'bg-celeste text-carbon-950 shadow-md' : 'text-muted-foreground'}`}
@@ -663,7 +663,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 </div>
 
                                 {/* Gender toggle */}
-                                <div className="flex gap-1 bg-white/5 p-1 rounded-lg shrink-0">
+                                <div className="flex gap-1 bg-surface p-1 rounded-lg shrink-0">
                                     <button
                                         onClick={() => setSelectedGender("masculino")}
                                         className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${selectedGender === "masculino" ? 'bg-celeste text-carbon-950 shadow-md' : 'text-muted-foreground'}`}
@@ -686,15 +686,15 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                         value={isGuestMode ? guestName : searchQuery}
                                         onChange={(e) => isGuestMode ? setGuestName(e.target.value) : setSearchQuery(e.target.value)}
                                         placeholder={isGuestMode ? "Nombre del invitado..." : "Buscar jugador..."}
-                                        className="w-full bg-white/5 border border-white/12 rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold focus:border-celeste/50 transition-all outline-none"
+                                        className="w-full bg-surface border border-hairline rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold focus:border-celeste/50 transition-all outline-none"
                                     />
                                     {!isGuestMode && filteredPlayers.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border border-white/12 rounded-xl shadow-2xl overflow-hidden">
+                                        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border border-hairline rounded-xl shadow-2xl overflow-hidden">
                                             {filteredPlayers.map(p => (
                                                 <button
                                                     key={p.id}
                                                     onClick={() => handleRegisterPlayer(p.id, p.name, p.category)}
-                                                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-celeste/10 transition-all text-left border-b border-white/12 last:border-0"
+                                                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-celeste/10 transition-all text-left border-b border-hairline last:border-0"
                                                 >
                                                     <div className="flex flex-col">
                                                         <span className="text-[9px] font-black uppercase italic">{p.name}</span>
@@ -709,7 +709,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
                                 {/* Side selector — visible when player selected or in guest mode */}
                                 {sideSelector && (
-                                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg shrink-0">
+                                    <div className="flex gap-1 bg-surface p-1 rounded-lg shrink-0">
                                         {[
                                             { id: 'drive', label: 'Drive' },
                                             { id: 'reves', label: 'Revés' },
@@ -740,7 +740,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 {sideSelector && (
                                     <button
                                         onClick={() => { setSideSelector(null); setIsGuestMode(false); setSearchQuery(""); setGuestName(""); }}
-                                        className="text-[7px] font-black uppercase text-slate-400 hover:text-rojo transition-colors shrink-0"
+                                        className="text-[7px] font-black uppercase text-muted-foreground hover:text-rojo transition-colors shrink-0"
                                     >
                                         Cancelar
                                     </button>
@@ -754,7 +754,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 <div className="flex items-center gap-2">
                                     <ListFilter className="w-3.5 h-3.5 text-celeste" />
                                     <h3 className="text-[10px] font-black uppercase tracking-widest text-foreground">Lista de Inscritos</h3>
-                                    <span className="text-[9px] font-bold bg-white/5 px-1.5 py-0.5 rounded-full text-muted-foreground">{registrations.length}</span>
+                                    <span className="text-[9px] font-bold bg-surface px-1.5 py-0.5 rounded-full text-muted-foreground">{registrations.length}</span>
                                 </div>
 
                                 <div className="flex items-center gap-1.5">
@@ -783,17 +783,17 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 </div>
                             </div>
 
-                            <div className="bg-card/40 border border-white/12 rounded-xl overflow-hidden">
+                            <div className="bg-card/40 border border-hairline rounded-xl overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse">
                                         <thead>
-                                            <tr className="border-b border-white/12 bg-white/5">
-                                                <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
-                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Categoría</th>
-                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Lado</th>
-                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Pago</th>
-                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Asistencia</th>
-                                                <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400"></th>
+                                            <tr className="border-b border-hairline bg-surface">
+                                                <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Categoría</th>
+                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Lado</th>
+                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Pago</th>
+                                                <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Asistencia</th>
+                                                <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/[0.08]">
@@ -802,11 +802,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 // El estado se marca con la barra lateral y el color del nombre:
                                                 // bajar la opacidad de la fila entera apagaba también los controles.
                                                 return (
-                                                <tr key={reg.id} className={`group transition-colors ${isAbsent ? 'hover:bg-white/[0.04]' : 'bg-celeste/[0.04] hover:bg-celeste/[0.07]'}`}>
+                                                <tr key={reg.id} className={`group transition-colors ${isAbsent ? 'hover:bg-surface' : 'bg-celeste/[0.04] hover:bg-celeste/[0.07]'}`}>
                                                     <td className="px-4 py-1.5">
                                                         <div className="flex items-center gap-2">
-                                                            <div className={`w-[3px] h-7 rounded-full shrink-0 ${isAbsent ? 'bg-white/15' : 'bg-celeste'}`} />
-                                                            <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground overflow-hidden">
+                                                            <div className={`w-[3px] h-7 rounded-full shrink-0 ${isAbsent ? 'bg-surface-raised' : 'bg-celeste'}`} />
+                                                            <div className="w-7 h-7 rounded-lg bg-surface flex items-center justify-center text-muted-foreground overflow-hidden">
                                                                 {reg.user?.imageUrl ? (
                                                                     <img src={reg.user.imageUrl} className="w-full h-full object-cover" />
                                                                 ) : (
@@ -814,10 +814,10 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className={`text-[10px] font-black uppercase italic tracking-tight ${isAbsent ? 'text-slate-400' : 'text-white'}`}>
+                                                                <span className={`text-[10px] font-black uppercase italic tracking-tight ${isAbsent ? 'text-muted-foreground' : 'text-foreground'}`}>
                                                                     {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
                                                                 </span>
-                                                                <span className="text-[7px] font-medium text-slate-400">
+                                                                <span className="text-[7px] font-medium text-muted-foreground">
                                                                     {isAbsent
                                                                         ? <span className="text-amber-400 font-black uppercase tracking-widest">Sin confirmar</span>
                                                                         : reg.guestName ? "Invitado" : reg.user?.email}
@@ -843,7 +843,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
                                                                 className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid
                                                                     ? 'bg-celeste/10 border-celeste/30 text-celeste'
-                                                                    : 'bg-white/5 border-white/12 text-slate-400 hover:border-celeste/40'
+                                                                    : 'bg-surface border-hairline text-muted-foreground hover:border-celeste/40'
                                                                     }`}
                                                             >
                                                                 <DollarSign className={`w-2.5 h-2.5 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
@@ -855,7 +855,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         <div className="flex justify-center">
                                                             <button
                                                                 onClick={() => handleTogglePresence(reg.id, reg.status)}
-                                                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-carbon-950 shadow-lg shadow-celeste/20' : 'bg-white/5 border border-white/20 text-slate-400 hover:border-celeste hover:text-celeste'
+                                                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${reg.status === 'waiting' ? 'bg-celeste text-carbon-950 shadow-lg shadow-celeste/20' : 'bg-surface border border-hairline-strong text-muted-foreground hover:border-celeste hover:text-celeste'
                                                                     }`}
                                                             >
                                                                 <CheckCircle className="w-3.5 h-3.5" />
@@ -866,7 +866,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         <div className="flex justify-end">
                                                             <button
                                                                 onClick={() => handleRemoveRegistration(reg.id)}
-                                                                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:bg-rojo/10 hover:text-rojo transition-all"
+                                                                className="w-7 h-7 rounded-lg flex items-center justify-center text-subtle hover:bg-rojo/10 hover:text-rojo transition-all"
                                                                 title="Eliminar inscripto"
                                                             >
                                                                 <Trash2 className="w-3 h-3" />
@@ -903,21 +903,21 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
                                 <div className="flex items-center gap-3">
                                     {/* KPIs Movidos */}
-                                    <div className="hidden lg:flex items-center gap-3 bg-card/40 border border-white/12 px-4 py-1.5 rounded-xl">
+                                    <div className="hidden lg:flex items-center gap-3 bg-card/40 border border-hairline px-4 py-1.5 rounded-xl">
                                         <div className="flex flex-col items-center">
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Disponibles</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">Disponibles</span>
                                             <span className="text-sm font-black italic leading-none text-celeste">{availablePlayers.length}</span>
                                         </div>
                                         <div className="w-px h-4 bg-border/40" />
                                         <div className="flex flex-col items-center">
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">En Juego</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">En Juego</span>
                                             <span className="text-sm font-black italic leading-none text-celeste">{event.matches.filter(m => m.status === 'in_progress').length}</span>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={handleAddCourt}
-                                        className="h-9 flex items-center gap-2 px-4 bg-white/5 border border-white/12 rounded-lg hover:bg-foreground hover:text-background transition-all group"
+                                        className="h-9 flex items-center gap-2 px-4 bg-surface border border-hairline rounded-lg hover:bg-foreground hover:text-background transition-all group"
                                     >
                                         <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
                                         <span className="text-[8px] font-black uppercase tracking-widest">Agregar Cancha</span>
@@ -943,18 +943,18 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                     const isOccupied = court.status !== "available";
 
                                     return (
-                                        <div key={court.id} className="group relative bg-card/40 backdrop-blur-xl border border-white/12 rounded-xl overflow-hidden shadow-xl hover:border-celeste/40 transition-all flex flex-col">
+                                        <div key={court.id} className="group relative bg-card/40 backdrop-blur-xl border border-hairline rounded-xl overflow-hidden shadow-xl hover:border-celeste/40 transition-all flex flex-col">
 
                                             {/* --- TIER 1: HEADER (COMMAND BAR) --- */}
-                                            <div className="flex items-center justify-between px-4 py-1.5 bg-foreground/5 border-b border-white/5 backdrop-blur-3xl">
+                                            <div className="flex items-center justify-between px-4 py-1.5 bg-foreground/5 border-b border-hairline backdrop-blur-3xl">
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-2">
                                                         <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.2)] ${isOccupied ? "bg-rojo animate-pulse" : "bg-celeste"}`} />
-                                                        <h4 className="text-[11px] font-black uppercase italic tracking-tighter text-slate-100">Cancha {court.courtNumber}</h4>
+                                                        <h4 className="text-[11px] font-black uppercase italic tracking-tighter text-foreground">Cancha {court.courtNumber}</h4>
                                                     </div>
 
                                                     {/* Selector de Modo Compacto */}
-                                                    <div className="flex items-center bg-background/20 rounded-md p-0.5 border border-white/5">
+                                                    <div className="flex items-center bg-background/20 rounded-md p-0.5 border border-hairline">
                                                         {[
                                                             { id: 'libre', label: 'LIBRE', title: 'Cualquier combinación.' },
                                                             { id: 'mixto', label: 'MIXTO', title: 'Mixto Estricto (H+M).' }
@@ -965,7 +965,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 onClick={() => handleUpdateCourtSettings(court.id, { matchType: m.id })}
                                                                 className={`px-2 py-0.5 rounded-sm text-[6px] font-black tracking-widest transition-all ${(court.matchType || 'libre') === m.id
                                                                     ? 'bg-celeste text-carbon-950 shadow-md'
-                                                                    : 'text-slate-500 hover:text-slate-400'
+                                                                    : 'text-subtle hover:text-muted-foreground'
                                                                     }`}
                                                             >
                                                                 {m.label}
@@ -994,7 +994,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                         </button>
                                                     )}
 
-                                                    <div className="h-4 w-[1px] bg-white/10 mx-1" />
+                                                    <div className="h-4 w-[1px] bg-surface-raised mx-1" />
 
                                                     <button
                                                         onClick={() => handleRemoveCourt(court.id)}
@@ -1037,7 +1037,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 {/* Center: VS + Lock */}
                                                 <div className="flex flex-col items-center justify-center gap-1 w-14 flex-none">
                                                     {!isOccupied && (
-                                                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-slate-500 border border-white/5">
+                                                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/40 text-subtle border border-hairline">
                                                             <Lock className="w-4 h-4 stroke-[1.5]" />
                                                         </div>
                                                     )}
@@ -1075,7 +1075,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                             </div>
                         </div>
 
-                        <div className="bg-card/30 backdrop-blur-xl border border-white/12 rounded-xl p-4 mt-6 overflow-hidden shadow-xl">
+                        <div className="bg-card/30 backdrop-blur-xl border border-hairline rounded-xl p-4 mt-6 overflow-hidden shadow-xl">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center shadow-inner">
@@ -1083,7 +1083,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                     </div>
                                     <div>
                                         <h3 className="text-[11px] font-black uppercase tracking-[0.1em] italic">Panel de Rotación</h3>
-                                        <p className="text-[7px] font-bold text-slate-400 uppercase">Lista priorizada por rueda y posiciones tácticas</p>
+                                        <p className="text-[7px] font-bold text-muted-foreground uppercase">Lista priorizada por rueda y posiciones tácticas</p>
                                     </div>
                                 </div>
                             </div>
@@ -1091,14 +1091,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse">
                                     <thead>
-                                        <tr className="border-b border-white/12 bg-white/5">
-                                            <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Estado</th>
-                                            <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Jugador</th>
-                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Lado</th>
-                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Partidos</th>
-                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Pago</th>
-                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Presente</th>
-                                            <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-slate-400">Prioridad</th>
+                                        <tr className="border-b border-hairline bg-surface">
+                                            <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                                            <th className="text-left px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Jugador</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Lado</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Partidos</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Pago</th>
+                                            <th className="text-center px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Presente</th>
+                                            <th className="text-right px-4 py-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground">Prioridad</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1140,17 +1140,17 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                 return (
                                                     <tr
                                                         key={reg.id}
-                                                        className={`border-b border-white/12 transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-celeste/5' : ''}`}
+                                                        className={`border-b border-hairline transition-colors hover:bg-foreground/5 ${isPlaying ? 'bg-celeste/5' : ''}`}
                                                     >
                                                         <td className="px-4 py-1.5">
-                                                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit ${isPlaying ? 'bg-celeste/10 text-celeste' : 'bg-white/5 text-slate-400'}`}>
+                                                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit ${isPlaying ? 'bg-celeste/10 text-celeste' : 'bg-surface text-muted-foreground'}`}>
                                                                 <div className={`w-1 h-1 rounded-full ${isPlaying ? 'bg-celeste animate-pulse' : 'bg-slate-500'}`} />
                                                                 <span className="text-[7px] font-black uppercase tracking-widest">{isPlaying ? 'En Juego' : 'Espera'}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-1.5">
                                                             <div className="flex flex-col">
-                                                                <span className="text-[10px] font-black uppercase italic tracking-tight text-white">
+                                                                <span className="text-[10px] font-black uppercase italic tracking-tight text-foreground">
                                                                     {reg.guestName || `${reg.user?.firstName} ${reg.user?.lastName}`}
                                                                 </span>
                                                                 <div className="flex gap-1 mt-0.5">
@@ -1174,7 +1174,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             <div className="flex justify-center">
                                                                 <button
                                                                     onClick={() => handleTogglePayment(reg.id, reg.hasPaid)}
-                                                                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid ? 'bg-celeste/10 border-celeste/30 text-celeste' : 'bg-white/5 border-white/12 text-slate-400 hover:border-celeste/40'}`}
+                                                                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all ${reg.hasPaid ? 'bg-celeste/10 border-celeste/30 text-celeste' : 'bg-surface border-hairline text-muted-foreground hover:border-celeste/40'}`}
                                                                 >
                                                                     <DollarSign className={`w-2.5 h-2.5 ${reg.hasPaid ? 'animate-pulse' : ''}`} />
                                                                     <span className="text-[7px] font-black uppercase tracking-widest">{reg.hasPaid ? 'Pago' : 'Pend.'}</span>
@@ -1192,7 +1192,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-1.5 text-right">
-                                                            <span className={`text-[7px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-slate-400'}`}>
+                                                            <span className={`text-[7px] font-bold uppercase tracking-widest ${played === 0 ? 'text-celeste' : 'text-muted-foreground'}`}>
                                                                 {played === 0 ? 'T1' : (isPlaying ? '-' : 'Cola')}
                                                             </span>
                                                         </td>
@@ -1206,7 +1206,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <td colSpan={7} className="px-4 py-1.5">
                                                         <div className="flex items-center gap-2">
                                                             <div className="h-px flex-1 bg-border/20" />
-                                                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-slate-500">
+                                                            <span className="text-[6px] font-black uppercase tracking-[0.2em] text-subtle">
                                                                 Ausentes · {absentPlayers.length}
                                                             </span>
                                                             <div className="h-px flex-1 bg-border/20" />
@@ -1214,9 +1214,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     </td>
                                                 </tr>,
                                                 ...absentPlayers.map(reg => (
-                                                    <tr key={reg.id} className="border-b border-white/12 opacity-40 hover:opacity-70 transition-opacity">
+                                                    <tr key={reg.id} className="border-b border-hairline opacity-40 hover:opacity-70 transition-opacity">
                                                         <td className="px-4 py-1.5">
-                                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit bg-white/5 text-slate-400">
+                                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full w-fit bg-surface text-muted-foreground">
                                                                 <div className="w-1 h-1 rounded-full bg-slate-500" />
                                                                 <span className="text-[7px] font-black uppercase tracking-widest">Ausente</span>
                                                             </div>
@@ -1260,7 +1260,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                             exit={{ opacity: 0, scale: 0.98 }}
                             className="space-y-6"
                         >
-                            <div className="bg-card/30 backdrop-blur-xl border border-white/12 rounded-xl p-4 overflow-hidden shadow-xl">
+                            <div className="bg-card/30 backdrop-blur-xl border border-hairline rounded-xl p-4 overflow-hidden shadow-xl">
                                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-lg bg-celeste/10 text-celeste flex items-center justify-center shadow-inner">
@@ -1268,12 +1268,12 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                         </div>
                                         <div>
                                             <h3 className="text-[11px] font-black uppercase tracking-[0.1em] italic">Historial de Partidos</h3>
-                                            <p className="text-[7px] font-bold text-slate-400 uppercase">Resultados oficiales y estadísticas</p>
+                                            <p className="text-[7px] font-bold text-muted-foreground uppercase">Resultados oficiales y estadísticas</p>
                                         </div>
                                     </div>
 
                                     <div className="relative w-full md:w-64">
-                                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500">
+                                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-subtle">
                                             <ListFilter className="w-3 h-3" />
                                         </div>
                                         <input
@@ -1281,7 +1281,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                             placeholder="BUSCAR..."
                                             value={historySearchQuery}
                                             onChange={(e) => setHistorySearchQuery(e.target.value)}
-                                            className="w-full bg-foreground/5 border border-white/12 rounded-lg py-1.5 pl-9 pr-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-celeste transition-all placeholder:text-slate-500"
+                                            className="w-full bg-foreground/5 border border-hairline rounded-lg py-1.5 pl-9 pr-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-celeste transition-all placeholder:text-subtle"
                                         />
                                     </div>
                                 </div>
@@ -1289,11 +1289,11 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse">
                                         <thead>
-                                            <tr className="border-b border-white/12">
-                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Finalizado</th>
-                                                <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipo 1</th>
-                                                <th className="text-center px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Resultado</th>
-                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipo 2</th>
+                                            <tr className="border-b border-hairline">
+                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Finalizado</th>
+                                                <th className="text-right px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Equipo 1</th>
+                                                <th className="text-center px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Resultado</th>
+                                                <th className="text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Equipo 2</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1340,7 +1340,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     };
 
                                                     return (
-                                                        <tr key={match.id} className="border-b border-white/12 transition-colors hover:bg-foreground/5">
+                                                        <tr key={match.id} className="border-b border-hairline transition-colors hover:bg-foreground/5">
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-2">
                                                                     <Clock className="w-3 h-3 text-celeste/50" />
@@ -1356,12 +1356,12 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4 text-center">
-                                                                <div className="inline-flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/12">
-                                                                    <span className={`text-base font-black italic ${winner === 1 ? 'text-celeste' : 'text-slate-400'}`}>
+                                                                <div className="inline-flex items-center gap-3 bg-surface px-4 py-2 rounded-xl border border-hairline">
+                                                                    <span className={`text-base font-black italic ${winner === 1 ? 'text-celeste' : 'text-muted-foreground'}`}>
                                                                         {match.score1}
                                                                     </span>
-                                                                    <span className="text-[10px] font-black text-slate-500">-</span>
-                                                                    <span className={`text-base font-black italic ${winner === 2 ? 'text-celeste' : 'text-slate-400'}`}>
+                                                                    <span className="text-[10px] font-black text-subtle">-</span>
+                                                                    <span className={`text-base font-black italic ${winner === 2 ? 'text-celeste' : 'text-muted-foreground'}`}>
                                                                         {match.score2}
                                                                     </span>
                                                                 </div>
@@ -1382,8 +1382,8 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
 
                                     {[...event.matches].filter(m => m.status === "completed").length === 0 && (
                                         <div className="flex flex-col items-center justify-center py-20">
-                                            <Trophy className="w-12 h-12 text-slate-500 mb-4" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">No hay partidos terminados todavía</p>
+                                            <Trophy className="w-12 h-12 text-subtle mb-4" />
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No hay partidos terminados todavía</p>
                                         </div>
                                     )}
                                 </div>
@@ -1406,9 +1406,9 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-lg bg-card border border-white/12 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+                            className="relative w-full max-w-lg bg-card border border-hairline rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
                         >
-                            <div className="p-8 border-b border-white/12 bg-foreground/5">
+                            <div className="p-8 border-b border-hairline bg-foreground/5">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex flex-col">
                                         <h3 className="text-lg font-black uppercase italic tracking-tighter">Sustituir Jugador</h3>
@@ -1423,14 +1423,14 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                 </div>
 
                                 <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
                                     <input
                                         autoFocus
                                         type="text"
                                         placeholder="BUSCAR JUGADOR POR NOMBRE..."
                                         value={swapSearchQuery}
                                         onChange={(e) => setSwapSearchQuery(e.target.value)}
-                                        className="w-full bg-foreground/5 border border-white/12 rounded-2xl py-4 pl-12 pr-6 text-sm font-black uppercase italic outline-none focus:border-celeste/50 transition-all"
+                                        className="w-full bg-foreground/5 border border-hairline rounded-2xl py-4 pl-12 pr-6 text-sm font-black uppercase italic outline-none focus:border-celeste/50 transition-all"
                                     />
                                 </div>
                             </div>
@@ -1449,7 +1449,7 @@ export default function AdminLiveManagementClient({ initialEvent, initialRegistr
                                                     <span className="text-sm font-black uppercase italic text-foreground group-hover:text-celeste">
                                                         {p.guestName || `${p.user?.firstName} ${p.user?.lastName}`}
                                                     </span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">
+                                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic">
                                                         {p.userId ? 'Usuario' : 'Invitado'}
                                                     </span>
                                                 </div>
@@ -1500,8 +1500,8 @@ function CourtScoreControl({
                 </button>
             ) : <div className="h-7" />}
 
-            <div className={`w-10 h-10 flex items-center justify-center rounded-lg border-2 shadow-inner transition-all ${isActive ? "bg-black/50 border-celeste/50" : "bg-black/40 border-white/15"}`}>
-                <span className={`text-xl text-scoreboard italic tracking-tighter ${isActive ? "text-white" : "text-slate-500"}`}>{score ?? 0}</span>
+            <div className={`w-10 h-10 flex items-center justify-center rounded-lg border-2 shadow-inner transition-all ${isActive ? "bg-surface border-celeste/50" : "bg-surface border-hairline"}`}>
+                <span className={`text-xl text-scoreboard italic tracking-tighter ${isActive ? "text-foreground" : "text-subtle"}`}>{score ?? 0}</span>
             </div>
 
             {isActive ? (
@@ -1535,7 +1535,7 @@ function CourtPlayerCard({
             {/* Swap button */}
             <button
                 onClick={(e) => { e.stopPropagation(); onSwap(); }}
-                className="absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)] bg-slate-900 text-slate-300 border-white/10 hover:bg-celeste hover:text-carbon-950 hover:border-white/20 hover:scale-105 active:scale-95"
+                className="absolute -top-1.5 -left-1.5 z-30 w-7 h-7 flex items-center justify-center rounded-full border transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.6)] bg-background text-muted-foreground border-hairline hover:bg-celeste hover:text-carbon-950 hover:border-hairline-strong hover:scale-105 active:scale-95"
                 title="Cambiar Jugador"
             >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -1544,14 +1544,14 @@ function CourtPlayerCard({
             </button>
 
             {/* Card border */}
-            <div className="p-[1px] bg-white/25 transition-all duration-700" style={cardStyle}>
+            <div className="p-[1px] bg-surface-raised transition-all duration-700" style={cardStyle}>
                 <div className="relative h-[120px] overflow-hidden bg-[#020617] flex flex-col" style={cardStyle}>
                     {/* Background image */}
                     <div className="absolute inset-0 z-0">
                         {image ? (
                             <img src={image} alt={name} className="w-full h-full object-cover transition-all duration-700 group-hover/card:scale-110" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center p-5 bg-carbon-800">
+                            <div className="w-full h-full flex items-center justify-center p-5 bg-card">
                                 <img src="/img/acap%20logo%20svg%20blanco%20sombra.svg" alt="logo" className="w-full h-full object-contain opacity-[0.12]" />
                             </div>
                         )}
@@ -1569,17 +1569,17 @@ function CourtPlayerCard({
 
                     {/* Guest badge */}
                     {isGuest && (
-                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1 px-1.5 py-0.5 bg-celeste border border-white/20 rounded-sm">
+                        <div className="absolute top-2 left-2 z-20 flex items-center gap-1 px-1.5 py-0.5 bg-celeste border border-hairline-strong rounded-sm">
                             <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                            <span className="text-[5px] font-black italic text-white uppercase tracking-[0.1em]">GUEST</span>
+                            <span className="text-[5px] font-black italic text-foreground uppercase tracking-[0.1em]">GUEST</span>
                         </div>
                     )}
 
                     {/* Name plate */}
                     <div className="mt-auto p-1 z-10 bg-[#020617]">
-                        <div className="py-1 px-2 transform -skew-x-12 relative border-r-2 bg-carbon-950/90 border-celeste shadow-lg">
+                        <div className="py-1 px-2 transform -skew-x-12 relative border-r-2 bg-background/90 border-celeste shadow-lg">
                             <div className="transform skew-x-12 text-center">
-                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-white">
+                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-foreground">
                                     {name.replace(/INVITADO/gi, "").trim() || "PLAYER"}
                                 </span>
                             </div>
@@ -1595,15 +1595,15 @@ function EmptyPlayerCard() {
     const cardStyle = { clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' };
     return (
         <div className="relative w-[80px]">
-            <div className="p-[1px] bg-white/12" style={cardStyle}>
-                <div className="relative h-[120px] overflow-hidden bg-carbon-800 flex flex-col" style={cardStyle}>
+            <div className="p-[1px] bg-surface-raised" style={cardStyle}>
+                <div className="relative h-[120px] overflow-hidden bg-card flex flex-col" style={cardStyle}>
                     <div className="flex-1 flex items-center justify-center p-5">
                         <img src="/img/acap%20logo%20svg%20blanco%20sombra.svg" alt="logo" className="w-full h-full object-contain opacity-10" />
                     </div>
                     <div className="p-1 bg-[#020617]">
-                        <div className="py-1 px-2 transform -skew-x-12 bg-white/[0.06] border-r-2 border-white/25">
+                        <div className="py-1 px-2 transform -skew-x-12 bg-surface-raised border-r-2 border-hairline-strong">
                             <div className="transform skew-x-12 text-center">
-                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-slate-400">
+                                <span className="block text-[8px] font-black uppercase italic leading-none truncate text-muted-foreground">
                                     A DEFINIR
                                 </span>
                             </div>

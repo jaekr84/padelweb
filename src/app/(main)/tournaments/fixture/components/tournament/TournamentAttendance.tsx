@@ -57,15 +57,15 @@ export function TournamentAttendance({
             </div>
 
             {/* Control Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2 p-2 bg-card/40 backdrop-blur-xl border border-white/12 rounded-xl shadow-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-2 p-2 bg-card/40 backdrop-blur-xl border border-hairline rounded-xl shadow-lg">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-subtle" />
                     <input
                         type="text"
                         placeholder="Buscar participante..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-muted/50 border border-white/12 rounded-lg py-2 pl-10 pr-3 text-[10px] font-bold outline-none focus:border-azul-primary transition-all placeholder:text-slate-500"
+                        className="w-full bg-muted/50 border border-hairline rounded-lg py-2 pl-10 pr-3 text-[10px] font-bold outline-none focus:border-azul-primary transition-all placeholder:text-subtle"
                     />
                 </div>
                 {!readOnly && (
@@ -96,9 +96,9 @@ export function TournamentAttendance({
             </div>
 
             {/* Players Table */}
-            <div className="bg-card/40 backdrop-blur-xl border border-white/12 rounded-2xl overflow-hidden shadow-xl">
+            <div className="bg-card/40 backdrop-blur-xl border border-hairline rounded-2xl overflow-hidden shadow-xl">
                 <table className="w-full text-left">
-                    <thead className="bg-muted text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 border-b border-white/12">
+                    <thead className="bg-muted text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground border-b border-hairline">
                         <tr>
                             <th className="px-3 py-1.5">Jugador</th>
                             <th className="px-3 py-1.5">Cat</th>
@@ -114,18 +114,18 @@ export function TournamentAttendance({
                             return (
                                 <tr
                                     key={p.id}
-                                    className={`group transition-all hover:bg-white/5 ${isPresent ? "bg-celeste/[0.02]" : ""}`}
+                                    className={`group transition-all hover:bg-surface ${isPresent ? "bg-celeste/[0.02]" : ""}`}
                                 >
                                     <td className="px-3 py-1 align-top">
                                         <div className="flex items-start gap-2">
-                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-carbon-950" : "bg-muted text-slate-500"}`}>
+                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isPresent ? "bg-celeste text-carbon-950" : "bg-muted text-subtle"}`}>
                                                 <Users2 className="w-3 h-3" />
                                             </div>
                                             <div className="flex flex-col gap-1">
                                                 {slots.map(slot => (
                                                     <span
                                                         key={slot}
-                                                        className={`font-black uppercase text-[10px] tracking-tight h-7 flex items-center transition-colors ${isMemberPresent(p.id, slot) ? "text-foreground" : "text-slate-400"}`}
+                                                        className={`font-black uppercase text-[10px] tracking-tight h-7 flex items-center transition-colors ${isMemberPresent(p.id, slot) ? "text-foreground" : "text-muted-foreground"}`}
                                                     >
                                                         {memberNames[slot] || p.name}
                                                     </span>
@@ -134,7 +134,7 @@ export function TournamentAttendance({
                                         </div>
                                     </td>
                                     <td className="px-3 py-1 align-top">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{p.category || "D"}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{p.category || "D"}</span>
                                     </td>
                                     <td className="px-3 py-1 align-top">
                                         <div className="flex flex-col items-center gap-1">
@@ -146,7 +146,7 @@ export function TournamentAttendance({
                                                     title={`${memberNames[slot] || p.name}: ${isMemberPaid(p.id, slot) ? "pagó" : "marcar pago"}`}
                                                     className={`w-7 h-7 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isMemberPaid(p.id, slot)
                                                         ? "bg-azul-primary border-azul-primary text-white shadow-lg shadow-azul-primary/20"
-                                                        : "bg-white/5 border-white/12 text-slate-500 hover:border-azul-primary/30 hover:text-azul-primary"
+                                                        : "bg-surface border-hairline text-subtle hover:border-azul-primary/30 hover:text-azul-primary"
                                                         } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                 >
                                                     <CreditCard className="w-3 h-3" />
@@ -160,14 +160,14 @@ export function TournamentAttendance({
                                                 <>
                                                     <button
                                                         onClick={() => setPlayerToDelete(p)}
-                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
+                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-hairline bg-surface text-subtle hover:border-rojo/30 hover:text-rojo transition-all transform active:scale-90"
                                                         title="Eliminar"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
                                                     </button>
                                                     <button
                                                         onClick={() => setReplacingPlayer(p)}
-                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-white/12 bg-white/5 text-slate-500 hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
+                                                        className="w-7 h-7 rounded-lg inline-flex items-center justify-center border border-hairline bg-surface text-subtle hover:border-azul-primary/30 hover:text-azul-primary transition-all transform active:scale-90"
                                                         title="Reemplazar"
                                                     >
                                                         <RotateCcw className="w-3 h-3" />
@@ -183,7 +183,7 @@ export function TournamentAttendance({
                                                         title={`${memberNames[slot] || p.name}: ${isMemberPresent(p.id, slot) ? "presente" : "marcar presente"}`}
                                                         className={`w-7 h-7 rounded-lg inline-flex items-center justify-center border transition-all transform active:scale-90 ${isMemberPresent(p.id, slot)
                                                             ? "bg-celeste border-celeste text-carbon-950 shadow-lg shadow-celeste/20"
-                                                            : "bg-white/5 border-white/12 text-slate-500 hover:border-celeste/30 hover:text-celeste"
+                                                            : "bg-surface border-hairline text-subtle hover:border-celeste/30 hover:text-celeste"
                                                             } ${readOnly ? "cursor-default opacity-80" : ""}`}
                                                     >
                                                         <UserCheck className="w-3 h-3" />

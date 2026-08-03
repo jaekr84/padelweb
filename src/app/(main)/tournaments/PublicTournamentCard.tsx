@@ -105,13 +105,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
         : isOpen
             ? (isFull
                 ? { label: "Lleno", dot: false, pill: "bg-rojo text-white shadow-rojo/20", text: "text-rojo" }
-                : { label: "Inscripción", dot: false, pill: "bg-volt text-carbon-950 shadow-volt/20", text: "text-volt" }
+                : { label: "Inscripción", dot: false, pill: "bg-volt text-carbon-950 shadow-volt/20", text: "text-volt-ink" }
             )
             : isPreregistration
                 ? { label: "Próximamente", dot: false, pill: "bg-azul-primary text-white shadow-azul-primary/20", text: "text-azul-primary" }
                 : isFinished
-                    ? { label: "Finalizado", dot: false, pill: "bg-slate-600 text-white", text: "text-slate-500" }
-                    : { label: "Borrador", dot: false, pill: "bg-slate-700 text-slate-300", text: "text-slate-500" };
+                    ? { label: "Finalizado", dot: false, pill: "bg-slate-600 text-foreground", text: "text-subtle" }
+                    : { label: "Borrador", dot: false, pill: "bg-slate-700 text-muted-foreground", text: "text-subtle" };
 
     const isClubUser = userDbRole === "club" || userDbRole === "superadmin";
     const canDoMassInsc = isOpen && !isFull && isClubUser && (!tournament.isMembersOnly || isClubMember) && !isFinished && !isLive;
@@ -246,7 +246,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
             ? "border-volt/30 hover:border-volt/60 shadow-volt/10"
             : isPreregistration
                 ? "border-azul-primary/30 hover:border-azul-primary/60 shadow-azul-primary/10"
-                : "border-white/10 hover:border-white/20";
+                : "border-hairline hover:border-hairline-strong";
 
     // Top accent gradient
     const accentBar = isLive
@@ -276,13 +276,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         className="absolute inset-0 [backface-visibility:hidden] z-10"
                         onClick={handleCardClick}
                     >
-                        <div className={`flex flex-col h-full cursor-pointer rounded-2xl overflow-hidden bg-carbon-800 border transition-all duration-300 hover:shadow-xl hover:shadow-black/40 hover:scale-[1.01] relative group/card ${cardBorder}`}>
+                        <div className={`flex flex-col h-full cursor-pointer rounded-2xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl hover:shadow-black/40 hover:scale-[1.01] relative group/card ${cardBorder}`}>
 
                             {/* Top status accent bar */}
                             <div className={`h-[3px] w-full shrink-0 ${accentBar}`} />
 
                             {/* ── Cinematic image ── */}
-                            <div className="relative h-44 w-full overflow-hidden bg-carbon-900 shrink-0">
+                            <div className="relative h-44 w-full overflow-hidden bg-card shrink-0">
                                 {!showFallback ? (
                                     <img
                                         src={tournament.imageUrl}
@@ -291,7 +291,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                         onError={() => setImageError(true)}
                                     />
                                 ) : (
-                                    <div className="relative w-full h-full bg-carbon-900 flex items-center justify-center overflow-hidden">
+                                    <div className="relative w-full h-full bg-card flex items-center justify-center overflow-hidden">
                                         <div className={`absolute inset-0 bg-stripes ${fallbackTint} opacity-[0.08]`} />
                                         <Trophy className={`w-12 h-12 ${fallbackTint} opacity-30 group-hover/card:scale-110 transition-transform duration-500`} />
                                     </div>
@@ -333,7 +333,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                 e.stopPropagation();
                                                 router.push(`/tournaments/${tournament.id}/edit`);
                                             }}
-                                            className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-xl text-white hover:bg-azul-primary flex items-center justify-center transition-all shadow-md border border-white/10"
+                                            className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-xl text-foreground hover:bg-azul-primary flex items-center justify-center transition-all shadow-md border border-hairline"
                                             title="Editar Torneo"
                                         >
                                             <Edit3 className="w-3 h-3" />
@@ -344,7 +344,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                 e.stopPropagation();
                                                 router.push(`/tournaments/${tournament.id}/manage`);
                                             }}
-                                            className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-xl text-white hover:bg-azul-primary flex items-center justify-center transition-all shadow-md border border-white/10"
+                                            className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-xl text-foreground hover:bg-azul-primary flex items-center justify-center transition-all shadow-md border border-hairline"
                                             title="Gestionar Torneo"
                                         >
                                             <Settings className="w-3 h-3" />
@@ -357,29 +357,29 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     <p className="label-tech text-[7px] text-celeste-light leading-none mb-1 drop-shadow-md">
                                         {tournament.club?.name || "A.C.A.P."}
                                     </p>
-                                    <h3 className="heading-sport text-sm leading-tight text-white line-clamp-2 drop-shadow-lg">
+                                    <h3 className="heading-sport text-sm leading-tight text-foreground line-clamp-2 drop-shadow-lg">
                                         {tournament.name}
                                     </h3>
                                 </div>
                             </div>
 
                             {/* ── Bottom info area ── */}
-                            <div className="flex flex-col flex-1 min-h-0 px-2.5 pt-2.5 pb-2 gap-2 bg-carbon-800">
+                            <div className="flex flex-col flex-1 min-h-0 px-2.5 pt-2.5 pb-2 gap-2 bg-card">
 
                                 {/* Date / time / slots */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-3 h-3 text-celeste-light shrink-0" />
-                                        <span className="text-scoreboard text-[10px] text-white">{formatDate(tournament.startDate)}</span>
+                                        <span className="text-scoreboard text-[10px] text-foreground">{formatDate(tournament.startDate)}</span>
                                         {tournament.time && (
-                                            <span className="text-scoreboard text-[9px] text-slate-500">· {tournament.time}</span>
+                                            <span className="text-scoreboard text-[9px] text-subtle">· {tournament.time}</span>
                                         )}
                                     </div>
                                     {maxSlots > 0 && (
                                         <span className={`text-scoreboard text-[8px] uppercase tracking-wide px-1.5 py-0.5 rounded-md border shrink-0
                                             ${isFull
                                                 ? 'bg-live/10 text-live border-live/20'
-                                                : 'bg-volt/10 text-volt border-volt/20'
+                                                : 'bg-volt/10 text-volt-ink border-volt/20'
                                             }`}>
                                             {tournament.occupiedSlots}/{maxSlots}
                                         </span>
@@ -389,12 +389,12 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 {/* Metadata 2×2 grid */}
                                 <div className="grid grid-cols-2 gap-1.5">
                                     {/* Category */}
-                                    <div className="px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
+                                    <div className="px-2 py-1.5 rounded-xl bg-surface border border-hairline space-y-0.5">
                                         <div className="flex items-center gap-1">
                                             <Trophy className="w-2.5 h-2.5 text-celeste-light/60" />
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Categoría</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">Categoría</span>
                                         </div>
-                                        <p className="text-[9px] font-black text-white truncate leading-none">
+                                        <p className="text-[9px] font-black text-foreground truncate leading-none">
                                             {(() => {
                                                 let cats = tournament.categories;
                                                 if (typeof cats === 'string') {
@@ -406,35 +406,35 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     </div>
 
                                     {/* Gender */}
-                                    <div className="px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
+                                    <div className="px-2 py-1.5 rounded-xl bg-surface border border-hairline space-y-0.5">
                                         <div className="flex items-center gap-1">
                                             <Users2 className="w-2.5 h-2.5 text-celeste-light/60" />
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Género</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">Género</span>
                                         </div>
-                                        <p className="text-[9px] font-black text-white leading-none">
+                                        <p className="text-[9px] font-black text-foreground leading-none">
                                             {mod?.genero === 'mujer' ? 'Femenino' : mod?.genero === 'hombre' ? 'Masculino' : mod?.genero === 'mixto' ? 'Mixto' : '—'}
                                         </p>
                                     </div>
 
                                     {/* Format */}
-                                    <div className="px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
+                                    <div className="px-2 py-1.5 rounded-xl bg-surface border border-hairline space-y-0.5">
                                         <div className="flex items-center gap-1">
                                             <Zap className="w-2.5 h-2.5 text-celeste-light/60" />
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Formato</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">Formato</span>
                                         </div>
-                                        <p className="text-[9px] font-black text-white leading-none">
+                                        <p className="text-[9px] font-black text-foreground leading-none">
                                             {tournament.type === 'americano' ? 'Americano' : 'Round Robin'}
                                         </p>
                                     </div>
 
                                     {/* Price */}
-                                    <div className="px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
+                                    <div className="px-2 py-1.5 rounded-xl bg-surface border border-hairline space-y-0.5">
                                         <div className="flex items-center gap-1">
                                             <DollarSign className="w-2.5 h-2.5 text-celeste-light/60" />
-                                            <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Precio</span>
+                                            <span className="text-[6px] font-black uppercase tracking-widest text-muted-foreground">Precio</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="text-[9px] font-black text-white leading-none">
+                                            <span className="text-[9px] font-black text-foreground leading-none">
                                                 {tournament.registrationFee != null ? `$${Number(tournament.registrationFee).toLocaleString('es-ES')}` : "—"}
                                             </span>
                                             {tournament.memberRegistrationFee != null && (
@@ -454,13 +454,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     </div>
                                     <div className="flex items-center gap-2.5">
                                         <div className="text-right">
-                                            <p className="text-[6px] uppercase text-slate-500 font-bold leading-none mb-0.5">Socio</p>
-                                            <p className="text-scoreboard text-[8px] text-white leading-none">{formatDate(tournament.openDateClub)}</p>
+                                            <p className="text-[6px] uppercase text-subtle font-bold leading-none mb-0.5">Socio</p>
+                                            <p className="text-scoreboard text-[8px] text-foreground leading-none">{formatDate(tournament.openDateClub)}</p>
                                         </div>
-                                        <div className="w-px h-5 bg-white/10 shrink-0" />
+                                        <div className="w-px h-5 bg-surface-raised shrink-0" />
                                         <div className="text-right">
-                                            <p className="text-[6px] uppercase text-slate-500 font-bold leading-none mb-0.5">Gral</p>
-                                            <p className="text-scoreboard text-[8px] text-white leading-none">{formatDate(tournament.openDateGeneral)}</p>
+                                            <p className="text-[6px] uppercase text-subtle font-bold leading-none mb-0.5">Gral</p>
+                                            <p className="text-scoreboard text-[8px] text-foreground leading-none">{formatDate(tournament.openDateGeneral)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -477,8 +477,8 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                     }}
                                     className="flex items-center gap-1.5 cursor-pointer group/loc"
                                 >
-                                    <MapPin className="w-3 h-3 text-slate-500 shrink-0 group-hover/loc:text-volt transition-colors" />
-                                    <span className="text-[9px] font-bold text-slate-400 truncate group-hover/loc:text-volt transition-colors">
+                                    <MapPin className="w-3 h-3 text-subtle shrink-0 group-hover/loc:text-volt-ink transition-colors" />
+                                    <span className="text-[9px] font-bold text-muted-foreground truncate group-hover/loc:text-volt-ink transition-colors">
                                         {tournament.surface || tournament.location || "Sede por confirmar"}
                                     </span>
                                 </div>
@@ -487,7 +487,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 <div className="flex gap-1.5 mt-auto shrink-0">
                                     <button
                                         onClick={toggleFlip}
-                                        className="flex-1 h-8 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-white transition-all font-black uppercase tracking-widest text-[8px] flex items-center justify-center gap-1 px-1"
+                                        className="flex-1 h-8 rounded-lg bg-surface border border-hairline text-muted-foreground hover:border-hairline-strong hover:bg-surface-raised hover:text-foreground transition-all font-black uppercase tracking-widest text-[8px] flex items-center justify-center gap-1 px-1"
                                     >
                                         <Users2 className="w-3 h-3 shrink-0" />
                                         <span className="truncate">Inscriptos</span>
@@ -508,13 +508,13 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                     ? "bg-azul-primary text-white shadow-azul-primary/30 hover:bg-azul-dark"
                                                     : isOpen
                                                         ? isFull
-                                                            ? "bg-white/10 text-slate-500 cursor-not-allowed pointer-events-none shadow-none"
+                                                            ? "bg-surface-raised text-subtle cursor-not-allowed pointer-events-none shadow-none"
                                                             : tournament.isMembersOnly
                                                                 ? "bg-azul-primary text-white shadow-azul-primary/30 hover:bg-azul-dark"
                                                                 : "bg-volt text-carbon-950 shadow-volt/30 hover:bg-volt-dark"
                                                         : isPreregistration
                                                             ? "bg-azul-primary/70 text-white shadow-none"
-                                                            : "bg-white/5 text-slate-500 border border-white/10 shadow-none"
+                                                            : "bg-surface text-subtle border border-hairline shadow-none"
                                             }`}
                                     >
                                         {isLive ? <Zap className="w-3.5 h-3.5 shrink-0" /> :
@@ -536,24 +536,24 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                     {/* ══════════════ BACK FACE ══════════════ */}
                     <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] z-20">
-                        <div className="bg-carbon-800 border border-white/10 rounded-2xl overflow-hidden flex flex-col h-full">
+                        <div className="bg-card border border-hairline rounded-2xl overflow-hidden flex flex-col h-full">
 
                             {/* Header — colored band */}
                             <div className="p-3 bg-gradient-to-r from-azul-primary to-blue-500 relative overflow-hidden shrink-0">
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),_transparent_65%)] pointer-events-none" />
                                 <div className="relative flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-1.5">
-                                        <Users2 className="w-3.5 h-3.5 text-white/80" />
-                                        <h3 className="text-xs font-black uppercase italic text-white tracking-tight">Inscriptos</h3>
+                                        <Users2 className="w-3.5 h-3.5 text-foreground/80" />
+                                        <h3 className="text-xs font-black uppercase italic text-foreground tracking-tight">Inscriptos</h3>
                                     </div>
                                     <button
                                         onClick={toggleFlip}
-                                        className="w-6 h-6 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                                        className="w-6 h-6 rounded-lg bg-surface-raised hover:bg-surface-raised flex items-center justify-center transition-colors"
                                     >
-                                        <X className="w-3.5 h-3.5 text-white" />
+                                        <X className="w-3.5 h-3.5 text-foreground" />
                                     </button>
                                 </div>
-                                <p className="text-[8px] font-bold uppercase tracking-widest text-white/70 truncate relative">{tournament.name}</p>
+                                <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/70 truncate relative">{tournament.name}</p>
                             </div>
 
                             {/* Participants list */}
@@ -561,36 +561,36 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                 {isLoadingParticipants ? (
                                     <div className="flex flex-col items-center justify-center h-full space-y-2">
                                         <div className="w-5 h-5 border-2 border-volt border-t-transparent rounded-full animate-spin" />
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Cargando...</p>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-subtle">Cargando...</p>
                                     </div>
                                 ) : participants.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
-                                        <Users2 className="w-8 h-8 text-slate-600" />
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Sin inscriptos aún</p>
+                                        <Users2 className="w-8 h-8 text-subtle" />
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-subtle">Sin inscriptos aún</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-0">
                                         {participants.map((reg, i) => (
                                             <div
                                                 key={reg.id}
-                                                className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 group/p"
+                                                className="flex items-center justify-between py-1.5 border-b border-hairline last:border-0 group/p"
                                             >
                                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                    <span className="text-[7px] font-black text-slate-600 w-4 shrink-0 tabular-nums">{i + 1}.</span>
+                                                    <span className="text-[7px] font-black text-subtle w-4 shrink-0 tabular-nums">{i + 1}.</span>
                                                     <div className="min-w-0 flex flex-wrap items-center gap-1">
                                                         <span
                                                             onClick={() => { if (reg.userId) handleShowProfile(reg.userId); }}
-                                                            className={`text-[9px] font-black text-white uppercase tracking-tight leading-none ${reg.userId ? "cursor-pointer hover:text-volt transition-colors" : ""}`}
+                                                            className={`text-[9px] font-black text-foreground uppercase tracking-tight leading-none ${reg.userId ? "cursor-pointer hover:text-volt-ink transition-colors" : ""}`}
                                                         >
                                                             {reg.user?.firstName} {reg.user?.lastName?.charAt(0)}.
                                                         </span>
                                                         {reg.partnerName && (
-                                                            <span className="text-slate-400 font-bold italic text-[8px] leading-none">
+                                                            <span className="text-muted-foreground font-bold italic text-[8px] leading-none">
                                                                 +{" "}
                                                                 {reg.partnerUserId ? (
                                                                     <span
                                                                         onClick={() => handleShowProfile(reg.partnerUserId)}
-                                                                        className="cursor-pointer hover:text-volt text-slate-400 transition-colors"
+                                                                        className="cursor-pointer hover:text-volt-ink text-muted-foreground transition-colors"
                                                                     >
                                                                         {reg.partnerName.split(' ')[0]}
                                                                     </span>
@@ -611,10 +611,10 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             </div>
 
                             {/* Back button */}
-                            <div className="p-2 border-t border-white/10 shrink-0">
+                            <div className="p-2 border-t border-hairline shrink-0">
                                 <button
                                     onClick={toggleFlip}
-                                    className="w-full h-8 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:bg-azul-primary hover:text-white hover:border-transparent font-black uppercase tracking-widest text-[8px] transition-all flex items-center justify-center gap-1.5"
+                                    className="w-full h-8 rounded-lg bg-surface border border-hairline text-muted-foreground hover:bg-azul-primary hover:text-white hover:border-transparent font-black uppercase tracking-widest text-[8px] transition-all flex items-center justify-center gap-1.5"
                                 >
                                     Volver al Torneo
                                 </button>
@@ -657,7 +657,7 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSelectedPlayerId(null)}
-                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            className="absolute inset-0 bg-background/40 backdrop-blur-md"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -667,27 +667,27 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                         >
                             <button
                                 onClick={() => setSelectedPlayerId(null)}
-                                className="absolute top-3 right-3 w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white/60 hover:text-white border border-white/5 backdrop-blur-md transition-all z-50 animate-fade-in"
+                                className="absolute top-3 right-3 w-7 h-7 bg-surface hover:bg-surface-raised rounded-lg flex items-center justify-center text-foreground/60 hover:text-foreground border border-hairline backdrop-blur-md transition-all z-50 animate-fade-in"
                             >
                                 <X className="w-4 h-4" />
                             </button>
 
                             {loadingProfile ? (
-                                <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl p-14 flex flex-col items-center justify-center border border-white/10">
+                                <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-14 flex flex-col items-center justify-center border border-hairline">
                                     <div className="w-9 h-9 border-4 border-azul-primary/20 border-t-azul-primary rounded-full animate-spin mb-3" />
-                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Cargando Perfil...</p>
+                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground/40">Cargando Perfil...</p>
                                 </div>
                             ) : profileData ? (
-                                <div className={`bg-slate-950/95 backdrop-blur-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[540px] transition-all duration-500 ${profileData.player.userId === currentUserId ? 'border-red-500/80 shadow-red-500/10' : 'border-white/10'}`}>
+                                <div className={`bg-background/95 backdrop-blur-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[540px] transition-all duration-500 ${profileData.player.userId === currentUserId ? 'border-red-500/80 shadow-red-500/10' : 'border-hairline'}`}>
                                     {/* Modal Header */}
-                                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/5 bg-white/5 shrink-0">
+                                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-hairline bg-surface shrink-0">
                                         <div className="flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-azul-primary animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/90">Resumen del Jugador</span>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-foreground/90">Resumen del Jugador</span>
                                         </div>
                                         <div className="hidden sm:flex items-center gap-3 pr-8">
                                             <div className="flex flex-col items-end">
-                                                <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest leading-none mb-[2px]">Nivel Proyectado</span>
+                                                <span className="text-[6.5px] font-black uppercase text-foreground/20 tracking-widest leading-none mb-[2px]">Nivel Proyectado</span>
                                                 <span className="text-[9px] font-black text-celeste italic leading-none">CATEGORÍA {profileData.player.category}</span>
                                             </div>
                                             <div className="w-7 h-7 rounded-lg bg-azul-primary/10 border border-azul-primary/20 flex items-center justify-center">
@@ -707,23 +707,23 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                             <div className="flex-1 space-y-3 py-1 w-full flex flex-col justify-between min-h-0">
                                                 <div className="space-y-3 min-h-0 flex flex-col">
                                                     <div className="grid grid-cols-2 gap-2.5 shrink-0">
-                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
-                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">PJ Totales</p>
-                                                            <p className="text-xl font-black text-white italic leading-none">{profileData.stats.pj}</p>
+                                                        <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-foreground/30 uppercase tracking-widest">PJ Totales</p>
+                                                            <p className="text-xl font-black text-foreground italic leading-none">{profileData.stats.pj}</p>
                                                         </div>
-                                                        <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-0.5">
-                                                            <p className="text-[7.5px] font-black text-white/30 uppercase tracking-widest">Win Rate</p>
+                                                        <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-0.5">
+                                                            <p className="text-[7.5px] font-black text-foreground/30 uppercase tracking-widest">Win Rate</p>
                                                             <p className="text-xl font-black text-blue-400 italic leading-none">{profileData.stats.wr}%</p>
                                                         </div>
                                                     </div>
 
-                                                    <div className="bg-white/5 border border-white/5 p-3.5 rounded-2xl space-y-2.5 w-full shrink-0">
-                                                        <h4 className="text-[7.5px] font-black text-white/30 uppercase tracking-[0.25em] leading-none">Últimos Resultados</h4>
+                                                    <div className="bg-surface border border-hairline p-3.5 rounded-2xl space-y-2.5 w-full shrink-0">
+                                                        <h4 className="text-[7.5px] font-black text-foreground/30 uppercase tracking-[0.25em] leading-none">Últimos Resultados</h4>
                                                         <div className="flex gap-2">
                                                             {profileData.history.slice(0, 5).map((h: any, i: number) => (
                                                                 <div
                                                                     key={i}
-                                                                    className={`flex-1 h-7 rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${h.isWin === true ? 'bg-green-500/20 border border-green-500/30 text-green-400' : h.isWin === false ? 'bg-red-500/20 border border-red-500/30 text-red-400' : 'bg-white/5 border border-white/10 text-white/30'}`}
+                                                                    className={`flex-1 h-7 rounded-lg flex items-center justify-center text-[9px] font-black transition-all ${h.isWin === true ? 'bg-green-500/20 border border-green-500/30 text-green-400' : h.isWin === false ? 'bg-red-500/20 border border-red-500/30 text-red-400' : 'bg-surface border border-hairline text-foreground/30'}`}
                                                                     title={h.tournament}
                                                                 >
                                                                     {h.isWin === true ? 'G' : h.isWin === false ? 'P' : '-'}
@@ -733,33 +733,33 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
                                                     </div>
 
                                                     <div className="space-y-1.5 min-h-0 flex flex-col flex-1">
-                                                        <h4 className="text-[7.5px] font-black text-white/45 uppercase tracking-[0.2em] px-1 shrink-0">Últimos 10 Partidos</h4>
+                                                        <h4 className="text-[7.5px] font-black text-foreground/45 uppercase tracking-[0.2em] px-1 shrink-0">Últimos 10 Partidos</h4>
                                                         <div className="space-y-1.5 overflow-y-auto max-h-[250px] pr-1 no-scrollbar flex-1">
                                                             {profileData.history.slice(0, 10).map((m: any) => (
-                                                                <div key={m.id} className="group relative bg-white/3 hover:bg-white/6 border border-white/5 p-2 rounded-xl flex items-center justify-between transition-all">
+                                                                <div key={m.id} className="group relative bg-surface hover:bg-surface border border-hairline p-2 rounded-xl flex items-center justify-between transition-all">
                                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-slate-500'}`}>
+                                                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${m.type === 'Torneo' ? 'bg-azul-primary/10 text-azul-primary' : m.type === 'Cancha Abierta' ? 'bg-celeste/10 text-celeste' : 'bg-slate-500/10 text-subtle'}`}>
                                                                             {m.type === 'Torneo' ? <Zap className="w-3 h-3" /> : m.type === 'Cancha Abierta' ? <Users2 className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
                                                                         </div>
                                                                         <div className="flex flex-col min-w-0">
                                                                             <div className="flex items-center gap-1 leading-none">
-                                                                                <span className={`text-[5.5px] font-black px-1 py-[0.1px] rounded uppercase tracking-widest ${m.isWin === true ? 'bg-green-500/20 text-green-400' : m.isWin === false ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/30'}`}>
+                                                                                <span className={`text-[5.5px] font-black px-1 py-[0.1px] rounded uppercase tracking-widest ${m.isWin === true ? 'bg-green-500/20 text-green-400' : m.isWin === false ? 'bg-red-500/20 text-red-400' : 'bg-surface-raised text-foreground/30'}`}>
                                                                                     {m.isWin === true ? 'G' : m.isWin === false ? 'P' : '-'}
                                                                                 </span>
-                                                                                <span className="text-[6px] font-black text-white/20 uppercase tracking-widest truncate">{m.type} • {m.subType}</span>
+                                                                                <span className="text-[6px] font-black text-foreground/20 uppercase tracking-widest truncate">{m.type} • {m.subType}</span>
                                                                             </div>
-                                                                            <h4 className="text-[10px] font-black text-white truncate italic uppercase tracking-tight leading-none my-1">{m.tournament}</h4>
-                                                                            <p className="text-[6.5px] font-bold text-white/40 uppercase tracking-tight leading-none">vs {m.opponent}</p>
+                                                                            <h4 className="text-[10px] font-black text-foreground truncate italic uppercase tracking-tight leading-none my-1">{m.tournament}</h4>
+                                                                            <p className="text-[6.5px] font-bold text-foreground/40 uppercase tracking-tight leading-none">vs {m.opponent}</p>
                                                                         </div>
                                                                     </div>
                                                                     <div className="text-right shrink-0 pr-1 leading-none">
-                                                                        <div className="text-xs font-black italic text-white leading-none mb-0.5 tracking-tighter">{m.score}</div>
+                                                                        <div className="text-xs font-black italic text-foreground leading-none mb-0.5 tracking-tighter">{m.score}</div>
                                                                         {m.isWin === true ? (
                                                                             <span className="text-[6.5px] font-black uppercase text-green-400 tracking-widest italic">Win</span>
                                                                         ) : m.isWin === false ? (
                                                                             <span className="text-[6.5px] font-black uppercase text-red-400 tracking-widest italic">Loss</span>
                                                                         ) : (
-                                                                            <span className="text-[6.5px] font-black uppercase text-white/20 tracking-widest italic">Fin</span>
+                                                                            <span className="text-[6.5px] font-black uppercase text-foreground/20 tracking-widest italic">Fin</span>
                                                                         )}
                                                                     </div>
                                                                 </div>
@@ -767,8 +767,8 @@ export default function PublicTournamentCard({ tournament, userClubId, userDbRol
 
                                                             {profileData.history.length === 0 && (
                                                                 <div className="flex flex-col items-center justify-center py-6 opacity-30">
-                                                                    <Info className="w-5 h-5 mb-1.5 text-white/40" />
-                                                                    <p className="text-[6.5px] font-black uppercase tracking-widest text-white/40">Sin partidos registrados</p>
+                                                                    <Info className="w-5 h-5 mb-1.5 text-foreground/40" />
+                                                                    <p className="text-[6.5px] font-black uppercase tracking-widest text-foreground/40">Sin partidos registrados</p>
                                                                 </div>
                                                             )}
                                                         </div>

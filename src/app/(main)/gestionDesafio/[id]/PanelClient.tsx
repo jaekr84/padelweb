@@ -85,7 +85,7 @@ export default function PanelClient(p: Props) {
                     <div className="min-w-0">
                         <Link
                             href="/gestionDesafio"
-                            className="inline-flex items-center gap-1.5 label-tech text-[8px] text-slate-400 hover:text-white transition-colors mb-2"
+                            className="inline-flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors mb-2"
                         >
                             <ArrowLeft className="w-3 h-3" />
                             Desafíos
@@ -93,7 +93,7 @@ export default function PanelClient(p: Props) {
                         <div className="flex items-center gap-3">
                             <ChipCategoria nombre={p.desafio.categoriaNombre} />
                             <div className="min-w-0">
-                                <h1 className="heading-sport text-2xl text-white truncate">{p.desafio.nombre}</h1>
+                                <h1 className="heading-sport text-2xl text-foreground truncate">{p.desafio.nombre}</h1>
                                 <p className="label-tech text-[7px] text-celeste mt-1">
                                     {periodo(p.desafio.fechaInicio, p.desafio.fechaFin)} · {p.desafio.inscriptos} inscriptos
                                 </p>
@@ -105,7 +105,7 @@ export default function PanelClient(p: Props) {
                             type="button"
                             onClick={() => correr(() => cerrarDesafio(p.desafio.id), "Desafío cerrado.")}
                             disabled={pendiente}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
                         >
                             <Lock className="w-3 h-3" />
                             Cerrar
@@ -132,13 +132,13 @@ export default function PanelClient(p: Props) {
                             onClick={() => setPestana(t.id)}
                             className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer ${pestana === t.id
                                 ? "bg-celeste text-carbon-950"
-                                : "bg-carbon-700 border border-white/10 text-slate-400 hover:text-white"
+                                : "bg-muted border border-hairline text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             {t.rotulo}
                             {!!t.badge && (
                                 <span
-                                    className={`px-1.5 rounded text-[9px] text-scoreboard ${pestana === t.id ? "bg-carbon-950/20" : "bg-volt text-carbon-950"
+                                    className={`px-1.5 rounded text-[9px] text-scoreboard ${pestana === t.id ? "bg-background/20" : "bg-volt text-carbon-950"
                                         }`}
                                 >
                                     {t.badge}
@@ -218,7 +218,7 @@ function FilaCanchas({
     return (
         <section>
             <div className="flex items-center justify-between gap-3 mb-2">
-                <h2 className="heading-sport text-base text-white">Canchas</h2>
+                <h2 className="heading-sport text-base text-foreground">Canchas</h2>
                 <button
                     type="button"
                     onClick={() => correr(() => agregarCancha(desafioId), "Cancha agregada.")}
@@ -231,8 +231,8 @@ function FilaCanchas({
             </div>
 
             {canchas.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-carbon-800 p-6 text-center">
-                    <p className="text-[12px] text-slate-500">Agregá al menos una cancha para poder poner parejas a jugar.</p>
+                <div className="rounded-xl border border-hairline bg-card p-6 text-center">
+                    <p className="text-[12px] text-subtle">Agregá al menos una cancha para poder poner parejas a jugar.</p>
                 </div>
             ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -245,18 +245,18 @@ function FilaCanchas({
                                 // Fondo sólido: estas tarjetas van directo sobre la grilla de la
                                 // página, así que un tinte translúcido dejaba ver las líneas.
                                 // El estado se distingue por el borde y el rótulo de color.
-                                className={`rounded-xl border p-3 bg-carbon-800 shadow-lg shadow-black/40 ${ocupada
+                                className={`rounded-xl border p-3 bg-card shadow-lg shadow-black/40 ${ocupada
                                     ? "border-live/40 ring-1 ring-inset ring-live/10"
                                     : c.estado === "inhabilitada"
-                                        ? "border-white/10 opacity-60"
+                                        ? "border-hairline opacity-60"
                                         : "border-emerald-500/40 ring-1 ring-inset ring-emerald-500/10"
                                     }`}
                             >
                                 <div className="flex items-center justify-between gap-2 mb-2">
-                                    <span className="heading-sport text-sm text-white">
+                                    <span className="heading-sport text-sm text-foreground">
                                         {c.nombre || `Cancha ${c.numero}`}
                                     </span>
-                                    <span className={`label-tech text-[7px] ${ocupada ? "text-live" : c.estado === "inhabilitada" ? "text-slate-500" : "text-emerald-400"}`}>
+                                    <span className={`label-tech text-[7px] ${ocupada ? "text-live" : c.estado === "inhabilitada" ? "text-subtle" : "text-emerald-400"}`}>
                                         {ocupada ? "En juego" : c.estado === "inhabilitada" ? "Inhabilitada" : "Libre"}
                                     </span>
                                 </div>
@@ -264,9 +264,9 @@ function FilaCanchas({
                                 {ocupada ? (
                                     <>
                                         <div className="space-y-1 text-[11px]">
-                                            <div className="text-white truncate">{m!.equipo1.map((j) => j.nombre).join(" / ")}</div>
-                                            <div className="text-slate-500 text-[9px]">vs</div>
-                                            <div className="text-white truncate">{m!.equipo2.map((j) => j.nombre).join(" / ")}</div>
+                                            <div className="text-foreground truncate">{m!.equipo1.map((j) => j.nombre).join(" / ")}</div>
+                                            <div className="text-subtle text-[9px]">vs</div>
+                                            <div className="text-foreground truncate">{m!.equipo2.map((j) => j.nombre).join(" / ")}</div>
                                         </div>
                                         {cargando === m!.id ? (
                                             <FormResultado
@@ -291,8 +291,8 @@ function FilaCanchas({
                                                 Cargar resultado
                                             </button>
                                         )}
-                                        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-white/10">
-                                            <span className="flex items-center gap-1 label-tech text-[7px] text-slate-400">
+                                        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-hairline">
+                                            <span className="flex items-center gap-1 label-tech text-[7px] text-muted-foreground">
                                                 <Clock className="w-3 h-3" />
                                                 {transcurrido(m!.iniciadoEn)}
                                             </span>
@@ -303,7 +303,7 @@ function FilaCanchas({
                                                     correr(() => cancelarPartido(m!.id), "Partido cancelado.");
                                                 }}
                                                 disabled={pendiente}
-                                                className="label-tech text-[7px] text-slate-500 hover:text-rojo transition-colors disabled:opacity-40 cursor-pointer"
+                                                className="label-tech text-[7px] text-subtle hover:text-rojo transition-colors disabled:opacity-40 cursor-pointer"
                                             >
                                                 Cancelar
                                             </button>
@@ -325,7 +325,7 @@ function FilaCanchas({
                                                 type="button"
                                                 onClick={() => correr(() => asignarSiguienteDeCola(desafioId, c.id), "Entró la primera de la cola.")}
                                                 disabled={pendiente}
-                                                className="px-2.5 py-1.5 rounded-lg bg-carbon-700 border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-carbon-600 transition-all disabled:opacity-40 cursor-pointer"
+                                                className="px-2.5 py-1.5 rounded-lg bg-muted border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-muted transition-all disabled:opacity-40 cursor-pointer"
                                             >
                                                 Traer de la cola
                                             </button>
@@ -337,7 +337,7 @@ function FilaCanchas({
                                                 c.estado === "inhabilitada" ? "Cancha habilitada." : "Cancha inhabilitada."
                                             )}
                                             disabled={pendiente}
-                                            className="px-2.5 py-1.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-white transition-all disabled:opacity-40 cursor-pointer"
+                                            className="px-2.5 py-1.5 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-foreground transition-all disabled:opacity-40 cursor-pointer"
                                         >
                                             {c.estado === "inhabilitada" ? "Habilitar" : "Inhabilitar"}
                                         </button>
@@ -345,7 +345,7 @@ function FilaCanchas({
                                             type="button"
                                             onClick={() => correr(() => eliminarCancha(c.id), "Cancha eliminada.")}
                                             disabled={pendiente}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-rojo hover:bg-rojo/10 transition-all disabled:opacity-40 cursor-pointer"
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center text-subtle hover:text-rojo hover:bg-rojo/10 transition-all disabled:opacity-40 cursor-pointer"
                                         >
                                             <Trash2 className="w-3 h-3" />
                                         </button>
@@ -399,16 +399,16 @@ function ModalAsignar({
                                 onClick={() => alternar(p.id)}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${elegida
                                     ? "bg-celeste/15 border-celeste/40"
-                                    : "bg-carbon-700 border-white/10 hover:border-celeste/30"
+                                    : "bg-muted border-hairline hover:border-celeste/30"
                                     }`}
                             >
-                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${elegida ? "bg-celeste text-carbon-950" : "bg-carbon-700"}`}>
+                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${elegida ? "bg-celeste text-carbon-950" : "bg-muted"}`}>
                                     {elegida && <Check className="w-3 h-3" />}
                                 </span>
-                                <span className="text-[12px] font-bold text-white truncate flex-1">
+                                <span className="text-[12px] font-bold text-foreground truncate flex-1">
                                     {p.a.nombre} / {p.b.nombre}
                                 </span>
-                                <span className="label-tech text-[7px] text-slate-500 shrink-0">
+                                <span className="label-tech text-[7px] text-subtle shrink-0">
                                     {p.partidosJugados}PJ · {p.partidosGanados}PG
                                 </span>
                             </button>
@@ -457,23 +457,23 @@ function ZonaJuego({
         <div className="space-y-5">
             {/* Parejas armadas */}
             <section>
-                <h2 className="heading-sport text-base text-white mb-2">
-                    Parejas armadas <span className="text-slate-600">({parejas.length})</span>
+                <h2 className="heading-sport text-base text-foreground mb-2">
+                    Parejas armadas <span className="text-subtle">({parejas.length})</span>
                 </h2>
                 {parejas.length === 0 ? (
-                    <div className="rounded-xl border border-white/10 bg-carbon-800 p-5 text-center">
-                        <p className="text-[12px] text-slate-500">Todavía no hay parejas. Elegí dos jugadores del pool de abajo.</p>
+                    <div className="rounded-xl border border-hairline bg-card p-5 text-center">
+                        <p className="text-[12px] text-subtle">Todavía no hay parejas. Elegí dos jugadores del pool de abajo.</p>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 gap-2">
                         {parejas.map((p) => (
-                            <div key={p.id} className="rounded-xl border border-white/10 bg-carbon-800 p-3">
+                            <div key={p.id} className="rounded-xl border border-hairline bg-card p-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0">
-                                        <div className="text-[13px] font-bold text-white truncate">
-                                            {p.a.nombre} <span className="text-slate-600">+</span> {p.b.nombre}
+                                        <div className="text-[13px] font-bold text-foreground truncate">
+                                            {p.a.nombre} <span className="text-subtle">+</span> {p.b.nombre}
                                         </div>
-                                        <div className="label-tech text-[7px] text-slate-500 mt-0.5">
+                                        <div className="label-tech text-[7px] text-subtle mt-0.5">
                                             {ETIQUETA_LADO[p.a.lado]} · {ETIQUETA_LADO[p.b.lado]} — {p.partidosJugados} jugados, {p.partidosGanados} ganados
                                         </div>
                                     </div>
@@ -485,7 +485,7 @@ function ZonaJuego({
                                             type="button"
                                             onClick={() => correr(() => desarmarPareja(p.id), "Pareja desarmada: los dos vuelven al pool.")}
                                             disabled={pendiente}
-                                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[7px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
+                                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[7px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
                                         >
                                             <X className="w-3 h-3" />
                                             Desarmar
@@ -496,14 +496,14 @@ function ZonaJuego({
                                     {p.jugando && <Etiqueta color="live">Jugando</Etiqueta>}
                                     {p.enCola && <Etiqueta color="celeste">En cola</Etiqueta>}
                                     {p.aviso.nivel === "aviso" && (
-                                        <span className="flex items-center gap-1 text-[9px] text-volt">
+                                        <span className="flex items-center gap-1 text-[9px] text-volt-ink">
                                             <AlertTriangle className="w-3 h-3" />
                                             {p.aviso.mensaje}
                                         </span>
                                     )}
                                 </div>
                                 {p.jugando && (
-                                    <p className="text-[10px] text-slate-500 mt-1.5">
+                                    <p className="text-[10px] text-subtle mt-1.5">
                                         Para desarmarla, cargá el resultado del partido o cancelalo desde la cancha.
                                     </p>
                                 )}
@@ -516,13 +516,13 @@ function ZonaJuego({
             {/* Disponibles en tres columnas */}
             <section>
                 <div className="flex items-center justify-between gap-3 mb-2">
-                    <h2 className="heading-sport text-base text-white">
-                        Sin pareja <span className="text-slate-600">({pool.total})</span>
+                    <h2 className="heading-sport text-base text-foreground">
+                        Sin pareja <span className="text-subtle">({pool.total})</span>
                     </h2>
                     <button
                         type="button"
                         onClick={() => setInscribiendo(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-carbon-700 border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-carbon-600 transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-muted transition-all cursor-pointer"
                     >
                         <UserPlus className="w-3 h-3" />
                         Inscribir jugador
@@ -530,11 +530,11 @@ function ZonaJuego({
                 </div>
 
                 {sel.length > 0 && (
-                    <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-carbon-700 border border-celeste/30">
-                        <span className="text-[11px] text-white flex-1">
+                    <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-muted border border-celeste/30">
+                        <span className="text-[11px] text-foreground flex-1">
                             {sel.length === 1 ? "Elegí el compañero" : "Listos para armar la pareja"}
                         </span>
-                        <button type="button" onClick={() => setSel([])} className="label-tech text-[8px] text-slate-400 hover:text-white cursor-pointer">
+                        <button type="button" onClick={() => setSel([])} className="label-tech text-[8px] text-muted-foreground hover:text-foreground cursor-pointer">
                             Limpiar
                         </button>
                         <button
@@ -550,8 +550,8 @@ function ZonaJuego({
 
                 <div className="grid md:grid-cols-3 gap-3">
                     {columnas.map((col) => (
-                        <div key={col.clave} className="rounded-xl border border-white/10 bg-carbon-800 p-3">
-                            <div className="label-tech text-[8px] text-slate-500 mb-2">
+                        <div key={col.clave} className="rounded-xl border border-hairline bg-card p-3">
+                            <div className="label-tech text-[8px] text-subtle mb-2">
                                 {col.rotulo} · {col.jugadores.length}
                             </div>
                             <ul className="space-y-1">
@@ -564,22 +564,22 @@ function ZonaJuego({
                                                 onClick={() => alternar(j.userId)}
                                                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg border text-left transition-all cursor-pointer ${elegido
                                                     ? "bg-celeste/15 border-celeste/40"
-                                                    : "bg-transparent border-transparent hover:bg-carbon-600"
+                                                    : "bg-transparent border-transparent hover:bg-muted"
                                                     }`}
                                             >
-                                                <span className="text-[12px] text-white truncate flex-1">{j.nombre}</span>
+                                                <span className="text-[12px] text-foreground truncate flex-1">{j.nombre}</span>
                                                 {j.categoria && <span className="text-[9px] font-black uppercase text-celeste-light shrink-0">{j.categoria}</span>}
                                             </button>
                                         </li>
                                     );
                                 })}
-                                {col.jugadores.length === 0 && <li className="text-[11px] text-slate-600 px-2">—</li>}
+                                {col.jugadores.length === 0 && <li className="text-[11px] text-subtle px-2">—</li>}
                             </ul>
                         </div>
                     ))}
                 </div>
                 {pool.total % 2 === 1 && (
-                    <p className="flex items-center gap-1.5 text-[10px] text-volt mt-2">
+                    <p className="flex items-center gap-1.5 text-[10px] text-volt-ink mt-2">
                         <AlertTriangle className="w-3 h-3" />
                         Queda un número impar de jugadores sin pareja: alguno se va a quedar afuera.
                     </p>
@@ -624,19 +624,19 @@ function ModalInscribir({
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Buscar jugador..."
-                    className="w-full bg-carbon-700 border border-white/10 rounded-xl h-10 pl-9 pr-3 text-[12px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-celeste/40"
+                    className="w-full bg-muted border border-hairline rounded-xl h-10 pl-9 pr-3 text-[12px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40"
                 />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-subtle" />
             </div>
 
             <ul className="space-y-1 max-h-72 overflow-y-auto">
                 {filtrados.map((c) => (
-                    <li key={c.userId} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-carbon-600">
+                    <li key={c.userId} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted">
                         <div className="min-w-0 flex-1">
-                            <div className="text-[12px] font-bold text-white truncate">{c.nombre}</div>
-                            <div className="text-[9px] text-slate-500">
+                            <div className="text-[12px] font-bold text-foreground truncate">{c.nombre}</div>
+                            <div className="text-[9px] text-subtle">
                                 Cat {c.categoria || "—"} · {ETIQUETA_LADO[c.lado]}
-                                {!c.elegible && <span className="text-volt"> · {c.motivo}</span>}
+                                {!c.elegible && <span className="text-volt-ink"> · {c.motivo}</span>}
                             </div>
                         </div>
                         {c.elegible ? (
@@ -653,33 +653,33 @@ function ModalInscribir({
                                 type="button"
                                 onClick={() => correr(() => inscribirJugador(desafioId, c.userId, { excepcion: true }), `${c.nombre} inscripto como excepción.`)}
                                 disabled={pendiente}
-                                className="px-2.5 py-1.5 rounded-lg bg-carbon-700 border border-volt/30 text-volt label-tech text-[8px] hover:bg-volt/10 transition-all disabled:opacity-40 cursor-pointer shrink-0"
+                                className="px-2.5 py-1.5 rounded-lg bg-muted border border-volt/30 text-volt-ink label-tech text-[8px] hover:bg-volt/10 transition-all disabled:opacity-40 cursor-pointer shrink-0"
                             >
                                 Excepción
                             </button>
                         )}
                     </li>
                 ))}
-                {filtrados.length === 0 && <li className="text-[11px] text-slate-600 px-2 py-3">Ningún jugador coincide.</li>}
+                {filtrados.length === 0 && <li className="text-[11px] text-subtle px-2 py-3">Ningún jugador coincide.</li>}
             </ul>
 
             {inscriptos.length > 0 && (
                 <details className="mt-4">
-                    <summary className="label-tech text-[8px] text-slate-500 cursor-pointer">
+                    <summary className="label-tech text-[8px] text-subtle cursor-pointer">
                         Ver los {inscriptos.length} inscriptos
                     </summary>
                     <ul className="mt-2 space-y-1">
                         {inscriptos.map((i) => (
                             <li key={i.id} className="flex items-center gap-2 px-2 py-1.5 text-[11px]">
-                                <span className="text-white truncate flex-1">{i.nombre}</span>
+                                <span className="text-foreground truncate flex-1">{i.nombre}</span>
                                 {i.esExcepcion && <Etiqueta color="volt">Excepción</Etiqueta>}
                                 {i.juegaParaArriba && <Etiqueta color="celeste">Para arriba</Etiqueta>}
-                                <span className="text-slate-600 text-[9px]">{i.estado}</span>
+                                <span className="text-subtle text-[9px]">{i.estado}</span>
                                 <button
                                     type="button"
                                     onClick={() => correr(() => darDeBajaJugador(desafioId, i.userId), `${i.nombre} dado de baja.`)}
                                     disabled={pendiente}
-                                    className="text-slate-600 hover:text-rojo transition-colors disabled:opacity-40 cursor-pointer"
+                                    className="text-subtle hover:text-rojo transition-colors disabled:opacity-40 cursor-pointer"
                                 >
                                     <Trash2 className="w-3 h-3" />
                                 </button>
@@ -707,9 +707,9 @@ function Bandeja({
 
     if (partidos.length === 0) {
         return (
-            <div className="rounded-xl border border-white/10 bg-carbon-800 p-8 text-center">
+            <div className="rounded-xl border border-hairline bg-card p-8 text-center">
                 <Check className="w-8 h-8 text-emerald-400/40 mx-auto mb-2" />
-                <p className="text-[12px] text-slate-500">No hay resultados esperando confirmación.</p>
+                <p className="text-[12px] text-subtle">No hay resultados esperando confirmación.</p>
             </div>
         );
     }
@@ -717,19 +717,19 @@ function Bandeja({
     return (
         <ul className="space-y-2">
             {partidos.map((m) => (
-                <li key={m.id} className="rounded-xl border border-volt/40 ring-1 ring-inset ring-volt/10 bg-carbon-800 shadow-lg shadow-black/40 p-4">
+                <li key={m.id} className="rounded-xl border border-volt/40 ring-1 ring-inset ring-volt/10 bg-card shadow-lg shadow-black/40 p-4">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                            <div className={`text-[13px] truncate ${m.ganador === 1 ? "text-emerald-400 font-bold" : "text-slate-300"}`}>
+                            <div className={`text-[13px] truncate ${m.ganador === 1 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`}>
                                 {m.equipo1.map((j) => j.nombre).join(" / ")}
                             </div>
-                            <div className={`text-[13px] truncate ${m.ganador === 2 ? "text-emerald-400 font-bold" : "text-slate-300"}`}>
+                            <div className={`text-[13px] truncate ${m.ganador === 2 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`}>
                                 {m.equipo2.map((j) => j.nombre).join(" / ")}
                             </div>
                         </div>
                         <div className="text-right shrink-0">
                             <div className="text-scoreboard text-[15px] text-celeste">{m.resultado}</div>
-                            <div className="label-tech text-[7px] text-slate-500 mt-0.5">
+                            <div className="label-tech text-[7px] text-subtle mt-0.5">
                                 cargó {m.cargadoPor ?? "—"}
                             </div>
                         </div>
@@ -751,13 +751,13 @@ function Bandeja({
                                 value={motivo}
                                 onChange={(e) => setMotivo(e.target.value)}
                                 placeholder="¿Qué está mal? (obligatorio)"
-                                className="w-full bg-carbon-700 border border-white/10 rounded-lg h-9 px-3 text-[12px] text-white placeholder:text-slate-600 focus:outline-none focus:border-rojo/40"
+                                className="w-full bg-muted border border-hairline rounded-lg h-9 px-3 text-[12px] text-foreground placeholder:text-subtle focus:outline-none focus:border-rojo/40"
                             />
                             <div className="flex gap-2">
                                 <button
                                     type="button"
                                     onClick={() => { setRechazando(null); setMotivo(""); }}
-                                    className="px-3 py-2 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] cursor-pointer"
+                                    className="px-3 py-2 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] cursor-pointer"
                                 >
                                     Cancelar
                                 </button>
@@ -786,7 +786,7 @@ function Bandeja({
                                 type="button"
                                 onClick={() => setEditando(m.id)}
                                 disabled={pendiente}
-                                className="px-4 py-2.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-300 label-tech text-[8px] hover:border-celeste/40 hover:text-white transition-all disabled:opacity-40 cursor-pointer"
+                                className="px-4 py-2.5 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:border-celeste/40 hover:text-foreground transition-all disabled:opacity-40 cursor-pointer"
                             >
                                 Editar
                             </button>
@@ -794,7 +794,7 @@ function Bandeja({
                                 type="button"
                                 onClick={() => setRechazando(m.id)}
                                 disabled={pendiente}
-                                className="px-4 py-2.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
+                                className="px-4 py-2.5 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
                             >
                                 Rechazar
                             </button>
@@ -840,8 +840,8 @@ function ZonaCola({
         <div className="space-y-4">
             <section>
                 <div className="flex items-center justify-between gap-3 mb-2">
-                    <h2 className="heading-sport text-base text-white">
-                        Esperando cancha <span className="text-slate-600">({cola.length})</span>
+                    <h2 className="heading-sport text-base text-foreground">
+                        Esperando cancha <span className="text-subtle">({cola.length})</span>
                     </h2>
                     {cola.length > 0 && (
                         <button
@@ -857,29 +857,29 @@ function ZonaCola({
                 </div>
 
                 {cola.length === 0 ? (
-                    <div className="rounded-xl border border-white/10 bg-carbon-800 p-6 text-center">
-                        <ListOrdered className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-[12px] text-slate-500">Nadie esperando cancha.</p>
+                    <div className="rounded-xl border border-hairline bg-card p-6 text-center">
+                        <ListOrdered className="w-8 h-8 text-subtle mx-auto mb-2" />
+                        <p className="text-[12px] text-subtle">Nadie esperando cancha.</p>
                     </div>
                 ) : (
-                    <ul className="rounded-xl border border-white/10 bg-carbon-800 divide-y divide-white/5">
+                    <ul className="rounded-xl border border-hairline bg-card divide-y divide-hairline">
                         {cola.map((e, i) => (
                             <li key={e.id} className="flex items-center gap-3 px-3 py-2.5">
                                 <span className="text-scoreboard text-[13px] text-celeste w-5 text-center shrink-0">{e.posicion}</span>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-[12px] font-bold text-white truncate">{e.pareja}</div>
-                                    <div className="label-tech text-[7px] text-slate-500 mt-0.5">
+                                    <div className="text-[12px] font-bold text-foreground truncate">{e.pareja}</div>
+                                    <div className="label-tech text-[7px] text-subtle mt-0.5">
                                         {e.rival ? `vs ${e.rival}` : "sin rival definido"}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
-                                    <button type="button" onClick={() => mover(i, -1)} disabled={pendiente || i === 0} className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:text-white disabled:opacity-20 cursor-pointer">
+                                    <button type="button" onClick={() => mover(i, -1)} disabled={pendiente || i === 0} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer">
                                         <ArrowUp className="w-3 h-3" />
                                     </button>
-                                    <button type="button" onClick={() => mover(i, 1)} disabled={pendiente || i === cola.length - 1} className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:text-white disabled:opacity-20 cursor-pointer">
+                                    <button type="button" onClick={() => mover(i, 1)} disabled={pendiente || i === cola.length - 1} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer">
                                         <ArrowDown className="w-3 h-3" />
                                     </button>
-                                    <button type="button" onClick={() => correr(() => sacarDeCola(e.id), "Sacada de la cola.")} disabled={pendiente} className="w-6 h-6 rounded flex items-center justify-center text-slate-600 hover:text-rojo disabled:opacity-40 cursor-pointer">
+                                    <button type="button" onClick={() => correr(() => sacarDeCola(e.id), "Sacada de la cola.")} disabled={pendiente} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-rojo disabled:opacity-40 cursor-pointer">
                                         <X className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
@@ -891,14 +891,14 @@ function ZonaCola({
 
             {disponibles.length > 0 && (
                 <section>
-                    <h3 className="label-tech text-[8px] text-slate-500 mb-1">Anotar en la cola</h3>
-                    <p className="text-[10px] text-slate-500 mb-2">
+                    <h3 className="label-tech text-[8px] text-subtle mb-1">Anotar en la cola</h3>
+                    <p className="text-[10px] text-subtle mb-2">
                         Tocá una pareja para que espere sola, o dos para dejar el partido ya armado.
                     </p>
 
                     {sel.length > 0 && (
-                        <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-carbon-700 border border-celeste/30">
-                            <span className="text-[11px] text-white flex-1 min-w-0 truncate">
+                        <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-muted border border-celeste/30">
+                            <span className="text-[11px] text-foreground flex-1 min-w-0 truncate">
                                 {sel.length === 1
                                     ? `${rotulo(sel[0])} — esperando rival`
                                     : `${rotulo(sel[0])} vs ${rotulo(sel[1])}`}
@@ -906,7 +906,7 @@ function ZonaCola({
                             <button
                                 type="button"
                                 onClick={() => setSel([])}
-                                className="label-tech text-[8px] text-slate-400 hover:text-white cursor-pointer shrink-0"
+                                className="label-tech text-[8px] text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
                             >
                                 Limpiar
                             </button>
@@ -938,7 +938,7 @@ function ZonaCola({
                                     disabled={pendiente}
                                     className={`px-3 py-2 rounded-lg border text-[11px] transition-all disabled:opacity-40 cursor-pointer ${elegida
                                         ? "bg-celeste/15 border-celeste/40 text-white"
-                                        : "bg-carbon-700 border-white/10 text-white hover:border-celeste/40"
+                                        : "bg-muted border-hairline text-foreground hover:border-celeste/40"
                                         }`}
                                 >
                                     {p.a.nombre} / {p.b.nombre}
@@ -957,18 +957,18 @@ function ZonaCola({
 function TablaRanking({ filas, puntos }: { filas: FilaRankingUI[]; puntos: DesafioResumen["puntos"] }) {
     if (filas.length === 0) {
         return (
-            <div className="rounded-xl border border-white/10 bg-carbon-800 p-8 text-center">
-                <Trophy className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-[12px] text-slate-500">Todavía no hay puntos cargados.</p>
+            <div className="rounded-xl border border-hairline bg-card p-8 text-center">
+                <Trophy className="w-8 h-8 text-subtle mx-auto mb-2" />
+                <p className="text-[12px] text-subtle">Todavía no hay puntos cargados.</p>
             </div>
         );
     }
     return (
         <div>
-            <div className="overflow-x-auto rounded-xl border border-white/10 bg-carbon-800">
+            <div className="overflow-x-auto rounded-xl border border-hairline bg-card">
                 <table className="w-full">
                     <thead>
-                        <tr className="text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-white/10 bg-carbon-700">
+                        <tr className="text-[9px] font-black uppercase tracking-widest text-subtle border-b border-hairline bg-muted">
                             <th className="py-2.5 pl-4 pr-1 w-12 text-center">#</th>
                             <th className="py-2.5 px-2 text-left">Jugador</th>
                             <th className="py-2.5 px-2 text-center hidden sm:table-cell">Cat</th>
@@ -981,27 +981,27 @@ function TablaRanking({ filas, puntos }: { filas: FilaRankingUI[]; puntos: Desaf
                     </thead>
                     <tbody>
                         {filas.map((f) => (
-                            <tr key={f.userId} className="border-b border-white/5 last:border-0">
+                            <tr key={f.userId} className="border-b border-hairline last:border-0">
                                 <td className="py-2 pl-4 pr-1 text-center">
-                                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-scoreboard text-[11px] ${f.posicion === 1 ? "bg-gold/20 text-gold" : f.posicion === 2 ? "bg-silver/20 text-silver" : f.posicion === 3 ? "bg-bronze/20 text-bronze" : "text-slate-500"}`}>
+                                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-scoreboard text-[11px] ${f.posicion === 1 ? "bg-gold/20 text-gold-ink" : f.posicion === 2 ? "bg-silver/20 text-silver-ink" : f.posicion === 3 ? "bg-bronze/20 text-bronze-ink" : "text-subtle"}`}>
                                         {f.posicion}
                                     </span>
                                 </td>
-                                <td className="py-2 px-2 text-[12px] font-bold text-white truncate">{f.nombre}</td>
+                                <td className="py-2 px-2 text-[12px] font-bold text-foreground truncate">{f.nombre}</td>
                                 <td className="py-2 px-2 text-center hidden sm:table-cell text-[10px] font-black uppercase text-celeste-light">{f.categoria || "—"}</td>
-                                <td className="py-2 px-2 text-center text-[12px] text-slate-400 tabular-nums">{f.jugados}</td>
+                                <td className="py-2 px-2 text-center text-[12px] text-muted-foreground tabular-nums">{f.jugados}</td>
                                 <td className="py-2 px-2 text-center text-[12px] text-emerald-400 tabular-nums">{f.ganados}</td>
-                                <td className="py-2 px-2 text-center hidden md:table-cell text-[11px] text-slate-500 tabular-nums">{f.gamesFavor}-{f.gamesContra}</td>
+                                <td className="py-2 px-2 text-center hidden md:table-cell text-[11px] text-subtle tabular-nums">{f.gamesFavor}-{f.gamesContra}</td>
                                 <td className={`py-2 px-2 text-center text-[12px] tabular-nums ${f.difGames >= 0 ? "text-emerald-400" : "text-rojo"}`}>
                                     {f.difGames > 0 ? "+" : ""}{f.difGames}
                                 </td>
-                                <td className="py-2 pr-4 pl-2 text-right text-scoreboard text-[15px] text-volt">{f.puntos}</td>
+                                <td className="py-2 pr-4 pl-2 text-right text-scoreboard text-[15px] text-volt-ink">{f.puntos}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            <p className="text-[10px] text-slate-500 mt-2">
+            <p className="text-[10px] text-subtle mt-2">
                 {puntos.participacion} por participar · {puntos.victoria} por victoria · {puntos.derrota} por derrota.
                 Desempata: partidos ganados, después diferencia de games.
             </p>
@@ -1018,37 +1018,37 @@ function Historial({
 }) {
     if (partidos.length === 0) {
         return (
-            <div className="rounded-xl border border-white/10 bg-carbon-800 p-8 text-center">
-                <Swords className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-[12px] text-slate-500">Todavía no se jugó ningún partido.</p>
+            <div className="rounded-xl border border-hairline bg-card p-8 text-center">
+                <Swords className="w-8 h-8 text-subtle mx-auto mb-2" />
+                <p className="text-[12px] text-subtle">Todavía no se jugó ningún partido.</p>
             </div>
         );
     }
     return (
-        <ul className="rounded-xl border border-white/10 bg-carbon-800 divide-y divide-white/5">
+        <ul className="rounded-xl border border-hairline bg-card divide-y divide-hairline">
             {partidos.map((m) => (
                 <li key={m.id} className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                         <div className="min-w-0 flex-1 text-[12px]">
-                            <span className={m.ganador === 1 ? "text-emerald-400 font-bold" : "text-slate-400"}>
+                            <span className={m.ganador === 1 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>
                                 {m.equipo1.map((j) => j.nombre).join(" / ")}
                             </span>
-                            <span className="text-slate-600"> vs </span>
-                            <span className={m.ganador === 2 ? "text-emerald-400 font-bold" : "text-slate-400"}>
+                            <span className="text-subtle"> vs </span>
+                            <span className={m.ganador === 2 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>
                                 {m.equipo2.map((j) => j.nombre).join(" / ")}
                             </span>
                         </div>
                         <span className="text-scoreboard text-[12px] text-celeste shrink-0">{m.resultado ?? "—"}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="label-tech text-[7px] text-slate-600">{ETIQUETA_ESTADO_PARTIDO[m.estado]}</span>
-                        {m.canchaNumero != null && <span className="label-tech text-[7px] text-slate-600">· Cancha {m.canchaNumero}</span>}
+                        <span className="label-tech text-[7px] text-subtle">{ETIQUETA_ESTADO_PARTIDO[m.estado]}</span>
+                        {m.canchaNumero != null && <span className="label-tech text-[7px] text-subtle">· Cancha {m.canchaNumero}</span>}
                         {m.motivoRechazo && <span className="text-[9px] text-rojo">· {m.motivoRechazo}</span>}
                         {m.estado !== "cancelado" && (
                             <button
                                 type="button"
                                 onClick={() => onEditar(m)}
-                                className="ml-auto label-tech text-[7px] text-slate-500 hover:text-celeste transition-colors cursor-pointer shrink-0"
+                                className="ml-auto label-tech text-[7px] text-subtle hover:text-celeste transition-colors cursor-pointer shrink-0"
                             >
                                 {m.estado === "confirmado" ? "Corregir" : "Cargar resultado"}
                             </button>
@@ -1089,9 +1089,9 @@ function FormResultado({
         .map((s) => ({ t1: Number(s.t1), t2: Number(s.t2) }));
 
     return (
-        <div className="mt-2.5 pt-2.5 border-t border-white/10 space-y-2">
+        <div className="mt-2.5 pt-2.5 border-t border-hairline space-y-2">
             {aviso && (
-                <p className="flex items-start gap-1.5 text-[10px] text-volt">
+                <p className="flex items-start gap-1.5 text-[10px] text-volt-ink">
                     <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
                     {aviso}
                 </p>
@@ -1099,19 +1099,19 @@ function FormResultado({
 
             {sets.map((s, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                    <span className="label-tech text-[7px] text-slate-500 w-8 shrink-0">S{i + 1}</span>
+                    <span className="label-tech text-[7px] text-subtle w-8 shrink-0">S{i + 1}</span>
                     <input
                         inputMode="numeric"
                         value={s.t1}
                         onChange={(e) => set(i, "t1", e.target.value)}
-                        className="w-11 bg-carbon-700 border border-white/10 rounded-lg h-8 text-center text-[13px] text-scoreboard text-white focus:outline-none focus:border-celeste/50"
+                        className="w-11 bg-muted border border-hairline rounded-lg h-8 text-center text-[13px] text-scoreboard text-foreground focus:outline-none focus:border-celeste/50"
                     />
-                    <span className="text-slate-600 text-[11px]">—</span>
+                    <span className="text-subtle text-[11px]">—</span>
                     <input
                         inputMode="numeric"
                         value={s.t2}
                         onChange={(e) => set(i, "t2", e.target.value)}
-                        className="w-11 bg-carbon-700 border border-white/10 rounded-lg h-8 text-center text-[13px] text-scoreboard text-white focus:outline-none focus:border-celeste/50"
+                        className="w-11 bg-muted border border-hairline rounded-lg h-8 text-center text-[13px] text-scoreboard text-foreground focus:outline-none focus:border-celeste/50"
                     />
                     {i === sets.length - 1 && sets.length < 5 && (
                         <button
@@ -1130,7 +1130,7 @@ function FormResultado({
                 <button
                     type="button"
                     onClick={onCancelar}
-                    className="px-2.5 py-1.5 rounded-lg bg-carbon-700 border border-white/10 text-slate-400 label-tech text-[8px] hover:text-white transition-all cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-foreground transition-all cursor-pointer"
                 >
                     Cancelar
                 </button>
@@ -1175,13 +1175,13 @@ function ModalResultado({
         <Modal titulo={yaConfirmado ? "Corregir resultado" : "Cargar resultado"} onCerrar={onCerrar}>
             <div className="space-y-3">
                 <div className="text-[12px]">
-                    <div className="text-white font-bold">{partido.equipo1.map((j) => j.nombre).join(" / ")}</div>
-                    <div className="text-slate-500 text-[10px] my-0.5">vs</div>
-                    <div className="text-white font-bold">{partido.equipo2.map((j) => j.nombre).join(" / ")}</div>
+                    <div className="text-foreground font-bold">{partido.equipo1.map((j) => j.nombre).join(" / ")}</div>
+                    <div className="text-subtle text-[10px] my-0.5">vs</div>
+                    <div className="text-foreground font-bold">{partido.equipo2.map((j) => j.nombre).join(" / ")}</div>
                 </div>
 
                 {yaConfirmado && (
-                    <p className="flex items-start gap-1.5 text-[11px] text-volt bg-carbon-700 border border-volt/30 rounded-lg p-2.5">
+                    <p className="flex items-start gap-1.5 text-[11px] text-volt-ink bg-muted border border-volt/30 rounded-lg p-2.5">
                         <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                         Este partido ya estaba confirmado. Al guardar se reescriben los puntos de los cuatro
                         jugadores según el resultado nuevo.
@@ -1190,19 +1190,19 @@ function ModalResultado({
 
                 {sets.map((s, i) => (
                     <div key={i} className="flex items-center gap-2">
-                        <span className="label-tech text-[7px] text-slate-500 w-10">Set {i + 1}</span>
+                        <span className="label-tech text-[7px] text-subtle w-10">Set {i + 1}</span>
                         <input
                             inputMode="numeric"
                             value={s.t1}
                             onChange={(e) => set(i, "t1", e.target.value)}
-                            className="w-14 bg-carbon-700 border border-white/10 rounded-lg h-10 text-center text-[14px] text-scoreboard text-white focus:outline-none focus:border-celeste/40"
+                            className="w-14 bg-muted border border-hairline rounded-lg h-10 text-center text-[14px] text-scoreboard text-foreground focus:outline-none focus:border-celeste/40"
                         />
-                        <span className="text-slate-600">—</span>
+                        <span className="text-subtle">—</span>
                         <input
                             inputMode="numeric"
                             value={s.t2}
                             onChange={(e) => set(i, "t2", e.target.value)}
-                            className="w-14 bg-carbon-700 border border-white/10 rounded-lg h-10 text-center text-[14px] text-scoreboard text-white focus:outline-none focus:border-celeste/40"
+                            className="w-14 bg-muted border border-hairline rounded-lg h-10 text-center text-[14px] text-scoreboard text-foreground focus:outline-none focus:border-celeste/40"
                         />
                         {i === sets.length - 1 && sets.length < 5 && (
                             <button
@@ -1236,7 +1236,7 @@ function Etiqueta({ children, color }: { children: React.ReactNode; color: "live
     const clases = {
         live: "bg-live/10 border-live/30 text-live",
         celeste: "bg-celeste/10 border-celeste/30 text-celeste",
-        volt: "bg-volt/10 border-volt/30 text-volt",
+        volt: "bg-volt/10 border-volt/30 text-volt-ink",
     }[color];
     return <span className={`px-1.5 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider ${clases}`}>{children}</span>;
 }
@@ -1244,16 +1244,16 @@ function Etiqueta({ children, color }: { children: React.ReactNode; color: "live
 function Modal({ titulo, children, onCerrar }: { titulo: string; children: React.ReactNode; onCerrar: () => void }) {
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
-            <div className="absolute inset-0 bg-carbon-950/70 backdrop-blur-xl" onClick={onCerrar} />
-            <div className="relative w-full sm:max-w-md max-h-[85vh] bg-carbon-900 border border-white/10 rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl shadow-black/50">
-                <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10 shrink-0">
-                    <h3 className="heading-sport text-base text-white">{titulo}</h3>
+            <div className="absolute inset-0 bg-background/70 backdrop-blur-xl" onClick={onCerrar} />
+            <div className="relative w-full sm:max-w-md max-h-[85vh] bg-background border border-hairline rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl shadow-black/50">
+                <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-hairline shrink-0">
+                    <h3 className="heading-sport text-base text-foreground">{titulo}</h3>
                     <button
                         type="button"
                         onClick={onCerrar}
-                        className="w-9 h-9 rounded-full bg-carbon-700 border border-white/10 flex items-center justify-center hover:bg-carbon-600 active:scale-90 transition-all cursor-pointer"
+                        className="w-9 h-9 rounded-full bg-muted border border-hairline flex items-center justify-center hover:bg-muted active:scale-90 transition-all cursor-pointer"
                     >
-                        <X className="w-4 h-4 text-white" />
+                        <X className="w-4 h-4 text-foreground" />
                     </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">{children}</div>

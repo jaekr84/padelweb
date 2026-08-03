@@ -10,7 +10,7 @@ type InvitationRow = Awaited<ReturnType<typeof listInvitations>>[number];
 
 const STATUS_STYLES: Record<string, string> = {
     pendiente: "bg-emerald-500/15 text-emerald-400 border-emerald-500/40",
-    usada: "bg-white/10 text-slate-300 border-white/20",
+    usada: "bg-surface-raised text-muted-foreground border-hairline-strong",
     vencida: "bg-amber-500/15 text-amber-400 border-amber-500/40",
     revocada: "bg-rojo/15 text-rojo border-rojo/40",
 };
@@ -80,7 +80,6 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
     const formRef = useRef<HTMLFormElement>(null);
 
     const handleSubmit = (formData: FormData) => {
-        formData.append("role", "jugador");
         formData.append("type", "link");
 
         startTransition(async () => {
@@ -120,9 +119,9 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                     animation: gradient-x 6s ease infinite;
                 }
                 .glass-card {
-                    background-color: rgba(17, 26, 46, 0.85); /* carbon-800 */
+                    background-color: var(--glass);
                     backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border: 1px solid var(--hairline);
                 }
                 .glass-card:hover {
                     border-color: rgba(16, 185, 129, 0.5);
@@ -157,21 +156,21 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                 <motion.header 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-1.5 border-b border-white/10 pb-4 mb-2"
+                    className="space-y-1.5 border-b border-hairline pb-4 mb-2"
                 >
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white shadow-sm relative overflow-hidden">
+                        <div className="w-10 h-10 rounded-xl bg-surface-raised border border-hairline flex items-center justify-center text-foreground shadow-sm relative overflow-hidden">
                             <div className="absolute inset-0 bg-emerald-500/10 blur-xl opacity-50" />
                             <User className="relative z-10 w-5 h-5" />
                         </div>
                         <div>
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-0.5">Accesos al sistema</p>
-                            <h1 className="text-xl md:text-2xl heading-sport leading-none text-white">
+                            <h1 className="text-xl md:text-2xl heading-sport leading-none text-foreground">
                                 Invitación de <span className="text-gradient-animate drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">Jugadores</span>
                             </h1>
                         </div>
                     </div>
-                <p className="text-slate-400 text-[10px] font-medium leading-relaxed pl-[56px]">
+                <p className="text-muted-foreground text-[10px] font-medium leading-relaxed pl-[56px]">
                     Genera links de invitación para nuevos jugadores. Cada link lleva un token propio y deja de funcionar apenas se completa el registro, o a las 24 horas.
                 </p>
                 </motion.header>
@@ -180,27 +179,27 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                     <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                     <div className="flex flex-col gap-2 relative z-10">
-                    <label className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-400 ml-1">Configuración del Link</label>
+                    <label className="text-[8px] font-black uppercase tracking-[0.25em] text-muted-foreground ml-1">Configuración del Link</label>
 
                     <div className="flex flex-col gap-1.5">
                         <input
                             name="email"
                             type="text"
                             placeholder="¿Para quién es? (nombre o email, opcional)"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[11px] font-bold text-white placeholder:text-slate-500 outline-none focus:border-emerald-500/50 transition-all"
+                            className="w-full bg-surface border border-hairline rounded-xl px-3 py-2.5 text-[11px] font-bold text-foreground placeholder:text-subtle outline-none focus:border-emerald-500/50 transition-all"
                         />
-                        <p className="text-[8px] text-slate-500 font-medium ml-1 leading-relaxed">
+                        <p className="text-[8px] text-subtle font-medium ml-1 leading-relaxed">
                             Si ponés un email, el link solo va a servir para ese correo. Con un nombre, queda como referencia para saber a quién se lo enviaste.
                         </p>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3">
+                    <div className="bg-surface border border-hairline p-3 rounded-xl flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                             <User className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white">Rol: Jugador Libre</span>
-                            <span className="text-[8px] font-bold text-slate-400 opacity-70 leading-tight">Acceso estándar al feed y torneos públicos</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-foreground">Rol: Jugador Libre</span>
+                            <span className="text-[8px] font-bold text-muted-foreground opacity-70 leading-tight">Acceso estándar al feed y torneos públicos</span>
                         </div>
                     </div>
                 </div>
@@ -212,7 +211,7 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                             <p className="text-[9px] font-black uppercase tracking-wide text-amber-400">
                                 Cómo funciona el link
                             </p>
-                            <ul className="space-y-0.5 text-[9px] font-medium text-slate-300 leading-relaxed">
+                            <ul className="space-y-0.5 text-[9px] font-medium text-muted-foreground leading-relaxed">
                                 <li>· Lleva un <span className="text-amber-400 font-bold">token único</span>: no se puede adivinar ni reutilizar.</li>
                                 <li>· Se anula solo <span className="text-amber-400 font-bold">al completarse el registro</span>.</li>
                                 <li>· O <span className="text-amber-400 font-bold">a las 24 horas</span>, lo que pase primero.</li>
@@ -229,7 +228,7 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                         >
                             <label className="text-[8px] font-black uppercase tracking-[0.25em] text-emerald-500 ml-3 pt-1 relative z-10">Link Generado</label>
                             <div className="flex flex-col sm:flex-row gap-1.5 px-1.5 pb-1.5 relative z-10">
-                                <div className="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-[10px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-400 ">
+                                <div className="flex-1 bg-surface-raised border border-hairline rounded-xl px-3 py-2.5 text-[10px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-emerald-400 ">
                                     {generatedLink}
                                 </div>
                                 <div className="flex gap-1.5">
@@ -276,24 +275,24 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                 {/* Historial: qué links siguen vivos, cuáles se usaron y quién los usó */}
                 <div className="glass-card p-4 md:p-5 rounded-2xl space-y-3">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-surface border border-hairline flex items-center justify-center">
                             <History className="w-4 h-4 text-emerald-400" />
                         </div>
                         <div>
-                            <h2 className="text-[11px] font-black uppercase italic tracking-tight text-white leading-none">Invitaciones generadas</h2>
-                            <span className="text-[9px] font-bold text-slate-400">
+                            <h2 className="text-[11px] font-black uppercase italic tracking-tight text-foreground leading-none">Invitaciones generadas</h2>
+                            <span className="text-[9px] font-bold text-muted-foreground">
                                 {invitations.filter(i => i.status === "pendiente").length} activas de {invitations.length}
                             </span>
                         </div>
 
-                        <div className="ml-auto flex items-center gap-0.5 p-0.5 bg-white/5 border border-white/10 rounded-lg">
+                        <div className="ml-auto flex items-center gap-0.5 p-0.5 bg-surface border border-hairline rounded-lg">
                             {(["pendientes", "todas"] as const).map(f => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
                                     className={`px-2.5 h-6 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${filter === f
                                         ? "bg-emerald-500 text-carbon-950"
-                                        : "text-slate-400 hover:text-white"}`}
+                                        : "text-muted-foreground hover:text-foreground"}`}
                                 >
                                     {f}
                                 </button>
@@ -302,13 +301,13 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                     </div>
 
                     {visibleInvitations.length === 0 ? (
-                        <p className="text-[10px] text-slate-400 py-6 text-center font-medium">
+                        <p className="text-[10px] text-muted-foreground py-6 text-center font-medium">
                             {invitations.length === 0
                                 ? "Todavía no generaste invitaciones."
                                 : "No hay invitaciones pendientes."}
                         </p>
                     ) : (
-                        <div className="divide-y divide-white/[0.08]">
+                        <div className="divide-y divide-hairline">
                             {visibleInvitations.map(inv => (
                                 <div key={inv.id} className="flex items-center justify-between gap-3 py-2.5">
                                     <div className="flex items-center gap-2.5 min-w-0">
@@ -316,10 +315,10 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                                             {inv.status}
                                         </span>
                                         <div className="flex flex-col min-w-0">
-                                            <span className="text-[10px] font-black uppercase tracking-wide text-white truncate">
+                                            <span className="text-[10px] font-black uppercase tracking-wide text-foreground truncate">
                                                 {inv.label || inv.email || inv.role}
                                             </span>
-                                            <span className="text-[9px] text-slate-400 truncate">
+                                            <span className="text-[9px] text-muted-foreground truncate">
                                                 {inv.status === "usada"
                                                     ? `Usada por ${inv.usedByUserId} · ${formatDate(inv.usedAt)}`
                                                     : inv.status === "pendiente"
@@ -335,7 +334,7 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                                                 onClick={() => copyInvitation(inv.id)}
                                                 disabled={busyId === inv.id}
                                                 title="Copiar link"
-                                                className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 text-slate-300 flex items-center justify-center hover:border-emerald-500/50 hover:text-emerald-400 transition-all disabled:opacity-50"
+                                                className="w-7 h-7 rounded-lg bg-surface border border-hairline text-muted-foreground flex items-center justify-center hover:border-emerald-500/50 hover:text-emerald-400 transition-all disabled:opacity-50"
                                             >
                                                 {busyId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" />
                                                     : copiedId === inv.id ? <Check className="w-3 h-3 text-emerald-400" />
@@ -345,7 +344,7 @@ export default function InvitationsClient({ initialInvitations = [] }: { initial
                                                 onClick={() => shareInvitation(inv.id)}
                                                 disabled={busyId === inv.id}
                                                 title="Reenviar por WhatsApp"
-                                                className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 text-slate-300 flex items-center justify-center hover:border-blue-500/50 hover:text-blue-400 transition-all disabled:opacity-50"
+                                                className="w-7 h-7 rounded-lg bg-surface border border-hairline text-muted-foreground flex items-center justify-center hover:border-blue-500/50 hover:text-blue-400 transition-all disabled:opacity-50"
                                             >
                                                 <Send className="w-3 h-3" />
                                             </button>

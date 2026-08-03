@@ -439,11 +439,11 @@ export default function DevDesafioPage() {
     const fallan = grupos.reduce((n, g) => n + g.casos.filter((c) => c.estado === "fail").length, 0);
 
     return (
-        <div className="min-h-screen bg-carbon-900 text-white p-6">
+        <div className="min-h-screen bg-background text-foreground p-6">
             <div className="max-w-5xl mx-auto space-y-8">
                 <header>
                     <h1 className="text-2xl font-black uppercase italic">Dominio del Desafío</h1>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         Corre sobre <code className="text-celeste">@/lib/desafio</code>, el mismo código que van a usar las
                         server actions. No toca la base.
                     </p>
@@ -460,7 +460,7 @@ export default function DevDesafioPage() {
                 {grupos.map((g) => (
                     <section key={g.titulo}>
                         <h2 className="text-sm font-black uppercase italic text-celeste mb-2">{g.titulo}</h2>
-                        <ul className="rounded-xl border border-white/10 bg-white/[0.02] divide-y divide-white/5">
+                        <ul className="rounded-xl border border-hairline bg-surface divide-y divide-hairline">
                             {g.casos.map((c) => (
                                 <li key={c.nombre} className="flex items-start gap-3 px-4 py-2">
                                     <span className={c.estado === "pass" ? "text-emerald-400" : "text-rojo"}>
@@ -468,7 +468,7 @@ export default function DevDesafioPage() {
                                     </span>
                                     <div className="min-w-0">
                                         <div className="text-[13px]">{c.nombre}</div>
-                                        {c.detalle && <div className="text-[11px] text-slate-500 mt-0.5">{c.detalle}</div>}
+                                        {c.detalle && <div className="text-[11px] text-subtle mt-0.5">{c.detalle}</div>}
                                     </div>
                                 </li>
                             ))}
@@ -477,9 +477,9 @@ export default function DevDesafioPage() {
                 ))}
 
                 {/* ── Simulación ── */}
-                <section className="pt-4 border-t border-white/10">
-                    <h2 className="text-sm font-black uppercase italic text-volt mb-1">Simulación de un desafío entero</h2>
-                    <p className="text-[11px] text-slate-500 mb-4">
+                <section className="pt-4 border-t border-hairline">
+                    <h2 className="text-sm font-black uppercase italic text-volt-ink mb-1">Simulación de un desafío entero</h2>
+                    <p className="text-[11px] text-subtle mb-4">
                         Inscripción → armado de parejas por lado → partidos → confirmación → tabla. Todo en memoria.
                     </p>
 
@@ -489,7 +489,7 @@ export default function DevDesafioPage() {
                             ["Partidos", cantPartidos, setCantPartidos, 0, 30],
                             ["Semilla", semilla, setSemilla, 1, 999],
                         ] as const).map(([label, valor, set, min, max]) => (
-                            <label key={label} className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-slate-400">
+                            <label key={label} className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
                                 {label}
                                 <input
                                     type="number"
@@ -497,7 +497,7 @@ export default function DevDesafioPage() {
                                     max={max}
                                     value={valor}
                                     onChange={(e) => set(Math.max(min, Math.min(max, Number(e.target.value) || min)))}
-                                    className="w-16 bg-white/5 border border-white/10 rounded px-2 py-1 text-white text-center"
+                                    className="w-16 bg-surface border border-hairline rounded px-2 py-1 text-foreground text-center"
                                 />
                             </label>
                         ))}
@@ -505,62 +505,62 @@ export default function DevDesafioPage() {
 
                     <div className="grid md:grid-cols-3 gap-3 mb-5">
                         {(["reves", "drive", "ambos"] as const).map((k) => (
-                            <div key={k} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
-                                <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
+                            <div key={k} className="rounded-xl border border-hairline bg-surface p-3">
+                                <div className="text-[10px] uppercase tracking-widest text-subtle mb-2">
                                     {ETIQUETA_LADO[normalizarLado(k)]} · {sim.pool[k].length}
                                 </div>
                                 <ul className="space-y-1">
                                     {sim.pool[k].map((j: any) => (
-                                        <li key={j.userId} className="text-[12px] text-slate-300">{j.nombre}</li>
+                                        <li key={j.userId} className="text-[12px] text-muted-foreground">{j.nombre}</li>
                                     ))}
-                                    {sim.pool[k].length === 0 && <li className="text-[11px] text-slate-600">—</li>}
+                                    {sim.pool[k].length === 0 && <li className="text-[11px] text-subtle">—</li>}
                                 </ul>
                             </div>
                         ))}
                     </div>
 
-                    <h3 className="text-[11px] uppercase tracking-widest text-slate-400 mb-2">
+                    <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
                         Parejas armadas ({sim.parejas.length})
-                        {sim.sueltos.length > 0 && <span className="text-volt ml-2">· {sim.sueltos.length} sin pareja</span>}
+                        {sim.sueltos.length > 0 && <span className="text-volt-ink ml-2">· {sim.sueltos.length} sin pareja</span>}
                     </h3>
-                    <ul className="rounded-xl border border-white/10 bg-white/[0.02] divide-y divide-white/5 mb-5">
+                    <ul className="rounded-xl border border-hairline bg-surface divide-y divide-hairline mb-5">
                         {sim.parejas.map((p, i) => (
                             <li key={i} className="flex items-center justify-between gap-3 px-4 py-2">
                                 <span className="text-[13px]">
-                                    {p.a.nombre} <span className="text-slate-600">({ETIQUETA_LADO[normalizarLado(p.a.lado)]})</span>
+                                    {p.a.nombre} <span className="text-subtle">({ETIQUETA_LADO[normalizarLado(p.a.lado)]})</span>
                                     {" + "}
-                                    {p.b.nombre} <span className="text-slate-600">({ETIQUETA_LADO[normalizarLado(p.b.lado)]})</span>
+                                    {p.b.nombre} <span className="text-subtle">({ETIQUETA_LADO[normalizarLado(p.b.lado)]})</span>
                                 </span>
-                                <span className={`text-[10px] ${p.nivel === "aviso" ? "text-volt" : "text-slate-500"}`}>
+                                <span className={`text-[10px] ${p.nivel === "aviso" ? "text-volt-ink" : "text-subtle"}`}>
                                     {p.aviso}
                                 </span>
                             </li>
                         ))}
                     </ul>
 
-                    <h3 className="text-[11px] uppercase tracking-widest text-slate-400 mb-2">
+                    <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
                         Partidos confirmados ({sim.partidos.length})
                     </h3>
-                    <ul className="rounded-xl border border-white/10 bg-white/[0.02] divide-y divide-white/5 mb-5">
+                    <ul className="rounded-xl border border-hairline bg-surface divide-y divide-hairline mb-5">
                         {sim.partidos.map((p) => (
                             <li key={p.n} className="flex items-center gap-3 px-4 py-2 text-[12px]">
-                                <span className="text-slate-600 w-6">#{p.n}</span>
-                                <span className={p.ganador === 1 ? "text-emerald-400 font-bold" : "text-slate-400"}>{p.eq1}</span>
-                                <span className="text-slate-600">vs</span>
-                                <span className={p.ganador === 2 ? "text-emerald-400 font-bold" : "text-slate-400"}>{p.eq2}</span>
+                                <span className="text-subtle w-6">#{p.n}</span>
+                                <span className={p.ganador === 1 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>{p.eq1}</span>
+                                <span className="text-subtle">vs</span>
+                                <span className={p.ganador === 2 ? "text-emerald-400 font-bold" : "text-muted-foreground"}>{p.eq2}</span>
                                 <span className="ml-auto text-celeste tabular-nums">{p.detalle}</span>
                             </li>
                         ))}
-                        {sim.partidos.length === 0 && <li className="px-4 py-3 text-[12px] text-slate-600">Sin partidos.</li>}
+                        {sim.partidos.length === 0 && <li className="px-4 py-3 text-[12px] text-subtle">Sin partidos.</li>}
                     </ul>
 
-                    <h3 className="text-[11px] uppercase tracking-widest text-slate-400 mb-2">
+                    <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
                         Tabla de posiciones · {sim.ledger.length} entradas en el ledger
                     </h3>
-                    <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/[0.02]">
+                    <div className="overflow-x-auto rounded-xl border border-hairline bg-surface">
                         <table className="w-full text-[12px]">
                             <thead>
-                                <tr className="text-[9px] uppercase tracking-widest text-slate-500 border-b border-white/10">
+                                <tr className="text-[9px] uppercase tracking-widest text-subtle border-b border-hairline">
                                     <th className="py-2 px-3 text-left">#</th>
                                     <th className="py-2 px-3 text-left">Jugador</th>
                                     <th className="py-2 px-3 text-center">PJ</th>
@@ -574,25 +574,25 @@ export default function DevDesafioPage() {
                             </thead>
                             <tbody>
                                 {sim.tabla.map((f) => (
-                                    <tr key={f.userId} className="border-b border-white/5 last:border-0">
-                                        <td className="py-1.5 px-3 text-slate-500">{f.posicion}</td>
+                                    <tr key={f.userId} className="border-b border-hairline last:border-0">
+                                        <td className="py-1.5 px-3 text-subtle">{f.posicion}</td>
                                         <td className="py-1.5 px-3">{sim.nombrePorId.get(f.userId)}</td>
-                                        <td className="py-1.5 px-3 text-center text-slate-400">{f.jugados}</td>
+                                        <td className="py-1.5 px-3 text-center text-muted-foreground">{f.jugados}</td>
                                         <td className="py-1.5 px-3 text-center text-emerald-400">{f.ganados}</td>
-                                        <td className="py-1.5 px-3 text-center text-slate-400">{f.perdidos}</td>
-                                        <td className="py-1.5 px-3 text-center text-slate-500 tabular-nums">{f.gamesFavor}-{f.gamesContra}</td>
+                                        <td className="py-1.5 px-3 text-center text-muted-foreground">{f.perdidos}</td>
+                                        <td className="py-1.5 px-3 text-center text-subtle tabular-nums">{f.gamesFavor}-{f.gamesContra}</td>
                                         <td className={`py-1.5 px-3 text-center tabular-nums ${f.difGames >= 0 ? "text-emerald-400" : "text-rojo"}`}>
                                             {f.difGames > 0 ? "+" : ""}{f.difGames}
                                         </td>
-                                        <td className="py-1.5 px-3 text-center text-slate-400">{efectividad(f)}%</td>
-                                        <td className="py-1.5 px-3 text-right text-volt font-bold">{f.puntos}</td>
+                                        <td className="py-1.5 px-3 text-center text-muted-foreground">{efectividad(f)}%</td>
+                                        <td className="py-1.5 px-3 text-right text-volt-ink font-bold">{f.puntos}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
 
-                    <p className="text-[11px] text-slate-500 mt-3">
+                    <p className="text-[11px] text-subtle mt-3">
                         Puntaje aplicado: {PUNTAJE_DEFAULT.participacion} por participar ·{" "}
                         {PUNTAJE_DEFAULT.victoria} por victoria · {PUNTAJE_DEFAULT.derrota} por derrota.
                     </p>

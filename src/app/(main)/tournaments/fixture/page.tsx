@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 import styles from "./fixture.module.css";
 import Link from "next/link";
 import { saveTournamentFixture } from "./actions";
+import { generateGroupMatches } from "@/lib/matchmaking";
 
 export interface FixtureClientProps {
     tournamentId: string;
@@ -341,24 +342,10 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         );
     }, [playersPerGroup]);
 
+    // Todos contra todos dentro de cada grupo. Criterio extraído a
+    // @/lib/matchmaking (probado en /dev/test-matchmaking).
     const generateMatches = useCallback(() => {
-        const newMatches: Match[] = [];
-        groups.forEach(g => {
-            // Round robin within group
-            for (let i = 0; i < g.players.length; i++) {
-                for (let j = i + 1; j < g.players.length; j++) {
-                    newMatches.push({
-                        id: `m_${g.id}_${i}_${j}`,
-                        groupId: g.id,
-                        team1: g.players[i],
-                        team2: g.players[j],
-                        played: false,
-                        confirmed: false,
-                    });
-                }
-            }
-        });
-        setMatches(newMatches);
+        setMatches(generateGroupMatches(groups) as Match[]);
     }, [groups]);
 
     const handleConfirmGroups = async () => {
@@ -367,21 +354,9 @@ export default function FixtureClientInner({ tournamentId, tournamentName }: Fix
         // Auto-start: save groups to DB → sets tournament to en_curso
         setSaving(true);
         setSaveError(null);
-        const currentMatches: Match[] = [];
-        groups.forEach(g => {
-            for (let i = 0; i < g.players.length; i++) {
-                for (let j = i + 1; j < g.players.length; j++) {
-                    currentMatches.push({
-                        id: `m_${g.id}_${i}_${j}`,
-                        groupId: g.id,
-                        team1: g.players[i],
-                        team2: g.players[j],
-                        played: false,
-                        confirmed: false,
-                    });
-                }
-            }
-        });
+        // El mismo fixture que acaba de armar generateMatches: setMatches todavía
+        // no se reflejó en este render, así que se recalcula para guardarlo.
+        const currentMatches = generateGroupMatches(groups) as Match[];
         await saveTournamentFixture({
             tournamentId,
             phase: "grupos",

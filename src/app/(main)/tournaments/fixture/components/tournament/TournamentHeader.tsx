@@ -67,14 +67,14 @@ export function TournamentHeader({
 
     return (
         <>
-            <header className="sticky top-0 z-50 bg-carbon-950/90 backdrop-blur-3xl border-b border-white/12 px-4 py-4">
+            <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-3xl border-b border-hairline px-4 py-4">
                 <div className="max-w-6xl mx-auto space-y-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-6">
                             {!readOnly && (
                                 <button
                                     onClick={handleBack}
-                                    className="group flex items-center gap-2 text-slate-300 hover:text-white transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/12"
+                                    className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all font-black uppercase tracking-widest text-[9px] shrink-0 bg-surface hover:bg-surface-raised px-3 py-1.5 rounded-xl border border-hairline"
                                 >
                                     <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                                     Volver
@@ -131,7 +131,7 @@ export function TournamentHeader({
                                 {!readOnly && (
                                     <Link
                                         href={`/tournaments/${tournamentId}/edit`}
-                                        className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+                                        className="p-2 rounded-xl bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-all"
                                         title="Configuración"
                                     >
                                         <Settings className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export function TournamentHeader({
                                 <Link
                                     href={`/tournaments/${tournamentId}/resultados`}
                                     target="_blank"
-                                    className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all"
+                                    className="p-2 rounded-xl bg-surface border border-hairline text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all"
                                     title="Ver resultados públicos"
                                 >
                                     <Eye className="w-3.5 h-3.5" />
@@ -159,7 +159,7 @@ export function TournamentHeader({
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
-                                    className="p-2 rounded-xl bg-white/5 border border-white/12 text-slate-300 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                                    className="p-2 rounded-xl bg-surface border border-hairline text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-all disabled:opacity-50"
                                 >
                                     <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
                                 </button>

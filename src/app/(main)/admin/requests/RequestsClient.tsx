@@ -74,7 +74,7 @@ export default function RequestsClient() {
     const handleProcess = async (id: string, whatsapp: string, fullName: string) => {
         startTransition(async () => {
             try {
-                const link = await generateInvitationLink("jugador");
+                const link = await generateInvitationLink();
                 await updateRequestStatus(id, "enviado");
                 setGeneratedLinks(prev => ({ ...prev, [id]: link }));
                 await loadData();
@@ -167,8 +167,8 @@ export default function RequestsClient() {
             case 'enviado': return { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', icon: Send, label: 'Enviado' };
             case 'aceptado': return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', icon: CheckCircle2, label: 'Registrado' };
             case 'rechazado': return { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', icon: XCircle, label: 'Rechazado' };
-            case 'caducado': return { bg: 'bg-white/5', border: 'border-slate-500/20', text: 'text-slate-500', icon: Clock, label: 'Caducado' };
-            default: return { bg: 'bg-white/10', border: 'border-white/10', text: 'text-slate-500', icon: Clock, label: status };
+            case 'caducado': return { bg: 'bg-surface', border: 'border-slate-500/20', text: 'text-subtle', icon: Clock, label: 'Caducado' };
+            default: return { bg: 'bg-surface-raised', border: 'border-hairline', text: 'text-subtle', icon: Clock, label: status };
         }
     };
 
@@ -205,9 +205,9 @@ export default function RequestsClient() {
                     animation: gradient-x 6s ease infinite;
                 }
                 .glass-card {
-                    background-color: rgba(17, 26, 46, 0.8); /* carbon-800 */
+                    background-color: var(--glass);
                     backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border: 1px solid var(--hairline);
                 }
                 .glass-card:hover {
                     border-color: rgba(79, 70, 229, 0.4);
@@ -237,33 +237,33 @@ export default function RequestsClient() {
                                     <div className="h-px w-10 bg-indigo-500/30 mt-0.5" />
                                 </div>
                             </div>
-                            <h1 className="text-xl md:text-3xl heading-sport leading-none text-white">
+                            <h1 className="text-xl md:text-3xl heading-sport leading-none text-foreground">
                                 {activeTab === "registro" ? "Solicitudes de " : activeTab === "altas" ? "Aprobación de " : "Buzón de " }
                                 <span className="text-gradient-animate">
                                     {activeTab === "registro" ? "Registro" : activeTab === "altas" ? "Altas" : "Mensajes" }
                                 </span>
                             </h1>
-                            <p className="text-slate-400 text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <p className="text-muted-foreground text-[9px] font-black mt-1.5 uppercase tracking-[0.2em] flex items-center gap-2">
                                 <Layers className="w-2.5 h-2.5" /> Gestión centralizada de comunicaciones y nuevos accesos
                             </p>
                         </div>
 
-                        <div className="flex p-0.5 bg-white/10 border border-white/10 rounded-xl w-full sm:w-fit self-end">
+                        <div className="flex p-0.5 bg-surface-raised border border-hairline rounded-xl w-full sm:w-fit self-end">
                             <button 
                                 onClick={() => setActiveTab("registro")}
-                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "registro" ? "bg-white/10 text-indigo-400 border border-white/10" : "text-slate-400 hover:text-white"}`}
+                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "registro" ? "bg-surface-raised text-indigo-400 border border-hairline" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 <ShieldCheck className="w-3.5 h-3.5" /> Registro
                             </button>
                             <button
                                 onClick={() => setActiveTab("altas")}
-                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "altas" ? "bg-white/10 text-indigo-400 border border-white/10" : "text-slate-400 hover:text-white"}`}
+                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "altas" ? "bg-surface-raised text-indigo-400 border border-hairline" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 <UserPlus className="w-3.5 h-3.5" /> Altas
                             </button>
                             <button
                                 onClick={() => setActiveTab("mensajes")}
-                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "mensajes" ? "bg-white/10 text-indigo-400 border border-white/10" : "text-slate-400 hover:text-white"}`}
+                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all gap-1.5 flex items-center justify-center ${activeTab === "mensajes" ? "bg-surface-raised text-indigo-400 border border-hairline" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 <Mail className="w-3.5 h-3.5" /> Mensajes
                             </button>
@@ -271,13 +271,13 @@ export default function RequestsClient() {
                     </div>
 
                     <div className="relative group w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground group-focus-within:text-indigo-400 transition-colors" />
                         <input
                             type="text"
                             placeholder={`BUSCAR ${activeTab === 'registro' ? 'SOLICITUD (NOMBRE, WHATSAPP)' : activeTab === 'altas' ? 'ALTA (NOMBRE, EMAIL, TELÉFONO)' : 'MENSAJE (NOMBRE, EMAIL, ASUNTO)'}...`}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-carbon-800/50 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                            className="w-full bg-card/50 border border-hairline rounded-lg pl-9 pr-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
                         />
                     </div>
                 </motion.header>
@@ -285,7 +285,7 @@ export default function RequestsClient() {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4">
                         <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Sincronizando Sistema...</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground animate-pulse">Sincronizando Sistema...</span>
                     </div>
                 ) : filteredItems.length === 0 ? (
                     <motion.div 
@@ -293,12 +293,12 @@ export default function RequestsClient() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="glass-card rounded-xl p-12 text-center flex flex-col items-center gap-4 shadow-sm border-dashed"
                     >
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-slate-400 border border-white/10 opacity-50">
+                        <div className="w-12 h-12 rounded-full bg-surface-raised flex items-center justify-center text-muted-foreground border border-hairline opacity-50">
                             {activeTab === "registro" ? <ShieldCheck className="w-5 h-5" /> : activeTab === "altas" ? <UserPlus className="w-5 h-5" /> : <Inbox className="w-5 h-5" />}
                         </div>
                         <div className="space-y-1">
-                            <h3 className="text-sm font-black uppercase italic tracking-tight text-white">Sin registros encontrados</h3>
-                            <p className="text-[9px] text-slate-400 max-w-xs mx-auto font-black uppercase tracking-widest">No hay elementos que coincidan con los criterios actuales.</p>
+                            <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Sin registros encontrados</h3>
+                            <p className="text-[9px] text-muted-foreground max-w-xs mx-auto font-black uppercase tracking-widest">No hay elementos que coincidan con los criterios actuales.</p>
                         </div>
                     </motion.div>
                 ) : (
@@ -329,7 +329,7 @@ export default function RequestsClient() {
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <div className="flex items-center gap-2">
-                                                            <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-none">{req.fullName}</h3>
+                                                            <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-none">{req.fullName}</h3>
                                                             <span className={`px-1.5 py-0.5 rounded-md border text-[7px] font-black uppercase tracking-widest ${statusStyle.bg} ${statusStyle.border} ${statusStyle.text}`}>
                                                                 {statusStyle.label}
                                                             </span>
@@ -338,7 +338,7 @@ export default function RequestsClient() {
                                                             <span className="flex items-center gap-1 text-indigo-400 font-black text-[9px] uppercase tracking-widest">
                                                                 <Phone className="w-3 h-3" /> {req.whatsapp}
                                                             </span>
-                                                            <span className="flex items-center gap-1 text-slate-400 font-black text-[9px] uppercase tracking-widest">
+                                                            <span className="flex items-center gap-1 text-muted-foreground font-black text-[9px] uppercase tracking-widest">
                                                                 <Calendar className="w-3 h-3" /> {new Date(req.createdAt).toLocaleDateString()}
                                                             </span>
                                                         </div>
@@ -382,14 +382,14 @@ export default function RequestsClient() {
                                                     ) : (
                                                         <button
                                                             onClick={() => handleUpdateStatus(req.id, "pendiente")}
-                                                            className="h-8 px-3 rounded-lg bg-white/10 text-slate-400 text-[8px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-1.5"
+                                                            className="h-8 px-3 rounded-lg bg-surface-raised text-muted-foreground text-[8px] font-black uppercase tracking-widest hover:bg-surface-raised transition-all flex items-center gap-1.5"
                                                         >
                                                             <Clock className="w-3 h-3" /> Reset
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={() => handleDelete(req.id)}
-                                                        className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-slate-400 border border-white/10 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-90"
+                                                        className="w-8 h-8 rounded-lg bg-surface-raised flex items-center justify-center text-muted-foreground border border-hairline hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-90"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -400,12 +400,12 @@ export default function RequestsClient() {
                                                 <motion.div
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: "auto" }}
-                                                    className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2 relative z-10"
+                                                    className="mt-3 pt-3 border-t border-hairline flex flex-col gap-2 relative z-10"
                                                 >
                                                     <div className="flex flex-col gap-1.5">
                                                         <label className="text-[7px] font-black uppercase tracking-widest text-indigo-400 ml-1">Tactical Invite Link</label>
                                                         <div className="flex gap-2">
-                                                            <div className="flex-1 bg-white/10 border border-white/10 rounded-lg px-3 py-1.5 text-[9px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-indigo-400 ">
+                                                            <div className="flex-1 bg-surface-raised border border-hairline rounded-lg px-3 py-1.5 text-[9px] font-mono overflow-hidden text-ellipsis whitespace-nowrap text-indigo-400 ">
                                                                 {generatedLinks[req.id]}
                                                             </div>
                                                             <button
@@ -446,7 +446,7 @@ export default function RequestsClient() {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <div className="flex items-center gap-2">
-                                                        <h3 className="text-sm font-black uppercase italic tracking-tight text-white leading-none">
+                                                        <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground leading-none">
                                                             {signup.firstName} {signup.lastName}
                                                         </h3>
                                                         <span className="px-1.5 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-[7px] font-black uppercase tracking-widest">
@@ -462,7 +462,7 @@ export default function RequestsClient() {
                                                                 <Phone className="w-3 h-3" /> {signup.phone}
                                                             </span>
                                                         )}
-                                                        <span className="flex items-center gap-1 text-slate-400 font-black text-[9px] uppercase tracking-widest">
+                                                        <span className="flex items-center gap-1 text-muted-foreground font-black text-[9px] uppercase tracking-widest">
                                                             <Calendar className="w-3 h-3" /> {new Date(signup.createdAt).toLocaleDateString()}
                                                         </span>
                                                     </div>
@@ -506,12 +506,12 @@ export default function RequestsClient() {
                                         <div className="flex flex-col gap-2.5 relative z-10">
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-sm transition-transform group-hover:scale-105 ${msg.status === 'pendiente' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-white/10 border-white/10 text-slate-400'}`}>
+                                                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-sm transition-transform group-hover:scale-105 ${msg.status === 'pendiente' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-surface-raised border-hairline text-muted-foreground'}`}>
                                                         {msg.status === 'pendiente' ? <Mail className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <div className="flex items-center gap-2">
-                                                            <h3 className="text-[13px] font-black uppercase italic tracking-tight text-white leading-none">{msg.name}</h3>
+                                                            <h3 className="text-[13px] font-black uppercase italic tracking-tight text-foreground leading-none">{msg.name}</h3>
                                                             {msg.status === 'pendiente' && (
                                                                 <span className="px-1.5 py-0.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-[7px] font-black uppercase tracking-widest">Nuevo</span>
                                                             )}
@@ -520,7 +520,7 @@ export default function RequestsClient() {
                                                             <span className="flex items-center gap-1 text-indigo-400 font-black text-[8px] uppercase tracking-widest">
                                                                 <Mail className="w-2.5 h-2.5" /> {msg.email}
                                                             </span>
-                                                            <span className="flex items-center gap-1 text-slate-400 font-black text-[8px] uppercase tracking-widest">
+                                                            <span className="flex items-center gap-1 text-muted-foreground font-black text-[8px] uppercase tracking-widest">
                                                                 <Calendar className="w-2.5 h-2.5" /> {new Date(msg.createdAt).toLocaleDateString()}
                                                             </span>
                                                         </div>
@@ -530,22 +530,22 @@ export default function RequestsClient() {
                                                 <div className="flex items-center gap-2 ml-auto md:ml-0">
                                                     <button
                                                         onClick={() => handleToggleMessageStatus(msg.id, msg.status)}
-                                                        className={`h-7 px-3 rounded-lg border transition-all active:scale-95 text-[7px] font-black uppercase tracking-widest flex items-center gap-1.5 ${msg.status === 'leido' ? 'bg-white/10 text-slate-400 border-white/10 hover:text-white' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'}`}
+                                                        className={`h-7 px-3 rounded-lg border transition-all active:scale-95 text-[7px] font-black uppercase tracking-widest flex items-center gap-1.5 ${msg.status === 'leido' ? 'bg-surface-raised text-muted-foreground border-hairline hover:text-foreground' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'}`}
                                                     >
                                                         {msg.status === 'leido' ? <><EyeOff className="w-3 h-3" /> Pendiente</> : <><Eye className="w-3 h-3" /> Leído</>}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteMessage(msg.id)}
-                                                        className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-slate-400 border border-white/10 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
+                                                        className="w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center text-muted-foreground border border-hairline hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div className="p-2.5 bg-carbon-800/40 border border-white/10 rounded-lg space-y-1">
+                                            <div className="p-2.5 bg-card/40 border border-hairline rounded-lg space-y-1">
                                                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-400/70 italic leading-none">{msg.subject}</p>
-                                                <p className="text-[10px] text-white leading-relaxed font-medium">
+                                                <p className="text-[10px] text-foreground leading-relaxed font-medium">
                                                     {msg.message}
                                                 </p>
                                             </div>

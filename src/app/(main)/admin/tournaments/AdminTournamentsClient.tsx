@@ -71,13 +71,13 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
     return (
         <div className="space-y-3">
             {/* Minimalist Admin Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-2">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-hairline pb-2">
                 <div>
-                    <h1 className="text-lg md:text-xl heading-sport text-white flex items-center gap-2">
+                    <h1 className="text-lg md:text-xl heading-sport text-foreground flex items-center gap-2">
                         <Settings className="w-4 h-4 text-azul-primary" />
                         Gestión de Torneos
                     </h1>
-                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5 text-balance">
+                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-0.5 text-balance">
                         Control centralizado de competiciones y fixtures.
                     </p>
                 </div>
@@ -90,9 +90,9 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
             </div>
 
             {/* Practical Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-2 items-center bg-carbon-800/40 backdrop-blur-sm p-1 rounded-xl border border-white/10">
+            <div className="flex flex-col md:flex-row gap-2 items-center bg-card/40 backdrop-blur-sm p-1 rounded-xl border border-hairline">
                 <div className="relative flex-1 group">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                     <input
                         type="text"
                         placeholder="Filtrar por nombre..."
@@ -102,12 +102,12 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                     />
                 </div>
 
-                <div className="flex bg-white/10 p-0.5 rounded-lg">
+                <div className="flex bg-surface-raised p-0.5 rounded-lg">
                     {["all", "open", "closed"].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s as any)}
-                            className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md transition-all ${statusFilter === s ? "bg-carbon-700 text-white" : "text-slate-400 hover:text-white"
+                            className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md transition-all ${statusFilter === s ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             {s === "all" ? "Todos" : s === "open" ? "Abiertos" : "Cerrados"}
@@ -118,7 +118,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                 <select
                     value={monthFilter}
                     onChange={(e) => setMonthFilter(e.target.value)}
-                    className="bg-white/10 border-none rounded-lg py-1 px-2 text-[8px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer outline-none"
+                    className="bg-surface-raised border-none rounded-lg py-1 px-2 text-[8px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer outline-none"
                 >
                     <option value="all">Cualquier Mes</option>
                     {availableMonths.map(m => <option key={m} value={m}>{formatMonth(m)}</option>)}
@@ -126,10 +126,10 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
             </div>
 
             {/* List View - 1 fila por torneo */}
-            <div className="bg-carbon-800/50 border border-white/10 rounded-xl overflow-hidden">
+            <div className="bg-card/50 border border-hairline rounded-xl overflow-hidden">
                 <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-white/5 border-b border-white/10 text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
+                            <tr className="bg-surface border-b border-hairline text-[9px] font-black uppercase tracking-[0.12em] text-subtle">
                                 <th className="px-3 py-2">Torneo</th>
                                 <th className="px-3 py-2 w-[130px]">Club</th>
                                 <th className="px-3 py-2 w-[92px]">Tipo</th>
@@ -142,7 +142,7 @@ export default function AdminTournamentsClient({ initialTournaments }: Props) {
                         <tbody className="divide-y divide-border/30">
                             {filteredTournaments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-20 text-center text-slate-400 text-xs font-medium italic">
+                                    <td colSpan={7} className="px-6 py-20 text-center text-muted-foreground text-xs font-medium italic">
                                         No se encontraron torneos con los filtros aplicados.
                                     </td>
                                 </tr>
@@ -167,27 +167,27 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
     }
 
     return (
-        <tr className="hover:bg-white/5 transition-colors group align-middle">
+        <tr className="hover:bg-surface transition-colors group align-middle">
             <td className="px-3 py-2">
-                <span className="text-[12px] font-black uppercase italic text-white leading-tight group-hover:text-azul-primary transition-colors truncate block max-w-[240px]">
+                <span className="text-[12px] font-black uppercase italic text-foreground leading-tight group-hover:text-azul-primary transition-colors truncate block max-w-[240px]">
                     {tournament.name}
                 </span>
             </td>
             <td className="px-3 py-2">
-                <span className="text-[11px] font-bold text-slate-400 truncate block">{club?.name || "Acap"}</span>
+                <span className="text-[11px] font-bold text-muted-foreground truncate block">{club?.name || "Acap"}</span>
             </td>
             <td className="px-3 py-2">
-                <span className="text-[11px] font-black uppercase tracking-tight text-slate-200">
+                <span className="text-[11px] font-black uppercase tracking-tight text-muted-foreground">
                     {tournament.type === 'americano' ? 'Americano' : 'R. Robin'}
                 </span>
             </td>
             <td className="px-3 py-2">
-                <span className="text-[11px] font-black uppercase tracking-tight text-slate-200">
+                <span className="text-[11px] font-black uppercase tracking-tight text-muted-foreground">
                     {mod?.genero === 'mujer' ? 'Fem' : mod?.genero === 'hombre' ? 'Masc' : 'Mix'}
                 </span>
             </td>
             <td className="px-3 py-2">
-                <span className="text-[11px] font-black uppercase tracking-tight text-slate-200">
+                <span className="text-[11px] font-black uppercase tracking-tight text-muted-foreground">
                     {mod?.participacion === 'individual' ? "Indiv" : "Parejas"}
                 </span>
             </td>
@@ -205,7 +205,7 @@ function TournamentRow({ tournament, club }: { tournament: any; club: any }) {
                         </Link>
                     )}
                     <Link href={`/tournaments/${tournament.id}/edit`}>
-                        <button className="w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-celeste hover:text-white text-slate-400 border border-white/10 rounded-lg transition-all active:scale-95 group/btn" title="Editar">
+                        <button className="w-7 h-7 flex items-center justify-center bg-surface-raised hover:bg-celeste hover:text-white text-muted-foreground border border-hairline rounded-lg transition-all active:scale-95 group/btn" title="Editar">
                             <Edit className="w-3 h-3" />
                         </button>
                     </Link>

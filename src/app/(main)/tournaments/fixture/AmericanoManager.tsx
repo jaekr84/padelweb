@@ -1200,7 +1200,7 @@ export default function AmericanoManager({
     };
 
     return (
-        <div className="theme-night min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground">
             <AmericanoHeader
                 tournamentId={tournamentId}
                 tournamentName={tournamentName}
@@ -1219,7 +1219,7 @@ export default function AmericanoManager({
                     <h1 className="text-sm md:text-base font-black text-foreground tracking-tighter italic uppercase leading-none">
                         {tournamentName}
                     </h1>
-                    <p className="mt-0.5 text-[6px] font-black uppercase tracking-[0.4em] text-slate-500">
+                    <p className="mt-0.5 text-[6px] font-black uppercase tracking-[0.4em] text-subtle">
                         SISTEMA DE GESTIÓN TÁCTICA • AMERICANO
                     </p>
                 </div>
@@ -1260,16 +1260,16 @@ export default function AmericanoManager({
                         >
                             {/* Tabs: Canchas / Historial */}
                             <div className="flex justify-center">
-                                <div className="flex items-center p-0.5 bg-white/5 border border-white/12 rounded-lg gap-0.5">
+                                <div className="flex items-center p-0.5 bg-surface border border-hairline rounded-lg gap-0.5">
                                     <button
                                         onClick={() => setActiveView("courts")}
-                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "courts" ? "bg-celeste text-carbon-950 shadow-sm" : "hover:bg-muted text-slate-300"}`}
+                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "courts" ? "bg-celeste text-carbon-950 shadow-sm" : "hover:bg-muted text-muted-foreground"}`}
                                     >
                                         Canchas en Vivo
                                     </button>
                                     <button
                                         onClick={() => setActiveView("history")}
-                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "history" ? "bg-celeste text-carbon-950 shadow-sm" : "hover:bg-muted text-slate-300"}`}
+                                        className={`px-3 py-1.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${activeView === "history" ? "bg-celeste text-carbon-950 shadow-sm" : "hover:bg-muted text-muted-foreground"}`}
                                     >
                                         Historial ({matches.filter(m => m.confirmed).length})
                                     </button>
@@ -1291,19 +1291,19 @@ export default function AmericanoManager({
                                             <div className="max-w-xl mx-auto mt-2 space-y-1.5">
                                                 <div className="flex items-end justify-between px-1">
                                                     <div className="flex flex-col text-left">
-                                                        <span className="text-[6px] font-black uppercase tracking-[0.4em] text-slate-400 leading-none mb-0.5">Progreso Fase de Grupos</span>
+                                                        <span className="text-[6px] font-black uppercase tracking-[0.4em] text-muted-foreground leading-none mb-0.5">Progreso Fase de Grupos</span>
                                                         <div className="flex items-center gap-1.5">
-                                                            <span className="text-base font-black italic text-slate-100">{completedMatches}</span>
-                                                            <span className="text-[7px] font-black uppercase text-slate-500 italic">/</span>
-                                                            <span className="text-base font-black italic text-slate-100">{totalPossibleMatches}</span>
-                                                            <span className="text-[6px] font-black uppercase text-slate-500 italic ml-1 tracking-widest">Partidos</span>
+                                                            <span className="text-base font-black italic text-foreground">{completedMatches}</span>
+                                                            <span className="text-[7px] font-black uppercase text-subtle italic">/</span>
+                                                            <span className="text-base font-black italic text-foreground">{totalPossibleMatches}</span>
+                                                            <span className="text-[6px] font-black uppercase text-subtle italic ml-1 tracking-widest">Partidos</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-col items-end">
                                                         <span className="text-xl font-black italic text-celeste leading-none">{Math.round(progress)}<span className="text-xs ml-0.5">%</span></span>
                                                     </div>
                                                 </div>
-                                                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/12 p-[1px]">
+                                                <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-hairline p-[1px]">
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${progress}%` }}
@@ -1315,18 +1315,18 @@ export default function AmericanoManager({
                                                 </div>
 
                                                  {!readOnly && (
-                                                    <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[8px] font-black uppercase tracking-wider text-slate-300 bg-white/5 border border-white/12 py-1.5 px-3 rounded-lg w-fit mx-auto shadow-sm">
+                                                    <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[8px] font-black uppercase tracking-wider text-muted-foreground bg-surface border border-hairline py-1.5 px-3 rounded-lg w-fit mx-auto shadow-sm">
                                                         <span className="flex items-center gap-1">
                                                             <Settings className="w-3 h-3 text-celeste" />
                                                             Configuración:
                                                         </span>
-                                                        <div className="flex items-center gap-1.5 border-l border-white/12 pl-3">
+                                                        <div className="flex items-center gap-1.5 border-l border-hairline pl-3">
                                                             <span>{isIndividual ? "Partidos por Jugador:" : "Partidos por Pareja:"}</span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleUpdateConfig(numCourts, Math.max(1, matchesPerTeam - 1))}
                                                                 disabled={saving}
-                                                                className="w-4.5 h-4.5 rounded bg-white/5 hover:bg-white/5 border border-white/12 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                                className="w-4.5 h-4.5 rounded bg-surface hover:bg-surface border border-hairline flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
                                                             >
                                                                 <Minus className="w-2.5 h-2.5" />
                                                             </button>
@@ -1335,13 +1335,13 @@ export default function AmericanoManager({
                                                                 type="button"
                                                                 onClick={() => handleUpdateConfig(numCourts, matchesPerTeam + 1)}
                                                                 disabled={saving}
-                                                                className="w-4.5 h-4.5 rounded bg-white/5 hover:bg-white/5 border border-white/12 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                                className="w-4.5 h-4.5 rounded bg-surface hover:bg-surface border border-hairline flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
                                                             >
                                                                 <Plus className="w-2.5 h-2.5" />
                                                             </button>
                                                         </div>
                                                         <div 
-                                                            className={`flex items-center gap-1.5 border-l border-white/12 pl-3 ${bracket.length > 0 ? "opacity-50" : ""}`}
+                                                            className={`flex items-center gap-1.5 border-l border-hairline pl-3 ${bracket.length > 0 ? "opacity-50" : ""}`}
                                                             title={bracket.length > 0 ? "Las eliminatorias están activas. Reinicia el cuadro para modificar." : ""}
                                                         >
                                                             <span>Clasificados a Llaves:</span>
@@ -1352,7 +1352,7 @@ export default function AmericanoManager({
                                                                     handleUpdateConfig(numCourts, matchesPerTeam, newVal);
                                                                 }}
                                                                 disabled={saving || bracketSize <= 2 || bracket.length > 0}
-                                                                className="w-4.5 h-4.5 rounded bg-white/5 hover:bg-white/5 border border-white/12 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                                className="w-4.5 h-4.5 rounded bg-surface hover:bg-surface border border-hairline flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
                                                             >
                                                                 <Minus className="w-2.5 h-2.5" />
                                                             </button>
@@ -1373,7 +1373,7 @@ export default function AmericanoManager({
                                                                     }
                                                                     handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
                                                                 }}
-                                                                className="w-8 bg-transparent text-center font-black italic text-foreground text-[10px] focus:outline-none rounded no-spin-buttons border-b border-white/12 focus:border-celeste disabled:cursor-not-allowed"
+                                                                className="w-8 bg-transparent text-center font-black italic text-foreground text-[10px] focus:outline-none rounded no-spin-buttons border-b border-hairline focus:border-celeste disabled:cursor-not-allowed"
                                                             />
                                                             <button
                                                                 type="button"
@@ -1382,12 +1382,12 @@ export default function AmericanoManager({
                                                                     handleUpdateConfig(numCourts, matchesPerTeam, newVal);
                                                                 }}
                                                                 disabled={saving || bracket.length > 0}
-                                                                className="w-4.5 h-4.5 rounded bg-white/5 hover:bg-white/5 border border-white/12 flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
+                                                                className="w-4.5 h-4.5 rounded bg-surface hover:bg-surface border border-hairline flex items-center justify-center active:scale-95 transition-all text-foreground cursor-pointer disabled:opacity-50"
                                                             >
                                                                 <Plus className="w-2.5 h-2.5" />
                                                             </button>
                                                             {bracket.length > 0 && (
-                                                                <span className="text-[6px] text-slate-400 font-bold uppercase ml-1 italic">(Reinicia el cuadro para modificar)</span>
+                                                                <span className="text-[6px] text-muted-foreground font-bold uppercase ml-1 italic">(Reinicia el cuadro para modificar)</span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -1445,15 +1445,15 @@ export default function AmericanoManager({
 
                             {/* Panel de Control de Eliminatorias */}
                             {!readOnly && (
-                                <div className="bg-card/40 backdrop-blur-xl border border-white/12 rounded-xl p-6 shadow-lg space-y-6 mt-6">
-                                    <div className="flex items-center justify-between border-b border-white/12 pb-4">
+                                <div className="bg-card/40 backdrop-blur-xl border border-hairline rounded-xl p-6 shadow-lg space-y-6 mt-6">
+                                    <div className="flex items-center justify-between border-b border-hairline pb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 rounded-lg bg-celeste/10 border border-celeste/20 text-celeste">
                                                 <Trophy className="w-5 h-5" />
                                             </div>
                                             <div className="flex flex-col">
                                                 <h3 className="text-sm font-black uppercase italic tracking-tight text-foreground">Fase de Eliminatorias (Playoffs)</h3>
-                                                <span className="text-slate-400 text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Gestión y avance del torneo</span>
+                                                <span className="text-muted-foreground text-[6px] font-black tracking-[0.2em] uppercase leading-none mt-0.5">Gestión y avance del torneo</span>
                                             </div>
                                         </div>
                                         <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-wider border ${
@@ -1461,7 +1461,7 @@ export default function AmericanoManager({
                                                 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                                                 : isGroupStageFinished
                                                     ? "bg-celeste/10 border-celeste/20 text-celeste animate-pulse"
-                                                    : "bg-white/5 border-white/12 text-slate-400"
+                                                    : "bg-surface border-hairline text-muted-foreground"
                                         }`}>
                                             {bracket.length > 0 ? "Activa" : isGroupStageFinished ? "Lista para Generar" : "En Espera"}
                                         </span>
@@ -1469,7 +1469,7 @@ export default function AmericanoManager({
 
                                     {bracket.length > 0 ? (
                                         <div className="space-y-4">
-                                            <p className="text-xs text-slate-200 leading-relaxed">
+                                            <p className="text-xs text-muted-foreground leading-relaxed">
                                                 Las eliminatorias del torneo ya han sido configuradas y están activas. Toda la gestión de las llaves, carga de resultados y asignación de campeones se realiza en la sección dedicada.
                                             </p>
                                             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -1486,20 +1486,20 @@ export default function AmericanoManager({
                                     ) : (
                                         <div className="space-y-6">
                                             {isGroupStageFinished ? (
-                                                <p className="text-xs text-slate-200 leading-relaxed">
+                                                <p className="text-xs text-muted-foreground leading-relaxed">
                                                     ¡Fase de grupos completada! Todos los partidos programados se han jugado y confirmado. Define la cantidad de jugadores/parejas que clasificarán a las llaves y genera el cuadro para iniciar la fase eliminatoria.
                                                 </p>
                                             ) : (
-                                                <p className="text-xs text-slate-300 leading-relaxed">
+                                                <p className="text-xs text-muted-foreground leading-relaxed">
                                                     La fase de grupos está actualmente en juego ({confirmedGroupMatches} de {totalExpectedMatches} partidos completados). Una vez finalizados todos los partidos, podrás configurar y generar las llaves eliminatorias aquí. Mientras tanto, puedes elegir la cantidad de clasificados.
                                                 </p>
                                             )}
 
                                             {!readOnly && (
-                                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-white/5 border border-white/12">
+                                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-surface border border-hairline">
                                                      <div className="flex flex-col">
                                                          <span className="text-[10px] font-black uppercase text-foreground">Cantidad de Clasificados</span>
-                                                         <span className="text-[7px] text-slate-400 font-black uppercase tracking-wider mt-0.5">Clasificarán los mejores {bracketSize} de la tabla general</span>
+                                                         <span className="text-[7px] text-muted-foreground font-black uppercase tracking-wider mt-0.5">Clasificarán los mejores {bracketSize} de la tabla general</span>
                                                      </div>
                                                      <div className="flex items-center gap-2">
                                                          <button
@@ -1509,7 +1509,7 @@ export default function AmericanoManager({
                                                                  handleUpdateConfig(numCourts, matchesPerTeam, newVal);
                                                              }}
                                                              disabled={saving || bracketSize <= 2}
-                                                             className="w-8 h-8 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                             className="w-8 h-8 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer disabled:opacity-30"
                                                          >
                                                              <Minus className="w-4 h-4" />
                                                          </button>
@@ -1529,7 +1529,7 @@ export default function AmericanoManager({
                                                                  }
                                                                  handleUpdateConfig(numCourts, matchesPerTeam, cleanVal);
                                                              }}
-                                                             className="w-10 bg-transparent text-center text-sm font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-white/12 focus:border-celeste"
+                                                             className="w-10 bg-transparent text-center text-sm font-black italic focus:outline-none rounded no-spin-buttons text-foreground border-b border-hairline focus:border-celeste"
                                                          />
                                                          <button
                                                              type="button"
@@ -1538,7 +1538,7 @@ export default function AmericanoManager({
                                                                  handleUpdateConfig(numCourts, matchesPerTeam, newVal);
                                                              }}
                                                              disabled={saving}
-                                                             className="w-8 h-8 rounded-lg border border-white/12 flex items-center justify-center hover:bg-white/5 transition-all text-slate-200 active:scale-95 cursor-pointer disabled:opacity-30"
+                                                             className="w-8 h-8 rounded-lg border border-hairline flex items-center justify-center hover:bg-surface transition-all text-muted-foreground active:scale-95 cursor-pointer disabled:opacity-30"
                                                          >
                                                              <Plus className="w-4 h-4" />
                                                          </button>
@@ -1554,7 +1554,7 @@ export default function AmericanoManager({
                                                         className="w-full py-3.5 bg-celeste hover:bg-celeste-light text-carbon-950 rounded-xl font-black uppercase italic tracking-[0.2em] shadow-lg shadow-celeste/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-[10px]"
                                                     >
                                                         {saving ? (
-                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                            <div className="w-4 h-4 border-2 border-hairline-strong border-t-white rounded-full animate-spin" />
                                                         ) : (
                                                             <>
                                                                 Generar Cuadro de Eliminatorias • Top {bracketSize}
@@ -1568,10 +1568,10 @@ export default function AmericanoManager({
                                                     </p>
                                                 )
                                             ) : (
-                                                <div className="w-full bg-white/5 border border-white/12 rounded-xl p-4 flex items-center justify-between">
+                                                <div className="w-full bg-surface border border-hairline rounded-xl p-4 flex items-center justify-between">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase text-slate-300">Progreso Fase de Grupos</span>
-                                                        <span className="text-[6px] text-slate-400 font-black uppercase tracking-wider mt-0.5">Partidos jugados: {confirmedGroupMatches} / {totalExpectedMatches}</span>
+                                                        <span className="text-[9px] font-black uppercase text-muted-foreground">Progreso Fase de Grupos</span>
+                                                        <span className="text-[6px] text-muted-foreground font-black uppercase tracking-wider mt-0.5">Partidos jugados: {confirmedGroupMatches} / {totalExpectedMatches}</span>
                                                     </div>
                                                     <span className="text-xs font-black italic text-celeste">{Math.round(progressPercent)}%</span>
                                                 </div>

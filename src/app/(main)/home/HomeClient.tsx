@@ -299,16 +299,15 @@ export default function HomeClient({
     };
 
     return (
-        <div className="min-h-screen bg-grid-carbon text-white pb-24 font-sans selection:bg-azul-primary/20 relative overflow-x-hidden">
-            {/* Elegant grid background and ambient glows */}
+        <div className="min-h-screen bg-grid-carbon text-foreground pb-24 font-sans selection:bg-azul-primary/20 relative overflow-x-hidden">
+            {/* Ambient glows (la grilla de fondo se sacó a pedido) */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:32px_32px] opacity-100" />
                 <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-celeste/5 rounded-full blur-[140px] opacity-60" />
                 <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-azul-primary/5 rounded-full blur-[140px] opacity-60" />
             </div>
 
             {/* Header Section */}
-            <div className="sticky top-0 z-30 bg-carbon-950/85 backdrop-blur-xl border-b border-white/10 py-4 px-4 sm:px-6">
+            <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-hairline py-4 px-4 sm:px-6">
                 <div className="max-w-[1300px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -319,26 +318,26 @@ export default function HomeClient({
                             <span className="inline-block w-2 h-2 rounded-full bg-volt animate-pulse" />
                             <p className="label-tech text-[9px] text-celeste-light">Comunidad A.C.A.P.</p>
                         </div>
-                        <h1 className="heading-sport text-xl md:text-2xl leading-none text-white">
+                        <h1 className="heading-sport text-xl md:text-2xl leading-none text-foreground">
                             Dashboard <span className="text-celeste-light">Social</span>
                         </h1>
                     </motion.div>
 
                     {/* Integrated Live HUD Stats Console */}
-                    <div className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 rounded-2xl p-1.5 shrink-0 self-start sm:self-center">
-                        <div className="px-3 py-1.5 flex items-center gap-2 border-r border-white/10">
+                    <div className="flex items-center gap-2 sm:gap-3 bg-surface border border-hairline rounded-2xl p-1.5 shrink-0 self-start sm:self-center">
+                        <div className="px-3 py-1.5 flex items-center gap-2 border-r border-hairline">
                             <Trophy className="w-3.5 h-3.5 text-celeste" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-200 leading-none">{totalActiveTournaments}</span>
-                                <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Torneos</span>
+                                <span className="text-[10px] font-black text-muted-foreground leading-none">{totalActiveTournaments}</span>
+                                <span className="text-[8px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">Torneos</span>
                             </div>
                         </div>
 
                         <div className="px-3 py-1.5 flex items-center gap-2">
                             <Users2 className="w-3.5 h-3.5 text-emerald-500" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-200 leading-none">{totalOpenSlots}</span>
-                                <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Canchas</span>
+                                <span className="text-[10px] font-black text-muted-foreground leading-none">{totalOpenSlots}</span>
+                                <span className="text-[8px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">Canchas</span>
                             </div>
                         </div>
                     </div>
@@ -356,7 +355,7 @@ export default function HomeClient({
                     </div>
                     <button
                         onClick={() => setBannerModalOpen(true)}
-                        className="shrink-0 text-[10px] font-black uppercase tracking-wider text-white bg-white/20 hover:bg-white/30 border border-white/30 rounded-lg px-3 py-1 transition-all active:scale-95"
+                        className="shrink-0 text-[10px] font-black uppercase tracking-wider text-foreground bg-surface-raised hover:bg-surface-raised border border-hairline-strong rounded-lg px-3 py-1 transition-all active:scale-95"
                     >
                         Solicitar
                     </button>
@@ -377,14 +376,14 @@ export default function HomeClient({
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-carbon-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                            className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
                         >
                             <div className="bg-indigo-600 px-5 py-4 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Megaphone className="w-4 h-4 text-indigo-200" />
-                                    <h2 className="text-sm font-black uppercase tracking-tight text-white">Solicitar espacio publicitario</h2>
+                                    <h2 className="text-sm font-black uppercase tracking-tight text-foreground">Solicitar espacio publicitario</h2>
                                 </div>
-                                <button onClick={() => setBannerModalOpen(false)} className="p-1 rounded-lg text-indigo-200 hover:text-white hover:bg-white/10 transition-colors">
+                                <button onClick={() => setBannerModalOpen(false)} className="p-1 rounded-lg text-indigo-200 hover:text-foreground hover:bg-surface-raised transition-colors">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
@@ -394,43 +393,43 @@ export default function HomeClient({
                                     <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                                         <Check className="w-6 h-6 text-emerald-600" />
                                     </div>
-                                    <p className="text-sm font-bold text-slate-200">¡Mensaje enviado!</p>
-                                    <p className="text-xs text-slate-500">Los admins lo revisarán pronto.</p>
+                                    <p className="text-sm font-bold text-muted-foreground">¡Mensaje enviado!</p>
+                                    <p className="text-xs text-subtle">Los admins lo revisarán pronto.</p>
                                 </div>
                             ) : (
                                 <form onSubmit={handleBannerSubmit} className="p-5 flex flex-col gap-4">
-                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                    <p className="text-xs text-subtle leading-relaxed">
                                         Tu mensaje llegará al buzón de los administradores en <span className="font-semibold text-indigo-600">/admin/requests</span>. Te contactaremos a la brevedad.
                                     </p>
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Nombre / Empresa</label>
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-subtle">Nombre / Empresa</label>
                                         <input
                                             type="text"
                                             value={bannerForm.name}
                                             onChange={e => setBannerForm(f => ({ ...f, name: e.target.value }))}
-                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            className="border border-hairline rounded-xl px-3 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
                                             placeholder="Tu nombre o empresa"
                                             required
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Email de contacto</label>
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-subtle">Email de contacto</label>
                                         <input
                                             type="email"
                                             value={bannerForm.email}
                                             onChange={e => setBannerForm(f => ({ ...f, email: e.target.value }))}
-                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                            className="border border-hairline rounded-xl px-3 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
                                             placeholder="tu@email.com"
                                             required
                                         />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Mensaje</label>
+                                        <label className="text-[10px] font-black uppercase tracking-wider text-subtle">Mensaje</label>
                                         <textarea
                                             value={bannerForm.message}
                                             onChange={e => setBannerForm(f => ({ ...f, message: e.target.value }))}
                                             rows={3}
-                                            className="border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
+                                            className="border border-hairline rounded-xl px-3 py-2 text-sm text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
                                             required
                                         />
                                     </div>
@@ -468,7 +467,7 @@ export default function HomeClient({
                         <motion.div
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.015)] relative overflow-hidden"
+                            className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.015)] relative overflow-hidden"
                         >
                             {/* Decorative crop marks for advanced HUD styling */}
                             <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-azul-primary/20" />
@@ -478,11 +477,11 @@ export default function HomeClient({
 
                             <div className="flex gap-4">
                                 {/* Compact User Avatar */}
-                                <div className="w-10 h-10 shrink-0 bg-white/5 rounded-full overflow-hidden border border-white/10 relative">
+                                <div className="w-10 h-10 shrink-0 bg-surface rounded-full overflow-hidden border border-hairline relative">
                                     {currentUser.imageUrl ? (
                                         <Image src={currentUser.imageUrl} alt={currentUser.name || ""} fill unoptimized className="object-cover" sizes="40px" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs font-black bg-white/5 text-slate-500 uppercase italic">
+                                        <div className="w-full h-full flex items-center justify-center text-xs font-black bg-surface text-subtle uppercase italic">
                                             {currentUser.name?.charAt(0) || "U"}
                                         </div>
                                     )}
@@ -494,7 +493,7 @@ export default function HomeClient({
                                         value={content}
                                         onChange={handleContentChange}
                                         placeholder="¿Qué novedades o anuncios hay en el club hoy?"
-                                        className="w-full bg-transparent resize-none text-slate-200 placeholder-slate-500 outline-none text-sm font-medium pt-1 min-h-[90px] leading-relaxed"
+                                        className="w-full bg-transparent resize-none text-muted-foreground placeholder:text-subtle outline-none text-sm font-medium pt-1 min-h-[90px] leading-relaxed"
                                     />
 
                                     {/* WebP Compressed Previews */}
@@ -508,13 +507,13 @@ export default function HomeClient({
                                                         initial={{ opacity: 0, scale: 0.85 }}
                                                         animate={{ opacity: 1, scale: 1 }}
                                                         exit={{ opacity: 0, scale: 0.85 }}
-                                                        className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-white/5 snap-start group"
+                                                        className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-hairline bg-surface snap-start group"
                                                     >
                                                         <Image src={img.preview} fill className="object-cover" alt="Preview" unoptimized />
 
-                                                        <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                                        <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                                                             {idx > 0 && (
-                                                                <button onClick={() => moveImage(idx, 'left')} className="p-1 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-all active:scale-90">
+                                                                <button onClick={() => moveImage(idx, 'left')} className="p-1 bg-surface-raised hover:bg-surface-raised rounded-full text-foreground backdrop-blur-md transition-all active:scale-90">
                                                                     <ChevronLeft className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
@@ -522,12 +521,12 @@ export default function HomeClient({
                                                                 <X className="w-3.5 h-3.5" />
                                                             </button>
                                                             {idx < selectedImages.length - 1 && (
-                                                                <button onClick={() => moveImage(idx, 'right')} className="p-1 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-all active:scale-90">
+                                                                <button onClick={() => moveImage(idx, 'right')} className="p-1 bg-surface-raised hover:bg-surface-raised rounded-full text-foreground backdrop-blur-md transition-all active:scale-90">
                                                                     <ChevronRight className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-slate-950/80 backdrop-blur-md text-[8px] font-black text-white rounded-md uppercase tracking-widest">
+                                                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-background/80 backdrop-blur-md text-[8px] font-black text-foreground rounded-md uppercase tracking-widest">
                                                             {idx + 1}
                                                         </div>
                                                     </motion.div>
@@ -535,7 +534,7 @@ export default function HomeClient({
                                             </AnimatePresence>
 
                                             {selectedImages.length < 10 && (
-                                                <label className="w-28 h-28 shrink-0 rounded-2xl border-2 border-dashed border-white/10 hover:border-azul-primary/50 hover:bg-azul-primary/5 flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-azul-primary transition-all cursor-pointer">
+                                                <label className="w-28 h-28 shrink-0 rounded-2xl border-2 border-dashed border-hairline hover:border-azul-primary/50 hover:bg-azul-primary/5 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-azul-primary transition-all cursor-pointer">
                                                     <Plus className="w-5 h-5" />
                                                     <span className="text-[8px] font-black uppercase tracking-widest">Añadir</span>
                                                     <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
@@ -545,8 +544,8 @@ export default function HomeClient({
                                     )}
 
                                     {/* Action Bar */}
-                                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                                        <label className="p-2 -ml-2 text-slate-400 hover:text-azul-primary hover:bg-azul-primary/5 rounded-full cursor-pointer transition-all relative active:scale-95">
+                                    <div className="flex items-center justify-between pt-3 border-t border-hairline">
+                                        <label className="p-2 -ml-2 text-muted-foreground hover:text-azul-primary hover:bg-azul-primary/5 rounded-full cursor-pointer transition-all relative active:scale-95">
                                             <ImageIcon className="w-5 h-5" />
                                             <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
                                             {selectedImages.length > 0 && (
@@ -578,12 +577,12 @@ export default function HomeClient({
                     {/* Social Feed Post List */}
                     <div className="flex flex-col gap-5">
                         {initialPosts.length === 0 ? (
-                            <div className="text-center py-24 bg-carbon-800 rounded-3xl border border-dashed border-white/10">
-                                <div className="w-12 h-12 bg-white/5 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-hairline">
+                                <div className="w-12 h-12 bg-surface text-subtle rounded-full flex items-center justify-center mx-auto mb-3">
                                     <MessageSquare className="w-5 h-5 text-azul-primary" />
                                 </div>
-                                <p className="text-slate-200 font-black uppercase text-xs tracking-wider">Sin Novedades</p>
-                                <p className="text-slate-400 text-xs mt-1">Aún no hay publicaciones en esta comunidad.</p>
+                                <p className="text-muted-foreground font-black uppercase text-xs tracking-wider">Sin Novedades</p>
+                                <p className="text-muted-foreground text-xs mt-1">Aún no hay publicaciones en esta comunidad.</p>
                             </div>
                         ) : (
                             initialPosts.map((post, idx) => (
@@ -613,11 +612,11 @@ export default function HomeClient({
                     {currentUser && playerProfileData && (
                         <div className="flex flex-col gap-6">
                             {/* Player Card Frame */}
-                            <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden flex flex-col items-center">
+                            <div className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden flex flex-col items-center">
                                 <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
                                 
-                                <div className="w-full flex items-center justify-between pb-3 border-b border-white/10 mb-4">
-                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
+                                <div className="w-full flex items-center justify-between pb-3 border-b border-hairline mb-4">
+                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2 italic">
                                         <Zap size={11} className="text-azul-primary animate-pulse" />
                                         Tu Ficha Oficial
                                     </h2>
@@ -657,11 +656,11 @@ export default function HomeClient({
                             </div>
 
                             {/* 5 Latest Matches List */}
-                            <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                            <div className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
                                 
-                                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
+                                <div className="flex items-center justify-between pb-3 border-b border-hairline mb-3">
+                                    <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2 italic">
                                         <Trophy size={11} className="text-azul-primary" />
                                         Tus Últimos 5 Partidos
                                     </h2>
@@ -682,29 +681,29 @@ export default function HomeClient({
                                             return (
                                                 <div 
                                                     key={i} 
-                                                    className="flex items-center justify-between p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
+                                                    className="flex items-center justify-between p-2 rounded-xl bg-surface hover:bg-surface-raised border border-hairline hover:border-hairline-strong transition-all group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <div className={`w-1.5 h-6 rounded-full shrink-0 ${isWin ? "bg-azul-primary shadow-[0_0_8px_rgba(0,119,255,0.4)]" : isLoss ? "bg-rojo shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "bg-slate-600"}`} />
                                                         
                                                         <div className="min-w-0 flex flex-col">
-                                                            <span className="text-[9px] font-black uppercase truncate text-white group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
+                                                            <span className="text-[9px] font-black uppercase truncate text-foreground group-hover:text-azul-primary transition-colors leading-normal">{match.tournament}</span>
                                                             <div className="flex items-center gap-1.5 mt-0.5">
-                                                                <span className="text-[7px] font-black uppercase px-1 py-0.2 bg-carbon-800 border border-white/10 text-slate-400 tracking-widest leading-none">{match.type}</span>
-                                                                <span className="text-[7.5px] font-bold text-slate-500 truncate">{match.opponent}</span>
+                                                                <span className="text-[7px] font-black uppercase px-1 py-0.2 bg-card border border-hairline text-muted-foreground tracking-widest leading-none">{match.type}</span>
+                                                                <span className="text-[7.5px] font-bold text-subtle truncate">{match.opponent}</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-2 shrink-0 ml-2">
                                                         <div className="flex flex-col items-end">
-                                                            <span className={`text-[7.5px] font-black italic ${isWin ? "text-azul-primary" : isLoss ? "text-rojo" : "text-slate-400"}`}>
+                                                            <span className={`text-[7.5px] font-black italic ${isWin ? "text-azul-primary" : isLoss ? "text-rojo" : "text-muted-foreground"}`}>
                                                                 {isWin ? "VICTORIA" : isLoss ? "DERROTA" : "COMPLETO"}
                                                             </span>
-                                                            <span className="text-[10px] font-black italic tracking-tighter text-slate-200 leading-none tabular-nums mt-0.5">{match.score}</span>
+                                                            <span className="text-[10px] font-black italic tracking-tighter text-muted-foreground leading-none tabular-nums mt-0.5">{match.score}</span>
                                                         </div>
                                                         
-                                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 tabular-nums bg-carbon-800 border border-white/10 px-1.5 py-1 rounded-md leading-none">
+                                                        <div className="text-[8px] font-black uppercase tracking-widest text-muted-foreground tabular-nums bg-card border border-hairline px-1.5 py-1 rounded-md leading-none">
                                                             {matchDate}
                                                         </div>
                                                     </div>
@@ -718,11 +717,11 @@ export default function HomeClient({
                     )}
 
                     {/* Active & Ongoing Tournaments Section */}
-                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                    <div className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-amber-500/80 to-celeste/80" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-hairline mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
                                 Torneos Activos
                             </h2>
@@ -746,11 +745,11 @@ export default function HomeClient({
                     </div>
 
                     {/* Upcoming Tournaments Section */}
-                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                    <div className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-azul-primary to-celeste" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-hairline mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-azul-primary rounded-full" />
                                 Próximos Torneos
                             </h2>
@@ -774,11 +773,11 @@ export default function HomeClient({
                     </div>
 
                     {/* Open Courts Telemetry Panel */}
-                    <div className="bg-carbon-800 border border-white/10 rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
+                    <div className="bg-card border border-hairline rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] backdrop-blur-md relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500 to-azul-primary" />
 
-                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 flex items-center gap-2 italic">
+                        <div className="flex items-center justify-between pb-3 border-b border-hairline mb-3">
+                            <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-2 italic">
                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                                 Canchas Abiertas
                             </h2>
@@ -810,9 +809,9 @@ function MobileTournamentBar({ ongoing, upcoming, formatDateAR }: { ongoing: Tou
     if (ongoing.length === 0 && upcoming.length === 0) return null;
 
     return (
-        <div className="flex flex-col gap-3.5 bg-carbon-800 dark:bg-slate-900 border border-white/10 dark:border-slate-800 p-4 rounded-3xl mb-2">
+        <div className="flex flex-col gap-3.5 bg-card dark:bg-background border border-hairline dark:border-hairline p-4 rounded-3xl mb-2">
             <div className="flex items-center justify-between px-1">
-                <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-200 dark:text-white flex items-center gap-1.5">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground dark:text-foreground flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-azul-primary rounded-full animate-pulse" />
                     Torneos Activos
                 </h2>
@@ -832,7 +831,7 @@ function MobileTournamentBar({ ongoing, upcoming, formatDateAR }: { ongoing: Tou
 
 function EmptyState({ text }: { text: string }) {
     return (
-        <p className="text-[8px] font-black text-slate-400 text-center py-6 bg-white/[0.03] dark:bg-slate-900/20 rounded-2xl border border-white/10 dark:border-slate-800/40 border-dashed italic uppercase tracking-widest">
+        <p className="text-[8px] font-black text-muted-foreground text-center py-6 bg-surface dark:bg-background/20 rounded-2xl border border-hairline dark:border-slate-800/40 border-dashed italic uppercase tracking-widest">
             {text}
         </p>
     );
