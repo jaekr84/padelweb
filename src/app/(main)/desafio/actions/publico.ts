@@ -61,8 +61,10 @@ export async function datosPublicos(): Promise<DatosPublicos> {
     const session = await getSession();
     const userId = session?.userId ?? null;
 
+    // El estado viene en esta misma query: pedirlo de nuevo por cada desafío
+    // costaba una conexión más por fila y el plan las cuenta por hora.
     const abiertos = await db
-        .select({ id: challenges.id })
+        .select({ id: challenges.id, estado: challenges.status })
         .from(challenges)
         .where(ne(challenges.status, ESTADO_DESAFIO.BORRADOR))
         .orderBy(sql`FIELD(${challenges.status}, 'abierto', 'cerrado')`, desc(challenges.createdAt));
@@ -70,9 +72,8 @@ export async function datosPublicos(): Promise<DatosPublicos> {
     // Los abiertos primero; de los cerrados sólo los últimos.
     const ids: string[] = [];
     let cerrados = 0;
-    for (const { id } of abiertos) {
-        const [d] = await db.select({ estado: challenges.status }).from(challenges).where(eq(challenges.id, id)).limit(1);
-        if (d.estado === ESTADO_DESAFIO.CERRADO) {
+    for (const { id, estado } of abiertos) {
+        if (estado === ESTADO_DESAFIO.CERRADO) {
             if (cerrados >= CERRADOS_VISIBLES) continue;
             cerrados++;
         }
@@ -139,10 +140,7 @@ export async function datosPublicos(): Promise<DatosPublicos> {
 
             const chequeo = chequearCategoria({
                 jugador: buscarCategoria(yo?.category, categorias),
-                desafio: {
-                    nombre: desafio.categoriaNombre ?? "",
-                    orden: desafio.categoriaOrden ?? 0,
-                },
+                desafio: desafio.categorias,
             });
 
             if (inscripto) motivo = null;

@@ -177,11 +177,13 @@ function TarjetaDesafio({
 
             <div className="p-5">
                 <div className="flex items-center gap-3.5">
-                    <ChipCategoria nombre={d.categoriaNombre} />
+                    <ChipCategoria nombres={d.categorias.map((c) => c.nombre)} />
                     <div className="min-w-0">
                         <h2 className="heading-sport text-xl text-foreground truncate">{d.nombre}</h2>
                         <p className="label-tech text-[7px] text-celeste mt-1">
-                            {d.categoriaNombre ? `Exclusivo categoría ${d.categoriaNombre}` : "Sin categoría"}
+                            {d.categorias.length === 0
+                                ? "Sin categoría"
+                                : `Exclusivo categoría ${d.categorias.map((c) => c.nombre).join(", ")}`}
                         </p>
                     </div>
                 </div>
@@ -270,11 +272,20 @@ function TarjetaDesafio({
     );
 }
 
-export function ChipCategoria({ nombre, size = "md" }: { nombre: string | null; size?: "md" | "lg" }) {
+/**
+ * El cuadrito de categoría de la tarjeta. Con varias categorías admitidas las
+ * muestra juntas ("C/B") y achica la tipografía para que sigan entrando.
+ */
+export function ChipCategoria({ nombres, size = "md" }: { nombres: string[]; size?: "md" | "lg" }) {
     const caja = size === "lg" ? "w-16 h-16" : "w-14 h-14";
-    const valor = size === "lg" ? "text-2xl" : "text-xl";
+    const nombre = nombres.join("/");
+    const valor =
+        nombres.length <= 1 ? (size === "lg" ? "text-2xl" : "text-xl")
+            : nombre.length <= 4 ? (size === "lg" ? "text-lg" : "text-base")
+                : nombre.length <= 7 ? "text-[11px]"
+                    : "text-[9px]";
 
-    if (!nombre) {
+    if (nombres.length === 0) {
         return (
             <div className={`${caja} shrink-0 clip-notch bg-muted border border-hairline flex flex-col items-center justify-center`}>
                 <span className="label-tech text-[6px] text-subtle leading-none">Cat</span>
@@ -285,7 +296,7 @@ export function ChipCategoria({ nombre, size = "md" }: { nombre: string | null; 
     return (
         <div className={`${caja} shrink-0 clip-notch bg-celeste/15 border border-celeste/35 flex flex-col items-center justify-center shadow-lg shadow-celeste/10`}>
             <span className="label-tech text-[6px] text-celeste/70 leading-none">Cat</span>
-            <span className={`heading-sport ${valor} text-celeste leading-none mt-1`}>{nombre}</span>
+            <span className={`heading-sport ${valor} text-celeste leading-none mt-1 px-1 text-center`}>{nombre}</span>
         </div>
     );
 }
@@ -343,7 +354,7 @@ function Formulario({
 }) {
     const [form, setForm] = useState<DatosDesafio>({
         nombre: inicial?.nombre ?? "",
-        categoriaId: inicial?.categoriaId ?? "",
+        categoriaIds: inicial?.categorias.map((c) => c.id) ?? [],
         descripcion: inicial?.descripcion ?? "",
         fechaInicio: inicial?.fechaInicio ?? "",
         fechaFin: inicial?.fechaFin ?? "",
@@ -358,7 +369,18 @@ function Formulario({
 
     const set = <K extends keyof DatosDesafio>(k: K, v: DatosDesafio[K]) => setForm((p) => ({ ...p, [k]: v }));
     const periodoInvalido = !!form.fechaInicio && !!form.fechaFin && form.fechaFin < form.fechaInicio;
-    const listo = !!form.nombre?.trim() && !!form.categoriaId && !periodoInvalido;
+    const listo = !!form.nombre?.trim() && form.categoriaIds.length > 0 && !periodoInvalido;
+
+    const alternarCategoria = (id: string) =>
+        setForm((p) => ({
+            ...p,
+            categoriaIds: p.categoriaIds.includes(id)
+                ? p.categoriaIds.filter((x) => x !== id)
+                : [...p.categoriaIds, id],
+        }));
+
+    // Para el texto de ayuda: los nombres elegidos, de la más baja a la más alta.
+    const elegidas = categorias.filter((c) => form.categoriaIds.includes(c.id)).map((c) => c.nombre);
 
     return (
         <section className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 p-5">
@@ -374,30 +396,36 @@ function Formulario({
                     />
                 </Campo>
 
-                <Campo rotulo="Categoría (obligatoria)">
+                <Campo rotulo="Categorías (al menos una)">
                     {categorias.length === 0 ? (
                         <p className="text-[11px] text-rojo">
                             No hay categorías activas. Creá una en Admin → Categorías antes de seguir.
                         </p>
                     ) : (
                         <div className="flex flex-wrap gap-1.5">
-                            {categorias.map((c) => (
-                                <button
-                                    key={c.id}
-                                    type="button"
-                                    onClick={() => set("categoriaId", c.id)}
-                                    className={`px-3 h-9 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer ${form.categoriaId === c.id
-                                        ? "bg-celeste text-carbon-950 border-celeste shadow-lg shadow-celeste/20"
-                                        : "bg-muted border-hairline text-muted-foreground hover:text-foreground hover:border-celeste/40"
-                                        }`}
-                                >
-                                    {c.nombre}
-                                </button>
-                            ))}
+                            {categorias.map((c) => {
+                                const elegida = form.categoriaIds.includes(c.id);
+                                return (
+                                    <button
+                                        key={c.id}
+                                        type="button"
+                                        aria-pressed={elegida}
+                                        onClick={() => alternarCategoria(c.id)}
+                                        className={`px-3 h-9 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer ${elegida
+                                            ? "bg-celeste text-carbon-950 border-celeste shadow-lg shadow-celeste/20"
+                                            : "bg-muted border-hairline text-muted-foreground hover:text-foreground hover:border-celeste/40"
+                                            }`}
+                                    >
+                                        {c.nombre}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                     <p className="text-[10px] text-subtle mt-1.5">
-                        Pueden inscribirse los de esta categoría y los de categorías inferiores (jugar para arriba).
+                        {elegidas.length === 0
+                            ? "Sólo se van a poder inscribir los jugadores de las categorías que marques."
+                            : `Se pueden inscribir únicamente los de ${elegidas.join(", ")}. Para que jueguen "para arriba", marcá también su categoría.`}
                     </p>
                 </Campo>
 

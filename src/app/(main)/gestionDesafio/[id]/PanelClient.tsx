@@ -5,16 +5,16 @@
 // Zonas: fila de canchas · bandeja de confirmación · cola · parejas ·
 // disponibles por lado · ranking e historial.
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-    AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Check, ChevronRight, Clock,
+    AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
     ListOrdered, Lock, Play, Plus, Search, Swords, Trash2, Trophy, UserPlus,
     Users, X, XCircle,
 } from "lucide-react";
-import { ESTADO_DESAFIO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, type SetPartido } from "@/lib/desafio";
+import { ESTADO_DESAFIO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, LADO, type Lado, type SetPartido } from "@/lib/desafio";
 import type { DesafioResumen } from "../../desafio/actions/desafios";
 import type { CanchaResumen } from "../../desafio/actions/canchas";
 import type { CandidatoInscripcion, InscriptoResumen } from "../../desafio/actions/inscripciones";
@@ -79,7 +79,9 @@ export default function PanelClient(p: Props) {
 
     return (
         <div className="min-h-screen bg-grid-carbon">
-            <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+            {/* A ancho completo: el panel se maneja en vivo y cuanto más entra
+                sin scrollear, mejor. El padding crece con la pantalla. */}
+            <div className="w-full px-4 lg:px-8 py-6 space-y-5">
                 {/* Cabecera */}
                 <header className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -91,7 +93,7 @@ export default function PanelClient(p: Props) {
                             Desafíos
                         </Link>
                         <div className="flex items-center gap-3">
-                            <ChipCategoria nombre={p.desafio.categoriaNombre} />
+                            <ChipCategoria nombres={p.desafio.categorias.map((c) => c.nombre)} />
                             <div className="min-w-0">
                                 <h1 className="heading-sport text-2xl text-foreground truncate">{p.desafio.nombre}</h1>
                                 <p className="label-tech text-[7px] text-celeste mt-1">
@@ -202,7 +204,8 @@ function FilaCanchas({
     correr: Correr;
 }) {
     const [, refrescar] = useState(0);
-    const [asignando, setAsignando] = useState<string | null>(null);
+    // Las dos parejas elegidas en cada cancha, hasta que arranca el partido.
+    const [seleccion, setSeleccion] = useState<Record<string, { p1?: string; p2?: string }>>({});
     // Id del partido cuyo resultado se está cargando ahí mismo, en la tarjeta.
     const [cargando, setCargando] = useState<string | null>(null);
 
@@ -214,6 +217,35 @@ function FilaCanchas({
 
     const partidoDe = (canchaId: string) => enCurso.find((m) => m.canchaId === canchaId);
     const libres = parejas.filter((x) => !x.jugando);
+    const parejaPorId = (id?: string) => parejas.find((p) => p.id === id) ?? null;
+
+    const elegidas = (canchaId: string) => seleccion[canchaId] ?? {};
+    const elegir = (canchaId: string, lado: "p1" | "p2", id: string | null) =>
+        setSeleccion((s) => ({ ...s, [canchaId]: { ...s[canchaId], [lado]: id ?? undefined } }));
+    const limpiarCancha = (canchaId: string) =>
+        setSeleccion((s) => Object.fromEntries(Object.entries(s).filter(([k]) => k !== canchaId)));
+
+    const listaParaJugar = (canchaId: string) => {
+        const { p1, p2 } = elegidas(canchaId);
+        return !!p1 && !!p2 && p1 !== p2;
+    };
+
+    /**
+     * Parejas ofrecidas en un desplegable: las libres, menos la ya elegida del
+     * otro lado y menos las que están apalabradas en otra cancha — si no, dos
+     * canchas mandan la misma pareja a jugar y la segunda falla en el server.
+     */
+    const opcionesPara = (canchaId: string, lado: "p1" | "p2") => {
+        const propia = elegidas(canchaId);
+        const enOtras = new Set(
+            Object.entries(seleccion)
+                .filter(([k]) => k !== canchaId)
+                .flatMap(([, v]) => [v.p1, v.p2])
+                .filter(Boolean) as string[]
+        );
+        const opuesta = lado === "p1" ? propia.p2 : propia.p1;
+        return libres.filter((p) => p.id !== opuesta && !enOtras.has(p.id));
+    };
 
     return (
         <section>
@@ -239,6 +271,7 @@ function FilaCanchas({
                     {canchas.map((c) => {
                         const m = partidoDe(c.id);
                         const ocupada = !!m;
+                        const inhabilitada = c.estado === "inhabilitada";
                         return (
                             <div
                                 key={c.id}
@@ -264,9 +297,9 @@ function FilaCanchas({
                                 {ocupada ? (
                                     <>
                                         <div className="space-y-1 text-[11px]">
-                                            <div className="text-foreground truncate">{m!.equipo1.map((j) => j.nombre).join(" / ")}</div>
+                                            <div className="text-foreground truncate" title={m!.equipo1.map((j) => j.nombre).join(" / ")}>{m!.equipo1.map((j) => j.nombre).join(" / ")}</div>
                                             <div className="text-subtle text-[9px]">vs</div>
-                                            <div className="text-foreground truncate">{m!.equipo2.map((j) => j.nombre).join(" / ")}</div>
+                                            <div className="text-foreground truncate" title={m!.equipo2.map((j) => j.nombre).join(" / ")}>{m!.equipo2.map((j) => j.nombre).join(" / ")}</div>
                                         </div>
                                         {cargando === m!.id ? (
                                             <FormResultado
@@ -310,46 +343,74 @@ function FilaCanchas({
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-wrap gap-1.5 mt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => setAsignando(c.id)}
-                                            disabled={pendiente || c.estado === "inhabilitada" || libres.length < 2}
-                                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
-                                        >
-                                            <Play className="w-3 h-3" />
-                                            Asignar
-                                        </button>
-                                        {cola.length > 0 && c.estado !== "inhabilitada" && (
+                                    <>
+                                        {/* Arriba las dos parejas, abajo las acciones ocupando el
+                                            ancho completo de la tarjeta. */}
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <SelectPareja
+                                                valor={parejaPorId(elegidas(c.id).p1)}
+                                                opciones={opcionesPara(c.id, "p1")}
+                                                placeholder="Pareja 1"
+                                                disabled={pendiente || inhabilitada}
+                                                onElegir={(id) => elegir(c.id, "p1", id)}
+                                            />
+                                            <span className="label-tech text-[7px] text-subtle shrink-0">vs</span>
+                                            <SelectPareja
+                                                valor={parejaPorId(elegidas(c.id).p2)}
+                                                opciones={opcionesPara(c.id, "p2")}
+                                                placeholder="Pareja 2"
+                                                disabled={pendiente || inhabilitada}
+                                                onElegir={(id) => elegir(c.id, "p2", id)}
+                                            />
+                                        </div>
+                                        <div className="flex items-stretch gap-1.5 mt-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const { p1, p2 } = elegidas(c.id);
+                                                    correr(
+                                                        () => iniciarPartido({ desafioId, canchaId: c.id, pareja1Id: p1!, pareja2Id: p2! }),
+                                                        "¡A jugar!",
+                                                        () => limpiarCancha(c.id)
+                                                    );
+                                                }}
+                                                disabled={pendiente || inhabilitada || !listaParaJugar(c.id)}
+                                                className="flex-1 flex items-center justify-center gap-1.5 px-2.5 h-8 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
+                                            >
+                                                <Play className="w-3 h-3" />
+                                                Comenzar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => correr(
+                                                    () => cambiarEstadoCancha(c.id, inhabilitada),
+                                                    inhabilitada ? "Cancha habilitada." : "Cancha inhabilitada."
+                                                )}
+                                                disabled={pendiente}
+                                                className="flex-1 flex items-center justify-center px-2.5 h-8 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-foreground transition-all disabled:opacity-40 cursor-pointer"
+                                            >
+                                                {inhabilitada ? "Habilitar" : "Inhabilitar"}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => correr(() => eliminarCancha(c.id), "Cancha eliminada.")}
+                                                disabled={pendiente}
+                                                className="w-10 h-8 rounded-lg flex items-center justify-center bg-muted border border-hairline text-subtle hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer shrink-0"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                        {cola.length > 0 && !inhabilitada && (
                                             <button
                                                 type="button"
                                                 onClick={() => correr(() => asignarSiguienteDeCola(desafioId, c.id), "Entró la primera de la cola.")}
                                                 disabled={pendiente}
-                                                className="px-2.5 py-1.5 rounded-lg bg-muted border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-muted transition-all disabled:opacity-40 cursor-pointer"
+                                                className="mt-1.5 label-tech text-[7px] text-celeste hover:text-celeste-light transition-colors disabled:opacity-40 cursor-pointer"
                                             >
-                                                Traer de la cola
+                                                Traer la primera de la cola
                                             </button>
                                         )}
-                                        <button
-                                            type="button"
-                                            onClick={() => correr(
-                                                () => cambiarEstadoCancha(c.id, c.estado === "inhabilitada"),
-                                                c.estado === "inhabilitada" ? "Cancha habilitada." : "Cancha inhabilitada."
-                                            )}
-                                            disabled={pendiente}
-                                            className="px-2.5 py-1.5 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[8px] hover:text-foreground transition-all disabled:opacity-40 cursor-pointer"
-                                        >
-                                            {c.estado === "inhabilitada" ? "Habilitar" : "Inhabilitar"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => correr(() => eliminarCancha(c.id), "Cancha eliminada.")}
-                                            disabled={pendiente}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center text-subtle hover:text-rojo hover:bg-rojo/10 transition-all disabled:opacity-40 cursor-pointer"
-                                        >
-                                            <Trash2 className="w-3 h-3" />
-                                        </button>
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         );
@@ -357,74 +418,379 @@ function FilaCanchas({
                 </div>
             )}
 
-            {asignando && (
-                <ModalAsignar
-                    parejas={libres}
-                    pendiente={pendiente}
-                    onCerrar={() => setAsignando(null)}
-                    onConfirmar={(p1, p2) =>
-                        correr(
-                            () => iniciarPartido({ desafioId, canchaId: asignando, pareja1Id: p1, pareja2Id: p2 }),
-                            "¡A jugar!",
-                            () => setAsignando(null)
-                        )
-                    }
-                />
-            )}
         </section>
     );
 }
 
-function ModalAsignar({
-    parejas, pendiente, onCerrar, onConfirmar,
+/**
+ * Desplegable de pareja con buscador. La búsqueda va por nombre de jugador, que
+ * es como el admin las tiene en la cabeza ("¿dónde está Abril?"), no por el
+ * nombre de la pareja.
+ */
+function SelectPareja({
+    valor, opciones, placeholder, disabled, onElegir,
+}: {
+    valor: ParejaResumen | null;
+    opciones: ParejaResumen[];
+    placeholder: string;
+    disabled: boolean;
+    onElegir: (id: string | null) => void;
+}) {
+    const [abierto, setAbierto] = useState(false);
+    const [q, setQ] = useState("");
+    const caja = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!abierto) return;
+        const fuera = (e: MouseEvent) => {
+            if (caja.current && !caja.current.contains(e.target as Node)) setAbierto(false);
+        };
+        const escape = (e: KeyboardEvent) => e.key === "Escape" && setAbierto(false);
+        document.addEventListener("mousedown", fuera);
+        document.addEventListener("keydown", escape);
+        return () => {
+            document.removeEventListener("mousedown", fuera);
+            document.removeEventListener("keydown", escape);
+        };
+    }, [abierto]);
+
+    const filtradas = useMemo(() => {
+        const b = q.trim().toLowerCase();
+        if (!b) return opciones;
+        return opciones.filter((p) => `${p.a.nombre} ${p.b.nombre}`.toLowerCase().includes(b));
+    }, [opciones, q]);
+
+    return (
+        <div ref={caja} className="relative min-w-0 flex-1 basis-32">
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                    setQ("");
+                    setAbierto((o) => !o);
+                }}
+                className={`w-full flex items-center gap-1 px-2 h-8 rounded-lg border text-left transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer ${valor
+                    ? "bg-celeste/15 border-celeste/40"
+                    : "bg-muted border-hairline hover:border-celeste/40"
+                    }`}
+            >
+                <span
+                    className={`text-[11px] truncate flex-1 ${valor ? "text-foreground font-bold" : "text-subtle"}`}
+                    title={valor ? `${valor.a.nombre} / ${valor.b.nombre}` : undefined}
+                >
+                    {valor ? `${valor.a.nombre} / ${valor.b.nombre}` : placeholder}
+                </span>
+                {valor ? (
+                    <X
+                        className="w-3 h-3 text-subtle hover:text-rojo shrink-0"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onElegir(null);
+                        }}
+                    />
+                ) : (
+                    <ChevronDown className="w-3 h-3 text-subtle shrink-0" />
+                )}
+            </button>
+
+            {abierto && (
+                <div className="absolute z-20 mt-1 w-full min-w-56 rounded-xl border border-hairline bg-card shadow-xl shadow-black/40 p-2">
+                    <div className="relative mb-1.5">
+                        <input
+                            autoFocus
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            placeholder="Buscar jugador..."
+                            className="w-full bg-muted border border-hairline rounded-lg h-8 pl-7 pr-2 text-[11px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40"
+                        />
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-subtle" />
+                    </div>
+                    <ul className="max-h-52 overflow-y-auto space-y-0.5">
+                        {filtradas.map((p) => (
+                            <li key={p.id}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onElegir(p.id);
+                                        setAbierto(false);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                    {/* Los nombres largos se cortan: el title los muestra enteros. */}
+                                    <span className="text-[11px] text-foreground truncate flex-1" title={`${p.a.nombre} / ${p.b.nombre}`}>
+                                        {p.a.nombre} / {p.b.nombre}
+                                    </span>
+                                    <span className="label-tech text-[7px] text-subtle shrink-0">
+                                        {p.partidosJugados}PJ · {p.partidosGanados}PG
+                                    </span>
+                                </button>
+                            </li>
+                        ))}
+                        {filtradas.length === 0 && (
+                            <li className="text-[11px] text-subtle px-2 py-2">
+                                {opciones.length === 0 ? "No hay parejas libres." : "Ningún jugador coincide."}
+                            </li>
+                        )}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Parejas armadas ─────────────────────────────────────────────────────────
+
+type ColumnaParejas = "estado" | "pareja" | "pj" | "pg";
+
+const FILAS_POR_PAGINA = 20;
+
+/** Libres primero: son las que el admin puede mandar a la cancha ahora mismo. */
+const rangoEstado = (p: ParejaResumen) => (p.jugando ? 2 : p.enCola ? 1 : 0);
+
+/** Encabezado que ordena al hacer clic; repetirlo marca el sentido inverso. */
+function ThParejas({
+    col, orden, onOrdenar, className = "", children,
+}: {
+    col: ColumnaParejas;
+    orden: { col: ColumnaParejas; asc: boolean };
+    onOrdenar: (col: ColumnaParejas) => void;
+    className?: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <th className={`py-2.5 px-2 ${className}`}>
+            <button
+                type="button"
+                onClick={() => onOrdenar(col)}
+                className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+            >
+                {children}
+                {orden.col === col &&
+                    (orden.asc ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />)}
+            </button>
+        </th>
+    );
+}
+
+function TablaParejas({
+    parejas, pendiente, correr,
 }: {
     parejas: ParejaResumen[];
     pendiente: boolean;
-    onCerrar: () => void;
-    onConfirmar: (p1: string, p2: string) => void;
+    correr: Correr;
 }) {
-    const [sel, setSel] = useState<string[]>([]);
-    const alternar = (id: string) =>
-        setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length < 2 ? [...s, id] : [s[1], id]));
+    const [q, setQ] = useState("");
+    // Por defecto, las que pueden entrar a jugar arriba y, dentro de esas, las
+    // que menos jugaron: es el orden con el que se rota en un desafío en vivo.
+    const [orden, setOrden] = useState<{ col: ColumnaParejas; asc: boolean }>({ col: "estado", asc: true });
+    // La página se guarda junto con la búsqueda y el orden que la produjeron:
+    // si cambia cualquiera de los dos, vuelve sola a la primera. Quedarse en la
+    // página 3 de un resultado que ahora tiene una sola se lee como "no encontró
+    // nada". Derivarlo acá evita el setState dentro de un efecto.
+    const claveVista = `${q.trim().toLowerCase()}|${orden.col}|${orden.asc}`;
+    const [vista, setVista] = useState({ clave: claveVista, pagina: 0 });
+    const pagina = vista.clave === claveVista ? vista.pagina : 0;
+    const irAPagina = (n: number) => setVista({ clave: claveVista, pagina: n });
+
+    const ordenar = (col: ColumnaParejas) =>
+        setOrden((o) => ({ col, asc: o.col === col ? !o.asc : true }));
+
+    const filas = useMemo(() => {
+        const b = q.trim().toLowerCase();
+        const filtradas = b
+            ? parejas.filter((p) => `${p.a.nombre} ${p.b.nombre}`.toLowerCase().includes(b))
+            : parejas;
+
+        const signo = orden.asc ? 1 : -1;
+        return [...filtradas].sort((x, y) => {
+            switch (orden.col) {
+                case "pareja":
+                    return signo * x.a.nombre.localeCompare(y.a.nombre);
+                case "pj":
+                    return signo * (x.partidosJugados - y.partidosJugados);
+                case "pg":
+                    return signo * (x.partidosGanados - y.partidosGanados);
+                default:
+                    return (
+                        signo * (rangoEstado(x) - rangoEstado(y) || x.partidosJugados - y.partidosJugados)
+                    );
+            }
+        });
+    }, [parejas, q, orden]);
+
+    // Alto fijo: la tabla siempre mide lo mismo, tenga o no filtro puesto. Se
+    // reserva el alto de una página completa (o del total, si hay menos que una
+    // página) y lo que falta se completa con filas vacías, así buscar no mueve
+    // de lugar lo que está más abajo en la pantalla.
+    const totalPaginas = Math.max(1, Math.ceil(filas.length / FILAS_POR_PAGINA));
+    const paginaActual = Math.min(pagina, totalPaginas - 1);
+    const visibles = filas.slice(paginaActual * FILAS_POR_PAGINA, (paginaActual + 1) * FILAS_POR_PAGINA);
+    const altoEnFilas = Math.min(parejas.length, FILAS_POR_PAGINA);
+    const relleno = Math.max(0, altoEnFilas - visibles.length);
+    // La barra de paginación se decide por el total sin filtrar: si apareciera y
+    // desapareciera según la búsqueda, volvería a cambiar el alto.
+    const hayPaginacion = parejas.length > FILAS_POR_PAGINA;
+
+    if (parejas.length === 0) {
+        return (
+            <section>
+                <h2 className="heading-sport text-base text-foreground mb-2">Parejas armadas</h2>
+                <div className="rounded-xl border border-hairline bg-card p-5 text-center">
+                    <p className="text-[12px] text-subtle">Todavía no hay parejas. Elegí dos jugadores del pool de abajo.</p>
+                </div>
+            </section>
+        );
+    }
 
     return (
-        <Modal titulo="Elegí las dos parejas" onCerrar={onCerrar}>
-            <ul className="space-y-1.5">
-                {parejas.map((p) => {
-                    const elegida = sel.includes(p.id);
-                    return (
-                        <li key={p.id}>
-                            <button
-                                type="button"
-                                onClick={() => alternar(p.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${elegida
-                                    ? "bg-celeste/15 border-celeste/40"
-                                    : "bg-muted border-hairline hover:border-celeste/30"
-                                    }`}
-                            >
-                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${elegida ? "bg-celeste text-carbon-950" : "bg-muted"}`}>
-                                    {elegida && <Check className="w-3 h-3" />}
-                                </span>
-                                <span className="text-[12px] font-bold text-foreground truncate flex-1">
-                                    {p.a.nombre} / {p.b.nombre}
-                                </span>
-                                <span className="label-tech text-[7px] text-subtle shrink-0">
-                                    {p.partidosJugados}PJ · {p.partidosGanados}PG
-                                </span>
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
-            <button
-                type="button"
-                onClick={() => onConfirmar(sel[0], sel[1])}
-                disabled={sel.length !== 2 || pendiente}
-                className="w-full mt-4 py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
-            >
-                Poner a jugar
-            </button>
-        </Modal>
+        <section>
+            <div className="flex items-center justify-between gap-3 mb-2">
+                <h2 className="heading-sport text-base text-foreground">
+                    Parejas armadas{" "}
+                    <span className="text-subtle">
+                        ({q.trim() ? `${filas.length} de ${parejas.length}` : parejas.length})
+                    </span>
+                </h2>
+                <div className="relative w-48 max-w-[50%]">
+                    <input
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                        placeholder="Buscar jugador..."
+                        className="w-full bg-muted border border-hairline rounded-lg h-8 pl-7 pr-2 text-[11px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40"
+                    />
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-subtle" />
+                </div>
+            </div>
+
+            <div className="relative overflow-x-auto rounded-xl border border-hairline bg-card">
+                <table className="w-full">
+                    <thead>
+                        <tr className="text-[9px] font-black uppercase tracking-widest text-subtle border-b border-hairline bg-muted">
+                            <ThParejas col="pareja" orden={orden} onOrdenar={ordenar} className="text-left">Pareja</ThParejas>
+                            <th className="py-2.5 px-2 text-left hidden md:table-cell">Lados</th>
+                            <ThParejas col="estado" orden={orden} onOrdenar={ordenar} className="text-left">Estado</ThParejas>
+                            <ThParejas col="pj" orden={orden} onOrdenar={ordenar} className="text-center">PJ</ThParejas>
+                            <ThParejas col="pg" orden={orden} onOrdenar={ordenar} className="text-center">PG</ThParejas>
+                            <th className="py-2.5 pr-4 pl-2 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {visibles.map((p) => (
+                            <tr key={p.id} className="border-b border-hairline last:border-0">
+                                <td className="py-2 px-2 max-w-0 md:max-w-none">
+                                    <div
+                                        className="text-[12px] font-bold text-foreground truncate"
+                                        title={`${p.a.nombre} + ${p.b.nombre}`}
+                                    >
+                                        {p.a.nombre} <span className="text-subtle">+</span> {p.b.nombre}
+                                    </div>
+                                    {/* En pantallas chicas la columna Lados se esconde: el aviso de
+                                        lados repetidos viaja acá para no perderse. */}
+                                    <div className="md:hidden label-tech text-[7px] text-subtle mt-0.5">
+                                        {ETIQUETA_LADO[p.a.lado]} · {ETIQUETA_LADO[p.b.lado]}
+                                    </div>
+                                </td>
+                                <td className="py-2 px-2 hidden md:table-cell whitespace-nowrap">
+                                    <span className="label-tech text-[7px] text-subtle">
+                                        {ETIQUETA_LADO[p.a.lado]} · {ETIQUETA_LADO[p.b.lado]}
+                                    </span>
+                                    {p.aviso.nivel === "aviso" && (
+                                        <span title={p.aviso.mensaje}>
+                                            <AlertTriangle className="inline w-3 h-3 text-volt-ink ml-1.5 -mt-0.5" />
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="py-2 px-2">
+                                    {p.jugando ? (
+                                        <Etiqueta color="live">Jugando</Etiqueta>
+                                    ) : p.enCola ? (
+                                        <Etiqueta color="celeste">En cola</Etiqueta>
+                                    ) : (
+                                        <span className="label-tech text-[7px] text-subtle">Libre</span>
+                                    )}
+                                </td>
+                                <td className="py-2 px-2 text-center text-[12px] text-muted-foreground tabular-nums">
+                                    {p.partidosJugados}
+                                </td>
+                                <td className="py-2 px-2 text-center text-[12px] text-emerald-400 tabular-nums">
+                                    {p.partidosGanados}
+                                </td>
+                                <td className="py-2 pr-4 pl-2 text-right">
+                                    {/* Desarmar y volver a armar es libre: los jugadores cambian de
+                                        pareja cuando quieren. Lo único que lo frena es estar en
+                                        medio de un partido. */}
+                                    {p.jugando ? (
+                                        <span
+                                            className="label-tech text-[7px] text-subtle"
+                                            title="Para desarmarla, cargá el resultado del partido o cancelalo desde la cancha."
+                                        >
+                                            En juego
+                                        </span>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => correr(() => desarmarPareja(p.id), "Pareja desarmada: los dos vuelven al pool.")}
+                                            disabled={pendiente}
+                                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[7px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Desarmar
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                        {/* Relleno invisible que sostiene el alto. Repite la estructura de
+                            una fila real (incluido el renglón de lados que sólo aparece en
+                            mobile) para que mida exactamente lo mismo en los dos breakpoints. */}
+                        {Array.from({ length: relleno }, (_, i) => (
+                            <tr key={`relleno-${i}`} aria-hidden className="border-b border-hairline last:border-0">
+                                <td className="py-2 px-2" colSpan={6}>
+                                    <div className="text-[12px] font-bold invisible">—</div>
+                                    <div className="md:hidden label-tech text-[7px] mt-0.5 invisible">—</div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {filas.length === 0 && (
+                    <p className="absolute inset-x-0 top-16 text-center text-[11px] text-subtle pointer-events-none">
+                        Ninguna pareja con ese jugador.
+                    </p>
+                )}
+            </div>
+
+            {hayPaginacion && (
+                <div className="flex items-center justify-between gap-3 mt-2">
+                    <span className="label-tech text-[7px] text-subtle">
+                        {filas.length === 0
+                            ? "Sin resultados"
+                            : `${paginaActual * FILAS_POR_PAGINA + 1}–${paginaActual * FILAS_POR_PAGINA + visibles.length} de ${filas.length}`}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => irAPagina(Math.max(0, paginaActual - 1))}
+                            disabled={paginaActual === 0}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center bg-muted border border-hairline text-muted-foreground hover:text-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                            <ChevronLeft className="w-3 h-3" />
+                        </button>
+                        <span className="label-tech text-[7px] text-subtle tabular-nums">
+                            {paginaActual + 1} / {totalPaginas}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => irAPagina(Math.min(totalPaginas - 1, paginaActual + 1))}
+                            disabled={paginaActual >= totalPaginas - 1}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center bg-muted border border-hairline text-muted-foreground hover:text-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                            <ChevronRight className="w-3 h-3" />
+                        </button>
+                    </div>
+                </div>
+            )}
+        </section>
     );
 }
 
@@ -443,81 +809,67 @@ function ZonaJuego({
 }) {
     const [sel, setSel] = useState<string[]>([]);
     const [inscribiendo, setInscribiendo] = useState(false);
+    // Filtro del pool por categoría. Vacío = se ven todos.
+    const [filtroCats, setFiltroCats] = useState<string[]>([]);
 
     const alternar = (userId: string) =>
         setSel((s) => (s.includes(userId) ? s.filter((x) => x !== userId) : s.length < 2 ? [...s, userId] : [s[1], userId]));
 
+    // `categoryName` es un snapshot de texto libre: se compara normalizado, igual
+    // que en buscarCategoria.
+    const clave = (c: string | null | undefined) => (c || "").trim().toLowerCase();
+
+    // Los botones del filtro: primero las categorías del desafío, después las que
+    // aparezcan en el pool sin estar en él (inscriptos por excepción) y, si hay,
+    // los que no tienen categoría cargada.
+    const botonesCat = useMemo(() => {
+        const todos = [...pool.reves, ...pool.drive, ...pool.ambos];
+        const cuenta = new Map<string, { rotulo: string; n: number }>();
+        for (const j of todos) {
+            const k = clave(j.categoria);
+            const previo = cuenta.get(k);
+            cuenta.set(k, { rotulo: j.categoria?.trim() || "Sin cat.", n: (previo?.n ?? 0) + 1 });
+        }
+
+        const orden = desafio.categorias.map((c) => clave(c.nombre));
+        return [...cuenta.entries()]
+            .map(([k, v]) => ({ clave: k, ...v }))
+            .sort((a, b) => {
+                // Las del desafío primero y en su orden; lo demás al final, alfabético.
+                const ia = orden.indexOf(a.clave), ib = orden.indexOf(b.clave);
+                if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+                return a.rotulo.localeCompare(b.rotulo);
+            });
+    }, [pool, desafio.categorias]);
+
+    const visible = (j: { categoria: string | null }) =>
+        filtroCats.length === 0 || filtroCats.includes(clave(j.categoria));
+
     const columnas = [
-        { clave: "reves" as const, rotulo: "Revés", jugadores: pool.reves },
-        { clave: "drive" as const, rotulo: "Drive", jugadores: pool.drive },
-        { clave: "ambos" as const, rotulo: "Ambos", jugadores: pool.ambos },
+        { clave: "reves" as const, rotulo: "Revés", jugadores: pool.reves.filter(visible) },
+        { clave: "drive" as const, rotulo: "Drive", jugadores: pool.drive.filter(visible) },
+        { clave: "ambos" as const, rotulo: "Ambos", jugadores: pool.ambos.filter(visible) },
     ];
+    const visibles = columnas.reduce((n, c) => n + c.jugadores.length, 0);
+
+    // Con el filtro puesto, el elegido puede quedar oculto: la barra de selección
+    // muestra los nombres para que no se pierda de vista quién está marcado.
+    const nombreDe = (userId: string) =>
+        [...pool.reves, ...pool.drive, ...pool.ambos].find((j) => j.userId === userId)?.nombre ?? "Jugador";
 
     return (
         <div className="space-y-5">
             {/* Parejas armadas */}
-            <section>
-                <h2 className="heading-sport text-base text-foreground mb-2">
-                    Parejas armadas <span className="text-subtle">({parejas.length})</span>
-                </h2>
-                {parejas.length === 0 ? (
-                    <div className="rounded-xl border border-hairline bg-card p-5 text-center">
-                        <p className="text-[12px] text-subtle">Todavía no hay parejas. Elegí dos jugadores del pool de abajo.</p>
-                    </div>
-                ) : (
-                    <div className="grid sm:grid-cols-2 gap-2">
-                        {parejas.map((p) => (
-                            <div key={p.id} className="rounded-xl border border-hairline bg-card p-3">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <div className="text-[13px] font-bold text-foreground truncate">
-                                            {p.a.nombre} <span className="text-subtle">+</span> {p.b.nombre}
-                                        </div>
-                                        <div className="label-tech text-[7px] text-subtle mt-0.5">
-                                            {ETIQUETA_LADO[p.a.lado]} · {ETIQUETA_LADO[p.b.lado]} — {p.partidosJugados} jugados, {p.partidosGanados} ganados
-                                        </div>
-                                    </div>
-                                    {/* Desarmar y volver a armar es libre: los jugadores cambian de
-                                        pareja cuando quieren. Lo único que lo frena es estar en
-                                        medio de un partido. */}
-                                    {!p.jugando && (
-                                        <button
-                                            type="button"
-                                            onClick={() => correr(() => desarmarPareja(p.id), "Pareja desarmada: los dos vuelven al pool.")}
-                                            disabled={pendiente}
-                                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-muted border border-hairline text-muted-foreground label-tech text-[7px] hover:text-rojo hover:border-rojo/40 transition-all disabled:opacity-40 cursor-pointer"
-                                        >
-                                            <X className="w-3 h-3" />
-                                            Desarmar
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2 mt-2">
-                                    {p.jugando && <Etiqueta color="live">Jugando</Etiqueta>}
-                                    {p.enCola && <Etiqueta color="celeste">En cola</Etiqueta>}
-                                    {p.aviso.nivel === "aviso" && (
-                                        <span className="flex items-center gap-1 text-[9px] text-volt-ink">
-                                            <AlertTriangle className="w-3 h-3" />
-                                            {p.aviso.mensaje}
-                                        </span>
-                                    )}
-                                </div>
-                                {p.jugando && (
-                                    <p className="text-[10px] text-subtle mt-1.5">
-                                        Para desarmarla, cargá el resultado del partido o cancelalo desde la cancha.
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
+            <TablaParejas parejas={parejas} pendiente={pendiente} correr={correr} />
 
             {/* Disponibles en tres columnas */}
             <section>
                 <div className="flex items-center justify-between gap-3 mb-2">
                     <h2 className="heading-sport text-base text-foreground">
-                        Sin pareja <span className="text-subtle">({pool.total})</span>
+                        Sin pareja{" "}
+                        <span className="text-subtle">
+                            ({filtroCats.length > 0 ? `${visibles} de ${pool.total}` : pool.total})
+                        </span>
                     </h2>
                     <button
                         type="button"
@@ -529,10 +881,49 @@ function ZonaJuego({
                     </button>
                 </div>
 
+                {botonesCat.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                        <span className="label-tech text-[7px] text-subtle mr-0.5">Categoría</span>
+                        <button
+                            type="button"
+                            onClick={() => setFiltroCats([])}
+                            className={`px-2.5 py-1 rounded-lg border label-tech text-[8px] transition-all cursor-pointer ${filtroCats.length === 0
+                                ? "bg-celeste/15 border-celeste/40 text-celeste"
+                                : "bg-muted border-hairline text-muted-foreground hover:text-foreground"
+                                }`}
+                        >
+                            Todas · {pool.total}
+                        </button>
+                        {botonesCat.map((c) => {
+                            const activa = filtroCats.includes(c.clave);
+                            return (
+                                <button
+                                    key={c.clave}
+                                    type="button"
+                                    aria-pressed={activa}
+                                    onClick={() =>
+                                        setFiltroCats((f) =>
+                                            f.includes(c.clave) ? f.filter((x) => x !== c.clave) : [...f, c.clave]
+                                        )
+                                    }
+                                    className={`px-2.5 py-1 rounded-lg border label-tech text-[8px] transition-all cursor-pointer ${activa
+                                        ? "bg-celeste/15 border-celeste/40 text-celeste"
+                                        : "bg-muted border-hairline text-muted-foreground hover:text-foreground"
+                                        }`}
+                                >
+                                    {c.rotulo} · {c.n}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
                 {sel.length > 0 && (
                     <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-muted border border-celeste/30">
-                        <span className="text-[11px] text-foreground flex-1">
-                            {sel.length === 1 ? "Elegí el compañero" : "Listos para armar la pareja"}
+                        <span className="text-[11px] text-foreground flex-1 truncate">
+                            {sel.length === 1
+                                ? `${nombreDe(sel[0])} — elegí el compañero`
+                                : `${nombreDe(sel[0])} + ${nombreDe(sel[1])}`}
                         </span>
                         <button type="button" onClick={() => setSel([])} className="label-tech text-[8px] text-muted-foreground hover:text-foreground cursor-pointer">
                             Limpiar
@@ -567,7 +958,7 @@ function ZonaJuego({
                                                     : "bg-transparent border-transparent hover:bg-muted"
                                                     }`}
                                             >
-                                                <span className="text-[12px] text-foreground truncate flex-1">{j.nombre}</span>
+                                                <span className="text-[12px] text-foreground truncate flex-1" title={j.nombre}>{j.nombre}</span>
                                                 {j.categoria && <span className="text-[9px] font-black uppercase text-celeste-light shrink-0">{j.categoria}</span>}
                                             </button>
                                         </li>
@@ -578,6 +969,11 @@ function ZonaJuego({
                         </div>
                     ))}
                 </div>
+                {filtroCats.length > 0 && visibles === 0 && (
+                    <p className="text-[11px] text-subtle mt-2">
+                        Ningún jugador sin pareja en esa categoría.
+                    </p>
+                )}
                 {pool.total % 2 === 1 && (
                     <p className="flex items-center gap-1.5 text-[10px] text-volt-ink mt-2">
                         <AlertTriangle className="w-3 h-3" />
@@ -611,8 +1007,10 @@ function ModalInscribir({
     onCerrar: () => void;
 }) {
     const [q, setQ] = useState("");
+    // Lado elegido a mano para los candidatos que no lo tienen en el perfil.
+    const [lados, setLados] = useState<Record<string, Lado>>({});
     const filtrados = useMemo(
-        () => candidatos.filter((c) => c.nombre.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 10),
+        () => candidatos.filter((c) => c.nombre.toLowerCase().includes(q.trim().toLowerCase())),
         [candidatos, q]
     );
 
@@ -630,36 +1028,62 @@ function ModalInscribir({
             </div>
 
             <ul className="space-y-1 max-h-72 overflow-y-auto">
-                {filtrados.map((c) => (
-                    <li key={c.userId} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted">
-                        <div className="min-w-0 flex-1">
-                            <div className="text-[12px] font-bold text-foreground truncate">{c.nombre}</div>
-                            <div className="text-[9px] text-subtle">
-                                Cat {c.categoria || "—"} · {ETIQUETA_LADO[c.lado]}
-                                {!c.elegible && <span className="text-volt-ink"> · {c.motivo}</span>}
+                {filtrados.map((c) => {
+                    // El lado del perfil manda; si no lo tiene, el admin lo elige acá
+                    // y recién ahí se habilita el botón (queda guardado en el perfil).
+                    const lado = c.lado ?? lados[c.userId] ?? null;
+                    const falta = lado === null;
+                    return (
+                        <li key={c.userId} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted">
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[12px] font-bold text-foreground truncate" title={c.nombre}>{c.nombre}</div>
+                                <div className="text-[9px] text-subtle">
+                                    Cat {c.categoria || "—"} · {lado ? ETIQUETA_LADO[lado] : "sin lado"}
+                                    {!c.elegible && <span className="text-volt-ink"> · {c.motivo}</span>}
+                                </div>
+                                {c.lado === null && (
+                                    <div className="flex gap-1 mt-1.5">
+                                        {([LADO.DRIVE, LADO.REVES, LADO.AMBOS] as Lado[]).map((l) => (
+                                            <button
+                                                key={l}
+                                                type="button"
+                                                onClick={() => setLados((s) => ({ ...s, [c.userId]: l }))}
+                                                className={`px-2 py-1 rounded-md label-tech text-[8px] border transition-all cursor-pointer ${
+                                                    lados[c.userId] === l
+                                                        ? "bg-celeste/15 border-celeste/40 text-celeste"
+                                                        : "bg-muted border-hairline text-subtle hover:text-foreground"
+                                                }`}
+                                            >
+                                                {ETIQUETA_LADO[l]}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                        {c.elegible ? (
-                            <button
-                                type="button"
-                                onClick={() => correr(() => inscribirJugador(desafioId, c.userId), `${c.nombre} inscripto.`)}
-                                disabled={pendiente}
-                                className="px-2.5 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-40 cursor-pointer shrink-0"
-                            >
-                                Inscribir
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => correr(() => inscribirJugador(desafioId, c.userId, { excepcion: true }), `${c.nombre} inscripto como excepción.`)}
-                                disabled={pendiente}
-                                className="px-2.5 py-1.5 rounded-lg bg-muted border border-volt/30 text-volt-ink label-tech text-[8px] hover:bg-volt/10 transition-all disabled:opacity-40 cursor-pointer shrink-0"
-                            >
-                                Excepción
-                            </button>
-                        )}
-                    </li>
-                ))}
+                            {c.elegible ? (
+                                <button
+                                    type="button"
+                                    onClick={() => correr(() => inscribirJugador(desafioId, c.userId, { lado }), `${c.nombre} inscripto.`)}
+                                    disabled={pendiente || falta}
+                                    title={falta ? "Elegí de qué lado juega" : undefined}
+                                    className="px-2.5 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-40 cursor-pointer shrink-0"
+                                >
+                                    Inscribir
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => correr(() => inscribirJugador(desafioId, c.userId, { lado, excepcion: true }), `${c.nombre} inscripto como excepción.`)}
+                                    disabled={pendiente || falta}
+                                    title={falta ? "Elegí de qué lado juega" : undefined}
+                                    className="px-2.5 py-1.5 rounded-lg bg-muted border border-volt/30 text-volt-ink label-tech text-[8px] hover:bg-volt/10 transition-all disabled:opacity-40 cursor-pointer shrink-0"
+                                >
+                                    Excepción
+                                </button>
+                            )}
+                        </li>
+                    );
+                })}
                 {filtrados.length === 0 && <li className="text-[11px] text-subtle px-2 py-3">Ningún jugador coincide.</li>}
             </ul>
 
@@ -671,7 +1095,7 @@ function ModalInscribir({
                     <ul className="mt-2 space-y-1">
                         {inscriptos.map((i) => (
                             <li key={i.id} className="flex items-center gap-2 px-2 py-1.5 text-[11px]">
-                                <span className="text-foreground truncate flex-1">{i.nombre}</span>
+                                <span className="text-foreground truncate flex-1" title={i.nombre}>{i.nombre}</span>
                                 {i.esExcepcion && <Etiqueta color="volt">Excepción</Etiqueta>}
                                 {i.juegaParaArriba && <Etiqueta color="celeste">Para arriba</Etiqueta>}
                                 <span className="text-subtle text-[9px]">{i.estado}</span>
@@ -720,10 +1144,10 @@ function Bandeja({
                 <li key={m.id} className="rounded-xl border border-volt/40 ring-1 ring-inset ring-volt/10 bg-card shadow-lg shadow-black/40 p-4">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                            <div className={`text-[13px] truncate ${m.ganador === 1 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`}>
+                            <div className={`text-[13px] truncate ${m.ganador === 1 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`} title={m.equipo1.map((j) => j.nombre).join(" / ")}>
                                 {m.equipo1.map((j) => j.nombre).join(" / ")}
                             </div>
-                            <div className={`text-[13px] truncate ${m.ganador === 2 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`}>
+                            <div className={`text-[13px] truncate ${m.ganador === 2 ? "text-emerald-400 font-bold" : "text-muted-foreground"}`} title={m.equipo2.map((j) => j.nombre).join(" / ")}>
                                 {m.equipo2.map((j) => j.nombre).join(" / ")}
                             </div>
                         </div>
@@ -867,7 +1291,7 @@ function ZonaCola({
                             <li key={e.id} className="flex items-center gap-3 px-3 py-2.5">
                                 <span className="text-scoreboard text-[13px] text-celeste w-5 text-center shrink-0">{e.posicion}</span>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-[12px] font-bold text-foreground truncate">{e.pareja}</div>
+                                    <div className="text-[12px] font-bold text-foreground truncate" title={e.pareja}>{e.pareja}</div>
                                     <div className="label-tech text-[7px] text-subtle mt-0.5">
                                         {e.rival ? `vs ${e.rival}` : "sin rival definido"}
                                     </div>

@@ -9,7 +9,7 @@
 
 import { db } from "@/db";
 import {
-    categoriesTable, challengePoints, challengeRegistrations, challenges, users,
+    categoriesTable, challengeCategories, challengePoints, challengeRegistrations, challenges, users,
 } from "@/db/schema";
 import { and, asc, eq, inArray, ne, notInArray, sql } from "drizzle-orm";
 import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
@@ -40,7 +40,8 @@ export type CandidatoInscripcion = {
     userId: string;
     nombre: string;
     categoria: string | null;
-    lado: Lado;
+    /** `null` cuando el perfil no tiene lado cargado: la UI lo pregunta antes de inscribir. */
+    lado: Lado | null;
     elegible: boolean;
     motivo: string | null;
 };
@@ -51,8 +52,8 @@ const nombreDe = (u: { firstName: string | null; lastName: string | null; email:
 // ── Contexto de categorías ──────────────────────────────────────────────────
 
 /**
- * Trae el desafío junto con su categoría resuelta y todas las categorías
- * activas, que es lo que necesita `chequearCategoria` para comparar órdenes.
+ * Trae el desafío junto con las categorías que admite y todas las categorías
+ * activas, que es lo que necesita `chequearCategoria` para decidir.
  */
 async function contextoDeCategoria(desafioId: string) {
     const [d] = await db
@@ -61,18 +62,24 @@ async function contextoDeCategoria(desafioId: string) {
             estado: challenges.status,
             cupo: challenges.maxSlots,
             puntosParticipacion: challenges.participationPoints,
-            categoriaId: challenges.categoryId,
-            categoriaNombre: categoriesTable.name,
-            categoriaOrden: categoriesTable.categoryOrder,
         })
         .from(challenges)
-        .leftJoin(categoriesTable, eq(challenges.categoryId, categoriesTable.id))
         .where(eq(challenges.id, desafioId))
         .limit(1);
 
     if (!d) throw new ErrorDesafio("El desafío no existe.");
-    if (d.categoriaNombre == null || d.categoriaOrden == null) {
-        throw new ErrorDesafio("El desafío tiene una categoría que ya no existe. Editalo antes de seguir.");
+
+    const delDesafio: CategoriaRef[] = (
+        await db
+            .select({ nombre: categoriesTable.name, orden: categoriesTable.categoryOrder })
+            .from(challengeCategories)
+            .innerJoin(categoriesTable, eq(challengeCategories.categoryId, categoriesTable.id))
+            .where(eq(challengeCategories.challengeId, desafioId))
+            .orderBy(asc(categoriesTable.categoryOrder))
+    ).map((c) => ({ nombre: c.nombre, orden: c.orden }));
+
+    if (delDesafio.length === 0) {
+        throw new ErrorDesafio("El desafío no tiene categorías habilitadas. Editalo antes de seguir.");
     }
 
     const todas: CategoriaRef[] = (
@@ -85,7 +92,7 @@ async function contextoDeCategoria(desafioId: string) {
 
     return {
         desafio: d,
-        categoriaDesafio: { nombre: d.categoriaNombre, orden: d.categoriaOrden } as CategoriaRef,
+        categoriasDesafio: delDesafio,
         categorias: todas,
     };
 }
@@ -125,7 +132,7 @@ export async function listarInscriptos(desafioId: string): Promise<InscriptoResu
             categoria: f.categoryName,
             estado: f.status as EstadoInscripcion,
             esExcepcion: !!f.isException,
-            juegaParaArriba: ctx ? juegaParaArriba(suya, ctx.categoriaDesafio) : false,
+            juegaParaArriba: ctx ? juegaParaArriba(suya, ctx.categoriasDesafio) : false,
             inscriptoEn: f.registeredAt.toISOString(),
         };
     });
@@ -161,12 +168,15 @@ export async function jugadoresParaInscribir(desafioId: string): Promise<Candida
         .filter((u) => !excluidos.has(u.id))
         .map((u) => {
             const suya = buscarCategoria(u.category, ctx.categorias);
-            const chequeo = chequearCategoria({ jugador: suya, desafio: ctx.categoriaDesafio });
+            const chequeo = chequearCategoria({ jugador: suya, desafio: ctx.categoriasDesafio });
             return {
                 userId: u.id,
                 nombre: nombreDe(u),
                 categoria: u.category,
-                lado: normalizarLado(u.side),
+                // Sin lado en el perfil se devuelve null en vez de normalizar a
+                // "ambos": si no, la UI muestra un lado que la base no tiene y el
+                // alta falla al pedirlo.
+                lado: u.side ? normalizarLado(u.side) : null,
                 elegible: chequeo.ok,
                 motivo: chequeo.ok ? null : chequeo.error,
             };
@@ -220,7 +230,7 @@ async function altaInscripcion(desafioId: string, userId: string, opciones: Opci
     const suya = buscarCategoria(u.category, ctx.categorias);
     const chequeo = chequearCategoria({
         jugador: suya,
-        desafio: ctx.categoriaDesafio,
+        desafio: ctx.categoriasDesafio,
         esExcepcion: opciones.excepcion,
     });
     if (!chequeo.ok) throw new ErrorDesafio(chequeo.error);

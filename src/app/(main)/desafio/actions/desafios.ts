@@ -5,7 +5,7 @@
 
 import { db } from "@/db";
 import {
-    categoriesTable, challengeCourts, challengeMatches, challengePairs,
+    categoriesTable, challengeCategories, challengeCourts, challengeMatches, challengePairs,
     challengePoints, challengeQueue, challengeRegistrations, challenges,
 } from "@/db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -18,7 +18,8 @@ import { ErrorDesafio, ejecutar, limpiar, nuevoId, requerirAdmin, revalidarDesaf
 
 export type DatosDesafio = {
     nombre: string;
-    categoriaId: string;
+    /** Categorías admitidas. Al menos una; la membresía es estricta. */
+    categoriaIds: string[];
     descripcion?: string | null;
     fechaInicio?: string | null;
     fechaFin?: string | null;
@@ -31,14 +32,15 @@ export type DatosDesafio = {
     puntosDerrota?: number;
 };
 
+export type CategoriaDesafio = { id: string; nombre: string; orden: number };
+
 export type DesafioResumen = {
     id: string;
     nombre: string;
     descripcion: string | null;
     estado: EstadoDesafio;
-    categoriaId: string;
-    categoriaNombre: string | null;
-    categoriaOrden: number | null;
+    /** Todas las admitidas, de la más baja a la más alta. */
+    categorias: CategoriaDesafio[];
     puntos: { participacion: number; victoria: number; derrota: number };
     fechaInicio: string | null;
     fechaFin: string | null;
@@ -52,14 +54,12 @@ export type DesafioResumen = {
 
 // ── Lectura ─────────────────────────────────────────────────────────────────
 
-const filaAResumen = (r: any, inscriptos: number): DesafioResumen => ({
+const filaAResumen = (r: any, inscriptos: number, categorias: CategoriaDesafio[]): DesafioResumen => ({
     id: r.id,
     nombre: r.name,
     descripcion: r.description,
     estado: r.status as EstadoDesafio,
-    categoriaId: r.categoryId,
-    categoriaNombre: r.categoriaNombre ?? null,
-    categoriaOrden: r.categoriaOrden ?? null,
+    categorias,
     puntos: {
         participacion: r.participationPoints,
         victoria: r.winPoints,
@@ -80,7 +80,6 @@ const SELECT_DESAFIO = {
     name: challenges.name,
     description: challenges.description,
     status: challenges.status,
-    categoryId: challenges.categoryId,
     participationPoints: challenges.participationPoints,
     winPoints: challenges.winPoints,
     lossPoints: challenges.lossPoints,
@@ -91,9 +90,35 @@ const SELECT_DESAFIO = {
     registrationFee: challenges.registrationFee,
     maxSlots: challenges.maxSlots,
     createdAt: challenges.createdAt,
-    categoriaNombre: categoriesTable.name,
-    categoriaOrden: categoriesTable.categoryOrder,
 };
+
+/**
+ * Las categorías admitidas por cada desafío, ordenadas de la más baja a la más
+ * alta. Fuente de verdad de la elegibilidad: ver src/lib/desafio/categorias.ts.
+ */
+export async function categoriasDeDesafios(desafioIds: string[]) {
+    const mapa = new Map<string, CategoriaDesafio[]>();
+    if (desafioIds.length === 0) return mapa;
+
+    const filas = await db
+        .select({
+            challengeId: challengeCategories.challengeId,
+            id: categoriesTable.id,
+            nombre: categoriesTable.name,
+            orden: categoriesTable.categoryOrder,
+        })
+        .from(challengeCategories)
+        .innerJoin(categoriesTable, eq(challengeCategories.categoryId, categoriesTable.id))
+        .where(inArray(challengeCategories.challengeId, desafioIds))
+        .orderBy(categoriesTable.categoryOrder);
+
+    for (const f of filas) {
+        const lista = mapa.get(f.challengeId) ?? [];
+        lista.push({ id: f.id, nombre: f.nombre, orden: f.orden });
+        mapa.set(f.challengeId, lista);
+    }
+    return mapa;
+}
 
 /** Cuenta de inscriptos activos (los dados de baja no ocupan cupo). */
 async function contarInscriptos(desafioIds: string[]) {
@@ -119,24 +144,23 @@ export async function listarDesafios(): Promise<DesafioResumen[]> {
     const filas = await db
         .select(SELECT_DESAFIO)
         .from(challenges)
-        .leftJoin(categoriesTable, eq(challenges.categoryId, categoriesTable.id))
         .orderBy(desc(challenges.createdAt));
 
-    const inscriptos = await contarInscriptos(filas.map((f) => f.id));
-    return filas.map((f) => filaAResumen(f, inscriptos.get(f.id) ?? 0));
+    const ids = filas.map((f) => f.id);
+    const [inscriptos, categorias] = await Promise.all([contarInscriptos(ids), categoriasDeDesafios(ids)]);
+    return filas.map((f) => filaAResumen(f, inscriptos.get(f.id) ?? 0, categorias.get(f.id) ?? []));
 }
 
 export async function obtenerDesafio(id: string): Promise<DesafioResumen | null> {
     const [fila] = await db
         .select(SELECT_DESAFIO)
         .from(challenges)
-        .leftJoin(categoriesTable, eq(challenges.categoryId, categoriesTable.id))
         .where(eq(challenges.id, id))
         .limit(1);
 
     if (!fila) return null;
-    const inscriptos = await contarInscriptos([id]);
-    return filaAResumen(fila, inscriptos.get(id) ?? 0);
+    const [inscriptos, categorias] = await Promise.all([contarInscriptos([id]), categoriasDeDesafios([id])]);
+    return filaAResumen(fila, inscriptos.get(id) ?? 0, categorias.get(id) ?? []);
 }
 
 /** Categorías activas, para el selector de creación. */
@@ -154,13 +178,21 @@ async function validarDatos(datos: DatosDesafio) {
     const nombre = limpiar(datos.nombre);
     if (!nombre) throw new ErrorDesafio("El nombre del desafío es obligatorio.");
 
-    if (!datos.categoriaId) throw new ErrorDesafio("Elegí la categoría del desafío.");
-    const [categoria] = await db
-        .select({ id: categoriesTable.id })
+    // Se deduplica acá y no en la base: la PK compuesta las rechazaría, pero
+    // con un error de driver en vez de un mensaje mostrable.
+    const categoriaIds = [...new Set(datos.categoriaIds ?? [])].filter(Boolean);
+    if (categoriaIds.length === 0) throw new ErrorDesafio("Elegí al menos una categoría para el desafío.");
+
+    const categorias = await db
+        .select({ id: categoriesTable.id, orden: categoriesTable.categoryOrder })
         .from(categoriesTable)
-        .where(eq(categoriesTable.id, datos.categoriaId))
-        .limit(1);
-    if (!categoria) throw new ErrorDesafio("La categoría elegida no existe.");
+        .where(inArray(categoriesTable.id, categoriaIds));
+    if (categorias.length !== categoriaIds.length) {
+        throw new ErrorDesafio("Alguna de las categorías elegidas ya no existe.");
+    }
+
+    // `challenges.category_id` es un derivado: siempre la más alta del conjunto.
+    const principal = categorias.reduce((a, b) => (b.orden > a.orden ? b : a));
 
     const fechaInicio = limpiar(datos.fechaInicio);
     const fechaFin = limpiar(datos.fechaFin);
@@ -190,7 +222,8 @@ async function validarDatos(datos: DatosDesafio) {
 
     return {
         nombre,
-        categoriaId: datos.categoriaId,
+        categoriaIds,
+        categoriaPrincipalId: principal.id,
         descripcion: limpiar(datos.descripcion),
         fechaInicio,
         // Sin fecha de fin, el desafío dura lo mismo que su fecha de inicio.
@@ -222,22 +255,29 @@ export async function crearDesafio(datos: DatosDesafio) {
         const v = await validarDatos(datos);
 
         const id = nuevoId();
-        await db.insert(challenges).values({
-            id,
-            name: v.nombre,
-            description: v.descripcion,
-            status: ESTADO_DESAFIO.BORRADOR,
-            categoryId: v.categoriaId,
-            participationPoints: v.puntos.participacion,
-            winPoints: v.puntos.victoria,
-            lossPoints: v.puntos.derrota,
-            startDate: v.fechaInicio,
-            endDate: v.fechaFin,
-            time: v.hora,
-            location: v.lugar,
-            registrationFee: v.inscripcion,
-            maxSlots: v.cupo,
-            createdByUserId: session.userId,
+        // El desafío y sus categorías entran juntos: uno sin las otras sería un
+        // desafío al que nadie puede inscribirse.
+        await db.transaction(async (tx) => {
+            await tx.insert(challenges).values({
+                id,
+                name: v.nombre,
+                description: v.descripcion,
+                status: ESTADO_DESAFIO.BORRADOR,
+                categoryId: v.categoriaPrincipalId,
+                participationPoints: v.puntos.participacion,
+                winPoints: v.puntos.victoria,
+                lossPoints: v.puntos.derrota,
+                startDate: v.fechaInicio,
+                endDate: v.fechaFin,
+                time: v.hora,
+                location: v.lugar,
+                registrationFee: v.inscripcion,
+                maxSlots: v.cupo,
+                createdByUserId: session.userId,
+            });
+            await tx.insert(challengeCategories).values(
+                v.categoriaIds.map((categoryId) => ({ challengeId: id, categoryId }))
+            );
         });
 
         revalidarDesafio(id);
@@ -251,40 +291,55 @@ export async function editarDesafio(id: string, datos: DatosDesafio) {
         const actual = await traerDesafio(id);
         const v = await validarDatos(datos);
 
-        // La categoría define quién puede inscribirse: cambiarla con gente ya
-        // anotada dejaría inscriptos que no cumplen la regla.
+        // Las categorías definen quién puede inscribirse: cambiarlas con gente
+        // ya anotada dejaría inscriptos que no cumplen la regla.
         const [{ n }] = await db
             .select({ n: sql<number>`count(*)` })
             .from(challengeRegistrations)
             .where(and(eq(challengeRegistrations.challengeId, id), sql`${challengeRegistrations.status} != 'baja'`));
         const inscriptos = Number(n) || 0;
 
-        const [previa] = await db.select({ categoryId: challenges.categoryId }).from(challenges).where(eq(challenges.id, id)).limit(1);
-        const cambiaCategoria = previa.categoryId !== v.categoriaId;
+        const previas = (await db
+            .select({ categoryId: challengeCategories.categoryId })
+            .from(challengeCategories)
+            .where(eq(challengeCategories.challengeId, id))).map((c) => c.categoryId);
+
+        const nuevas = new Set(v.categoriaIds);
+        const cambiaCategoria =
+            previas.length !== nuevas.size || previas.some((c) => !nuevas.has(c));
 
         if (cambiaCategoria && !puedeEditarCategoria(actual.estado, inscriptos)) {
             throw new ErrorDesafio(
-                `No se puede cambiar la categoría: el desafío ya está ${actual.estado} y tiene ${inscriptos} inscriptos.`
+                `No se pueden cambiar las categorías: el desafío ya está ${actual.estado} y tiene ${inscriptos} inscriptos.`
             );
         }
 
-        await db
-            .update(challenges)
-            .set({
-                name: v.nombre,
-                description: v.descripcion,
-                categoryId: v.categoriaId,
-                participationPoints: v.puntos.participacion,
-                winPoints: v.puntos.victoria,
-                lossPoints: v.puntos.derrota,
-                startDate: v.fechaInicio,
-                endDate: v.fechaFin,
-                time: v.hora,
-                location: v.lugar,
-                registrationFee: v.inscripcion,
-                maxSlots: v.cupo,
-            })
-            .where(eq(challenges.id, id));
+        await db.transaction(async (tx) => {
+            await tx
+                .update(challenges)
+                .set({
+                    name: v.nombre,
+                    description: v.descripcion,
+                    categoryId: v.categoriaPrincipalId,
+                    participationPoints: v.puntos.participacion,
+                    winPoints: v.puntos.victoria,
+                    lossPoints: v.puntos.derrota,
+                    startDate: v.fechaInicio,
+                    endDate: v.fechaFin,
+                    time: v.hora,
+                    location: v.lugar,
+                    registrationFee: v.inscripcion,
+                    maxSlots: v.cupo,
+                })
+                .where(eq(challenges.id, id));
+
+            if (cambiaCategoria) {
+                await tx.delete(challengeCategories).where(eq(challengeCategories.challengeId, id));
+                await tx.insert(challengeCategories).values(
+                    v.categoriaIds.map((categoryId) => ({ challengeId: id, categoryId }))
+                );
+            }
+        });
 
         revalidarDesafio(id);
         return { id };
@@ -400,6 +455,7 @@ export async function eliminarDesafio(id: string) {
             await tx.delete(challengePairs).where(eq(challengePairs.challengeId, id));
             await tx.delete(challengeRegistrations).where(eq(challengeRegistrations.challengeId, id));
             await tx.delete(challengeCourts).where(eq(challengeCourts.challengeId, id));
+            await tx.delete(challengeCategories).where(eq(challengeCategories.challengeId, id));
             await tx.delete(challenges).where(eq(challenges.id, id));
         });
 

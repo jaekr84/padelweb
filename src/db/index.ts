@@ -28,11 +28,19 @@ const finalUrl = getConnectionString();
 // For Hostinger MySQL, using a pool is better for long-living apps.
 // idleTimeout closes idle connections client-side before the server's wait_timeout
 // kills them (otherwise the pool hands out dead sockets → ECONNRESET).
+//
+// El plan limita `max_connections_per_hour` a 500 y ese contador cuenta
+// *aperturas*, no consultas. Con connectionLimit alto, un solo request con
+// varias queries en paralelo (Promise.all) abre esa misma cantidad de sockets
+// de golpe; el cupo se agota en una tarde de desarrollo. Con el pool chico las
+// queries paralelas hacen cola sobre pocas conexiones calientes: se tarda un
+// poco más por request y se abren muchas menos conexiones por hora.
+// maxIdle === connectionLimit para que ninguna se cierre antes de tiempo.
 const createPool = () => mysql.createPool({
     uri: finalUrl,
     charset: 'utf8mb4',
-    connectionLimit: 10,
-    maxIdle: 5,
+    connectionLimit: 3,
+    maxIdle: 3,
     idleTimeout: 60_000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10_000

@@ -55,31 +55,43 @@ const cat = (n: string) => CATS.find((c) => c.nombre === n)!;
 function construirGrupos(): Grupo[] {
     const grupos: Grupo[] = [];
 
-    // Categorías — el comparador invertido
+    // Categorías — membresía estricta contra el conjunto admitido
     {
         const casos: Caso[] = [];
         casos.push(check(
-            "Un C puede jugar un desafío de A (para arriba)",
-            chequearCategoria({ jugador: cat("C"), desafio: cat("A") }).ok
+            "Un A entra a un desafío que admite A",
+            chequearCategoria({ jugador: cat("A"), desafio: [cat("A")] }).ok
         ));
         casos.push(check(
-            "Un A puede jugar su propia categoría",
-            chequearCategoria({ jugador: cat("A"), desafio: cat("A") }).ok
+            "Un C entra a un desafío que admite C y B",
+            chequearCategoria({ jugador: cat("C"), desafio: [cat("C"), cat("B")] }).ok
         ));
-        const abajo = chequearCategoria({ jugador: cat("A+"), desafio: cat("C") });
+        const arriba = chequearCategoria({ jugador: cat("C"), desafio: [cat("A")] });
         casos.push(check(
-            "Un A+ NO puede bajar a un desafío de C",
-            !abajo.ok && abajo.motivo === "categoria_superior",
+            "Un C NO entra a un desafío sólo de A (ya no hay 'para arriba' implícito)",
+            !arriba.ok && arriba.motivo === "fuera_de_categoria",
+            !arriba.ok ? arriba.error : undefined
+        ));
+        const abajo = chequearCategoria({ jugador: cat("A+"), desafio: [cat("C"), cat("B")] });
+        casos.push(check(
+            "Un A+ NO puede bajar a un desafío de C y B",
+            !abajo.ok && abajo.motivo === "fuera_de_categoria",
             !abajo.ok ? abajo.error : undefined
         ));
-        const sinCat = chequearCategoria({ jugador: null, desafio: cat("A") });
+        const vacio = chequearCategoria({ jugador: cat("B"), desafio: [] });
+        casos.push(check(
+            "Un desafío sin categorías no admite a nadie",
+            !vacio.ok && vacio.motivo === "fuera_de_categoria",
+            !vacio.ok ? vacio.error : undefined
+        ));
+        const sinCat = chequearCategoria({ jugador: null, desafio: [cat("A")] });
         casos.push(check(
             "Sin categoría en el perfil se rechaza",
             !sinCat.ok && sinCat.motivo === "sin_categoria"
         ));
         casos.push(check(
             "El admin puede saltear la validación (excepción)",
-            chequearCategoria({ jugador: cat("A+"), desafio: cat("C"), esExcepcion: true }).ok
+            chequearCategoria({ jugador: cat("A+"), desafio: [cat("C")], esExcepcion: true }).ok
         ));
         const habilitadas = categoriasHabilitadas(cat("B"), CATS).map((c) => c.nombre);
         casos.push(check(
@@ -96,10 +108,10 @@ function construirGrupos(): Grupo[] {
             buscarCategoria("  a+  ", CATS)?.nombre === "A+"
         ));
         casos.push(check(
-            "Un C en un desafío de A cuenta como jugar para arriba",
-            juegaParaArriba(cat("C"), cat("A")) && !juegaParaArriba(cat("A"), cat("A"))
+            "En un desafío de C y A, el C juega para arriba y el A no",
+            juegaParaArriba(cat("C"), [cat("C"), cat("A")]) && !juegaParaArriba(cat("A"), [cat("C"), cat("A")])
         ));
-        grupos.push({ titulo: "Categorías (comparador invertido)", casos });
+        grupos.push({ titulo: "Categorías (membresía estricta)", casos });
     }
 
     // Máquina del partido

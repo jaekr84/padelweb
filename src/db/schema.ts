@@ -1,4 +1,4 @@
-import { mysqlTable, text, timestamp, varchar, json, boolean, int, smallint, index, uniqueIndex, datetime } from "drizzle-orm/mysql-core";
+import { mysqlTable, text, timestamp, varchar, json, boolean, int, smallint, index, uniqueIndex, datetime, primaryKey } from "drizzle-orm/mysql-core";
 import { sql } from "drizzle-orm";
 
 export const users = mysqlTable("users", {
@@ -595,7 +595,9 @@ export const challenges = mysqlTable("challenges", {
     description: text("description"),
     // borrador | abierto | cerrado
     status: varchar("status", { length: 20 }).notNull().default("borrador"),
-    // Categoría exclusiva del desafío → categories.id
+    // Categoría de referencia: la más alta de `challenge_categories`. Es un
+    // derivado que se mantiene para el chip, el orden y el índice de abajo; la
+    // fuente de verdad de quién puede inscribirse es la tabla puente.
     categoryId: varchar("category_id", { length: 36 }).notNull(),
     // Puntaje configurable por desafío (defaults de la spec)
     participationPoints: int("participation_points").notNull().default(1),
@@ -617,6 +619,17 @@ export const challenges = mysqlTable("challenges", {
 }, (table) => ({
     statusCategoryIdx: index("challenges_status_category_idx").on(table.status, table.categoryId),
     createdByIdx: index("challenges_created_by_idx").on(table.createdByUserId),
+}));
+
+// Categorías admitidas por el desafío. Membresía estricta: sólo se inscribe
+// quien tiene una de estas categorías (o entra por excepción del admin). Es la
+// fuente de verdad; `challenges.category_id` es sólo la más alta del conjunto.
+export const challengeCategories = mysqlTable("challenge_categories", {
+    challengeId: varchar("challenge_id", { length: 36 }).notNull(),
+    categoryId: varchar("category_id", { length: 36 }).notNull(),
+}, (table) => ({
+    pk: primaryKey({ columns: [table.challengeId, table.categoryId] }),
+    categoryIdx: index("challenge_categories_category_idx").on(table.categoryId),
 }));
 
 export const challengeCourts = mysqlTable("challenge_courts", {
@@ -752,12 +765,18 @@ export const challengesRelations = relations(challenges, ({ one, many }) => ({
         fields: [challenges.createdByUserId],
         references: [users.id],
     }),
+    categories: many(challengeCategories),
     courts: many(challengeCourts),
     registrations: many(challengeRegistrations),
     pairs: many(challengePairs),
     matches: many(challengeMatches),
     queue: many(challengeQueue),
     points: many(challengePoints),
+}));
+
+export const challengeCategoriesRelations = relations(challengeCategories, ({ one }) => ({
+    challenge: one(challenges, { fields: [challengeCategories.challengeId], references: [challenges.id] }),
+    category: one(categoriesTable, { fields: [challengeCategories.categoryId], references: [categoriesTable.id] }),
 }));
 
 export const challengeCourtsRelations = relations(challengeCourts, ({ one, many }) => ({

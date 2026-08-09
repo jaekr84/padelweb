@@ -12,9 +12,13 @@
 // Se decidió no renumerar la tabla (la usan torneos, ranking y promociones) y
 // dar vuelta el comparador sólo acá.
 //
-// "Jugar para arriba" queda entonces: ordenJugador <= ordenDesafio.
+// El desafío admite un conjunto de categorías (`challenge_categories`) y la
+// membresía es estricta: se inscribe quien tiene una de ellas, ni más ni menos.
+// Si el admin quiere que los C jueguen en un desafío de B, marca B y C.
+// "Jugar para arriba" ya no es implícito: sobrevive sólo como etiqueta, para
+// mostrar quién está anotado por debajo de la categoría más alta del conjunto.
 
-export type MotivoRechazoCategoria = "sin_categoria" | "categoria_superior";
+export type MotivoRechazoCategoria = "sin_categoria" | "fuera_de_categoria";
 
 export type ChequeoCategoria =
     | { ok: true }
@@ -27,15 +31,21 @@ export type CategoriaRef = {
     orden: number;
 };
 
+/** Nombres de las categorías admitidas, de la más baja a la más alta: "C, B". */
+export const nombrarCategorias = (categorias: readonly CategoriaRef[]) =>
+    [...categorias].sort((a, b) => a.orden - b.orden).map((c) => c.nombre).join(", ");
+
 /**
  * ¿Este jugador puede inscribirse a este desafío?
  *
- * Se permite jugar en la categoría propia o en una superior; nunca por debajo,
- * para que un A+ no baje a llenarse de puntos en un desafío de C.
+ * Membresía estricta contra el conjunto de categorías admitidas: ni para arriba
+ * ni para abajo. El admin decide el conjunto al crear o editar el desafío, y
+ * puede saltear el chequeo inscribiendo por excepción.
  */
 export function chequearCategoria(args: {
     jugador: CategoriaRef | null;
-    desafio: CategoriaRef;
+    /** Las categorías admitidas por el desafío. */
+    desafio: readonly CategoriaRef[];
     /** El admin puede inscribir salteando la validación. */
     esExcepcion?: boolean;
 }): ChequeoCategoria {
@@ -51,11 +61,15 @@ export function chequearCategoria(args: {
         };
     }
 
-    if (jugador.orden > desafio.orden) {
+    // Un desafío sin categorías no admite a nadie: es un dato incompleto, no un
+    // permiso amplio. La UI de edición obliga a elegir al menos una.
+    if (!desafio.some((c) => c.orden === jugador.orden)) {
         return {
             ok: false,
-            motivo: "categoria_superior",
-            error: `Este desafío es de categoría ${desafio.nombre} y el jugador es ${jugador.nombre}: no puede jugar en una categoría inferior a la suya.`,
+            motivo: "fuera_de_categoria",
+            error: desafio.length === 0
+                ? "El desafío no tiene categorías habilitadas. Editalo antes de inscribir gente."
+                : `Este desafío es para ${nombrarCategorias(desafio)} y el jugador es ${jugador.nombre}.`,
         };
     }
 
@@ -71,9 +85,13 @@ export function categoriasHabilitadas(
     return todas.filter((c) => jugador.orden <= c.orden).sort((a, b) => a.orden - b.orden);
 }
 
-/** ¿El jugador está jugando por encima de su categoría? Sirve para etiquetar en la UI. */
-export const juegaParaArriba = (jugador: CategoriaRef | null, desafio: CategoriaRef) =>
-    !!jugador && jugador.orden < desafio.orden;
+/**
+ * ¿El jugador está anotado por debajo de la categoría más alta del desafío?
+ * Sólo sirve para etiquetar en la UI: la elegibilidad ya la resolvió
+ * `chequearCategoria`.
+ */
+export const juegaParaArriba = (jugador: CategoriaRef | null, desafio: readonly CategoriaRef[]) =>
+    !!jugador && desafio.length > 0 && jugador.orden < Math.max(...desafio.map((c) => c.orden));
 
 /**
  * Resuelve una categoría por nombre. `users.category` es texto libre, así que

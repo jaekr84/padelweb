@@ -113,11 +113,13 @@ function Tarjeta({
 
                 <div className="p-5">
                     <div className="flex items-center gap-3.5">
-                        <ChipCategoria nombre={d.categoriaNombre} size="lg" />
+                        <ChipCategoria nombres={d.categorias.map((c) => c.nombre)} size="lg" />
                         <div className="min-w-0">
                             <h2 className="heading-sport text-2xl text-foreground truncate">{d.nombre}</h2>
                             <p className="label-tech text-[7px] text-celeste mt-1.5">
-                                {d.categoriaNombre ? `Categoría ${d.categoriaNombre} y superiores` : "Sin categoría"}
+                                {d.categorias.length === 0
+                                    ? "Sin categoría"
+                                    : `Categoría ${d.categorias.map((c) => c.nombre).join(", ")}`}
                             </p>
                         </div>
                     </div>
