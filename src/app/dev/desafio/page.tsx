@@ -28,6 +28,9 @@ import {
     costoPareja, avisoPareja, agruparPorLado, sugerirCompaneros,
     // ranking
     calcularRanking, efectividad,
+    // generación de la cola
+    generarCruces, espaciar, claveCruce,
+    type ParejaParaCola,
 } from "@/lib/desafio";
 
 type Estado = "pass" | "fail";
@@ -112,6 +115,138 @@ function construirGrupos(): Grupo[] {
             juegaParaArriba(cat("C"), [cat("C"), cat("A")]) && !juegaParaArriba(cat("A"), [cat("C"), cat("A")])
         ));
         grupos.push({ titulo: "Categorías (membresía estricta)", casos });
+    }
+
+    // Generación automática de la cola
+    {
+        const casos: Caso[] = [];
+        const pareja = (id: string, orden: number | null = 1, jugados = 0): ParejaParaCola =>
+            ({ id, ordenCategoria: orden, jugados });
+        const cuenta = (partidos: { parejaA: string; parejaB: string }[]) => {
+            const m = new Map<string, number>();
+            for (const p of partidos) {
+                m.set(p.parejaA, (m.get(p.parejaA) ?? 0) + 1);
+                m.set(p.parejaB, (m.get(p.parejaB) ?? 0) + 1);
+            }
+            return m;
+        };
+
+        {
+            // 4 parejas × 2 partidos = 4 partidos, todos con 2 cada uno.
+            const r = generarCruces({
+                parejas: ["a", "b", "c", "d"].map((id) => pareja(id)),
+                partidosPorPareja: 2,
+            });
+            const n = cuenta(r.partidos);
+            casos.push(check(
+                "4 parejas a 2 partidos cada una → 4 partidos",
+                r.partidos.length === 4,
+                `${r.partidos.length} partidos`
+            ));
+            casos.push(check(
+                "todas quedan con exactamente 2",
+                ["a", "b", "c", "d"].every((id) => n.get(id) === 2),
+                [...n.entries()].map(([k, v]) => `${k}:${v}`).join(" ")
+            ));
+            casos.push(check("sin avisos cuando cierra justo", r.avisos.length === 0, r.avisos.join(" · ")));
+        }
+
+        {
+            // Con 3 parejas y 1 partido cada una, alguna queda corta: 3 es impar.
+            const r = generarCruces({ parejas: ["a", "b", "c"].map((id) => pareja(id)), partidosPorPareja: 1 });
+            casos.push(check(
+                "número impar de parejas → avisa que alguna queda corta",
+                r.partidos.length === 1 && r.avisos.length > 0,
+                r.avisos.join(" · ")
+            ));
+        }
+
+        {
+            // Ya se enfrentaron a-b: el generador tiene que preferir otros cruces.
+            const historial = new Map([[claveCruce("a", "b"), 2]]);
+            const r = generarCruces({
+                parejas: ["a", "b", "c", "d"].map((id) => pareja(id)),
+                partidosPorPareja: 1,
+                historial,
+            });
+            const repiteAB = r.partidos.some(
+                (m) => claveCruce(m.parejaA, m.parejaB) === claveCruce("a", "b")
+            );
+            casos.push(check(
+                "evita el cruce que ya se jugó si hay alternativa",
+                !repiteAB,
+                r.partidos.map((m) => `${m.parejaA}-${m.parejaB}`).join(" ")
+            ));
+        }
+
+        {
+            // Sólo dos parejas: no queda otra que repetir el cruce, y avisa.
+            const historial = new Map([[claveCruce("a", "b"), 1]]);
+            const r = generarCruces({ parejas: [pareja("a"), pareja("b")], partidosPorPareja: 1, historial });
+            casos.push(check(
+                "si no hay alternativa repite el cruce, pero lo avisa",
+                r.partidos.length === 1 && r.avisos.some((x) => x.includes("repite")),
+                r.avisos.join(" · ")
+            ));
+        }
+
+        {
+            // Categorías: 'a' es orden 1 y debería cruzarse con la otra de orden 1.
+            const r = generarCruces({
+                parejas: [pareja("a", 1), pareja("b", 4), pareja("c", 1), pareja("d", 4)],
+                partidosPorPareja: 1,
+            });
+            const cruces = r.partidos.map((m) => claveCruce(m.parejaA, m.parejaB)).sort();
+            casos.push(check(
+                "cruza categorías cercanas (A con A, C con C)",
+                JSON.stringify(cruces) === JSON.stringify([claveCruce("a", "c"), claveCruce("b", "d")].sort()),
+                cruces.join(" ")
+            ));
+        }
+
+        {
+            // Compensa el desbalance: 'd' viene jugando mucho menos.
+            const r = generarCruces({
+                parejas: [pareja("a", 1, 5), pareja("b", 1, 5), pareja("c", 1, 5), pareja("d", 1, 0)],
+                partidosPorPareja: 1,
+            });
+            const n = cuenta(r.partidos);
+            casos.push(check(
+                "la pareja que menos jugó entra en el reparto",
+                (n.get("d") ?? 0) === 1,
+                [...n.entries()].map(([k, v]) => `${k}:${v}`).join(" ")
+            ));
+        }
+
+        {
+            // Espaciado: nadie dos veces seguidas si se puede evitar.
+            const partidos = [
+                { parejaA: "a", parejaB: "b" },
+                { parejaA: "a", parejaB: "c" },
+                { parejaA: "d", parejaB: "e" },
+                { parejaA: "d", parejaB: "f" },
+            ];
+            const orden = espaciar(partidos);
+            const seguidas = orden.some((m, i) => {
+                if (i === 0) return false;
+                const prev = orden[i - 1];
+                return [m.parejaA, m.parejaB].some((x) => x === prev.parejaA || x === prev.parejaB);
+            });
+            casos.push(check(
+                "ninguna pareja juega dos partidos seguidos",
+                !seguidas,
+                orden.map((m) => `${m.parejaA}-${m.parejaB}`).join(" → ")
+            ));
+        }
+
+        {
+            const r = generarCruces({ parejas: [pareja("a")], partidosPorPareja: 2 });
+            casos.push(check("con una sola pareja no genera nada", r.partidos.length === 0 && r.avisos.length > 0));
+            const cero = generarCruces({ parejas: [pareja("a"), pareja("b")], partidosPorPareja: 0 });
+            casos.push(check("con 0 partidos por pareja no genera nada", cero.partidos.length === 0));
+        }
+
+        grupos.push({ titulo: "Generación automática de la cola", casos });
     }
 
     // Máquina del partido

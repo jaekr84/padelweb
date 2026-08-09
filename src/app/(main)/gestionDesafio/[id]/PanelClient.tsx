@@ -11,10 +11,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
     AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, ChevronLeft, ChevronRight, Clock,
-    ListOrdered, Lock, Play, Plus, Search, Swords, Trash2, Trophy, UserPlus,
+    ListOrdered, Lock, Play, Plus, Search, Sparkles, Swords, Trash2, Trophy, UserPlus,
     Users, X, XCircle,
 } from "lucide-react";
-import { ESTADO_DESAFIO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, LADO, type Lado, type SetPartido } from "@/lib/desafio";
+import { ESTADO_DESAFIO, ESTADO_PARTIDO, ETIQUETA_LADO, ETIQUETA_ESTADO_PARTIDO, LADO, generarCruces, claveCruce, type Lado, type SetPartido } from "@/lib/desafio";
 import type { DesafioResumen } from "../../desafio/actions/desafios";
 import type { CanchaResumen } from "../../desafio/actions/canchas";
 import type { CandidatoInscripcion, InscriptoResumen } from "../../desafio/actions/inscripciones";
@@ -26,7 +26,7 @@ import { agregarCancha, cambiarEstadoCancha, eliminarCancha } from "../../desafi
 import { inscribirJugador, darDeBajaJugador } from "../../desafio/actions/inscripciones";
 import { armarPareja, desarmarPareja } from "../../desafio/actions/parejas";
 import { cancelarPartido, confirmarResultado, corregirResultado, iniciarPartido, rechazarResultado } from "../../desafio/actions/partidos";
-import { anotarEnCola, asignarSiguienteDeCola, reordenarCola, sacarDeCola } from "../../desafio/actions/cola";
+import { anotarEnCola, anotarPartidosEnCola, asignarSiguienteDeCola, reordenarCola, sacarDeCola } from "../../desafio/actions/cola";
 import { cerrarDesafio } from "../../desafio/actions/desafios";
 import { ChipCategoria, periodo } from "../GestionDesafiosClient";
 
@@ -155,7 +155,7 @@ export default function PanelClient(p: Props) {
                 )}
                 {pestana === "confirmar" && <Bandeja partidos={p.aConfirmar} pendiente={pendiente} correr={correr} />}
                 {pestana === "cola" && (
-                    <ZonaCola desafioId={p.desafio.id} cola={p.cola} parejas={p.parejas} pendiente={pendiente} correr={correr} />
+                    <ZonaCola desafioId={p.desafio.id} categorias={p.desafio.categorias} cola={p.cola} parejas={p.parejas} historial={p.historial} pendiente={pendiente} correr={correr} />
                 )}
                 {pestana === "ranking" && <TablaRanking filas={p.ranking} puntos={p.desafio.puntos} />}
                 {pestana === "historial" && <Historial partidos={p.historial} onEditar={setEditando} />}
@@ -403,11 +403,11 @@ function FilaCanchas({
                                         {cola.length > 0 && !inhabilitada && (
                                             <button
                                                 type="button"
-                                                onClick={() => correr(() => asignarSiguienteDeCola(desafioId, c.id), "Entró la primera de la cola.")}
+                                                onClick={() => correr(() => asignarSiguienteDeCola(desafioId, c.id), "Entró el siguiente de la cola.")}
                                                 disabled={pendiente}
                                                 className="mt-1.5 label-tech text-[7px] text-celeste hover:text-celeste-light transition-colors disabled:opacity-40 cursor-pointer"
                                             >
-                                                Traer la primera de la cola
+                                                Traer de la cola
                                             </button>
                                         )}
                                     </>
@@ -1233,51 +1233,250 @@ function Bandeja({
 // ── Cola ────────────────────────────────────────────────────────────────────
 
 function ZonaCola({
-    desafioId, cola, parejas, pendiente, correr,
+    desafioId, categorias, cola, parejas, historial, pendiente, correr,
 }: {
     desafioId: string;
+    categorias: DesafioResumen["categorias"];
     cola: EntradaCola[];
     parejas: ParejaResumen[];
+    historial: PartidoResumen[];
     pendiente: boolean;
     correr: Correr;
 }) {
-    const disponibles = parejas.filter((p) => !p.jugando && !p.enCola);
+    // Se puede anotar cualquier pareja armada, incluso una que esté jugando o
+    // que ya tenga otro partido anotado: la cola es el plan de la jornada.
+    const [p1, setP1] = useState<string | null>(null);
+    const [p2, setP2] = useState<string | null>(null);
+    const [q, setQ] = useState("");
 
-    // Se anotan de a una (espera sin rival) o de a dos (el partido ya armado).
-    const [sel, setSel] = useState<string[]>([]);
-    const alternar = (id: string) =>
-        setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length < 2 ? [...s, id] : [s[1], id]));
-    const rotulo = (id: string) => {
-        const p = parejas.find((x) => x.id === id);
-        return p ? `${p.a.nombre} / ${p.b.nombre}` : "";
-    };
+    const porId = (id: string | null) => parejas.find((x) => x.id === id) ?? null;
+    const opciones = (excluir: string | null) => parejas.filter((x) => x.id !== excluir);
 
-    const mover = (i: number, delta: number) => {
+    /**
+     * Mover trabaja siempre sobre la cola completa, no sobre lo que se ve: con
+     * el buscador puesto, subir una entrada la sube una posición real y no la
+     * teletransporta al lugar de la anterior coincidencia.
+     */
+    const mover = (entradaId: string, delta: number) => {
         const ids = cola.map((e) => e.id);
+        const i = ids.indexOf(entradaId);
         const j = i + delta;
-        if (j < 0 || j >= ids.length) return;
+        if (i < 0 || j < 0 || j >= ids.length) return;
         [ids[i], ids[j]] = [ids[j], ids[i]];
         correr(() => reordenarCola(desafioId, ids), "Cola reordenada.");
     };
 
+    // Una entrada no puede entrar si su gente sigue en la cancha. El server la
+    // saltea igual; marcarlo acá explica por qué no entró la de arriba.
+    const bloqueada = (e: EntradaCola) =>
+        !!porId(e.parejaId)?.jugando || (!!e.rivalParejaId && !!porId(e.rivalParejaId)?.jugando);
+
+    const filtradas = useMemo(() => {
+        const b = q.trim().toLowerCase();
+        if (!b) return cola;
+        return cola.filter((e) => `${e.pareja} ${e.rival ?? ""}`.toLowerCase().includes(b));
+    }, [cola, q]);
+
+    /**
+     * Historial derivado de los partidos que el panel ya tiene cargados: no
+     * cuesta ninguna consulta extra. Sólo cuentan los confirmados, que son los
+     * que sumaron puntos.
+     *
+     *   · cruces  → cuántas veces se enfrentaron estas dos parejas y cómo salió
+     *   · ultimo  → cuándo terminó el último partido de cada pareja (descanso)
+     */
+    const { cruces, ultimo } = useMemo(() => {
+        // Clave del cruce con los dos ids ordenados, para que dé igual quién
+        // figure como local. `ganaMenor` cuenta las del id que quedó primero.
+        const cruces = new Map<string, { jugados: number; ganaMenor: number }>();
+        const ultimo = new Map<string, number>();
+
+        for (const m of historial) {
+            if (m.estado !== ESTADO_PARTIDO.CONFIRMADO) continue;
+            const { pareja1Id: p1, pareja2Id: p2 } = m;
+
+            const fin = new Date(m.confirmadoEn ?? m.cargadoEn ?? m.iniciadoEn).getTime();
+            for (const id of [p1, p2]) {
+                if (id) ultimo.set(id, Math.max(ultimo.get(id) ?? 0, fin));
+            }
+
+            if (!p1 || !p2) continue;
+            const menor = p1 < p2 ? p1 : p2;
+            const clave = p1 < p2 ? `${p1}|${p2}` : `${p2}|${p1}`;
+            const acc = cruces.get(clave) ?? { jugados: 0, ganaMenor: 0 };
+            acc.jugados++;
+            const ganadora = m.ganador === 1 ? p1 : m.ganador === 2 ? p2 : null;
+            if (ganadora && ganadora === menor) acc.ganaMenor++;
+            cruces.set(clave, acc);
+        }
+        return { cruces, ultimo };
+    }, [historial]);
+
+    /** El cara a cara visto desde `aId`: ganados suyos vs ganados del rival. */
+    const caraACara = (aId: string, bId: string | null) => {
+        if (!bId) return null;
+        const clave = aId < bId ? `${aId}|${bId}` : `${bId}|${aId}`;
+        const c = cruces.get(clave);
+        if (!c || c.jugados === 0) return null;
+        const suyos = aId < bId ? c.ganaMenor : c.jugados - c.ganaMenor;
+        return { jugados: c.jugados, suyos, delRival: c.jugados - suyos };
+    };
+
+    /** Récord de la pareja en el desafío: ganados-perdidos. */
+    const record = (parejaId: string) => {
+        const p = porId(parejaId);
+        if (!p) return null;
+        return { ganados: p.partidosGanados, perdidos: p.partidosJugados - p.partidosGanados };
+    };
+
+    /** Hace cuánto terminó su último partido. Es el criterio de descanso. */
+    const descanso = (parejaId: string) => {
+        if (porId(parejaId)?.jugando) return "en cancha";
+        const t = ultimo.get(parejaId);
+        return t ? transcurrido(new Date(t).toISOString()) : null;
+    };
+
+    // ── Generador automático ────────────────────────────────────────────────
+    const [generando, setGenerando] = useState(false);
+    const [porPareja, setPorPareja] = useState(2);
+
+    const ordenDeCategoria = (nombre: string | null) => {
+        const clave = (nombre || "").trim().toLowerCase();
+        return categorias.find((c) => c.nombre.trim().toLowerCase() === clave)?.orden ?? null;
+    };
+
+    /** Orden de la pareja: el promedio de sus dos jugadores. */
+    const ordenPareja = (p: ParejaResumen) => {
+        const oa = ordenDeCategoria(p.a.categoria);
+        const ob = ordenDeCategoria(p.b.categoria);
+        if (oa == null) return ob;
+        if (ob == null) return oa;
+        return (oa + ob) / 2;
+    };
+
+    const propuesta = useMemo(() => {
+        // El historial que ve el generador incluye lo ya jugado y también lo que
+        // está esperando en la cola: si no, generar dos veces seguidas armaría
+        // los mismos cruces que ya están anotados.
+        const previos = new Map<string, number>();
+        for (const [k, v] of cruces) previos.set(k, v.jugados);
+        for (const e of cola) {
+            if (!e.rivalParejaId) continue;
+            const k = claveCruce(e.parejaId, e.rivalParejaId);
+            previos.set(k, (previos.get(k) ?? 0) + 1);
+        }
+
+        return generarCruces({
+            parejas: parejas.map((p) => ({
+                id: p.id,
+                ordenCategoria: ordenPareja(p),
+                jugados: p.partidosJugados,
+            })),
+            partidosPorPareja: porPareja,
+            historial: previos,
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parejas, cola, cruces, porPareja, categorias]);
+
+    const nombrePareja = (id: string) => {
+        const p = porId(id);
+        return p ? `${p.a.nombre} / ${p.b.nombre}` : "Pareja";
+    };
+
+    const listas = cola.filter((e) => !bloqueada(e) && e.rivalParejaId).length;
+
     return (
         <div className="space-y-4">
+            {/* Armar: dos parejas y a la cola. Repetir para dejar la jornada lista. */}
             <section>
-                <div className="flex items-center justify-between gap-3 mb-2">
+                <h2 className="heading-sport text-base text-foreground mb-1">Armar partido</h2>
+                <p className="text-[10px] text-subtle mb-2">
+                    Dejá los partidos anotados de antemano y se van mandando a la cancha a medida que
+                    se libera. Sin rival, la pareja espera y se cruza con la siguiente que tampoco tenga.
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                    <SelectPareja
+                        valor={porId(p1)}
+                        opciones={opciones(p2)}
+                        placeholder="Pareja"
+                        disabled={pendiente}
+                        onElegir={setP1}
+                    />
+                    <span className="label-tech text-[7px] text-subtle shrink-0">vs</span>
+                    <SelectPareja
+                        valor={porId(p2)}
+                        opciones={opciones(p1)}
+                        placeholder="Rival (opcional)"
+                        disabled={pendiente}
+                        onElegir={setP2}
+                    />
+                    <button
+                        type="button"
+                        disabled={pendiente || !p1}
+                        onClick={() =>
+                            correr(
+                                () => anotarEnCola(desafioId, p1!, p2),
+                                p2 ? "Partido anotado en la cola." : "Anotada en la cola, esperando rival.",
+                                () => {
+                                    setP1(null);
+                                    setP2(null);
+                                }
+                            )
+                        }
+                        className="px-3 h-8 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer shrink-0"
+                    >
+                        {p2 ? "Anotar partido" : "Anotar sin rival"}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setGenerando(true)}
+                        disabled={pendiente || parejas.length < 2}
+                        title={parejas.length < 2 ? "Hacen falta al menos dos parejas armadas" : undefined}
+                        className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-muted border border-celeste/30 text-celeste label-tech text-[8px] hover:bg-muted transition-all disabled:opacity-30 cursor-pointer shrink-0"
+                    >
+                        <Sparkles className="w-3 h-3" />
+                        Generar cola
+                    </button>
+                </div>
+            </section>
+
+            <section>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <h2 className="heading-sport text-base text-foreground">
-                        Esperando cancha <span className="text-subtle">({cola.length})</span>
+                        Cola{" "}
+                        <span className="text-subtle">
+                            ({q.trim() ? `${filtradas.length} de ${cola.length}` : cola.length})
+                        </span>
+                        {cola.length > 0 && (
+                            <span className="label-tech text-[7px] text-subtle ml-2">
+                                {listas} listo{listas === 1 ? "" : "s"} para entrar
+                            </span>
+                        )}
                     </h2>
-                    {cola.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => correr(() => asignarSiguienteDeCola(desafioId), "Entró la primera de la cola.")}
-                            disabled={pendiente}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-40 cursor-pointer"
-                        >
-                            <Play className="w-3 h-3" />
-                            Asignar siguiente
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {cola.length > 0 && (
+                            <div className="relative w-40">
+                                <input
+                                    value={q}
+                                    onChange={(e) => setQ(e.target.value)}
+                                    placeholder="Buscar jugador..."
+                                    className="w-full bg-muted border border-hairline rounded-lg h-8 pl-7 pr-2 text-[11px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40"
+                                />
+                                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-subtle" />
+                            </div>
+                        )}
+                        {cola.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => correr(() => asignarSiguienteDeCola(desafioId), "Entró el siguiente de la cola.")}
+                                disabled={pendiente}
+                                className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-40 cursor-pointer shrink-0"
+                            >
+                                <Play className="w-3 h-3" />
+                                Mandar a cancha
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {cola.length === 0 ? (
@@ -1286,91 +1485,211 @@ function ZonaCola({
                         <p className="text-[12px] text-subtle">Nadie esperando cancha.</p>
                     </div>
                 ) : (
-                    <ul className="rounded-xl border border-hairline bg-card divide-y divide-hairline">
-                        {cola.map((e, i) => (
-                            <li key={e.id} className="flex items-center gap-3 px-3 py-2.5">
-                                <span className="text-scoreboard text-[13px] text-celeste w-5 text-center shrink-0">{e.posicion}</span>
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-[12px] font-bold text-foreground truncate" title={e.pareja}>{e.pareja}</div>
-                                    <div className="label-tech text-[7px] text-subtle mt-0.5">
-                                        {e.rival ? `vs ${e.rival}` : "sin rival definido"}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                    <button type="button" onClick={() => mover(i, -1)} disabled={pendiente || i === 0} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer">
-                                        <ArrowUp className="w-3 h-3" />
-                                    </button>
-                                    <button type="button" onClick={() => mover(i, 1)} disabled={pendiente || i === cola.length - 1} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer">
-                                        <ArrowDown className="w-3 h-3" />
-                                    </button>
-                                    <button type="button" onClick={() => correr(() => sacarDeCola(e.id), "Sacada de la cola.")} disabled={pendiente} className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-rojo disabled:opacity-40 cursor-pointer">
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="overflow-x-auto rounded-xl border border-hairline bg-card">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-[9px] font-black uppercase tracking-widest text-subtle border-b border-hairline bg-muted">
+                                    <th className="py-2.5 pl-4 pr-1 w-10 text-center">#</th>
+                                    <th className="py-2.5 px-2 text-left">Partido</th>
+                                    <th className="py-2.5 px-2 text-center hidden lg:table-cell">Cruce</th>
+                                    <th className="py-2.5 px-2 text-center hidden lg:table-cell">Récord</th>
+                                    <th className="py-2.5 px-2 text-center hidden md:table-cell">Descanso</th>
+                                    <th className="py-2.5 px-2 text-left">Estado</th>
+                                    <th className="py-2.5 pr-4 pl-2 text-right">Orden</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtradas.map((e) => {
+                                    const frenada = bloqueada(e);
+                                    // El lugar real en la cola, no `posicion`: al cancelar entradas
+                                    // quedan huecos en la numeración hasta el próximo reordenamiento.
+                                    const i = cola.findIndex((x) => x.id === e.id);
+                                    const h = caraACara(e.parejaId, e.rivalParejaId);
+                                    const rec = record(e.parejaId);
+                                    const recRival = e.rivalParejaId ? record(e.rivalParejaId) : null;
+                                    const desc = descanso(e.parejaId);
+                                    const descRival = e.rivalParejaId ? descanso(e.rivalParejaId) : null;
+                                    return (
+                                        <tr key={e.id} className="border-b border-hairline last:border-0">
+                                            <td className="py-2 pl-4 pr-1 text-center text-scoreboard text-[13px] text-celeste">
+                                                {i + 1}
+                                            </td>
+                                            {/* Las dos parejas son un enfrentamiento, no un título y su
+                                                bajada: van en la misma línea y con el mismo peso. El
+                                                ancho se reparte en partes iguales para que ninguna se
+                                                corte antes que la otra. */}
+                                            <td className="py-2 px-2 max-w-0">
+                                                <div className="flex items-center gap-2 text-[12px] font-bold text-foreground">
+                                                    <span className="flex-1 basis-0 min-w-0 truncate text-right" title={e.pareja}>
+                                                        {e.pareja}
+                                                    </span>
+                                                    <span className="label-tech text-[7px] text-subtle shrink-0">vs</span>
+                                                    {e.rival ? (
+                                                        <span className="flex-1 basis-0 min-w-0 truncate" title={e.rival}>
+                                                            {e.rival}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="flex-1 basis-0 min-w-0 truncate label-tech text-[7px] font-normal text-subtle">
+                                                            sin rival definido
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="py-2 px-2 text-center hidden lg:table-cell whitespace-nowrap">
+                                                {h ? (
+                                                    <span
+                                                        className="text-[12px] tabular-nums text-foreground"
+                                                        title={`Ya se enfrentaron ${h.jugados} ${h.jugados === 1 ? "vez" : "veces"}: ${e.pareja} ${h.suyos} — ${e.rival} ${h.delRival}`}
+                                                    >
+                                                        {h.suyos}<span className="text-subtle">–</span>{h.delRival}
+                                                    </span>
+                                                ) : (
+                                                    <span className="label-tech text-[7px] text-subtle">
+                                                        {e.rivalParejaId ? "1er cruce" : "—"}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="py-2 px-2 text-center hidden lg:table-cell whitespace-nowrap">
+                                                <span
+                                                    className="text-[11px] tabular-nums text-muted-foreground"
+                                                    title="Ganados-perdidos de cada pareja en el desafío"
+                                                >
+                                                    {rec ? `${rec.ganados}-${rec.perdidos}` : "—"}
+                                                    <span className="text-subtle"> · </span>
+                                                    {recRival ? `${recRival.ganados}-${recRival.perdidos}` : "—"}
+                                                </span>
+                                            </td>
+                                            <td className="py-2 px-2 text-center hidden md:table-cell whitespace-nowrap">
+                                                <span
+                                                    className="label-tech text-[7px] text-muted-foreground"
+                                                    title="Hace cuánto terminó el último partido de cada pareja"
+                                                >
+                                                    {desc ?? "sin jugar"}
+                                                    {e.rivalParejaId && (
+                                                        <>
+                                                            <span className="text-subtle"> · </span>
+                                                            {descRival ?? "sin jugar"}
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </td>
+                                            <td className="py-2 px-2 whitespace-nowrap">
+                                                {frenada ? (
+                                                    <span
+                                                        className="label-tech text-[7px] text-live"
+                                                        title="Todavía está jugando: la cola la saltea hasta que termine."
+                                                    >
+                                                        En cancha
+                                                    </span>
+                                                ) : e.rivalParejaId ? (
+                                                    <Etiqueta color="celeste">Lista</Etiqueta>
+                                                ) : (
+                                                    <span className="label-tech text-[7px] text-subtle">Espera rival</span>
+                                                )}
+                                            </td>
+                                            <td className="py-2 pr-4 pl-2">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => mover(e.id, -1)}
+                                                        disabled={pendiente || i === 0}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer"
+                                                    >
+                                                        <ArrowUp className="w-3 h-3" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => mover(e.id, 1)}
+                                                        disabled={pendiente || i === cola.length - 1}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-foreground disabled:opacity-20 cursor-pointer"
+                                                    >
+                                                        <ArrowDown className="w-3 h-3" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => correr(() => sacarDeCola(e.id), "Sacada de la cola.")}
+                                                        disabled={pendiente}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-subtle hover:text-rojo disabled:opacity-40 cursor-pointer"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {filtradas.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="py-4 text-center text-[11px] text-subtle">
+                                            Ninguna pareja de la cola con ese jugador.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </section>
 
-            {disponibles.length > 0 && (
-                <section>
-                    <h3 className="label-tech text-[8px] text-subtle mb-1">Anotar en la cola</h3>
-                    <p className="text-[10px] text-subtle mb-2">
-                        Tocá una pareja para que espere sola, o dos para dejar el partido ya armado.
+            {generando && (
+                <Modal titulo="Generar la cola" onCerrar={() => setGenerando(false)}>
+                    <label className="block">
+                        <span className="label-tech text-[8px] text-subtle">Partidos por pareja</span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={porPareja}
+                            onChange={(e) => setPorPareja(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                            className="mt-1 w-24 bg-muted border border-hairline rounded-lg h-9 px-3 text-[13px] font-bold text-foreground focus:outline-none focus:border-celeste/40"
+                        />
+                    </label>
+
+                    <p className="text-[11px] text-muted-foreground mt-3">
+                        {propuesta.partidos.length === 0
+                            ? "No se puede armar ningún partido con estas parejas."
+                            : `${propuesta.partidos.length} partidos para ${parejas.length} parejas. Se anotan al final de la cola.`}
                     </p>
 
-                    {sel.length > 0 && (
-                        <div className="flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-muted border border-celeste/30">
-                            <span className="text-[11px] text-foreground flex-1 min-w-0 truncate">
-                                {sel.length === 1
-                                    ? `${rotulo(sel[0])} — esperando rival`
-                                    : `${rotulo(sel[0])} vs ${rotulo(sel[1])}`}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setSel([])}
-                                className="label-tech text-[8px] text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
-                            >
-                                Limpiar
-                            </button>
-                            <button
-                                type="button"
-                                disabled={pendiente}
-                                onClick={() =>
-                                    correr(
-                                        () => anotarEnCola(desafioId, sel[0], sel[1] ?? null),
-                                        sel.length === 2 ? "Partido anotado en la cola." : "Anotada en la cola.",
-                                        () => setSel([])
-                                    )
-                                }
-                                className="shrink-0 px-3 py-1.5 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all disabled:opacity-30 cursor-pointer"
-                            >
-                                {sel.length === 2 ? "Anotar partido" : "Anotar sin rival"}
-                            </button>
-                        </div>
+                    {propuesta.avisos.map((a) => (
+                        <p key={a} className="flex items-start gap-1.5 text-[10px] text-volt-ink mt-1.5">
+                            <AlertTriangle className="w-3 h-3 shrink-0 mt-px" />
+                            {a}
+                        </p>
+                    ))}
+
+                    {propuesta.partidos.length > 0 && (
+                        <ol className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-hairline divide-y divide-hairline">
+                            {propuesta.partidos.map((m, i) => (
+                                <li key={`${m.parejaA}-${m.parejaB}-${i}`} className="flex items-center gap-2 px-3 py-2">
+                                    <span className="text-scoreboard text-[11px] text-celeste w-5 shrink-0">{i + 1}</span>
+                                    <span className="flex-1 basis-0 min-w-0 truncate text-[11px] font-bold text-foreground text-right" title={nombrePareja(m.parejaA)}>
+                                        {nombrePareja(m.parejaA)}
+                                    </span>
+                                    <span className="label-tech text-[7px] text-subtle shrink-0">vs</span>
+                                    <span className="flex-1 basis-0 min-w-0 truncate text-[11px] font-bold text-foreground" title={nombrePareja(m.parejaB)}>
+                                        {nombrePareja(m.parejaB)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
                     )}
 
-                    <div className="flex flex-wrap gap-1.5">
-                        {disponibles.map((p) => {
-                            const elegida = sel.includes(p.id);
-                            return (
-                                <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => alternar(p.id)}
-                                    disabled={pendiente}
-                                    className={`px-3 py-2 rounded-lg border text-[11px] transition-all disabled:opacity-40 cursor-pointer ${elegida
-                                        ? "bg-celeste/15 border-celeste/40 text-white"
-                                        : "bg-muted border-hairline text-foreground hover:border-celeste/40"
-                                        }`}
-                                >
-                                    {p.a.nombre} / {p.b.nombre}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </section>
+                    <button
+                        type="button"
+                        disabled={pendiente || propuesta.partidos.length === 0}
+                        onClick={() =>
+                            correr(
+                                () => anotarPartidosEnCola(desafioId, propuesta.partidos),
+                                `${propuesta.partidos.length} partidos anotados en la cola.`,
+                                () => setGenerando(false)
+                            )
+                        }
+                        className="w-full mt-4 py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
+                    >
+                        Anotar {propuesta.partidos.length} partidos
+                    </button>
+                </Modal>
             )}
         </div>
     );

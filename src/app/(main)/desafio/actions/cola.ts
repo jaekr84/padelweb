@@ -8,7 +8,7 @@
 
 import { db } from "@/db";
 import { challengePairs, challengeQueue, challengeRegistrations, challenges, users } from "@/db/schema";
-import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import {
     ESTADO_COLA, ESTADO_DESAFIO, ESTADO_INSCRIPCION,
     chequearTransicionCola, recomputarPosiciones,
@@ -85,7 +85,16 @@ async function renumerar(tx: Tx, desafioId: string) {
     }
 }
 
-async function parejaActivaLibre(tx: Tx, desafioId: string, parejaId: string) {
+/**
+ * Valida para *anotar*: alcanza con que la pareja exista y no esté disuelta.
+ *
+ * A propósito no mira si está jugando ni si ya figura en la cola: la cola es
+ * también el plan de la jornada, así que una pareja puede tener varios partidos
+ * anotados y seguir anotándose mientras juega el anterior. Que los cuatro
+ * jugadores estén libres se exige recién al mandarlos a la cancha, en
+ * `iniciarPartidoEnTx`, que además lo hace con SELECT ... FOR UPDATE.
+ */
+async function parejaAnotable(tx: Tx, desafioId: string, parejaId: string) {
     const [p] = await tx
         .select()
         .from(challengePairs)
@@ -93,27 +102,55 @@ async function parejaActivaLibre(tx: Tx, desafioId: string, parejaId: string) {
         .limit(1);
     if (!p) throw new ErrorDesafio("La pareja no existe en este desafío.");
     if (!p.active) throw new ErrorDesafio("La pareja está disuelta.");
+    return p;
+}
+
+/**
+ * Qué parejas de la cola pueden entrar ahora mismo: las activas cuyos dos
+ * jugadores están emparejados y libres. Se usa para saltear las entradas
+ * planificadas cuya gente todavía está en la cancha.
+ */
+async function parejasDisponibles(tx: Tx, desafioId: string, parejaIds: string[]) {
+    const libres = new Set<string>();
+    if (parejaIds.length === 0) return libres;
+
+    const parejas = await tx
+        .select()
+        .from(challengePairs)
+        .where(and(eq(challengePairs.challengeId, desafioId), inArray(challengePairs.id, parejaIds)));
+
+    const userIds = [...new Set(parejas.flatMap((p) => [p.playerAId, p.playerBId]))];
+    if (userIds.length === 0) return libres;
 
     const estados = await tx
-        .select({ status: challengeRegistrations.status })
+        .select({ userId: challengeRegistrations.userId, status: challengeRegistrations.status })
         .from(challengeRegistrations)
         .where(
             and(
                 eq(challengeRegistrations.challengeId, desafioId),
-                inArray(challengeRegistrations.userId, [p.playerAId, p.playerBId])
+                inArray(challengeRegistrations.userId, userIds)
             )
         );
-    if (estados.some((e) => e.status === ESTADO_INSCRIPCION.JUGANDO)) {
-        throw new ErrorDesafio("La pareja ya está jugando.");
+    const estadoDe = new Map(estados.map((e) => [e.userId, e.status]));
+
+    for (const p of parejas) {
+        if (!p.active) continue;
+        const ok = [p.playerAId, p.playerBId].every(
+            (u) => estadoDe.get(u) === ESTADO_INSCRIPCION.EMPAREJADO
+        );
+        if (ok) libres.add(p.id);
     }
-    return p;
+    return libres;
 }
 
 // ── Escritura ───────────────────────────────────────────────────────────────
 
 /**
- * Anota una pareja al final de la cola. El rival es opcional: se puede esperar
+ * Anota un partido al final de la cola. El rival es opcional: se puede esperar
  * sin rival definido y que el sistema la cruce con la siguiente.
+ *
+ * Una misma pareja puede figurar varias veces: la cola es también el plan de la
+ * jornada. Lo único que no se permite es que se enfrente a sí misma.
  */
 export async function anotarEnCola(desafioId: string, parejaId: string, rivalParejaId?: string | null) {
     return ejecutar("anotarEnCola", async () => {
@@ -124,24 +161,11 @@ export async function anotarEnCola(desafioId: string, parejaId: string, rivalPar
             if (!d) throw new ErrorDesafio("El desafío no existe.");
             if (d.estado !== ESTADO_DESAFIO.ABIERTO) throw new ErrorDesafio("El desafío no está abierto.");
 
-            await parejaActivaLibre(tx, desafioId, parejaId);
+            await parejaAnotable(tx, desafioId, parejaId);
             if (rivalParejaId) {
                 if (rivalParejaId === parejaId) throw new ErrorDesafio("La pareja no puede ser su propio rival.");
-                await parejaActivaLibre(tx, desafioId, rivalParejaId);
+                await parejaAnotable(tx, desafioId, rivalParejaId);
             }
-
-            const [yaEsta] = await tx
-                .select({ id: challengeQueue.id })
-                .from(challengeQueue)
-                .where(
-                    and(
-                        eq(challengeQueue.challengeId, desafioId),
-                        eq(challengeQueue.status, ESTADO_COLA.ESPERANDO),
-                        or(eq(challengeQueue.pairId, parejaId), eq(challengeQueue.rivalPairId, parejaId))
-                    )
-                )
-                .limit(1);
-            if (yaEsta) throw new ErrorDesafio("Esa pareja ya está en la cola.");
 
             const [{ max }] = await tx
                 .select({ max: sql<number>`COALESCE(MAX(${challengeQueue.position}), 0)` })
@@ -160,6 +184,55 @@ export async function anotarEnCola(desafioId: string, parejaId: string, rivalPar
 
             revalidarDesafio(desafioId);
             return { id, posicion: Number(max) + 1 };
+        });
+    });
+}
+
+/**
+ * Anota varios partidos de una, al final de la cola y en el orden recibido.
+ *
+ * La usa el generador automático: entran todos o no entra ninguno, porque una
+ * cola a medio generar es peor que ninguna. Los cruces los decide
+ * `generarCruces` en el cliente, que no necesita la base para calcularlos.
+ */
+export async function anotarPartidosEnCola(
+    desafioId: string,
+    partidos: { parejaA: string; parejaB: string }[]
+) {
+    return ejecutar("anotarPartidosEnCola", async () => {
+        await requerirAdmin();
+        if (partidos.length === 0) throw new ErrorDesafio("No hay partidos para anotar.");
+
+        return await db.transaction(async (tx) => {
+            const [d] = await tx.select({ estado: challenges.status }).from(challenges).where(eq(challenges.id, desafioId)).limit(1);
+            if (!d) throw new ErrorDesafio("El desafío no existe.");
+            if (d.estado !== ESTADO_DESAFIO.ABIERTO) throw new ErrorDesafio("El desafío no está abierto.");
+
+            // Se valida cada pareja una sola vez, aunque figure en varios cruces.
+            const involucradas = [...new Set(partidos.flatMap((p) => [p.parejaA, p.parejaB]))];
+            for (const id of involucradas) await parejaAnotable(tx, desafioId, id);
+            for (const p of partidos) {
+                if (p.parejaA === p.parejaB) throw new ErrorDesafio("Una pareja no puede ser su propio rival.");
+            }
+
+            const [{ max }] = await tx
+                .select({ max: sql<number>`COALESCE(MAX(${challengeQueue.position}), 0)` })
+                .from(challengeQueue)
+                .where(and(eq(challengeQueue.challengeId, desafioId), eq(challengeQueue.status, ESTADO_COLA.ESPERANDO)));
+
+            await tx.insert(challengeQueue).values(
+                partidos.map((p, i) => ({
+                    id: nuevoId(),
+                    challengeId: desafioId,
+                    pairId: p.parejaA,
+                    rivalPairId: p.parejaB,
+                    position: Number(max) + 1 + i,
+                    status: ESTADO_COLA.ESPERANDO,
+                }))
+            );
+
+            revalidarDesafio(desafioId);
+            return { anotados: partidos.length };
         });
     });
 }
@@ -212,10 +285,14 @@ export async function reordenarCola(desafioId: string, entradasEnOrden: string[]
 }
 
 /**
- * Mete a la cancha a la primera pareja de la cola.
+ * Manda a la cancha el primer partido de la cola que se pueda jugar ahora.
+ *
+ * Recorre la cola en orden y saltea las entradas cuya gente todavía está en la
+ * cancha: con la cola usada como plan de la jornada, la entrada de arriba puede
+ * ser de una ronda posterior. La primera jugable entra.
  *
  * Si la entrada trae rival, juegan esas dos. Si no lo trae, se la cruza con la
- * siguiente entrada que tampoco tenga rival.
+ * siguiente entrada sin rival que también esté libre.
  *
  * ⚠️ Ese cruce automático es una decisión que la spec dejó abierta (§8 "Cola sin
  * rival definido"). La alternativa es que la pareja espere a que alguien la
@@ -239,45 +316,58 @@ export async function asignarSiguienteDeCola(desafioId: string, canchaId?: strin
 
             if (esperando.length === 0) throw new ErrorDesafio("La cola está vacía.");
 
-            const primera = esperando[0];
-            let rivalId = primera.rivalPairId;
-            let entradaRival: typeof primera | undefined;
+            const libres = await parejasDisponibles(
+                tx,
+                desafioId,
+                [...new Set(esperando.flatMap((e) => [e.pairId, e.rivalPairId]).filter(Boolean) as string[])]
+            );
 
-            if (!rivalId) {
-                entradaRival = esperando.slice(1).find((e) => !e.rivalPairId && e.pairId !== primera.pairId);
-                if (!entradaRival) {
-                    throw new ErrorDesafio(
-                        "La primera pareja de la cola no tiene rival y no hay otra esperando para cruzarla."
-                    );
+            // Primera entrada jugable: con rival, las dos libres; sin rival, se
+            // busca compañera de cruce más abajo en la cola.
+            let elegida: typeof esperando[number] | undefined;
+            let rivalId: string | null = null;
+            let entradaRival: typeof esperando[number] | undefined;
+
+            for (const e of esperando) {
+                if (!libres.has(e.pairId)) continue;
+
+                if (e.rivalPairId) {
+                    if (!libres.has(e.rivalPairId)) continue;
+                    elegida = e;
+                    rivalId = e.rivalPairId;
+                    break;
                 }
-                rivalId = entradaRival.pairId;
+
+                const cruce = esperando.find(
+                    (o) => o.id !== e.id && !o.rivalPairId && o.pairId !== e.pairId && libres.has(o.pairId)
+                );
+                if (!cruce) continue;
+                elegida = e;
+                rivalId = cruce.pairId;
+                entradaRival = cruce;
+                break;
+            }
+
+            if (!elegida || !rivalId) {
+                throw new ErrorDesafio(
+                    "Ningún partido de la cola se puede jugar ahora: las parejas están en la cancha o esperan rival."
+                );
             }
 
             const partidoId = await iniciarPartidoEnTx(tx, {
                 desafioId,
                 canchaId: cancha.id,
-                pareja1Id: primera.pairId,
-                pareja2Id: rivalId!,
+                pareja1Id: elegida.pairId,
+                pareja2Id: rivalId,
             });
 
-            const ahora = new Date();
-            const aMarcar = [primera.id, ...(entradaRival ? [entradaRival.id] : [])];
+            // Sólo salen de la cola las entradas que efectivamente entraron a la
+            // cancha. Las demás entradas de esas parejas son partidos planificados
+            // para más tarde y tienen que quedarse esperando.
             await tx
                 .update(challengeQueue)
-                .set({ status: ESTADO_COLA.ASIGNADA, assignedAt: ahora })
-                .where(inArray(challengeQueue.id, aMarcar));
-
-            // Si el rival estaba anotado en su propia entrada, esa también sale.
-            await tx
-                .update(challengeQueue)
-                .set({ status: ESTADO_COLA.ASIGNADA, assignedAt: ahora })
-                .where(
-                    and(
-                        eq(challengeQueue.challengeId, desafioId),
-                        eq(challengeQueue.status, ESTADO_COLA.ESPERANDO),
-                        or(eq(challengeQueue.pairId, rivalId!), eq(challengeQueue.rivalPairId, rivalId!))
-                    )
-                );
+                .set({ status: ESTADO_COLA.ASIGNADA, assignedAt: new Date() })
+                .where(inArray(challengeQueue.id, [elegida.id, ...(entradaRival ? [entradaRival.id] : [])]));
 
             await renumerar(tx, desafioId);
 

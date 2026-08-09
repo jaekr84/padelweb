@@ -8,3 +8,4 @@ export * from "./categorias";
 export * from "./puntaje";
 export * from "./lados";
 export * from "./ranking";
+export * from "./generarCola";

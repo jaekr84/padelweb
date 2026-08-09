@@ -256,9 +256,10 @@ export async function cargarResultado(partidoId: string, sets: SetPartido[]) {
             return { id: partidoId, desafioId: m.challengeId, ganador: r.ganador, resultado: formatearSets(sets) };
         });
 
-        // Ya con la cancha liberada y el commit hecho, se intenta meter a la
-        // primera pareja de la cola. Es best-effort: si la cola está vacía o la
-        // primera no tiene rival, no se le muestra ningún error al jugador.
+        // Ya con la cancha liberada y el commit hecho, se intenta meter el
+        // primer partido jugable de la cola (el commit importa: la cola lee los
+        // estados de inscripción para saber quién quedó libre). Es best-effort:
+        // si la cola está vacía o nadie puede entrar, el jugador no ve error.
         await intentarAsignarCancha(salida.desafioId);
 
         return salida;
