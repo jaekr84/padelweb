@@ -1,3 +1,6 @@
+import { sql } from "drizzle-orm";
+import { users } from "@/db/schema";
+
 // Cuentas de sistema: no aparecen en listados públicos ni de administración
 // (ranking, gestión de usuarios, inscripciones, jugadores de club) y sobreviven
 // a los resets de base de datos.
@@ -28,3 +31,13 @@ export const HIDDEN_AND_DEMO_EMAILS = [
 
 export const isHiddenUser = (email?: string | null) =>
     !!email && (HIDDEN_USER_EMAILS as readonly string[]).includes(email);
+
+/**
+ * Los invitados del Desafío tampoco van en los listados generales de la app
+ * (ranking de torneos, gestión de usuarios, socios del club, buscadores):
+ * todavía no son cuentas, son jugadores cargados a mano por un admin.
+ *
+ * Sí aparecen en todo lo del Desafío, que es donde juegan. El COALESCE cubre las
+ * filas anteriores a la migración, que tienen la columna en NULL.
+ */
+export const noEsInvitado = () => sql`COALESCE(${users.isGuest}, false) = false`;

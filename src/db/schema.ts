@@ -19,6 +19,12 @@ export const users = mysqlTable("users", {
     points: int("points").default(0),
     clubId: varchar("club_id", { length: 256 }), // references added below in relations or manually
     isActive: boolean("is_active").default(true),
+    // Jugador cargado a mano por un admin para que pueda jugar un desafío sin
+    // tener cuenta. Es una fila de `users` de verdad — así el historial y los
+    // puntos son suyos desde el día uno y el alta posterior no migra nada —,
+    // pero no puede loguearse (no tiene passwordHash) y queda fuera de los
+    // listados generales de la app. Ver src/app/(main)/desafio/actions/invitados.ts.
+    isGuest: boolean("is_guest").default(false),
     approvalStatus: varchar("approval_status", { length: 20 }).notNull().default("approved"), // approved | pending
     bannedUntil: timestamp("banned_until"),
     imageUrl: varchar("image_url", { length: 512 }),
@@ -567,6 +573,9 @@ export const invitations = mysqlTable("invitations", {
     expiresAt: timestamp("expires_at").notNull(),
     usedAt: timestamp("used_at"),
     usedByUserId: varchar("used_by_user_id", { length: 256 }),
+    // Activación de un invitado del Desafío: en vez de crear una cuenta nueva,
+    // el link activa esta cuenta que ya existe (y ya tiene historial jugado).
+    targetUserId: varchar("target_user_id", { length: 256 }),
     revokedAt: timestamp("revoked_at"),
 }, (table) => ({
     createdByIdx: index("invitations_created_by_idx").on(table.createdBy),

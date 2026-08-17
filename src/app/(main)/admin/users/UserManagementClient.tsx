@@ -44,6 +44,7 @@ import {
     resetUserPassword
 } from "./actions";
 import { toast } from "sonner";
+import { generarLinkDeActivacion } from "@/app/(main)/desafio/actions/invitados";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store/useAppStore";
@@ -82,6 +83,9 @@ interface ManagedUser {
     gender: string | null;
     documentNumber: string | null;
     clubId: string | null;
+    phone?: string | null;
+    /** Invitado del Desafío: juega sin cuenta hasta que se le dé el alta. */
+    isGuest?: boolean | null;
     createdAt: Date;
 }
 
@@ -203,6 +207,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         }
     });
 
+    // Invitado al que se le está generando el link de activación.
+    const [generandoLink, setGenerandoLink] = useState<string | null>(null);
+
     const filteredUsers = (usersList as ManagedUser[]).filter(u => {
         const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
         const matchesSearch =
@@ -214,6 +221,9 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
         if (tournamentFilter.status === "active") matchesStatus = u.isActive !== false;
         if (tournamentFilter.status === "disabled") matchesStatus = u.isActive === false;
         if (tournamentFilter.status === "banned") matchesStatus = !!(u.bannedUntil && new Date(u.bannedUntil) > new Date());
+        // Invitados del Desafío: jugadores sin cuenta, a la espera de activarla.
+        if (tournamentFilter.status === "guest") matchesStatus = !!u.isGuest;
+        if (tournamentFilter.status === "account") matchesStatus = !u.isGuest;
 
         const matchesRole = tournamentFilter.role === "all" || u.role === tournamentFilter.role;
         const matchesGender = tournamentFilter.gender === "all" || (u as any).gender === tournamentFilter.gender;
@@ -234,6 +244,36 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
     useEffect(() => {
         setPage(1);
     }, [filterKey]);
+
+    /**
+     * Link de activación de un invitado, listo para mandar por WhatsApp.
+     *
+     * La ventana se abre ANTES del await: si se abriera después, el navegador la
+     * trataría como un popup no pedido por el usuario y la bloquearía. El link
+     * también queda en el portapapeles, por si el chat no es el camino.
+     */
+    const compartirActivacion = async (user: ManagedUser) => {
+        const ventana = window.open("", "_blank");
+        setGenerandoLink(user.id);
+        try {
+            const r = await generarLinkDeActivacion(user.id);
+            if (!r.ok) {
+                ventana?.close();
+                toast.error(r.error);
+                return;
+            }
+            const nombre = user.firstName || "jugador";
+            const texto = `Hola ${nombre}! Activá tu cuenta de A.C.A.P. acá (el link dura 24 horas): ${r.data.url}`;
+            navigator.clipboard?.writeText(r.data.url).catch(() => {});
+            const destino = whatsappDe(user.phone);
+            const url = `https://wa.me/${destino}?text=${encodeURIComponent(texto)}`;
+            if (ventana) ventana.location.href = url;
+            else window.open(url, "_blank");
+            toast.success(destino ? "WhatsApp abierto. El link también quedó copiado." : "Link copiado: elegí el contacto en WhatsApp.");
+        } finally {
+            setGenerandoLink(null);
+        }
+    };
 
     const isCurrentlyBanned = (user: ManagedUser) => {
         return user.bannedUntil && new Date(user.bannedUntil) > new Date();
@@ -429,6 +469,8 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                 <option value="active">ACTIVOS</option>
                                 <option value="disabled">INACTIVOS</option>
                                 <option value="banned">BANEADOS</option>
+                                <option value="guest">INVITADOS</option>
+                                <option value="account">CON CUENTA</option>
                             </select>
                             <Filter className="absolute right-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-muted-foreground pointer-events-none" />
                         </div>
@@ -490,7 +532,7 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                     {user.firstName} {user.lastName}
                                                 </h3>
                                                 <p className="text-[10px] font-black text-muted-foreground truncate uppercase tracking-widest mt-0.5">
-                                                    {user.email}
+                                                    {user.isGuest ? "Sin cuenta · invitado" : user.email}
                                                 </p>
                                                 {user.documentNumber && (
                                                     <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-widest mt-1">DNI: {user.documentNumber}</p>
@@ -499,6 +541,11 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5 shrink-0">
                                             <div className="flex flex-wrap justify-end gap-1 max-w-[120px]">
+                                                {user.isGuest && (
+                                                    <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-lg border shadow-sm bg-amber-500/20 border-amber-500/30 text-amber-500">
+                                                        invitado
+                                                    </span>
+                                                )}
                                                 {user.role.split(',').map(r => (
                                                     <span key={r} className={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-lg border shadow-sm ${r === 'superadmin' ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' : r === 'club' ? 'bg-violet-500/20 border-violet-500/30 text-violet-400' : 'bg-surface-raised border-hairline text-muted-foreground'}`}>
                                                         {r}
@@ -529,6 +576,20 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                     </div>
 
                                     {/* Actions */}
+                                    {user.isGuest && (
+                                        <button
+                                            onClick={() => compartirActivacion(user)}
+                                            disabled={generandoLink === user.id}
+                                            className="w-full flex items-center justify-center gap-2 p-3 mb-2.5 rounded-2xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 hover:bg-emerald-500/25 active:scale-95 transition-all disabled:opacity-40 relative z-10"
+                                            title={user.phone ? `Enviar a ${user.phone}` : "Elegí el contacto en WhatsApp"}
+                                        >
+                                            <MessageCircle className="w-3.5 h-3.5" />
+                                            <span className="text-[8px] font-black uppercase">
+                                                {generandoLink === user.id ? "Generando link..." : "Enviar link de activación"}
+                                            </span>
+                                        </button>
+                                    )}
+
                                     <div className="flex items-center gap-3 pt-1 relative z-10">
                                         <div className="grid grid-cols-2 gap-2.5 flex-1">
                                             {banned ? (
@@ -651,9 +712,15 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                                         {user.documentNumber}
                                                                     </span>
                                                                 )}
+                                                                {user.isGuest && (
+                                                                    <span className="text-[7px] font-black text-amber-500 uppercase bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20">
+                                                                        invitado
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <span className="text-[8px] font-black text-subtle truncate uppercase tracking-tighter">
-                                                                {user.email}
+                                                                {/* El email de un invitado es sintético: no le sirve a nadie. */}
+                                                                {user.isGuest ? `Sin cuenta${user.phone ? ` · ${user.phone}` : ""}` : user.email}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -686,6 +753,19 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
                                                 </td>
                                                 <td className="px-4 py-2 text-right">
                                                     <div className="flex items-center justify-end gap-1">
+                                                        {user.isGuest && (
+                                                            <button
+                                                                onClick={() => compartirActivacion(user)}
+                                                                disabled={generandoLink === user.id}
+                                                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                                                title={user.phone ? `Enviar link de activación a ${user.phone}` : "Link de activación (elegís el contacto en WhatsApp)"}
+                                                            >
+                                                                <MessageCircle className="w-2.5 h-2.5" />
+                                                                <span className="text-[7px] font-black uppercase">
+                                                                    {generandoLink === user.id ? "GENERANDO" : "ACTIVAR"}
+                                                                </span>
+                                                            </button>
+                                                        )}
                                                         {banned ? (
                                                             <button
                                                                 onClick={() => handleUnban(user)}
@@ -1142,4 +1222,15 @@ export default function UserManagementClient({ initialUsers, categories, clubs }
             </Dialog>
         </div>
     );
+}
+
+/**
+ * El número tal cual lo espera wa.me: sólo dígitos y con código de país.
+ * Devuelve "" cuando no hay un número usable — ahí WhatsApp abre el selector de
+ * contactos, que es mejor que abrir el chat equivocado.
+ */
+function whatsappDe(phone?: string | null) {
+    const digitos = (phone || "").replace(/\D/g, "");
+    if (digitos.length < 10) return "";
+    return digitos.startsWith("54") ? digitos : `54${digitos}`;
 }

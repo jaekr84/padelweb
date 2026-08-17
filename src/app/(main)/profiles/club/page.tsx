@@ -5,7 +5,7 @@ import { eq, desc, sql, and, notInArray } from "drizzle-orm";
 
 import ClubProfileClient from "./ClubProfileClient";
 import { Shield } from "lucide-react";
-import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
+import { HIDDEN_USER_EMAILS, noEsInvitado } from "@/lib/hidden-users";
 
 export default async function ClubProfilePage({
     searchParams
@@ -111,7 +111,8 @@ export default async function ClubProfilePage({
         .where(
             and(
                 eq(users.clubId, club.id),
-                notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[])
+                notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]),
+                noEsInvitado()
             )
         )
         .orderBy(desc(users.points));

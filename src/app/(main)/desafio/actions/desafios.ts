@@ -49,12 +49,19 @@ export type DesafioResumen = {
     inscripcion: number | null;
     cupo: number;
     inscriptos: number;
+    /** Partidos generados (de cualquier estado). Lo usa el borrado para avisar qué se pierde. */
+    partidos: number;
     creadoEn: string;
 };
 
 // ── Lectura ─────────────────────────────────────────────────────────────────
 
-const filaAResumen = (r: any, inscriptos: number, categorias: CategoriaDesafio[]): DesafioResumen => ({
+const filaAResumen = (
+    r: any,
+    inscriptos: number,
+    categorias: CategoriaDesafio[],
+    partidos: number
+): DesafioResumen => ({
     id: r.id,
     nombre: r.name,
     descripcion: r.description,
@@ -72,6 +79,7 @@ const filaAResumen = (r: any, inscriptos: number, categorias: CategoriaDesafio[]
     inscripcion: r.registrationFee,
     cupo: r.maxSlots,
     inscriptos,
+    partidos,
     creadoEn: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
 });
 
@@ -140,6 +148,21 @@ async function contarInscriptos(desafioIds: string[]) {
     return mapa;
 }
 
+/** Partidos por desafío, de cualquier estado: es lo que el borrado se lleva puesto. */
+async function contarPartidos(desafioIds: string[]) {
+    const mapa = new Map<string, number>();
+    if (desafioIds.length === 0) return mapa;
+
+    const filas = await db
+        .select({ challengeId: challengeMatches.challengeId, n: sql<number>`count(*)` })
+        .from(challengeMatches)
+        .where(inArray(challengeMatches.challengeId, desafioIds))
+        .groupBy(challengeMatches.challengeId);
+
+    for (const f of filas) mapa.set(f.challengeId, Number(f.n) || 0);
+    return mapa;
+}
+
 export async function listarDesafios(): Promise<DesafioResumen[]> {
     const filas = await db
         .select(SELECT_DESAFIO)
@@ -147,8 +170,14 @@ export async function listarDesafios(): Promise<DesafioResumen[]> {
         .orderBy(desc(challenges.createdAt));
 
     const ids = filas.map((f) => f.id);
-    const [inscriptos, categorias] = await Promise.all([contarInscriptos(ids), categoriasDeDesafios(ids)]);
-    return filas.map((f) => filaAResumen(f, inscriptos.get(f.id) ?? 0, categorias.get(f.id) ?? []));
+    const [inscriptos, categorias, partidos] = await Promise.all([
+        contarInscriptos(ids),
+        categoriasDeDesafios(ids),
+        contarPartidos(ids),
+    ]);
+    return filas.map((f) =>
+        filaAResumen(f, inscriptos.get(f.id) ?? 0, categorias.get(f.id) ?? [], partidos.get(f.id) ?? 0)
+    );
 }
 
 export async function obtenerDesafio(id: string): Promise<DesafioResumen | null> {
@@ -159,8 +188,12 @@ export async function obtenerDesafio(id: string): Promise<DesafioResumen | null>
         .limit(1);
 
     if (!fila) return null;
-    const [inscriptos, categorias] = await Promise.all([contarInscriptos([id]), categoriasDeDesafios([id])]);
-    return filaAResumen(fila, inscriptos.get(id) ?? 0, categorias.get(id) ?? []);
+    const [inscriptos, categorias, partidos] = await Promise.all([
+        contarInscriptos([id]),
+        categoriasDeDesafios([id]),
+        contarPartidos([id]),
+    ]);
+    return filaAResumen(fila, inscriptos.get(id) ?? 0, categorias.get(id) ?? [], partidos.get(id) ?? 0);
 }
 
 /** Categorías activas, para el selector de creación. */
@@ -427,10 +460,14 @@ export async function reabrirDesafio(id: string) {
 }
 
 /**
- * Elimina un desafío. Sólo si nunca se jugó nada: con partidos cargados el
- * historial y los puntos son parte del registro del club.
+ * Elimina un desafío en cualquier estado, con todo lo que cuelga de él.
+ *
+ * Con partidos ya jugados el borrado se lleva puesto el historial y los puntos
+ * del ranking de ese desafío, así que en ese caso hace falta pasar
+ * `confirmarConHistorial`: la UI lo manda recién después de una segunda
+ * confirmación explícita, para que no se pierda un desafío entero por un clic.
  */
-export async function eliminarDesafio(id: string) {
+export async function eliminarDesafio(id: string, confirmarConHistorial = false) {
     return ejecutar("eliminarDesafio", async () => {
         await requerirAdmin();
         await traerDesafio(id);
@@ -439,19 +476,21 @@ export async function eliminarDesafio(id: string) {
             .select({ n: sql<number>`count(*)` })
             .from(challengeMatches)
             .where(eq(challengeMatches.challengeId, id));
+        const partidos = Number(n) || 0;
 
-        if (Number(n) > 0) {
+        if (partidos > 0 && !confirmarConHistorial) {
             throw new ErrorDesafio(
-                "No se puede eliminar un desafío que ya tiene partidos. Cerralo en vez de borrarlo."
+                `Este desafío ya tiene ${partidos} partidos: confirmá el borrado para eliminarlos junto con sus puntos.`
             );
         }
 
         // Sin FKs en el schema: el borrado en cascada se hace a mano. Van todas
-        // las tablas hijas aunque a esta altura sólo puedan tener filas las dos
-        // primeras — si mañana se agrega otra, el olvido deja basura huérfana.
+        // las tablas hijas — si mañana se agrega otra, el olvido deja basura
+        // huérfana.
         await db.transaction(async (tx) => {
             await tx.delete(challengePoints).where(eq(challengePoints.challengeId, id));
             await tx.delete(challengeQueue).where(eq(challengeQueue.challengeId, id));
+            await tx.delete(challengeMatches).where(eq(challengeMatches.challengeId, id));
             await tx.delete(challengePairs).where(eq(challengePairs.challengeId, id));
             await tx.delete(challengeRegistrations).where(eq(challengeRegistrations.challengeId, id));
             await tx.delete(challengeCourts).where(eq(challengeCourts.challengeId, id));

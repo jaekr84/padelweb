@@ -32,6 +32,8 @@ export type InscriptoResumen = {
     categoria: string | null;
     estado: EstadoInscripcion;
     esExcepcion: boolean;
+    /** Jugador cargado a mano por un admin: todavía no tiene cuenta. */
+    esInvitado: boolean;
     juegaParaArriba: boolean;
     inscriptoEn: string;
 };
@@ -115,6 +117,7 @@ export async function listarInscriptos(desafioId: string): Promise<InscriptoResu
             lastName: users.lastName,
             email: users.email,
             imageUrl: users.imageUrl,
+            isGuest: users.isGuest,
         })
         .from(challengeRegistrations)
         .innerJoin(users, eq(challengeRegistrations.userId, users.id))
@@ -132,6 +135,7 @@ export async function listarInscriptos(desafioId: string): Promise<InscriptoResu
             categoria: f.categoryName,
             estado: f.status as EstadoInscripcion,
             esExcepcion: !!f.isException,
+            esInvitado: !!f.isGuest,
             juegaParaArriba: ctx ? juegaParaArriba(suya, ctx.categoriasDesafio) : false,
             inscriptoEn: f.registeredAt.toISOString(),
         };

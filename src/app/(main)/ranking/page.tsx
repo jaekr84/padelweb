@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { users, registrations, categoriesTable, bracketMatches, groupMatches, tournaments, clubs } from "@/db/schema";
 import { eq, inArray, asc, and, sql, notInArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth-server";
-import { HIDDEN_USER_EMAILS } from "@/lib/hidden-users";
+import { HIDDEN_USER_EMAILS, noEsInvitado } from "@/lib/hidden-users";
 
 export default async function RankingPage() {
     const session = await getSession();
@@ -29,7 +29,10 @@ export default async function RankingPage() {
     .from(users)
     .leftJoin(clubs, eq(users.clubId, clubs.id))
     .where(
-        notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[])
+        and(
+            notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]),
+            noEsInvitado()
+        )
     );
 
     // 2. Fetch all tournament registrations to count UNIQUE tournaments played per player

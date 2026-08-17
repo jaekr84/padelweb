@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-    CalendarDays, Check, ChevronRight, Clock, Lock, MapPin, Pencil, Plus,
-    Settings2, Swords, Ticket, Trash2, Trophy, Unlock, Users, X,
+    ArrowDown, ArrowUp, Check, Lock, Pencil, Plus, Settings2, Swords,
+    Trash2, Trophy, Unlock, UserPlus, X,
 } from "lucide-react";
-import { ESTADO_DESAFIO, ETIQUETA_ESTADO_DESAFIO } from "@/lib/desafio";
+import { ESTADO_DESAFIO, ETIQUETA_ESTADO_DESAFIO, type EstadoDesafio } from "@/lib/desafio";
 import {
     abrirDesafio, cerrarDesafio, crearDesafio, editarDesafio, eliminarDesafio, reabrirDesafio,
     type DatosDesafio, type DesafioResumen,
@@ -27,6 +27,68 @@ export default function GestionDesafiosClient({
     const [creando, setCreando] = useState(false);
     const [editando, setEditando] = useState<string | null>(null);
     const [pendiente, iniciar] = useTransition();
+    const [estado, setEstado] = useState<EstadoDesafio | "todos">("todos");
+    const [mes, setMes] = useState("todos");
+    const [orden, setOrden] = useState<Orden>({ campo: "fecha", desc: true });
+
+    // Clic en la misma columna alterna la dirección; en otra, empieza
+    // descendente, que es lo que uno espera de fechas y de cantidades.
+    const ordenarPor = (campo: Campo) =>
+        setOrden((o) => (o.campo === campo ? { campo, desc: !o.desc } : { campo, desc: true }));
+
+    // Los meses del selector salen de los desafíos que hay, no de un calendario
+    // fijo: no tiene sentido ofrecer meses vacíos. Se agrupa por fecha de inicio.
+    const meses = useMemo(() => {
+        const vistos = new Map<string, string>();
+        for (const d of desafios) {
+            const clave = d.fechaInicio ? d.fechaInicio.slice(0, 7) : "sin-fecha";
+            if (!vistos.has(clave)) vistos.set(clave, clave === "sin-fecha" ? "Sin fecha" : etiquetaDeMes(clave));
+        }
+        // Más nuevo primero; "Sin fecha" siempre al final.
+        return [...vistos.entries()]
+            .sort((a, b) => (a[0] === "sin-fecha" ? 1 : b[0] === "sin-fecha" ? -1 : b[0].localeCompare(a[0])))
+            .map(([valor, etiqueta]) => ({ valor, etiqueta }));
+    }, [desafios]);
+
+    const visibles = useMemo(() => {
+        const filtrados = desafios.filter((d) => {
+            if (estado !== "todos" && d.estado !== estado) return false;
+            if (mes === "todos") return true;
+            return (d.fechaInicio ? d.fechaInicio.slice(0, 7) : "sin-fecha") === mes;
+        });
+
+        const valor = (d: DesafioResumen) => {
+            switch (orden.campo) {
+                // Las fechas son "YYYY-MM-DD": ordenan bien como texto. Las que
+                // faltan van siempre al fondo, no al principio.
+                case "fecha": return d.fechaInicio ?? "";
+                case "nombre": return d.nombre.toLowerCase();
+                case "inscriptos": return d.inscriptos;
+                case "partidos": return d.partidos;
+            }
+        };
+
+        return [...filtrados].sort((a, b) => {
+            const va = valor(a);
+            const vb = valor(b);
+            const cmp = typeof va === "number" ? va - (vb as number) : String(va).localeCompare(String(vb));
+            return orden.desc ? -cmp : cmp;
+        });
+    }, [desafios, estado, mes, orden]);
+
+    const enEdicion = desafios.find((d) => d.id === editando) ?? null;
+
+    const acciones = (d: DesafioResumen) => ({
+        pendiente,
+        onEditar: () => setEditando(d.id),
+        onAbrir: () => correr(() => abrirDesafio(d.id), "Desafío abierto: ya se pueden inscribir."),
+        onCerrar: () => correr(() => cerrarDesafio(d.id), "Desafío cerrado."),
+        onReabrir: () => correr(() => reabrirDesafio(d.id), "Desafío reabierto."),
+        onEliminar: () => eliminar(d),
+    });
+
+    const contar = (e: EstadoDesafio | "todos") =>
+        e === "todos" ? desafios.length : desafios.filter((d) => d.estado === e).length;
 
     const correr = (
         fn: () => Promise<{ ok: boolean; error?: string }>,
@@ -45,18 +107,46 @@ export default function GestionDesafiosClient({
         });
     };
 
+    /**
+     * Borrado con confirmación. Con partidos jugados se van también el historial
+     * y los puntos, así que ahí pide una segunda confirmación: es la que habilita
+     * el borrado del lado del servidor.
+     */
+    const eliminar = (d: DesafioResumen, despues?: () => void) => {
+        const detalle = [
+            d.inscriptos > 0 ? `${d.inscriptos} inscriptos` : null,
+            d.partidos > 0 ? `${d.partidos} partidos con sus puntos` : null,
+        ].filter(Boolean).join(" y ");
+        if (!confirm(`¿Eliminar "${d.nombre}"?${detalle ? ` Se borran también ${detalle}.` : ""}`)) return;
+        if (
+            d.partidos > 0 &&
+            !confirm(`Esto no se puede deshacer: se pierden los ${d.partidos} partidos de "${d.nombre}" y su tabla de posiciones. ¿Seguro?`)
+        ) return;
+        correr(() => eliminarDesafio(d.id, d.partidos > 0), "Desafío eliminado.", despues);
+    };
+
     return (
         <div className="min-h-screen bg-grid-carbon">
-            <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+            {/* Más ancho que el resto: la tabla tiene nueve columnas. */}
+            <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
                 <header className="flex items-start justify-between gap-4">
                     <div>
-                        <Link
-                            href="/desafio"
-                            className="inline-flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors mb-2"
-                        >
-                            <Swords className="w-3 h-3" />
-                            Ver la página pública
-                        </Link>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Link
+                                href="/desafio"
+                                className="inline-flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <Swords className="w-3 h-3" />
+                                Ver la página pública
+                            </Link>
+                            <Link
+                                href="/gestionDesafio/invitados"
+                                className="inline-flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <UserPlus className="w-3 h-3" />
+                                Invitados
+                            </Link>
+                        </div>
                         <h1 className="heading-sport text-2xl sm:text-3xl text-foreground">Gestión de Desafíos</h1>
                         <p className="text-[11px] text-subtle mt-1">
                             Cada desafío tiene su categoría, sus canchas y su propia tabla de posiciones.
@@ -67,214 +157,311 @@ export default function GestionDesafiosClient({
                     </div>
                 </header>
 
-                {creando ? (
-                    <Formulario
-                        titulo="Crear un desafío"
-                        accion="Crear desafío"
-                        categorias={categorias}
-                        pendiente={pendiente}
-                        onCancelar={() => setCreando(false)}
-                        onGuardar={(datos) =>
-                            correr(() => crearDesafio(datos), "Desafío creado en borrador.", () => setCreando(false))
-                        }
-                    />
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => setCreando(true)}
-                        className="w-full flex items-center justify-center gap-2 py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 shadow-lg shadow-volt/20 cursor-pointer"
-                    >
-                        <Plus className="w-3.5 h-3.5" />
-                        Crear un desafío
-                    </button>
+                <button
+                    type="button"
+                    onClick={() => setCreando(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 shadow-lg shadow-volt/20 cursor-pointer"
+                >
+                    <Plus className="w-3.5 h-3.5" />
+                    Crear un desafío
+                </button>
+
+                {creando && (
+                    <ModalFormulario onCerrar={() => setCreando(false)}>
+                        <Formulario
+                            titulo="Crear un desafío"
+                            accion="Crear desafío"
+                            categorias={categorias}
+                            pendiente={pendiente}
+                            onCancelar={() => setCreando(false)}
+                            onGuardar={(datos) =>
+                                correr(() => crearDesafio(datos), "Desafío creado en borrador.", () => setCreando(false))
+                            }
+                        />
+                    </ModalFormulario>
                 )}
 
-                {desafios.length === 0 && !creando ? (
+                {desafios.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap gap-1.5">
+                            {([
+                                ["todos", "Todos"],
+                                [ESTADO_DESAFIO.ABIERTO, "Abiertos"],
+                                [ESTADO_DESAFIO.CERRADO, "Cerrados"],
+                                [ESTADO_DESAFIO.BORRADOR, "Borradores"],
+                            ] as const).map(([valor, rotulo]) => {
+                                const n = contar(valor as EstadoDesafio | "todos");
+                                return (
+                                    <button
+                                        key={valor}
+                                        type="button"
+                                        aria-pressed={estado === valor}
+                                        onClick={() => setEstado(valor as EstadoDesafio | "todos")}
+                                        className={`px-3 h-9 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer ${estado === valor
+                                            ? "bg-celeste text-carbon-950 border-celeste shadow-lg shadow-celeste/20"
+                                            : "bg-muted border-hairline text-muted-foreground hover:text-foreground hover:border-celeste/40"
+                                            }`}
+                                    >
+                                        {rotulo} <span className="opacity-60">{n}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <select
+                            value={mes}
+                            onChange={(e) => setMes(e.target.value)}
+                            className="ml-auto h-9 px-3 rounded-xl bg-muted border border-hairline text-[10px] font-black uppercase tracking-widest text-foreground focus:outline-none focus:border-celeste/40 cursor-pointer"
+                        >
+                            <option value="todos">Todos los meses</option>
+                            {meses.map((m) => (
+                                <option key={m.valor} value={m.valor}>{m.etiqueta}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {desafios.length === 0 ? (
                     <div className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 p-8 text-center">
                         <Swords className="w-10 h-10 text-subtle mx-auto mb-3" />
                         <h2 className="heading-sport text-lg text-muted-foreground">Todavía no hay desafíos</h2>
                         <p className="text-[12px] text-subtle mt-1.5">Creá el primero para empezar a recibir inscripciones.</p>
                     </div>
+                ) : desafios.length > 0 && visibles.length === 0 ? (
+                    <div className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 p-8 text-center">
+                        <Swords className="w-10 h-10 text-subtle mx-auto mb-3" />
+                        <h2 className="heading-sport text-lg text-muted-foreground">Ningún desafío coincide</h2>
+                        <p className="text-[12px] text-subtle mt-1.5">Probá con otro estado u otro mes.</p>
+                    </div>
                 ) : (
-                    desafios.map((d) =>
-                        editando === d.id ? (
-                            <Formulario
-                                key={d.id}
-                                titulo={`Editar "${d.nombre}"`}
-                                accion="Guardar cambios"
-                                categorias={categorias}
-                                pendiente={pendiente}
-                                inicial={d}
-                                onCancelar={() => setEditando(null)}
-                                onGuardar={(datos) =>
-                                    correr(() => editarDesafio(d.id, datos), "Desafío actualizado.", () => setEditando(null))
-                                }
-                            />
-                        ) : (
-                            <TarjetaDesafio
-                                key={d.id}
-                                desafio={d}
-                                pendiente={pendiente}
-                                onEditar={() => setEditando(d.id)}
-                                onAbrir={() => correr(() => abrirDesafio(d.id), "Desafío abierto: ya se pueden inscribir.")}
-                                onCerrar={() => correr(() => cerrarDesafio(d.id), "Desafío cerrado.")}
-                                onReabrir={() => correr(() => reabrirDesafio(d.id), "Desafío reabierto.")}
-                                onEliminar={() => {
-                                    if (!confirm(`¿Eliminar "${d.nombre}"? Se borran también sus inscriptos.`)) return;
-                                    correr(() => eliminarDesafio(d.id), "Desafío eliminado.");
-                                }}
-                            />
-                        )
-                    )
+                    <>
+                        <TablaDesafios desafios={visibles} orden={orden} onOrdenar={ordenarPor} acciones={acciones} />
+                        <div className="space-y-2">
+                            {visibles.map((d) => (
+                                <FilaCompacta key={d.id} desafio={d} acciones={acciones(d)} />
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {enEdicion && (
+                    <ModalFormulario onCerrar={() => setEditando(null)}>
+                        <Formulario
+                            titulo={`Editar "${enEdicion.nombre}"`}
+                            accion="Guardar cambios"
+                            categorias={categorias}
+                            pendiente={pendiente}
+                            inicial={enEdicion}
+                            onCancelar={() => setEditando(null)}
+                            onEliminar={() => eliminar(enEdicion, () => setEditando(null))}
+                            onGuardar={(datos) =>
+                                correr(() => editarDesafio(enEdicion.id, datos), "Desafío actualizado.", () => setEditando(null))
+                            }
+                        />
+                    </ModalFormulario>
                 )}
             </div>
         </div>
     );
 }
 
-// ── Tarjeta ─────────────────────────────────────────────────────────────────
+// ── Tabla ───────────────────────────────────────────────────────────────────
+//
+// Es una pantalla de gestión: importa cuántos desafíos ves de una y qué podés
+// hacer con cada uno, no lo lindo que se ve cada tarjeta. En mobile la tabla no
+// entra, así que ahí van filas compactas con la misma información.
 
-function TarjetaDesafio({
-    desafio: d,
-    pendiente,
-    onEditar,
-    onAbrir,
-    onCerrar,
-    onReabrir,
-    onEliminar,
-}: {
-    desafio: DesafioResumen;
+type Campo = "fecha" | "nombre" | "inscriptos" | "partidos";
+type Orden = { campo: Campo; desc: boolean };
+
+/** Acciones que expone cada fila, iguales en la tabla y en mobile. */
+type AccionesFila = {
     pendiente: boolean;
     onEditar: () => void;
     onAbrir: () => void;
     onCerrar: () => void;
     onReabrir: () => void;
     onEliminar: () => void;
+};
+
+function TablaDesafios({
+    desafios, orden, onOrdenar, acciones,
+}: {
+    desafios: DesafioResumen[];
+    orden: Orden;
+    onOrdenar: (campo: Campo) => void;
+    acciones: (d: DesafioResumen) => AccionesFila;
 }) {
-    const borrador = d.estado === ESTADO_DESAFIO.BORRADOR;
-    const abierto = d.estado === ESTADO_DESAFIO.ABIERTO;
-    const cerrado = d.estado === ESTADO_DESAFIO.CERRADO;
-
     return (
-        <section className="rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40 overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-hairline bg-background/60">
-                <div className="flex items-center gap-2 min-w-0">
-                    {abierto ? <span className="live-dot" /> : cerrado ? <Trophy className="w-3.5 h-3.5 text-gold-ink" /> : <Swords className="w-3.5 h-3.5 text-muted-foreground" />}
-                    <span className={`label-tech text-[8px] ${abierto ? "text-volt-ink" : cerrado ? "text-gold-ink" : "text-muted-foreground"}`}>
-                        {ETIQUETA_ESTADO_DESAFIO[d.estado]}
-                    </span>
-                </div>
-                <button
-                    type="button"
-                    onClick={onEditar}
-                    disabled={pendiente}
-                    className="flex items-center gap-1.5 label-tech text-[8px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 cursor-pointer"
-                >
-                    <Pencil className="w-3 h-3" />
-                    Editar
-                </button>
-            </div>
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-hairline bg-card shadow-lg shadow-black/40">
+            <table className="w-full">
+                <thead>
+                    <tr className="text-[9px] font-black uppercase tracking-widest text-subtle border-b border-hairline bg-muted">
+                        <th className="py-2.5 pl-4 pr-2 text-left w-28">Estado</th>
+                        <Encabezado campo="nombre" orden={orden} onOrdenar={onOrdenar} className="py-2.5 px-2 text-left">Desafío</Encabezado>
+                        <th className="py-2.5 px-2 text-left w-24">Cat</th>
+                        <Encabezado campo="fecha" orden={orden} onOrdenar={onOrdenar} className="py-2.5 px-2 text-left w-32">Período</Encabezado>
+                        <th className="py-2.5 px-2 text-left">Hora · Lugar</th>
+                        <Encabezado campo="inscriptos" orden={orden} onOrdenar={onOrdenar} className="py-2.5 px-2 text-center w-20">Inscr.</Encabezado>
+                        <Encabezado campo="partidos" orden={orden} onOrdenar={onOrdenar} className="py-2.5 px-2 text-center w-20">Partidos</Encabezado>
+                        <th className="py-2.5 px-2 text-center w-16">Puntos</th>
+                        <th className="py-2.5 pr-4 pl-2 text-right w-64">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {desafios.map((d) => {
+                        const a = acciones(d);
+                        return (
+                            <tr key={d.id} className="border-b border-hairline last:border-0 hover:bg-muted/60 transition-colors">
+                                <td className="py-2 pl-4 pr-2"><Estado estado={d.estado} /></td>
+                                <td className="py-2 px-2 max-w-0">
+                                    {/* La descripción no tiene columna propia: vive en el title del nombre. */}
+                                    <div className="text-[12px] font-bold text-foreground truncate" title={d.descripcion || undefined}>
+                                        {d.nombre}
+                                    </div>
+                                </td>
+                                <td className="py-2 px-2 text-[10px] font-black uppercase text-celeste-light truncate">
+                                    {d.categorias.map((c) => c.nombre).join("/") || "—"}
+                                </td>
+                                <td className="py-2 px-2 text-[11px] text-muted-foreground whitespace-nowrap">
+                                    {periodo(d.fechaInicio, d.fechaFin)}
+                                </td>
+                                <td className="py-2 px-2 text-[11px] text-muted-foreground truncate max-w-0">
+                                    {[d.hora, d.lugar].filter(Boolean).join(" · ") || "—"}
+                                </td>
+                                <td className={`py-2 px-2 text-center text-[12px] tabular-nums ${d.cupo > 0 && d.inscriptos >= d.cupo ? "text-rojo" : "text-foreground"}`}>
+                                    {d.inscriptos}{d.cupo > 0 ? `/${d.cupo}` : ""}
+                                </td>
+                                <td className="py-2 px-2 text-center text-[12px] tabular-nums text-muted-foreground">{d.partidos}</td>
+                                <td className="py-2 px-2 text-center text-[10px] tabular-nums text-subtle whitespace-nowrap">
+                                    {d.puntos.participacion}+{d.puntos.victoria}+{d.puntos.derrota}
+                                </td>
+                                <td className="py-2 pr-4 pl-2">
+                                    <Acciones desafio={d} acciones={a} />
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+}
 
-            <div className="p-5">
-                <div className="flex items-center gap-3.5">
-                    <ChipCategoria nombres={d.categorias.map((c) => c.nombre)} />
-                    <div className="min-w-0">
-                        <h2 className="heading-sport text-xl text-foreground truncate">{d.nombre}</h2>
-                        <p className="label-tech text-[7px] text-celeste mt-1">
-                            {d.categorias.length === 0
-                                ? "Sin categoría"
-                                : `Exclusivo categoría ${d.categorias.map((c) => c.nombre).join(", ")}`}
-                        </p>
-                    </div>
-                </div>
+/** Encabezado ordenable: el mismo clic alterna la dirección. */
+function Encabezado({
+    campo, orden, onOrdenar, className, children,
+}: {
+    campo: Campo;
+    orden: Orden;
+    onOrdenar: (campo: Campo) => void;
+    className: string;
+    children: React.ReactNode;
+}) {
+    const activo = orden.campo === campo;
+    return (
+        <th className={className}>
+            <button
+                type="button"
+                onClick={() => onOrdenar(campo)}
+                className={`inline-flex items-center gap-1 uppercase tracking-widest transition-colors cursor-pointer ${activo ? "text-foreground" : "hover:text-foreground"}`}
+            >
+                {children}
+                {activo && (orden.desc ? <ArrowDown className="w-2.5 h-2.5" /> : <ArrowUp className="w-2.5 h-2.5" />)}
+            </button>
+        </th>
+    );
+}
 
-                {d.descripcion && <p className="text-[12px] text-muted-foreground mt-3 leading-relaxed">{d.descripcion}</p>}
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-                    <Dato icono={CalendarDays} rotulo="Período" valor={periodo(d.fechaInicio, d.fechaFin)} />
-                    <Dato icono={Clock} rotulo="Hora" valor={d.hora || "A confirmar"} />
-                    <Dato icono={MapPin} rotulo="Lugar" valor={d.lugar || "A confirmar"} />
-                    <Dato
-                        icono={Ticket}
-                        rotulo="Inscripción"
-                        valor={d.inscripcion ? `$${d.inscripcion.toLocaleString("es-AR")}` : "Gratis"}
-                    />
-                </div>
-
-                <div className="flex items-center justify-between gap-3 mt-4 px-3 py-2.5 rounded-xl bg-muted border border-hairline">
-                    <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-celeste" />
-                        <span className="label-tech text-[8px] text-muted-foreground">Inscriptos</span>
-                    </div>
-                    <span className="text-scoreboard text-[15px] text-foreground">
-                        {d.inscriptos}{d.cupo > 0 ? `/${d.cupo}` : ""}
-                    </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                    {borrador && (
-                        <button
-                            type="button"
-                            onClick={onAbrir}
-                            disabled={pendiente}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 clip-notch bg-volt text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-volt-dark transition-all active:scale-95 shadow-lg shadow-volt/20 disabled:opacity-40 cursor-pointer"
-                        >
-                            <Unlock className="w-3.5 h-3.5" />
-                            Abrir el desafío
-                        </button>
-                    )}
-                    {abierto && (
-                        <button
-                            type="button"
-                            onClick={onCerrar}
-                            disabled={pendiente}
-                            className="sm:w-auto px-4 py-3 clip-notch bg-muted border border-hairline text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:border-rojo/40 hover:text-rojo transition-all active:scale-95 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-2"
-                        >
-                            <Lock className="w-3.5 h-3.5" />
-                            Cerrar
-                        </button>
-                    )}
-                    {cerrado && (
-                        <button
-                            type="button"
-                            onClick={onReabrir}
-                            disabled={pendiente}
-                            className="sm:w-auto px-4 py-3 clip-notch bg-muted border border-hairline text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:border-celeste/40 hover:text-foreground transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
-                        >
-                            Reabrir
-                        </button>
-                    )}
-
-                    {!borrador && (
-                        <Link
-                            href={`/gestionDesafio/${d.id}`}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 clip-notch bg-celeste text-carbon-950 text-[10px] font-black uppercase tracking-widest hover:bg-celeste-light transition-all active:scale-95 shadow-lg shadow-celeste/20"
-                        >
-                            Panel en vivo
-                            <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
-                    )}
-                </div>
-
-                {borrador && (
-                    <button
-                        type="button"
-                        onClick={onEliminar}
-                        disabled={pendiente}
-                        className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-hairline text-subtle text-[9px] font-black uppercase tracking-widest hover:text-rojo hover:border-rojo/30 transition-all disabled:opacity-40 cursor-pointer"
-                    >
-                        <Trash2 className="w-3 h-3" />
-                        Eliminar desafío
-                    </button>
-                )}
-            </div>
-        </section>
+function Estado({ estado }: { estado: EstadoDesafio }) {
+    const abierto = estado === ESTADO_DESAFIO.ABIERTO;
+    const cerrado = estado === ESTADO_DESAFIO.CERRADO;
+    return (
+        <span className="flex items-center gap-1.5">
+            {abierto ? <span className="live-dot" /> : cerrado ? <Trophy className="w-3 h-3 text-gold-ink" /> : <Swords className="w-3 h-3 text-muted-foreground" />}
+            <span className={`label-tech text-[7px] ${abierto ? "text-volt-ink" : cerrado ? "text-gold-ink" : "text-muted-foreground"}`}>
+                {ETIQUETA_ESTADO_DESAFIO[estado]}
+            </span>
+        </span>
     );
 }
 
 /**
- * El cuadrito de categoría de la tarjeta. Con varias categorías admitidas las
- * muestra juntas ("C/B") y achica la tipografía para que sigan entrando.
+ * La acción que corresponde al estado va con texto; el resto en iconos con
+ * tooltip, para que la fila no se convierta en una botonera.
+ */
+function Acciones({ desafio: d, acciones: a }: { desafio: DesafioResumen; acciones: AccionesFila }) {
+    const borrador = d.estado === ESTADO_DESAFIO.BORRADOR;
+    const abierto = d.estado === ESTADO_DESAFIO.ABIERTO;
+    const icono =
+        "w-7 h-7 rounded-lg bg-muted border border-hairline flex items-center justify-center text-muted-foreground transition-all active:scale-95 disabled:opacity-30 cursor-pointer shrink-0";
+
+    return (
+        <div className="flex items-center justify-end gap-1.5">
+            {borrador ? (
+                <button type="button" onClick={a.onAbrir} disabled={a.pendiente} className="flex items-center gap-1.5 px-2.5 h-7 rounded-lg bg-volt text-carbon-950 label-tech text-[8px] hover:bg-volt-dark transition-all active:scale-95 disabled:opacity-30 cursor-pointer">
+                    <Unlock className="w-3 h-3" />
+                    Abrir
+                </button>
+            ) : abierto ? (
+                <button type="button" onClick={a.onCerrar} disabled={a.pendiente} className={`${icono} w-auto px-2.5 gap-1.5 label-tech text-[8px] hover:border-rojo/40 hover:text-rojo`} title="Cerrar el desafío">
+                    <Lock className="w-3 h-3" />
+                    Cerrar
+                </button>
+            ) : (
+                <button type="button" onClick={a.onReabrir} disabled={a.pendiente} className={`${icono} w-auto px-2.5 gap-1.5 label-tech text-[8px] hover:border-celeste/40 hover:text-foreground`} title="Reabrir para corregir resultados">
+                    Reabrir
+                </button>
+            )}
+
+            {!borrador && (
+                <Link href={`/gestionDesafio/${d.id}`} className={`${icono} hover:border-celeste/40 hover:text-celeste`} title="Panel en vivo">
+                    <Settings2 className="w-3.5 h-3.5" />
+                </Link>
+            )}
+
+            <button type="button" onClick={a.onEditar} disabled={a.pendiente} className={`${icono} hover:border-celeste/40 hover:text-foreground`} title="Editar">
+                <Pencil className="w-3.5 h-3.5" />
+            </button>
+
+            <button type="button" onClick={a.onEliminar} disabled={a.pendiente} className={`${icono} hover:border-rojo/40 hover:text-rojo`} title="Eliminar">
+                <Trash2 className="w-3.5 h-3.5" />
+            </button>
+        </div>
+    );
+}
+
+/** La misma fila para mobile, donde la tabla no entra. */
+function FilaCompacta({ desafio: d, acciones: a }: { desafio: DesafioResumen; acciones: AccionesFila }) {
+    return (
+        <div className="md:hidden rounded-xl border border-hairline bg-card p-3">
+            <div className="flex items-center justify-between gap-2">
+                <Estado estado={d.estado} />
+                <span className="text-[10px] font-black uppercase text-celeste-light">
+                    {d.categorias.map((c) => c.nombre).join("/") || "—"}
+                </span>
+            </div>
+
+            <h2 className="heading-sport text-base text-foreground truncate mt-1.5">{d.nombre}</h2>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-muted-foreground">
+                <span>{periodo(d.fechaInicio, d.fechaFin)}</span>
+                {d.hora && <span>{d.hora}</span>}
+                {d.lugar && <span className="truncate">{d.lugar}</span>}
+                <span>{d.inscriptos}{d.cupo > 0 ? `/${d.cupo}` : ""} inscr.</span>
+                <span>{d.partidos} part.</span>
+            </div>
+
+            <div className="mt-2.5">
+                <Acciones desafio={d} acciones={a} />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * El cuadrito de categoría. Con varias categorías admitidas las muestra juntas
+ * ("C/B") y achica la tipografía para que sigan entrando.
  */
 export function ChipCategoria({ nombres, size = "md" }: { nombres: string[]; size?: "md" | "lg" }) {
     const caja = size === "lg" ? "w-16 h-16" : "w-14 h-14";
@@ -301,18 +488,6 @@ export function ChipCategoria({ nombres, size = "md" }: { nombres: string[]; siz
     );
 }
 
-function Dato({ icono: Icono, rotulo, valor }: { icono: any; rotulo: string; valor: string }) {
-    return (
-        <div className="px-3 py-2 rounded-xl bg-muted border border-hairline min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-                <Icono className="w-3 h-3 text-subtle shrink-0" />
-                <span className="label-tech text-[7px] text-subtle">{rotulo}</span>
-            </div>
-            <div className="text-[11px] font-bold text-foreground truncate">{valor}</div>
-        </div>
-    );
-}
-
 function fechaLocal(s: string) {
     if (s.length === 10 && s.includes("-")) {
         const [y, m, d] = s.split("-").map(Number);
@@ -320,6 +495,13 @@ function fechaLocal(s: string) {
     }
     const d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
+}
+
+/** "agosto 2026" a partir de un "YYYY-MM", para el selector de mes. */
+function etiquetaDeMes(ym: string) {
+    const [y, m] = ym.split("-").map(Number);
+    const texto = new Date(y, m - 1, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 /** "12 de agosto" para un día, "12 ago – 30 ago" para un período. */
@@ -333,6 +515,16 @@ export function periodo(inicio: string | null, fin: string | null) {
     return `${corto(a)} – ${corto(b)}`;
 }
 
+/** Caja modal para el formulario: la tabla queda atrás, sin perder el scroll. */
+function ModalFormulario({ children, onCerrar }: { children: React.ReactNode; onCerrar: () => void }) {
+    return (
+        <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-0 sm:p-6 overflow-y-auto">
+            <div className="fixed inset-0 bg-background/70 backdrop-blur-xl" onClick={onCerrar} />
+            <div className="relative w-full sm:max-w-xl my-0 sm:my-6">{children}</div>
+        </div>
+    );
+}
+
 // ── Formulario ──────────────────────────────────────────────────────────────
 
 function Formulario({
@@ -343,6 +535,7 @@ function Formulario({
     pendiente,
     onGuardar,
     onCancelar,
+    onEliminar,
 }: {
     titulo: string;
     accion: string;
@@ -351,6 +544,8 @@ function Formulario({
     pendiente: boolean;
     onGuardar: (datos: DatosDesafio) => void;
     onCancelar: () => void;
+    /** Sólo al editar: crear todavía no tiene nada que borrar. */
+    onEliminar?: () => void;
 }) {
     const [form, setForm] = useState<DatosDesafio>({
         nombre: inicial?.nombre ?? "",
@@ -517,6 +712,18 @@ function Formulario({
                     {accion}
                 </button>
             </div>
+
+            {onEliminar && (
+                <button
+                    type="button"
+                    onClick={onEliminar}
+                    disabled={pendiente}
+                    className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-hairline text-subtle text-[9px] font-black uppercase tracking-widest hover:text-rojo hover:border-rojo/30 transition-all disabled:opacity-40 cursor-pointer"
+                >
+                    <Trash2 className="w-3 h-3" />
+                    Eliminar desafío
+                </button>
+            )}
         </section>
     );
 }

@@ -61,6 +61,13 @@ export function revalidarDesafio(desafioId?: string) {
     }
 }
 
+/**
+ * Cuántos desafíos entran en una página de /desafio. Cada tarjeta cuesta varias
+ * queries (inscriptos, pool, ranking), así que paginar acota el trabajo del
+ * servidor además del largo de la pantalla.
+ */
+export const DESAFIOS_POR_PAGINA = 5;
+
 /** Ids del proyecto: uuid v4 en varchar(36). */
 export const nuevoId = () => crypto.randomUUID();
 

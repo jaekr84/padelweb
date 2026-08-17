@@ -28,6 +28,7 @@ import { armarPareja, desarmarPareja } from "../../desafio/actions/parejas";
 import { cancelarPartido, confirmarResultado, corregirResultado, iniciarPartido, rechazarResultado } from "../../desafio/actions/partidos";
 import { anotarEnCola, anotarPartidosEnCola, asignarSiguienteDeCola, reordenarCola, sacarDeCola } from "../../desafio/actions/cola";
 import { cerrarDesafio } from "../../desafio/actions/desafios";
+import { crearInvitado } from "../../desafio/actions/invitados";
 import { ChipCategoria, periodo } from "../GestionDesafiosClient";
 
 type Props = {
@@ -1016,6 +1017,8 @@ function ModalInscribir({
 
     return (
         <Modal titulo="Inscribir jugador" onCerrar={onCerrar}>
+            <FormularioInvitado desafioId={desafioId} pendiente={pendiente} correr={correr} />
+
             <div className="relative mb-3">
                 <input
                     autoFocus
@@ -1115,6 +1118,124 @@ function ModalInscribir({
         </Modal>
     );
 }
+
+/**
+ * Alta de un invitado: alguien que juega el desafío sin tener cuenta. Queda
+ * guardado como jugador (marcado como invitado) y después se le puede dar el
+ * alta desde /gestionDesafio/invitados, conservando todo lo que jugó.
+ */
+function FormularioInvitado({
+    desafioId, pendiente, correr,
+}: {
+    desafioId: string;
+    pendiente: boolean;
+    correr: Correr;
+}) {
+    const [abierto, setAbierto] = useState(false);
+    const [form, setForm] = useState({ nombre: "", apellido: "", categoria: "", lado: "" as Lado | "", telefono: "" });
+
+    const set = (k: keyof typeof form, v: string) => setForm((p) => ({ ...p, [k]: v }));
+    const listo = form.nombre.trim().length > 0 && form.lado !== "";
+
+    if (!abierto) {
+        return (
+            <button
+                type="button"
+                onClick={() => setAbierto(true)}
+                className="w-full mb-3 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-hairline text-subtle label-tech text-[8px] hover:text-foreground hover:border-celeste/40 transition-all cursor-pointer"
+            >
+                <UserPlus className="w-3.5 h-3.5" />
+                No está en la lista: agregarlo como invitado
+            </button>
+        );
+    }
+
+    return (
+        <div className="mb-3 rounded-xl border border-celeste/30 bg-celeste/[0.04] p-3">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+                <span className="label-tech text-[8px] text-celeste">Nuevo invitado</span>
+                <button
+                    type="button"
+                    onClick={() => setAbierto(false)}
+                    className="label-tech text-[8px] text-subtle hover:text-foreground transition-colors cursor-pointer"
+                >
+                    Cancelar
+                </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <input
+                    autoFocus
+                    value={form.nombre}
+                    onChange={(e) => set("nombre", e.target.value)}
+                    placeholder="Nombre"
+                    className={entradaChica}
+                />
+                <input
+                    value={form.apellido}
+                    onChange={(e) => set("apellido", e.target.value)}
+                    placeholder="Apellido"
+                    className={entradaChica}
+                />
+                <input
+                    value={form.categoria}
+                    onChange={(e) => set("categoria", e.target.value.toUpperCase())}
+                    placeholder="Categoría (ej: C)"
+                    className={entradaChica}
+                />
+                <input
+                    value={form.telefono}
+                    onChange={(e) => set("telefono", e.target.value)}
+                    placeholder="Teléfono (opcional)"
+                    className={entradaChica}
+                />
+            </div>
+
+            <div className="flex gap-1 mt-2">
+                {([LADO.DRIVE, LADO.REVES, LADO.AMBOS] as Lado[]).map((l) => (
+                    <button
+                        key={l}
+                        type="button"
+                        onClick={() => set("lado", l)}
+                        className={`flex-1 py-1.5 rounded-lg label-tech text-[8px] border transition-all cursor-pointer ${
+                            form.lado === l
+                                ? "bg-celeste/15 border-celeste/40 text-celeste"
+                                : "bg-muted border-hairline text-subtle hover:text-foreground"
+                        }`}
+                    >
+                        {ETIQUETA_LADO[l]}
+                    </button>
+                ))}
+            </div>
+
+            <button
+                type="button"
+                onClick={() =>
+                    correr(
+                        () => crearInvitado(desafioId, { ...form, lado: form.lado as string }),
+                        `${form.nombre} agregado como invitado.`,
+                        () => {
+                            setForm({ nombre: "", apellido: "", categoria: "", lado: "", telefono: "" });
+                            setAbierto(false);
+                        }
+                    )
+                }
+                disabled={pendiente || !listo}
+                className="w-full mt-2 py-2.5 clip-notch bg-celeste text-carbon-950 label-tech text-[8px] hover:bg-celeste-light transition-all active:scale-95 disabled:opacity-30 cursor-pointer"
+            >
+                Crear e inscribir
+            </button>
+
+            <p className="text-[9px] text-subtle mt-2 leading-relaxed">
+                Queda guardado como jugador sin cuenta: puede jugar y sumar puntos. Después se le da el alta desde
+                Invitados, sin perder nada de lo que jugó.
+            </p>
+        </div>
+    );
+}
+
+const entradaChica =
+    "w-full bg-muted border border-hairline rounded-lg h-9 px-2.5 text-[11px] font-bold text-foreground placeholder:text-subtle focus:outline-none focus:border-celeste/40";
 
 // ── Bandeja de confirmación ─────────────────────────────────────────────────
 

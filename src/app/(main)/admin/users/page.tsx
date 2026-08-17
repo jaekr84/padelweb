@@ -27,9 +27,14 @@ export default async function UserManagementPage() {
         gender: users.gender,
         documentNumber: users.documentNumber,
         clubId: users.clubId,
+        phone: users.phone,
+        isGuest: users.isGuest,
         createdAt: users.createdAt,
     })
     .from(users)
+    // Los invitados del Desafío entran acá con su chip: el alta se hace en
+    // /gestionDesafio/invitados, pero tienen que poder encontrarse desde la
+    // gestión de usuarios, que es donde uno los va a buscar.
     .where(notInArray(users.email, HIDDEN_USER_EMAILS as unknown as string[]))
     .orderBy(desc(users.createdAt));
 
